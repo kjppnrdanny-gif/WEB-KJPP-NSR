@@ -1,0 +1,29 @@
+name: Deploy ke cPanel KJPP NSR
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: Deploy Website to cPanel
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Ambil Kode Terbaru dari Repo
+        uses: actions/checkout@v4
+
+      - name: 📂 Sinkronisasi File ke cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_SERVER }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          server-dir: public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            README*.txt
+            *.md
+            package*.json
