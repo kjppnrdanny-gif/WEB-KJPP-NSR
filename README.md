@@ -11,11 +11,11 @@ Official Company Profile Website & Interactive System Platform for **Kantor Jasa
 ## 🛠️ Fitur & Arsitektur Website
 
 - **Landing Page Profil Lengkap**: Profil dewan rekan, seksi visi misi, regulasi standar SPI 204 & KEPI, portofolio PSN Jalan Tol, kalkulator valuasi, peta cabang interaktif, dan formulir RFP.
-- **Komponen Interaktif React Bits**:
-  - `<LightRays />` (`light-rays.html`): WebGL volumetric shader with mouse interaction.
-  - `<DotField />` (`dot-field.html`): Interactive canvas particle system.
-  - `<CountUp />` (`count-up.html`): Dynamic numeric counter with Motion spring physics.
-- **Partner Showcase**: Marquee interaktif logo perbankan & BUMN mitra strategis (`trusted-by.html`).
+- **Komponen Visual & Interaktif**:
+  - `LightRays`: WebGL volumetric lighting shader di area hero landing page.
+  - `DotField`: Interactive canvas dot grid particle system.
+  - `CountUp`: Dynamic numeric counter dengan Motion spring physics di seksi statistik kunci.
+- **Partner Showcase**: Marquee interaktif logo perbankan & BUMN mitra strategis.
 - **Visitor Analytics**: Real-time visitor tracking terintegrasi backend PHP & Netlify Blobs.
 
 ---
