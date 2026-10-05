@@ -5029,25 +5029,23 @@
       </div>
     </div>
 
-    <!-- Statistik Kunjungan Perangkat (Ringkas di Paling Bawah, Posisi Tengah) -->
+    <!-- Status Telemetri Sistem & Verifikasi Server (Linear / Minimalist Style) -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pt-4 border-t border-slate-900/80 flex justify-center">
-      <div class="inline-flex items-center flex-wrap justify-center gap-x-3 gap-y-1.5 px-3.5 py-1.5 rounded-full bg-slate-900/70 border border-slate-800 text-[11px] text-slate-400 shadow-sm">
-        <div class="flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="font-semibold text-slate-300">Live Traffic</span>
-          <span class="text-[9px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">Real-Time</span>
+      <div class="group inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-950/60 hover:bg-slate-900/80 border border-slate-800/80 hover:border-slate-700/80 text-[11px] text-slate-400 backdrop-blur-md transition-all duration-300 shadow-sm cursor-default">
+        <span class="relative flex h-2 w-2 flex-shrink-0" title="Koneksi Server Real-Time Aktif">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="font-medium text-slate-300 tracking-tight">Sistem Aktif</span>
+        <span class="text-slate-700 select-none">·</span>
+        <div class="inline-flex items-center gap-1">
+          <span class="text-slate-400">Total Kunjungan:</span>
+          <span id="visitor-total" class="font-mono font-medium text-slate-200 tabular-nums tracking-tight">18.460</span>
         </div>
-        <span class="text-slate-700 hidden sm:inline">&bull;</span>
-        <div class="flex items-center gap-1">
-          <span class="text-[10px] text-slate-400 uppercase tracking-wider">Total Kunjungan:</span>
-          <span id="visitor-total" class="font-bold text-amber-400 font-mono text-xs">18.454</span>
-          <span class="text-[10px] text-slate-500">tercatat</span>
-        </div>
-        <span class="text-slate-700 hidden sm:inline">&bull;</span>
-        <div class="flex items-center gap-1">
-          <span class="text-[10px] text-slate-400 uppercase tracking-wider">Hari Ini:</span>
-          <span id="visitor-today" class="font-bold text-emerald-400 font-mono text-xs">128</span>
-          <span class="text-[10px] text-slate-500">kunjungan</span>
+        <span class="text-slate-700 select-none">·</span>
+        <div class="inline-flex items-center gap-1">
+          <span class="text-slate-400">Hari ini:</span>
+          <span id="visitor-today" class="font-mono font-medium text-slate-300 tabular-nums tracking-tight">6</span>
         </div>
       </div>
     </div>
@@ -6363,7 +6361,7 @@
 
     // 7. Visitor Counter (Real-Time Device Tracking & Auto-Sync)
     async function inisialisasiVisitorCounter() {
-      const fallback = { total: 18454, today: 128 };
+      const fallback = { total: 18460, today: 6 };
       const elTotal = document.getElementById('visitor-total');
       const elToday = document.getElementById('visitor-today');
 
@@ -6383,7 +6381,8 @@
         const startTime = performance.now();
         function update(now) {
           const progress = Math.min((now - startTime) / duration, 1);
-          const current = Math.floor(start + range * progress);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = Math.floor(start + range * eased);
           el.textContent = formatNum(current);
           if (progress < 1) requestAnimationFrame(update);
           else el.textContent = formatNum(end);
@@ -6394,7 +6393,7 @@
       const tampilkan = (data, animate = false) => {
         const nextTotal = Number(data.total ?? fallback.total);
         const nextToday = Number(data.today ?? fallback.today);
-        if (animate) {
+        if (animate && (nextTotal !== curTotal || nextToday !== curToday)) {
           animateValue(elTotal, curTotal, nextTotal);
           animateValue(elToday, curToday, nextToday);
         } else {
@@ -6409,14 +6408,25 @@
 
       async function requestStats(isPoll = false) {
         const query = isPoll ? '?poll=1' : '';
-        const endpoints = ['/api/visitor-stats' + query, 'visitor-stats.php' + query];
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:';
+        
+        // Direct production sync on localhost/preview; relative with fallback on production domain
+        const endpoints = isLocal
+          ? ['https://kjppnanangrahayu.com/visitor-stats.php' + query]
+          : [
+              'visitor-stats.php' + query,
+              '/visitor-stats.php' + query,
+              'https://kjppnanangrahayu.com/visitor-stats.php' + query
+            ];
+
         for (const ep of endpoints) {
           try {
             const response = await fetch(ep, {
-              method: isPoll ? 'GET' : 'POST',
+              method: 'GET',
               headers: { 'Accept': 'application/json' },
-              cache: 'no-store',
-              credentials: 'same-origin'
+              cache: 'no-store'
             });
             if (response.ok) {
               const data = await response.json();
@@ -6437,7 +6447,7 @@
         console.debug('Visitor stats initial fallback:', err?.message || err);
       }
 
-      // Real-time background sync polling every 20 seconds
+      // Real-time background sync polling every 10 seconds
       setInterval(async () => {
         try {
           const liveData = await requestStats(true);
@@ -6445,7 +6455,7 @@
             tampilkan(liveData, true);
           }
         } catch (_) {}
-      }, 20000);
+      }, 10000);
     }
   </script>
 

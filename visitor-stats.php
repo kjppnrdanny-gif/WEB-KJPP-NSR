@@ -18,9 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 date_default_timezone_set('Asia/Jakarta');
 
-$INITIAL_TOTAL = 18454;
-$INITIAL_TODAY = 128;
-$INITIAL_DATE  = '2026-10-03';
+$INITIAL_TOTAL = 18460;
+$INITIAL_TODAY = 6;
+$INITIAL_DATE  = '2026-10-06';
 $todayDate     = date('Y-m-d');
 $dataFile      = __DIR__ . '/visitor-data.json';
 
