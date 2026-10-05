@@ -37,7 +37,7 @@
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="components/DotField.css">
 
   <style>
     :root {
@@ -100,7 +100,10 @@
     }
   </style>
 </head>
-<body class="bg-background text-foreground min-h-screen transition-colors duration-300">
+<body class="bg-background text-foreground min-h-screen transition-colors duration-300 relative">
+
+  <!-- Interactive DotField Background -->
+  <div id="trusted-by-dot-field" class="dot-field-container pointer-events-none fixed inset-0 w-full h-full z-0 opacity-70" style="-webkit-mask-image: radial-gradient(ellipse at center, white 40%, transparent 85%); mask-image: radial-gradient(ellipse at center, white 40%, transparent 85%);" aria-hidden="true"></div>
 
   <!-- Top Navigation Bar -->
   <header class="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
@@ -740,7 +743,25 @@ MarqueeLogoScroller.displayName = 'MarqueeLogoScroller';`;
     window.addEventListener('DOMContentLoaded', () => {
       renderMarquee('demo');
       showCodeTab('react');
+
+      const dotContainer = document.getElementById('trusted-by-dot-field');
+      if (dotContainer && window.initDotField) {
+        window.initDotField(dotContainer, {
+          dotRadius: 1.4,
+          dotSpacing: 16,
+          cursorRadius: 280,
+          bulgeOnly: true,
+          bulgeStrength: 42,
+          glowRadius: 140,
+          sparkle: true,
+          waveAmplitude: 0,
+          gradientFrom: 'rgba(56, 189, 248, 0.38)',
+          gradientTo: 'rgba(148, 163, 184, 0.20)',
+          glowColor: 'rgba(56, 189, 248, 0.20)'
+        });
+      }
     });
   </script>
+  <script src="lib/dot-field.bundle.js"></script>
 </body>
 </html>
