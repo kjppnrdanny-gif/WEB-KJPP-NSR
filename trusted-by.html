@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trusted By - Marquee Logo Scroller | KJPP Nanang Rahayu & Rekan</title>
+  <meta name="description" content="Showcase komponen animasi Marquee Logo Scroller interaktif dengan efek hover gradient, mask linear fade, dan kontrol kecepatan multi-preset.">
+
+  <!-- Favicon Resmi KJPP NSR -->
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+  <link rel="shortcut icon" href="favicon.ico?v=2">
+  <link rel="apple-touch-icon" href="favicon.png?v=2">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            card: 'hsl(var(--card))',
+            'card-foreground': 'hsl(var(--card-foreground))',
+            secondary: 'hsl(var(--secondary))',
+            'secondary-foreground': 'hsl(var(--secondary-foreground))',
+            muted: 'hsl(var(--muted))',
+            'muted-foreground': 'hsl(var(--muted-foreground))',
+            border: 'hsl(var(--border))',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    html.light {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Keyframes Marquee Infinite Loop */
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @keyframes marqueeReverse {
+      from { transform: translateX(-50%); }
+      to { transform: translateX(0); }
+    }
+
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee var(--marquee-speed, 40s) linear infinite;
+    }
+    .marquee-track.reverse-direction {
+      animation: marqueeReverse var(--marquee-speed, 40s) linear infinite;
+    }
+    .marquee-track:hover,
+    .marquee-track.is-paused {
+      animation-play-state: paused !important;
+    }
+
+    .marquee-mask {
+      mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+  </style>
+</head>
+<body class="bg-background text-foreground min-h-screen transition-colors duration-300">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-900 to-slate-950 border border-sky-400/30 flex items-center justify-center shadow-lg group-hover:scale-105 transition">
+            <span class="font-black text-sky-400 text-sm tracking-wider">NSR</span>
+          </div>
+          <div>
+            <div class="font-extrabold text-sm sm:text-base leading-tight tracking-tight flex items-center gap-2">
+              KJPP Nanang Rahayu & Rekan
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold uppercase hidden sm:inline-block">UI Component</span>
+            </div>
+            <p class="text-[11px] text-muted-foreground">Marquee Logo Scroller Component &amp; Showcase</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Light Rays Link -->
+        <a href="light-rays.html" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 hover:bg-secondary text-foreground text-xs font-semibold transition">
+          <span>✨ Light Rays (Shader) →</span>
+        </a>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-lg border border-border bg-secondary/50 hover:bg-secondary text-foreground transition" title="Ganti Tema (Dark / Light)">
+          <span id="themeIcon">☀️</span>
+        </button>
+
+        <!-- Back to Website -->
+        <a href="index.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold shadow-sm transition active:scale-95">
+          <span>← Kembali ke Website</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Header -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-10">
+
+    <!-- Page Title & Controls Hub -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          Interactive Marquee Component
+        </div>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-balance">
+          "Trusted By" Marquee Logo Scroller
+        </h1>
+        <p class="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
+          Komponen infinite auto-scroll modern dengan mask linear fade di kedua sisi, hover gradient pop-in (<code class="text-sky-400 font-mono text-xs">scale-150 → scale-100</code>), jeda interaktif saat diarahkan kursor, serta kontrol kecepatan.
+        </p>
+      </div>
+
+      <!-- Quick Switcher Tabs -->
+      <div class="flex items-center p-1 bg-secondary rounded-xl border border-border self-start md:self-auto shrink-0">
+        <button id="tabBtnDemo" onclick="switchDataset('demo')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-background text-foreground shadow-sm">
+          Global Tech Partners (Demo)
+        </button>
+        <button id="tabBtnNSR" onclick="switchDataset('nsr')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-muted-foreground hover:text-foreground">
+          KJPP NSR Partners (Perbankan &amp; BUMN)
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Interactive Controls Panel -->
+    <div class="p-4 sm:p-5 rounded-xl border border-border bg-card shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Kecepatan:</span>
+        <button onclick="setSpeed('normal', this)" class="speed-btn px-3 py-1.5 rounded-lg text-xs font-semibold border transition bg-sky-600 text-white border-sky-500 shadow-sm">
+          Normal (40s)
+        </button>
+        <button onclick="setSpeed('slow', this)" class="speed-btn px-3 py-1.5 rounded-lg text-xs font-semibold border transition bg-secondary text-muted-foreground border-border hover:text-foreground">
+          Lambat (80s)
+        </button>
+        <button onclick="setSpeed('fast', this)" class="speed-btn px-3 py-1.5 rounded-lg text-xs font-semibold border transition bg-secondary text-muted-foreground border-border hover:text-foreground">
+          Cepat (15s)
+        </button>
+
+        <div class="h-5 w-px bg-border mx-1 hidden sm:block"></div>
+
+        <!-- Custom Slider -->
+        <div class="flex items-center gap-2">
+          <label for="speedSlider" class="text-xs text-muted-foreground">Kustom:</label>
+          <input id="speedSlider" type="range" min="5" max="100" value="40" oninput="setCustomSpeed(this.value)" class="w-24 sm:w-32 accent-sky-500 cursor-pointer">
+          <span id="sliderValueText" class="text-xs font-mono text-sky-400 font-bold w-9">40s</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Play / Pause Button -->
+        <button id="pauseToggleBtn" onclick="togglePause()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-border bg-secondary hover:bg-secondary/80 text-foreground transition flex items-center gap-1.5">
+          <span id="pauseIcon">⏸</span> <span id="pauseText">Jeda Animasi</span>
+        </button>
+
+        <!-- Direction Button -->
+        <button id="directionToggleBtn" onclick="toggleDirection()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-border bg-secondary hover:bg-secondary/80 text-foreground transition flex items-center gap-1.5">
+          <span>⇄</span> <span id="directionText">Arah: Kiri</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN COMPONENT PREVIEW CONTAINER -->
+    <div class="relative w-full">
+      <section
+        id="marqueeComponentSection"
+        aria-label="Trusted by Businesses Worldwide"
+        class="w-full bg-background text-foreground rounded-2xl border border-border overflow-hidden shadow-2xl transition-all duration-300"
+      >
+        <!-- Header Section -->
+        <div class="p-6 md:p-8 lg:p-10">
+          <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 lg:gap-8 pb-6 md:pb-8 border-b border-border items-end">
+            <div>
+              <div id="sectionBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+                Official Partners
+              </div>
+              <h2 id="sectionTitle" class="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tighter text-balance">
+                Trusted by Businesses Worldwide
+              </h2>
+            </div>
+            <p id="sectionDescription" class="text-muted-foreground self-start lg:justify-self-end text-balance text-sm sm:text-base leading-relaxed">
+              Founders, developers, and business leaders across the globe chose us for their digital asset operations.
+            </p>
+          </div>
+        </div>
+
+        <!-- Marquee Section with Mask Image -->
+        <div class="w-full overflow-hidden marquee-mask">
+          <div
+            id="activeMarqueeTrack"
+            class="marquee-track flex items-center gap-4 py-5 pr-4 transition-all duration-300 ease-in-out"
+          >
+            <!-- Card items injected dynamically by JavaScript -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Features & Design System Callout -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+      <div class="p-5 rounded-xl border border-border bg-card/60 space-y-2">
+        <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-sm">
+          ✦
+        </div>
+        <h3 class="font-bold text-base">CSS Mask Gradient Edge</h3>
+        <p class="text-xs text-muted-foreground leading-relaxed">
+          Menggunakan <code class="text-sky-400 font-mono text-[11px]">linear-gradient(to right, transparent, black 10%, black 90%, transparent)</code> sehingga logo keluar dan masuk layar dengan gradasi lembut tanpa terpotong tajam.
+        </p>
+      </div>
+
+      <div class="p-5 rounded-xl border border-border bg-card/60 space-y-2">
+        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm">
+          ⚡
+        </div>
+        <h3 class="font-bold text-base">Hover Gradient Pop-in</h3>
+        <p class="text-xs text-muted-foreground leading-relaxed">
+          Setiap kartu memiliki variabel CSS warna unik (<code class="text-amber-400 font-mono text-[11px]">--from, --via, --to</code>) yang memicu animasi perbesaran dan opacity halus selama 700ms saat kursor diarahkan.
+        </p>
+      </div>
+
+      <div class="p-5 rounded-xl border border-border bg-card/60 space-y-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm">
+          ∞
+        </div>
+        <h3 class="font-bold text-base">Seamless Infinite Looping</h3>
+        <p class="text-xs text-muted-foreground leading-relaxed">
+          Daftar partner dirender dua kali (<code class="text-emerald-400 font-mono text-[11px]">[...logos, ...logos]</code>) dengan perpindahan tepat <code class="text-emerald-400 font-mono text-[11px]">translateX(-50%)</code> sehingga putaran berlangsung mulus tanpa jeda.
+        </p>
+      </div>
+    </div>
+
+    <!-- CODE SNIPPET VIEWER & COPY -->
+    <div class="pt-8 border-t border-border">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div>
+          <h3 class="text-xl font-bold tracking-tight">Source Code &amp; Implementation</h3>
+          <p class="text-xs text-muted-foreground">Salin kode React (TSX) atau HTML + Tailwind murni langsung ke proyek Anda.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="flex items-center p-1 bg-secondary rounded-lg border border-border text-xs">
+            <button id="codeTabReact" onclick="showCodeTab('react')" class="px-3 py-1.5 rounded-md font-semibold transition bg-background text-foreground shadow-sm">
+              React (TSX)
+            </button>
+            <button id="codeTabHTML" onclick="showCodeTab('html')" class="px-3 py-1.5 rounded-md font-semibold transition text-muted-foreground hover:text-foreground">
+              HTML + Tailwind
+            </button>
+          </div>
+
+          <button onclick="copyCode()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition shadow-sm active:scale-95">
+            <span id="copyIcon">📋</span>
+            <span id="copyLabel">Salin Kode</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Box -->
+      <div class="relative rounded-xl border border-border bg-slate-950 p-4 sm:p-5 overflow-hidden">
+        <pre id="codeDisplay" class="text-xs text-slate-300 overflow-x-auto max-h-[460px] leading-relaxed"></pre>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-border mt-16 py-8 bg-card/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+      <p>© 2026 KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan (KJPP NSR). All rights reserved.</p>
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="hover:text-foreground transition">Halaman Utama</a>
+        <span>•</span>
+        <a href="index.html#rekanan" class="hover:text-foreground transition">Daftar Mitra Resmi</a>
+        <span>•</span>
+        <a href="index.html#layanan" class="hover:text-foreground transition">Layanan Penilaian</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium text-xs shadow-xl">
+    <span>✓</span>
+    <span id="toastMessage">Kode berhasil disalin ke clipboard!</span>
+  </div>
+
+  <!-- Component Logic Script -->
+  <script>
+    // DATASET 1: Global Tech Partners (As requested in user prompt)
+    const demoPartners = [
+      {
+        src: 'https://cdn.21st.dev/assets/mirror/2b/2b87e7cd0c48dbf324666f347340afc1156fc86a466021e480ac9c288c618fd6.svg',
+        alt: 'Procure',
+        gradient: { from: '#668CFF', via: '#0049FF', to: '#003199' },
+      },
+      {
+        src: 'https://cdn.21st.dev/assets/mirror/86/86e19afda708cead229b714d25de147ef0b920cfea807c5b2933b30d17a234db.svg',
+        alt: 'Clerk',
+        gradient: { from: '#FFE766', via: '#FFCE00', to: '#B38F00' },
+      },
+      {
+        src: 'https://cdn.21st.dev/assets/mirror/60/60a4c31343f8356ecbaaee324bd6253deacd8a6c27c3fe33f06ecc59ed4bd164.svg',
+        alt: 'Blender',
+        gradient: { from: '#6690F0', via: '#255BE3', to: '#193B99' },
+      },
+      {
+        src: 'https://cdn.21st.dev/assets/mirror/5b/5bcdea3417293412845b8298fe357fce3b192e8ff112d9b3fef315bc5cd127f6.svg',
+        alt: 'Figma',
+        gradient: { from: '#C4C2FF', via: '#9896FF', to: '#5B4DCC' },
+      },
+      {
+        src: 'https://cdn.21st.dev/assets/mirror/d3/d3f7f94d90089fd318a2649807d5d57cf353affcf9d4cd2c5d373062822cf507.svg',
+        alt: 'Mocha',
+        gradient: { from: '#FF66A1', via: '#FF007A', to: '#B3005A' },
+      },
+      {
+        src: 'https://cdn.21st.dev/assets/mirror/59/59c903cc3c11f4fc63286675a5460bbaa5c80643acf85c3dd2394b27ab00eaf5.svg',
+        alt: 'Layers',
+        gradient: { from: '#D9FF5A', via: '#AFFF01', to: '#7A9900' },
+      },
+      {
+        src: 'https://cdn.21st.dev/assets/mirror/e3/e314a1d65f5035bdcebb84ed740ed0341cc5ba15ecf22fa2c1b10d39fbe18880.svg',
+        alt: 'Google Cloud',
+        gradient: { from: '#8AA7FF', via: '#5F86FF', to: '#3A5ACC' },
+      },
+      {
+        src: 'https://cdn.21st.dev/assets/mirror/19/192d4671a23e40c7deb8fb16c48970e27f116a6ca5cc648eb6e3b366f5c8dd6d.svg',
+        alt: 'Framer',
+        gradient: { from: '#67F0D1', via: '#2AE5B9', to: '#1B8F72' },
+      },
+    ];
+
+    // DATASET 2: KJPP NSR Indonesian Institutional & Banking Partners (Real Official Logos)
+    const nsrPartners = [
+      { name: 'BCA (Bank Central Asia)', src: 'images/logos/bca.svg', gradient: { from: '#003893', via: '#0060DF', to: '#002060' } },
+      { name: 'Bank BRI', src: 'images/logos/bri.svg', gradient: { from: '#00529C', via: '#0073E6', to: '#F37021' } },
+      { name: 'Bank Mandiri', src: 'images/logos/mandiri.svg', gradient: { from: '#002D62', via: '#0C4A8E', to: '#F5A623' } },
+      { name: 'Bank BNI 46', src: 'images/logos/bni.svg', gradient: { from: '#005E6A', via: '#008290', to: '#F15A24' } },
+      { name: 'Bank BTN', src: 'images/logos/btn.svg', gradient: { from: '#002C6C', via: '#00529C', to: '#ED1C24' } },
+      { name: 'Bank BJB', src: 'images/logos/bjb.svg', gradient: { from: '#005596', via: '#0074B7', to: '#F7941D' } },
+      { name: 'Bank Danamon', src: 'images/logos/danamon.svg', gradient: { from: '#004B87', via: '#0072CE', to: '#F37021' } },
+      { name: 'Bank DKI', src: 'images/logos/bank-dki.svg', gradient: { from: '#C8102E', via: '#E02444', to: '#1E293B' } },
+      { name: 'Otoritas Jasa Keuangan (OJK)', src: 'images/logos/ojk.png', gradient: { from: '#8B0000', via: '#C41230', to: '#E67E22' } },
+      { name: 'Pertamina', src: 'images/logos/pertamina.svg', gradient: { from: '#0B286D', via: '#00783E', to: '#ED1B2D' } },
+      { name: 'PLN (Persero)', src: 'images/logos/pln.svg', gradient: { from: '#0072CE', via: '#0093DD', to: '#FFCC00' } },
+      { name: 'Kementerian ATR / BPN', src: 'images/logos/atr-bpn.png', gradient: { from: '#453210', via: '#855E10', to: '#D4AF37' } },
+      { name: 'Kemenkeu RI', src: 'images/logos/kemenkeu.svg', gradient: { from: '#0B1B4F', via: '#1E3A8A', to: '#F59E0B' } },
+      { name: 'Semen Indonesia (SIG)', src: 'images/logos/sig.svg', gradient: { from: '#8B0000', via: '#C00000', to: '#FF4B4B' } },
+      { name: 'Bio Farma', src: 'images/logos/bio-farma.svg', gradient: { from: '#046A38', via: '#0D9488', to: '#2DD4BF' } },
+      { name: 'Holding Perkebunan Nusantara (PTPN)', src: 'images/logos/ptpn.png', gradient: { from: '#064E3B', via: '#15803D', to: '#4ADE80' } },
+      { name: 'Waskita Karya', src: 'images/logos/waskita.svg', gradient: { from: '#1E3A8A', via: '#0284C7', to: '#F59E0B' } },
+      { name: 'Adhi Karya', src: 'images/logos/adhi-karya.png', gradient: { from: '#1D4ED8', via: '#2563EB', to: '#EF4444' } }
+    ];
+
+    let currentDataset = 'demo';
+    let currentSpeed = '40s';
+    let isPaused = false;
+    let isReverse = false;
+
+    // Render Function
+    function renderMarquee(datasetType) {
+      currentDataset = datasetType;
+      const track = document.getElementById('activeMarqueeTrack');
+      const title = document.getElementById('sectionTitle');
+      const desc = document.getElementById('sectionDescription');
+      const badge = document.getElementById('sectionBadge');
+
+      if (!track) return;
+
+      if (datasetType === 'demo') {
+        title.textContent = 'Trusted by Businesses Worldwide';
+        desc.textContent = 'Founders, developers, and business leaders across the globe chose us for their digital asset operations.';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span> Global Enterprise';
+
+        const doubleLogos = [...demoPartners, ...demoPartners];
+        track.innerHTML = doubleLogos.map((logo, idx) => `
+          <div
+            key="${idx}"
+            class="group relative h-24 w-44 shrink-0 flex items-center justify-center rounded-xl bg-secondary/70 border border-border/70 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.03]"
+            style="--from: ${logo.gradient.from}; --via: ${logo.gradient.via}; --to: ${logo.gradient.to};"
+          >
+            <!-- Gradient background revealed on hover -->
+            <div class="absolute inset-0 scale-150 opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-100 bg-gradient-to-br from-[var(--from)] via-[var(--via)] to-[var(--to)]"></div>
+            <!-- Logo Image -->
+            <img
+              src="${logo.src}"
+              alt="${logo.alt}"
+              class="relative h-1/2 w-auto object-contain filter drop-shadow group-hover:brightness-110 transition duration-300"
+              loading="lazy"
+            />
+          </div>
+        `).join('');
+      } else {
+        title.textContent = 'Dipercaya Puluhan Lembaga Keuangan, BUMN & Korporasi';
+        desc.textContent = 'Mitra strategis penilaian properti independen, valuasi kelayakan bisnis, dan pengadaan tanah kepentingan umum PSN yang berizin resmi OJK dan Kemenkeu RI.';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Rekanan Terdaftar OJK & Kemenkeu';
+
+        const doubleNsr = [...nsrPartners, ...nsrPartners];
+        track.innerHTML = doubleNsr.map((partner, idx) => `
+          <div
+            key="${idx}"
+            class="group relative h-24 w-48 shrink-0 flex items-center justify-center rounded-xl bg-secondary/80 border border-border overflow-hidden shadow-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.03]"
+            style="--from: ${partner.gradient.from}; --via: ${partner.gradient.via}; --to: ${partner.gradient.to};"
+          >
+            <!-- Gradient background revealed on hover -->
+            <div class="absolute inset-0 scale-150 opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-100 bg-gradient-to-br from-[var(--from)] via-[var(--via)] to-[var(--to)]"></div>
+            
+            <!-- Inner Badge Floating -->
+            <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[140px] sm:w-[155px] h-12 sm:h-14">
+              <img
+                src="${partner.src}"
+                alt="${partner.name}"
+                class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Switch Dataset Tabs
+    function switchDataset(type) {
+      const btnDemo = document.getElementById('tabBtnDemo');
+      const btnNSR = document.getElementById('tabBtnNSR');
+
+      if (type === 'demo') {
+        btnDemo.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-background text-foreground shadow-sm';
+        btnNSR.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-muted-foreground hover:text-foreground';
+      } else {
+        btnNSR.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-background text-foreground shadow-sm';
+        btnDemo.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-muted-foreground hover:text-foreground';
+      }
+
+      renderMarquee(type);
+    }
+
+    // Speed Controls
+    function setSpeed(mode, btn) {
+      const durationMap = {
+        normal: '40s',
+        slow: '80s',
+        fast: '15s'
+      };
+      const speedVal = durationMap[mode] || '40s';
+      currentSpeed = speedVal;
+      applySpeedToTrack(speedVal);
+
+      document.getElementById('speedSlider').value = parseInt(speedVal);
+      document.getElementById('sliderValueText').textContent = speedVal;
+
+      document.querySelectorAll('.speed-btn').forEach(b => {
+        b.className = 'speed-btn px-3 py-1.5 rounded-lg text-xs font-semibold border transition bg-secondary text-muted-foreground border-border hover:text-foreground';
+      });
+      if (btn) {
+        btn.className = 'speed-btn px-3 py-1.5 rounded-lg text-xs font-semibold border transition bg-sky-600 text-white border-sky-500 shadow-sm';
+      }
+    }
+
+    function setCustomSpeed(val) {
+      const speedVal = `${val}s`;
+      currentSpeed = speedVal;
+      applySpeedToTrack(speedVal);
+      document.getElementById('sliderValueText').textContent = speedVal;
+
+      document.querySelectorAll('.speed-btn').forEach(b => {
+        b.className = 'speed-btn px-3 py-1.5 rounded-lg text-xs font-semibold border transition bg-secondary text-muted-foreground border-border hover:text-foreground';
+      });
+    }
+
+    function applySpeedToTrack(speed) {
+      const track = document.getElementById('activeMarqueeTrack');
+      if (track) {
+        track.style.setProperty('--marquee-speed', speed);
+      }
+    }
+
+    // Pause Toggle
+    function togglePause() {
+      const track = document.getElementById('activeMarqueeTrack');
+      const icon = document.getElementById('pauseIcon');
+      const text = document.getElementById('pauseText');
+      if (!track) return;
+
+      isPaused = !isPaused;
+      if (isPaused) {
+        track.classList.add('is-paused');
+        icon.textContent = '▶';
+        text.textContent = 'Lanjutkan';
+      } else {
+        track.classList.remove('is-paused');
+        icon.textContent = '⏸';
+        text.textContent = 'Jeda Animasi';
+      }
+    }
+
+    // Direction Toggle
+    function toggleDirection() {
+      const track = document.getElementById('activeMarqueeTrack');
+      const text = document.getElementById('directionText');
+      if (!track) return;
+
+      isReverse = !isReverse;
+      if (isReverse) {
+        track.classList.add('reverse-direction');
+        text.textContent = 'Arah: Kanan';
+      } else {
+        track.classList.remove('reverse-direction');
+        text.textContent = 'Arah: Kiri';
+      }
+    }
+
+    // Theme Toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const icon = document.getElementById('themeIcon');
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        icon.textContent = '🌙';
+      } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        icon.textContent = '☀️';
+      }
+    }
+
+    // Code Snippets Data
+    const reactSnippet = `import React from 'react';
+import { cn } from '@/lib/utils';
+
+interface Logo {
+  src?: string;
+  alt?: string;
+  name?: string;
+  gradient: {
+    from: string;
+    via: string;
+    to: string;
+  };
+}
+
+interface MarqueeLogoScrollerProps extends React.HTMLAttributes<HTMLDivElement> {
+  title: string;
+  description: string;
+  logos: Logo[];
+  speed?: 'normal' | 'slow' | 'fast';
+}
+
+export const MarqueeLogoScroller = React.forwardRef<HTMLDivElement, MarqueeLogoScrollerProps>(
+  ({ title, description, logos, speed = 'normal', className, ...props }, ref) => {
+    const durationMap = {
+      normal: '40s',
+      slow: '80s',
+      fast: '15s',
+    };
+    const animationDuration = durationMap[speed];
+
+    return (
+      <>
+        <style>{\`
+          @keyframes marquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+        \`}</style>
+
+        <section
+          ref={ref}
+          aria-label={title}
+          className={cn('w-full bg-background text-foreground rounded-2xl border overflow-hidden shadow-xl', className)}
+          {...props}
+        >
+          {/* Header Section */}
+          <div className="p-6 md:p-8 lg:p-10">
+            <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 lg:gap-8 pb-6 md:pb-8 border-b">
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tighter text-balance">
+                {title}
+              </h2>
+              <p className="text-muted-foreground self-start lg:justify-self-end text-balance text-sm sm:text-base">
+                {description}
+              </p>
+            </div>
+          </div>
+
+          {/* Marquee Section */}
+          <div
+            className="w-full overflow-hidden"
+            style={{
+              maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+            }}
+          >
+            <div
+              className="flex w-max items-center gap-4 py-5 pr-4 hover:[animation-play-state:paused] transition-all duration-300 ease-in-out"
+              style={{
+                animation: \`marquee \${animationDuration} linear infinite\`,
+              }}
+            >
+              {[...logos, ...logos].map((logo, index) => (
+                <div
+                  key={index}
+                  className="group relative h-24 w-44 shrink-0 flex items-center justify-center rounded-xl bg-secondary/70 border overflow-hidden"
+                  style={{
+                    '--from': logo.gradient.from,
+                    '--via': logo.gradient.via,
+                    '--to': logo.gradient.to,
+                  } as React.CSSProperties}
+                >
+                  <div className="absolute inset-0 scale-150 opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-100 bg-gradient-to-br from-[var(--from)] via-[var(--via)] to-[var(--to)]" />
+                  <img src={logo.src} alt={logo.alt || ''} className="relative h-1/2 w-auto object-contain filter drop-shadow" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </>
+    );
+  }
+);
+
+MarqueeLogoScroller.displayName = 'MarqueeLogoScroller';`;
+
+    const htmlSnippet = `<!-- HTML + Tailwind CSS Marquee Component -->
+<section class="w-full bg-slate-950 text-white rounded-2xl border border-slate-800 overflow-hidden py-8">
+  <style>
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee 40s linear infinite;
+    }
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+  </style>
+
+  <!-- Header -->
+  <div class="max-w-7xl mx-auto px-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 pb-6 border-b border-slate-800">
+      <h2 class="text-3xl font-extrabold text-white">Dipercaya Lembaga Keuangan & Korporasi</h2>
+      <p class="text-slate-400 text-sm">Mitra terdaftar resmi OJK dan Kemenkeu RI untuk penilaian aset independen.</p>
+    </div>
+  </div>
+
+  <!-- Marquee with Mask Fade -->
+  <div class="w-full overflow-hidden" style="mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);">
+    <div class="marquee-track items-center gap-4 py-3 pr-4">
+      <!-- Logo Card (Diulang 2x untuk seamless loop) -->
+      <div class="group relative h-24 w-44 shrink-0 flex items-center justify-center rounded-xl bg-slate-900 border border-slate-800 overflow-hidden" style="--from: #00529C; --via: #0073E6; --to: #F37021;">
+        <div class="absolute inset-0 scale-150 opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-100 bg-gradient-to-br from-[var(--from)] via-[var(--via)] to-[var(--to)]"></div>
+        <div class="relative z-10 px-4 py-2 bg-white rounded-lg font-black text-[#00529C] text-sm">BANK BRI</div>
+      </div>
+      <!-- Tambahkan kartu lainnya -->
+    </div>
+  </div>
+</section>`;
+
+    let currentCodeTab = 'react';
+
+    function showCodeTab(tab) {
+      currentCodeTab = tab;
+      const display = document.getElementById('codeDisplay');
+      const btnReact = document.getElementById('codeTabReact');
+      const btnHtml = document.getElementById('codeTabHTML');
+
+      if (tab === 'react') {
+        btnReact.className = 'px-3 py-1.5 rounded-md font-semibold transition bg-background text-foreground shadow-sm';
+        btnHtml.className = 'px-3 py-1.5 rounded-md font-semibold transition text-muted-foreground hover:text-foreground';
+        display.textContent = reactSnippet;
+      } else {
+        btnHtml.className = 'px-3 py-1.5 rounded-md font-semibold transition bg-background text-foreground shadow-sm';
+        btnReact.className = 'px-3 py-1.5 rounded-md font-semibold transition text-muted-foreground hover:text-foreground';
+        display.textContent = htmlSnippet;
+      }
+    }
+
+    function copyCode() {
+      const code = currentCodeTab === 'react' ? reactSnippet : htmlSnippet;
+      navigator.clipboard.writeText(code).then(() => {
+        const toast = document.getElementById('toastNotification');
+        const icon = document.getElementById('copyIcon');
+        const label = document.getElementById('copyLabel');
+
+        icon.textContent = '✓';
+        label.textContent = 'Tersalin!';
+        toast.classList.remove('translate-y-20', 'opacity-0');
+
+        setTimeout(() => {
+          icon.textContent = '📋';
+          label.textContent = 'Salin Kode';
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 2500);
+      });
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderMarquee('demo');
+      showCodeTab('react');
+    });
+  </script>
+</body>
+</html>

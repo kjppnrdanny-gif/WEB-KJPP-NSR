@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CountUp - React Bits Component Showcase | KJPP Nanang Rahayu & Rekan</title>
+  <meta name="description" content="Showcase komponen animasi CountUp dari React Bits dengan Motion spring physics, arah hitungan up/down, separator ribuan, presisi desimal, dan integrasi statistik KJPP NSR.">
+
+  <!-- Favicon Resmi KJPP NSR -->
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+  <link rel="shortcut icon" href="favicon.ico?v=2">
+  <link rel="apple-touch-icon" href="favicon.png?v=2">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            card: 'hsl(var(--card))',
+            'card-foreground': 'hsl(var(--card-foreground))',
+            secondary: 'hsl(var(--secondary))',
+            'secondary-foreground': 'hsl(var(--secondary-foreground))',
+            muted: 'hsl(var(--muted))',
+            'muted-foreground': 'hsl(var(--muted-foreground))',
+            border: 'hsl(var(--border))',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- React Bits: CountUp CSS -->
+  <link rel="stylesheet" href="components/CountUp.css">
+
+  <style>
+    :root {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    html.light {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+    }
+
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-background text-foreground min-h-screen transition-colors duration-300">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-900 to-slate-950 border border-amber-400/30 flex items-center justify-center shadow-lg group-hover:scale-105 transition">
+            <span class="font-black text-amber-400 text-sm tracking-wider">NSR</span>
+          </div>
+          <div>
+            <div class="font-extrabold text-sm sm:text-base leading-tight tracking-tight flex items-center gap-2">
+              KJPP Nanang Rahayu &amp; Rekan
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold uppercase hidden sm:inline-block">React Bits UI</span>
+            </div>
+            <p class="text-[11px] text-muted-foreground">CountUp Motion Spring Physics Showcase</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Other Showcases -->
+        <a href="light-rays.html" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 hover:bg-secondary text-foreground text-xs font-semibold transition">
+          <span>LightRays ✨</span>
+        </a>
+        <a href="dot-field.html" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 hover:bg-secondary text-foreground text-xs font-semibold transition">
+          <span>DotField ⚪</span>
+        </a>
+        <a href="trusted-by.html" class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 hover:bg-secondary text-foreground text-xs font-semibold transition">
+          <span>Trusted By 🏢</span>
+        </a>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-lg border border-border bg-secondary/50 hover:bg-secondary text-foreground transition" title="Ganti Tema (Dark / Light)">
+          <span id="themeIcon">☀️</span>
+        </button>
+
+        <!-- Back to Landing Page -->
+        <a href="index.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-sm transition active:scale-95">
+          <span>← Kembali ke Website</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-12">
+
+    <!-- Page Title & Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-3">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          Physics-Based Motion Component
+        </div>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-balance">
+          &lt;CountUp /&gt; React Bits Component
+        </h1>
+        <p class="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
+          Komponen penghitung angka animasi dinamis dengan simulasi pegas fisika (<code class="text-amber-400">damping</code> &amp; <code class="text-amber-400">stiffness</code>) dari <strong class="text-foreground">Motion</strong>. Menghasilkan pergerakan halus, alami, serta adaptif terhadap scroll viewport (<code class="text-amber-400">useInView</code>).
+        </p>
+      </div>
+
+      <!-- Quick Action -->
+      <a href="index.html#pengalaman" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-md transition transform hover:scale-105">
+        <span>Lihat di Statistik Utama NSR</span>
+        <span>→</span>
+      </a>
+    </div>
+
+    <!-- LIVE PREVIEW CONTAINER: INTERACTIVE PLAYGROUND -->
+    <div class="relative w-full rounded-2xl border border-border bg-gradient-to-b from-slate-900 to-slate-950 overflow-hidden shadow-2xl p-6 sm:p-10 text-center flex flex-col items-center justify-center">
+      <!-- Glow background -->
+      <div class="absolute inset-0 bg-radial-gradient from-amber-500/10 via-transparent to-transparent pointer-events-none"></div>
+
+      <span class="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20">
+        Live Interactive Spring Engine
+      </span>
+
+      <!-- Main Display Number -->
+      <div class="my-6">
+        <div id="playground-display" class="count-up-text text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 drop-shadow-lg transition-transform duration-200">
+          35+
+        </div>
+      </div>
+
+      <p id="playground-status" class="text-xs font-mono text-muted-foreground">Status: Ready</p>
+
+      <!-- Replay & Presets -->
+      <div class="flex flex-wrap items-center justify-center gap-2.5 mt-6">
+        <button onclick="triggerPlaygroundReplay()" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-lg transition transform active:scale-95 flex items-center gap-2">
+          <span>🔄 Hitung Ulang (Replay)</span>
+        </button>
+        <button onclick="applyPreset('jamTerbang')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+          Preset: 35+ Tahun
+        </button>
+        <button onclick="applyPreset('kantorCabang')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+          Preset: 5 Rekan Penilai
+        </button>
+        <button onclick="applyPreset('kepatuhanSPI')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+          Preset: 100% Kepatuhan SPI
+        </button>
+        <button onclick="applyPreset('timAhli')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+          Preset: 29+ Ahli
+        </button>
+        <button onclick="applyPreset('totalValuasi')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+          Preset: 18,454 Evaluasi
+        </button>
+      </div>
+    </div>
+
+    <!-- LIVE CONTROLS PANEL -->
+    <div class="p-6 sm:p-8 rounded-2xl border border-border bg-card shadow-sm space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-border">
+        <div>
+          <h3 class="text-lg font-bold tracking-tight">Interactive Controls &amp; Parameters</h3>
+          <p class="text-xs text-muted-foreground">Sesuaikan prop komponen CountUp untuk melihat respons kurva pegas (spring) secara real-time.</p>
+        </div>
+        <button onclick="resetDefaults()" class="px-3 py-1.5 rounded-lg border border-border bg-secondary hover:bg-secondary/80 text-xs font-semibold text-muted-foreground hover:text-foreground transition">
+          Reset Default
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Target (to) -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-foreground flex justify-between">
+            <span>to (Angka Tujuan)</span>
+            <span id="toValDisplay" class="font-mono text-amber-400">35</span>
+          </label>
+          <input type="number" id="inputTo" value="35" step="1" oninput="updateControls()" class="w-full px-3 py-2 text-sm rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-amber-400">
+        </div>
+
+        <!-- Initial (from) -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-foreground flex justify-between">
+            <span>from (Angka Awal)</span>
+            <span id="fromValDisplay" class="font-mono text-amber-400">0</span>
+          </label>
+          <input type="number" id="inputFrom" value="0" step="1" oninput="updateControls()" class="w-full px-3 py-2 text-sm rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-amber-400">
+        </div>
+
+        <!-- Duration -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-foreground flex justify-between">
+            <span>duration (Detik)</span>
+            <span id="durValDisplay" class="font-mono text-amber-400">2.0s</span>
+          </label>
+          <input type="range" id="inputDuration" min="0.3" max="5.0" step="0.1" value="2.0" oninput="updateControls()" class="w-full accent-amber-400">
+        </div>
+
+        <!-- Delay -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-foreground flex justify-between">
+            <span>delay (Detik)</span>
+            <span id="delayValDisplay" class="font-mono text-amber-400">0.0s</span>
+          </label>
+          <input type="range" id="inputDelay" min="0" max="3" step="0.2" value="0" oninput="updateControls()" class="w-full accent-amber-400">
+        </div>
+
+        <!-- Direction -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-foreground">direction</label>
+          <select id="selectDirection" onchange="updateControls()" class="w-full px-3 py-2 text-sm rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="up" selected>up (Menaik)</option>
+            <option value="down">down (Menurun)</option>
+          </select>
+        </div>
+
+        <!-- Separator -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-foreground">separator (Pemisah Ribuan)</label>
+          <select id="selectSeparator" onchange="updateControls()" class="w-full px-3 py-2 text-sm rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="" selected>Tanpa Pemisah ("")</option>
+            <option value=",">Koma (",") - US Style</option>
+            <option value=".">Titik (".") - ID Style</option>
+            <option value=" ">Spasi (" ") - ISO Style</option>
+          </select>
+        </div>
+
+        <!-- Prefix -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-foreground">prefix (Awalan Teks)</label>
+          <input type="text" id="inputPrefix" value="" placeholder="e.g. Rp , $" oninput="updateControls()" class="w-full px-3 py-2 text-sm rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-amber-400">
+        </div>
+
+        <!-- Suffix -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-foreground">suffix (Akhiran Teks)</label>
+          <input type="text" id="inputSuffix" value="+" placeholder="e.g. +, %, Km" oninput="updateControls()" class="w-full px-3 py-2 text-sm rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-amber-400">
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOWCASE: KJPP NSR STATISTIK GRID -->
+    <div class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-3 border-b border-border">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Implementasi Nyata di KJPP NSR</span>
+          <h2 class="text-2xl font-black text-foreground">Kartu Statistik &amp; Metrik Profil Kantor</h2>
+        </div>
+        <button onclick="replayShowcaseCards()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-border bg-secondary hover:bg-secondary/80 text-xs font-semibold text-foreground transition">
+          <span>🔄 Trigger Ulang Seluruh Kartu</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Card 1 -->
+        <div class="p-6 rounded-2xl border border-blue-900/60 bg-gradient-to-br from-blue-950/80 to-slate-900/90 shadow-xl relative overflow-hidden group">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-400/5 rounded-full blur-xl group-hover:bg-amber-400/10 transition"></div>
+          <div class="text-4xl sm:text-5xl font-black text-amber-400 mb-2 count-up-text card-counter" data-to="35" data-from="0" data-suffix="+" data-duration="2.2">35+</div>
+          <h4 class="text-sm font-bold text-white uppercase tracking-wider">Tahun Jam Terbang Penilai</h4>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+            Kepemimpinan senior di industri penilaian aset komersial, agunan kredit, dan pengadaan tanah jalan tol nasional.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="p-6 rounded-2xl border border-blue-900/60 bg-gradient-to-br from-blue-950/80 to-slate-900/90 shadow-xl relative overflow-hidden group">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-sky-400/5 rounded-full blur-xl group-hover:bg-sky-400/10 transition"></div>
+          <div class="text-4xl sm:text-5xl font-black text-amber-400 mb-2 count-up-text card-counter" data-to="5" data-from="0" data-duration="1.8">5</div>
+          <h4 class="text-sm font-bold text-white uppercase tracking-wider">Rekan Penilai Publik Berizin</h4>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+            Didukung Rekan Penilai Izin Kemenkeu RI, sertifikasi MAPPI (Cert), serta lisensi pertanahan Kementerian ATR/BPN.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="p-6 rounded-2xl border border-blue-900/60 bg-gradient-to-br from-blue-950/80 to-slate-900/90 shadow-xl relative overflow-hidden group">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-400/5 rounded-full blur-xl group-hover:bg-emerald-400/10 transition"></div>
+          <div class="text-4xl sm:text-5xl font-black text-amber-400 mb-2 count-up-text card-counter" data-to="5" data-from="0" data-duration="1.8">5</div>
+          <h4 class="text-sm font-bold text-white uppercase tracking-wider">Kantor Pusat &amp; Cabang</h4>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+            Jakarta Selatan (Pusat), Bandung, Makassar, Padang, dan Palembang melayani seluruh wilayah NKRI.
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="p-6 rounded-2xl border border-blue-900/60 bg-gradient-to-br from-blue-950/80 to-slate-900/90 shadow-xl relative overflow-hidden group">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-yellow-400/5 rounded-full blur-xl group-hover:bg-yellow-400/10 transition"></div>
+          <div class="text-4xl sm:text-5xl font-black text-amber-400 mb-2 count-up-text card-counter" data-to="100" data-from="0" data-suffix="%" data-duration="2.5">100%</div>
+          <h4 class="text-sm font-bold text-white uppercase tracking-wider">Kepatuhan Standar SPI &amp; KEPI</h4>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+            Setiap laporan penilaian melewati technical review berjenjang untuk kepastian hukum dan objektivitas nilai.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CODE SNIPPET GENERATOR TABS -->
+    <div class="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+      <!-- Tabs Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border bg-secondary/30">
+        <div class="flex items-center gap-2">
+          <button id="tabReactBtn" onclick="switchCodeTab('react')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-400 text-slate-950 shadow-sm">
+            React Component (React Bits)
+          </button>
+          <button id="tabHtmlBtn" onclick="switchCodeTab('html')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground transition">
+            Vanilla HTML + JS Bundle
+          </button>
+        </div>
+
+        <button onclick="copyCurrentCode()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-secondary hover:bg-secondary/80 text-xs font-semibold text-foreground transition active:scale-95">
+          <span id="copyIcon">📋</span>
+          <span id="copyLabel">Salin Kode</span>
+        </button>
+      </div>
+
+      <!-- Code Container -->
+      <div class="p-6 bg-slate-950 overflow-x-auto text-xs sm:text-sm">
+        <pre><code id="codeDisplay" class="text-slate-300 leading-relaxed font-mono"></code></pre>
+      </div>
+    </div>
+
+    <!-- PROPS TABLE REFERENCE -->
+    <div class="rounded-2xl border border-border bg-card shadow-sm p-6 sm:p-8 space-y-4">
+      <h3 class="text-lg font-bold tracking-tight">Dokumentasi Props &amp; Parameter Lengkap</h3>
+      <p class="text-xs text-muted-foreground">Parameter resmi dari <strong class="text-foreground">React Bits &lt;CountUp /&gt;</strong> dengan varian JavaScript + CSS.</p>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm border-collapse">
+          <thead>
+            <tr class="border-b border-border text-muted-foreground">
+              <th class="py-3 px-4 font-semibold">Prop</th>
+              <th class="py-3 px-4 font-semibold">Tipe</th>
+              <th class="py-3 px-4 font-semibold">Default</th>
+              <th class="py-3 px-4 font-semibold">Deskripsi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border/60">
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">to</td>
+              <td class="py-3 px-4 text-muted-foreground">number</td>
+              <td class="py-3 px-4 font-mono text-slate-400">—</td>
+              <td class="py-3 px-4">Nilai angka tujuan akhir yang ingin dihitung (count up target).</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">from</td>
+              <td class="py-3 px-4 text-muted-foreground">number</td>
+              <td class="py-3 px-4 font-mono text-slate-400">0</td>
+              <td class="py-3 px-4">Nilai angka awal mulainya perhitungan.</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">direction</td>
+              <td class="py-3 px-4 text-muted-foreground">string</td>
+              <td class="py-3 px-4 font-mono text-slate-400">"up"</td>
+              <td class="py-3 px-4">Arah perhitungan: <code class="text-amber-400">"up"</code> atau <code class="text-amber-400">"down"</code>. Saat "down", nilai from &amp; to dibalik.</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">delay</td>
+              <td class="py-3 px-4 text-muted-foreground">number</td>
+              <td class="py-3 px-4 font-mono text-slate-400">0</td>
+              <td class="py-3 px-4">Jeda waktu tunda (dalam detik) sebelum animasi hitungan dimulai.</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">duration</td>
+              <td class="py-3 px-4 text-muted-foreground">number</td>
+              <td class="py-3 px-4 font-mono text-slate-400">2</td>
+              <td class="py-3 px-4">Durasi hitungan animasi (detik) berbasis parameter spring <code class="text-amber-400">damping</code> &amp; <code class="text-amber-400">stiffness</code>.</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">separator</td>
+              <td class="py-3 px-4 text-muted-foreground">string</td>
+              <td class="py-3 px-4 font-mono text-slate-400">""</td>
+              <td class="py-3 px-4">Karakter pemisah ribuan (contoh: <code class="text-amber-400">","</code> atau <code class="text-amber-400">"."</code>).</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">startWhen</td>
+              <td class="py-3 px-4 text-muted-foreground">boolean</td>
+              <td class="py-3 px-4 font-mono text-slate-400">true</td>
+              <td class="py-3 px-4">Kondisi boolean untuk memicu hitungan saat elemen masuk viewport (<code class="text-amber-400">useInView</code>).</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">className</td>
+              <td class="py-3 px-4 text-muted-foreground">string</td>
+              <td class="py-3 px-4 font-mono text-slate-400">""</td>
+              <td class="py-3 px-4">Kelas CSS kustom untuk styling tambahan font, warna, atau layout.</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">onStart</td>
+              <td class="py-3 px-4 text-muted-foreground">function</td>
+              <td class="py-3 px-4 font-mono text-slate-400">—</td>
+              <td class="py-3 px-4">Fungsi callback yang dipanggil saat animasi hitungan dimulai.</td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-bold text-amber-400">onEnd</td>
+              <td class="py-3 px-4 text-muted-foreground">function</td>
+              <td class="py-3 px-4 font-mono text-slate-400">—</td>
+              <td class="py-3 px-4">Fungsi callback yang dipanggil saat animasi hitungan selesai mencapai target.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-border mt-20 py-8 bg-background/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+      <p>© 2026 KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan. All rights reserved.</p>
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="hover:text-foreground transition">Landing Page Utama</a>
+        <a href="light-rays.html" class="hover:text-foreground transition">LightRays</a>
+        <a href="dot-field.html" class="hover:text-foreground transition">DotField</a>
+        <a href="trusted-by.html" class="hover:text-foreground transition">Trusted By</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="lib/count-up-vanilla.js"></script>
+  <script>
+    let activeTab = 'react';
+    let playgroundInstance = null;
+    let showcaseInstances = [];
+
+    const presets = {
+      jamTerbang: { to: 35, from: 0, duration: 2.2, delay: 0, direction: 'up', separator: '', prefix: '', suffix: '+' },
+      kantorCabang: { to: 5, from: 0, duration: 1.8, delay: 0, direction: 'up', separator: '', prefix: '', suffix: '' },
+      kepatuhanSPI: { to: 100, from: 0, duration: 2.5, delay: 0, direction: 'up', separator: '', prefix: '', suffix: '%' },
+      timAhli: { to: 29, from: 0, duration: 2.0, delay: 0, direction: 'up', separator: '', prefix: '', suffix: '+' },
+      totalValuasi: { to: 18454, from: 0, duration: 2.4, delay: 0, direction: 'up', separator: ',', prefix: '', suffix: '' }
+    };
+
+    function getControlValues() {
+      return {
+        to: parseFloat(document.getElementById('inputTo').value) || 0,
+        from: parseFloat(document.getElementById('inputFrom').value) || 0,
+        duration: parseFloat(document.getElementById('inputDuration').value) || 2,
+        delay: parseFloat(document.getElementById('inputDelay').value) || 0,
+        direction: document.getElementById('selectDirection').value,
+        separator: document.getElementById('selectSeparator').value,
+        prefix: document.getElementById('inputPrefix').value,
+        suffix: document.getElementById('inputSuffix').value
+      };
+    }
+
+    function updateControls() {
+      const opts = getControlValues();
+      document.getElementById('toValDisplay').textContent = opts.to;
+      document.getElementById('fromValDisplay').textContent = opts.from;
+      document.getElementById('durValDisplay').textContent = opts.duration.toFixed(1) + 's';
+      document.getElementById('delayValDisplay').textContent = opts.delay.toFixed(1) + 's';
+
+      renderCodeSnippet();
+    }
+
+    function triggerPlaygroundReplay() {
+      const opts = getControlValues();
+      const el = document.getElementById('playground-display');
+      const statusEl = document.getElementById('playground-status');
+      
+      if (playgroundInstance) {
+        playgroundInstance.destroy();
+      }
+
+      statusEl.textContent = 'Status: Counting...';
+      el.classList.add('scale-105');
+
+      playgroundInstance = window.initCountUp(el, {
+        ...opts,
+        startWhen: true,
+        onStart: () => {
+          statusEl.textContent = 'Status: Counting...';
+        },
+        onEnd: () => {
+          statusEl.textContent = 'Status: Selesai (Target Reached)';
+          el.classList.remove('scale-105');
+        }
+      });
+
+      playgroundInstance.start();
+    }
+
+    function applyPreset(name) {
+      const p = presets[name];
+      if (!p) return;
+
+      document.getElementById('inputTo').value = p.to;
+      document.getElementById('inputFrom').value = p.from;
+      document.getElementById('inputDuration').value = p.duration;
+      document.getElementById('inputDelay').value = p.delay;
+      document.getElementById('selectDirection').value = p.direction;
+      document.getElementById('selectSeparator').value = p.separator;
+      document.getElementById('inputPrefix').value = p.prefix;
+      document.getElementById('inputSuffix').value = p.suffix;
+
+      updateControls();
+      triggerPlaygroundReplay();
+    }
+
+    function resetDefaults() {
+      applyPreset('jamTerbang');
+    }
+
+    function replayShowcaseCards() {
+      showcaseInstances.forEach(inst => {
+        if (inst && typeof inst.restart === 'function') {
+          inst.restart();
+        }
+      });
+    }
+
+    function switchCodeTab(tab) {
+      activeTab = tab;
+      const reactBtn = document.getElementById('tabReactBtn');
+      const htmlBtn = document.getElementById('tabHtmlBtn');
+
+      if (tab === 'react') {
+        reactBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-400 text-slate-950 shadow-sm';
+        htmlBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground transition';
+      } else {
+        htmlBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-400 text-slate-950 shadow-sm';
+        reactBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground transition';
+      }
+
+      renderCodeSnippet();
+    }
+
+    function renderCodeSnippet() {
+      const opts = getControlValues();
+      const codeDisplay = document.getElementById('codeDisplay');
+      if (!codeDisplay) return;
+
+      if (activeTab === 'react') {
+        codeDisplay.textContent = `// 1. Import Component
+import CountUp from '@/components/CountUp';
+
+// 2. Render Component
+export default function MetricCard() {
+  return (
+    <div className="stat-card">
+      <CountUp
+        from={${opts.from}}
+        to={${opts.to}}
+        direction="${opts.direction}"
+        duration={${opts.duration}}
+        delay={${opts.delay}}
+        separator="${opts.separator}"
+        className="count-up-text text-5xl font-black text-amber-400"
+        onStart={() => console.log('CountUp started')}
+        onEnd={() => console.log('Target reached')}
+      />
+      <span>${opts.suffix}</span>
+    </div>
+  );
+}`;
+      } else {
+        codeDisplay.textContent = `<!-- 1. Include CSS -->
+<link rel="stylesheet" href="components/CountUp.css">
+
+<!-- 2. Target Element dengan Atribut Data -->
+<div class="count-up-text text-5xl font-black text-amber-400"
+     data-to="${opts.to}"
+     data-from="${opts.from}"
+     data-duration="${opts.duration}"
+     data-delay="${opts.delay}"
+     data-direction="${opts.direction}"
+     data-separator="${opts.separator}"
+     data-prefix="${opts.prefix}"
+     data-suffix="${opts.suffix}">
+  ${opts.prefix}${opts.to}${opts.suffix}
+</div>
+
+<!-- 3. Include Runtime Script (Auto-initializes with IntersectionObserver) -->
+<script src="lib/count-up.bundle.js"><\/script>`;
+      }
+    }
+
+    async function copyCurrentCode() {
+      const codeDisplay = document.getElementById('codeDisplay');
+      const copyIcon = document.getElementById('copyIcon');
+      const copyLabel = document.getElementById('copyLabel');
+      if (!codeDisplay) return;
+
+      try {
+        await navigator.clipboard.writeText(codeDisplay.textContent);
+        copyIcon.textContent = '✓';
+        copyLabel.textContent = 'Tersalin!';
+        setTimeout(() => {
+          copyIcon.textContent = '📋';
+          copyLabel.textContent = 'Salin Kode';
+        }, 2000);
+      } catch (err) {
+        console.error('Gagal menyalin:', err);
+      }
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const themeIcon = document.getElementById('themeIcon');
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        themeIcon.textContent = '🌙';
+      } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        themeIcon.textContent = '☀️';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateControls();
+      triggerPlaygroundReplay();
+
+      // Inisialisasi kartu showcase
+      const cardEls = document.querySelectorAll('.card-counter');
+      cardEls.forEach(el => {
+        const inst = window.initCountUp(el, { once: false });
+        if (inst) showcaseInstances.push(inst);
+      });
+    });
+  </script>
+</body>
+</html>
