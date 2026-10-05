@@ -4385,10 +4385,10 @@
     </div>
   </section>
 
-  <!-- ==========================================================================
-     11. FAQ (FREQUENTLY ASKED QUESTIONS) - TANYA JAWAB RESMI PENILAI PUBLIK
-     Dioptimalkan Khusus untuk Google Rich Snippets & Accordion (Schema FAQPage)
-     ========================================================================== -->
+  <!-- ==================== 11. FAQ & PUSAT BANTUAN RESMI ====================
+       Desain Interaktif Tabbed FAQ Berbasis Shadcn UI & Framer Motion Style
+       Dioptimalkan untuk Google Rich Snippets & Accordion (Schema FAQPage)
+       ========================================================================== -->
   <section id="faq" class="relative py-16 md:py-24 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white border-t border-slate-800 overflow-hidden">
     <!-- DotField Canvas Component (Interactive Bulge & Glow Dot Grid) -->
     <div
@@ -4398,134 +4398,170 @@
     ></div>
     <!-- Subtle background accent glows -->
     <div class="absolute -top-32 -right-32 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       
-      <!-- Section Header -->
-      <div class="text-center max-w-3xl mx-auto mb-12">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-xs font-semibold mb-3">
-          <svg class="w-3.5 h-3.5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span>PANDUAN INFORMASI &amp; FAQ RESMI</span>
-        </div>
-        <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 via-blue-200 to-amber-300 bg-clip-text text-transparent">
-          Pertanyaan Umum Seputar Jasa Penilai Publik (KJPP)
+      <!-- FAQ Header -->
+      <div class="relative z-10 flex flex-col items-center justify-center text-center mb-10">
+        <span class="mb-3 bg-gradient-to-r from-sky-400 to-amber-300 bg-clip-text font-semibold text-transparent text-xs sm:text-sm tracking-wider uppercase">
+          PANDUAN INFORMASI &amp; FAQ RESMI
+        </span>
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+          Pertanyaan yang Sering Diajukan
         </h2>
-        <p class="text-sm sm:text-base text-slate-300 mt-2.5 leading-relaxed">
-          Panduan komprehensif mengenai legalitas Kemenkeu RI, sertifikasi OJK, metodologi penilaian pengadaan tanah SPI 204, estimasi durasi, dan tata cara penugasan KJPP NSR.
+        <p class="text-xs sm:text-sm text-slate-300 mt-2.5 max-w-xl leading-relaxed">
+          Informasi legalitas Kemenkeu RI, sertifikasi OJK, metodologi penilaian pengadaan tanah SPI 204, dan estimasi waktu penugasan KJPP NSR.
         </p>
       </div>
 
-      <!-- Accordion FAQ Items -->
-      <div class="space-y-3.5" role="region" aria-label="Daftar Pertanyaan yang Sering Diajukan">
+      <!-- FAQ Tabs Filter -->
+      <div class="relative z-10 flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-10" role="tablist" aria-label="Kategori Pertanyaan">
+        <button
+          type="button"
+          onclick="switchFaqTab('all', this)"
+          class="btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-amber-400 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-bold px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm transition-all duration-300 shadow-md cursor-pointer"
+        >
+          Semua
+        </button>
+        <button
+          type="button"
+          onclick="switchFaqTab('legalitas', this)"
+          class="btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-slate-700/80 bg-slate-900/70 text-slate-300 hover:text-white hover:border-slate-600 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer"
+        >
+          Legalitas &amp; Izin
+        </button>
+        <button
+          type="button"
+          onclick="switchFaqTab('layanan', this)"
+          class="btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-slate-700/80 bg-slate-900/70 text-slate-300 hover:text-white hover:border-slate-600 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer"
+        >
+          Ruang Lingkup Aset
+        </button>
+        <button
+          type="button"
+          onclick="switchFaqTab('psn', this)"
+          class="btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-slate-700/80 bg-slate-900/70 text-slate-300 hover:text-white hover:border-slate-600 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer"
+        >
+          Pengadaan Tanah PSN
+        </button>
+        <button
+          type="button"
+          onclick="switchFaqTab('prosedur', this)"
+          class="btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-slate-700/80 bg-slate-900/70 text-slate-300 hover:text-white hover:border-slate-600 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer"
+        >
+          Waktu &amp; Dokumen
+        </button>
+        <button
+          type="button"
+          onclick="switchFaqTab('cabang', this)"
+          class="btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-slate-700/80 bg-slate-900/70 text-slate-300 hover:text-white hover:border-slate-600 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer"
+        >
+          Jaringan Cabang
+        </button>
+      </div>
+
+      <!-- FAQ Items List -->
+      <div class="space-y-3 max-w-3xl mx-auto" role="region" aria-label="Daftar Pertanyaan">
         
-        <!-- FAQ Item 1 -->
-        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 overflow-hidden transition-all duration-300 hover:border-sky-500/50">
-          <button type="button" onclick="toggleFaq(1)" class="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="true" aria-controls="faq-ans-1">
-            <span class="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition">
-              1. Apa itu Kantor Jasa Penilai Publik (KJPP) dan apakah KJPP NSR berizin resmi?
+        <!-- Item 1: Legalitas -->
+        <div id="faq-card-1" data-category="legalitas" class="faq-item-card rounded-xl border border-slate-800/80 bg-slate-900/60 hover:border-slate-700 transition-all duration-200 overflow-hidden">
+          <button type="button" onclick="toggleFaq(1)" class="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-1">
+            <span id="faq-title-1" class="text-sm sm:text-base font-medium text-slate-200 group-hover:text-white transition-colors">
+              Apakah KJPP NSR berizin resmi Kementerian Keuangan RI?
             </span>
-            <span id="faq-icon-1" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-sky-400 transition-transform duration-300 rotate-180">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="faq-icon-1" class="w-7 h-7 rounded-full bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shrink-0 text-sky-400 group-hover:border-sky-500/50 transition-transform duration-300">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </span>
           </button>
-          <div id="faq-ans-1" class="px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-4">
+          <div id="faq-ans-1" class="hidden px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
             <p>
-              Kantor Jasa Penilai Publik (KJPP) adalah badan usaha berbadan hukum yang mendapat izin resmi dari Menteri Keuangan Republik Indonesia untuk memberikan jasa penilaian profesional dan independen. <strong>KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan (KJPP NSR)</strong> beroperasi sah di bawah <strong>Izin Usaha Kemenkeu RI No. 2.19.0160</strong> (KMK No. 248/KM.1/2019), terdaftar di <strong>Otoritas Jasa Keuangan (OJK)</strong> bidang Pasar Modal &amp; IKNB, serta mengantongi <strong>Lisensi Penilai Pertanahan Kementerian ATR/BPN</strong>.
+              Ya. KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan (KJPP NSR) beroperasi sah di bawah <strong>Izin Usaha Kemenkeu RI No. 2.19.0160</strong> (KMK No. 248/KM.1/2019), terdaftar di <strong>OJK</strong> (Pasar Modal &amp; IKNB), serta mengantongi <strong>Lisensi Penilai Pertanahan Kementerian ATR/BPN</strong>.
             </p>
           </div>
         </div>
 
-        <!-- FAQ Item 2 -->
-        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 overflow-hidden transition-all duration-300 hover:border-sky-500/50">
-          <button type="button" onclick="toggleFaq(2)" class="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-2">
-            <span class="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition">
-              2. Apa saja ruang lingkup objek aset yang dapat dinilai oleh KJPP NSR?
+        <!-- Item 2: Legalitas & Bank -->
+        <div id="faq-card-2" data-category="legalitas" class="faq-item-card rounded-xl border border-slate-800/80 bg-slate-900/60 hover:border-slate-700 transition-all duration-200 overflow-hidden">
+          <button type="button" onclick="toggleFaq(2)" class="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-2">
+            <span id="faq-title-2" class="text-sm sm:text-base font-medium text-slate-200 group-hover:text-white transition-colors">
+              Apakah laporan penilaian KJPP NSR diakui perbankan nasional &amp; OJK?
             </span>
-            <span id="faq-icon-2" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-sky-400 transition-transform duration-300">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="faq-icon-2" class="w-7 h-7 rounded-full bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shrink-0 text-sky-400 group-hover:border-sky-500/50 transition-transform duration-300">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </span>
           </button>
-          <div id="faq-ans-2" class="hidden px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-4">
+          <div id="faq-ans-2" class="hidden px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
+            <p>
+              Ya. Seluruh Penilai Publik Rekan KJPP NSR memiliki <strong>STTD Otoritas Jasa Keuangan (OJK)</strong> sesuai POJK No. 35/POJK.04/2020 dan terdaftar sebagai rekanan resmi perbankan nasional (Bank Mandiri, BRI, BCA, BNI, BSI, Bank DKI, dsb) untuk kepentingan agunan kredit, sindikasi, restrukturisasi, dan audit tahunan.
+            </p>
+          </div>
+        </div>
+
+        <!-- Item 3: Ruang Lingkup Layanan -->
+        <div id="faq-card-3" data-category="layanan" class="faq-item-card rounded-xl border border-slate-800/80 bg-slate-900/60 hover:border-slate-700 transition-all duration-200 overflow-hidden">
+          <button type="button" onclick="toggleFaq(3)" class="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-3">
+            <span id="faq-title-3" class="text-sm sm:text-base font-medium text-slate-200 group-hover:text-white transition-colors">
+              Objek aset apa saja yang dapat dinilai oleh KJPP NSR?
+            </span>
+            <span id="faq-icon-3" class="w-7 h-7 rounded-full bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shrink-0 text-sky-400 group-hover:border-sky-500/50 transition-transform duration-300">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+          </button>
+          <div id="faq-ans-3" class="hidden px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
             <p>
               KJPP NSR memegang klasifikasi izin resmi <strong>Penilai Properti (P)</strong> dari Kementerian Keuangan RI. Ruang lingkup kami mencakup penilaian tanah &amp; bangunan, properti komersial (hotel, mall, rumah sakit, gedung perkantoran), instalasi pabrik, mesin &amp; alat berat, menara telekomunikasi BTS, perkebunan &amp; aset biologis (PSAK 69), dermaga pelabuhan, pertambangan, hingga studi kelayakan proyek (Feasibility Study) dan analisis HBU.
             </p>
           </div>
         </div>
 
-        <!-- FAQ Item 3 -->
-        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 overflow-hidden transition-all duration-300 hover:border-sky-500/50">
-          <button type="button" onclick="toggleFaq(3)" class="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-3">
-            <span class="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition">
-              3. Apakah KJPP NSR melayani penilaian pengadaan tanah jalan tol &amp; PSN (SPI 204)?
+        <!-- Item 4: PSN & Pengadaan Tanah -->
+        <div id="faq-card-4" data-category="psn" class="faq-item-card rounded-xl border border-slate-800/80 bg-slate-900/60 hover:border-slate-700 transition-all duration-200 overflow-hidden">
+          <button type="button" onclick="toggleFaq(4)" class="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-4">
+            <span id="faq-title-4" class="text-sm sm:text-base font-medium text-slate-200 group-hover:text-white transition-colors">
+              Apakah melayani pengadaan tanah PSN &amp; Jalan Tol (SPI 204)?
             </span>
-            <span id="faq-icon-3" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-sky-400 transition-transform duration-300">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="faq-icon-4" class="w-7 h-7 rounded-full bg-slate-800/80 border border-slate-700/80 flex items-center justify-center shrink-0 text-sky-400 group-hover:border-sky-500/50 transition-transform duration-300">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </span>
           </button>
-          <div id="faq-ans-3" class="hidden px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-4">
+          <div id="faq-ans-4" class="hidden px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
             <p>
-              Ya. KJPP NSR adalah penilai berlisensi Kementerian ATR/BPN dengan rekam jejak luas dalam penugasan <strong>Pengadaan Tanah Bagi Pembangunan Kepentingan Umum</strong> (UU No. 2/2012 jo. PP No. 19/2021 &amp; Permen ATR/BPN No. 19/2021). Kami menilai Ganti Kerugian fisik (tanah, bangunan, tanaman) dan non-fisik (solatium, alih profesi, masa tunggu) merujuk ketat <strong>Standar Penilaian Indonesia (SPI 204)</strong> pada proyek jalan tol, bendungan, transmisi listrik, dan fasilitas publik nasional.
+              Ya. Kami berlisensi Kementerian ATR/BPN dengan pengalaman luas menilai ganti kerugian fisik (tanah, bangunan, tanaman) dan non-fisik (solatium, alih profesi, masa tunggu) merujuk ketat <strong>Standar Penilaian Indonesia (SPI 204)</strong> pada proyek jalan tol, bendungan, transmisi listrik, dan IKN.
             </p>
           </div>
         </div>
 
-        <!-- FAQ Item 4 -->
-        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 overflow-hidden transition-all duration-300 hover:border-sky-500/50">
-          <button type="button" onclick="toggleFaq(4)" class="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-4">
-            <span class="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition">
-              4. Apakah laporan penilaian KJPP NSR diakui oleh perbankan nasional &amp; OJK?
+        <!-- Item 5: Prosedur & Durasi -->
+        <div id="faq-card-5" data-category="prosedur" class="faq-item-card rounded-xl border border-slate-800/80 bg-slate-900/60 hover:border-slate-700 transition-all duration-200 overflow-hidden">
+          <button type="button" onclick="toggleFaq(5)" class="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-5">
+            <span id="faq-title-5" class="text-sm sm:text-base font-medium text-slate-200 group-hover:text-white transition-colors">
+              Berapa lama proses penilaian aset dan apa saja syarat dokumennya?
             </span>
-            <span id="faq-icon-4" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-sky-400 transition-transform duration-300">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </span>
-          </button>
-          <div id="faq-ans-4" class="hidden px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-4">
-            <p>
-              Ya. Seluruh Penilai Publik Rekan KJPP NSR telah memiliki <strong>Surat Tanda Terdaftar (STTD) Otoritas Jasa Keuangan (OJK)</strong>. Laporan opini nilai independen kami memenuhi kepatuhan POJK No. 35/POJK.04/2020 dan terdaftar sebagai rekanan resmi perbankan nasional (Bank Mandiri, BRI, BCA, BNI, BSI, Bank DKI, dan bank umum lainnya) untuk kepentingan agunan kredit, sindikasi pembiayaan, IPO, restrukturisasi utang, maupun audit tahunan.
-            </p>
-          </div>
-        </div>
-
-        <!-- FAQ Item 5 -->
-        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 overflow-hidden transition-all duration-300 hover:border-sky-500/50">
-          <button type="button" onclick="toggleFaq(5)" class="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-5">
-            <span class="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition">
-              5. Berapa lama proses penilaian aset dan dokumen apa saja yang dibutuhkan?
-            </span>
-            <span id="faq-icon-5" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-sky-400 transition-transform duration-300">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="faq-icon-5" class="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-sky-400 group-hover:border-sky-500/50 transition-transform duration-300">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </span>
           </button>
-          <div id="faq-ans-5" class="hidden px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-4">
+          <div id="faq-ans-5" class="hidden px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
             <p>
               Waktu penyelesaian laporan rata-rata berkisar antara <strong>3 hingga 7 hari kerja</strong> setelah inspeksi lapangan (site visit) selesai dilakukan, disesuaikan dengan skala dan sebaran portofolio aset. Dokumen persyaratan utama meliputi: fotokopi sertifikat kepemilikan (SHM/HGB/Strata Title), IMB/PBG, bukti pembayaran PBB terakhir, invoice/PO mesin (bila ada), denah lokasi, serta spesifikasi teknis dan daftar inventaris aset.
             </p>
           </div>
         </div>
 
-        <!-- FAQ Item 6 -->
-        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 overflow-hidden transition-all duration-300 hover:border-sky-500/50">
-          <button type="button" onclick="toggleFaq(6)" class="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-6">
-            <span class="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition">
-              6. Di mana saja lokasi kantor KJPP NSR dan bagaimana jangkauan layanannya?
+        <!-- Item 6: Jaringan Cabang -->
+        <div id="faq-card-6" data-category="cabang" class="faq-item-card rounded-xl border border-slate-800/80 bg-slate-900/60 hover:border-slate-700 transition-all duration-200 overflow-hidden">
+          <button type="button" onclick="toggleFaq(6)" class="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer group" aria-expanded="false" aria-controls="faq-ans-6">
+            <span id="faq-title-6" class="text-sm sm:text-base font-medium text-slate-200 group-hover:text-white transition-colors">
+              Di mana saja lokasi kantor KJPP NSR dan jangkauan layanannya?
             </span>
-            <span id="faq-icon-6" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-sky-400 transition-transform duration-300">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="faq-icon-6" class="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 text-sky-400 group-hover:border-sky-500/50 transition-transform duration-300">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </span>
           </button>
-          <div id="faq-ans-6" class="hidden px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-4">
+          <div id="faq-ans-6" class="hidden px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
             <p>
-              KJPP NSR berkantor pusat di <strong>Jakarta Selatan</strong> (Jl. Hankam No. 5, Ragunan) dan didukung oleh <strong>4 Kantor Cabang Resmi Berizin Kementerian Keuangan RI</strong> di:
-            </p>
-            <ul class="mt-2 space-y-1 pl-4 list-disc text-slate-300">
-              <li><strong>Cabang Bandung:</strong> Jl. Pangrango II No. 1A, Cimahi Utara (KMK No. 326/KM.1/2020)</li>
-              <li><strong>Cabang Padang:</strong> Jl. Parak Gadang VIII No. 19, Simpang Haru (KMK No. 363/KM.1/2019)</li>
-              <li><strong>Cabang Makassar:</strong> Jl. Nuri Lr. 301 No. 7, Mariso (KMK No. 364/KM.1/2019)</li>
-              <li><strong>Cabang Palembang:</strong> Komplek Griya Hero Abadi Jl. Rosela 1 Blok BA 04 (KMK No. 230/KM.1/2022)</li>
-            </ul>
-            <p class="mt-2">
-              Jaringan surveyor dan penilai beregister kami siap melayani penugasan penilaian di <strong>seluruh wilayah Republik Indonesia</strong> dari Sabang sampai Merauke.
+              Berkantor pusat di Ragunan (Jakarta Selatan) dan didukung <strong>4 Kantor Cabang Resmi Berizin Kemenkeu RI</strong> di Bandung, Padang, Makassar, dan Palembang. Tim penilai kami siap bertugas di <strong>seluruh wilayah Republik Indonesia</strong>.
             </p>
           </div>
         </div>
@@ -4533,10 +4569,10 @@
       </div>
 
       <!-- Call to Action Bantuan Tambahan -->
-      <div class="mt-10 p-5 sm:p-6 rounded-2xl bg-blue-950/60 border border-blue-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+      <div class="mt-10 p-5 sm:p-6 rounded-2xl bg-blue-950/60 border border-blue-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left max-w-3xl mx-auto">
         <div>
           <h3 class="font-bold text-white text-sm sm:text-base">Punya Pertanyaan Spesifik Terkait Penilaian Aset Anda?</h3>
-          <p class="text-xs text-slate-300 mt-1">Konsultasikan kebutuhan ruang lingkup dan estimasi penawaran biaya secara langsung dengan tim legal &amp; penilai publik kami.</p>
+          <p class="text-xs text-slate-300 mt-1">Konsultasikan kebutuhan ruang lingkup dan estimasi penawaran biaya secara langsung dengan tim kami.</p>
         </div>
         <div class="flex items-center gap-3 shrink-0">
           <button onclick="bukaModal('modal-rfp')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-extrabold text-xs shadow-md transition cursor-pointer">
@@ -5845,17 +5881,56 @@
       if (menu) menu.classList.toggle('hidden');
     }
 
+    function switchFaqTab(kategori, btn) {
+      const tabButtons = document.querySelectorAll('.btn-faq-tab');
+      tabButtons.forEach(b => {
+        b.className = 'btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-slate-700/80 bg-slate-900/70 text-slate-300 hover:text-white hover:border-slate-600 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer';
+      });
+      if (btn) {
+        btn.className = 'btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-amber-400 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-bold px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm transition-all duration-300 shadow-md cursor-pointer';
+      }
+      const items = document.querySelectorAll('.faq-item-card');
+      items.forEach(item => {
+        const itemKat = item.getAttribute('data-category');
+        if (kategori === 'all' || itemKat === kategori) {
+          item.classList.remove('hidden');
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    }
+
     function toggleFaq(num) {
       const ans = document.getElementById('faq-ans-' + num);
       const icon = document.getElementById('faq-icon-' + num);
+      const card = document.getElementById('faq-card-' + num);
+      const title = document.getElementById('faq-title-' + num);
       if (ans && icon) {
         const isHidden = ans.classList.contains('hidden');
         if (isHidden) {
           ans.classList.remove('hidden');
-          icon.classList.add('rotate-180');
+          icon.classList.add('rotate-45', 'text-amber-400', 'border-amber-400/50');
+          icon.classList.remove('text-sky-400');
+          if (card) {
+            card.classList.add('border-sky-500/40', 'bg-slate-900/90', 'shadow-lg');
+            card.classList.remove('bg-slate-900/60', 'border-slate-800/80');
+          }
+          if (title) {
+            title.classList.add('text-amber-300', 'font-semibold');
+            title.classList.remove('text-slate-200');
+          }
         } else {
           ans.classList.add('hidden');
-          icon.classList.remove('rotate-180');
+          icon.classList.remove('rotate-45', 'text-amber-400', 'border-amber-400/50');
+          icon.classList.add('text-sky-400');
+          if (card) {
+            card.classList.remove('border-sky-500/40', 'bg-slate-900/90', 'shadow-lg');
+            card.classList.add('bg-slate-900/60', 'border-slate-800/80');
+          }
+          if (title) {
+            title.classList.remove('text-amber-300', 'font-semibold');
+            title.classList.add('text-slate-200');
+          }
         }
       }
     }
@@ -6529,8 +6604,8 @@
           followCursor: false,
           squeeze: 0.2,
           focusOnClick: true,
-          autoplay: false,
-          interval: 4,
+          autoplay: true,
+          interval: 2.5,
           captions: true,
           captureWheel: true
         });
