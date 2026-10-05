@@ -6406,8 +6406,28 @@
 
       tampilkan(fallback, false);
 
+      function getVisitorId() {
+        try {
+          let vid = localStorage.getItem('nsr_vid');
+          if (!vid || !/^[a-f0-9\-]{16,80}$/i.test(vid)) {
+            vid = (window.crypto && crypto.randomUUID) 
+              ? crypto.randomUUID().replace(/-/g, '') 
+              : (Math.random().toString(36).slice(2) + Date.now().toString(36));
+            localStorage.setItem('nsr_vid', vid);
+          }
+          return vid;
+        } catch (_) {
+          return '';
+        }
+      }
+
       async function requestStats(isPoll = false) {
-        const query = isPoll ? '?poll=1' : '';
+        const vid = getVisitorId();
+        const params = new URLSearchParams();
+        if (isPoll) params.set('poll', '1');
+        if (vid) params.set('vid', vid);
+        const query = '?' + params.toString();
+
         const isLocal = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1' || 
                         window.location.protocol === 'file:';

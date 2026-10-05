@@ -1,7 +1,9 @@
 <?php
 /**
  * KJPP NSR — Real-Time Anonymous Device Visitor Counter
- * Compatible with cPanel / LiteSpeed / Apache PHP 7.4+
+ * Industry Standard (GA4 Model):
+ * - 30-minute session deduplication for Total Visits (anti-spam refresh)
+ * - 24-hour unique device tracking for Daily Visits (Hari Ini)
  */
 
 header('Content-Type: application/json; charset=UTF-8');
@@ -9,7 +11,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Accept');
+header('Access-Control-Allow-Headers: Content-Type, Accept, X-Visitor-Id');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -18,84 +20,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 date_default_timezone_set('Asia/Jakarta');
 
-$INITIAL_TOTAL = 40;
-$INITIAL_TODAY = 1;
-$INITIAL_DATE  = '2026-10-06';
-$todayDate     = date('Y-m-d');
-$dataFile      = __DIR__ . '/visitor-data.json';
+$INITIAL_TOTAL   = 40;
+$INITIAL_TODAY   = 1;
+$INITIAL_DATE    = '2026-10-06';
+$SESSION_TIMEOUT = 1800; // 30 minutes session window (GA4 Standard)
+$todayDate       = date('Y-m-d');
+$dataFile        = __DIR__ . '/visitor-data.json';
 
-// Detect common bots / crawlers
+// Detect bots / search engine crawlers
 $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 $isBot = (bool) preg_match('/bot|crawler|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegrambot|discordbot|headless|lighthouse/i', $userAgent);
 
-// Check / Set Cookie for unique device identification
+// Client identification via persistent localStorage vid, cookie, or IP hash
 $cookieName = 'nsr_vid';
-$visitorId  = $_COOKIE[$cookieName] ?? null;
+$visitorId  = $_GET['vid'] ?? $_COOKIE[$cookieName] ?? null;
 
-if (!$visitorId || !preg_match('/^[a-f0-9\-]{16,80}$/i', $visitorId)) {
+if (!$visitorId || !preg_match('/^[a-zA-Z0-9_\-]{8,100}$/', $visitorId)) {
     try {
         $visitorId = bin2hex(random_bytes(16));
     } catch (Exception $e) {
         $visitorId = md5(uniqid(mt_rand(), true));
     }
-    $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-    setcookie($cookieName, $visitorId, [
-        'expires'  => time() + (86400 * 365),
-        'path'     => '/',
-        'secure'   => $isHttps,
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
 }
 
-$visitorHash = substr(hash('sha256', $visitorId), 0, 16);
+$isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+setcookie($cookieName, $visitorId, [
+    'expires'  => time() + (86400 * 365),
+    'path'     => '/',
+    'secure'   => $isHttps,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
+$clientIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+if (strpos($clientIp, ',') !== false) {
+    $clientIp = trim(explode(',', $clientIp)[0]);
+}
+
+// Composite device fingerprint (persistent vid + IP subnet + browser)
+$ipSubnet = preg_replace('/(\d+)\.\d+$/', '$1.0', $clientIp);
+$deviceFingerprint = substr(hash('sha256', $visitorId . '_' . $ipSubnet . '_' . $userAgent), 0, 24);
+
 $counted = false;
 $data = null;
 
-// Read / update data with file locking
+// Read / update stats with file locking
 $fp = @fopen($dataFile, 'c+');
 if ($fp) {
     if (flock($fp, LOCK_EX)) {
-        $fileSize = filesize($dataFile);
-        $content = ($fileSize > 0) ? fread($fp, $fileSize) : '';
+        clearstatcache(true, $dataFile);
+        rewind($fp);
+        $content = stream_get_contents($fp);
         $data = json_decode($content, true);
 
         if (!$data || !is_array($data)) {
             $data = [
-                'total'      => $INITIAL_TOTAL,
-                'today'      => ($todayDate === $INITIAL_DATE ? $INITIAL_TODAY : 0),
-                'date'       => $todayDate,
-                'seen_today' => []
+                'total'         => $INITIAL_TOTAL,
+                'today'         => ($todayDate === $INITIAL_DATE ? $INITIAL_TODAY : 0),
+                'date'          => $todayDate,
+                'sessions'      => [],
+                'today_devices' => []
             ];
         }
 
         // Daily reset (WIB midnight rollover)
         if (!isset($data['date']) || $data['date'] !== $todayDate) {
-            $data['date']         = $todayDate;
-            $data['today']        = ($todayDate === $INITIAL_DATE ? $INITIAL_TODAY : 0);
-            $data['seen_devices'] = [];
+            $data['date']          = $todayDate;
+            $data['today']         = ($todayDate === $INITIAL_DATE ? $INITIAL_TODAY : 0);
+            $data['today_devices'] = [];
         }
 
-        if (!isset($data['seen_devices']) || !is_array($data['seen_devices'])) {
-            $data['seen_devices'] = [];
+        if (!isset($data['sessions']) || !is_array($data['sessions'])) {
+            $data['sessions'] = [];
+        }
+        if (!isset($data['today_devices']) || !is_array($data['today_devices'])) {
+            $data['today_devices'] = [];
         }
 
         $isPollOnly = isset($_GET['poll']) && $_GET['poll'] === '1';
         $now = time();
-        $lastVisitTime = $data['seen_devices'][$visitorHash] ?? 0;
+        $lastSessionTime = $data['sessions'][$deviceFingerprint] ?? 0;
+        $seenToday = isset($data['today_devices'][$deviceFingerprint]);
 
-        // Count real visit if not a bot, not just a poll, and passed 15s cooldown per device
+        // Evaluate visit if not a bot and not just background polling
         if (!$isBot && !$isPollOnly) {
-            if (($now - $lastVisitTime) >= 15) {
-                $data['seen_devices'][$visitorHash] = $now;
+            $isNewSession = ($now - $lastSessionTime) >= $SESSION_TIMEOUT;
+
+            // 1. Total visits: increments only on new sessions (>30 min since last activity)
+            if ($isNewSession) {
+                $data['sessions'][$deviceFingerprint] = $now;
                 $data['total']++;
+                $counted = true;
+            }
+
+            // 2. Today visits: increments only once per device per calendar day
+            if (!$seenToday) {
+                $data['today_devices'][$deviceFingerprint] = $now;
                 $data['today']++;
                 $counted = true;
+            }
 
-                // Clean up entries older than 24h if array grows
-                if (count($data['seen_devices']) > 3000) {
-                    $cutoff = $now - 86400;
-                    $data['seen_devices'] = array_filter($data['seen_devices'], function($t) use ($cutoff) {
+            if ($counted) {
+                // Prune sessions older than 48 hours to keep data file light
+                if (count($data['sessions']) > 4000) {
+                    $cutoff = $now - 172800;
+                    $data['sessions'] = array_filter($data['sessions'], function($t) use ($cutoff) {
                         return $t > $cutoff;
                     });
                 }
@@ -128,3 +157,4 @@ echo json_encode([
     'realtime'  => true,
     'timestamp' => time()
 ]);
+
