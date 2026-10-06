@@ -4543,28 +4543,28 @@
       </div>
 
       <!-- Interactive Filter Tabs & Key Metrics -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-10 pb-6 border-b border-slate-800">
+      <div id="porto-filter-bar" class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-800 scroll-mt-28">
         <!-- Filter Tab Buttons -->
         <div class="flex flex-wrap items-center gap-1.5 p-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs">
-          <button type="button" onclick="filterPortofolio('semua', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-black transition bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-md">
+          <button type="button" data-filter="semua" onclick="filterPortofolio('semua', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-black transition bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-md">
             Semua Sektor
           </button>
-          <button type="button" onclick="filterPortofolio('tol', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+          <button type="button" data-filter="tol" onclick="filterPortofolio('tol', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
             Jalan Tol PSN (6)
           </button>
-          <button type="button" onclick="filterPortofolio('kereta', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+          <button type="button" data-filter="kereta" onclick="filterPortofolio('kereta', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
             Rel KA &amp; Transit (2)
           </button>
-          <button type="button" onclick="filterPortofolio('bumn', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+          <button type="button" data-filter="bumn" onclick="filterPortofolio('bumn', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
             BUMN &amp; Korporasi (5)
           </button>
-          <button type="button" onclick="filterPortofolio('maritim', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+          <button type="button" data-filter="maritim" onclick="filterPortofolio('maritim', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
             Kapal &amp; Alat Berat (2)
           </button>
-          <button type="button" onclick="filterPortofolio('fs', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+          <button type="button" data-filter="fs" onclick="filterPortofolio('fs', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
             Studi Kelayakan (4)
           </button>
-          <button type="button" onclick="filterPortofolio('pemda', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+          <button type="button" data-filter="pemda" onclick="filterPortofolio('pemda', this)" class="btn-filter-porto px-3.5 py-1.5 rounded-lg font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
             BMD Pemda (19 Wilayah)
           </button>
         </div>
@@ -4581,8 +4581,19 @@
         </div>
       </div>
 
-      <!-- 6 Proyek Tol (Grid 3 Kolom Rapi) -->
-      <div class="mb-14">
+      <!-- Filter Status Indicator Banner -->
+      <div id="porto-filter-banner" class="hidden mb-8 p-3.5 rounded-xl bg-slate-900/95 border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-md">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-slate-300">Menampilkan Filter Sektor: <strong id="porto-filter-title" class="text-amber-300 font-bold">Semua Sektor</strong></span>
+        </div>
+        <button type="button" onclick="filterPortofolio('semua')" class="text-sky-400 hover:text-sky-300 font-bold inline-flex items-center gap-1 hover:underline">
+          <span>Tampilkan Seluruh 6 Sektor</span> &rarr;
+        </button>
+      </div>
+
+      <!-- KELOMPOK 1: 6 Proyek Tol PSN -->
+      <div id="porto-tol" class="mb-14 portfolio-group scroll-mt-28" data-group="tol">
         <h3 class="text-sm font-bold uppercase tracking-wider text-white border-b-2 border-sky-500/40 pb-2 mb-6 flex items-center justify-between">
           <span>1. Proyek Pengadaan Tanah Jalan Tol Nasional (Kementerian PUPR / Ditjen Bina Marga)</span>
           <span class="text-xs font-normal text-slate-400 normal-case hidden sm:inline">Kepatuhan UU No. 2/2012 jo. PP No. 19/2021 &amp; SPI 204</span>
@@ -4670,79 +4681,7 @@
         </div>
       </div>
 
-      <!-- Valuasi Portofolio Korporasi & Aset Khusus -->
-      <div class="pt-8 border-t border-slate-800">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-white border-b-2 border-emerald-500/40 pb-2 mb-6 flex items-center justify-between">
-          <span>2. Valuasi Portofolio Korporasi, Aset Biologis &amp; Utilitas Khusus</span>
-          <span class="text-xs font-normal text-slate-400 normal-case hidden sm:inline">Kepatuhan PSAK &amp; Laporan Keuangan Audit</span>
-        </h3>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 text-xs">
-          <div class="bg-slate-900/90 backdrop-blur-md p-5 rounded-xl border border-slate-700/80 shadow-lg hover:border-emerald-500/50 transition flex flex-col justify-between">
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded inline-block mb-3">
-                Perkebunan &amp; Biologis
-              </span>
-              <h4 class="font-bold text-white text-sm">PTPN VIII (Jawa Barat)</h4>
-              <p class="text-slate-300 mt-2 leading-relaxed">
-                Penilaian tanah kebun, pabrik pengolahan, tanaman karet, teh, serta properti investasi Kebun Panglejar Walini.
-              </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-800 text-slate-400 space-y-0.5">
-              <p>&bull; Standar: <strong class="text-slate-200">PSAK 13, 16, 48 &amp; 69</strong></p>
-              <p>&bull; Periode: Kontrak Berkala (2018-2024)</p>
-            </div>
-          </div>
-
-          <div class="bg-slate-900/90 backdrop-blur-md p-5 rounded-xl border border-slate-700/80 shadow-lg hover:border-emerald-500/50 transition flex flex-col justify-between">
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-500/20 border border-sky-500/30 px-2.5 py-1 rounded inline-block mb-3">
-                Telekomunikasi &amp; BTS
-              </span>
-              <h4 class="font-bold text-white text-sm">PT Komet Infra Nusantara</h4>
-              <p class="text-slate-300 mt-2 leading-relaxed">
-                Valuasi portofolio massal 818 Menara Telekomunikasi (BTS) dan 403 Tenant di wilayah Jawa, Sumatera, dan Bali.
-              </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-800 text-slate-400 space-y-0.5">
-              <p>&bull; Objek: Menara Baja, Shelter &amp; Lahan</p>
-              <p>&bull; Skala: Jangkauan Multi-Provinsi</p>
-            </div>
-          </div>
-
-          <div class="bg-slate-900/90 backdrop-blur-md p-5 rounded-xl border border-slate-700/80 shadow-lg hover:border-emerald-500/50 transition flex flex-col justify-between">
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded inline-block mb-3">
-                Transmisi &amp; Gardu Induk
-              </span>
-              <h4 class="font-bold text-white text-sm">PT PLN (Persero) UIP &amp; P3B</h4>
-              <p class="text-slate-300 mt-2 leading-relaxed">
-                Penilaian ganti rugi tapak tower jalur transmisi SUTT 275 kV &amp; 150 kV serta converter station di Jawa Barat dan Sumatera.
-              </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-800 text-slate-400 space-y-0.5">
-              <p>&bull; Objek: Tapak Tower, Ruang Bebas (RoW)</p>
-              <p>&bull; Unit: UIP II, UIPKITSUM, P2B Gandul</p>
-            </div>
-          </div>
-
-          <div class="bg-slate-900/90 backdrop-blur-md p-5 rounded-xl border border-slate-700/80 shadow-lg hover:border-emerald-500/50 transition flex flex-col justify-between">
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-300 bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-1 rounded inline-block mb-3">
-                Maritim &amp; Alat Berat
-              </span>
-              <h4 class="font-bold text-white text-sm">Armada Laut &amp; Industri Berat</h4>
-              <p class="text-slate-300 mt-2 leading-relaxed">
-                Penilaian kapal tunda (*tugboat*), tongkang, SPOB, kapal kargo, serta alat-alat berat tambang/konstruksi di Jawa dan Kalimantan.
-              </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-800 text-slate-400 space-y-0.5">
-              <p>&bull; Rekanan: Perusahaan Pelayaran &amp; Tambang</p>
-              <p>&bull; Tujuan: Agunan Bank, Transaksi &amp; Audit</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
 
 <!-- ==========================================================================
@@ -4756,7 +4695,7 @@
      ========================================================================== -->
 
 <!-- KELOMPOK 2: INFRASTRUKTUR PERKERETAAPIAN & AKSES TRANSIT STASIUN -->
-<div class="pt-10 border-t border-slate-800 portfolio-group" data-group="kereta">
+<div id="porto-kereta" class="pt-10 border-t border-slate-800 portfolio-group scroll-mt-28" data-group="kereta">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-2 border-b-2 border-sky-500/40 gap-2">
     <div>
       <span class="text-[10px] font-bold uppercase tracking-wider text-sky-400 bg-sky-950 px-2.5 py-0.5 rounded border border-sky-800">Perkeretaapian &amp; Transit</span>
@@ -4805,7 +4744,7 @@
 </div>
 
 <!-- KELOMPOK 3: BUMN INDUSTRI, ENERGI & KORPORASI TBK -->
-<div class="pt-10 border-t border-slate-800 portfolio-group" data-group="bumn">
+<div id="porto-bumn" class="pt-10 border-t border-slate-800 portfolio-group scroll-mt-28" data-group="bumn">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-2 border-b-2 border-emerald-500/40 gap-2">
     <div>
       <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800">BUMN &amp; Korporasi Terbuka</span>
@@ -4868,11 +4807,46 @@
         <p>&bull; <strong>Tujuan:</strong> Ganti kerugian tanah publik, kepatuhan SPI 204 &amp; inventarisasi aset transmisi</p>
       </div>
     </div>
+    <!-- PTPN VIII (Jawa Barat) -->
+    <div class="bg-slate-900/90 backdrop-blur-md p-5 rounded-xl border border-slate-700/80 shadow-lg hover:border-emerald-500/50 transition flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Perkebunan &amp; Biologis</span>
+          <span class="text-[10px] text-slate-400">BUMN Perkebunan</span>
+        </div>
+        <h4 class="font-bold text-white text-sm">PTPN VIII (Jawa Barat)</h4>
+        <p class="text-slate-300 mt-2 leading-relaxed">
+          Penilaian tanah kebun, pabrik pengolahan komoditas, tanaman karet, teh, serta properti investasi Kebun Panglejar Walini.
+        </p>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-800 text-slate-400 space-y-1">
+        <p>&bull; <strong>Standar Akuntansi:</strong> PSAK 13, 16, 48 &amp; 69 (Aset Biologis)</p>
+        <p>&bull; <strong>Periode Penugasan:</strong> Kontrak Kerja Sama Berkala (2018 &ndash; 2024)</p>
+      </div>
+    </div>
+
+    <!-- PT Komet Infra Nusantara -->
+    <div class="bg-slate-900/90 backdrop-blur-md p-5 rounded-xl border border-slate-700/80 shadow-lg hover:border-emerald-500/50 transition flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">Telekomunikasi &amp; BTS</span>
+          <span class="text-[10px] text-slate-400">Infrastruktur Digital</span>
+        </div>
+        <h4 class="font-bold text-white text-sm">PT Komet Infra Nusantara</h4>
+        <p class="text-slate-300 mt-2 leading-relaxed">
+          Valuasi portofolio massal 818 Menara Telekomunikasi (BTS) dan 403 Tenant di wilayah Jawa, Sumatera, dan Bali.
+        </p>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-800 text-slate-400 space-y-1">
+        <p>&bull; <strong>Objek Valuasi:</strong> Menara Baja, Shelter, Sistem Daya &amp; Lahan Sewa</p>
+        <p>&bull; <strong>Skala Jangkauan:</strong> Multi-Provinsi (Jawa, Sumatera, Bali)</p>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- KELOMPOK 4: MARITIM (60+ KAPAL) & ALAT BERAT INDUSTRI (34+ UNIT) -->
-<div class="pt-10 border-t border-slate-800 portfolio-group" data-group="maritim">
+<div id="porto-maritim" class="pt-10 border-t border-slate-800 portfolio-group scroll-mt-28" data-group="maritim">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-2 border-b-2 border-indigo-500/40 gap-2">
     <div>
       <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-300 bg-indigo-950 px-2.5 py-0.5 rounded border border-indigo-800">Spesialisasi Aset Bergerak</span>
@@ -4921,7 +4895,7 @@
 </div>
 
 <!-- KELOMPOK 5: STUDI KELAYAKAN (70+ PROYEK FEASIBILITY STUDY) -->
-<div class="pt-10 border-t border-slate-800 portfolio-group" data-group="fs">
+<div id="porto-fs" class="pt-10 border-t border-slate-800 portfolio-group scroll-mt-28" data-group="fs">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-2 border-b-2 border-amber-500/40 gap-2">
     <div>
       <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-950 px-2.5 py-0.5 rounded border border-amber-800">Analisis Finansial &amp; Pasar</span>
@@ -4994,7 +4968,7 @@
 </div>
 
 <!-- KELOMPOK 6: INVENTARISASI & PENILAIAN BARANG MILIK DAERAH (BMD) 19 PEMDA -->
-<div class="pt-10 border-t border-slate-800 portfolio-group" data-group="pemda">
+<div id="porto-pemda" class="pt-10 border-t border-slate-800 portfolio-group scroll-mt-28" data-group="pemda">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-2 border-b-2 border-purple-500/40 gap-2">
     <div>
       <span class="text-[10px] font-bold uppercase tracking-wider text-purple-300 bg-purple-950 px-2.5 py-0.5 rounded border border-purple-800">Pemerintah Daerah &bull; BPKAD</span>
@@ -9884,7 +9858,22 @@
       }
     }
 
+    const NAMA_SEKTOR_PORTO = {
+      'semua': 'Semua Sektor (6 Kategori)',
+      'tol': 'Jalan Tol PSN (6 Proyek)',
+      'kereta': 'Rel KA & Transit (2 Proyek)',
+      'bumn': 'BUMN & Korporasi (5 Portofolio)',
+      'maritim': 'Kapal & Alat Berat (2 Portofolio Besar)',
+      'fs': 'Studi Kelayakan (4 Proyek Unggulan)',
+      'pemda': 'BMD Pemda (19 Wilayah Kabupaten/Kota)'
+    };
+
     function filterPortofolio(kategori, btn) {
+      if (!btn) {
+        btn = document.querySelector('.btn-filter-porto[data-filter="' + kategori + '"]') || document.querySelector('.btn-filter-porto[onclick*="' + kategori + '"]');
+      }
+
+      // Update button styling
       const buttons = document.querySelectorAll('.btn-filter-porto');
       buttons.forEach(b => {
         b.classList.remove('bg-gradient-to-r', 'from-amber-400', 'to-yellow-500', 'text-slate-950', 'font-black', 'shadow-md');
@@ -9894,14 +9883,46 @@
         btn.classList.add('bg-gradient-to-r', 'from-amber-400', 'to-yellow-500', 'text-slate-950', 'font-black', 'shadow-md');
         btn.classList.remove('bg-slate-800/80', 'text-slate-300', 'font-semibold');
       }
+
+      // Update filter banner
+      const banner = document.getElementById('porto-filter-banner');
+      const titleEl = document.getElementById('porto-filter-title');
+      if (banner && titleEl) {
+        if (kategori === 'semua') {
+          banner.classList.add('hidden');
+        } else {
+          titleEl.textContent = NAMA_SEKTOR_PORTO[kategori] || kategori;
+          banner.classList.remove('hidden');
+        }
+      }
+
+      // Toggle groups
       const groups = document.querySelectorAll('.portfolio-group');
+      let targetEl = null;
       groups.forEach(g => {
-        if (kategori === 'semua' || g.getAttribute('data-group') === kategori) {
+        const groupKey = g.getAttribute('data-group');
+        if (kategori === 'semua' || groupKey === kategori) {
           g.classList.remove('hidden');
+          if (groupKey === kategori) {
+            targetEl = g;
+          }
         } else {
           g.classList.add('hidden');
         }
       });
+
+      // Smooth scroll to targeted destination
+      const filterBar = document.getElementById('porto-filter-bar');
+      const destination = (kategori === 'semua') ? (filterBar || document.getElementById('portofolio')) : (filterBar || targetEl);
+      if (destination) {
+        const navOffset = 90;
+        const rect = destination.getBoundingClientRect();
+        const targetY = rect.top + window.pageYOffset - navOffset;
+        window.scrollTo({
+          top: Math.max(0, targetY),
+          behavior: 'smooth'
+        });
+      }
     }
 
     function filterGaleri(kategori, btn) {
