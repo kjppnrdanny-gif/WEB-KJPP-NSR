@@ -6467,15 +6467,16 @@
         console.debug('Visitor stats initial fallback:', err?.message || err);
       }
 
-      // Real-time background sync polling every 10 seconds
+      // Real-time background sync polling every 60 seconds (only when tab is visible)
       setInterval(async () => {
+        if (document.visibilityState !== 'visible') return;
         try {
           const liveData = await requestStats(true);
           if (liveData && (liveData.total !== curTotal || liveData.today !== curToday)) {
             tampilkan(liveData, true);
           }
         } catch (_) {}
-      }, 10000);
+      }, 60000);
     }
   </script>
 
@@ -6516,29 +6517,31 @@
     });
   </script>
 
-  <!-- DotField Interactive Background Grid Runtime (Applied to All Sections) -->
+  <!-- DotField Interactive Background Grid Runtime (Exclusive on Hero with Mobile Guard) -->
   <script src="lib/dot-field.bundle.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (!window.initDotField) return;
+      const isMobile = window.innerWidth < 768;
       const dotOptions = {
-        dotRadius: 1.4,
-        dotSpacing: 16,
-        cursorRadius: 280,
+        dotRadius: isMobile ? 1.2 : 1.4,
+        dotSpacing: isMobile ? 24 : 16,
+        cursorRadius: isMobile ? 180 : 280,
         bulgeOnly: true,
-        bulgeStrength: 42,
-        glowRadius: 140,
-        sparkle: true,
+        bulgeStrength: isMobile ? 20 : 42,
+        glowRadius: isMobile ? 100 : 140,
+        sparkle: !isMobile,
         waveAmplitude: 0,
         gradientFrom: 'rgba(56, 189, 248, 0.38)',
         gradientTo: 'rgba(148, 163, 184, 0.20)',
         glowColor: 'rgba(56, 189, 248, 0.20)'
       };
 
-      const dotContainers = document.querySelectorAll('.dot-field-container');
-      dotContainers.forEach(container => {
-        window.initDotField(container, dotOptions);
-      });
+      // Inisialisasi DotField eksklusif pada Hero agar tidak membebani 14 canvas loop simultan
+      const heroDot = document.getElementById('hero-dot-field');
+      if (heroDot) {
+        window.initDotField(heroDot, dotOptions);
+      }
     });
   </script>
 
@@ -6635,16 +6638,35 @@
           squeeze: 0.2,
           focusOnClick: true,
           autoplay: true,
-          interval: 2.5,
+          interval: window.innerWidth < 768 ? 4.0 : 3.0,
           captions: true,
           captureWheel: true
         });
       }
     }
+
+    // Lazy load WebGL carousel hanya saat pengunjung scroll mendekati Galeri
+    function setupCarouselLazy() {
+      const carouselContainer = document.getElementById('galeri-flex-carousel');
+      if (!carouselContainer) return;
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            observer.disconnect();
+            runCarouselInit();
+          }
+        }, { rootMargin: '350px 0px' });
+        observer.observe(carouselContainer);
+      } else {
+        runCarouselInit();
+      }
+    }
+
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', runCarouselInit);
+      document.addEventListener('DOMContentLoaded', setupCarouselLazy);
     } else {
-      runCarouselInit();
+      setupCarouselLazy();
     }
   </script>
 
