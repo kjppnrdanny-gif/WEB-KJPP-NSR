@@ -8,10 +8,13 @@ RewriteEngine On
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# 2. Route endpoint /api/visitor-stats ke visitor-stats.php
+# 2. Redirect legacy / demo trusted-by.html langsung ke beranda rekanan resmi
+RewriteRule ^trusted-by\.html$ /#rekanan [R=301,L]
+
+# 3. Route endpoint /api/visitor-stats ke visitor-stats.php
 RewriteRule ^api/visitor-stats/?$ visitor-stats.php [L,QSA]
 
-# 3. Lindungi data json counter dari akses publik langsung
+# 4. Lindungi data json counter dari akses publik langsung
 <Files "visitor-data.json">
     Require all denied
 </Files>
