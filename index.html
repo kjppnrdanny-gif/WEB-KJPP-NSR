@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -229,6 +229,37 @@
   <style>
     body { font-family: 'Inter', sans-serif; }
     html, body { overflow-x: hidden; }
+
+    /* ==========================================================================
+       HARDWARE-ACCELERATED ULTRA-SMOOTH RENDERING (60fps / 120fps)
+       ========================================================================== */
+    /* Skip offscreen layout & paint calculation for below-the-fold sections */
+    section:not(#hero) {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 650px;
+    }
+
+    /* Force GPU layer compositing on marquee track */
+    .marquee-scroller-track {
+      will-change: transform;
+      transform: translateZ(0);
+    }
+
+    /* Retain luxury glassmorphic blur ONLY on sticky header, overlays, and modals */
+    header, #mobile-menu, #modal-warta, #lightbox-galeri, #modal-rfp, .radix-menu-content {
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+    }
+
+    /* Eliminate heavy multi-pass GPU Gaussian blur passes on static cards during scroll */
+    main .backdrop-blur-md, 
+    main .backdrop-blur-xl,
+    main .backdrop-blur-2xl,
+    main .backdrop-blur-sm {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+      background-color: rgba(15, 23, 42, 0.95) !important;
+    }
 
     /* Animasi Marquee Berjalan Otomatis untuk Logo Rekanan */
     @keyframes marqueeScroll {
@@ -6493,10 +6524,11 @@
     }
   </script>
 
-  <!-- LightRays WebGL Runtime (Landing Page Hero) -->
+  <!-- LightRays WebGL Runtime (Landing Page Hero - Desktop Only for Maximum Performance) -->
   <script src="lib/light-rays.bundle.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      if (window.innerWidth < 768) return; // Lewati di HP agar 120Hz scrolling super lancar
       const heroRaysContainer = document.getElementById('hero-light-rays');
       if (heroRaysContainer && window.initLightRays) {
         window.initLightRays(heroRaysContainer, {
@@ -6517,20 +6549,19 @@
     });
   </script>
 
-  <!-- DotField Interactive Background Grid Runtime (Exclusive on Hero with Mobile Guard) -->
+  <!-- DotField Interactive Background Grid Runtime (Desktop Exclusive) -->
   <script src="lib/dot-field.bundle.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      if (!window.initDotField) return;
-      const isMobile = window.innerWidth < 768;
+      if (!window.initDotField || window.innerWidth < 768) return; // Lewati di HP
       const dotOptions = {
-        dotRadius: isMobile ? 1.2 : 1.4,
-        dotSpacing: isMobile ? 24 : 16,
-        cursorRadius: isMobile ? 180 : 280,
+        dotRadius: 1.4,
+        dotSpacing: 16,
+        cursorRadius: 280,
         bulgeOnly: true,
-        bulgeStrength: isMobile ? 20 : 42,
-        glowRadius: isMobile ? 100 : 140,
-        sparkle: !isMobile,
+        bulgeStrength: 42,
+        glowRadius: 140,
+        sparkle: true,
         waveAmplitude: 0,
         gradientFrom: 'rgba(56, 189, 248, 0.38)',
         gradientTo: 'rgba(148, 163, 184, 0.20)',
