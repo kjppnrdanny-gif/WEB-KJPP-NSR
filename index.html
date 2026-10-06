@@ -276,23 +276,98 @@
     }
 
 
-    /* ===== Radix UI NavigationMenu Styles & Micro-Animations ===== */
+    /* ===== Radix UI NavigationMenu Styles & Micro-Animations (SOLID & OPAQUE) ===== */
     .nav-menu-item {
       position: relative;
+    }
+    .nav-menu-dropdown {
+      position: absolute;
+      top: 100%;
+      padding-top: 8px;
+      z-index: 99999 !important;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1), visibility 180ms;
+      pointer-events: none;
+      filter: drop-shadow(0 25px 40px rgba(0, 0, 0, 0.95));
     }
     .nav-menu-item:hover .nav-menu-dropdown,
     .nav-menu-item:focus-within .nav-menu-dropdown {
       opacity: 1;
       visibility: visible;
-      transform: translateY(0) scale(1);
+      transform: translateY(0);
       pointer-events: auto;
     }
-    .nav-menu-dropdown {
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(6px) scale(0.98);
-      transition: opacity 220ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1), visibility 220ms;
+    /* Solid opaque dropdown container - ZERO bleed through from hero or background */
+    .nav-dropdown-panel {
+      background-color: #060e1d !important;
+      background: linear-gradient(175deg, #09152a 0%, #050a16 100%) !important;
+      border: 1px solid rgba(56, 189, 248, 0.35) !important;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+      border-radius: 1rem;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .nav-dropdown-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.8), rgba(251, 191, 36, 0.6), transparent);
       pointer-events: none;
+    }
+    /* Dropdown item styling for clarity and high contrast */
+    .nav-sub-item {
+      display: block;
+      padding: 0.75rem 0.85rem;
+      border-radius: 0.75rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+    }
+    .nav-sub-item:hover {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.8) 100%) !important;
+      border-color: rgba(56, 189, 248, 0.45) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(2, 6, 23, 0.6), inset 0 0 0 1px rgba(56, 189, 248, 0.2);
+    }
+    .nav-sub-item:hover .nav-item-title {
+      color: #38bdf8 !important;
+    }
+    .nav-sub-item:hover .nav-item-desc {
+      color: #e2e8f0 !important;
+    }
+    .nav-sub-item:hover .nav-item-icon {
+      transform: scale(1.15);
+      color: #fbbf24 !important;
+    }
+
+    /* ===== GPU & SMOOTH SCROLLING OPTIMIZATIONS (RINGAN & SMOOTH) ===== */
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    /* Hardware acceleration for flow tickers */
+    .animate-flow-ltr, .animate-marquee {
+      will-change: transform;
+      transform: translateZ(0);
+    }
+    /* Content visibility for below-the-fold heavy sections */
+    #pengalaman, #galeri, #semua-mitra, #regulasi, #faq {
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 700px;
+    }
+    /* Optimized backdrop-filter so mobile/integrated GPU doesn't stall */
+    @supports (backdrop-filter: blur(1px)) {
+      .backdrop-blur-xl, .backdrop-blur-lg, .backdrop-blur-md {
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+      }
     }
 
     /* ===== UI REFRESH 2026: professional, accessible, interactive ===== */
@@ -736,7 +811,7 @@
 
 
   <!-- ==================== 2. HEADER RESMI PROPORSIONAL (3 BAR) ==================== -->
-  <header id="site-header" class="sticky top-0 z-40 shadow-md bg-white">
+  <header id="site-header" class="sticky top-0 z-50 shadow-md bg-white">
     <div id="scroll-progress" class="h-1 bg-gradient-to-r from-blue-600 via-amber-400 to-emerald-500 w-0 transition-all duration-100 ease-out"></div>
 
     <!-- Ticker Kredensial & Legalitas Resmi (Animasi Mengalir dari Kiri ke Kanan) -->
@@ -885,7 +960,7 @@
     </div>
 
     <!-- Bar Bawah: Navigasi Menu Elegan, Rapi & Proporsional -->
-    <div class="bg-slate-950 border-t border-slate-800 text-white relative z-40">
+    <div class="bg-slate-950 border-t border-slate-800 text-white relative z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between gap-4 py-2.5 sm:py-3">
           
@@ -894,14 +969,14 @@
             
             <!-- 1. Pilar I: Profil & Legalitas -->
             <div class="nav-menu-item group/nav">
-              <a href="#profil" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/80 group-hover/nav:text-white">
+              <a href="#profil" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/90 group-hover/nav:text-amber-300 group-hover/nav:ring-1 group-hover/nav:ring-sky-400/30">
                 <span>Profil &amp; Legalitas</span>
-                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-slate-200 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-amber-300 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </a>
-              <div class="nav-menu-dropdown absolute left-0 top-full pt-2 z-50">
-                <div class="bg-slate-900/98 backdrop-blur-xl border border-slate-700/80 shadow-2xl rounded-2xl p-4 text-slate-200 w-[580px] grid grid-cols-[.9fr_1.1fr] gap-3">
+              <div class="nav-menu-dropdown absolute left-0 top-full pt-2">
+                <div class="nav-dropdown-panel p-4 text-slate-200 w-[580px] grid grid-cols-[.9fr_1.1fr] gap-3">
                   <!-- Featured Card -->
-                  <a href="#profil" class="flex flex-col justify-end p-5 rounded-xl bg-gradient-to-br from-blue-950/90 via-slate-900 to-slate-950 border border-blue-900/70 hover:border-slate-600 transition-all duration-300 group/card shadow-inner">
+                  <a href="#profil" class="flex flex-col justify-end p-5 rounded-xl bg-gradient-to-br from-blue-950/95 via-slate-900 to-slate-950 border border-blue-900/70 hover:border-sky-500/50 transition-all duration-300 group/card shadow-inner">
                     <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-400/30 text-sky-400 flex items-center justify-center mb-2.5 group-hover/card:scale-105 transition">
                       <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
                     </div>
@@ -910,45 +985,45 @@
                     <p class="text-[11px] text-slate-300 mt-1 leading-snug line-clamp-3">
                       Bentuk badan usaha persekutuan perdata penilai publik berizin resmi Kementerian Keuangan RI, berlisensi Kementerian ATR/BPN, dan terdaftar di OJK.
                     </p>
-                    <span class="text-[10px] font-semibold text-slate-400 group-hover/card:text-white mt-3 inline-flex items-center gap-1 transition">
+                    <span class="text-[10px] font-semibold text-sky-300 group-hover/card:text-white mt-3 inline-flex items-center gap-1 transition">
                       Profil Lengkap &rarr;
                     </span>
                   </a>
                   <!-- Right Column Items -->
-                  <div class="flex flex-col gap-1">
-                    <a href="#profil" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition-all group/item block">
-                      <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 group-hover/item:bg-sky-400 transition-colors"></span>
+                  <div class="flex flex-col gap-1.5">
+                    <a href="#profil" class="nav-sub-item">
+                      <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0"></span>
                         <span>Tentang Kami &amp; Sejarah</span>
                       </div>
-                      <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-0.5 leading-snug pl-3.5">
+                      <p class="text-[11px] text-slate-400 nav-item-desc mt-0.5 leading-snug pl-3.5">
                         Berdiri sejak 2009, independensi moral, dan struktur kemitraan profesional.
                       </p>
                     </a>
-                    <a href="#kepercayaan" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition-all group/item block">
-                      <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 group-hover/item:bg-sky-400 transition-colors"></span>
+                    <a href="#kepercayaan" class="nav-sub-item">
+                      <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
                         <span>Legalitas, OJK &amp; Lisensi BPN</span>
                       </div>
-                      <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-0.5 leading-snug pl-3.5">
+                      <p class="text-[11px] text-slate-400 nav-item-desc mt-0.5 leading-snug pl-3.5">
                         Salinan izin Kemenkeu, STTD OJK Pasar Modal &amp; Perbankan, serta MAPPI.
                       </p>
                     </a>
-                    <a href="#visi-misi" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition-all group/item block">
-                      <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 group-hover/item:bg-sky-400 transition-colors"></span>
+                    <a href="#visi-misi" class="nav-sub-item">
+                      <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
                         <span>Visi, Misi &amp; Kode Etik (KEPI)</span>
                       </div>
-                      <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-0.5 leading-snug pl-3.5">
+                      <p class="text-[11px] text-slate-400 nav-item-desc mt-0.5 leading-snug pl-3.5">
                         Integritas independen, objektivitas opini, dan kepatuhan kode etik penilai.
                       </p>
                     </a>
-                    <a href="#sistem-mutu" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition-all group/item block">
-                      <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 group-hover/item:bg-sky-400 transition-colors"></span>
+                    <a href="#sistem-mutu" class="nav-sub-item">
+                      <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0"></span>
                         <span>Sistem Mutu &amp; QA Cloud</span>
                       </div>
-                      <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-0.5 leading-snug pl-3.5">
+                      <p class="text-[11px] text-slate-400 nav-item-desc mt-0.5 leading-snug pl-3.5">
                         Technical review bertingkat dan kepatuhan Standar Penilaian Indonesia (SPI).
                       </p>
                     </a>
@@ -959,57 +1034,57 @@
 
             <!-- 2. Pilar II: Layanan Penilaian (Hanya Properti & Konsultansi) -->
             <div class="nav-menu-item group/nav">
-              <a href="#layanan" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/80 group-hover/nav:text-white">
+              <a href="#layanan" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/90 group-hover/nav:text-amber-300 group-hover/nav:ring-1 group-hover/nav:ring-sky-400/30">
                 <span>Layanan Penilaian</span>
-                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-slate-200 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-amber-300 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </a>
-              <div class="nav-menu-dropdown absolute left-0 top-full pt-2 z-50">
-                <div class="bg-slate-900/98 backdrop-blur-xl border border-slate-700/80 shadow-2xl rounded-2xl p-4 text-slate-200 w-[550px] grid grid-cols-2 gap-2">
-                  <a href="#layanan" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <svg class="w-4 h-4 text-sky-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>
+              <div class="nav-menu-dropdown absolute left-0 top-full pt-2">
+                <div class="nav-dropdown-panel p-4 text-slate-200 w-[560px] grid grid-cols-2 gap-2.5">
+                  <a href="#layanan" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <svg class="w-4 h-4 text-sky-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>
                       <span>Penilaian Properti Komersial</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Gedung perkantoran, pusat perbelanjaan, hotel, pabrik, kawasan industri &amp; perkebunan.
                     </p>
                   </a>
-                  <a href="#layanan" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <svg class="w-4 h-4 text-emerald-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18"/><line x1="10" x2="10" y1="18"/><line x1="14" x2="14" y1="18"/><line x1="18" x2="18" y1="18"/><polygon points="12 2 20 7 4 7"/></svg>
+                  <a href="#layanan" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <svg class="w-4 h-4 text-emerald-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18"/><line x1="10" x2="10" y1="18"/><line x1="14" x2="14" y1="18"/><line x1="18" x2="18" y1="18"/><polygon points="12 2 20 7 4 7"/></svg>
                       <span>Agunan Perbankan</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Valuasi jaminan fasilitas kredit komersial &amp; korporasi sesuai standar SPI &amp; regulasi OJK.
                     </p>
                   </a>
-                  <a href="#layanan" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <svg class="w-4 h-4 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M12 7v2"/><path d="M12 15v2"/></svg>
+                  <a href="#layanan" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <svg class="w-4 h-4 text-amber-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 3v18"/><path d="M16 3v18"/><path d="M12 7v2"/><path d="M12 15v2"/></svg>
                       <span>Pengadaan Tanah PSN</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Ganti kerugian fisik &amp; non-fisik jalan tol, transmisi listrik PLN, dan proyek infrastruktur (SPI 204).
                     </p>
                   </a>
-                  <a href="#layanan" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <svg class="w-4 h-4 text-violet-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+                  <a href="#layanan" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <svg class="w-4 h-4 text-violet-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
                       <span>Studi Kelayakan (FS)</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Analisis kelayakan investasi bisnis, Highest &amp; Best Use (HBU), dan advisory perizinan proyek.
                     </p>
                   </a>
-                  <a href="#layanan" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700 col-span-2">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center justify-between">
+                  <a href="#layanan" class="nav-sub-item col-span-2">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center justify-between">
                       <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-cyan-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                        <svg class="w-4 h-4 text-cyan-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
                         <span>Jasa Konsultansi, Monitoring &amp; Optimalisasi Aset</span>
                       </div>
-                      <span class="text-[11px] text-sky-400 font-bold group-hover/item:translate-x-0.5 transition-transform">Lihat 9 Ruang Lingkup &rarr;</span>
+                      <span class="text-[11px] text-sky-400 font-bold group-hover:translate-x-0.5 transition-transform">Lihat 9 Ruang Lingkup &rarr;</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Pengawasan pembiayaan proyek (project monitoring), penentuan sisa umur ekonomi, dan inventarisasi SIM Aset.
                     </p>
                   </a>
@@ -1019,59 +1094,59 @@
 
             <!-- 3. Pilar III: Tim Ahli & Cabang -->
             <div class="nav-menu-item group/nav">
-              <a href="#manajemen" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/80 group-hover/nav:text-white">
+              <a href="#manajemen" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/90 group-hover/nav:text-amber-300 group-hover/nav:ring-1 group-hover/nav:ring-sky-400/30">
                 <span>Tim Ahli &amp; Cabang</span>
-                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-slate-200 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-amber-300 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </a>
-              <div class="nav-menu-dropdown absolute left-0 top-full pt-2 z-50">
-                <div class="bg-slate-900/98 backdrop-blur-xl border border-slate-700/80 shadow-2xl rounded-2xl p-4 text-slate-200 w-[540px]">
-                  <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800">
+              <div class="nav-menu-dropdown absolute left-0 top-full pt-2">
+                <div class="nav-dropdown-panel p-4 text-slate-200 w-[550px]">
+                  <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800/80">
                     <span class="text-[11px] font-bold text-slate-300">Dewan Rekan Berizin &amp; Jaringan 5 Kantor</span>
                     <a href="#manajemen" onclick="pilihTabManajemen('semua')" class="text-[11px] text-sky-400 hover:text-sky-300 font-medium transition">
                       Semua Kantor &rarr;
                     </a>
                   </div>
                   <div class="grid grid-cols-2 gap-2">
-                    <a href="#manajemen" onclick="pilihTabManajemen('semua')" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition group/branch flex items-start gap-2.5">
-                      <span class="w-2 h-2 rounded-full bg-slate-400 group-hover/branch:bg-sky-400 mt-1.5 shrink-0 transition-colors"></span>
+                    <a href="#manajemen" onclick="pilihTabManajemen('semua')" class="nav-sub-item flex items-start gap-2.5">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shrink-0"></span>
                       <div>
-                        <div class="text-xs font-semibold text-slate-200 group-hover/branch:text-white">Dewan Rekan Berizin</div>
-                        <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">5 Penilai Publik NIPP Resmi Kemenkeu RI</p>
+                        <div class="text-xs font-semibold text-slate-200 nav-item-title">Dewan Rekan Berizin</div>
+                        <p class="text-[10px] text-slate-400 nav-item-desc mt-0.5 leading-tight">5 Penilai Publik NIPP Resmi Kemenkeu RI</p>
                       </div>
                     </a>
-                    <a href="#manajemen" onclick="pilihTabManajemen('pusat')" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition group/branch flex items-start gap-2.5">
-                      <span class="w-2 h-2 rounded-full bg-slate-400 group-hover/branch:bg-sky-400 mt-1.5 shrink-0 transition-colors"></span>
+                    <a href="#manajemen" onclick="pilihTabManajemen('pusat')" class="nav-sub-item flex items-start gap-2.5">
+                      <span class="w-2 h-2 rounded-full bg-sky-400 mt-1.5 shrink-0"></span>
                       <div>
-                        <div class="text-xs font-semibold text-slate-200 group-hover/branch:text-white">Pusat Jakarta</div>
-                        <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">Jl. Hankam No. 5, Ragunan, Pasar Minggu</p>
+                        <div class="text-xs font-semibold text-slate-200 nav-item-title">Pusat Jakarta</div>
+                        <p class="text-[10px] text-slate-400 nav-item-desc mt-0.5 leading-tight">Jl. Hankam No. 5, Ragunan, Pasar Minggu</p>
                       </div>
                     </a>
-                    <a href="#manajemen" onclick="pilihTabManajemen('bandung')" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition group/branch flex items-start gap-2.5">
-                      <span class="w-2 h-2 rounded-full bg-slate-400 group-hover/branch:bg-sky-400 mt-1.5 shrink-0 transition-colors"></span>
+                    <a href="#manajemen" onclick="pilihTabManajemen('bandung')" class="nav-sub-item flex items-start gap-2.5">
+                      <span class="w-2 h-2 rounded-full bg-sky-400 mt-1.5 shrink-0"></span>
                       <div>
-                        <div class="text-xs font-semibold text-slate-200 group-hover/branch:text-white">Cabang Bandung</div>
-                        <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">Perumahan Pancanaka Royal Garden II, Cimahi</p>
+                        <div class="text-xs font-semibold text-slate-200 nav-item-title">Cabang Bandung</div>
+                        <p class="text-[10px] text-slate-400 nav-item-desc mt-0.5 leading-tight">Perumahan Pancanaka Royal Garden II, Cimahi</p>
                       </div>
                     </a>
-                    <a href="#manajemen" onclick="pilihTabManajemen('padang')" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition group/branch flex items-start gap-2.5">
-                      <span class="w-2 h-2 rounded-full bg-slate-400 group-hover/branch:bg-sky-400 mt-1.5 shrink-0 transition-colors"></span>
+                    <a href="#manajemen" onclick="pilihTabManajemen('padang')" class="nav-sub-item flex items-start gap-2.5">
+                      <span class="w-2 h-2 rounded-full bg-teal-400 mt-1.5 shrink-0"></span>
                       <div>
-                        <div class="text-xs font-semibold text-slate-200 group-hover/branch:text-white">Cabang Padang</div>
-                        <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">Jl. Parak Gadang VIII No. 19, Simpang Haru, Padang</p>
+                        <div class="text-xs font-semibold text-slate-200 nav-item-title">Cabang Padang</div>
+                        <p class="text-[10px] text-slate-400 nav-item-desc mt-0.5 leading-tight">Jl. Parak Gadang VIII No. 19, Simpang Haru</p>
                       </div>
                     </a>
-                    <a href="#manajemen" onclick="pilihTabManajemen('makassar')" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition group/branch flex items-start gap-2.5">
-                      <span class="w-2 h-2 rounded-full bg-slate-400 group-hover/branch:bg-sky-400 mt-1.5 shrink-0 transition-colors"></span>
+                    <a href="#manajemen" onclick="pilihTabManajemen('makassar')" class="nav-sub-item flex items-start gap-2.5">
+                      <span class="w-2 h-2 rounded-full bg-indigo-400 mt-1.5 shrink-0"></span>
                       <div>
-                        <div class="text-xs font-semibold text-slate-200 group-hover/branch:text-white">Cabang Makassar</div>
-                        <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">Jl. Nuri Lr. 301 No. 7, Mariso, Makassar</p>
+                        <div class="text-xs font-semibold text-slate-200 nav-item-title">Cabang Makassar</div>
+                        <p class="text-[10px] text-slate-400 nav-item-desc mt-0.5 leading-tight">Jl. Nuri Lr. 301 No. 7, Mariso, Makassar</p>
                       </div>
                     </a>
-                    <a href="#manajemen" onclick="pilihTabManajemen('palembang')" class="p-2.5 rounded-xl hover:bg-slate-800/70 transition group/branch flex items-start gap-2.5">
-                      <span class="w-2 h-2 rounded-full bg-slate-400 group-hover/branch:bg-sky-400 mt-1.5 shrink-0 transition-colors"></span>
+                    <a href="#manajemen" onclick="pilihTabManajemen('palembang')" class="nav-sub-item flex items-start gap-2.5">
+                      <span class="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
                       <div>
-                        <div class="text-xs font-semibold text-slate-200 group-hover/branch:text-white">Cabang Palembang</div>
-                        <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">Griya Hero Abadi Maskarebet, Palembang</p>
+                        <div class="text-xs font-semibold text-slate-200 nav-item-title">Cabang Palembang</div>
+                        <p class="text-[10px] text-slate-400 nav-item-desc mt-0.5 leading-tight">Griya Hero Abadi Maskarebet, Palembang</p>
                       </div>
                     </a>
                   </div>
@@ -1081,45 +1156,45 @@
 
             <!-- 4. Pilar IV: Pengalaman & Rekanan -->
             <div class="nav-menu-item group/nav">
-              <a href="#pengalaman" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/80 group-hover/nav:text-white">
+              <a href="#pengalaman" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/90 group-hover/nav:text-amber-300 group-hover/nav:ring-1 group-hover/nav:ring-sky-400/30">
                 <span>Pengalaman &amp; Rekanan</span>
-                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-slate-200 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-amber-300 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </a>
-              <div class="nav-menu-dropdown absolute left-0 xl:left-auto xl:right-0 top-full pt-2 z-50">
-                <div class="bg-slate-900/98 backdrop-blur-xl border border-slate-700/80 shadow-2xl rounded-2xl p-4 text-slate-200 w-[520px] grid grid-cols-2 gap-2">
-                  <a href="#pengalaman" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+              <div class="nav-menu-dropdown absolute left-0 xl:left-auto xl:right-0 top-full pt-2">
+                <div class="nav-dropdown-panel p-4 text-slate-200 w-[530px] grid grid-cols-2 gap-2.5">
+                  <a href="#pengalaman" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-sky-400 shrink-0"></span>
                       <span>Portofolio Tol &amp; PSN</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Rekam jejak 15+ seksi tol Trans Jawa, Trans Sumatera, Jabodetabek &amp; transmisi PLN.
                     </p>
                   </a>
-                  <a href="#rekanan" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <a href="#rekanan" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
                       <span>40 Rekanan Resmi</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
-                      Bank BUMN, Bank Swasta, Kementerian, BUMN Karya, dan korporasi terkemuka.
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
+                      Bank BUMN, Bank Swasta, Bank Kasikorn, Kementerian, BUMN Karya &amp; korporasi.
                     </p>
                   </a>
-                  <a href="#galeri" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                  <a href="#galeri" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
                       <span>Galeri Kegiatan &amp; Diklat</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Dokumentasi survei lapangan, pelatihan SPI 204, dan raker pimpinan nasional.
                     </p>
                   </a>
-                  <a href="#faq" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-violet-400"></span>
+                  <a href="#faq" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-violet-400 shrink-0"></span>
                       <span>Tanya Jawab (FAQ)</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Informasi masa berlaku laporan penilaian, dokumen agunan, dan regulasi.
                     </p>
                   </a>
@@ -1129,45 +1204,45 @@
 
             <!-- 5. Pilar V: Wawasan & Regulasi -->
             <div class="nav-menu-item group/nav">
-              <a href="#wawasan" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/80 group-hover/nav:text-white">
+              <a href="#wawasan" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition-all font-medium text-[13px] group-hover/nav:bg-slate-800/90 group-hover/nav:text-amber-300 group-hover/nav:ring-1 group-hover/nav:ring-sky-400/30">
                 <span>Wawasan &amp; Regulasi</span>
-                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-slate-200 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover/nav:text-amber-300 transition-transform duration-300 group-hover/nav:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </a>
-              <div class="nav-menu-dropdown absolute right-0 top-full pt-2 z-50">
-                <div class="bg-slate-900/98 backdrop-blur-xl border border-slate-700/80 shadow-2xl rounded-2xl p-4 text-slate-200 w-[540px] grid grid-cols-2 gap-2">
-                  <a href="#wawasan" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <svg class="w-4 h-4 text-violet-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              <div class="nav-menu-dropdown absolute right-0 top-full pt-2">
+                <div class="nav-dropdown-panel p-4 text-slate-200 w-[550px] grid grid-cols-2 gap-2.5">
+                  <a href="#wawasan" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <svg class="w-4 h-4 text-violet-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                       <span>Pusat Wawasan Penilaian</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Artikel metodologi SPI 204, pengadaan tanah PSN &amp; valuasi agunan.
                     </p>
                   </a>
-                  <a href="#regulasi" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <svg class="w-4 h-4 text-sky-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <a href="#regulasi" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <svg class="w-4 h-4 text-sky-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                       <span>Regulasi &amp; Dasar Hukum</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       PMK Kemenkeu, regulasi OJK perbankan, dan UU Pengadaan Tanah.
                     </p>
                   </a>
-                  <a href="#sistem-mutu" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <svg class="w-4 h-4 text-emerald-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                  <a href="#sistem-mutu" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <svg class="w-4 h-4 text-emerald-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
                       <span>Sistem Manajemen Mutu</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       SOP kendali mutu peer-review bertingkat dan standar etik KEPI &amp; SPI.
                     </p>
                   </a>
-                  <a href="javascript:void(0)" onclick="bukaModal('modal-rfp')" class="p-3 rounded-xl hover:bg-slate-800/70 transition-all group/item block border border-transparent hover:border-slate-700">
-                    <div class="text-xs font-semibold text-slate-200 group-hover/item:text-white flex items-center gap-2">
-                      <svg class="w-4 h-4 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="m9 14 2 2 4-4"/></svg>
+                  <a href="javascript:void(0)" onclick="bukaModal('modal-rfp')" class="nav-sub-item">
+                    <div class="text-xs font-semibold text-slate-200 nav-item-title flex items-center gap-2">
+                      <svg class="w-4 h-4 text-amber-400 shrink-0 nav-item-icon transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="m9 14 2 2 4-4"/></svg>
                       <span>Form Permohonan RFP</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 group-hover/item:text-slate-300 mt-1 leading-snug">
+                    <p class="text-[11px] text-slate-400 nav-item-desc mt-1 leading-snug">
                       Unggah berkas awal &amp; peroleh estimasi biaya resmi KJPP NSR.
                     </p>
                   </a>
@@ -10685,14 +10760,28 @@
       });
     }
 
-    // 5. Scroll Progress Bar
-    window.addEventListener('scroll', () => {
-      const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
-      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const scrolled = (winScroll / height) * 100;
-      const pb = document.getElementById('scroll-progress');
-      if (pb) pb.style.width = scrolled + '%';
-    });
+    // 5. Scroll Progress Bar & UI Scroll State (RAF Throttled for High Performance)
+    let isScrollTicking = false;
+    function handleScrollOptimized() {
+      if (!isScrollTicking) {
+        requestAnimationFrame(() => {
+          const y = window.scrollY || document.documentElement.scrollTop;
+          const header = document.getElementById('site-header');
+          const backToTop = document.getElementById('back-to-top');
+          header?.classList.toggle('is-scrolled', y > 24);
+          backToTop?.classList.toggle('show', y > 520);
+
+          const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+          const pb = document.getElementById('scroll-progress');
+          if (pb && height > 0) {
+            pb.style.width = ((y / height) * 100) + '%';
+          }
+          isScrollTicking = false;
+        });
+        isScrollTicking = true;
+      }
+    }
+    window.addEventListener('scroll', handleScrollOptimized, { passive: true });
 
     // 6. Interaksi UI modern
     function tampilkanToast(pesan) {
@@ -10710,27 +10799,22 @@
     }
 
     function initUIInteraktif() {
-      const header = document.getElementById('site-header');
       const backToTop = document.getElementById('back-to-top');
-
-      const updateScrollUI = () => {
-        const y = window.scrollY || document.documentElement.scrollTop;
-        header?.classList.toggle('is-scrolled', y > 24);
-        backToTop?.classList.toggle('show', y > 520);
-      };
-      updateScrollUI();
-      window.addEventListener('scroll', updateScrollUI, { passive: true });
+      handleScrollOptimized();
 
       backToTop?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-      // Tandai semua kartu utama sebagai interaktif, tanpa mengubah markup satu per satu.
+      // Tandai semua kartu utama sebagai interaktif tanpa layout thrashing
       document.querySelectorAll('section .bg-white.rounded-xl.border, section article.rounded-xl').forEach(card => {
         card.classList.add('interactive-card');
+        card.addEventListener('pointerenter', () => {
+          card._rect = card.getBoundingClientRect();
+        }, { passive: true });
         card.addEventListener('pointermove', (e) => {
-          const r = card.getBoundingClientRect();
+          const r = card._rect || card.getBoundingClientRect();
           card.style.setProperty('--mx', `${e.clientX - r.left}px`);
           card.style.setProperty('--my', `${e.clientY - r.top}px`);
-        });
+        }, { passive: true });
       });
 
       // Filter layanan real-time.
@@ -11012,17 +11096,17 @@
     document.addEventListener('DOMContentLoaded', () => {
       if (!window.initDotField || window.innerWidth < 768) return; // Lewati di HP
       const dotOptions = {
-        dotRadius: 1.4,
-        dotSpacing: 16,
-        cursorRadius: 280,
+        dotRadius: 1.6,
+        dotSpacing: 28,
+        cursorRadius: 220,
         bulgeOnly: true,
-        bulgeStrength: 42,
-        glowRadius: 140,
-        sparkle: true,
+        bulgeStrength: 36,
+        glowRadius: 130,
+        sparkle: false,
         waveAmplitude: 0,
-        gradientFrom: 'rgba(56, 189, 248, 0.38)',
-        gradientTo: 'rgba(148, 163, 184, 0.20)',
-        glowColor: 'rgba(56, 189, 248, 0.20)'
+        gradientFrom: 'rgba(56, 189, 248, 0.40)',
+        gradientTo: 'rgba(148, 163, 184, 0.22)',
+        glowColor: 'rgba(56, 189, 248, 0.22)'
       };
 
       // Inisialisasi DotField eksklusif pada Hero agar tidak membebani 14 canvas loop simultan
