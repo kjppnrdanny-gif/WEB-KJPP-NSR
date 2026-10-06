@@ -174,13 +174,13 @@ export function NavbarKJPP() {
                       Jl. Hankam No. 5, Ragunan, Pasar Minggu, Jakarta Selatan.
                     </ListItem>
                     <ListItem href="#manajemen" title="Cabang Bandung" icon={<MapPin className="w-4 h-4 text-sky-400" />}>
-                      Komplek Mustika Hegar Regency, Margasari, Buahbatu.
+                      Perumahan Pancanaka Royal Garden II, Cimahi, Jawa Barat.
                     </ListItem>
                     <ListItem href="#manajemen" title="Cabang Padang" icon={<MapPin className="w-4 h-4 text-teal-400" />}>
-                      Jl. Gajah Mada No. 40-C, Alai Parak Kopi, Padang Utara.
+                      Jl. Parak Gadang VIII No. 19, Simpang Haru, Padang Timur.
                     </ListItem>
                     <ListItem href="#manajemen" title="Cabang Makassar" icon={<MapPin className="w-4 h-4 text-indigo-400" />}>
-                      Jl. Danau Mahalona No. 102, Tanjung Merdeka, Tamalate.
+                      Jl. Nuri Lr. 301 No. 7, Mariso, Kota Makassar.
                     </ListItem>
                     <ListItem href="#manajemen" title="Cabang Palembang" icon={<MapPin className="w-4 h-4 text-amber-400" />}>
                       Komplek Griya Hero Abadi Maskarebet, Alang-alang Lebar.
