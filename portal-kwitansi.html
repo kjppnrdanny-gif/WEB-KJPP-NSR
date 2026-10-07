@@ -97,8 +97,8 @@
       <!-- User Session & Navigation -->
       <div class="flex items-center gap-2 sm:gap-3">
         <div id="badge-cabang-aktif" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="label-sesi-cabang" class="font-bold">Akses: Terverifikasi</span>
+          <span id="dot-sesi-cabang" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="label-sesi-cabang" class="font-bold">Akses: Menunggu Token</span>
         </div>
         <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition flex items-center gap-1.5">
           <span>&larr; Web Utama</span>
@@ -142,10 +142,43 @@
          ========================================== -->
     <div id="panel-cabang" class="space-y-6">
       
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xl">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-5">
-          <div>
-            <h2 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+      <!-- Box Proteksi Token Cabang -->
+      <div id="box-auth-cabang" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 shadow-2xl">
+        <div class="w-12 h-12 rounded-full bg-amber-400/10 text-amber-400 mx-auto flex items-center justify-center border border-amber-400/20">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-white">Akses Draf Pengajuan Kantor Cabang</h2>
+          <p class="text-xs text-slate-400 mt-1">Masukkan Nomor Token Resmi Kantor Cabang Anda untuk membuka formulir pengajuan draf tagihan kwitansi.</p>
+        </div>
+        <div class="space-y-2">
+          <input type="text" id="input-token-cabang" onkeydown="if(event.key==='Enter') bukaAksesCabangManual()" placeholder="Masukkan Token Cabang (misal: BDG#010)" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400 uppercase">
+          <button type="button" onclick="bukaAksesCabangManual()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
+            Buka Formulir Cabang &rarr;
+          </button>
+          <p id="pesan-auth-cabang" class="text-xs text-rose-400 hidden">Token tidak valid. Masukkan token resmi cabang (BDG#010, PDG#020, MKS#030, PLB#040).</p>
+        </div>
+        <div class="pt-2 border-t border-slate-800/80 text-[10.5px] text-slate-500">
+          <span>Akses Terdaftar: Bandung (BDG#010), Padang (PDG#020), Makassar (MKS#030), Palembang (PLB#040)</span>
+        </div>
+      </div>
+
+      <!-- Konten Formulir Cabang (Terbuka setelah Token Valid) -->
+      <div id="konten-form-cabang" class="hidden space-y-4">
+        
+        <!-- Bar Notifikasi Sesi Cabang Terverifikasi -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs shadow-md">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-slate-300">Sesi Cabang Terverifikasi: <strong id="label-cabang-terverifikasi" class="text-amber-400">Cabang Bandung (BDG#010)</strong></span>
+          </div>
+          <button type="button" onclick="kunciKembaliCabang()" class="text-[11px] text-slate-400 hover:text-rose-400 underline transition">Ganti Token / Keluar</button>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xl">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-5">
+            <div>
+              <h2 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
               <span>Formulir Draf Kwitansi Tagihan Kantor Cabang</span>
             </h2>
             <p class="text-xs text-slate-400 mt-0.5">Isi rincian penugasan sesuai kontrak/SPK. Nilai pajak dan terbilang terhitung otomatis.</p>
@@ -301,26 +334,31 @@
 
     </div>
 
+  </div>
+
     <!-- ==========================================
          PANEL 2: VERIFIKASI & PENGESAHAN (PUSAT)
          ========================================== -->
     <div id="panel-pusat" class="hidden space-y-6">
       
-      <!-- Box Proteksi Token Pusat -->
-      <div id="box-auth-pusat" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4">
+      <!-- Box Proteksi Token Pusat (Token Lanjutan: JKT#00) -->
+      <div id="box-auth-pusat" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 shadow-2xl">
         <div class="w-12 h-12 rounded-full bg-amber-400/10 text-amber-400 mx-auto flex items-center justify-center border border-amber-400/20">
           <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
         <div>
-          <h2 class="text-base font-bold text-white">Otorisasi Bagian Keuangan Kantor Pusat</h2>
-          <p class="text-xs text-slate-400 mt-1">Masukkan Token Otoritas Keuangan Pusat untuk menetapkan Nomor Kwitansi Resmi, membubuhkan TTD/Stempel, dan mencetak dokumen PDF sah.</p>
+          <h2 class="text-base font-bold text-white">Otorisasi Verifikasi &amp; Pengesahan Keuangan Pusat</h2>
+          <p class="text-xs text-slate-400 mt-1">Halaman ini memerlukan token lanjutan khusus yang hanya dapat diverifikasi oleh Bagian Keuangan Kantor Pusat untuk menetapkan Nomor Kwitansi Resmi, TTD/Stempel, dan mencetak dokumen sah.</p>
         </div>
         <div class="space-y-2">
-          <input type="password" id="input-token-pusat" placeholder="Masukkan Token Akses Pusat" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400">
+          <input type="password" id="input-token-pusat" onkeydown="if(event.key==='Enter') bukaAksesPusat()" placeholder="Masukkan Token Lanjutan Pusat (JKT#00)" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400">
           <button type="button" onclick="bukaAksesPusat()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
-            Buka Panel Pengesahan &rarr;
+            Otorisasi Akses Keuangan Pusat &rarr;
           </button>
           <p id="pesan-auth-pusat" class="text-xs text-rose-400 hidden">Token tidak valid untuk otorisasi Keuangan Pusat.</p>
+        </div>
+        <div class="pt-2 border-t border-slate-800/80 text-[10.5px] text-slate-500">
+          <span>🔒 Akses Khusus Keuangan Kantor Pusat Jakarta</span>
         </div>
       </div>
 
@@ -1372,19 +1410,105 @@
       }
     }
 
-    // 16. Otorisasi Keuangan Kantor Pusat
-    function bukaAksesPusat() {
-      const val = document.getElementById('input-token-pusat').value.trim().toUpperCase();
-      const err = document.getElementById('pesan-auth-pusat');
-      const tokenValidPusat = ["NSR-PST-2026", "NSR2026", "NSR8899", "NSR-FIN"];
+    // 16. Otorisasi Akses Draf Kantor Cabang
+    const TOKEN_CABANG_MAP = {
+      "BDG#010": { nama: "Cabang Bandung", valueCabang: "Cabang Bandung", isPusat: false },
+      "PDG#020": { nama: "Cabang Padang", valueCabang: "Cabang Padang", isPusat: false },
+      "MKS#030": { nama: "Cabang Makassar", valueCabang: "Cabang Makassar", isPusat: false },
+      "PLB#040": { nama: "Cabang Palembang", valueCabang: "Cabang Palembang", isPusat: false },
+      "JKT#00":  { nama: "Kantor Pusat Jakarta", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
+      // Backup / legacy compatibility
+      "NSR-BDG-2026": { nama: "Cabang Bandung", valueCabang: "Cabang Bandung", isPusat: false },
+      "NSR-PDG-2026": { nama: "Cabang Padang", valueCabang: "Cabang Padang", isPusat: false },
+      "NSR-MKS-2026": { nama: "Cabang Makassar", valueCabang: "Cabang Makassar", isPusat: false },
+      "NSR-PLB-2026": { nama: "Cabang Palembang", valueCabang: "Cabang Palembang", isPusat: false },
+      "NSR-PLM-2026": { nama: "Cabang Palembang", valueCabang: "Cabang Palembang", isPusat: false },
+      "NSR-PST-2026": { nama: "Kantor Pusat Jakarta", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
+      "NSR2026": { nama: "Master Operasional", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
+      "NSR8899": { nama: "Master Operasional", valueCabang: "Kantor Pusat Jakarta", isPusat: true }
+    };
 
-      if (tokenValidPusat.includes(val)) {
+    const TOKEN_PUSAT_VALID = ["JKT#00", "NSR-PST-2026", "NSR2026", "NSR8899", "NSR-FIN"];
+
+    function bukaAksesCabang(token) {
+      const val = (token || "").trim().toUpperCase();
+      const err = document.getElementById('pesan-auth-cabang');
+
+      if (TOKEN_CABANG_MAP[val]) {
+        if (err) err.classList.add('hidden');
+        document.getElementById('box-auth-cabang').classList.add('hidden');
+        document.getElementById('konten-form-cabang').classList.remove('hidden');
+
+        const dataCabang = TOKEN_CABANG_MAP[val];
+        document.getElementById('label-sesi-cabang').innerText = `Akses: ${dataCabang.nama} (${val})`;
+        const dot = document.getElementById('dot-sesi-cabang');
+        if (dot) {
+          dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+        }
+        
+        const labelVerified = document.getElementById('label-cabang-terverifikasi');
+        if (labelVerified) {
+          labelVerified.innerText = `${dataCabang.nama} (${val})`;
+        }
+
+        // Set pilihan dropdown cabang otomatis sesuai token
+        const selCabang = document.getElementById('cabang-pengaju');
+        if (selCabang) {
+          selCabang.value = dataCabang.valueCabang;
+          dataKwitansiAktif.cabang = dataCabang.valueCabang;
+        }
+
+        perbaruiPreviewKwitansi();
+        return true;
+      } else {
+        if (err) err.classList.remove('hidden');
+        return false;
+      }
+    }
+
+    function bukaAksesCabangManual() {
+      const inp = document.getElementById('input-token-cabang').value;
+      bukaAksesCabang(inp);
+    }
+
+    function kunciKembaliCabang() {
+      document.getElementById('konten-form-cabang').classList.add('hidden');
+      document.getElementById('box-auth-cabang').classList.remove('hidden');
+      document.getElementById('input-token-cabang').value = '';
+      document.getElementById('label-sesi-cabang').innerText = 'Akses: Menunggu Token';
+      const dot = document.getElementById('dot-sesi-cabang');
+      if (dot) {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+      }
+    }
+
+    // 17. Otorisasi Keuangan Kantor Pusat (Token Lanjutan: JKT#00)
+    function bukaAksesPusat(token) {
+      const val = (token || document.getElementById('input-token-pusat').value).trim().toUpperCase();
+      const err = document.getElementById('pesan-auth-pusat');
+
+      // Jika user memasukkan token cabang di panel pusat:
+      if (TOKEN_CABANG_MAP[val] && !TOKEN_CABANG_MAP[val].isPusat) {
+        err.innerText = `Akses Ditolak: Token "${val}" adalah token kantor cabang. Halaman verifikasi dan pengesahan ini memerlukan token lanjutan Keuangan Pusat (JKT#00).`;
+        err.classList.remove('hidden');
+        return false;
+      }
+
+      if (TOKEN_PUSAT_VALID.includes(val)) {
         err.classList.add('hidden');
         document.getElementById('box-auth-pusat').classList.add('hidden');
         document.getElementById('konten-operasional-pusat').classList.remove('hidden');
+        document.getElementById('label-sesi-cabang').innerText = `Akses: Keuangan Pusat (JKT#00)`;
+        const dot = document.getElementById('dot-sesi-cabang');
+        if (dot) {
+          dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+        }
         perbaruiPreviewKwitansi();
+        return true;
       } else {
+        err.innerText = "Token tidak valid untuk otorisasi Keuangan Pusat.";
         err.classList.remove('hidden');
+        return false;
       }
     }
 
@@ -1402,39 +1526,22 @@
       alert("Kwitansi Resmi BERHASIL DISAHKAN!\nNomor Resmi: " + document.getElementById('no-kwitansi-resmi').value + "\nPenandatangan: " + dataKwitansiAktif.namaPejabat + "\n\nSekarang Anda dapat menekan tombol 'Cetak / Simpan PDF (A4)'.");
     }
 
-    // 17. Cetak Dokumen PDF Resmi
+    // 18. Cetak Dokumen PDF Resmi
     function cetakPDFKwitansi() {
       perbaruiPreviewKwitansi();
       window.print();
     }
 
-    // 18. Verifikasi Token Otomatis dari parameter URL
+    // 19. Verifikasi Token Otomatis dari parameter URL (?token=...)
     function verifikasiTokenOtomatis(token) {
-      const tokenMap = {
-        "NSR-PST-2026": { nama: "Kantor Pusat Jakarta", isPusat: true },
-        "NSR-BDG-2026": { nama: "Cabang Bandung", isPusat: false },
-        "NSR-PDG-2026": { nama: "Cabang Padang", isPusat: false },
-        "NSR-MKS-2026": { nama: "Cabang Makassar", isPusat: false },
-        "NSR-PLB-2026": { nama: "Cabang Palembang", isPusat: false },
-        "NSR-PLM-2026": { nama: "Cabang Palembang", isPusat: false },
-        "NSR2026": { nama: "Master Operasional", isPusat: true },
-        "NSR8899": { nama: "Master Operasional", isPusat: true }
-      };
+      const val = (token || "").trim().toUpperCase();
+      if (!val) return;
 
-      if (tokenMap[token]) {
-        document.getElementById('label-sesi-cabang').innerText = `Akses: ${tokenMap[token].nama}`;
-        const selCabang = document.getElementById('cabang-pengaju');
-        if (selCabang) {
-          for (let i = 0; i < selCabang.options.length; i++) {
-            if (selCabang.options[i].value.includes(tokenMap[token].nama.replace('Kantor ', ''))) {
-              selCabang.selectedIndex = i;
-              break;
-            }
-          }
-        }
-        if (tokenMap[token].isPusat) {
-          document.getElementById('input-token-pusat').value = token;
-          bukaAksesPusat();
+      if (TOKEN_CABANG_MAP[val]) {
+        bukaAksesCabang(val);
+        if (TOKEN_CABANG_MAP[val].isPusat) {
+          document.getElementById('input-token-pusat').value = val;
+          bukaAksesPusat(val);
         }
       }
     }
