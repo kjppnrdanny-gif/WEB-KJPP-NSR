@@ -152,14 +152,11 @@
           <p class="text-xs text-slate-400 mt-1">Masukkan Nomor Token Resmi Kantor Cabang Anda untuk membuka formulir pengajuan draf tagihan kwitansi.</p>
         </div>
         <div class="space-y-2">
-          <input type="text" id="input-token-cabang" onkeydown="if(event.key==='Enter') bukaAksesCabangManual()" placeholder="Masukkan Token Cabang (misal: BDG#010)" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400 uppercase">
+          <input type="text" id="input-token-cabang" onkeydown="if(event.key==='Enter') bukaAksesCabangManual()" placeholder="" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400 uppercase">
           <button type="button" onclick="bukaAksesCabangManual()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
             Buka Formulir Cabang &rarr;
           </button>
-          <p id="pesan-auth-cabang" class="text-xs text-rose-400 hidden">Token tidak valid. Masukkan token resmi cabang (BDG#010, PDG#020, MKS#030, PLB#040).</p>
-        </div>
-        <div class="pt-2 border-t border-slate-800/80 text-[10.5px] text-slate-500">
-          <span>Akses Terdaftar: Bandung (BDG#010), Padang (PDG#020), Makassar (MKS#030), Palembang (PLB#040)</span>
+          <p id="pesan-auth-cabang" class="text-xs text-rose-400 hidden">Token tidak valid. Silakan periksa kembali nomor token resmi cabang Anda.</p>
         </div>
       </div>
 
@@ -170,7 +167,7 @@
         <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs shadow-md">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-slate-300">Sesi Cabang Terverifikasi: <strong id="label-cabang-terverifikasi" class="text-amber-400">Cabang Bandung (BDG#010)</strong></span>
+            <span class="text-slate-300">Sesi Cabang Terverifikasi: <strong id="label-cabang-terverifikasi" class="text-amber-400">Kantor Cabang</strong></span>
           </div>
           <button type="button" onclick="kunciKembaliCabang()" class="text-[11px] text-slate-400 hover:text-rose-400 underline transition">Ganti Token / Keluar</button>
         </div>
@@ -351,7 +348,7 @@
           <p class="text-xs text-slate-400 mt-1">Halaman ini memerlukan token lanjutan khusus yang hanya dapat diverifikasi oleh Bagian Keuangan Kantor Pusat untuk menetapkan Nomor Kwitansi Resmi, TTD/Stempel, dan mencetak dokumen sah.</p>
         </div>
         <div class="space-y-2">
-          <input type="password" id="input-token-pusat" onkeydown="if(event.key==='Enter') bukaAksesPusat()" placeholder="Masukkan Token Lanjutan Pusat (JKT#00)" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400">
+          <input type="password" id="input-token-pusat" onkeydown="if(event.key==='Enter') bukaAksesPusat()" placeholder="" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400">
           <button type="button" onclick="bukaAksesPusat()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
             Otorisasi Akses Keuangan Pusat &rarr;
           </button>
@@ -1440,7 +1437,7 @@
         document.getElementById('konten-form-cabang').classList.remove('hidden');
 
         const dataCabang = TOKEN_CABANG_MAP[val];
-        document.getElementById('label-sesi-cabang').innerText = `Akses: ${dataCabang.nama} (${val})`;
+        document.getElementById('label-sesi-cabang').innerText = `Akses: ${dataCabang.nama}`;
         const dot = document.getElementById('dot-sesi-cabang');
         if (dot) {
           dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
@@ -1448,7 +1445,7 @@
         
         const labelVerified = document.getElementById('label-cabang-terverifikasi');
         if (labelVerified) {
-          labelVerified.innerText = `${dataCabang.nama} (${val})`;
+          labelVerified.innerText = dataCabang.nama;
         }
 
         // Set pilihan dropdown cabang otomatis sesuai token
@@ -1482,14 +1479,14 @@
       }
     }
 
-    // 17. Otorisasi Keuangan Kantor Pusat (Token Lanjutan: JKT#00)
+    // 17. Otorisasi Keuangan Kantor Pusat
     function bukaAksesPusat(token) {
       const val = (token || document.getElementById('input-token-pusat').value).trim().toUpperCase();
       const err = document.getElementById('pesan-auth-pusat');
 
       // Jika user memasukkan token cabang di panel pusat:
       if (TOKEN_CABANG_MAP[val] && !TOKEN_CABANG_MAP[val].isPusat) {
-        err.innerText = `Akses Ditolak: Token "${val}" adalah token kantor cabang. Halaman verifikasi dan pengesahan ini memerlukan token lanjutan Keuangan Pusat (JKT#00).`;
+        err.innerText = "Akses Ditolak: Halaman verifikasi dan pengesahan ini memerlukan token otorisasi khusus Keuangan Pusat.";
         err.classList.remove('hidden');
         return false;
       }
@@ -1498,7 +1495,7 @@
         err.classList.add('hidden');
         document.getElementById('box-auth-pusat').classList.add('hidden');
         document.getElementById('konten-operasional-pusat').classList.remove('hidden');
-        document.getElementById('label-sesi-cabang').innerText = `Akses: Keuangan Pusat (JKT#00)`;
+        document.getElementById('label-sesi-cabang').innerText = "Akses: Keuangan Pusat Terverifikasi";
         const dot = document.getElementById('dot-sesi-cabang');
         if (dot) {
           dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
