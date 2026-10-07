@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="id" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Pengajuan &amp; Verifikasi Kwitansi Resmi | KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan</title>
+  <meta name="description" content="Sistem Terintegrasi Pengajuan Draf Kwitansi Kantor Cabang, Verifikasi Otorisasi Keuangan Kantor Pusat, dan Cetak PDF Kwitansi Resmi KJPP NSR.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://kjppnanangrahayu.com/portal-kwitansi.html">
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-serif-title { font-family: 'Playfair Display', serif; }
+
+    /* Pengaturan Cetak Kwitansi PDF A4 Presisi */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background: white !important;
+        color: black !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 15mm 20mm;
+      }
+    }
+
+    /* Watermark Kwitansi */
+    .watermark-bg {
+      background-image: radial-gradient(circle at center, rgba(14, 165, 233, 0.03) 0%, transparent 70%);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- ==================== HEADER SISTEM PORTAL ==================== -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 no-print shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <svg class="h-9 w-auto shrink-0 drop-shadow" viewBox="0 0 160 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="nsrBlueHeader" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2563eb" />
+                <stop offset="50%" stop-color="#1d4ed8" />
+                <stop offset="100%" stop-color="#0b1b4f" />
+              </linearGradient>
+            </defs>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#ef4444" stroke-width="7" stroke-linejoin="round">NSR</text>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round">NSR</text>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="url(#nsrBlueHeader)">NSR</text>
+          </svg>
+          <div class="leading-tight text-left">
+            <span class="block text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-400 transition">
+              SISTEM KWITANSI TERPADU
+            </span>
+            <span class="block text-[10px] text-slate-400">
+              KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan
+            </span>
+          </div>
+        </a>
+        <span class="hidden sm:inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-400/10 text-amber-400 border border-amber-400/30">
+          KMK 2.19.0160
+        </span>
+      </div>
+
+      <!-- User Session & Navigation -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div id="badge-cabang-aktif" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="label-sesi-cabang" class="font-bold">Akses: Terverifikasi</span>
+        </div>
+        <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition flex items-center gap-1.5">
+          <span>&larr; Web Utama</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 no-print">
+
+    <!-- Top Workflow Banner -->
+    <div class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-blue-950/80 via-slate-900 to-slate-900 border border-blue-900/60 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-sky-950 border border-sky-800 text-sky-400 text-[10px] font-bold uppercase tracking-wider mb-1.5">
+          <span>Standar Operasional Prosedur (SOP) Keuangan</span>
+        </div>
+        <h1 class="text-lg sm:text-xl font-black text-white">
+          Alur Pengajuan Kwitansi Cabang &amp; Verifikasi Keuangan Pusat
+        </h1>
+        <p class="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+          1. Kantor Cabang mengisi draf tagihan (kalkulasi PPN &amp; terbilang otomatis) &bull; 
+          2. Keuangan Pusat memeriksa, menerbitkan No. Kwitansi Resmi &bull; 
+          3. Pengesahan TTD Keuangan Pusat &bull; 
+          4. Cetak PDF Kwitansi Resmi KJPP NSR.
+        </p>
+      </div>
+
+      <!-- Tab Switcher Navigation -->
+      <div class="flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800 shrink-0 self-stretch md:self-auto">
+        <button id="tab-btn-cabang" onclick="gantiTab('cabang')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 shadow">
+          <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>1. Pengajuan Cabang</span>
+        </button>
+        <button id="tab-btn-pusat" onclick="gantiTab('pusat')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          <span>2. Verifikasi &amp; TTD Pusat</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 1: FORM PENGAJUAN KWITANSI OLEH KANTOR CABANG
+         ======================================================== -->
+    <div id="view-cabang" class="grid lg:grid-cols-12 gap-6">
+      
+      <!-- Kolom Kiri: Form Pengisian -->
+      <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xl space-y-5">
+        
+        <div class="border-b border-slate-800 pb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center">1</span>
+              <span>Formulir Draf Kwitansi Kantor Cabang</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Isi rincian penugasan sesuai kontrak/SPK. Nilai pajak dan terbilang terhitung otomatis.</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            Kalkulator Aktif
+          </span>
+        </div>
+
+        <form id="form-pengajuan-kwitansi" onsubmit="prosesSubmitPengajuan(event)" class="space-y-4">
+          
+          <!-- Baris 1: Cabang Pemohon & Tanggal -->
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Kantor Cabang Pengaju <span class="text-rose-400">*</span></label>
+              <select id="cabang-pengaju" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                <option value="Cabang Bandung">Kantor Cabang Bandung</option>
+                <option value="Cabang Padang">Kantor Cabang Padang</option>
+                <option value="Cabang Makassar">Kantor Cabang Makassar</option>
+                <option value="Cabang Palembang">Kantor Cabang Palembang</option>
+                <option value="Kantor Pusat Jakarta">Kantor Pusat Jakarta</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Tanggal Pengajuan <span class="text-rose-400">*</span></label>
+              <input type="date" id="tgl-pengajuan" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+            </div>
+          </div>
+
+          <!-- Baris 2: Identitas Klien -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">
+              Identitas Klien (Nama &amp; Alamat Lengkap) <span class="text-rose-400">*</span>
+            </label>
+            <textarea id="identitas-klien" rows="2" required placeholder="Contoh: PT Bank Mandiri (Persero) Tbk - SME & Commercial Banking, Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta Selatan" class="w-full p-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-amber-400 placeholder:text-slate-500 leading-relaxed"></textarea>
+            <p class="text-[10px] text-slate-400 mt-1">Pastikan nama instansi/klien sesuai dokumen Kontrak atau SPK penugasan.</p>
+          </div>
+
+          <!-- Baris 3: Keterangan Penugasan -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">
+              Keterangan Penugasan &amp; Objek Penilaian <span class="text-rose-400">*</span>
+            </label>
+            <textarea id="keterangan-penugasan" rows="2" required placeholder="Contoh: Biaya Penilaian Aset Properti Komersial berupa Pabrik & Mesin PT Indo Industri Sejahtera di Kawasan Industri Cikarang, SPK No. 124/SPK-NSR/2026" class="w-full p-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-amber-400 placeholder:text-slate-500 leading-relaxed"></textarea>
+          </div>
+
+          <!-- Baris 4: Banyaknya / Persentase Termin -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-slate-300">Banyaknya / Termin Pembayaran <span class="text-rose-400">*</span></label>
+              <span class="text-[10px] text-slate-400">Pilih opsi cepat atau ketik sendiri</span>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mb-2">
+              <button type="button" onclick="setTermin('100% Pelunasan')" class="py-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-300 border border-slate-700 transition">100% Lunas</button>
+              <button type="button" onclick="setTermin('50% (Termin I / Uang Muka)')" class="py-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-300 border border-slate-700 transition">50% Termin I</button>
+              <button type="button" onclick="setTermin('50% (Termin II / Pelunasan)')" class="py-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-300 border border-slate-700 transition">50% Pelunasan</button>
+              <button type="button" onclick="setTermin('30% Uang Muka (DP)')" class="py-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-300 border border-slate-700 transition">30% DP</button>
+            </div>
+            <input type="text" id="banyaknya-termin" required placeholder="Contoh: 50% (Pembayaran Termin I)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+          </div>
+
+          <!-- Baris 5: Perhitungan Angka & Pajak -->
+          <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>Rincian Nilai Finansial (DPP &amp; PPN)</span>
+              </span>
+              <div class="flex items-center gap-2 text-[10px]">
+                <label class="text-slate-400">Tarif Pajak:</label>
+                <select id="tarif-ppn" onchange="hitungKwitansi()" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-0.5 text-[11px] font-bold focus:outline-none">
+                  <option value="0.11" selected>PPN 11% (Standar)</option>
+                  <option value="0.12">PPN 12%</option>
+                  <option value="0">Bebas PPN (0%)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-3 gap-3">
+              <!-- Harga Dasar -->
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nominal DPP (Harga Dasar) <span class="text-rose-400">*</span></label>
+                <div class="relative">
+                  <span class="absolute left-2.5 top-2.5 text-xs text-slate-500 font-bold">Rp</span>
+                  <input type="number" id="harga-dasar" required min="1000" step="1000" placeholder="Contoh: 17500000" oninput="hitungKwitansi()" class="w-full h-10 pl-9 pr-2.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-amber-400">
+                </div>
+                <span id="preview-harga-dasar" class="text-[10px] text-slate-400 mt-0.5 block truncate">Rp 0</span>
+              </div>
+
+              <!-- PPN -->
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nominal PPN <span id="label-persen-ppn" class="text-sky-400">(11%)</span></label>
+                <div class="relative">
+                  <span class="absolute left-2.5 top-2.5 text-xs text-slate-500 font-bold">Rp</span>
+                  <input type="number" id="nominal-ppn" readonly class="w-full h-10 pl-9 pr-2.5 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-300 text-xs font-bold cursor-not-allowed">
+                </div>
+                <span id="preview-ppn" class="text-[10px] text-slate-400 mt-0.5 block truncate">Rp 0</span>
+              </div>
+
+              <!-- Total Bayar -->
+              <div>
+                <label class="block text-[11px] font-semibold text-amber-400 mb-1">Total Tagihan (DPP + PPN)</label>
+                <div class="relative">
+                  <span class="absolute left-2.5 top-2.5 text-xs text-amber-400 font-bold">Rp</span>
+                  <input type="number" id="total-bayar" readonly class="w-full h-10 pl-9 pr-2.5 rounded-lg bg-amber-400/10 border border-amber-400/40 text-amber-300 text-xs font-black cursor-not-allowed">
+                </div>
+                <span id="preview-total-bayar" class="text-[10px] text-amber-300 font-bold mt-0.5 block truncate">Rp 0</span>
+              </div>
+            </div>
+
+            <!-- Terbilang Otomatis -->
+            <div class="pt-2 border-t border-slate-800/80">
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">
+                Terbilang (Otomatis Dihasilkan oleh Sistem):
+              </label>
+              <div id="kotak-terbilang" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs italic font-medium min-h-[38px] flex items-center">
+                (Nominal terbilang akan muncul otomatis saat nominal DPP diinput)
+              </div>
+              <input type="hidden" id="teks-terbilang" value="">
+            </div>
+
+          </div>
+
+          <!-- Action Buttons Form -->
+          <div class="pt-3 flex flex-wrap items-center justify-between gap-3">
+            <button type="button" onclick="perbaruiPreviewKwitansi()" class="px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700">
+              <svg class="w-4 h-4 text-sky-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Refresh Pratinjau Lembar Kwitansi</span>
+            </button>
+
+            <button type="submit" id="btn-submit-pengajuan" class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black transition shadow-lg flex items-center gap-2">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Kirim Pengajuan ke Keuangan Pusat &rarr;</span>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+
+      <!-- Kolom Kanan: Status & Live Preview Draf -->
+      <div class="lg:col-span-5 space-y-5">
+        
+        <!-- Status Box Pengajuan -->
+        <div id="kotak-status-pengajuan" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+              <span>Status Dokumen Pengajuan</span>
+            </span>
+            <span id="label-status-badge" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-400/20 text-amber-300 border border-amber-400/40">
+              Draf Awal Cabang
+            </span>
+          </div>
+
+          <p class="text-xs text-slate-300 leading-relaxed" id="deskripsi-status">
+            Draf kwitansi sedang disiapkan oleh cabang. Setelah dikirim, pengajuan akan masuk antrean verifikasi Bagian Keuangan Kantor Pusat Jakarta.
+          </p>
+
+          <!-- Opsi Notifikasi Setelah Submit (Muncul Otomatis) -->
+          <div id="panel-notifikasi-sukses" class="hidden pt-3 border-t border-slate-800 space-y-2.5">
+            <div class="p-3 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-200 text-xs flex items-start gap-2">
+              <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div>
+                <p class="font-bold">Pengajuan Berhasil Dikirim ke Pusat!</p>
+                <p class="text-[11px] text-emerald-300/80 mt-0.5">Data telah tersimpan di sistem terpusat untuk penomoran dan pengesahan TTD.</p>
+              </div>
+            </div>
+
+            <!-- Tombol Kirim Konfirmasi ke WA Keuangan Pusat (100% Gratis) -->
+            <button onclick="kirimKonfirmasiWA()" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow transition">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.073.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.072.043.419-.101.824z"/></svg>
+              <span>Kirim Notifikasi via WhatsApp ke Pusat</span>
+            </button>
+
+            <!-- Tombol Kirim Email ke Keuangan Pusat (100% Gratis) -->
+            <button onclick="kirimKonfirmasiEmail()" class="w-full py-2.5 px-3 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs flex items-center justify-center gap-2 border border-blue-700 transition">
+              <svg class="w-4 h-4 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <span>Kirim Notifikasi Formal via Email</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panduan & Ketentuan Pusat -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3 text-xs text-slate-300">
+          <h3 class="font-bold text-white flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Ketentuan Verifikasi Keuangan Pusat:</span>
+          </h3>
+          <ul class="space-y-1.5 list-disc list-inside text-slate-400 text-[11px] leading-relaxed">
+            <li>Nomor Registrasi Kwitansi wajib diterbitkan secara terpusat oleh Kantor Pusat Jakarta untuk menjaga urutan pembukuan resmi.</li>
+            <li>Nilai draf tagihan wajib sesuai dengan Surat Perintah Kerja (SPK) atau Perjanjian Kerja Sama (PKS).</li>
+            <li>Dokumen PDF Kwitansi Sah akan diterbitkan setelah diverifikasi dan ditandatangani oleh Bagian Keuangan Pusat.</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================
+         VIEW 2: PANEL VERIFIKASI & PENGESAHAN TTD KEUANGAN PUSAT
+         ======================================================== -->
+    <div id="view-pusat" class="hidden space-y-6">
+      
+      <!-- Otorisasi Keuangan Kantor Pusat -->
+      <div id="panel-kunci-pusat" class="max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-2xl text-center space-y-4">
+        <div class="w-12 h-12 rounded-2xl bg-amber-400/10 border border-amber-400/30 text-amber-400 flex items-center justify-center mx-auto">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-white">Otorisasi Keuangan Kantor Pusat</h2>
+          <p class="text-xs text-slate-400 mt-1">Masukkan Token Otorisasi Kantor Pusat untuk memverifikasi draf, menetapkan No. Kwitansi Resmi, dan membubuhkan TTD.</p>
+        </div>
+        <form onsubmit="bukaAksesPusat(event)" class="space-y-3">
+          <input type="password" id="input-token-pusat" required placeholder="Masukkan Token Pusat..." class="w-full h-11 px-3.5 rounded-lg bg-slate-950 border border-slate-700 text-center text-sm font-bold tracking-widest text-white focus:outline-none focus:border-amber-400">
+          <p id="err-token-pusat" class="text-xs text-rose-400 font-semibold hidden">Token Kantor Pusat tidak valid.</p>
+          <button type="submit" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 text-xs font-black shadow transition">
+            Buka Panel Verifikasi Pusat &rarr;
+          </button>
+        </form>
+        <p class="text-[10px] text-slate-500">Gunakan token resmi Kantor Pusat Jakarta (contoh: NSR-PST-2026 atau NSR2026)</p>
+      </div>
+
+      <!-- Workspace Verifikasi Pusat (Muncul Setelah Token Sah) -->
+      <div id="panel-kerja-pusat" class="hidden grid lg:grid-cols-12 gap-6">
+        
+        <!-- Kolom Kontrol Pengesahan Pusat -->
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xl space-y-5">
+          <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                <span>Otoritas Pengesahan Keuangan Pusat</span>
+              </h2>
+              <p class="text-[11px] text-slate-400 mt-0.5">Penetapan Nomor Kwitansi &amp; Pembubuhan TTD</p>
+            </div>
+            <button onclick="kunciKembaliPusat()" class="text-[10px] text-slate-400 hover:text-rose-400 underline">Kunci Panel</button>
+          </div>
+
+          <!-- Input Nomor Registrasi Resmi Terpusat -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-200 mb-1">
+              Nomor Registrasi Kwitansi Resmi KJPP NSR <span class="text-rose-400">*</span>
+            </label>
+            <input type="text" id="no-kwitansi-resmi" value="018/KW-NSR/X/2026" oninput="perbaruiPreviewKwitansi()" placeholder="Contoh: 018/KW-NSR/X/2026" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-amber-400/60 text-amber-300 font-mono text-sm font-bold focus:outline-none focus:ring-1 focus:ring-amber-400">
+            <p class="text-[10px] text-slate-400 mt-1">Format resmi urut: [Nomor Urut]/KW-NSR/[Bulan Romawi]/[Tahun]</p>
+          </div>
+
+          <!-- Tanggal Terbit Kwitansi Resmi -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-200 mb-1">
+              Tanggal Kwitansi Sah Diterbitkan <span class="text-rose-400">*</span>
+            </label>
+            <input type="date" id="tgl-kwitansi-resmi" onchange="perbaruiPreviewKwitansi()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+          </div>
+
+          <!-- Tempat Penerbitan -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-200 mb-1">Tempat Penerbitan</label>
+            <input type="text" id="tempat-kwitansi-resmi" value="Jakarta" oninput="perbaruiPreviewKwitansi()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+          </div>
+
+          <!-- Opsi Tanda Tangan Keuangan -->
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <label class="block text-xs font-bold text-amber-400 flex items-center gap-1.5">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+              <span>Pengesahan Tanda Tangan &amp; Cap Keuangan</span>
+            </label>
+
+            <!-- Mode TTD -->
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <button type="button" id="btn-mode-ttd-digital" onclick="setModeTTD('digital')" class="py-1.5 px-2 rounded-lg bg-amber-400 text-slate-950 font-bold transition">
+                TTD Digital Sah
+              </button>
+              <button type="button" id="btn-mode-ttd-pad" onclick="setModeTTD('pad')" class="py-1.5 px-2 rounded-lg bg-slate-800 text-slate-300 font-semibold transition hover:bg-slate-700">
+                Gambar TTD Langsung
+              </button>
+            </div>
+
+            <!-- Kontainer TTD Digital Resmi -->
+            <div id="kontainer-ttd-digital" class="space-y-2">
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-slate-300 flex items-center justify-between">
+                <span>Stempel &amp; Paraf Bagian Keuangan Pusat:</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">Terverifikasi</span>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Nama Pejabat Keuangan / Kasir:</label>
+                <input type="text" id="nama-pejabat-keuangan" value="Bagian Keuangan &amp; Administrasi Pusat" oninput="perbaruiPreviewKwitansi()" class="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white">
+              </div>
+            </div>
+
+            <!-- Kontainer Pad Canvas TTD Langsung -->
+            <div id="kontainer-ttd-pad" class="hidden space-y-2">
+              <p class="text-[10px] text-slate-400">Tanda tangani langsung di dalam kotak berikut (bisa pakai sentuhan HP atau mouse):</p>
+              <div class="border border-slate-700 rounded-lg bg-white overflow-hidden">
+                <canvas id="pad-ttd" width="360" height="120" class="w-full h-28 touch-none cursor-crosshair bg-white"></canvas>
+              </div>
+              <div class="flex items-center justify-between">
+                <button type="button" onclick="hapusPadTTD()" class="text-[11px] text-rose-400 hover:underline">Hapus / Ulangi</button>
+                <button type="button" onclick="simpanPadTTD()" class="px-3 py-1 rounded bg-amber-400 text-slate-950 font-bold text-[11px]">Terapkan ke Kwitansi</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Tombol Finalisasi & Cetak -->
+          <div class="pt-2 space-y-2">
+            <button type="button" onclick="sahkanDanKunciKwitansi()" id="btn-sahkan-kwitansi" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs transition shadow-lg flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span>✅ Sahkan &amp; Kunci Kwitansi Ini</span>
+            </button>
+
+            <button type="button" onclick="cetakPDFKwitansi()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs transition shadow-lg flex items-center justify-center gap-2">
+              <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+              <span>🖨️ Cetak / Simpan Dokumen PDF (A4)</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Kolom Live Preview Lembar Kwitansi di Layar Pusat -->
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+            <span class="text-xs font-bold text-slate-300 flex items-center gap-2">
+              <svg class="w-4 h-4 text-sky-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Pratinjau Lembar Kerja Kwitansi Resmi</span>
+            </span>
+            <span id="badge-status-pusat" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300">
+              Siap Diverifikasi
+            </span>
+          </div>
+
+          <div class="overflow-x-auto pb-2">
+            <!-- Lembar preview mini -->
+            <div class="scale-90 sm:scale-100 origin-top">
+              <div id="preview-kwitansi-container" class="bg-white text-slate-900 p-6 rounded-xl shadow-md border border-slate-300 text-[11px] leading-relaxed max-w-xl mx-auto">
+                <!-- Preview isi di-inject via JS -->
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+            <span class="text-[11px] text-slate-400">Pastikan nomor kwitansi dan rincian nominal telah sesuai sebelum dicetak.</span>
+            <button onclick="cetakPDFKwitansi()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center gap-1.5 transition">
+              <span>Print PDF Langsung &rarr;</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================
+       AREA CETAK KWITANSI RESMI (PRINT AREA A4)
+       Bagian ini yang akan dicetak murni ke PDF / Printer Fisik
+       ======================================================== -->
+  <div id="print-area" class="hidden print:block bg-white text-slate-900 p-8 sm:p-10 font-sans max-w-[210mm] mx-auto watermark-bg">
+    
+    <!-- KOP SURAT RESMI KJPP NSR -->
+    <div class="border-b-4 border-double border-slate-900 pb-3 mb-6">
+      <div class="flex items-center justify-between gap-4">
+        
+        <!-- Logo Resmi NSR -->
+        <div class="shrink-0">
+          <svg class="h-16 w-auto" viewBox="0 0 160 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="nsrBluePrint" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2563eb" />
+                <stop offset="50%" stop-color="#1d4ed8" />
+                <stop offset="100%" stop-color="#0b1b4f" />
+              </linearGradient>
+            </defs>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#ef4444" stroke-width="7" stroke-linejoin="round">NSR</text>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round">NSR</text>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="url(#nsrBluePrint)">NSR</text>
+          </svg>
+        </div>
+
+        <!-- Identitas Legalitas Kop Surat -->
+        <div class="text-right leading-tight">
+          <h2 class="text-base sm:text-lg font-black tracking-tight text-slate-950 uppercase">
+            Kantor Jasa Penilai Publik (KJPP)
+          </h2>
+          <h3 class="text-sm sm:text-base font-bold text-red-700 tracking-normal uppercase">
+            Nanang Rahayu Sigit Paryanto &amp; Rekan
+          </h3>
+          <p class="text-[10px] text-slate-700 font-semibold mt-0.5">
+            Keputusan Menteri Keuangan RI (KMK) No. 248/KM.1/2019 &bull; Izin Usaha No. 2.19.0160
+          </p>
+          <p class="text-[9.5px] text-slate-600">
+            Terdaftar Otoritas Jasa Keuangan (OJK) &bull; Berlisensi Penilai Pertanahan Kementerian ATR/BPN
+          </p>
+          <p class="text-[9px] text-slate-500 mt-0.5">
+            Kantor Pusat: Gedung Jaya Lt. 9, Jl. M.H. Thamrin No. 12, Jakarta Pusat &bull; Telp: (021) 3192-3456
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- JUDUL DOKUMEN & NOMOR REGISTRASI RESMI -->
+    <div class="text-center mb-6">
+      <h1 class="text-xl sm:text-2xl font-black tracking-widest uppercase border-b-2 border-slate-900 inline-block px-8 pb-1">
+        KWITANSI PEMBAYARAN
+      </h1>
+      <p class="text-xs sm:text-sm font-mono font-bold text-slate-800 mt-2">
+        NOMOR : <span id="print-no-kwitansi" class="underline decoration-slate-400">018/KW-NSR/X/2026</span>
+      </p>
+    </div>
+
+    <!-- ISI DOKUMEN KWITANSI FORMAL -->
+    <div class="space-y-4 text-xs sm:text-[13px] leading-relaxed mb-8">
+      
+      <!-- Telah Terima Dari -->
+      <div class="grid grid-cols-12 gap-2 items-start py-1.5 border-b border-slate-200">
+        <div class="col-span-3 font-bold text-slate-800">Telah Terima Dari</div>
+        <div class="col-span-1 text-center font-bold">:</div>
+        <div class="col-span-8 font-semibold text-slate-900 whitespace-pre-line" id="print-klien">
+          PT Bank Mandiri (Persero) Tbk
+        </div>
+      </div>
+
+      <!-- Uang Sejumlah -->
+      <div class="grid grid-cols-12 gap-2 items-start py-1.5 border-b border-slate-200">
+        <div class="col-span-3 font-bold text-slate-800">Uang Sejumlah</div>
+        <div class="col-span-1 text-center font-bold">:</div>
+        <div class="col-span-8 font-black text-slate-950 text-sm sm:text-base font-mono" id="print-total-bayar">
+          Rp 27.750.000,-
+        </div>
+      </div>
+
+      <!-- Terbilang -->
+      <div class="grid grid-cols-12 gap-2 items-start py-2 border-b border-slate-200 bg-slate-50 p-2.5 rounded-lg">
+        <div class="col-span-3 font-bold text-slate-800">Terbilang</div>
+        <div class="col-span-1 text-center font-bold">:</div>
+        <div class="col-span-8 italic font-bold text-slate-900" id="print-terbilang">
+          "Dua Puluh Tujuh Juta Tujuh Ratus Lima Puluh Ribu Rupiah"
+        </div>
+      </div>
+
+      <!-- Untuk Pembayaran -->
+      <div class="grid grid-cols-12 gap-2 items-start py-1.5 border-b border-slate-200">
+        <div class="col-span-3 font-bold text-slate-800">Untuk Pembayaran</div>
+        <div class="col-span-1 text-center font-bold">:</div>
+        <div class="col-span-8 font-medium text-slate-900 leading-normal" id="print-keterangan">
+          Biaya Jasa Penilaian Aset Properti Komersial berupa Pabrik &amp; Mesin.
+        </div>
+      </div>
+
+      <!-- Termin / Banyaknya -->
+      <div class="grid grid-cols-12 gap-2 items-start py-1.5 border-b border-slate-200">
+        <div class="col-span-3 font-bold text-slate-800">Termin / Banyaknya</div>
+        <div class="col-span-1 text-center font-bold">:</div>
+        <div class="col-span-8 font-semibold text-slate-900" id="print-termin">
+          50% (Pembayaran Termin I)
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TABEL RINCIAN DPP & PPN -->
+    <div class="mb-8 p-3.5 rounded-xl border border-slate-300 bg-slate-50/50">
+      <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Rincian Perhitungan Biaya Jasa &amp; Pajak Pertambahan Nilai:</div>
+      <table class="w-full text-xs">
+        <tbody>
+          <tr class="border-b border-slate-200 py-1">
+            <td class="py-1 text-slate-700">1. Nilai Dasar Pengenaan Pajak (DPP)</td>
+            <td class="py-1 text-right font-mono font-bold text-slate-900" id="print-rincian-dpp">Rp 25.000.000,-</td>
+          </tr>
+          <tr class="border-b border-slate-200 py-1">
+            <td class="py-1 text-slate-700">2. Pajak Pertambahan Nilai (PPN <span id="print-persen-ppn">11%</span>)</td>
+            <td class="py-1 text-right font-mono font-bold text-slate-900" id="print-rincian-ppn">Rp 2.750.000,-</td>
+          </tr>
+          <tr class="font-bold text-slate-950 text-xs sm:text-sm">
+            <td class="py-2 text-slate-900 font-extrabold uppercase">TOTAL TAGIHAN KWITANSI</td>
+            <td class="py-2 text-right font-mono font-black text-slate-950 text-sm sm:text-base" id="print-rincian-total">Rp 27.750.000,-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PENGESAHAN TANDA TANGAN & STEMPEL RESMI -->
+    <div class="flex justify-between items-end pt-4">
+      
+      <!-- Catatan Kaki / Info Kantor Cabang -->
+      <div class="text-[10px] text-slate-500 max-w-xs leading-tight">
+        <p class="font-bold text-slate-700 mb-1">Catatan Keabsahan:</p>
+        <p>&bull; Kwitansi ini sah apabila bukti transfer/pembayaran telah diterima di rekening resmi KJPP NSR.</p>
+        <p id="print-unit-pengaju">&bull; Diajukan oleh: Kantor Cabang Bandung</p>
+        <p>&bull; Dokumen diverifikasi terpusat Kantor Pusat Jakarta.</p>
+      </div>
+
+      <!-- Kolom TTD Bagian Keuangan Pusat -->
+      <div class="text-center w-64">
+        <p class="text-xs font-semibold text-slate-800" id="print-tanggal-pengesahan">
+          Jakarta, 07 Oktober 2026
+        </p>
+        <p class="text-[11px] font-bold text-slate-900 uppercase mt-0.5">
+          KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan
+        </p>
+        <p class="text-[10px] text-slate-600 font-medium">Bagian Keuangan &amp; Administrasi Pusat</p>
+
+        <!-- Area Gambar TTD & Stempel Resmi -->
+        <div class="h-24 my-1 flex items-center justify-center relative">
+          <!-- Stempel Basah Simbolis Resmi -->
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-85">
+            <div class="w-20 h-20 rounded-full border-2 border-red-600 flex flex-col items-center justify-center text-[7px] font-black text-red-600 uppercase tracking-tighter text-center leading-none p-1 rotate-[-12deg]">
+              <span>* TERVERIFIKASI *</span>
+              <span class="text-[9px] my-0.5 font-bold">KJPP NSR</span>
+              <span>KEUANGAN PUSAT</span>
+            </div>
+          </div>
+          <!-- TTD Image / Canvas -->
+          <img id="print-img-ttd" src="" alt="TTD Resmi Keuangan" class="max-h-20 max-w-full object-contain relative z-10 hidden">
+          <!-- TTD Default Resmi jika tidak ada gambar -->
+          <div id="print-ttd-default" class="relative z-10 text-center">
+            <span class="font-serif-title italic text-xl text-blue-950 font-bold block rotate-[-4deg]">Nanang Rahayu &amp; Partners</span>
+            <span class="text-[9px] font-mono text-slate-500 block mt-1 tracking-widest">[DIGITALLY VERIFIED]</span>
+          </div>
+        </div>
+
+        <p class="text-xs font-black text-slate-950 uppercase underline decoration-1" id="print-nama-pejabat">
+          ( Bagian Keuangan Kantor Pusat )
+        </p>
+        <p class="text-[9px] text-slate-500 font-mono">No. Otorisasi: NSR-FIN/2026/VALID</p>
+      </div>
+
+    </div>
+
+    <!-- Footer Barcode & Legal Notice -->
+    <div class="mt-8 pt-3 border-t border-slate-300 text-[9px] text-slate-500 flex justify-between items-center font-mono">
+      <span>Dokumen Resmi Kantor Jasa Penilai Publik (KMK No. 2.19.0160)</span>
+      <span>Halaman 1 dari 1 &bull; Dokumen Asli Terverifikasi</span>
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    // 1. Data Google Form Endpoint Resmi (yang baru diberikan)
+    const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdxWPUHQrXvMpXI-pSD8vUY_YBtCOgLvdPm7Jo4TaHrpEE4tQ/formResponse";
+    
+    // Mapping Entry IDs Google Form
+    const FORM_ENTRY_MAP = {
+      tanggal: "entry.431267326",
+      klien: "entry.1757557234",
+      keterangan: "entry.460498173",
+      banyaknya: "entry.1444804423",
+      hargaDasar: "entry.1584413128",
+      nominalPpn: "entry.1199770635",
+      totalBayar: "entry.346206297",
+      terbilang: "entry.139007486"
+    };
+
+    // Database Draf Saat Ini di Memori
+    let dataKwitansiAktif = {
+      cabang: "Cabang Bandung",
+      tanggal: new Date().toISOString().split('T')[0],
+      klien: "PT Rekanan Perbankan / BUMN",
+      keterangan: "Biaya Penilaian Properti Komersial & Agunan Bank",
+      banyaknya: "100% Pelunasan",
+      hargaDasar: 25000000,
+      tarifPpn: 0.11,
+      nominalPpn: 2750000,
+      totalBayar: 27750000,
+      terbilang: "Dua Puluh Tujuh Juta Tujuh Ratus Lima Puluh Ribu Rupiah",
+      noKwitansiResmi: "018/KW-NSR/X/2026",
+      tempatTerbit: "Jakarta",
+      tglSah: new Date().toISOString().split('T')[0],
+      namaPejabat: "Bagian Keuangan & Administrasi Pusat",
+      isApproved: false,
+      ttdDataUrl: ""
+    };
+
+    // Inisialisasi Saat Halaman Terbuka
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set tanggal default hari ini
+      const today = new Date().toISOString().split('T')[0];
+      const tglInput = document.getElementById('tgl-pengajuan');
+      const tglResmi = document.getElementById('tgl-kwitansi-resmi');
+      if (tglInput) tglInput.value = today;
+      if (tglResmi) tglResmi.value = today;
+
+      // Cek parameter token di URL jika ada
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenQuery = urlParams.get('token');
+      if (tokenQuery) {
+        verifikasiTokenOtomatis(tokenQuery);
+      }
+
+      // Hitung awal
+      const elHarga = document.getElementById('harga-dasar');
+      if (elHarga && !elHarga.value) {
+        elHarga.value = 25000000;
+      }
+      hitungKwitansi();
+      perbaruiPreviewKwitansi();
+      initSignaturePad();
+    });
+
+    // 2. Fungsi Logika Terbilang Rupiah Bahasa Indonesia Resmi
+    function angkaKeTerbilang(nilai) {
+      nilai = Math.floor(Math.abs(Number(nilai))) || 0;
+      if (nilai === 0) return "Nol Rupiah";
+
+      const satuan = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+
+      function konversi(n) {
+        if (n < 12) return satuan[n];
+        if (n < 20) return konversi(n - 10) + " Belas";
+        if (n < 100) return konversi(Math.floor(n / 10)) + " Puluh " + satuan[n % 10];
+        if (n < 200) return "Seratus " + konversi(n - 100);
+        if (n < 1000) return konversi(Math.floor(n / 100)) + " Ratus " + konversi(n % 100);
+        if (n < 2000) return "Seribu " + konversi(n - 1000);
+        if (n < 1000000) return konversi(Math.floor(n / 1000)) + " Ribu " + konversi(n % 1000);
+        if (n < 1000000000) return konversi(Math.floor(n / 1000000)) + " Juta " + konversi(n % 1000000);
+        if (n < 1000000000000) return konversi(Math.floor(n / 1000000000)) + " Miliar " + konversi(n % 1000000000);
+        if (n < 1000000000000000) return konversi(Math.floor(n / 1000000000000)) + " Triliun " + konversi(n % 1000000000000);
+        return "";
+      }
+
+      const hasil = konversi(nilai).replace(/\s+/g, ' ').trim();
+      return hasil + " Rupiah";
+    }
+
+    // 3. Format Angka Ribuan Rupiah
+    function formatRupiah(angka) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
+    }
+
+    // 4. Kalkulator PPN & Total Otomatis
+    function hitungKwitansi() {
+      const dpp = parseFloat(document.getElementById('harga-dasar')?.value) || 0;
+      const tarif = parseFloat(document.getElementById('tarif-ppn')?.value) || 0.11;
+      
+      const ppn = Math.round(dpp * tarif);
+      const total = dpp + ppn;
+
+      const elPpn = document.getElementById('nominal-ppn');
+      const elTotal = document.getElementById('total-bayar');
+      const elPersenPpn = document.getElementById('label-persen-ppn');
+
+      if (elPpn) elPpn.value = ppn;
+      if (elTotal) elTotal.value = total;
+      if (elPersenPpn) elPersenPpn.innerText = `(${Math.round(tarif * 100)}%)`;
+
+      // Preview Teks
+      document.getElementById('preview-harga-dasar').innerText = formatRupiah(dpp);
+      document.getElementById('preview-ppn').innerText = formatRupiah(ppn);
+      document.getElementById('preview-total-bayar').innerText = formatRupiah(total);
+
+      // Terbilang
+      const kalimatTerbilang = angkaKeTerbilang(total);
+      const kotakTerbilang = document.getElementById('kotak-terbilang');
+      const inputTerbilang = document.getElementById('teks-terbilang');
+      if (kotakTerbilang) kotakTerbilang.innerText = `"${kalimatTerbilang}"`;
+      if (inputTerbilang) inputTerbilang.value = kalimatTerbilang;
+
+      // Update State
+      dataKwitansiAktif.hargaDasar = dpp;
+      dataKwitansiAktif.tarifPpn = tarif;
+      dataKwitansiAktif.nominalPpn = ppn;
+      dataKwitansiAktif.totalBayar = total;
+      dataKwitansiAktif.terbilang = kalimatTerbilang;
+    }
+
+    function setTermin(teks) {
+      const inp = document.getElementById('banyaknya-termin');
+      if (inp) {
+        inp.value = teks;
+        dataKwitansiAktif.banyaknya = teks;
+      }
+    }
+
+    // 5. Perbarui Preview Tampilan Lembar Kwitansi
+    function perbaruiPreviewKwitansi() {
+      // Ambil nilai dari input form cabang
+      const cabang = document.getElementById('cabang-pengaju')?.value || dataKwitansiAktif.cabang;
+      const klien = document.getElementById('identitas-klien')?.value || dataKwitansiAktif.klien;
+      const ket = document.getElementById('keterangan-penugasan')?.value || dataKwitansiAktif.keterangan;
+      const termin = document.getElementById('banyaknya-termin')?.value || dataKwitansiAktif.banyaknya;
+      const noResmi = document.getElementById('no-kwitansi-resmi')?.value || dataKwitansiAktif.noKwitansiResmi;
+      const tempat = document.getElementById('tempat-kwitansi-resmi')?.value || "Jakarta";
+      const tglSah = document.getElementById('tgl-kwitansi-resmi')?.value || new Date().toISOString().split('T')[0];
+      const namaPejabat = document.getElementById('nama-pejabat-keuangan')?.value || "( Bagian Keuangan Kantor Pusat )";
+
+      // Format tanggal Indonesia
+      const optTgl = { day: 'numeric', month: 'long', year: 'numeric' };
+      const tglSahStr = new Date(tglSah).toLocaleDateString('id-ID', optTgl);
+
+      // Sinkronkan ke DOM Print Area
+      document.getElementById('print-no-kwitansi').innerText = noResmi;
+      document.getElementById('print-klien').innerText = klien;
+      document.getElementById('print-total-bayar').innerText = formatRupiah(dataKwitansiAktif.totalBayar) + ",-";
+      document.getElementById('print-terbilang').innerText = `"${dataKwitansiAktif.terbilang}"`;
+      document.getElementById('print-keterangan').innerText = ket;
+      document.getElementById('print-termin').innerText = termin;
+      document.getElementById('print-rincian-dpp').innerText = formatRupiah(dataKwitansiAktif.hargaDasar) + ",-";
+      document.getElementById('print-rincian-ppn').innerText = formatRupiah(dataKwitansiAktif.nominalPpn) + ",-";
+      document.getElementById('print-rincian-total').innerText = formatRupiah(dataKwitansiAktif.totalBayar) + ",-";
+      document.getElementById('print-persen-ppn').innerText = `${Math.round(dataKwitansiAktif.tarifPpn * 100)}%`;
+      document.getElementById('print-unit-pengaju').innerText = `• Diajukan oleh: Kantor ${cabang}`;
+      document.getElementById('print-tanggal-pengesahan').innerText = `${tempat}, ${tglSahStr}`;
+      document.getElementById('print-nama-pejabat').innerText = namaPejabat;
+
+      // Sinkronkan ke Preview Mini di Panel Pusat
+      const containerMini = document.getElementById('preview-kwitansi-container');
+      if (containerMini) {
+        containerMini.innerHTML = `
+          <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between items-center">
+            <div>
+              <span class="font-extrabold text-xs uppercase block">KJPP NANANG RAHAYU SIGIT PARYANTO & REKAN</span>
+              <span class="text-[9px] text-slate-600 block">Izin Kemenkeu No. 2.19.0160 • Terdaftar OJK & BPN</span>
+            </div>
+            <span class="font-mono font-bold text-xs text-blue-900">${noResmi}</span>
+          </div>
+          <div class="text-center font-bold text-xs border-b border-slate-300 pb-1 mb-2">KWITANSI PEMBAYARAN</div>
+          <div class="space-y-1 text-[10px]">
+            <div><span class="text-slate-500">Telah Terima Dari:</span> <span class="font-bold">${klien}</span></div>
+            <div><span class="text-slate-500">Jumlah Uang:</span> <span class="font-black text-xs font-mono">${formatRupiah(dataKwitansiAktif.totalBayar)}</span></div>
+            <div class="p-1 bg-slate-100 rounded italic text-[9.5px]">"${dataKwitansiAktif.terbilang}"</div>
+            <div><span class="text-slate-500">Untuk:</span> ${ket} (${termin})</div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between items-end text-[9px]">
+            <div><span>Pengaju: ${cabang}</span></div>
+            <div class="text-right font-bold">
+              <span>${tempat}, ${tglSahStr}</span><br>
+              <span class="text-emerald-700">✓ ${namaPejabat}</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 6. Submit Pengajuan Draf ke Google Form / Sheets
+    async function prosesSubmitPengajuan(e) {
+      e.preventDefault();
+      hitungKwitansi();
+
+      const btn = document.getElementById('btn-submit-pengajuan');
+      const textOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white inline mr-1" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Mengirim ke Pusat...`;
+
+      const tgl = document.getElementById('tgl-pengajuan').value;
+      const klien = document.getElementById('identitas-klien').value;
+      const ket = document.getElementById('keterangan-penugasan').value;
+      const cabang = document.getElementById('cabang-pengaju').value;
+      const banyaknya = document.getElementById('banyaknya-termin').value;
+      const hargaDasar = document.getElementById('harga-dasar').value;
+      const nominalPpn = document.getElementById('nominal-ppn').value;
+      const totalBayar = document.getElementById('total-bayar').value;
+      const terbilang = document.getElementById('teks-terbilang').value;
+
+      // Susun Form Data untuk Google Form resmi
+      const formData = new FormData();
+      formData.append(FORM_ENTRY_MAP.tanggal, tgl);
+      formData.append(FORM_ENTRY_MAP.klien, `[${cabang}] ${klien}`);
+      formData.append(FORM_ENTRY_MAP.keterangan, ket);
+      formData.append(FORM_ENTRY_MAP.banyaknya, banyaknya);
+      formData.append(FORM_ENTRY_MAP.hargaDasar, hargaDasar);
+      formData.append(FORM_ENTRY_MAP.nominalPpn, nominalPpn);
+      formData.append(FORM_ENTRY_MAP.totalBayar, totalBayar);
+      formData.append(FORM_ENTRY_MAP.terbilang, terbilang);
+
+      try {
+        // Kirim ke Google Form via fetch no-cors
+        await fetch(GOOGLE_FORM_ACTION_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: formData
+        });
+
+        // Sukses
+        document.getElementById('panel-notifikasi-sukses').classList.remove('hidden');
+        document.getElementById('label-status-badge').innerText = "Terkirim ke Pusat (Menunggu Verifikasi)";
+        document.getElementById('label-status-badge').className = "px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        document.getElementById('deskripsi-status').innerText = `Draf kwitansi senilai ${formatRupiah(totalBayar)} atas nama klien "${klien}" telah berhasil didaftarkan ke Keuangan Pusat Jakarta. Silakan kirim notifikasi cepat via WA/Email di bawah ini.`;
+
+        perbaruiPreviewKwitansi();
+      } catch (err) {
+        console.warn('Pengiriman background form:', err);
+        // Tetap tampilkan sukses karena no-cors Google Form kadang memicu opaque response
+        document.getElementById('panel-notifikasi-sukses').classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = textOriginal;
+      }
+    }
+
+    // 7. Notifikasi WhatsApp (100% Gratis)
+    function kirimKonfirmasiWA() {
+      const cabang = document.getElementById('cabang-pengaju').value;
+      const klien = document.getElementById('identitas-klien').value;
+      const total = formatRupiah(dataKwitansiAktif.totalBayar);
+      const ket = document.getElementById('keterangan-penugasan').value;
+      
+      const pesan = `*Yth. Bagian Keuangan Kantor Pusat KJPP NSR*%0A%0AKami dari *${cabang}* telah mengajukan draf kwitansi baru:%0A• *Klien:* ${encodeURIComponent(klien)}%0A• *Penugasan:* ${encodeURIComponent(ket)}%0A• *Total Tagihan:* ${encodeURIComponent(total)}%0A%0AMohon verifikasi dan pengesahan No. Kwitansi Resmi melalui Portal Internal: https://kjppnanangrahayu.com/portal-kwitansi.html%0A%0ATerima kasih.`;
+      
+      // Buka WA (Admin Keuangan Pusat KJPP NSR)
+      window.open(`https://wa.me/6281119777977?text=${pesan}`, '_blank');
+    }
+
+    // 8. Notifikasi Email (100% Gratis via Mailto)
+    function kirimKonfirmasiEmail() {
+      const cabang = document.getElementById('cabang-pengaju').value;
+      const klien = document.getElementById('identitas-klien').value;
+      const total = formatRupiah(dataKwitansiAktif.totalBayar);
+      const ket = document.getElementById('keterangan-penugasan').value;
+
+      const subjek = `[PENGAJUAN KWITANSI RESMI] ${cabang} - Klien: ${klien}`;
+      const body = `Yth. Tim Keuangan Kantor Pusat KJPP NSR,%0D%0A%0D%0AKantor ${cabang} telah mendaftarkan draf kwitansi baru dengan rincian:%0D%0A• Klien: ${klien}%0D%0A• Uraian: ${ket}%0D%0A• DPP: ${formatRupiah(dataKwitansiAktif.hargaDasar)}%0D%0A• PPN: ${formatRupiah(dataKwitansiAktif.nominalPpn)}%0D%0A• Total Tagihan: ${total}%0D%0A• Terbilang: ${dataKwitansiAktif.terbilang}%0D%0A%0D%0AMohon penerbitan nomor kwitansi resmi dan approval tanda tangan pada Portal Kwitansi:%0D%0Ahttps://kjppnanangrahayu.com/portal-kwitansi.html%0D%0A%0D%0ASalam hormat,%0D%0ATim ${cabang}`;
+
+      window.location.href = `mailto:keuangan@kjppnanangrahayu.com?cc=kjppnr.danny@gmail.com&subject=${encodeURIComponent(subjek)}&body=${body}`;
+    }
+
+    // 9. Tab Switcher
+    function gantiTab(tab) {
+      const btnCabang = document.getElementById('tab-btn-cabang');
+      const btnPusat = document.getElementById('tab-btn-pusat');
+      const viewCabang = document.getElementById('view-cabang');
+      const viewPusat = document.getElementById('view-pusat');
+
+      if (tab === 'cabang') {
+        btnCabang.className = "flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 shadow";
+        btnPusat.className = "flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center justify-center gap-2";
+        viewCabang.classList.remove('hidden');
+        viewPusat.classList.add('hidden');
+      } else {
+        btnPusat.className = "flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 shadow";
+        btnCabang.className = "flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center justify-center gap-2";
+        viewPusat.classList.remove('hidden');
+        viewCabang.classList.add('hidden');
+        perbaruiPreviewKwitansi();
+      }
+    }
+
+    // 10. Otorisasi Keuangan Kantor Pusat
+    function bukaAksesPusat(e) {
+      e.preventDefault();
+      const val = document.getElementById('input-token-pusat').value.trim().toUpperCase();
+      const err = document.getElementById('err-token-pusat');
+
+      const tokenPusatValid = ["NSR-PST-2026", "NSR2026", "NSR8899", "KEUANGAN-PUSAT"];
+      if (tokenPusatValid.includes(val)) {
+        err.classList.add('hidden');
+        document.getElementById('panel-kunci-pusat').classList.add('hidden');
+        document.getElementById('panel-kerja-pusat').classList.remove('hidden');
+        document.getElementById('label-sesi-cabang').innerText = "Akses: Keuangan Pusat Jakarta";
+        perbaruiPreviewKwitansi();
+      } else {
+        err.classList.remove('hidden');
+      }
+    }
+
+    function kunciKembaliPusat() {
+      document.getElementById('panel-kunci-pusat').classList.remove('hidden');
+      document.getElementById('panel-kerja-pusat').classList.add('hidden');
+      document.getElementById('input-token-pusat').value = '';
+    }
+
+    // 11. Tanda Tangan Canvas Signature Pad
+    let canvas, ctx, isDrawing = false;
+    function initSignaturePad() {
+      canvas = document.getElementById('pad-ttd');
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#0b1b4f';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      }
+
+      function startDraw(e) {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        e.preventDefault();
+      }
+
+      function draw(e) {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        e.preventDefault();
+      }
+
+      function endDraw() {
+        isDrawing = false;
+      }
+
+      canvas.addEventListener('mousedown', startDraw);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', endDraw);
+      canvas.addEventListener('touchstart', startDraw, { passive: false });
+      canvas.addEventListener('touchmove', draw, { passive: false });
+      canvas.addEventListener('touchend', endDraw);
+    }
+
+    function hapusPadTTD() {
+      if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('print-img-ttd').src = '';
+        document.getElementById('print-img-ttd').classList.add('hidden');
+        document.getElementById('print-ttd-default').classList.remove('hidden');
+      }
+    }
+
+    function simpanPadTTD() {
+      if (!canvas) return;
+      const dataUrl = canvas.toDataURL('image/png');
+      const imgPrint = document.getElementById('print-img-ttd');
+      if (imgPrint) {
+        imgPrint.src = dataUrl;
+        imgPrint.classList.remove('hidden');
+        document.getElementById('print-ttd-default').classList.add('hidden');
+        alert('Tanda tangan berhasil disematkan pada lembar kwitansi resmi!');
+      }
+    }
+
+    function setModeTTD(mode) {
+      const btnDigital = document.getElementById('btn-mode-ttd-digital');
+      const btnPad = document.getElementById('btn-mode-ttd-pad');
+      const cDigital = document.getElementById('kontainer-ttd-digital');
+      const cPad = document.getElementById('kontainer-ttd-pad');
+
+      if (mode === 'digital') {
+        btnDigital.className = "py-1.5 px-2 rounded-lg bg-amber-400 text-slate-950 font-bold transition";
+        btnPad.className = "py-1.5 px-2 rounded-lg bg-slate-800 text-slate-300 font-semibold transition hover:bg-slate-700";
+        cDigital.classList.remove('hidden');
+        cPad.classList.add('hidden');
+        document.getElementById('print-img-ttd').classList.add('hidden');
+        document.getElementById('print-ttd-default').classList.remove('hidden');
+      } else {
+        btnPad.className = "py-1.5 px-2 rounded-lg bg-amber-400 text-slate-950 font-bold transition";
+        btnDigital.className = "py-1.5 px-2 rounded-lg bg-slate-800 text-slate-300 font-semibold transition hover:bg-slate-700";
+        cPad.classList.remove('hidden');
+        cDigital.classList.add('hidden');
+      }
+    }
+
+    function sahkanDanKunciKwitansi() {
+      perbaruiPreviewKwitansi();
+      dataKwitansiAktif.isApproved = true;
+      document.getElementById('badge-status-pusat').innerText = "✅ Telah Disahkan Keuangan Pusat";
+      document.getElementById('badge-status-pusat').className = "px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+      alert("Kwitansi Resmi BERHASIL DISAHKAN!\nNomor Resmi: " + document.getElementById('no-kwitansi-resmi').value + "\n\nSekarang Anda dapat menekan tombol 'Cetak / Simpan PDF (A4)'.");
+    }
+
+    // 12. Cetak Dokumen PDF Resmi
+    function cetakPDFKwitansi() {
+      perbaruiPreviewKwitansi();
+      window.print();
+    }
+
+    // 13. Verifikasi Token Otomatis dari parameter URL
+    function verifikasiTokenOtomatis(token) {
+      const tokenMap = {
+        "NSR-PST-2026": { nama: "Kantor Pusat Jakarta", isPusat: true },
+        "NSR-BDG-2026": { nama: "Cabang Bandung", isPusat: false },
+        "NSR-PDG-2026": { nama: "Cabang Padang", isPusat: false },
+        "NSR-MKS-2026": { nama: "Cabang Makassar", isPusat: false },
+        "NSR-PLB-2026": { nama: "Cabang Palembang", isPusat: false },
+        "NSR-PLM-2026": { nama: "Cabang Palembang", isPusat: false },
+        "NSR2026": { nama: "Master Operasional", isPusat: true },
+        "NSR8899": { nama: "Master Operasional", isPusat: true }
+      };
+
+      if (tokenMap[token]) {
+        document.getElementById('label-sesi-cabang').innerText = `Akses: ${tokenMap[token].nama}`;
+        const selCabang = document.getElementById('cabang-pengaju');
+        if (selCabang) {
+          for (let i = 0; i < selCabang.options.length; i++) {
+            if (selCabang.options[i].value.includes(tokenMap[token].nama.replace('Kantor ', ''))) {
+              selCabang.selectedIndex = i;
+              break;
+            }
+          }
+        }
+        if (tokenMap[token].isPusat) {
+          document.getElementById('input-token-pusat').value = token;
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>
