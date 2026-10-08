@@ -5160,33 +5160,104 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL PORTAL INTERNAL ==================== -->
+  <!-- ==================== MODAL PORTAL INTERNAL (DENGAN PROTEKSI TOKEN RESMI) ==================== -->
   <div id="modal-portal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="bg-slate-900 rounded-2xl max-w-md w-full border border-slate-700 shadow-2xl p-6 relative">
       <div class="flex items-center justify-between pb-4 border-b border-slate-800">
         <h3 class="text-sm font-bold text-white flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-          Portal Layanan Internal KJPP NSR
+          <span>Portal Layanan Internal KJPP NSR</span>
         </h3>
         <button type="button" onclick="tutupModalPortal()" class="text-slate-400 hover:text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition cursor-pointer" aria-label="Tutup Modal Portal">&times;</button>
       </div>
+
       <p class="text-xs text-slate-300 mt-3 leading-relaxed">
         Akses khusus penilai berizin, manajer cabang, dan tim penunjang operasional kantor pusat dan kantor cabang.
       </p>
-      <div class="mt-4 space-y-2.5">
-        <a href="https://script.google.com/macros/s/AKfycbwp15BykI7yuUeSTn2VHs_aZvIUIQIzirrzqJ2yVG7CvmeLbmVEOrLyDkGIQimtFIMG/exec" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/80 transition text-xs font-semibold text-slate-200">
-          &bull; Sistem Registrasi Nolap Pusat (One-Gate) &rarr;
-        </a>
-        <a href="https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz?usp=sharing" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/80 transition text-xs font-semibold text-slate-200">
-          &bull; Repositori Dokumen SOP &amp; Format Kertas Kerja SPI &rarr;
-        </a>
-        <a href="https://s.id/absen-nsr" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/80 transition text-xs font-semibold text-slate-200">
-          &bull; Presensi &amp; Koordinasi 5 Kantor Cabang &rarr;
-        </a>
-        <a href="portal-kwitansi.html" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl bg-slate-950 border border-amber-500/40 hover:border-amber-400 hover:bg-slate-800/80 transition text-xs font-semibold text-amber-300">
-          &bull; Sistem Kwitansi Cabang &amp; Verifikasi Tagihan &rarr;
-        </a>
+
+      <!-- STATE 1: FORM INPUT TOKEN OTORISASI (Desain Gelap Elegan & Modern) -->
+      <form id="form-token-portal" onsubmit="verifikasiTokenPortal(event)" class="mt-4 space-y-3.5">
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2.5">
+          <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <div class="leading-relaxed text-[11.5px]">
+            <span class="font-bold block text-amber-200">Area Terbatas Pegawai &amp; Cabang</span>
+            Silakan masukkan token otorisasi kantor cabang atau master akses untuk membuka menu internal.
+          </div>
+        </div>
+
+        <div>
+          <label for="input-token" class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>Token Otorisasi Cabang</span>
+            <span class="text-[10px] text-slate-500 font-normal">Pusat &bull; Bandung &bull; Padang &bull; Makassar &bull; Palembang</span>
+          </label>
+          <div class="relative">
+            <input type="password" id="input-token" placeholder="Masukkan token cabang..." required 
+              class="w-full h-11 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder:text-slate-500 pl-3.5 pr-11 text-xs sm:text-sm font-mono tracking-wider focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition" 
+              autocomplete="current-password">
+            <button type="button" id="btn-toggle-token" onclick="toggleTokenVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer" aria-label="Tampilkan / sembunyikan token" title="Tampilkan / Sembunyikan Token">
+              <svg id="icon-eye-show" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="icon-eye-hide" class="w-4 h-4 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
+                <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
+                <path d="M17.479 17.499A10.75 10.75 0 0 1 2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 5.275-5.275"/>
+                <line x1="2" x2="22" y1="2" y2="22"/>
+              </svg>
+            </button>
+          </div>
+          <p id="pesan-error" class="hidden mt-2 p-2 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[11px] font-semibold flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            <span>Token otorisasi tidak valid. Silakan periksa kembali atau hubungi IT Pusat.</span>
+          </p>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer">
+          <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>Verifikasi &amp; Buka Portal</span>
+          <span>&rarr;</span>
+        </button>
+
+        <p class="text-center text-[10.5px] text-slate-500 pt-1">
+          Belum memiliki token? Hubungi Sekretariat Kantor Pusat di <a href="https://wa.me/6281218001088" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:underline">WhatsApp (+62 812-1800-1088)</a>
+        </p>
+      </form>
+
+      <!-- STATE 2: PANEL MENU LAYANAN INTERNAL (TERVERIFIKASI - SESUAI SCREENSHOT DESAIN USER) -->
+      <div id="panel-layanan" class="hidden mt-4 space-y-3">
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <span class="font-bold text-[11px] truncate" id="label-lokasi">Terverifikasi: Master Akses Operasional</span>
+          </div>
+          <button type="button" onclick="kunciKembaliPortal()" class="text-[10.5px] text-slate-400 hover:text-amber-300 underline shrink-0 cursor-pointer">
+            Ganti Token
+          </button>
+        </div>
+
+        <div class="space-y-2.5 pt-1">
+          <a id="link-portal-nolap" href="https://script.google.com/macros/s/AKfycbwp15BykI7yuUeSTn2VHs_aZvIUIQIzirrzqJ2yVG7CvmeLbmVEOrLyDkGIQimtFIMG/exec" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/80 transition text-xs font-semibold text-slate-200">
+            &bull; Sistem Registrasi Nolap Pusat (One-Gate) &rarr;
+          </a>
+          <a id="link-portal-sop" href="https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz?usp=sharing" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/80 transition text-xs font-semibold text-slate-200">
+            &bull; Repositori Dokumen SOP &amp; Format Kertas Kerja SPI &rarr;
+          </a>
+          <a id="link-portal-absen" href="https://s.id/absen-nsr" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/80 transition text-xs font-semibold text-slate-200">
+            &bull; Presensi &amp; Koordinasi 5 Kantor Cabang &rarr;
+          </a>
+          <a id="link-portal-kwitansi" href="portal-kwitansi.html" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl bg-slate-950 border border-amber-500/40 hover:border-amber-400 hover:bg-slate-800/80 transition text-xs font-semibold text-amber-300">
+            &bull; Sistem Kwitansi Cabang &amp; Verifikasi Tagihan &rarr;
+          </a>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -6109,10 +6180,58 @@
 
     function bukaModalPortal() {
       bukaModal('modal-portal');
+      const savedToken = sessionStorage.getItem('kjpp_token_internal');
+      const err = document.getElementById('pesan-error');
+      if (err) err.classList.add('hidden');
+
+      if (savedToken && TOKEN_CABANG_NSR[savedToken]) {
+        tampilkanPanelLayanan(savedToken);
+      } else {
+        document.getElementById('panel-layanan')?.classList.add('hidden');
+        const formToken = document.getElementById('form-token-portal');
+        if (formToken) {
+          formToken.classList.remove('hidden');
+          const inp = document.getElementById('input-token');
+          if (inp) {
+            inp.value = '';
+            setTimeout(() => inp.focus(), 120);
+          }
+        }
+      }
     }
 
     function tutupModalPortal() {
       tutupModal('modal-portal');
+    }
+
+    function toggleTokenVisibility() {
+      const inp = document.getElementById('input-token');
+      const eyeShow = document.getElementById('icon-eye-show');
+      const eyeHide = document.getElementById('icon-eye-hide');
+      if (!inp) return;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        if (eyeShow) eyeShow.classList.add('hidden');
+        if (eyeHide) eyeHide.classList.remove('hidden');
+      } else {
+        inp.type = 'password';
+        if (eyeShow) eyeShow.classList.remove('hidden');
+        if (eyeHide) eyeHide.classList.add('hidden');
+      }
+    }
+
+    function kunciKembaliPortal() {
+      sessionStorage.removeItem('kjpp_token_internal');
+      document.getElementById('panel-layanan')?.classList.add('hidden');
+      const formToken = document.getElementById('form-token-portal');
+      if (formToken) {
+        formToken.classList.remove('hidden');
+        const inp = document.getElementById('input-token');
+        if (inp) {
+          inp.value = '';
+          setTimeout(() => inp.focus(), 100);
+        }
+      }
     }
 
     // 2B. Logika Galeri Kegiatan, Pagination Toggle, & Lightbox Pop-up
@@ -6296,11 +6415,24 @@
       }
     });
 
-    // 3. Login Token Portal
-    function verifikasiTokenPortal(e) {
-      e.preventDefault();
-      const input = document.getElementById('input-token').value.trim().toUpperCase();
-      const err = document.getElementById('pesan-error');
+    // 3. Login Token Portal & Otorisasi Cabang
+    const TOKEN_CABANG_NSR = {
+      "JKT#00": "Akses Resmi Kantor Pusat Jakarta",
+      "BDG#010": "Akses Resmi Cabang Bandung",
+      "PDG#020": "Akses Resmi Cabang Padang",
+      "MKS#030": "Akses Resmi Cabang Makassar",
+      "PLB#040": "Akses Resmi Cabang Palembang",
+      "NSR-PST-2026": "Akses Resmi Kantor Pusat Jakarta",
+      "NSR-BDG-2026": "Akses Resmi Cabang Bandung",
+      "NSR-PDG-2026": "Akses Resmi Cabang Padang",
+      "NSR-MKS-2026": "Akses Resmi Cabang Makassar",
+      "NSR-PLB-2026": "Akses Resmi Cabang Palembang",
+      "NSR-PLM-2026": "Akses Resmi Cabang Palembang",
+      "NSR2026": "Master Akses Operasional",
+      "NSR8899": "Master Akses Operasional"
+    };
+
+    function tampilkanPanelLayanan(tokenKey) {
       const formToken = document.getElementById('form-token-portal');
       const panelLayanan = document.getElementById('panel-layanan');
       const labelLokasi = document.getElementById('label-lokasi');
@@ -6314,35 +6446,30 @@
       const URL_FORM_NOLAP = "https://script.google.com/macros/s/AKfycbwp15BykI7yuUeSTn2VHs_aZvIUIQIzirrzqJ2yVG7CvmeLbmVEOrLyDkGIQimtFIMG/exec";
       const URL_FORM_ABSEN = "https://s.id/absen-nsr";
 
-      const tokenCabang = {
-        "JKT#00": "Akses Resmi Kantor Pusat Jakarta",
-        "BDG#010": "Akses Resmi Cabang Bandung",
-        "PDG#020": "Akses Resmi Cabang Padang",
-        "MKS#030": "Akses Resmi Cabang Makassar",
-        "PLB#040": "Akses Resmi Cabang Palembang",
-        "NSR-PST-2026": "Akses Resmi Kantor Pusat Jakarta",
-        "NSR-BDG-2026": "Akses Resmi Cabang Bandung",
-        "NSR-PDG-2026": "Akses Resmi Cabang Padang",
-        "NSR-MKS-2026": "Akses Resmi Cabang Makassar",
-        "NSR-PLB-2026": "Akses Resmi Cabang Palembang",
-        "NSR-PLM-2026": "Akses Resmi Cabang Palembang",
-        "NSR2026": "Master Akses Operasional",
-        "NSR8899": "Master Akses Operasional"
-      };
+      if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${TOKEN_CABANG_NSR[tokenKey] || 'Master Akses Operasional'}`;
+      if (linkSop) linkSop.href = URL_DRIVE_SOP;
+      if (linkKwitansi) linkKwitansi.href = `${URL_FORM_KWITANSI}?token=${encodeURIComponent(tokenKey)}`;
+      if (linkNolap) linkNolap.href = URL_FORM_NOLAP;
+      if (linkAbsen) linkAbsen.href = URL_FORM_ABSEN;
 
-      if (tokenCabang[input]) {
-        err.classList.add('hidden');
-        labelLokasi.innerText = `Terverifikasi: ${tokenCabang[input]}`;
-        if (linkSop) linkSop.href = URL_DRIVE_SOP;
-        if (linkKwitansi) linkKwitansi.href = `${URL_FORM_KWITANSI}?token=${encodeURIComponent(input)}`;
-        if (linkNolap) linkNolap.href = URL_FORM_NOLAP;
-        if (linkAbsen) linkAbsen.href = URL_FORM_ABSEN;
-        formToken.classList.add('hidden');
-        panelLayanan.classList.remove('hidden');
+      if (formToken) formToken.classList.add('hidden');
+      if (panelLayanan) panelLayanan.classList.remove('hidden');
+    }
+
+    function verifikasiTokenPortal(e) {
+      if (e) e.preventDefault();
+      const inputEl = document.getElementById('input-token');
+      if (!inputEl) return;
+      const input = inputEl.value.trim().toUpperCase();
+      const err = document.getElementById('pesan-error');
+
+      if (TOKEN_CABANG_NSR[input]) {
+        if (err) err.classList.add('hidden');
+        sessionStorage.setItem('kjpp_token_internal', input);
+        tampilkanPanelLayanan(input);
       } else {
-        err.classList.remove('hidden');
-        panelLayanan.classList.add('hidden');
-        document.getElementById('input-token').select();
+        if (err) err.classList.remove('hidden');
+        inputEl.select();
       }
     }
 
