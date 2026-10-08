@@ -149,14 +149,17 @@
         </div>
         <div>
           <h2 class="text-base font-bold text-white">Akses Draf Pengajuan Kantor Cabang</h2>
-          <p class="text-xs text-slate-400 mt-1">Masukkan Nomor Token Resmi Kantor Cabang Anda untuk membuka formulir pengajuan draf tagihan kwitansi.</p>
+          <p class="text-xs text-slate-400 mt-1">Masukkan Nomor Token Khusus Bagian Keuangan Kantor Cabang untuk membuka formulir pengajuan draf tagihan kwitansi.</p>
         </div>
         <div class="space-y-2">
-          <input type="text" id="input-token-cabang" onkeydown="if(event.key==='Enter') bukaAksesCabangManual()" placeholder="" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400 uppercase">
+          <input type="text" id="input-token-cabang" onkeydown="if(event.key==='Enter') bukaAksesCabangManual()" placeholder="Masukkan Token Khusus Keuangan Cabang" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400 uppercase">
           <button type="button" onclick="bukaAksesCabangManual()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
             Buka Formulir Cabang &rarr;
           </button>
-          <p id="pesan-auth-cabang" class="text-xs text-rose-400 hidden">Token tidak valid. Silakan periksa kembali nomor token resmi cabang Anda.</p>
+          <p id="pesan-auth-cabang" class="text-xs text-rose-400 hidden">Token tidak valid. Masukkan token khusus Keuangan Cabang (BDG#010, PDG#020, MKS#030, PLB#040).</p>
+        </div>
+        <div class="pt-2 border-t border-slate-800/80 text-[10.5px] text-slate-500">
+          <span>Akses Terdaftar: Bandung (BDG#010), Padang (PDG#020), Makassar (MKS#030), Palembang (PLB#040)</span>
         </div>
       </div>
 
@@ -385,14 +388,14 @@
           <p class="text-xs text-slate-400 mt-1">Halaman ini memerlukan token lanjutan khusus yang hanya dapat diverifikasi oleh Bagian Keuangan Kantor Pusat untuk menetapkan Nomor Kwitansi Resmi, TTD/Stempel, dan mencetak dokumen sah.</p>
         </div>
         <div class="space-y-2">
-          <input type="password" id="input-token-pusat" onkeydown="if(event.key==='Enter') bukaAksesPusat()" placeholder="" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400">
+          <input type="password" id="input-token-pusat" onkeydown="if(event.key==='Enter') bukaAksesPusat()" placeholder="Masukkan Token Keuangan Pusat (JKT#00)" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400">
           <button type="button" onclick="bukaAksesPusat()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
             Otorisasi Akses Keuangan Pusat &rarr;
           </button>
           <p id="pesan-auth-pusat" class="text-xs text-rose-400 hidden">Token tidak valid untuk otorisasi Keuangan Pusat.</p>
         </div>
         <div class="pt-2 border-t border-slate-800/80 text-[10.5px] text-slate-500">
-          <span>🔒 Akses Khusus Keuangan Kantor Pusat Jakarta</span>
+          <span>🔒 Akses Khusus Keuangan Kantor Pusat Jakarta (JKT#00)</span>
         </div>
       </div>
 
@@ -1681,25 +1684,16 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       }
     }
 
-    // 16. Otorisasi Akses Draf Kantor Cabang
+    // 16. Otorisasi Akses Draf Kantor Cabang (Khusus Bagian Keuangan Terdaftar)
     const TOKEN_CABANG_MAP = {
       "BDG#010": { nama: "Cabang Bandung", valueCabang: "Cabang Bandung", isPusat: false },
       "PDG#020": { nama: "Cabang Padang", valueCabang: "Cabang Padang", isPusat: false },
       "MKS#030": { nama: "Cabang Makassar", valueCabang: "Cabang Makassar", isPusat: false },
       "PLB#040": { nama: "Cabang Palembang", valueCabang: "Cabang Palembang", isPusat: false },
-      "JKT#00":  { nama: "Kantor Pusat Jakarta", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      // Backup / legacy compatibility
-      "NSR-BDG-2026": { nama: "Cabang Bandung", valueCabang: "Cabang Bandung", isPusat: false },
-      "NSR-PDG-2026": { nama: "Cabang Padang", valueCabang: "Cabang Padang", isPusat: false },
-      "NSR-MKS-2026": { nama: "Cabang Makassar", valueCabang: "Cabang Makassar", isPusat: false },
-      "NSR-PLB-2026": { nama: "Cabang Palembang", valueCabang: "Cabang Palembang", isPusat: false },
-      "NSR-PLM-2026": { nama: "Cabang Palembang", valueCabang: "Cabang Palembang", isPusat: false },
-      "NSR-PST-2026": { nama: "Kantor Pusat Jakarta", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      "NSR2026": { nama: "Master Operasional", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      "NSR8899": { nama: "Master Operasional", valueCabang: "Kantor Pusat Jakarta", isPusat: true }
+      "JKT#00":  { nama: "Kantor Pusat Jakarta", valueCabang: "Kantor Pusat Jakarta", isPusat: true }
     };
 
-    const TOKEN_PUSAT_VALID = ["JKT#00", "NSR-PST-2026", "NSR2026", "NSR8899", "NSR-FIN"];
+    const TOKEN_PUSAT_VALID = ["JKT#00", "NSR-FIN"];
 
     function bukaAksesCabang(token) {
       const val = (token || "").trim().toUpperCase();
@@ -1711,7 +1705,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         document.getElementById('konten-form-cabang').classList.remove('hidden');
 
         const dataCabang = TOKEN_CABANG_MAP[val];
-        document.getElementById('label-sesi-cabang').innerText = `Akses: ${dataCabang.nama}`;
+        document.getElementById('label-sesi-cabang').innerText = `Akses: ${dataCabang.nama} (${val})`;
         const dot = document.getElementById('dot-sesi-cabang');
         if (dot) {
           dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
@@ -1719,7 +1713,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         
         const labelVerified = document.getElementById('label-cabang-terverifikasi');
         if (labelVerified) {
-          labelVerified.innerText = dataCabang.nama;
+          labelVerified.innerText = `${dataCabang.nama} (${val})`;
         }
 
         // Set pilihan dropdown cabang otomatis sesuai token
@@ -1761,7 +1755,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
 
       // Jika user memasukkan token cabang di panel pusat:
       if (TOKEN_CABANG_MAP[val] && !TOKEN_CABANG_MAP[val].isPusat) {
-        err.innerText = "Akses Ditolak: Halaman verifikasi dan pengesahan ini memerlukan token otorisasi khusus Keuangan Pusat.";
+        err.innerText = `Akses Ditolak: Token "${val}" adalah token kantor cabang. Halaman verifikasi dan pengesahan ini memerlukan token otorisasi khusus Keuangan Pusat (JKT#00).`;
         err.classList.remove('hidden');
         return false;
       }
@@ -1770,7 +1764,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         err.classList.add('hidden');
         document.getElementById('box-auth-pusat').classList.add('hidden');
         document.getElementById('konten-operasional-pusat').classList.remove('hidden');
-        document.getElementById('label-sesi-cabang').innerText = "Akses: Keuangan Pusat Terverifikasi";
+        document.getElementById('label-sesi-cabang').innerText = "Akses: Keuangan Pusat (JKT#00)";
         const dot = document.getElementById('dot-sesi-cabang');
         if (dot) {
           dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";

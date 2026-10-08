@@ -5230,7 +5230,7 @@
               </span>
               <span>
                 <span class="block text-xs font-black">Sistem Kwitansi Cabang &amp; Verifikasi Pusat</span>
-                <span class="block text-[9.5px] font-normal text-slate-800">Draf Tagihan, PPN &amp; Terbilang Otomatis, Cetak PDF</span>
+                <span class="block text-[9.5px] font-normal text-slate-800">Draf Tagihan, PPN &amp; Terbilang Otomatis (Khusus Bagian Keuangan)</span>
               </span>
             </span>
             <span class="text-[11px] font-bold bg-slate-950 text-amber-300 px-2 py-1 rounded shrink-0 ml-2">Buka Sistem &nearr;</span>
@@ -6447,7 +6447,19 @@
 
       if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${TOKEN_CABANG_NSR[tokenKey] || 'Master Akses Operasional'}`;
       if (linkSop) linkSop.href = URL_DRIVE_SOP;
-      if (linkKwitansi) linkKwitansi.href = `${URL_FORM_KWITANSI}?token=${encodeURIComponent(tokenKey)}`;
+
+      // Otorisasi Khusus Kwitansi: Hanya untuk token khusus Bagian Keuangan Pusat & Cabang terdaftar
+      const TOKEN_KHUSUS_KEUANGAN = ["BDG#010", "PDG#020", "MKS#030", "PLB#040", "JKT#00"];
+      if (linkKwitansi) {
+        if (TOKEN_KHUSUS_KEUANGAN.includes(tokenKey)) {
+          linkKwitansi.href = `${URL_FORM_KWITANSI}?token=${encodeURIComponent(tokenKey)}`;
+        } else {
+          // Token umum (NSR-PST-2026, NSR-BDG-2026, dll.) hanya membuka menu Area Terbatas Portal Internal.
+          // Akses menu pengajuan kwitansi tetap terkunci dan memerlukan otorisasi token khusus bagian keuangan.
+          linkKwitansi.href = URL_FORM_KWITANSI;
+        }
+      }
+
       if (linkNolap) linkNolap.href = URL_FORM_NOLAP;
       if (linkAbsen) linkAbsen.href = URL_FORM_ABSEN;
 
