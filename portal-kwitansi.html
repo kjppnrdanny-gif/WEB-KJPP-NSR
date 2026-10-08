@@ -1695,12 +1695,53 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
 
     const TOKEN_PUSAT_VALID = ["JKT#00", "NSR-FIN"];
 
+    function checkRateLimitKwitansi(errEl) {
+      const RL_KEY = 'nsr_kwitansi_auth_rl';
+      const RL_WIN = 300000; // 5 menit
+      const RL_MAX = 5;
+      let rl = JSON.parse(localStorage.getItem(RL_KEY) || '{"count":0,"ts":0}');
+      const now = Date.now();
+      if (now - rl.ts > RL_WIN) rl = { count: 0, ts: now };
+      if (rl.count >= RL_MAX) {
+        const sisaMenit = Math.ceil((RL_WIN - (now - rl.ts)) / 60000);
+        if (errEl) {
+          errEl.innerText = `Terlalu banyak percobaan tidak valid. Sistem dikunci sementara. Silakan coba lagi dalam ${sisaMenit} menit.`;
+          errEl.classList.remove('hidden');
+        }
+        return false;
+      }
+      return true;
+    }
+
+    function recordFailedAttempt(errEl, pesanDefault) {
+      const RL_KEY = 'nsr_kwitansi_auth_rl';
+      const RL_WIN = 300000;
+      const RL_MAX = 5;
+      let rl = JSON.parse(localStorage.getItem(RL_KEY) || '{"count":0,"ts":0}');
+      const now = Date.now();
+      if (now - rl.ts > RL_WIN) rl = { count: 0, ts: now };
+      rl.count++;
+      localStorage.setItem(RL_KEY, JSON.stringify(rl));
+      const sisa = RL_MAX - rl.count;
+      if (errEl) {
+        errEl.innerText = `${pesanDefault} (Sisa kesempatan: ${sisa > 0 ? sisa : 0})`;
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    function clearRateLimitKwitansi() {
+      localStorage.removeItem('nsr_kwitansi_auth_rl');
+    }
+
     function bukaAksesCabang(token) {
       const val = (token || "").trim().toUpperCase();
       const err = document.getElementById('pesan-auth-cabang');
 
+      if (!checkRateLimitKwitansi(err)) return false;
+
       if (TOKEN_CABANG_MAP[val]) {
         if (err) err.classList.add('hidden');
+        clearRateLimitKwitansi();
         document.getElementById('box-auth-cabang').classList.add('hidden');
         document.getElementById('konten-form-cabang').classList.remove('hidden');
 
@@ -1727,7 +1768,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         perbaruiPreviewKwitansi();
         return true;
       } else {
-        if (err) err.classList.remove('hidden');
+        recordFailedAttempt(err, "Token cabang tidak terdaftar.");
         return false;
       }
     }
@@ -1753,15 +1794,17 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       const val = (token || document.getElementById('input-token-pusat').value).trim().toUpperCase();
       const err = document.getElementById('pesan-auth-pusat');
 
+      if (!checkRateLimitKwitansi(err)) return false;
+
       // Jika user memasukkan token cabang di panel pusat:
       if (TOKEN_CABANG_MAP[val] && !TOKEN_CABANG_MAP[val].isPusat) {
-        err.innerText = `Akses Ditolak: Token "${val}" adalah token kantor cabang. Halaman verifikasi dan pengesahan ini memerlukan token otorisasi khusus Keuangan Pusat (JKT#00).`;
-        err.classList.remove('hidden');
+        recordFailedAttempt(err, `Akses Ditolak: Token "${val}" adalah token kantor cabang. Panel verifikasi memerlukan token khusus Keuangan Pusat.`);
         return false;
       }
 
       if (TOKEN_PUSAT_VALID.includes(val)) {
-        err.classList.add('hidden');
+        if (err) err.classList.add('hidden');
+        clearRateLimitKwitansi();
         document.getElementById('box-auth-pusat').classList.add('hidden');
         document.getElementById('konten-operasional-pusat').classList.remove('hidden');
         document.getElementById('label-sesi-cabang').innerText = "Akses: Keuangan Pusat (JKT#00)";
@@ -1772,8 +1815,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         perbaruiPreviewKwitansi();
         return true;
       } else {
-        err.innerText = "Token tidak valid untuk otorisasi Keuangan Pusat.";
-        err.classList.remove('hidden');
+        recordFailedAttempt(err, "Token tidak valid untuk otorisasi Keuangan Pusat.");
         return false;
       }
     }
