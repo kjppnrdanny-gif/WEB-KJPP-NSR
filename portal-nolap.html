@@ -195,24 +195,24 @@
           <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
-              <h3 class="text-sm font-extrabold text-amber-300 uppercase tracking-wider">Live Generator Format 7 Segmen Kemenkeu</h3>
+              <h3 class="text-sm font-extrabold text-amber-300 uppercase tracking-wider">Format Usulan Permohonan Nomor Laporan (7 Segmen Kemenkeu)</h3>
             </div>
             <span class="text-[11px] text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700">Formula Baku: Keputusan Menteri Keuangan</span>
           </div>
 
           <!-- Live Output Box -->
           <div class="bg-slate-950/90 border border-amber-400/30 rounded-xl p-4 sm:p-5 text-center my-3 shadow-inner">
-            <div class="text-[11px] text-slate-400 font-mono mb-1">PROYEKSI FORMAT 7 SEGMEN KEMENKEU (PENETAPAN NOMOR RESMI OLEH ADMIN PUSAT):</div>
+            <div class="text-[11px] text-amber-300 font-mono mb-1 font-semibold">USULAN FORMAT PENGAJUAN (NOMOR URUT RESMI DITETAPKAN &amp; DITERBITKAN OLEH PETUGAS ADMIN PUSAT):</div>
             <div id="live-nomor-laporan" class="text-base sm:text-2xl font-black font-mono text-amber-400 tracking-wider break-all select-all">
-              00531/2.0160-00/PI/07/00581/1/X/2026
+              [NO. URUT PUSAT]/2.0160-00/PI/07/00581/1/X/2026
             </div>
           </div>
 
           <!-- Rincian Segmen -->
           <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-[11px] text-center pt-2">
-            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
-              <span class="text-slate-400 block text-[10px]">1. No. Urut</span>
-              <strong id="seg-urut" class="text-white font-mono">00531</strong>
+            <div class="p-2 rounded-lg bg-slate-950 border border-amber-400/30">
+              <span class="text-amber-400/90 block text-[10px] font-semibold">1. No. Urut</span>
+              <strong id="seg-urut" class="text-amber-300 font-mono text-[10px]">Ditetapkan Pusat</strong>
             </div>
             <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
               <span class="text-slate-400 block text-[10px]">2. Kewenangan Ttd</span>
@@ -238,6 +238,14 @@
               <span class="text-slate-400 block text-[10px]">7. Waktu</span>
               <strong id="seg-waktu" class="text-cyan-300 font-mono">X/2026</strong>
             </div>
+          </div>
+
+          <!-- Catatan Prosedur Otoritas Nomor Urut -->
+          <div class="mt-3 p-3 rounded-xl bg-slate-950/70 border border-amber-400/20 text-xs text-slate-300 flex items-start gap-2.5">
+            <span class="text-amber-400 text-sm leading-none shrink-0 mt-0.5">📌</span>
+            <p class="leading-relaxed text-[11px] text-slate-300">
+              <strong>Alur Operasional:</strong> Admin Cabang dan Pegawai Internal (Surveyor / Penilai / Reviewer) bersifat <em>mengajukan dan meminta nomor laporan</em>. Khusus <strong>Segmen 1 (Nomor Urut Laporan)</strong> merupakan otoritas tunggal yang <strong>hanya diberikan oleh Petugas Admin Kantor Pusat</strong> pada saat verifikasi &amp; persetujuan di Meja Approval.
+            </p>
           </div>
         </div>
 
@@ -1529,9 +1537,8 @@
     }
 
     function updateLivePreview() {
-      // 1. Nomor Urut (5 Digit)
-      const nextNum = cariNomorUrutTerakhir();
-      const strUrut = String(nextNum).padStart(5, '0');
+      // 1. Nomor Urut (Segmen 1): Hak Otoritas Tunggal Petugas Admin Kantor Pusat
+      const strUrut = "[NO. URUT PUSAT]";
 
       // 2. Kode Identitas Kantor (5 Karakter)
       const elCabang = document.getElementById('f-cabang');
@@ -1569,14 +1576,14 @@
       const tahun = refDate.getFullYear();
       const strWaktu = `${bulanRomawi}/${tahun}`;
 
-      // Susun Nomor Lengkap 7 Segmen Baku
+      // Susun Format Usulan Pengajuan 7 Segmen
       const nomorLengkap = `${strUrut}/${kodeKantor}/${kodeJasa}/${kodeIndustri}/${izinPenilai}/${kodeNpwp}/${strWaktu}`;
 
       // Update Tampilan DOM
       const liveBox = document.getElementById('live-nomor-laporan');
       if (liveBox) liveBox.innerText = nomorLengkap;
 
-      document.getElementById('seg-urut').innerText = strUrut;
+      document.getElementById('seg-urut').innerText = "Ditetapkan Pusat";
       document.getElementById('seg-kantor').innerText = kodeKantor;
       document.getElementById('seg-jasa').innerText = kodeJasa;
       document.getElementById('seg-industri').innerText = kodeIndustri;
