@@ -5237,7 +5237,7 @@
         <div>
           <label class="block text-xs font-semibold leading-none text-slate-800 mb-1.5">Token Akses Kantor Cabang / Petugas</label>
           <div class="relative">
-            <input type="password" id="input-token" placeholder="Masukkan token otorisasi cabang..." required class="input-basic flex h-10 w-full rounded-md border border-slate-300 bg-white pl-3.5 pr-11 py-2 text-sm sm:text-base text-slate-900 font-bold placeholder:text-slate-400 placeholder:font-normal shadow-sm transition-colors tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" autocomplete="current-password">
+            <input type="password" id="input-token" placeholder="" required class="input-basic flex h-10 w-full rounded-md border border-slate-300 bg-white pl-3.5 pr-11 py-2 text-sm sm:text-base text-slate-900 font-bold placeholder:text-slate-400 placeholder:font-normal shadow-sm transition-colors tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" autocomplete="current-password">
             <button type="button" id="btn-toggle-token" onclick="toggleTokenVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-800 focus:outline-none cursor-pointer" aria-label="Tampilkan token" title="Tampilkan / sembunyikan token">
               <svg id="icon-eye-show" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1 19.876 0"/>
@@ -6474,6 +6474,7 @@
 
     // 3. Login Token Portal & Otorisasi Cabang
     const TOKEN_CABANG_NSR = {
+      // Kantor Cabang & Pusat
       "JKT#00": "Akses Resmi Kantor Pusat Jakarta",
       "BDG#010": "Akses Resmi Cabang Bandung",
       "PDG#020": "Akses Resmi Cabang Padang",
@@ -6485,8 +6486,31 @@
       "NSR-MKS-2026": "Akses Resmi Cabang Makassar",
       "NSR-PLB-2026": "Akses Resmi Cabang Palembang",
       "NSR-PLM-2026": "Akses Resmi Cabang Palembang",
-      "NSR2026": "Master Akses Operasional",
-      "NSR8899": "Master Akses Operasional"
+      // Master Akses Operasional
+      "NSR8899": "Master Akses Operasional",
+      // Token NIK Karyawan Resmi KJPP NSR (22 Pegawai)
+      "NSR-2019-001": "Nanang Rahayu — Pemimpin Rekan (Manajemen)",
+      "NSR-2019-002": "Deni Siswandi — Rekan (Manajemen)",
+      "NSR-2019-003": "Mini Intan Cahyani — Rekan (Manajemen)",
+      "NSR-2019-004": "Milda Hidayati Dewi — Manager Keuangan (Keuangan & Perpajakan)",
+      "NSR-2019-005": "Danny Taufik Hidayat — Manager Admin & Umum (Divisi Admin & Umum)",
+      "NSR-2019-006": "Arie Indra Permana — Manager Marketing (Administrasi & Pemasaran)",
+      "NSR-2019-007": "Tedi Setiadi — Reviewer (Divisi Teknik)",
+      "NSR-2019-008": "Ricca Noer Farikha — Accounting & Tax (Keuangan & Perpajakan)",
+      "NSR-2019-009": "Angga Malid Cahyadi — Reviewer (Divisi Teknik)",
+      "NSR-2019-010": "Fadri Nurdin — Surveyor (Divisi Teknik)",
+      "NSR-2019-011": "Erwandi — Staf Operasional (Divisi Umum & Operasional)",
+      "NSR-2019-012": "Latief Satihi — Staf Operasional (Divisi Umum & Operasional)",
+      "NSR-2019-013": "Aryanto — Staf Operasional (Divisi Umum & Operasional)",
+      "NSR-2019-014": "Yanto — Staf Operasional (Divisi Umum & Operasional)",
+      "NSR-2019-015": "Lasiman — Staf Operasional (Divisi Umum & Operasional)",
+      "NSR-2019-016": "Sukirno — Staf Operasional (Divisi Umum & Operasional)",
+      "NSR-2019-017": "Muhammad Syahrul Ruly — Surveyor (Divisi Teknik)",
+      "NSR-2019-018": "Uci Sanusi — Surveyor (Divisi Teknik)",
+      "NSR-2019-019": "Yasir Rizal — Surveyor (Divisi Teknik)",
+      "NSR-2019-020": "Udin Syamsudin — Staf Operasional (Divisi Umum & Operasional)",
+      "NSR-2025-021": "Dhea Safitri Ningrum — Staf Administrasi (Administrasi)",
+      "NSR-2026-022": "Siti Nuraeni Ependi — Staf Administrasi (Administrasi)"
     };
 
     function tampilkanPanelLayanan(tokenKey) {
@@ -6500,14 +6524,14 @@
 
       const URL_DRIVE_SOP = "https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz?usp=sharing";
       const URL_FORM_KWITANSI = "portal-kwitansi.html";
-      const URL_FORM_NOLAP = "https://script.google.com/macros/s/AKfycbwp15BykI7yuUeSTn2VHs_aZvIUIQIzirrzqJ2yVG7CvmeLbmVEOrLyDkGIQimtFIMG/exec";
+      const URL_FORM_NOLAP = "portal-nolap.html";
       const URL_FORM_ABSEN = "https://s.id/absen-nsr";
 
       if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${TOKEN_CABANG_NSR[tokenKey] || 'Master Akses Operasional'}`;
       if (linkSop) linkSop.href = URL_DRIVE_SOP;
 
-      // Otorisasi Khusus Kwitansi: Hanya untuk token khusus Bagian Keuangan Pusat & Cabang terdaftar
-      const TOKEN_KHUSUS_KEUANGAN = ["BDG#010", "PDG#020", "MKS#030", "PLB#040", "JKT#00"];
+      // Otorisasi Khusus Kwitansi: Hanya untuk token khusus Bagian Keuangan Pusat, Cabang terdaftar, dan NIK Keuangan
+      const TOKEN_KHUSUS_KEUANGAN = ["BDG#010", "PDG#020", "MKS#030", "PLB#040", "JKT#00", "NSR-2019-004", "NSR-2019-008", "NSR-2019-001", "NSR-2019-005"];
       if (linkKwitansi) {
         if (TOKEN_KHUSUS_KEUANGAN.includes(tokenKey)) {
           linkKwitansi.href = `${URL_FORM_KWITANSI}?token=${encodeURIComponent(tokenKey)}`;
@@ -6518,7 +6542,7 @@
         }
       }
 
-      if (linkNolap) linkNolap.href = URL_FORM_NOLAP;
+      if (linkNolap) linkNolap.href = `${URL_FORM_NOLAP}?token=${encodeURIComponent(tokenKey)}`;
       if (linkAbsen) linkAbsen.href = URL_FORM_ABSEN;
 
       if (formToken) formToken.classList.add('hidden');
