@@ -497,6 +497,26 @@
     }
     #back-to-top.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
+    /* Efek & Transisi 4 Tab Ekosistem Utama */
+    @keyframes tabFadeSlide {
+      0% { opacity: 0; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .tab-panel-transition {
+      animation: tabFadeSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: opacity, transform;
+    }
+    .tab-btn-utama {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tab-btn-utama[aria-selected="false"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.4);
+    }
+    .tab-btn-utama:active {
+      transform: translateY(0);
+    }
+
     /* Focus states yang jelas */
     :where(a, button, input, select, textarea):focus-visible {
       outline: 3px solid rgba(56,189,248,.55);
@@ -887,12 +907,7 @@
 
         <!-- Tombol Aksi Kanan: Minta Penawaran Biaya (RFP) & Kontak (Desktop / Tablet) -->
         <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-          <button onclick="bukaModal('modal-rfp')" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition shadow-sm whitespace-nowrap cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <span>Minta Proposal &amp; Penawaran</span>
-          </button>
+          
 
           <button type="button" onclick="bukaModal('modal-konsultasi-hukum')" 
              class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-950 hover:bg-blue-900 text-white transition shadow-sm border border-blue-900 group whitespace-nowrap text-xs font-bold cursor-pointer" 
@@ -1711,11 +1726,11 @@
           aria-selected="true" 
           aria-controls="tab-panel-mutu" 
           onclick="pilihTabUtama('mutu')" 
-          class="tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-950/70"
+          class="tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-950/70 ring-2 ring-sky-400/50 cursor-pointer"
           style="scroll-snap-align: start;">
           <svg class="w-4 h-4 text-sky-200 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
           <span>NSR Cloud &amp; Mutu</span>
-          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/20 text-sky-200 uppercase tracking-wider">Default</span>
+          <span class="tab-indicator-badge flex items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/30 text-sky-100 uppercase tracking-wider border border-sky-300/40 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>Aktif</span>
         </button>
 
         <!-- Tab 2: Layanan Unggulan -->
@@ -1726,10 +1741,11 @@
           aria-selected="false" 
           aria-controls="tab-panel-layanan" 
           onclick="pilihTabUtama('layanan')" 
-          class="tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white"
+          class="tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white cursor-pointer"
           style="scroll-snap-align: start;">
           <svg class="w-4 h-4 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
           <span>Layanan Unggulan</span>
+          <span class="tab-indicator-badge hidden items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/30 text-sky-100 uppercase tracking-wider border border-sky-300/40 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>Aktif</span>
         </button>
 
         <!-- Tab 3: Galeri FlexCarousel 3D -->
@@ -1740,10 +1756,11 @@
           aria-selected="false" 
           aria-controls="tab-panel-galeri" 
           onclick="pilihTabUtama('galeri')" 
-          class="tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white"
+          class="tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white cursor-pointer"
           style="scroll-snap-align: start;">
           <svg class="w-4 h-4 text-emerald-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
           <span>Galeri FlexCarousel 3D</span>
+          <span class="tab-indicator-badge hidden items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/30 text-sky-100 uppercase tracking-wider border border-sky-300/40 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>Aktif</span>
         </button>
 
         <!-- Tab 4: 5 Kantor Wilayah & Peta -->
@@ -1754,10 +1771,11 @@
           aria-selected="false" 
           aria-controls="tab-panel-kantor" 
           onclick="pilihTabUtama('kantor')" 
-          class="tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white"
+          class="tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white cursor-pointer"
           style="scroll-snap-align: start;">
           <svg class="w-4 h-4 text-rose-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
           <span>5 Kantor &amp; Peta</span>
+          <span class="tab-indicator-badge hidden items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/30 text-sky-100 uppercase tracking-wider border border-sky-300/40 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>Aktif</span>
         </button>
       </div>
     </div>
@@ -1765,7 +1783,7 @@
     <!-- TAB PANELS (Only 1 active at a time in the exact same spot) -->
     
     <!-- PANEL 1: NSR CLOUD & SISTEM MUTU (Default Visible) -->
-    <div id="tab-panel-mutu" role="tabpanel" aria-labelledby="tab-btn-mutu" class="tab-panel-item transition-all duration-300">
+    <div id="tab-panel-mutu" role="tabpanel" aria-labelledby="tab-btn-mutu" class="tab-panel-item tab-panel-transition">
       <div id="sistem-mutu" class="relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
@@ -2622,7 +2640,7 @@
                 <span id="kantor-aktif-wilayah" class="text-xs text-slate-400 font-medium">DKI Jakarta &amp; Nasional</span>
               </div>
               <h3 id="kantor-aktif-nama" class="text-xl sm:text-2xl font-extrabold text-white mt-2 leading-snug">
-                Kantor Pusat Jakarta Selatan
+                Kantor Pusat Jakarta
               </h3>
             </div>
 
@@ -2635,7 +2653,7 @@
                 <div>
                   <p class="font-bold text-slate-400 text-[11px] uppercase tracking-wider">Alamat Lengkap</p>
                   <p id="kantor-aktif-alamat" class="mt-0.5 text-slate-200 leading-relaxed text-xs sm:text-sm">
-                    Jl. Hankam No. 5 RT.006 RW.001, Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550
+                    Jl. Hankam No. 5 RT 006 RW 001, Kelurahan Ragunan, Kecamatan Pasar Minggu, Jakarta Selatan, DKI Jakarta 12550
                   </p>
                 </div>
               </div>
@@ -2648,8 +2666,21 @@
                 <div>
                   <p class="font-bold text-slate-400 text-[11px] uppercase tracking-wider">Telepon &amp; Fax</p>
                   <p id="kantor-aktif-telp" class="mt-0.5 text-slate-200 text-xs sm:text-sm">
-                    Telp: +62 21 7884 9996, 7884 8837 | WA Admin: 0851-1051-3157
+                    Telp. (021)78849996, 78848837 | Fax. (021)78849997 | WA Admin: 0851-1051-3157
                   </p>
+                </div>
+              </div>
+
+              <!-- Pimpinan & Klasifikasi Izin (P / PS) -->
+              <div class="flex items-start gap-3">
+                <div class="p-2 rounded-lg bg-blue-950/80 border border-blue-800/60 text-amber-400 shrink-0 mt-0.5">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                  <p class="font-bold text-slate-400 text-[11px] uppercase tracking-wider">Pimpinan &amp; Klasifikasi Izin</p>
+                  <div id="kantor-aktif-pic" class="mt-0.5 text-xs sm:text-sm">
+                    <p class="text-white font-semibold">Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) <button type="button" onclick="bukaModal('modal-cv-nanang')" class="text-xs text-amber-300 hover:underline ml-1 font-normal cursor-pointer">(Lihat CV Rekan)</button></p><p class="text-slate-300 text-xs mt-0.5">Pimpinan Rekan | Izin Penilai: P-1.09.00218 &bull; Kompetensi: Penilai Publik (P)</p>
+                  </div>
                 </div>
               </div>
 
@@ -2669,11 +2700,15 @@
           </div>
 
           <!-- Bottom Action Buttons in Spotlight Card -->
-          <div class="mt-6 pt-4 border-t border-slate-800">
-            <button type="button" onclick="bukaModal('modal-rfp')" class="w-full px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition text-xs sm:text-sm shadow-md text-center flex items-center justify-center gap-2">
-              <svg class="w-4 h-4 text-emerald-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <span>Minta Penawaran Biaya (RFP)</span>
+          <div class="mt-6 pt-4 border-t border-slate-800 flex flex-wrap items-center gap-2.5">
+            <button type="button" onclick="bukaModal('modal-rfp')" class="flex-1 min-w-[170px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition text-xs shadow-md text-center flex items-center justify-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4 text-emerald-200 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Minta Proposal (RFP)</span>
             </button>
+            <a href="https://wa.me/6285110513157" target="_blank" rel="noopener noreferrer" class="flex-1 min-w-[190px] px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold transition text-xs flex items-center justify-center gap-1.5 border border-slate-700/80 cursor-pointer shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+              <span>WhatsApp Admin: 0851-1051-3157</span>
+            </a>
           </div>
 
         </div>
@@ -2687,7 +2722,7 @@
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-              <span id="map-label-lokasi" class="font-bold text-white tracking-wide">Peta Lokasi: Kantor Pusat Jakarta Selatan</span>
+              <span id="map-label-lokasi" class="font-bold text-white tracking-wide">Peta Lokasi: Kantor Pusat Jakarta</span>
             </div>
             <span class="text-[11px] text-slate-400 hidden sm:inline">Google Maps Interaktif &bull; Zoom &amp; Navigasi</span>
           </div>
@@ -2699,9 +2734,9 @@
               <div class="w-11 h-11 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-sky-400 mb-2 shadow-inner">
                 <svg class="w-5 h-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
               </div>
-              <p id="map-fallback-nama" class="text-xs sm:text-sm font-bold text-white">Kantor Pusat Jakarta Selatan</p>
-              <p id="map-fallback-alamat" class="text-[11px] text-slate-300 max-w-sm mt-1 leading-relaxed">Jl. Hankam No. 5 RT.006 RW.001, Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550</p>
-              <a id="btn-fallback-navigasi" href="https://maps.google.com/?q=Jl.+Hankam+No.+5,+Ragunan,+Pasar+Minggu,+Jakarta+Selatan" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-md">
+              <p id="map-fallback-nama" class="text-xs sm:text-sm font-bold text-white">Kantor Pusat Jakarta</p>
+              <p id="map-fallback-alamat" class="text-[11px] text-slate-300 max-w-sm mt-1 leading-relaxed">Jl. Hankam No. 5 RT 006 RW 001, Kelurahan Ragunan, Kecamatan Pasar Minggu, Jakarta Selatan, DKI Jakarta 12550</p>
+              <a id="btn-fallback-navigasi" href="https://maps.google.com/?q=Jl.+Hankam+No.+5+Ragunan+Pasar+Minggu+Jakarta+Selatan" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-md">
                 <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
                 <span>Buka Navigasi di Google Maps &nearr;</span>
               </a>
@@ -2710,13 +2745,13 @@
             <!-- Google Maps Embed Iframe (z-10 on top) -->
             <iframe 
               id="map-iframe-kantor"
-              src="https://www.google.com/maps?q=-6.3056,106.8208&hl=id&z=17&output=embed" 
-              data-src="https://www.google.com/maps?q=-6.3056,106.8208&hl=id&z=17&output=embed" 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.7483758362544!2d106.82472507573177!3d-6.296766493692348!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f21f57989d67%3A0xc48ad150cf716fa5!2sJl.%20Hankam%20No.5%2C%20RT.6%2FRW.1%2C%20Ragunan%2C%20Kec.%20Ps.%20Minggu%2C%20Kota%20Jakarta%20Selatan%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2012550!5e0!3m2!1sid!2sid!4v1710000000000!5m2!1sid!2sid"
+              data-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.7483758362544!2d106.82472507573177!3d-6.296766493692348!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f21f57989d67%3A0xc48ad150cf716fa5!2sJl.%20Hankam%20No.5%2C%20RT.6%2FRW.1%2C%20Ragunan%2C%20Kec.%20Ps.%20Minggu%2C%20Kota%20Jakarta%20Selatan%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2012550!5e0!3m2!1sid!2sid!4v1710000000000!5m2!1sid!2sid" 
               width="100%" 
               height="100%" 
               class="w-full h-full border-0 relative z-10"
               allowfullscreen="" 
-              loading="lazy" 
+              loading="eager" 
               referrerpolicy="no-referrer-when-downgrade"
               title="Peta Lokasi Kantor KJPP NSR">
             </iframe>
@@ -2727,7 +2762,7 @@
               Navigasi rute langsung ke lokasi Kantor Pusat Jakarta di aplikasi Google Maps.
             </div>
             <div id="wrap-btn-gmaps" class="flex flex-wrap items-center gap-2 shrink-0">
-              <a id="btn-buka-gmaps" href="https://maps.google.com/?q=Jl.+Hankam+No.+5,+Ragunan,+Pasar+Minggu,+Jakarta+Selatan" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-sm">
+              <a id="btn-buka-gmaps" href="https://maps.google.com/?q=Jl.+Hankam+No.+5+Ragunan+Pasar+Minggu+Jakarta+Selatan" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-sm">
                 <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
                 Buka di Google Maps
               </a>
@@ -3047,8 +3082,8 @@
   </a>
 
   <!-- Tombol kembali ke atas -->
-  <button id="back-to-top" type="button" aria-label="Kembali ke atas" title="Kembali ke atas" class="fixed bottom-6 left-6 z-40 w-11 h-11 rounded-full bg-slate-950 hover:bg-blue-950 text-white shadow-xl border border-slate-700 flex items-center justify-center">
-    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 15 7-7 7 7"/></svg>
+  <button id="back-to-top" type="button" aria-label="Kembali ke atas" title="Kembali ke atas" class="fixed bottom-6 left-6 z-[45] w-11 h-11 rounded-full bg-slate-950 hover:bg-blue-950 text-white shadow-xl border border-slate-700 hover:border-sky-400 flex items-center justify-center cursor-pointer transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m5 15 7-7 7 7"/></svg>
   </button>
 
   <!-- Toast global -->
@@ -4080,63 +4115,63 @@
     const DATA_KANTOR_NSR = {
       pusat: {
         badge: 'Kantor Pusat & Korespondensi',
-        wilayah: 'DKI Jakarta & Nasional',
+        wilayah: 'Jakarta Selatan &bull; DKI Jakarta',
         nama: 'Kantor Pusat Jakarta',
-        alamat: 'Jl. Hankam No. 5 RT.006 RW.001, Ragunan, Pasar Minggu, Jakarta Selatan 12550',
-        telp: 'Telp: +62 21 7884 9996, 7884 8837 | WA Admin: 0851-1051-3157',
-        picHtml: '<p class="text-white font-semibold">Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-nanang\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-slate-300 text-xs mt-0.5">Pimpinan Rekan | Izin Penilai Publik: PB-1.09.00021</p>',
+        alamat: 'Jl. Hankam No. 5 RT 006 RW 001, Kelurahan Ragunan, Kecamatan Pasar Minggu, Jakarta Selatan, DKI Jakarta 12550',
+        telp: 'Telp. (021)78849996, 78848837 | Fax. (021)78849997 | WA Admin: 0851-1051-3157',
+        picHtml: '<p class="text-white font-semibold">Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-nanang\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal cursor-pointer">(Lihat CV Rekan)</button></p><p class="text-slate-300 text-xs mt-0.5">Pimpinan Rekan | Izin Penilai: P-1.09.00218 &bull; Kompetensi: Penilai Publik (P)</p>',
         emailHtml: '<a href="mailto:nanang_kjpp@yahoo.co.id" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">nanang_kjpp@yahoo.co.id</a> <span class="text-slate-500">/</span> <a href="mailto:kjppnrr.bd@gmail.com" class="text-slate-300 hover:text-sky-300 hover:underline">kjppnrr.bd@gmail.com</a>',
-        mapUrl: 'https://www.google.com/maps?q=-6.3056,106.8208&hl=id&z=17&output=embed',
-        directMapUrl: 'https://maps.google.com/?q=Jl.+Hankam+No.+5,+Ragunan,+Pasar+Minggu,+Jakarta+Selatan',
-        wa: ''
+        mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.7483758362544!2d106.82472507573177!3d-6.296766493692348!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f21f57989d67%3A0xc48ad150cf716fa5!2sJl.%20Hankam%20No.5%2C%20RT.6%2FRW.1%2C%20Ragunan%2C%20Kec.%20Ps.%20Minggu%2C%20Kota%20Jakarta%20Selatan%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2012550!5e0!3m2!1sid!2sid!4v1710000000000!5m2!1sid!2sid',
+        directMapUrl: 'https://maps.google.com/?q=Jl.+Hankam+No.+5+Ragunan+Pasar+Minggu+Jakarta+Selatan',
+        wa: '6285110513157'
       },
       bandung: {
         badge: 'Kantor Cabang Resmi',
-        wilayah: 'Cimahi &bull; Jawa Barat',
-        nama: 'Kantor Cabang Bandung (Jawa Barat)',
-        alamat: 'Perumahan Pancanaka Royal Garden II, Jl. Pangrango II No. 1A RT.001 RW.012, Citeureup, Cimahi Utara, Kota Cimahi - 40512',
-        telp: 'Telp/Fax: +62 22 6622088',
-        picHtml: '<p class="text-white font-semibold">Deni Siswandi, S.T., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-deni\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-emerald-400 text-xs mt-0.5">Pimpinan Cabang | Izin Cabang: No. 326/KM.1/2020</p>',
+        wilayah: 'Bandung &bull; Jawa Barat',
+        nama: 'Kantor Cabang Bandung',
+        alamat: 'Perumahan Pancanaka Royal Garden II, Jalan Pangrango II No. 1A RT.001 RW.012, Kel. Citeureup, Kec. Cimahi Utara, Kota Cimahi, Jawa Barat 40512.',
+        telp: 'Telp/Fax: (022) 6622088 | WA Admin: 0851-1051-3157',
+        picHtml: '<p class="text-white font-semibold">Deni Siswandi, S.T., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-deni\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal cursor-pointer">(Lihat CV Rekan)</button></p><p class="text-slate-300 text-xs mt-0.5">Pimpinan Cabang | Izin Cabang: No. 326/KM.1/2020 &bull; Kompetensi: Penilai Publik (P)</p><p class="text-slate-400 text-xs mt-0.5">PIC Operasional: Heru Kurnia (081320193535)</p>',
         emailHtml: '<a href="mailto:nsr.bdg1@gmail.com" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">nsr.bdg1@gmail.com</a>',
-        mapUrl: 'https://www.google.com/maps?q=-6.8597817207843175,107.56042889556781&hl=id&z=17&output=embed',
-        directMapUrl: 'https://maps.google.com/?q=-6.8597817207843175,107.56042889556781',
-        wa: '6281320193535'
+        mapUrl: 'https://www.google.com/maps?q=-6.8597817,107.5604289&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=-6.8597817,107.5604289',
+        wa: '6285110513157'
       },
       padang: {
         badge: 'Kantor Cabang Resmi',
         wilayah: 'Padang &bull; Sumatera Barat',
-        nama: 'Kantor Cabang Padang (Sumatera Barat)',
-        alamat: 'Jl. Parak Gadang VIII No. 19, Simpang Haru, Padang Timur, Kota Padang - 25123',
-        telp: 'Telp/Fax: +62 751 891 460',
-        picHtml: '<p class="text-white font-semibold">Hernita, S.Si., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-hernita\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-emerald-400 text-xs mt-0.5">Pimpinan Cabang | Izin Cabang: No. 363/KM.1/2019</p>',
+        nama: 'Kantor Cabang Padang',
+        alamat: 'Jl. Parak Gadang VIII No. 19, Kel. Simpang Baru, Kec. Padang Timur, Kota Padang, Sumatera Barat',
+        telp: 'Telp. (0751) 891 460 | Fax. (0751) 891 460 | WA Admin: 0851-1051-3157',
+        picHtml: '<p class="text-white font-semibold">Hernita, S.Si., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-hernita\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal cursor-pointer">(Lihat CV Rekan)</button></p><p class="text-slate-300 text-xs mt-0.5">Pimpinan Cabang | Izin Cabang: No. 363/KM.1/2019 (Izin PS-1.15.00046) &bull; Kompetensi: Penilai Publik Properti Sederhana (PS)</p><p class="text-slate-400 text-xs mt-0.5">PIC Operasional: Rahmad Andika (082381365221)</p>',
         emailHtml: '<a href="mailto:padangkjppnsr@gmail.com" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">padangkjppnsr@gmail.com</a>',
-        mapUrl: 'https://www.google.com/maps?q=-0.9493200204748591,100.37605511031613&hl=id&z=17&output=embed',
-        directMapUrl: 'https://maps.google.com/?q=-0.9493200204748591,100.37605511031613',
-        wa: '6282381365221'
+        mapUrl: 'https://www.google.com/maps?q=-0.94932,100.376055&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=-0.94932,100.376055',
+        wa: '6285110513157'
       },
       makassar: {
         badge: 'Kantor Cabang Resmi',
         wilayah: 'Makassar &bull; Sulawesi Selatan',
-        nama: 'Kantor Cabang Makassar (Sulawesi Selatan)',
-        alamat: 'Jl. Nuri Lr. 301 No. 7, Kel. Mariso, Kec. Mariso, Kota Makassar',
-        telp: 'Telp/Fax: +62 411 839860',
-        picHtml: '<p class="text-white font-semibold">Muhammad Amin Sade, S.M., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-amin\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-emerald-400 text-xs mt-0.5">Pimpinan Cabang | Izin Cabang: No. 364/KM.1/2019 &bull; STTD OJK: KEP-1278/KS.13/2026</p>',
+        nama: 'Kantor Cabang Makassar',
+        alamat: 'Jalan Danau Mahalona No.102 RT.000 RW.007, Kel.Tanjung Merdeka, Kec. Tamalate, Kota Makassar, Sulawesi Selatan',
+        telp: 'Telp. (0411) 839860 | Fax. (0411) 839860 | WA Admin: 0851-1051-3157',
+        picHtml: '<p class="text-white font-semibold">Muhammad Amin Sade, S.M., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-amin\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal cursor-pointer">(Lihat CV Rekan)</button></p><p class="text-slate-300 text-xs mt-0.5">Pimpinan Cabang | Izin Cabang: No. 364/KM.1/2019 (Izin PS-1.16.00126) &bull; STTD OJK: KEP-1278/KS.13/2026 &bull; Kompetensi: Penilai Publik Properti Sederhana (PS)</p><p class="text-slate-400 text-xs mt-0.5">PIC Operasional: Wawan Kurniawan (085240622201)</p>',
         emailHtml: '<a href="mailto:kjpp.wawan@gmail.com" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">kjpp.wawan@gmail.com</a>',
-        mapUrl: 'https://www.google.com/maps?q=-5.1587719,119.4075016&hl=id&z=17&output=embed',
-        directMapUrl: 'https://maps.google.com/?q=-5.1587719,119.4075016',
-        wa: '6285240622201'
+        mapUrl: 'https://www.google.com/maps?q=-5.1872,119.4042&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=Jl.+Danau+Mahalona+No.+102,+Tanjung+Merdeka,+Tamalate,+Makassar',
+        wa: '6285110513157'
       },
       palembang: {
         badge: 'Kantor Cabang Resmi',
         wilayah: 'Palembang &bull; Sumatera Selatan',
-        nama: 'Kantor Cabang Palembang (Sumatera Selatan)',
-        alamat: 'Komplek Griya Hero Abadi Maskarebet Jl. Rosela 1 Blok BA 04, Talang Kelapa, Alang-alang Lebar, Kota Palembang - 30151',
-        telp: 'Telp/Kontak: Kantor Pusat (021) 7884 9996 / WA Admin: 0851-1051-3157',
-        picHtml: '<p class="text-white font-semibold">Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-dharma\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-emerald-400 text-xs mt-0.5">Pimpinan Cabang | Izin Cabang: No. 230/KM.1/2022 &bull; Lisensi ATR/BPN: PP2.0031.23 &bull; STTD OJK: KEP-523/KS.13/2026</p>',
+        nama: 'Kantor Cabang Palembang',
+        alamat: 'Komplek Griya Hero Abadi Maskarebet, Jl. Rosela 1 Blok BA 04, Kel. Talang Kelapa, Kec. Alang-alang Lebar, Kota Palembang, Sumatera Selatan',
+        telp: 'Telp: Kantor Pusat (021) 7884 9996 / WA Admin: 0851-1051-3157',
+        picHtml: '<p class="text-white font-semibold">Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-dharma\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal cursor-pointer">(Lihat CV Rekan)</button></p><p class="text-slate-300 text-xs mt-0.5">Pimpinan Cabang | Izin Cabang: No. 230/KM.1/2022 (Izin PS-1.19.00249) &bull; Lisensi ATR/BPN: PP2.0031.23 &bull; STTD OJK: KEP-523/KS.13/2026 &bull; Kompetensi: Penilai Publik Properti Sederhana (PS)</p><p class="text-slate-400 text-xs mt-0.5">PIC Operasional: Rafdinal Ardhi (081368087781)</p>',
         emailHtml: '<a href="mailto:kjppnsrpalembang@gmail.com" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">kjppnsrpalembang@gmail.com</a>',
-        mapUrl: 'https://www.google.com/maps?q=-2.929043950869521,104.69598062620024&hl=id&z=17&output=embed',
-        directMapUrl: 'https://maps.google.com/?q=-2.929043950869521,104.69598062620024',
-        wa: '6281368087781'
+        mapUrl: 'https://www.google.com/maps?q=-2.929044,104.695981&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=-2.929044,104.695981',
+        wa: '6285110513157'
       }
     };
 
@@ -4147,7 +4182,7 @@
 
       const muatPeta = () => {
         if (!elIframe.src || elIframe.src === 'about:blank' || elIframe.src.indexOf('about:blank') !== -1) {
-          elIframe.src = elIframe.getAttribute('data-src') || 'https://www.google.com/maps?q=-6.3056,106.8208&hl=id&z=17&output=embed';
+          elIframe.src = elIframe.getAttribute('data-src') || 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.7483758362544!2d106.82472507573177!3d-6.296766493692348!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f21f57989d67%3A0xc48ad150cf716fa5!2sJl.%20Hankam%20No.5%2C%20RT.6%2FRW.1%2C%20Ragunan%2C%20Kec.%20Ps.%20Minggu%2C%20Kota%20Jakarta%20Selatan%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2012550!5e0!3m2!1sid!2sid!4v1710000000000!5m2!1sid!2sid';
         }
       };
 
@@ -4189,6 +4224,7 @@
       const elNama = document.getElementById('kantor-aktif-nama');
       const elAlamat = document.getElementById('kantor-aktif-alamat');
       const elTelp = document.getElementById('kantor-aktif-telp');
+      const elPic = document.getElementById('kantor-aktif-pic');
       const elEmail = document.getElementById('kantor-aktif-email');
       const elIframe = document.getElementById('map-iframe-kantor');
       const elLabelPeta = document.getElementById('map-label-lokasi');
@@ -4198,6 +4234,7 @@
       if (elNama) elNama.innerHTML = data.nama;
       if (elAlamat) elAlamat.innerHTML = data.alamat;
       if (elTelp) elTelp.innerHTML = data.telp;
+      if (elPic && data.picHtml) elPic.innerHTML = data.picHtml;
       if (elEmail) elEmail.innerHTML = data.emailHtml;
       if (elLabelPeta) elLabelPeta.innerHTML = 'Peta Lokasi: ' + data.nama;
       const elFallbackNama = document.getElementById('map-fallback-nama');
@@ -4766,7 +4803,7 @@
           const header = document.getElementById('site-header');
           const backToTop = document.getElementById('back-to-top');
           header?.classList.toggle('is-scrolled', y > 24);
-          backToTop?.classList.toggle('show', y > 520);
+          backToTop?.classList.toggle('show', y > 350);
 
           const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
           const pb = document.getElementById('scroll-progress');
@@ -5324,18 +5361,31 @@
       tabList.forEach(t => {
         const panel = document.getElementById(t.panelId);
         const btn = document.getElementById(t.btnId);
+        const badge = btn?.querySelector('.tab-indicator-badge');
         if (!panel) return;
         if (t.key === kunci) {
           panel.classList.remove('hidden');
+          panel.classList.remove('tab-panel-transition');
+          void panel.offsetWidth;
+          panel.classList.add('tab-panel-transition');
           if (btn) {
-            btn.className = 'tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-950/70';
+            btn.className = 'tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-950/70 ring-2 ring-sky-400/50 cursor-pointer';
             btn.setAttribute('aria-selected', 'true');
+          }
+          if (badge) {
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
           }
         } else {
           panel.classList.add('hidden');
+          panel.classList.remove('tab-panel-transition');
           if (btn) {
-            btn.className = 'tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white';
+            btn.className = 'tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white cursor-pointer';
             btn.setAttribute('aria-selected', 'false');
+          }
+          if (badge) {
+            badge.classList.add('hidden');
+            badge.classList.remove('flex');
           }
         }
       });
@@ -5355,7 +5405,7 @@
         setTimeout(() => {
           const elIframe = document.getElementById('map-iframe-kantor');
           if (elIframe && (!elIframe.src || elIframe.src.includes('about:blank'))) {
-            elIframe.src = elIframe.getAttribute('data-src') || 'https://www.google.com/maps?q=-6.3056,106.8208&hl=id&z=17&output=embed';
+            elIframe.src = elIframe.getAttribute('data-src') || 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.7483758362544!2d106.82472507573177!3d-6.296766493692348!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f21f57989d67%3A0xc48ad150cf716fa5!2sJl.%20Hankam%20No.5%2C%20RT.6%2FRW.1%2C%20Ragunan%2C%20Kec.%20Ps.%20Minggu%2C%20Kota%20Jakarta%20Selatan%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2012550!5e0!3m2!1sid!2sid!4v1710000000000!5m2!1sid!2sid';
           }
         }, 60);
       }
