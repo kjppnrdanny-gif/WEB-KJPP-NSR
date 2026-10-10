@@ -1,4 +1,12 @@
-<!DOCTYPE html>
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(__dirname, "..");
+
+const indexHtmlContent = `<!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
@@ -1777,18 +1785,9 @@
       const lokasi = document.getElementById('rfp-lokasi')?.value || '-';
       const catatan = document.getElementById('rfp-catatan')?.value || '-';
 
-      const pesan = `Halo Admin & Tim Penilai Publik KJPP NSR,
+      const pesan = \`Halo Admin & Tim Penilai Publik KJPP NSR,\n\nSaya ingin mengajukan Permohonan Penawaran Biaya (RFP) untuk jasa penilaian aset:\n- Nama Pemohon / PIC: \${nama}\n- Instansi / Perusahaan: \${instansi}\n- Ruang Lingkup Layanan: \${layanan}\n- Lokasi / Kota Objek: \${lokasi}\n- Catatan Penugasan: \${catatan}\n\nMohon informasi persyaratan dokumen teknis dan penawaran biaya resmi. Terima kasih.\`;
 
-Saya ingin mengajukan Permohonan Penawaran Biaya (RFP) untuk jasa penilaian aset:
-- Nama Pemohon / PIC: ${nama}
-- Instansi / Perusahaan: ${instansi}
-- Ruang Lingkup Layanan: ${layanan}
-- Lokasi / Kota Objek: ${lokasi}
-- Catatan Penugasan: ${catatan}
-
-Mohon informasi persyaratan dokumen teknis dan penawaran biaya resmi. Terima kasih.`;
-
-      const url = `https://wa.me/6285110513157?text=${encodeURIComponent(pesan)}`;
+      const url = \`https://wa.me/6285110513157?text=\${encodeURIComponent(pesan)}\`;
       window.open(url, '_blank');
     }
 
@@ -1946,3 +1945,7 @@ Mohon informasi persyaratan dokumen teknis dan penawaran biaya resmi. Terima kas
 
 </body>
 </html>
+`;
+
+fs.writeFileSync(path.join(ROOT_DIR, "index.html"), indexHtmlContent, "utf8");
+console.log("Berhasil memperbarui index.html terestorasi (ukuran: " + Buffer.byteLength(indexHtmlContent) + " bytes).");

@@ -1,0 +1,1700 @@
+<!-- ==================== LOGIKA JAVASCRIPT LENGKAP ==================== -->
+  <script>
+    // Global tracker elemen fokus untuk aksesibilitas modal
+    let elemenFokusSebelumnya = null;
+
+    // 1. Penanganan Gambar & Fallback Avatar
+    function handleImgError(rekan, img) {
+      img.style.display = 'none';
+      const av = document.getElementById('avatar-depan-' + rekan);
+      if (av) {
+        av.classList.remove('hidden');
+        av.style.display = 'flex';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      inisialisasiVisitorCounter();
+      initUIInteraktif();
+    });
+
+    // 2. Kontrol Modal Universal (CV, Regulasi, RFP, Portal)
+    function bukaModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        elemenFokusSebelumnya = document.activeElement;
+        el.classList.remove('hidden');
+        el.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('overflow-hidden');
+        requestAnimationFrame(() => {
+          const fokus = el.querySelector('input, select, textarea, button, a[href]');
+          fokus?.focus({ preventScroll: true });
+        });
+      }
+    }
+
+    function tutupModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        el.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
+        if (elemenFokusSebelumnya && typeof elemenFokusSebelumnya.focus === 'function') {
+          elemenFokusSebelumnya.focus({ preventScroll: true });
+        }
+      }
+    }
+
+    // Fungsi Salin Email Konsultasi Cepat
+    function salinEmailKonsultasi(btn) {
+      const email = 'nanang_kjpp@yahoo.co.id';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(() => {
+          tampilkanFeedbackSalin(btn);
+        }).catch(() => fallbackSalinEmail(email, btn));
+      } else {
+        fallbackSalinEmail(email, btn);
+      }
+    }
+    function fallbackSalinEmail(text, btn) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      tampilkanFeedbackSalin(btn);
+    }
+    function tampilkanFeedbackSalin(btn) {
+      const lbl = btn.querySelector('.btn-copy-label');
+      if (lbl) {
+        const orig = lbl.innerText;
+        lbl.innerText = 'Tersalin!';
+        btn.classList.add('bg-emerald-600');
+        setTimeout(() => {
+          lbl.innerText = orig;
+          btn.classList.remove('bg-emerald-600');
+        }, 2000);
+      }
+      if (typeof showToast === 'function') {
+        showToast('Alamat email berhasil disalin: nanang_kjpp@yahoo.co.id');
+      }
+    }
+
+
+        // ==========================================================================
+    // 1A. DATA WAWASAN PENILAIAN, REGULASI SPI & WARTA RESMI MANAJEMEN KJPP NSR
+    // 100% SESUAI DENGAN FAKTA PORTOFOLIO PENUGASAN & PENGALAMAN KERJA KJPP NSR
+    // (Berdasarkan Dokumen Profil Resmi, Kontrak BUMN, Satker PUPR & Ditjen Bina Marga)
+    // ==========================================================================
+    const DATA_WARTA_NSR = {
+      'artikel-spi204': {
+        kategori: 'SPI 204 &ndash; Pengadaan Tanah Kepentingan Umum',
+        kategoriBadgeClass: 'bg-emerald-100 text-emerald-900 border border-emerald-300',
+        tanggal: 'Oktober 2026',
+        nomor: 'Kajian Teknis Litbang NSR No. KT/2026/01',
+        penulis: 'Divisi Pengadaan Tanah & PSN (SPI 204)',
+        judul: 'Standar Penilaian Indonesia (SPI 204): Pedoman Ganti Kerugian Pengadaan Tanah PSN & Hak Non-Fisik Solatium',
+        isiHtml: `
+          <div class="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 font-medium">
+              <strong>Prinsip Utama:</strong> Penilaian pengadaan tanah bagi pembangunan untuk kepentingan umum (UU No. 2/2012 jo. UU No. 6/2023 &amp; PP No. 19/2021) berpedoman teguh pada asas <em>"Ganti Kerugian yang Layak dan Adil"</em> (Fair and Adequate Compensation), dengan metodologi teknis mengacu pada Standar Penilaian Indonesia (SPI 204).
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1">1. Ruang Lingkup Penilaian Kerugian Fisik</h4>
+            <p>Penilai Pertanahan KJPP NSR berlisensi resmi Kementerian ATR/BPN menghitung ganti kerugian fisik secara transparan dan akuntabel:</p>
+            <ul class="list-disc pl-5 space-y-1.5 text-slate-600">
+              <li><strong>Tanah:</strong> Menggunakan Nilai Pasar (Market Value) dengan Pendekatan Perbandingan Data Pasar (Market Data Approach) yang disesuaikan dengan zonasi tata ruang, akses jalan, kontur tapak, dan peruntukan terbaik (HBU).</li>
+              <li><strong>Bangunan dan Sarana Pelengkap:</strong> Dihitung berdasarkan Biaya Reproduksi Baru (Cost Approach) tanpa memperhitungkan penyusutan teknis/umur bangunan, sehingga pemilik tanah dapat membangun kembali fisik yang setara.</li>
+              <li><strong>Tanaman:</strong> Dinilai berdasarkan daftar harga kompensasi dinas pertanian setempat serta nilai produktivitas tanaman ekonomis.</li>
+            </ul>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">2. Komponen Kerugian Non-Fisik (SPI 204)</h4>
+            <p>Standar SPI 204 mewajibkan penilai memperhitungkan hak non-fisik bagi pihak yang berhak:</p>
+            <div class="grid sm:grid-cols-2 gap-2.5 my-2">
+              <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="font-bold text-slate-900 block text-xs">Premi Solatium (Ikatan Emosional)</span>
+                <span class="text-slate-600 text-[11px]">Kompensasi atas ikatan emosional terhadap tempat tinggal yang dihuni, ditentukan berdasarkan lamanya masa huni dan formula standar yang diatur dalam ketentuan teknis SPI 204.</span>
+              </div>
+              <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="font-bold text-slate-900 block text-xs">Masa Tunggu (Waiting Period)</span>
+                <span class="text-slate-600 text-[11px]">Kompensasi atas jeda waktu sejak penetapan lokasi (Penlok) hingga tanggal pembayaran ganti kerugian.</span>
+              </div>
+              <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="font-bold text-slate-900 block text-xs">Pajak BPHTB &amp; Notaris</span>
+                <span class="text-slate-600 text-[11px]">Penggantian beban biaya transaksi pembuatan akta dan pajak perolehan tanah pengganti baru.</span>
+              </div>
+              <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="font-bold text-slate-900 block text-xs">Kerugian Alih Profesi &amp; Pindah</span>
+                <span class="text-slate-600 text-[11px]">Kompensasi atas gangguan pendapatan usaha sementara dan biaya pemindahan barang.</span>
+              </div>
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">3. Fakta Rekam Jejak Pengadaan Tanah KJPP NSR</h4>
+            <p>KJPP NSR telah menyelesaikan berbagai penugasan penilaian pengadaan tanah Proyek Strategis Nasional (PSN) yang terverifikasi resmi oleh Kementerian PUPR / Ditjen Bina Marga dan PT PLN (Persero), antara lain:</p>
+            <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <p>&bull; <strong>Jalan Tol Akses IKN Nusantara:</strong> Penilaian 194 bidang (691.124 m&sup2;) &amp; 151 bidang (160.891 m&sup2;) di Balikpapan Utara &amp; Barat (Pemberi Tugas: PPK Pengadaan Tanah BBPJN Kaltim, 2022&ndash;2023).</p>
+              <p>&bull; <strong>Jalan Tol Cisumdawu I &amp; Soroja:</strong> Penilaian pengadaan tanah di Desa Sukarapih, Mekarsari, Margaluyu, Ciptasari, Sinarmulya, Margamukti, dan Cibeusi, Kab. Sumedang (Satker Pengadaan Jalan Tol Wilayah I).</p>
+              <p>&bull; <strong>Jalan Tol Kediri &ndash; Tulungagung:</strong> Penilaian 287 bidang di Desa Tiron, Kec. Banyakan, Kab. Kediri (TPT Ditjen Bina Marga, 2023).</p>
+              <p>&bull; <strong>Jalan Tol Gedebage &ndash; Tasikmalaya &ndash; Cilacap (Getaci):</strong> Penilaian 168 bidang di Desa Padamukti, Kec. Solokan Jeruk, Kab. Bandung (PPK Pengadaan Tanah Getaci Wilayah I, 2022).</p>
+              <p>&bull; <strong>Jalan Tol Cimanggis &ndash; Cibitung (Cimaci I &amp; II):</strong> Penilaian 252 bidang Desa Gandamekar Kab. Bekasi, serta Desa Nagrak, Limusnunggal, dan Pasir Angin Kab. Bogor (Satker Wilayah I, 2021 &amp; 2025).</p>
+              <p>&bull; <strong>Jalan Tol Sigli &ndash; Banda Aceh (Sibanceh) &amp; Tol Japek II:</strong> Musyawarah penetapan bentuk ganti kerugian bersama BPN dan PUPR di Banda Aceh (2024) serta koridor Tol Jakarta &ndash; Cikampek II.</p>
+              <p>&bull; <strong>Jalur Transmisi SUTT PT PLN (Persero):</strong> Penilaian tapak tower dan Ruang Bebas (RoW) jalur transmisi 275 kV &amp; 150 kV di Jawa Barat dan Sumatera (UIP II, UIPKITSUM, P2B Gandul).</p>
+            </div>
+          </div>
+        `
+      },
+      'artikel-agunan-bank': {
+        kategori: 'Perbankan &ndash; Standar OJK',
+        kategoriBadgeClass: 'bg-sky-100 text-sky-900 border border-sky-300',
+        tanggal: 'Oktober 2026',
+        nomor: 'Kajian Teknis Perbankan No. KP/2026/02',
+        penulis: 'Divisi Penilaian Agunan Perbankan',
+        judul: 'Valuasi Agunan Bank Komersial: Mitigasi Risiko Kredit Macet & Kepatuhan Standar OJK',
+        isiHtml: `
+          <div class="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-950 font-medium">
+              <strong>Fungsi Strategis Penilai Independen:</strong> Laporan penilaian independen yang diterbitkan oleh Penilai Publik terdaftar OJK merupakan instrumen prudensial perbankan utama untuk memitigasi risiko kredit macet (NPL), mengukur rasio <em>Loan-to-Value (LTV)</em>, dan menyediakan dasar eksekusi agunan yang valid secara hukum.
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm&sup2;text-base border-b border-slate-200 pb-1">1. Nilai Pasar (Market Value) vs Nilai Likuidasi Cepat</h4>
+            <p>Berdasarkan Standar Penilaian Indonesia (SPI 101 &amp; SPI 102), lembaga keuangan memerlukan dua opini nilai yang terpisah secara tegas:</p>
+            <ul class="list-disc pl-5 space-y-1.5 text-slate-600">
+              <li><strong>Nilai Pasar (Market Value):</strong> Estimasi nilai pada tanggal penilaian jika objek ditransaksikan dalam kondisi pemasaran wajar antara pembeli dan penjual yang berminat tanpa unsur keterpaksaan.</li>
+              <li><strong>Nilai Likuidasi Cepat (Forced Sale Value):</strong> Estimasi nilai pencairan dana tunai jika agunan harus dieksekusi atau dijual dalam jangka waktu pemasaran terbatas (di bawah waktu wajar, biasanya 3&ndash;6 bulan). Diskon likuidasi dihitung dengan mempertimbangkan daya serap pasar agunan lokal.</li>
+            </ul>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">2. Poin Uji Tuntas (Due Diligence) Agunan</h4>
+            <div class="space-y-2">
+              <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <p class="font-semibold text-slate-800">&bull; Verifikasi Batas Fisik &amp; Yuridis:</p>
+                <p class="text-[11px] text-slate-600 mt-0.5">Memastikan batas patok fisik tanah sesuai dengan Gambar Situasi (GS) / Surat Ukur BPN, bebas sengketa batas tanah, serta tidak terpotong garis sempadan bangunan (GSB) atau pelebaran jalan.</p>
+              </div>
+              <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <p class="font-semibold text-slate-800">&bull; Legalitas IMB / PBG Aktual:</p>
+                <p class="text-[11px] text-slate-600 mt-0.5">Memverifikasi luasan fisik bangunan aktual di lapangan terhadap perizinan resmi pemerintah daerah.</p>
+              </div>
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">3. Rekanan Aktif 40 Lembaga Keuangan Resmi</h4>
+            <p>KJPP NSR merupakan rekanan aktif terdaftar resmi di 40 lembaga perbankan dan pembiayaan nasional, termasuk <strong>Bank BRI, Bank BCA, Bank BCA, Bank BRI, Bank BTN, Bank Kasikorn, Bank BJB, Bank DKI, Bank Nagari, BPD Kalsel, Bank Woori Saudara, Bank Bapas 69, PT PNM (Permodalan Nasional Madani), Clipan Finance, Balai Lelang Batavia, BPR Sukabumi, BPRS BAH</strong>, serta puluhan lembaga keuangan terdaftar OJK lainnya di seluruh Indonesia.</p>
+          </div>
+        `
+      },
+      'artikel-hbu': {
+        kategori: 'Studi Kelayakan &ndash; HBU',
+        kategoriBadgeClass: 'bg-amber-100 text-amber-900 border border-amber-300',
+        tanggal: 'September 2026',
+        nomor: 'Kajian Teknis Advisory No. KA/2026/03',
+        penulis: 'Tim Advisory & Studi Kelayakan',
+        judul: 'Metodologi Analisis Highest and Best Use (HBU) & Feasibility Study Lahan Komersial',
+        isiHtml: `
+          <div class="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 font-medium">
+              <strong>Definisi HBU:</strong> Penggunaan yang paling mungkin dan optimal dari suatu properti (lahan kosong atau properti yang ditingkatkan) yang secara fisik dimungkinkan, secara hukum diizinkan, secara finansial layak, dan menghasilkan nilai tertinggi dari properti tersebut.
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1">Empat Kriteria Baku Pengujian HBU</h4>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-xs font-bold text-amber-800 block">1. Memenuhi Aspek Hukum (Legally Permissible)</span>
+                <p class="text-[11px] text-slate-600 mt-1">Kesesuaian dengan Rencana Detail Tata Ruang (RDTR), Koefisien Dasar Bangunan (KDB), Koefisien Lantai Bangunan (KLB), dan analisis sertifikat hak atas tanah.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-xs font-bold text-amber-800 block">2. Memungkinkan Secara Fisik (Physically Possible)</span>
+                <p class="text-[11px] text-slate-600 mt-1">Analisis topografi tanah, daya dukung tanah, ketersediaan utilitas, lebar muka (frontage), dan kemudahan manuver kendaraan.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-xs font-bold text-amber-800 block">3. Layak Finansial (Financially Feasible)</span>
+                <p class="text-[11px] text-slate-600 mt-1">Simulasi cash flow pendapatan sewa/penjualan, struktur biaya investasi Capex &amp; Opex, serta pengujian nilai NPV &gt; 0 dan IRR &gt; WACC.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-xs font-bold text-amber-800 block">4. Produktivitas Maksimal (Maximally Productive)</span>
+                <p class="text-[11px] text-slate-600 mt-1">Memilih alternatif pengembangan yang memberikan nilai residu tanah tertinggi (Highest Land Residual Value).</p>
+              </div>
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">Pengalaman Praktis Advisory KJPP NSR</h4>
+            <p>KJPP NSR secara rutin membantu BUMN pengelola aset, pengembang properti swasta, dan perbankan dalam studi kelayakan lahan komersial, gedung perkantoran, ruko perdagangan, kawasan pergudangan logistik, dan optimalisasi aset non-produktif.</p>
+          </div>
+        `
+      },
+      'artikel-revaluasi-aset': {
+        kategori: 'Korporasi &ndash; PSAK 216 / 213',
+        kategoriBadgeClass: 'bg-purple-100 text-purple-900 border border-purple-300',
+        tanggal: 'September 2026',
+        nomor: 'Kajian Teknis Finansial No. KF/2026/04',
+        penulis: 'Divisi Valuasi Korporasi & Aset BUMN',
+        judul: 'Prosedur Revaluasi Aset Tetap BUMN & Korporasi Sesuai PSAK 216/213 dan Pengalaman KJPP NSR',
+        isiHtml: `
+          <div class="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <div class="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-950 font-medium">
+              <strong>Tujuan Revaluasi Aset:</strong> Menyesuaikan nilai buku aset tetap historis ke nilai wajar (Fair Value) saat ini untuk memperkuat neraca permodalan perusahaan, menekan rasio hutang (Debt-to-Equity Ratio / DER), dan memenuhi kepatuhan standar akuntansi keuangan.
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1">1. Dampak Positif Revaluasi pada Ekuitas</h4>
+            <ul class="list-disc pl-5 space-y-1 text-slate-600">
+              <li><strong>Peningkatan Nilai Buku Ekuitas:</strong> Selisih lebih revaluasi aset menambah pos surplus revaluasi dalam modal sendiri.</li>
+              <li><strong>Peluang Ekspansi Pembiayaan:</strong> Rasio utang (DER) yang membaik membuka ruang penarikan kredit perbankan baru.</li>
+              <li><strong>Penyajian Laporan Audit-Ready:</strong> Memberikan dasar depresiasi aset yang riil bagi kantor akuntan publik (KAP).</li>
+            </ul>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">2. Fakta Portofolio Revaluasi &amp; Valuasi Khusus KJPP NSR</h4>
+            <p>KJPP NSR memiliki rekam jejak terverifikasi dalam revaluasi portofolio skala besar dan aset korporasi khusus, antara lain:</p>
+            <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <p>&bull; <strong>PTPN VIII (Jawa Barat):</strong> Penilaian aset tetap tanah perkebunan, pabrik pengolahan karet &amp; teh, serta properti investasi Kebun Panglejar Walini (PSAK 240, 216, 236 &amp; 241, kontrak berkala 2018&ndash;2024).</p>
+              <p>&bull; <strong>PT Komet Infra Nusantara:</strong> Valuasi portofolio massal 818 Menara Telekomunikasi (BTS) dan 403 Tenant di wilayah Jawa, Sumatera, dan Bali.</p>
+              <p>&bull; <strong>Armada Laut &amp; Alat Berat:</strong> Penilaian kapal tunda (*tugboat*), tongkang, SPOB, kapal kargo, serta alat-alat berat tambang dan konstruksi di Jawa dan Kalimantan.</p>
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">3. Metodologi Penilaian Mesin &amp; Utilitas</h4>
+            <p>Untuk objek mesin, peralatan, dan utilitas pabrik, pendekatan penilaian ditentukan dengan mempertimbangkan karakteristik objek, tujuan penilaian, serta ketersediaan dan kualitas data. Dalam hal digunakan Pendekatan Biaya (Cost Approach), nilai diestimasi berdasarkan Biaya Reproduksi Baru atau Biaya Pengganti Baru, yang kemudian disesuaikan dengan penyusutan yang mencakup kemunduran fisik (physical deterioration), keusangan fungsional/teknis (functional/technical obsolescence), dan keusangan ekonomis (economic obsolescence).</p>
+          </div>
+        `
+      },
+      'artikel-sawit': {
+        kategori: 'Perkebunan &ndash; PSAK 241',
+        kategoriBadgeClass: 'bg-lime-100 text-lime-900 border border-lime-300',
+        tanggal: 'Agustus 2026',
+        nomor: 'Kajian Teknis Agrikultur No. KA/2026/05',
+        penulis: 'Tim Litbang Agrikultur & PSAK 241',
+        judul: 'Metodologi Penilaian Perkebunan & Aset Biologis Berdasarkan PSAK 241 (Pengalaman PTPN VIII & Agribisnis)',
+        isiHtml: `
+          <div class="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <div class="p-3.5 rounded-xl bg-lime-50 border border-lime-200 text-lime-950 font-medium">
+              <strong>Standar Akuntansi Aset Biologis:</strong> PSAK 241 (konvergensi dari PSAK 69) mengatur pengukuran aset biologis (tanaman perkebunan menghasilkan dan produk agrikultur) pada nilai wajar dikurangi estimasi biaya untuk menjual (Fair Value Less Cost to Sell).
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm&sup2;text-base border-b border-slate-200 pb-1">1. Fakta Portofolio Perkebunan KJPP NSR di PTPN VIII</h4>
+            <p>KJPP NSR dipercaya secara berkala oleh <strong>PT Perkebunan Nusantara VIII (PTPN VIII)</strong> di Jawa Barat dalam penugasan:</p>
+            <ul class="list-disc pl-5 space-y-1.5 text-slate-600">
+              <li>Penilaian aset perkebunan tanaman karet dan teh komersial.</li>
+              <li>Penilaian fasilitas pabrik pengolahan karet dan teh.</li>
+              <li>Penilaian properti investasi pada hamparan Kebun Panglejar Walini (PSAK 240, 216, 236 &amp; 241).</li>
+            </ul>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">2. Pendekatan Metodologi Penilaian Perkebunan</h4>
+            <div class="grid sm:grid-cols-2 gap-2.5 my-2">
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="font-bold text-slate-900 block text-xs">Tanaman Belum Menghasilkan (TBM)</span>
+                <span class="text-slate-600 text-[11px]">Dinilai berdasarkan akumulasi biaya pemeliharaan vegetatif hingga tanaman siap panen komersial.</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="font-bold text-slate-900 block text-xs">Tanaman Menghasilkan (TM)</span>
+                <span class="text-slate-600 text-[11px]">Dinilai menggunakan Pendekatan Pendapatan dengan pemodelan Discounted Cash Flow (DCF) selama sisa umur ekonomis produktif.</span>
+              </div>
+            </div>
+
+            <h4 class="font-bold text-slate-900 text-sm sm:text-base border-b border-slate-200 pb-1 pt-2">3. Penilaian Agunan Perkebunan untuk Perbankan</h4>
+            <p>Selain penugasan BUMN holding perkebunan, tim KJPP NSR yang dipimpin langsung oleh Pemimpin Rekan Ir. Nanang Rahayu berpengalaman menilai perkebunan kelapa sawit dan karet untuk keperluan agunan kredit investasi perbankan nasional.</p>
+          </div>
+        `
+      },
+      'warta-1': {
+        kategori: 'Pengumuman Resmi',
+        kategoriBadgeClass: 'bg-amber-100 text-amber-900 border border-amber-300',
+        tanggal: '05 Oktober 2026',
+        nomor: 'Nomor: 018/NSR-ED/X/2026',
+        penulis: 'Sekretariat Manajemen Pusat',
+        judul: 'Efektivitas Penuh STTD OJK Seluruh Rekan Kantor Cabang KJPP NSR 2026',
+        isiHtml: `
+          <div class="space-y-3.5 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <p>Dewan Pimpinan dan Manajemen KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan (KJPP NSR) secara resmi mengumumkan bahwa seluruh Rekan Penilai Publik di Kantor Pusat Jakarta dan 4 (empat) Kantor Cabang telah resmi teregistrasi aktif di Otoritas Jasa Keuangan (OJK).</p>
+            <div class="my-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <p class="font-bold text-slate-800 mb-1.5">Rincian Surat Tanda Terdaftar (STTD) OJK KJPP NSR:</p>
+              <ul class="list-disc pl-5 space-y-1 text-slate-600">
+                <li><strong>Ir. Nanang Rahayu (Kantor Pusat):</strong> STTD OJK No. KEP-859/KS.13/2026</li>
+                <li><strong>Deni Siswandi, S.T. (Cabang Bandung):</strong> STTD OJK No. KEP-1261/KS.13/2026</li>
+                <li><strong>Hernita, S.Si. (Cabang Padang):</strong> STTD OJK No. KEP-1012/KS.13/2026</li>
+                <li><strong>Muhammad Amin Sade, S.M. (Cabang Makassar):</strong> STTD OJK No. KEP-1278/KS.13/2026 (30 Juni 2026)</li>
+                <li><strong>Dharma Priyanto, S.T. (Cabang Palembang):</strong> STTD OJK No. KEP-523/KS.13/2026 &bull; Lisensi ATR/BPN No. PP2.0031.23</li>
+              </ul>
+            </div>
+            <p>Dengan efektivitas penuh registrasi ini, seluruh cabang KJPP NSR siap memberikan opini penilaian independen berstandar tinggi untuk keperluan agunan kredit perbankan, aksi korporasi pasar modal, dan industri keuangan non-bank di seluruh Indonesia.</p>
+          </div>
+        `
+      },
+      'warta-2': {
+        kategori: 'Warta Operasional',
+        kategoriBadgeClass: 'bg-sky-100 text-sky-900 border border-sky-300',
+        tanggal: '03 Oktober 2026',
+        nomor: 'Nomor: 004/MKS-OPS/X/2026',
+        penulis: 'Manajemen Cabang Makassar',
+        judul: 'Pembaruan Titik Lokasi Kantor Cabang Makassar di Kawasan Mariso',
+        isiHtml: `
+          <div class="space-y-3.5 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <p>Manajemen KJPP NSR Cabang Makassar mengumumkan pembaruan alamat operasional kantor yang kini efektif berlokasi di:</p>
+            <div class="my-3 p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-950 font-medium">
+              <strong>Jl. Nuri Lr. 301 No. 7, Kel. Mariso, Kec. Mariso, Kota Makassar, Sulawesi Selatan.</strong>
+            </div>
+            <p>Pembaruan ini bertujuan untuk memberikan kemudahan akses, mobilitas koordinasi dengan mitra perbankan dan BUMN, serta efisiensi inspeksi penilaian aset di wilayah Kota Makassar dan sekitarnya di bawah Izin Kantor Cabang Kemenkeu RI No. 364/KM.1/2019.</p>
+            <p>Pelayanan konsultasi penilaian properti dan koordinasi penugasan wilayah Indonesia Timur dikoordinasikan langsung melalui PIC Operasional Cabang: <strong>Wawan Kurniawan (+62 852-4062-2201)</strong>.</p>
+          </div>
+        `
+      },
+      'warta-3': {
+        kategori: 'Regulasi & SPI 204',
+        kategoriBadgeClass: 'bg-emerald-100 text-emerald-900 border border-emerald-300',
+        tanggal: '28 September 2026',
+        nomor: 'Kajian Yuridis SPI 204',
+        penulis: 'Divisi Regulasi & SPI 204',
+        judul: 'Kesiapan Tim Penilai Pertanahan PSN & Jalan Tol Standar SPI 204',
+        isiHtml: `
+          <div class="space-y-3.5 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <p>KJPP NSR mempertegas kesiapan teknis dan metodologis seluruh tim penilai dalam mendukung pelaksanaan Pengadaan Tanah bagi Pembangunan untuk Kepentingan Umum (Proyek Strategis Nasional / PSN).</p>
+            <p class="mt-2">Didukung lisensi resmi Penilai Pertanahan dari Kementerian ATR/BPN dan kepatuhan terhadap <strong>Standar Penilaian Indonesia (SPI 204)</strong> serta UU No. 2/2012 jo. PP No. 19/2021, KJPP NSR telah berpengalaman mengawal penilaian ganti kerugian fisik maupun non-fisik (solatium, masa tunggu, kerugian alih profesi) pada proyek jalan tol terverifikasi seperti Tol Akses IKN Balikpapan, Cisumdawu, Kediri - Tulungagung, Getaci, Cimanggis - Cibitung, Sigli - Banda Aceh, serta tapak tower transmisi listrik SUTT PT PLN (Persero).</p>
+            <p class="mt-2">Layanan konsultasi pengadaan tanah dan feasibility study dapat diajukan secara resmi melalui sekretariat kantor pusat.</p>
+          </div>
+        `
+      }
+    };
+
+    function bukaModalWarta(id) {
+      const item = DATA_WARTA_NSR[id];
+      if (!item) return;
+      const elKat = document.getElementById('warta-modal-kategori');
+      const elTgl = document.getElementById('warta-modal-tanggal');
+      const elNomor = document.getElementById('warta-modal-nomor');
+      const elJudul = document.getElementById('warta-modal-judul');
+      const elIsi = document.getElementById('warta-modal-isi');
+
+      if (elKat) {
+        elKat.innerHTML = item.kategori;
+        elKat.className = 'px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ' + (item.kategoriBadgeClass || 'bg-blue-100 text-blue-900');
+      }
+      if (elTgl) elTgl.innerHTML = item.tanggal;
+      if (elNomor) elNomor.innerHTML = item.nomor;
+      const elPenulis = document.getElementById('warta-modal-penulis');
+      if (elPenulis) elPenulis.innerHTML = item.penulis || 'Divisi Penilaian Resmi KJPP NSR';
+      if (elJudul) elJudul.innerHTML = item.judul;
+      if (elIsi) elIsi.innerHTML = item.isiHtml;
+
+      bukaModal('modal-baca-warta');
+    }
+
+    function filterWarta(kategori, btn) {
+      const cards = document.querySelectorAll('.card-warta');
+      const buttons = document.querySelectorAll('.btn-filter-warta');
+      const toggleBox = document.getElementById('warta-toggle-box');
+      buttons.forEach(b => {
+        b.className = 'btn-filter-warta px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition';
+      });
+      if (btn) {
+        btn.className = 'btn-filter-warta px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 shadow transition';
+      }
+      
+      let visibleCount = 0;
+      const isExpanded = document.getElementById('txt-toggle-extra-warta') && 
+                         document.getElementById('txt-toggle-extra-warta').textContent.includes('Sembunyikan');
+
+      if (kategori === 'semua') {
+        if (toggleBox) toggleBox.classList.remove('hidden');
+        cards.forEach(card => {
+          if (!card.classList.contains('card-warta-extra') || isExpanded) {
+            card.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      } else {
+        if (toggleBox) toggleBox.classList.add('hidden');
+        cards.forEach(card => {
+          if (card.classList.contains('item-warta-' + kategori)) {
+            card.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      }
+
+      const emptyEl = document.getElementById('wawasan-empty-state');
+      if (emptyEl) {
+        if (visibleCount === 0) {
+          emptyEl.classList.remove('hidden');
+        } else {
+          emptyEl.classList.add('hidden');
+        }
+      }
+    }
+
+    function cariArtikelWawasan(query) {
+      const q = (query || '').toLowerCase().trim();
+      const cards = document.querySelectorAll('.card-warta');
+      const btnReset = document.getElementById('btn-reset-cari');
+      const emptyEl = document.getElementById('wawasan-empty-state');
+      const toggleBox = document.getElementById('warta-toggle-box');
+
+      if (btnReset) {
+        if (q.length > 0) {
+          btnReset.classList.remove('hidden');
+        } else {
+          btnReset.classList.add('hidden');
+        }
+      }
+
+      let count = 0;
+      if (q.length > 0) {
+        if (toggleBox) toggleBox.classList.add('hidden');
+        cards.forEach(card => {
+          const text = card.textContent.toLowerCase();
+          const kw = (card.getAttribute('data-keywords') || '').toLowerCase();
+          if (text.includes(q) || kw.includes(q)) {
+            card.classList.remove('hidden');
+            count++;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      } else {
+        if (toggleBox) toggleBox.classList.remove('hidden');
+        const isExpanded = document.getElementById('txt-toggle-extra-warta') && 
+                           document.getElementById('txt-toggle-extra-warta').textContent.includes('Sembunyikan');
+        cards.forEach(card => {
+          if (!card.classList.contains('card-warta-extra') || isExpanded) {
+            card.classList.remove('hidden');
+            count++;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      }
+
+      if (emptyEl) {
+        if (count === 0) {
+          emptyEl.classList.remove('hidden');
+        } else {
+          emptyEl.classList.add('hidden');
+        }
+      }
+    }
+
+    function resetCariWawasan() {
+      const input = document.getElementById('cari-wawasan-input');
+      if (input) input.value = '';
+      const toggleBox = document.getElementById('warta-toggle-box');
+      if (toggleBox) toggleBox.classList.remove('hidden');
+      filterWarta('semua');
+      const btnSemua = document.querySelector('.btn-filter-warta');
+      if (btnSemua) {
+        btnSemua.className = 'btn-filter-warta px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 shadow transition';
+      }
+    }
+
+    // 1B. Logika Switcher Kantor Cabang & Peta Interaktif
+    const DATA_KANTOR_NSR = {
+      pusat: {
+        badge: 'Kantor Pusat & Korespondensi',
+        wilayah: 'DKI Jakarta & Nasional',
+        nama: 'Kantor Pusat Jakarta Selatan',
+        alamat: 'Jl. Hankam No. 5 RT.006 RW.001, Kelurahan Ragunan, Kecamatan Pasar Minggu, Kota Jakarta Selatan, DKI Jakarta 12550',
+        telp: 'Telp: +62 21 7884 9996, 7884 8837 | WA Admin: 0851-1051-3157',
+        picHtml: '<p class="text-white font-semibold">Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) <button type="button" onclick="bukaModal(\'modal-cv-nanang\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-slate-300 text-xs mt-0.5">Pimpinan Rekan | Izin Penilai Publik: PB-1.09.00021</p>',
+        emailHtml: '<a href="mailto:nanang_kjpp@yahoo.co.id" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">nanang_kjpp@yahoo.co.id</a> <span class="text-slate-500">/</span> <a href="mailto:kjppnrr.bd@gmail.com" class="text-slate-300 hover:text-sky-300 hover:underline">kjppnrr.bd@gmail.com</a>',
+        mapUrl: 'https://www.google.com/maps?q=KJPP+Nanang+Rahayu+Sigit+Paryanto+dan+Rekan&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=KJPP+Nanang+Rahayu+Sigit+Paryanto+dan+Rekan',
+        wa: ''
+      },
+      bandung: {
+        badge: 'Kantor Cabang Resmi',
+        wilayah: 'Cimahi &bull; Jawa Barat',
+        nama: 'Kantor Cabang Bandung (Jawa Barat)',
+        alamat: 'Perumahan Pancanaka Royal Garden II, Jl. Pangrango II No. 1A RT.001 RW.012, Citeureup, Cimahi Utara, Kota Cimahi - 40512',
+        telp: 'Telp/Fax: +62 22 6622088',
+        picHtml: '<p class="text-white font-semibold">Deni Siswandi, S.T. <button type="button" onclick="bukaModal(\'modal-cv-deni\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-emerald-400 text-xs mt-0.5">Izin Cabang: No. 326/KM.1/2020 (2 Juli 2020)</p><p class="text-slate-300 text-xs mt-0.5">PIC Operasional: Heru Kurnia (+62 813-2019-3535)</p>',
+        emailHtml: '<a href="mailto:nsr.bdg1@gmail.com" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">nsr.bdg1@gmail.com</a>',
+        mapUrl: 'https://www.google.com/maps?q=-6.8597817207843175,107.56042889556781&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=-6.8597817207843175,107.56042889556781',
+        wa: '6281320193535'
+      },
+      padang: {
+        badge: 'Kantor Cabang Resmi',
+        wilayah: 'Padang &bull; Sumatera Barat',
+        nama: 'Kantor Cabang Padang (Sumatera Barat)',
+        alamat: 'Jl. Parak Gadang VIII No. 19, Simpang Haru, Padang Timur, Kota Padang - 25123',
+        telp: 'Telp/Fax: +62 751 891 460',
+        picHtml: '<p class="text-white font-semibold">Hernita, S.Si. <button type="button" onclick="bukaModal(\'modal-cv-hernita\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-emerald-400 text-xs mt-0.5">Izin Cabang: No. 363/KM.1/2019 (15 Juli 2019)</p><p class="text-slate-300 text-xs mt-0.5">PIC Operasional: Rahmad Andika (+62 823-8136-5221)</p>',
+        emailHtml: '<a href="mailto:padangkjppnsr@gmail.com" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">padangkjppnsr@gmail.com</a>',
+        mapUrl: 'https://www.google.com/maps?q=-0.9493200204748591,100.37605511031613&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=-0.9493200204748591,100.37605511031613',
+        wa: '6282381365221'
+      },
+      makassar: {
+        badge: 'Kantor Cabang Resmi',
+        wilayah: 'Makassar &bull; Sulawesi Selatan',
+        nama: 'Kantor Cabang Makassar (Sulawesi Selatan)',
+        alamat: 'Jl. Nuri Lr. 301 No. 7, Kel. Mariso, Kec. Mariso, Kota Makassar',
+        telp: 'Telp/Fax: +62 411 839860',
+        picHtml: '<p class="text-white font-semibold">M. Amin Sade, S.M. <button type="button" onclick="bukaModal(\'modal-cv-amin\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-emerald-400 text-xs mt-0.5">Izin Cabang: No. 364/KM.1/2019 (15 Juli 2019) &bull; STTD OJK: KEP-1278/KS.13/2026</p><p class="text-slate-300 text-xs mt-0.5">PIC Operasional: Wawan Kurniawan (+62 852-4062-2201)</p>',
+        emailHtml: '<a href="mailto:kjpp.wawan@gmail.com" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">kjpp.wawan@gmail.com</a>',
+        mapUrl: 'https://www.google.com/maps?q=-5.1587719,119.4075016&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=-5.1587719,119.4075016',
+        wa: '6285240622201'
+      },
+      palembang: {
+        badge: 'Kantor Cabang Resmi',
+        wilayah: 'Palembang &bull; Sumatera Selatan',
+        nama: 'Kantor Cabang Palembang (Sumatera Selatan)',
+        alamat: 'Komplek Griya Hero Abadi Maskarebet Jl. Rosela 1 Blok BA 04, Talang Kelapa, Alang-alang Lebar, Kota Palembang - 30151',
+        telp: 'PIC Operasional: +62 813-6808-7781',
+        picHtml: '<p class="text-white font-semibold">Dharma Priyanto, S.T. <button type="button" onclick="bukaModal(\'modal-cv-dharma\')" class="text-xs text-amber-300 hover:underline ml-1 font-normal">(Lihat CV Rekan)</button></p><p class="text-emerald-400 text-xs mt-0.5">Izin Cabang: No. 230/KM.1/2022 (8 Maret 2022) &bull; Lisensi ATR/BPN: PP2.0031.23</p><p class="text-slate-300 text-xs mt-0.5">PIC Operasional: Rafdinal Ardhi (+62 813-6808-7781)</p>',
+        emailHtml: '<a href="mailto:kjppnsrpalembang@gmail.com" class="font-semibold text-sky-400 hover:text-sky-300 hover:underline">kjppnsrpalembang@gmail.com</a>',
+        mapUrl: 'https://www.google.com/maps?q=-2.929043950869521,104.69598062620024&hl=id&z=17&output=embed',
+        directMapUrl: 'https://maps.google.com/?q=-2.929043950869521,104.69598062620024',
+        wa: '6281368087781'
+      }
+    };
+
+    function setupMapLazyLoad() {
+      const elIframe = document.getElementById('map-iframe-kantor');
+      const cabangSection = document.getElementById('kontak') || document.getElementById('map-iframe-kantor');
+      if (!elIframe || !cabangSection) return;
+
+      const muatPeta = () => {
+        if (!elIframe.src || elIframe.src === 'about:blank' || elIframe.src.indexOf('about:blank') !== -1) {
+          elIframe.src = elIframe.getAttribute('data-src') || 'https://www.google.com/maps?q=KJPP+Nanang+Rahayu+Sigit+Paryanto+dan+Rekan&hl=id&z=17&output=embed';
+        }
+      };
+
+      if ('IntersectionObserver' in window) {
+        const obs = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            obs.disconnect();
+            muatPeta();
+          }
+        }, { rootMargin: '350px 0px' });
+        obs.observe(cabangSection);
+      } else {
+        muatPeta();
+      }
+    }
+    setupMapLazyLoad();
+
+    let urlWaPusatDefault = '';
+
+    function pilihKantorPeta(kunci, scrollKePeta = false) {
+      const data = DATA_KANTOR_NSR[kunci];
+      if (!data) return;
+
+      const keys = ['pusat', 'bandung', 'padang', 'makassar', 'palembang'];
+      keys.forEach(k => {
+        const btn = document.getElementById('tab-kantor-' + k);
+        if (!btn) return;
+        if (k === kunci) {
+          btn.className = 'btn-tab-kantor px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-blue-600 text-white border-amber-400/80 shadow-lg shadow-blue-900/50';
+          btn.setAttribute('aria-selected', 'true');
+        } else {
+          btn.className = 'btn-tab-kantor px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/80 text-slate-300 border-slate-700/80 hover:bg-slate-800 hover:text-white';
+          btn.setAttribute('aria-selected', 'false');
+        }
+      });
+
+      const elBadge = document.getElementById('kantor-aktif-badge');
+      const elWilayah = document.getElementById('kantor-aktif-wilayah');
+      const elNama = document.getElementById('kantor-aktif-nama');
+      const elAlamat = document.getElementById('kantor-aktif-alamat');
+      const elTelp = document.getElementById('kantor-aktif-telp');
+      const elEmail = document.getElementById('kantor-aktif-email');
+      const elIframe = document.getElementById('map-iframe-kantor');
+      const elLabelPeta = document.getElementById('map-label-lokasi');
+
+      if (elBadge) elBadge.innerHTML = data.badge;
+      if (elWilayah) elWilayah.innerHTML = data.wilayah;
+      if (elNama) elNama.innerHTML = data.nama;
+      if (elAlamat) elAlamat.innerHTML = data.alamat;
+      if (elTelp) elTelp.innerHTML = data.telp;
+      if (elEmail) elEmail.innerHTML = data.emailHtml;
+      if (elLabelPeta) elLabelPeta.innerHTML = 'Peta Lokasi: ' + data.nama;
+
+      if (elIframe && elIframe.src !== data.mapUrl) {
+        elIframe.src = data.mapUrl;
+      }
+
+      if (scrollKePeta) {
+        const spot = document.getElementById('container-spotlight-kantor');
+        if (spot) {
+          spot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    function switchFaqTab(kategori, btn) {
+      const tabButtons = document.querySelectorAll('.btn-faq-tab');
+      tabButtons.forEach(b => {
+        b.className = 'btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-slate-700/80 bg-slate-900/70 text-slate-300 hover:text-white hover:border-slate-600 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer';
+      });
+      if (btn) {
+        btn.className = 'btn-faq-tab relative overflow-hidden whitespace-nowrap rounded-xl border border-amber-400 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-bold px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm transition-all duration-300 shadow-md cursor-pointer';
+      }
+      const items = document.querySelectorAll('.faq-item-card');
+      items.forEach(item => {
+        const itemKat = item.getAttribute('data-category');
+        if (kategori === 'all' || itemKat === kategori) {
+          item.classList.remove('hidden');
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    }
+
+    function toggleFaq(num) {
+      const ans = document.getElementById('faq-ans-' + num);
+      const icon = document.getElementById('faq-icon-' + num);
+      const card = document.getElementById('faq-card-' + num);
+      const title = document.getElementById('faq-title-' + num);
+      if (ans && icon) {
+        const isHidden = ans.classList.contains('hidden');
+        if (isHidden) {
+          ans.classList.remove('hidden');
+          icon.classList.add('rotate-45', 'text-amber-400', 'border-amber-400/50');
+          icon.classList.remove('text-sky-400');
+          if (card) {
+            card.classList.add('border-sky-500/40', 'bg-slate-900/90', 'shadow-lg');
+            card.classList.remove('bg-slate-900/60', 'border-slate-800/80');
+          }
+          if (title) {
+            title.classList.add('text-amber-300', 'font-semibold');
+            title.classList.remove('text-slate-200');
+          }
+        } else {
+          ans.classList.add('hidden');
+          icon.classList.remove('rotate-45', 'text-amber-400', 'border-amber-400/50');
+          icon.classList.add('text-sky-400');
+          if (card) {
+            card.classList.remove('border-sky-500/40', 'bg-slate-900/90', 'shadow-lg');
+            card.classList.add('bg-slate-900/60', 'border-slate-800/80');
+          }
+          if (title) {
+            title.classList.remove('text-amber-300', 'font-semibold');
+            title.classList.add('text-slate-200');
+          }
+        }
+      }
+    }
+
+    function pilihTabManajemen(kantorKey, btn) {
+      const items = document.querySelectorAll('.item-manajemen');
+      const buttons = document.querySelectorAll('.btn-tab-manajemen');
+
+      buttons.forEach(b => {
+        b.className = 'btn-tab-manajemen px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white';
+        b.setAttribute('aria-selected', 'false');
+      });
+
+      if (btn) {
+        btn.className = 'btn-tab-manajemen px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-md';
+        btn.setAttribute('aria-selected', 'true');
+      } else {
+        const matchingBtn = document.querySelector(`.btn-tab-manajemen[data-key="${kantorKey}"]`);
+        if (matchingBtn) {
+          matchingBtn.className = 'btn-tab-manajemen px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-md';
+          matchingBtn.setAttribute('aria-selected', 'true');
+        }
+      }
+
+      items.forEach(item => {
+        const k = item.getAttribute('data-kantor');
+        if (kantorKey === 'semua' || k === kantorKey) {
+          item.classList.remove('hidden');
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+
+      if (kantorKey !== 'semua') {
+        const targetEl = document.getElementById('manajemen-block-' + kantorKey);
+        if (targetEl) {
+          setTimeout(() => {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 60);
+        }
+      } else {
+        const sectionEl = document.getElementById('manajemen');
+        if (sectionEl && !btn) {
+          setTimeout(() => {
+            sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 60);
+        }
+      }
+    }
+
+    function toggleDetailFase(faseId) {
+      const el = document.getElementById(faseId);
+      const btn = document.getElementById('btn-' + faseId);
+      if (!el || !btn) return;
+      const isHidden = el.classList.contains('hidden');
+      if (isHidden) {
+        el.classList.remove('hidden');
+        btn.innerHTML = '<span>Tutup Detail</span> <svg class="w-3.5 h-3.5 rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
+        btn.setAttribute('aria-expanded', 'true');
+      } else {
+        el.classList.add('hidden');
+        btn.innerHTML = '<span>Baca Selengkapnya</span> <svg class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    function bukaModalPortal() {
+      bukaModal('modal-portal');
+    }
+
+    function tutupModalPortal() {
+      tutupModal('modal-portal');
+    }
+
+    // 2B. Logika Galeri Kegiatan, Pagination Toggle, & Lightbox Pop-up
+    let galeriKategoriAktif = 'semua';
+    let galeriTampilSemua = false;
+    const BATAS_AWAL_GALERI = 6;
+
+    function perbaruiTampilanGaleri() {
+      const items = document.querySelectorAll('.item-galeri');
+      const wrapToggle = document.getElementById('wrapper-toggle-galeri');
+      const btnText = document.getElementById('btn-toggle-galeri-text');
+      const btnIcon = document.getElementById('btn-toggle-galeri-icon');
+      const infoJumlah = document.getElementById('info-jumlah-galeri');
+
+      const itemCocok = [];
+      items.forEach(item => {
+        const itemKat = (item.getAttribute('data-kategori') || '').split(/\s+/);
+        if (galeriKategoriAktif === 'semua' || itemKat.includes(galeriKategoriAktif)) {
+          itemCocok.push(item);
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+
+      if (galeriKategoriAktif === 'semua') {
+        const total = itemCocok.length;
+        const sisa = Math.max(0, total - BATAS_AWAL_GALERI);
+        if (!galeriTampilSemua) {
+          itemCocok.forEach((item, idx) => {
+            if (idx < BATAS_AWAL_GALERI) {
+              item.classList.remove('hidden');
+            } else {
+              item.classList.add('hidden');
+            }
+          });
+          if (wrapToggle) wrapToggle.classList.remove('hidden');
+          if (btnText) btnText.innerText = 'Lihat Seluruh Dokumentasi (+' + sisa + ' Foto)';
+          if (btnIcon) btnIcon.innerHTML = '&uarr;';
+          if (infoJumlah) infoJumlah.innerText = 'Menampilkan ' + BATAS_AWAL_GALERI + ' dari ' + total + ' foto kegiatan operasional terpilih';
+        } else {
+          itemCocok.forEach(item => item.classList.remove('hidden'));
+          if (wrapToggle) wrapToggle.classList.remove('hidden');
+          if (btnText) btnText.innerText = 'Tampilkan Lebih Ringkas (' + BATAS_AWAL_GALERI + ' Foto Utama)';
+          if (btnIcon) btnIcon.innerHTML = '&darr;';
+          if (infoJumlah) infoJumlah.innerText = 'Menampilkan seluruh ' + total + ' foto kegiatan operasional';
+        }
+      } else {
+        itemCocok.forEach(item => item.classList.remove('hidden'));
+        if (wrapToggle) wrapToggle.classList.add('hidden');
+      }
+    }
+
+    const NAMA_SEKTOR_PORTO = {
+      'semua': 'Semua Sektor (6 Kategori)',
+      'tol': 'Jalan Tol PSN (6 Proyek)',
+      'kereta': 'Rel KA & Transit (2 Proyek)',
+      'bumn': 'BUMN & Korporasi (5 Portofolio)',
+      'maritim': 'Kapal & Alat Berat (2 Portofolio Besar)',
+      'fs': 'Studi Kelayakan (4 Proyek Unggulan)',
+      'pemda': 'BMD Pemda (19 Wilayah Kabupaten/Kota)'
+    };
+
+    function filterPortofolio(kategori, btn) {
+      if (!btn) {
+        btn = document.querySelector('.btn-filter-porto[data-filter="' + kategori + '"]') || document.querySelector('.btn-filter-porto[onclick*="' + kategori + '"]');
+      }
+
+      // Update button styling
+      const buttons = document.querySelectorAll('.btn-filter-porto');
+      buttons.forEach(b => {
+        b.classList.remove('bg-gradient-to-r', 'from-amber-400', 'to-yellow-500', 'text-slate-950', 'font-black', 'shadow-md');
+        b.classList.add('bg-slate-800/80', 'text-slate-300', 'font-semibold');
+      });
+      if (btn) {
+        btn.classList.add('bg-gradient-to-r', 'from-amber-400', 'to-yellow-500', 'text-slate-950', 'font-black', 'shadow-md');
+        btn.classList.remove('bg-slate-800/80', 'text-slate-300', 'font-semibold');
+      }
+
+      // Update filter banner
+      const banner = document.getElementById('porto-filter-banner');
+      const titleEl = document.getElementById('porto-filter-title');
+      if (banner && titleEl) {
+        if (kategori === 'semua') {
+          banner.classList.add('hidden');
+        } else {
+          titleEl.textContent = NAMA_SEKTOR_PORTO[kategori] || kategori;
+          banner.classList.remove('hidden');
+        }
+      }
+
+      // Toggle groups
+      const groups = document.querySelectorAll('.portfolio-group');
+      let targetEl = null;
+      groups.forEach(g => {
+        const groupKey = g.getAttribute('data-group');
+        if (kategori === 'semua' || groupKey === kategori) {
+          g.classList.remove('hidden');
+          if (groupKey === kategori) {
+            targetEl = g;
+          }
+        } else {
+          g.classList.add('hidden');
+        }
+      });
+
+      // Smooth scroll to targeted destination
+      const filterBar = document.getElementById('porto-filter-bar');
+      const destination = (kategori === 'semua') ? (filterBar || document.getElementById('pengalaman')) : (filterBar || targetEl);
+      if (destination) {
+        const navOffset = 90;
+        const rect = destination.getBoundingClientRect();
+        const targetY = rect.top + window.pageYOffset - navOffset;
+        window.scrollTo({
+          top: Math.max(0, targetY),
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    function filterGaleri(kategori, btn) {
+      galeriKategoriAktif = kategori;
+      galeriTampilSemua = false;
+      const buttons = document.querySelectorAll('.btn-filter-galeri');
+      buttons.forEach(b => {
+        b.classList.remove('bg-gradient-to-r', 'from-amber-400', 'to-yellow-500', 'text-slate-950', 'font-black', 'shadow-md', 'bg-blue-950', 'text-white', 'shadow-sm');
+        b.classList.add('bg-slate-800/80', 'text-slate-300', 'font-semibold');
+      });
+      if (btn) {
+        btn.classList.add('bg-gradient-to-r', 'from-amber-400', 'to-yellow-500', 'text-slate-950', 'font-black', 'shadow-md');
+        btn.classList.remove('bg-slate-800/80', 'text-slate-300', 'font-semibold', 'bg-white/70', 'text-slate-700');
+      }
+      perbaruiTampilanGaleri();
+    }
+
+    function toggleTampilSemuaGaleri() {
+      galeriTampilSemua = !galeriTampilSemua;
+      perbaruiTampilanGaleri();
+      if (!galeriTampilSemua) {
+        const galeriEl = document.getElementById('galeri');
+        if (galeriEl) galeriEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function bukaLightboxGaleri(imgSrc, judul, lokasi, kategori, deskripsi) {
+      const img = document.getElementById('lightbox-img');
+      const tJudul = document.getElementById('lightbox-judul');
+      const tLokasi = document.getElementById('lightbox-lokasi');
+      const tKategori = document.getElementById('lightbox-kategori');
+      const tDeskripsi = document.getElementById('lightbox-deskripsi');
+      if (img) img.src = imgSrc;
+      if (tJudul) tJudul.innerText = judul;
+      if (tLokasi) tLokasi.innerText = lokasi;
+      if (tKategori) tKategori.innerText = kategori;
+      if (tDeskripsi) tDeskripsi.innerText = deskripsi;
+      bukaModal('modal-lightbox-galeri');
+    }
+
+    function tutupLightboxGaleri() {
+      tutupModal('modal-lightbox-galeri');
+    }
+
+    function bukaModalBagan() {
+      const isMobile = window.innerWidth <= 767;
+      const btnTab = document.getElementById('btn-bagan-tab-baru');
+      if (btnTab) {
+        btnTab.href = isMobile 
+          ? 'images/Bagan_Organisasi_KJPP_NSR_Mobile.png' 
+          : 'images/Bagan_Organisasi_KJPP_NSR%20(1).png';
+      }
+      bukaModal('modal-bagan-fullscreen');
+    }
+
+    function tutupModalBagan() {
+      tutupModal('modal-bagan-fullscreen');
+    }
+
+    window.addEventListener('click', function(event) {
+      const target = event.target;
+      if (target instanceof HTMLElement && target.id?.startsWith('modal-') && target.classList.contains('fixed')) {
+        tutupModal(target.id);
+      }
+    });
+
+    // 4. Form RFP (Minta Penawaran Biaya ke WA)
+    function kirimFormRFP(e) {
+      e.preventDefault();
+
+      // Rate limiting: cegah spam — cooldown 90 detik
+      const COOLDOWN_MS = 90000;
+      const lastSent = parseInt(localStorage.getItem('nsr_rfp_last_sent') || '0', 10);
+      const now = Date.now();
+      if (now - lastSent < COOLDOWN_MS) {
+        const sisaDetik = Math.ceil((COOLDOWN_MS - (now - lastSent)) / 1000);
+        tampilkanToast(`Mohon tunggu ${sisaDetik} detik sebelum mengirim permohonan berikutnya.`);
+        return;
+      }
+
+      const nama = document.getElementById('rfp-nama').value.trim();
+      const instansi = document.getElementById('rfp-instansi').value.trim();
+      const objek = document.getElementById('rfp-objek').value;
+      const tujuan = document.getElementById('rfp-tujuan').value;
+      const lokasi = document.getElementById('rfp-lokasi').value.trim();
+      const wa = document.getElementById('rfp-wa').value.trim();
+
+      if (!nama || !lokasi || !wa) {
+        tampilkanToast('Harap lengkapi nama, lokasi, dan nomor WhatsApp.');
+        return;
+      }
+
+      const email = document.getElementById('rfp-email') ? document.getElementById('rfp-email').value.trim() : '';
+      const catatan = document.getElementById('rfp-catatan') ? document.getElementById('rfp-catatan').value.trim() : '';
+
+      let pesan = `*PERMOHONAN PENAWARAN BIAYA (RFP) - KJPP NSR*\n\n` +
+                  `*Nama PIC:* ${nama}\n` +
+                  `*Instansi/Bank:* ${instansi || '-'}\n` +
+                  `*Email:* ${email || '-'}\n` +
+                  `*Objek Penilaian:* ${objek}\n` +
+                  `*Tujuan:* ${tujuan}\n` +
+                  `*Lokasi:* ${lokasi}\n` +
+                  `*Kontak WhatsApp:* ${wa}\n`;
+      if (catatan) {
+        pesan += `*Uraian Kebutuhan:* ${catatan}\n`;
+      }
+      pesan += `\nMohon dapat dikirimkan surat penawaran biaya resmi dan persyaratan dokumen teknis. Terima kasih.`;
+
+      localStorage.setItem('nsr_rfp_last_sent', now.toString());
+      tampilkanToast('RFP siap dikirim melalui WhatsApp.');
+      window.open(`https://wa.me/6285110513157?text=${encodeURIComponent(pesan)}`, '_blank', 'noopener,noreferrer');
+      tutupModal('modal-rfp');
+    }
+
+    
+    // Toggle Portofolio Sektor Tambahan
+    function toggleExtraPortofolio(forceShow = false) {
+      const el = document.getElementById('porto-extra-sectors');
+      const txt = document.getElementById('txt-toggle-extra-porto');
+      const icon = document.getElementById('icon-toggle-extra-porto');
+      if (!el) return;
+      const isHidden = el.classList.contains('hidden');
+      if (isHidden || forceShow) {
+        el.classList.remove('hidden');
+        if (txt) txt.textContent = 'Sembunyikan Portofolio Tambahan';
+        if (icon) icon.innerHTML = '&uarr;';
+      } else {
+        el.classList.add('hidden');
+        if (txt) txt.textContent = 'Tampilkan Seluruh Portofolio Proyek (14+ Penugasan Tambahan)';
+        if (icon) icon.innerHTML = '&darr;';
+      }
+    }
+
+    // Toggle Seluruh Kajian Wawasan & Artikel
+    function toggleExtraWarta(forceShow = false) {
+      const extraCards = document.querySelectorAll('.card-warta-extra');
+      const txt = document.getElementById('txt-toggle-extra-warta');
+      const icon = document.getElementById('icon-toggle-extra-warta');
+      if (!extraCards.length) return;
+      const isHidden = extraCards[0].classList.contains('hidden');
+      extraCards.forEach(c => {
+        if (isHidden || forceShow) {
+          c.classList.remove('hidden');
+        } else {
+          c.classList.add('hidden');
+        }
+      });
+      if (isHidden || forceShow) {
+        if (txt) txt.textContent = 'Sembunyikan Kajian Tambahan';
+        if (icon) icon.innerHTML = '&uarr;';
+      } else {
+        if (txt) txt.textContent = 'Lihat Seluruh 8 Kajian Teknis & Regulasi';
+        if (icon) icon.innerHTML = '&darr;';
+      }
+    }
+
+    // Logic Direktori 40 Rekanan Resmi (Interactive Cards & Table)
+    let katRekananAktif = 'semua';
+    let isRekananExpanded = false;
+    let modeTampilanRekanan = 'cards';
+
+    function setViewModeRekanan(mode) {
+      modeTampilanRekanan = mode;
+      const cv = document.getElementById('rekanan-cards-view');
+      const tv = document.getElementById('rekanan-table-view');
+      const btnCards = document.getElementById('btn-view-cards');
+      const btnTable = document.getElementById('btn-view-table');
+      const expBar = document.getElementById('rekanan-expand-bar');
+
+      if (mode === 'cards') {
+        if (cv) cv.classList.remove('hidden');
+        if (tv) tv.classList.add('hidden');
+        if (btnCards) {
+          btnCards.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-sky-400 shadow-sm transition flex items-center gap-1.5';
+        }
+        if (btnTable) {
+          btnTable.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5';
+        }
+        if (expBar) expBar.classList.remove('hidden');
+      } else {
+        if (cv) cv.classList.add('hidden');
+        if (tv) tv.classList.remove('hidden');
+        if (btnCards) {
+          btnCards.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5';
+        }
+        if (btnTable) {
+          btnTable.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-sky-400 shadow-sm transition flex items-center gap-1.5';
+        }
+        if (expBar) expBar.classList.add('hidden');
+      }
+      filterGridRekanan();
+    }
+
+    function gantiKategoriRekanan(kat, btn) {
+      katRekananAktif = kat;
+      document.querySelectorAll('.btn-filter-rekanan').forEach(b => {
+        b.className = 'btn-filter-rekanan px-3.5 py-2 rounded-xl font-medium bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition shrink-0';
+      });
+      if (btn) {
+        btn.className = 'btn-filter-rekanan px-3.5 py-2 rounded-xl font-bold bg-sky-500 text-slate-950 transition shrink-0 shadow-sm';
+      }
+      filterGridRekanan();
+    }
+
+    function toggleExpandRekanan() {
+      isRekananExpanded = !isRekananExpanded;
+      const collapsibles = document.querySelectorAll('.rekanan-card-collapsible');
+      const txt = document.getElementById('text-toggle-expand');
+      const icon = document.getElementById('icon-toggle-expand');
+
+      if (isRekananExpanded) {
+        collapsibles.forEach(c => c.classList.remove('hidden'));
+        if (txt) txt.textContent = 'Ringkas Tampilan (Tampilkan 12 Teratas)';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+      } else {
+        collapsibles.forEach(c => c.classList.add('hidden'));
+        if (txt) txt.textContent = 'Lihat Seluruh Rekanan & Klien Utama Lengkap';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+      }
+      filterGridRekanan();
+    }
+
+    function filterGridRekanan() {
+      const q = (document.getElementById('cari-rekanan-page')?.value || '').toLowerCase().trim();
+      const cardItems = document.querySelectorAll('.rekanan-card-item');
+      const tableRows = document.querySelectorAll('.rekanan-table-row');
+      const expBar = document.getElementById('rekanan-expand-bar');
+      let visibleCount = 0;
+
+      // Filter Cards
+      cardItems.forEach((card, idx) => {
+        const cKat = card.getAttribute('data-kat') || '';
+        const cNama = card.getAttribute('data-nama') || '';
+        const cSubkat = card.getAttribute('data-subkat') || '';
+
+        const cocokKat = (katRekananAktif === 'semua' || cKat === katRekananAktif);
+        const cocokQuery = !q || cNama.includes(q) || cSubkat.includes(q);
+
+        if (cocokKat && cocokQuery) {
+          // If searching or category is active, show all matching; otherwise respect expand toggle
+          if (q || katRekananAktif !== 'semua' || isRekananExpanded || idx < 12) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      // Filter Table
+      tableRows.forEach(row => {
+        const rKat = row.getAttribute('data-kat') || '';
+        const rNama = row.getAttribute('data-nama') || '';
+        const rSubkat = row.getAttribute('data-subkat') || '';
+
+        const cocokKat = (katRekananAktif === 'semua' || rKat === katRekananAktif);
+        const cocokQuery = !q || rNama.includes(q) || rSubkat.includes(q);
+
+        if (cocokKat && cocokQuery) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      // Empty State
+      const emptyState = document.getElementById('rekanan-empty-state');
+      if (emptyState) {
+        if (visibleCount === 0) {
+          emptyState.classList.remove('hidden');
+          if (expBar) expBar.classList.add('hidden');
+        } else {
+          emptyState.classList.add('hidden');
+          if (expBar && modeTampilanRekanan === 'cards' && !q && katRekananAktif === 'semua') {
+            expBar.classList.remove('hidden');
+          } else if (expBar && (q || katRekananAktif !== 'semua')) {
+            expBar.classList.add('hidden');
+          }
+        }
+      }
+    }
+
+    // 5. Scroll Progress Bar & UI Scroll State (RAF Throttled for High Performance)
+    let isScrollTicking = false;
+    function handleScrollOptimized() {
+      if (!isScrollTicking) {
+        requestAnimationFrame(() => {
+          const y = window.scrollY || document.documentElement.scrollTop;
+          const header = document.getElementById('site-header');
+          const backToTop = document.getElementById('back-to-top');
+          header?.classList.toggle('is-scrolled', y > 24);
+          backToTop?.classList.toggle('show', y > 520);
+
+          const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+          const pb = document.getElementById('scroll-progress');
+          if (pb && height > 0) {
+            pb.style.width = ((y / height) * 100) + '%';
+          }
+          isScrollTicking = false;
+        });
+        isScrollTicking = true;
+      }
+    }
+    window.addEventListener('scroll', handleScrollOptimized, { passive: true });
+
+    // 6. Interaksi UI modern
+    function tampilkanToast(pesan) {
+      const toast = document.getElementById('site-toast');
+      if (!toast) return;
+      toast.textContent = pesan;
+      toast.classList.add('show');
+      clearTimeout(window.__nsrToastTimer);
+      window.__nsrToastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    function tutupModalTerbuka() {
+      const modal = Array.from(document.querySelectorAll('[id^="modal-"]')).find(el => !el.classList.contains('hidden'));
+      if (modal) tutupModal(modal.id);
+    }
+
+    function initUIInteraktif() {
+      const backToTop = document.getElementById('back-to-top');
+      handleScrollOptimized();
+
+      backToTop?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+      // Tandai semua kartu utama sebagai interaktif tanpa layout thrashing
+      document.querySelectorAll('section .bg-white.rounded-xl.border, section article.rounded-xl').forEach(card => {
+        card.classList.add('interactive-card');
+        card.addEventListener('pointerenter', () => {
+          card._rect = card.getBoundingClientRect();
+        }, { passive: true });
+        card.addEventListener('pointermove', (e) => {
+          const r = card._rect || card.getBoundingClientRect();
+          card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          card.style.setProperty('--my', `${e.clientY - r.top}px`);
+        }, { passive: true });
+      });
+
+      // Filter layanan real-time.
+      const serviceSearch = document.getElementById('service-search');
+      const serviceClear = document.getElementById('service-clear');
+      const resultCount = document.getElementById('service-result-count');
+      const noResult = document.getElementById('service-no-result');
+      const serviceItems = Array.from(document.querySelectorAll('#layanan .grid > div'));
+      serviceItems.forEach(item => item.classList.add('service-item'));
+
+      const filterServices = () => {
+        let rawVal = (serviceSearch?.value || '').trim();
+        let q = rawVal.toLocaleLowerCase('id-ID');
+        // Bersihkan awalan '/' jika pengguna menekan / dari shortcut atau mengetik /
+        if (q.startsWith('/')) {
+          q = q.replace(/^\/+/, '').trim();
+        }
+        const terms = q.split(/\s+/).filter(Boolean);
+        let visible = 0;
+
+        serviceItems.forEach(item => {
+          const text = item.textContent.toLocaleLowerCase('id-ID');
+          const cocok = terms.length === 0 || terms.every(t => text.includes(t));
+          item.classList.toggle('is-filtered-out', !cocok);
+          if (cocok) visible++;
+        });
+
+        // Kontrol tampilan kelompok layanan agar rapi jika semua item di dalamnya terfilter
+        document.querySelectorAll('#layanan .grid').forEach(grid => {
+          const hasVisible = Array.from(grid.children).some(child => !child.classList.contains('is-filtered-out'));
+          const groupWrapper = grid.parentElement;
+          if (groupWrapper && groupWrapper.id !== 'layanan') {
+            groupWrapper.style.display = hasVisible ? '' : 'none';
+          }
+        });
+
+        if (resultCount) {
+          resultCount.textContent = terms.length === 0 ? `${serviceItems.length} layanan tersedia` : `${visible} layanan ditemukan`;
+        }
+        serviceClear?.classList.toggle('hidden', !rawVal);
+        noResult?.classList.toggle('hidden', visible !== 0);
+      };
+
+      serviceSearch?.addEventListener('input', filterServices);
+      serviceSearch?.addEventListener('keydown', (e) => {
+        if (e.key === '/' && serviceSearch.value.trim() === '') {
+          e.preventDefault();
+        }
+      });
+      serviceClear?.addEventListener('click', () => {
+        serviceSearch.value = '';
+        filterServices();
+        serviceSearch.focus();
+      });
+
+      // Shortcut / untuk pencarian layanan, selama pengguna tidak sedang mengetik di field lain.
+      document.addEventListener('keydown', (e) => {
+        const tag = document.activeElement?.tagName?.toLowerCase();
+        const sedangMengetik = ['input','textarea','select'].includes(tag) || document.activeElement?.isContentEditable;
+        if (e.key === '/' && !sedangMengetik) {
+          e.preventDefault();
+          serviceSearch?.focus();
+          serviceSearch?.select();
+          serviceSearch?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        if (e.key === 'Escape') tutupModalTerbuka();
+      });
+
+      // Highlight menu sesuai section yang terlihat.
+      const navLinks = Array.from(document.querySelectorAll('header nav a[href^="#"]'));
+      const sectionMap = new Map(navLinks.map(a => [a.getAttribute('href').slice(1), a]));
+      const observedSections = Array.from(sectionMap.keys()).map(id => document.getElementById(id)).filter(Boolean);
+      if ('IntersectionObserver' in window) {
+        const navObserver = new IntersectionObserver((entries) => {
+          const active = entries.filter(e => e.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (!active) return;
+          navLinks.forEach(a => a.classList.remove('nav-active'));
+          sectionMap.get(active.target.id)?.classList.add('nav-active');
+        }, { rootMargin: '-32% 0px -58% 0px', threshold: [0, .15, .4] });
+        observedSections.forEach(section => navObserver.observe(section));
+      }
+
+      // Counter statistik berjalan sekali ketika terlihat (Motion Spring physics).
+      if (window.initAllCountUps) {
+        window.initAllCountUps('.stat-number');
+      } else {
+        const stats = document.querySelectorAll('.stat-number');
+        const animateStat = (el) => {
+          if (el.dataset.animated === '1') return;
+          el.dataset.animated = '1';
+          const target = Number(el.dataset.to || el.dataset.count || 0);
+          const suffix = el.dataset.suffix || '';
+          const duration = 1100;
+          const start = performance.now();
+          const tick = (now) => {
+            const p = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = `${Math.round(target * eased).toLocaleString('id-ID')}${suffix}`;
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        };
+        if ('IntersectionObserver' in window) {
+          const statObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                animateStat(entry.target);
+                observer.unobserve(entry.target);
+              }
+            });
+          }, { threshold: .3 });
+          stats.forEach(el => statObserver.observe(el));
+        } else { stats.forEach(animateStat); }
+      }
+    }
+
+    // 7. Visitor Counter (Real-Time Device Tracking & Auto-Sync)
+    async function inisialisasiVisitorCounter() {
+      const fallback = { total: 40, today: 1 };
+      const elTotal = document.getElementById('visitor-total');
+      const elToday = document.getElementById('visitor-today');
+
+      let curTotal = fallback.total;
+      let curToday = fallback.today;
+
+      function formatNum(n) {
+        return Number(n).toLocaleString('id-ID');
+      }
+
+      function animateValue(el, start, end, duration = 650) {
+        if (!el || start === end) {
+          if (el) el.textContent = formatNum(end);
+          return;
+        }
+        const range = end - start;
+        const startTime = performance.now();
+        function update(now) {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = Math.floor(start + range * eased);
+          el.textContent = formatNum(current);
+          if (progress < 1) requestAnimationFrame(update);
+          else el.textContent = formatNum(end);
+        }
+        requestAnimationFrame(update);
+      }
+
+      const tampilkan = (data, animate = false) => {
+        const nextTotal = Number(data.total ?? fallback.total);
+        const nextToday = Number(data.today ?? fallback.today);
+        if (animate && (nextTotal !== curTotal || nextToday !== curToday)) {
+          animateValue(elTotal, curTotal, nextTotal);
+          animateValue(elToday, curToday, nextToday);
+        } else {
+          if (elTotal) elTotal.textContent = formatNum(nextTotal);
+          if (elToday) elToday.textContent = formatNum(nextToday);
+        }
+        curTotal = nextTotal;
+        curToday = nextToday;
+      };
+
+      tampilkan(fallback, false);
+
+      function getVisitorId() {
+        try {
+          let vid = localStorage.getItem('nsr_vid');
+          if (!vid || !/^[a-f0-9\-]{16,80}$/i.test(vid)) {
+            vid = (window.crypto && crypto.randomUUID) 
+              ? crypto.randomUUID().replace(/-/g, '') 
+              : (Math.random().toString(36).slice(2) + Date.now().toString(36));
+            localStorage.setItem('nsr_vid', vid);
+          }
+          return vid;
+        } catch (_) {
+          return '';
+        }
+      }
+
+      async function requestStats(isPoll = false) {
+        const vid = getVisitorId();
+        const params = new URLSearchParams();
+        if (isPoll) params.set('poll', '1');
+        if (vid) params.set('vid', vid);
+        const query = '?' + params.toString();
+
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:';
+        
+        // Direct production sync on localhost/preview; relative with fallback on production domain
+        const endpoints = isLocal
+          ? ['https://kjppnanangrahayu.com/visitor-stats.php' + query]
+          : [
+              'visitor-stats.php' + query,
+              '/visitor-stats.php' + query,
+              'https://kjppnanangrahayu.com/visitor-stats.php' + query
+            ];
+
+        for (const ep of endpoints) {
+          try {
+            const response = await fetch(ep, {
+              method: 'GET',
+              headers: { 'Accept': 'application/json' },
+              cache: 'no-store'
+            });
+            if (response.ok) {
+              const data = await response.json();
+              if (data && typeof data.total === 'number') return data;
+            }
+          } catch (e) {
+            // try next endpoint
+          }
+        }
+        return null;
+      }
+
+      // Initial visit hit
+      try {
+        const initialData = await requestStats(false);
+        if (initialData) tampilkan(initialData, true);
+      } catch (err) {
+        console.debug('Visitor stats initial fallback:', err?.message || err);
+      }
+
+      // Real-time background sync polling every 60 seconds (only when tab is visible)
+      setInterval(async () => {
+        if (document.visibilityState !== 'visible') return;
+        try {
+          const liveData = await requestStats(true);
+          if (liveData && (liveData.total !== curTotal || liveData.today !== curToday)) {
+            tampilkan(liveData, true);
+          }
+        } catch (_) {}
+      }, 60000);
+    }
+  </script>
+
+  <!-- JS AOS (Animate on Scroll) -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    if (window.AOS) {
+      AOS.init({
+        duration: 650,
+        once: true,
+        offset: 70,
+        easing: 'ease-out-cubic'
+      });
+    }
+  </script>
+
+  <!-- LightRays WebGL Runtime (Landing Page Hero - Desktop Only for Maximum Performance) -->
+  <script src="lib/light-rays.bundle.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.innerWidth < 768) return; // Lewati di HP agar 120Hz scrolling super lancar
+      const heroRaysContainer = document.getElementById('hero-light-rays');
+      if (heroRaysContainer && window.initLightRays) {
+        window.initLightRays(heroRaysContainer, {
+          raysOrigin: 'top-center',
+          raysColor: '#38bdf8',
+          raysSpeed: 1.2,
+          lightSpread: 0.85,
+          rayLength: 1.5,
+          pulsating: true,
+          fadeDistance: 1.1,
+          saturation: 1.0,
+          followMouse: true,
+          mouseInfluence: 0.2,
+          noiseAmount: 0.05,
+          distortion: 0.04
+        });
+      }
+    });
+  </script>
+
+  <!-- DotField Interactive Background Grid Runtime (Desktop Exclusive) -->
+  <script src="lib/dot-field.bundle.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.initDotField || window.innerWidth < 768) return; // Lewati di HP
+      const dotOptions = {
+        dotRadius: 1.6,
+        dotSpacing: 28,
+        cursorRadius: 220,
+        bulgeOnly: true,
+        bulgeStrength: 36,
+        glowRadius: 130,
+        sparkle: false,
+        waveAmplitude: 0,
+        gradientFrom: 'rgba(56, 189, 248, 0.40)',
+        gradientTo: 'rgba(148, 163, 184, 0.22)',
+        glowColor: 'rgba(56, 189, 248, 0.22)'
+      };
+
+      // Inisialisasi DotField eksklusif pada Hero agar tidak membebani 14 canvas loop simultan
+      const heroDot = document.getElementById('hero-dot-field');
+      if (heroDot) {
+        window.initDotField(heroDot, dotOptions);
+      }
+    });
+  </script>
+
+  <!-- CountUp Runtime (Motion Spring Physics) -->
+  <script src="lib/count-up.bundle.js"></script>
+
+  <!-- FlexCarousel WebGL 3D Lens Runtime -->
+  <script src="lib/flex-carousel.bundle.js"></script>
+  <script>
+    function runCarouselInit() {
+      if (typeof window.initFlexCarousel === 'undefined' && typeof FlexCarouselModule !== 'undefined' && FlexCarouselModule.initFlexCarousel) {
+        window.initFlexCarousel = FlexCarouselModule.initFlexCarousel;
+      }
+      const carouselContainer = document.getElementById('galeri-flex-carousel');
+      if (carouselContainer && window.initFlexCarousel) {
+        const kjppPhotos = [
+          {
+            src: 'images/kegiatan/inspeksi/IMG_20240827_095920.jpg',
+            title: 'Musyawarah Ganti Kerugian Tol Sigli - Banda Aceh',
+            subtitle: 'PSN Jalan Tol & Kementerian ATR/BPN'
+          },
+          {
+            src: 'images/kegiatan/inspeksi/IMG_20230525_114736.jpg',
+            title: 'Rapat Koordinasi Pengadaan Tanah Tol Akses IKN',
+            subtitle: 'Kalimantan Timur - PSN Tol IKN'
+          },
+          {
+            src: 'images/kegiatan/inspeksi/84871D33-97F0-40E8-8793-BABAF09428C7.jpg',
+            title: 'Inspeksi Fisik Armada Bus PT Aerotrans Services Indonesia',
+            subtitle: 'Valuasi Mesin & Aset Bergerak'
+          },
+          {
+            src: 'images/kegiatan/inspeksi/IMG_20200205_160435.jpg',
+            title: 'Audit Lapangan Sektor SDA & Lahan Perkebunan K3',
+            subtitle: 'Kawasan Konsesi SDA & Perkebunan'
+          },
+          {
+            src: 'images/kegiatan/inspeksi/IMG_20221119_153708.jpg',
+            title: 'Survei & Tracking Lapangan Koridor PSN Kaltim',
+            subtitle: 'Valuasi Fisik & Kontur Tanah Proyek'
+          },
+          {
+            src: 'images/kegiatan/diklat/IMG_20200314_093637.jpg',
+            title: 'PPL MAPPI: Pemahaman Hukum Perikatan & SPI 103',
+            subtitle: 'Pengembangan Profesional Berkelanjutan'
+          },
+          {
+            src: 'images/kegiatan/diklat/PKP SPI 204.jpg',
+            title: 'Pendidikan Khusus Penilaian (PKPI-204) Pengadaan Tanah',
+            subtitle: 'KPSPI & MAPPI Standar Penilaian Indonesia'
+          },
+          {
+            src: 'images/kegiatan/kemitraan/IMG_20231206_120928.jpg',
+            title: 'Pelaksanaan Pekerjaan Akses Tol IKN di BPN Balikpapan',
+            subtitle: 'Kantor BPN Balikpapan - PSN Tol IKN'
+          },
+          {
+            src: 'images/kegiatan/gathering.jpg',
+            title: 'Gathering Akbar Tahunan KJPP Nanang Rahayu & Rekan',
+            subtitle: 'Pantai Pangandaran, Jawa Barat'
+          },
+          {
+            src: 'images/kegiatan/gathering (2).jpg',
+            title: 'Team Building & Eksplorasi Green Canyon Cijulang',
+            subtitle: 'Soliditas Budaya Kerja Seluruh Tim'
+          },
+          {
+            src: 'images/kegiatan/raker/20141122_161954.jpg',
+            title: 'Temu Akrab & Konsolidasi Kinerja Tahunan KJPP NSR',
+            subtitle: 'Konsolidasi & Evaluasi Mutu Kerja'
+          },
+          {
+            src: 'images/kegiatan/kantor cabang padang.jpg',
+            title: 'Operasional & Tim Kantor Cabang Padang',
+            subtitle: 'Padang, Sumatera Barat - KMK No. 363/KM.1/2019'
+          },
+          {
+            src: 'images/kegiatan/palembang-tim-operasional.jpg',
+            title: 'Operasional & Tim Kantor Cabang Palembang',
+            subtitle: 'Palembang, Sumatera Selatan - KMK No. 230/KM.1/2022'
+          }
+        ];
+
+        window.indexCarousel = window.initFlexCarousel(carouselContainer, {
+          items: kjppPhotos,
+          preset: 'liquid',
+          intro: 'rise',
+          fit: 'natural',
+          cardHeight: 0.5,
+          gap: 12,
+          radius: 0,
+          lensWidth: 0.89,
+          lensHeight: 1.18,
+          tilt: 62,
+          roundness: 0.71,
+          bend: 0.07,
+          reach: 0.38,
+          curl: 'twist',
+          dispersion: 0.45,
+          liquid: 0,
+          followCursor: false,
+          squeeze: 0.2,
+          focusOnClick: true,
+          autoplay: true,
+          interval: window.innerWidth < 768 ? 4.0 : 3.0,
+          captions: false,
+          captureWheel: true
+        });
+      }
+    }
+
+    // Lazy load WebGL carousel hanya saat pengunjung scroll mendekati Galeri
+    function setupCarouselLazy() {
+      const carouselContainer = document.getElementById('galeri-flex-carousel');
+      if (!carouselContainer) return;
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            observer.disconnect();
+            runCarouselInit();
+          }
+        }, { rootMargin: '350px 0px' });
+        observer.observe(carouselContainer);
+      } else {
+        runCarouselInit();
+      }
+    }
+
+    // Pure Lazy Load Google Maps iframe saat mendekati section kantor-cabang
+    function initMapLazyLoad() {
+      const elIframe = document.getElementById('map-iframe-kantor');
+      const cabangSection = document.getElementById('kontak') || document.getElementById('map-iframe-kantor');
+      if (!elIframe || !cabangSection) return;
+
+      if ('IntersectionObserver' in window) {
+        const obs = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            obs.disconnect();
+            if (!elIframe.src || elIframe.src === 'about:blank' || elIframe.src.indexOf('about:blank') !== -1) {
+              elIframe.src = elIframe.getAttribute('data-src') || 'https://www.google.com/maps?q=KJPP+Nanang+Rahayu+Sigit+Paryanto+dan+Rekan&hl=id&z=17&output=embed';
+            }
+          }
+        }, { rootMargin: '300px 0px' });
+        obs.observe(cabangSection);
+      } else {
+        elIframe.src = elIframe.getAttribute('data-src') || 'https://www.google.com/maps?q=KJPP+Nanang+Rahayu+Sigit+Paryanto+dan+Rekan&hl=id&z=17&output=embed';
+      }
+    }
+    initMapLazyLoad();
+
+        if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupCarouselLazy);
+    } else {
+      setupCarouselLazy();
+    }
+  
+    // Toggle Main Rekanan Drawer (Executive Summary to Full Directory)
+    function toggleMainRekananDrawer() {
+      const drawer = document.getElementById('rekanan-main-drawer');
+      const txt = document.getElementById('txt-toggle-main-rekanan');
+      const icon = document.getElementById('icon-toggle-main-rekanan');
+      if (!drawer) return;
+      const isHidden = drawer.classList.contains('hidden');
+      if (isHidden) {
+        drawer.classList.remove('hidden');
+        if (txt) txt.textContent = 'Tutup Direktori Rekanan';
+        if (icon) icon.innerHTML = '&uarr;';
+        if (typeof filterGridRekanan === 'function') filterGridRekanan();
+      } else {
+        drawer.classList.add('hidden');
+        if (txt) txt.textContent = 'Buka Direktori Lengkap Rekanan & Tabel PKS';
+        if (icon) icon.innerHTML = '&darr;';
+      }
+    }
+
+    // Toggle 4 Pilar Sistem Pengendalian Mutu & SOP
+    function toggleExtraMutu() {
+      const el = document.getElementById('mutu-extra-container');
+      const txt = document.getElementById('txt-toggle-extra-mutu');
+      const icon = document.getElementById('icon-toggle-extra-mutu');
+      if (!el) return;
+      const isHidden = el.classList.contains('hidden');
+      if (isHidden) {
+        el.classList.remove('hidden');
+        if (txt) txt.textContent = 'Sembunyikan Pilar Tata Kelola Mutu';
+        if (icon) icon.innerHTML = '&uarr;';
+      } else {
+        el.classList.add('hidden');
+        if (txt) txt.textContent = 'Lihat 4 Pilar Tata Kelola Mutu & Standar Operasional Prosedur (SOP)';
+        if (icon) icon.innerHTML = '&darr;';
+      }
+    }
+  </script>
+
+</body>
+</html>
