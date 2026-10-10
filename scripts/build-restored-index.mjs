@@ -240,21 +240,30 @@ const indexHtmlContent = `<!DOCTYPE html>
         </nav>
 
         <!-- Right Action Buttons -->
-        <div class="hidden sm:flex items-center gap-3">
-          <button type="button" onclick="bukaModalPortal()" class="px-3 py-2 rounded-lg text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
-            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            <span>Portal Internal</span>
+        <div class="hidden sm:flex items-center gap-2.5">
+          <button type="button" onclick="bukaModalPortal()" class="relative inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 text-xs font-extrabold shadow-md shadow-amber-500/25 hover:shadow-lg hover:shadow-amber-400/40 hover:scale-[1.02] active:scale-[0.98] transition-all border border-amber-300/80 shrink-0 whitespace-nowrap cursor-pointer" title="Portal Internal, Dokumen Mutu, Nolap, Kwitansi &amp; SOP Cabang KJPP NSR">
+            <span class="relative flex h-2 w-2 shrink-0">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-600 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-700"></span>
+            </span>
+            <svg class="w-3.5 h-3.5 text-slate-950 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span class="tracking-wide">Portal Internal</span>
+            <span class="inline-flex items-center px-1.5 py-0.5 text-[9px] font-black uppercase rounded bg-slate-950/15 text-slate-950 tracking-tight">SOP</span>
           </button>
           
-          <a href="#kontak" class="px-4 py-2 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-md hover:shadow-amber-500/20">
+          <a href="#kontak" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-md hover:shadow-amber-500/20">
             Hubungi Kami
           </a>
         </div>
 
         <!-- Mobile Menu Toggle Button -->
         <div class="flex items-center gap-2 lg:hidden">
-          <button type="button" onclick="bukaModalPortal()" class="sm:hidden px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-900 text-sky-300 border border-slate-700">
-            Portal
+          <button type="button" onclick="bukaModalPortal()" class="sm:hidden relative inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 text-[11px] font-black border border-amber-300 shadow-sm cursor-pointer">
+            <span class="relative flex h-1.5 w-1.5 shrink-0">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-600 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-700"></span>
+            </span>
+            <span>Portal</span>
           </button>
           <button type="button" onclick="toggleMenuMobile()" class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none" aria-label="Buka Menu Navigasi">
             <svg id="icon-menu-bars" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -276,8 +285,12 @@ const indexHtmlContent = `<!DOCTYPE html>
         <a href="wawasan-regulasi.html" class="px-3 py-2 rounded-lg hover:bg-slate-900" onclick="toggleMenuMobile()">Wawasan &amp; Regulasi SPI</a>
       </nav>
       <div class="pt-3 border-t border-slate-800/80 flex flex-col gap-2.5">
-        <button type="button" onclick="bukaModalPortal(); toggleMenuMobile();" class="w-full py-2.5 rounded-lg text-xs font-bold bg-slate-900 text-sky-300 border border-slate-700 flex items-center justify-center gap-2">
-          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <button type="button" onclick="bukaModalPortal(); toggleMenuMobile();" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-slate-950 font-black text-center flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 active:scale-[0.98] transition cursor-pointer">
+          <span class="relative flex h-2 w-2 shrink-0">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-600 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-700"></span>
+          </span>
+          <svg class="w-4 h-4 text-slate-950 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           <span>Akses Portal Internal (NoLap &amp; Kwitansi)</span>
         </button>
         <a href="#kontak" onclick="toggleMenuMobile()" class="w-full py-2.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 text-center">
@@ -1774,9 +1787,16 @@ const indexHtmlContent = `<!DOCTYPE html>
       <!-- Bottom Bar Copyright -->
       <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
         <p>&copy; 2026 KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan. Hak Cipta Dilindungi Undang-Undang.</p>
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-4">
+          <button type="button" onclick="bukaModalPortal()" class="text-amber-400 hover:text-amber-300 transition inline-flex items-center gap-1.5 font-bold text-left cursor-pointer">
+            <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+            <span>Portal Internal (SOP, Kwitansi &amp; Nolap)</span>
+          </button>
+          <span>&bull;</span>
           <a href="profil-legalitas.html#kepi" class="hover:text-slate-300 transition">Kode Etik Penilai (KEPI)</a>
+          <span>&bull;</span>
           <a href="wawasan-regulasi.html" class="hover:text-slate-300 transition">Standar Penilaian Indonesia</a>
+          <span>&bull;</span>
           <a href="humans.txt" class="hover:text-slate-300 transition">Tech Info</a>
         </div>
       </div>
@@ -1786,55 +1806,79 @@ const indexHtmlContent = `<!DOCTYPE html>
 
 
   <!-- ========================================== -->
-  <!-- MODAL PORTAL INTERNAL (NOLAP & KWITANSI)   -->
+  <!-- MODAL PORTAL INTERNAL (RESMI & KONSISTEN) -->
   <!-- ========================================== -->
-  <div id="modal-portal-internal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-5 sm:p-6 relative">
-      <button type="button" onclick="tutupModalPortal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition" aria-label="Tutup Modal">
-        &times;
-      </button>
-
-      <div class="flex items-center gap-2 mb-3">
-        <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-        </span>
-        <h3 class="text-base font-bold text-white">Akses Portal Internal KJPP NSR</h3>
+  <div id="modal-portal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-hidden="true" onclick="if(event.target === this) tutupModalPortal()">
+    <div class="bg-white text-slate-900 rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 relative text-xs">
+      <button type="button" onclick="tutupModalPortal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center cursor-pointer transition" aria-label="Tutup Modal">&times;</button>
+      
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900">Area Terbatas Cabang &amp; Pusat</span>
       </div>
+      <h3 class="text-base font-bold text-slate-900 mb-1">Portal Layanan Internal NSR</h3>
+      <p class="text-slate-500 mb-1">Dokumen &amp; SOP Cabang, Permintaan Kwitansi, Nolap &amp; Presensi</p>
+      <p class="text-[10px] text-sky-700 font-bold mb-3">Akses portal kerja operasional resmi kantor pusat &amp; cabang.</p>
 
-      <p class="text-xs text-slate-300 leading-relaxed mb-4">
-        Silakan pilih sistem operasional internal yang ingin Anda akses. Masuk menggunakan akun staf/penilai publik terdaftar:
-      </p>
-
-      <div class="space-y-3">
-        <a href="portal-nolap.html" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-sky-400/80 transition flex items-center justify-between group">
-          <div class="flex items-center gap-3">
-            <span class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <div class="space-y-2 pt-2 border-t border-slate-200">
+        <!-- 1. Portal NoLap -->
+        <a href="portal-nolap.html" class="w-full py-2.5 px-4 rounded-xl bg-blue-950 hover:bg-blue-900 text-white font-bold flex items-center justify-between shadow-sm transition hover:shadow group">
+          <span class="flex items-center gap-2.5 text-left">
+            <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
             </span>
-            <div>
-              <p class="text-xs font-bold text-white group-hover:text-sky-300 transition">Portal Nomor Laporan (NoLap)</p>
-              <p class="text-[11px] text-slate-400">Registrasi penomoran resmi kantor pusat &amp; cabang</p>
-            </div>
-          </div>
-          <span class="text-xs font-bold text-sky-400">&rarr;</span>
+            <span>
+              <span class="block text-xs font-black">Portal Nomor Laporan (NoLap)</span>
+              <span class="block text-[9.5px] font-normal text-blue-200">Registrasi 7 Segmen Kemenkeu &amp; SPM Mitigasi</span>
+            </span>
+          </span>
+          <span class="text-[11px] font-bold bg-white/10 px-2 py-1 rounded shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">Masuk Portal &nearr;</span>
         </a>
 
-        <a href="portal-kwitansi.html" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-400/80 transition flex items-center justify-between group">
-          <div class="flex items-center gap-3">
-            <span class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"/></svg>
+        <!-- 2. Portal Kwitansi -->
+        <a href="portal-kwitansi.html" class="w-full py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black flex items-center justify-between shadow-sm transition hover:shadow border border-amber-300 group">
+          <span class="flex items-center gap-2.5 text-left">
+            <span class="w-7 h-7 rounded-lg bg-slate-950/15 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
             </span>
-            <div>
-              <p class="text-xs font-bold text-white group-hover:text-amber-300 transition">Portal Kwitansi Operasional</p>
-              <p class="text-[11px] text-slate-400">Permohonan kwitansi &amp; invoice keuangan penugasan</p>
-            </div>
-          </div>
-          <span class="text-xs font-bold text-amber-400">&rarr;</span>
+            <span>
+              <span class="block text-xs font-black">Portal Kwitansi &amp; Keuangan</span>
+              <span class="block text-[9.5px] font-normal text-slate-800">Draf Tagihan Cabang &amp; Verifikasi Keuangan Pusat</span>
+            </span>
+          </span>
+          <span class="text-[11px] font-bold bg-slate-950 text-amber-300 px-2 py-1 rounded shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">Masuk Portal &nearr;</span>
+        </a>
+
+        <!-- 3. Folder Dokumen & SOP Cabang (Google Drive Resmi Khusus Dokumen) -->
+        <a href="https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz?usp=sharing" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black flex items-center justify-between shadow-sm transition hover:shadow border border-amber-400 group">
+          <span class="flex items-center gap-2.5 text-left">
+            <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+            </span>
+            <span>
+              <span class="block text-xs font-black">Folder Dokumen &amp; SOP Cabang</span>
+              <span class="block text-[9.5px] font-normal text-amber-100">Format Laporan, Template &amp; SOP Internal</span>
+            </span>
+          </span>
+          <span class="text-[11px] font-bold bg-slate-950 text-amber-300 px-2 py-1 rounded shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">Buka Drive &nearr;</span>
+        </a>
+
+        <!-- 4. Presensi Kehadiran Online -->
+        <a href="https://s.id/absen-nsr" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold flex items-center justify-between shadow-sm transition hover:shadow group">
+          <span class="flex items-center gap-2.5 text-left">
+            <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </span>
+            <span>
+              <span class="block text-xs font-black">Presensi Kehadiran Online</span>
+              <span class="block text-[9.5px] font-normal text-emerald-100">Presensi Kehadiran &amp; Koordinasi Kantor</span>
+            </span>
+          </span>
+          <span class="text-[11px] font-bold bg-white/10 px-2 py-1 rounded shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">Buka Form &nearr;</span>
         </a>
       </div>
 
-      <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400 text-center">
-        Untuk kendala akun staf, hubungi Tim IT di Kantor Pusat.
+      <div class="mt-4 pt-3 border-t border-slate-200 text-[10px] text-slate-500 text-center">
+        Untuk bantuan teknis akun staf &amp; penilai, hubungi Tim IT di Kantor Pusat Jakarta.
       </div>
     </div>
   </div>
@@ -1896,19 +1940,28 @@ const indexHtmlContent = `<!DOCTYPE html>
 
     // 2. Modal Portal Internal
     function bukaModalPortal() {
-      const m = document.getElementById('modal-portal-internal');
+      const m = document.getElementById('modal-portal') || document.getElementById('modal-portal-internal');
       if (m) {
         m.classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
       }
     }
     function tutupModalPortal() {
-      const m = document.getElementById('modal-portal-internal');
+      const m = document.getElementById('modal-portal') || document.getElementById('modal-portal-internal');
       if (m) {
         m.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
       }
     }
+
+    // Handler Tombol ESC untuk Menutup Seluruh Modal Pop-up
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        tutupModalPortal();
+        tutupModalFoto();
+        tutupModalStruktur();
+      }
+    });
 
     // 3. Modal Lightbox Foto
     function bukaModalFoto(src, title, subtitle) {
