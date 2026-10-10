@@ -250,7 +250,7 @@
        HARDWARE-ACCELERATED ULTRA-SMOOTH RENDERING (60fps / 120fps)
        ========================================================================== */
     /* Skip offscreen layout & paint calculation for below-the-fold sections */
-    section:not(#hero) {
+    section:not(#profil) {
       content-visibility: auto;
       contain-intrinsic-size: auto 650px;
     }
@@ -267,11 +267,8 @@
       backdrop-filter: blur(16px);
     }
 
-    /* Eliminate heavy multi-pass GPU Gaussian blur passes on static cards during scroll */
-    main ., 
-    main .,
-    main .,
-    main . {
+    /* Kartu statis menggunakan solid high-contrast background */
+    .static-card-solid {
       -webkit-backdrop-filter: none !important;
       backdrop-filter: none !important;
       background-color: rgba(15, 23, 42, 0.95) !important;
@@ -413,20 +410,10 @@
       box-shadow: 0 16px 40px rgba(2, 6, 23, .14);
     }
 
-    /* Hero dibuat lebih berlapis tanpa mengganggu keterbacaan */
-    #profil::before,
-    #profil::after {
-      content: "";
-      position: absolute;
-      width: 28rem;
-      height: 28rem;
-      border-radius: 9999px;
-      filter: blur(80px);
-      opacity: .16;
-      pointer-events: none;
+    /* Ambient lighting hero yang lembut tanpa efek blur muddy */
+    #profil {
+      background-image: radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.25) 0%, transparent 75%);
     }
-    #profil::before { background: #38bdf8; top: -14rem; right: -10rem; }
-    #profil::after  { background: #fbbf24; bottom: -20rem; left: -10rem; }
 
     /* Cards: depth halus + highlight mengikuti pointer */
     .interactive-card {
@@ -831,20 +818,30 @@
     <div id="scroll-progress" class="h-1 bg-gradient-to-r from-blue-600 via-amber-400 to-emerald-500 w-0 transition-all duration-100 ease-out"></div>
 
     <!-- Banner Kredensial & Legalitas Resmi (Single Official Legal Bar) -->
-    <div id="header-ticker-bar" class="relative bg-slate-950 text-slate-300 border-b border-slate-800/90 py-2 select-none" aria-label="Informasi Legalitas Resmi KJPP Nanang Rahayu Sigit Paryanto dan Rekan">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-center">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-900 border border-slate-700/80 text-sky-400 font-semibold text-[10px] uppercase tracking-wider shrink-0">
+    <div id="header-ticker-bar" class="relative bg-slate-950 text-slate-300 border-b border-slate-800/90 py-1.5 select-none text-[11px] sm:text-xs" aria-label="Informasi Legalitas Resmi KJPP Nanang Rahayu Sigit Paryanto dan Rekan">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="hidden sm:flex items-center justify-center gap-x-3 text-center">
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-950/80 border border-blue-700/60 text-sky-400 font-bold text-[10px] uppercase tracking-wider shrink-0">
             <svg class="w-3 h-3 text-sky-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             <span>LEGALITAS RESMI</span>
           </span>
-          <span class="font-semibold text-white">KJPP Nanang Rahayu Sigit Paryanto dan Rekan</span>
-          <span class="text-slate-600 font-bold hidden sm:inline">&bull;</span>
-          <span class="text-slate-400">Izin Kemenkeu RI: <span class="text-slate-100 font-semibold">No. 2.19.0160</span></span>
-          <span class="text-slate-600 font-bold hidden sm:inline">&bull;</span>
-          <span class="text-slate-300 font-medium">Terdaftar OJK &amp; Lisensi Kementerian ATR/BPN</span>
-          <span class="text-slate-600 font-bold hidden sm:inline">&bull;</span>
-          <span class="text-slate-400">Standar: <span class="text-slate-200 font-medium">Standar Penilaian Indonesia (SPI) &amp; KEPI yang berlaku</span></span>
+          <span class="font-bold text-white">KJPP Nanang Rahayu Sigit Paryanto dan Rekan</span>
+          <span class="text-slate-600 font-bold">&bull;</span>
+          <span class="text-slate-300">Izin Kemenkeu RI: <strong class="text-amber-300 font-bold">No. 2.19.0160</strong></span>
+          <span class="text-slate-600 font-bold">&bull;</span>
+          <span class="text-slate-300">Terdaftar OJK &amp; Lisensi Kementerian ATR/BPN</span>
+          <span class="text-slate-600 font-bold">&bull;</span>
+          <span class="text-slate-400">Standar: <span class="text-slate-200">SPI &amp; KEPI</span></span>
+        </div>
+        <!-- Mobile compact layout -->
+        <div class="sm:hidden flex flex-col items-center justify-center text-center leading-snug py-0.5 gap-0.5">
+          <div class="flex items-center gap-1.5 font-semibold text-slate-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+            <span>KJPP NSR &bull; Izin Kemenkeu: <strong class="text-amber-300 font-bold">No. 2.19.0160</strong></span>
+          </div>
+          <div class="text-[10px] text-slate-400">
+            <span>Terdaftar OJK &bull; Lisensi ATR/BPN &bull; Standar SPI &amp; KEPI</span>
+          </div>
         </div>
       </div>
     </div>
@@ -914,23 +911,22 @@
         
         <!-- Mobile Navigation Bar (Tampil di Layar HP & Tablet < lg) -->
         <div class="lg:hidden flex items-center justify-between gap-2 py-2">
-          <!-- Tombol Pilihan Menu Utama -->
-          <button type="button" onclick="toggleMobileMenu()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-900 to-slate-900 hover:from-blue-800 hover:to-slate-800 text-white border border-blue-700/70 text-xs font-bold shadow-sm active:scale-95 transition shrink-0 cursor-pointer">
+          <!-- Tombol Pilihan Menu Utama (Ringkas, Tegas & Ergonomis) -->
+          <button type="button" onclick="toggleMobileMenu()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-900 to-slate-900 hover:from-blue-800 hover:to-slate-800 text-white border border-blue-700/70 text-xs font-bold shadow-sm active:scale-95 transition shrink-0 cursor-pointer" aria-label="Buka Pilihan Menu Utama">
             <svg class="w-4 h-4 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
-            <span class="text-amber-300 font-extrabold tracking-wide">PILIHAN MENU</span>
+            <span class="text-amber-300 font-extrabold tracking-wide">MENU</span>
             <svg class="w-3 h-3 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
 
-          <!-- Direct Shortcut Navigation Pills (Scrollable) -->
-          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-[11px] font-medium text-slate-200">
-            <a href="#profil" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 whitespace-nowrap">Profil</a>
-            <a href="#layanan" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 whitespace-nowrap">Layanan</a>
-            <a href="#manajemen" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 whitespace-nowrap">Rekan</a>
-            <a href="#pengalaman" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 whitespace-nowrap">Portofolio</a>
-            <a href="#kontak" class="px-2.5 py-1 rounded-md bg-slate-900 text-slate-300 hover:text-white border border-slate-800 whitespace-nowrap">Kontak</a>
-            <button type="button" onclick="bukaModalPortal()" class="px-2.5 py-1 rounded-md bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-bold hover:from-amber-300 hover:to-yellow-300 whitespace-nowrap inline-flex items-center gap-1 shrink-0 cursor-pointer shadow-sm">
+          <!-- Shortcut Navigasi Cepat (Pas Sempurna di Layar HP 390px Tanpa Terpotong) -->
+          <div class="flex items-center gap-1.5 text-[11px] font-medium text-slate-200 shrink-0">
+            <a href="#profil" class="hidden sm:inline-flex px-2.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 whitespace-nowrap transition">Profil</a>
+            <a href="#layanan" class="px-2.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 whitespace-nowrap transition">Layanan</a>
+            <a href="#pengalaman" class="hidden sm:inline-flex px-2.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 whitespace-nowrap transition">Portofolio</a>
+            <a href="#kontak" class="px-2.5 py-1.5 rounded-md bg-slate-900 text-slate-300 hover:text-white border border-slate-800 whitespace-nowrap transition">Kontak</a>
+            <button type="button" onclick="bukaModalPortal()" class="px-3 py-1.5 rounded-md bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-bold hover:from-amber-300 hover:to-yellow-300 whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm active:scale-95 transition">
               <span class="relative flex h-1.5 w-1.5 shrink-0">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-600 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-700"></span>
@@ -1363,7 +1359,7 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid lg:grid-cols-12 gap-10 items-center">
       
-      <div class="lg:col-span-7 text-left" data-aos="fade-right">
+      <div class="lg:col-span-7 text-left">
         
         <!-- Badge Kredensial Resmi Mengambang -->
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-blue-900/60 text-blue-300 border border-blue-700/80 mb-6 shadow-inner">
@@ -1382,7 +1378,7 @@
 
         <!-- Tombol Aksi Utama Hero -->
         <div class="mt-8 flex flex-wrap items-center gap-3.5">
-          <button onclick="bukaModal('modal-rfp')" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+          <button onclick="bukaModal('modal-rfp')" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 cursor-pointer">
             Minta Proposal &amp; Penawaran &rarr;
           </button>
           <a href="#pengalaman" class="px-5 py-3 rounded-xl border border-sky-400/50 bg-slate-900/90 text-white font-bold text-xs sm:text-sm hover:bg-slate-800 hover:border-sky-300 transition-all duration-200 shadow-md">
@@ -1401,7 +1397,7 @@
       </div>
 
       <!-- Kotak Kredensial Resmi di Kanan Hero -->
-      <div class="lg:col-span-5" data-aos="fade-left">
+      <div class="lg:col-span-5">
         <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 sm:p-7 shadow-2xl overflow-hidden relative">
           <div class="flex items-center justify-between pb-4 border-b border-slate-800">
             <div>
@@ -1505,84 +1501,84 @@
         <!-- 1. BANK BRI -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/bri.svg" alt="Bank BRI" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/bri.svg" alt="Bank BRI" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 2. BANK BCA -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/bca.svg" alt="Bank BCA" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/bca.svg" alt="Bank BCA" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 3. BANK DKI -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/bank-dki.svg" alt="Bank DKI" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/bank-dki.svg" alt="Bank DKI" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 4. BANK BTN -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/btn.svg" alt="Bank BTN" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/btn.svg" alt="Bank BTN" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 5. BANK KASIKORN -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group" title="Bank Kasikorn">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/kasikornbank.svg" alt="Bank Kasikorn" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/kasikornbank.svg" alt="Bank Kasikorn" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 6. BANK BJB -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/bjb.svg" alt="Bank BJB" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/bjb.svg" alt="Bank BJB" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 7. PT PLN (PERSERO) -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/pln.svg" alt="PT PLN (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/pln.svg" alt="PT PLN (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 8. PT PERTAMINA (PERSERO) -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/pertamina.svg" alt="PT Pertamina (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/pertamina.svg" alt="PT Pertamina (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 9. KEMENTERIAN PUPR -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/kemen-pupr.svg" alt="Kementerian PUPR" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/kemen-pupr.svg" alt="Kementerian PUPR" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 10. KEMENTERIAN ATR/BPN -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/atr-bpn.png" alt="Kementerian ATR/BPN" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/atr-bpn.png" alt="Kementerian ATR/BPN" class="h-9 sm:h-11 w-auto object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 11. PT SEMEN INDONESIA (SIG) -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/sig.svg" alt="PT Semen Indonesia (SIG)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/sig.svg" alt="PT Semen Indonesia (SIG)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
         <!-- 12. PT BIO FARMA (PERSERO) -->
         <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
           <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" loading="lazy" src="images/logos/bio-farma.svg" alt="PT Bio Farma (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
+            <img decoding="async" src="images/logos/bio-farma.svg" alt="PT Bio Farma (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
           </div>
         </div>
 
@@ -1601,27 +1597,27 @@
   </section>
 
   <!-- ==================== 5. STATISTIK KUNCI (MASTER DATA STATISTIK) ==================== -->
-  <section class="bg-blue-950 text-white py-10 border-b border-blue-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
-      <div class="p-2">
-        <div class="text-3xl sm:text-4xl font-black text-amber-400 stat-number count-up-text" data-to="35" data-from="0" data-suffix="+" data-duration="2.2">35+</div>
-        <p class="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Tahun Jam Terbang Kolektif</p>
+  <section class="bg-slate-950 text-white py-12 border-b border-slate-800/80 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-3.5 sm:gap-5 text-center">
+      <div class="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-400/40 transition shadow-sm">
+        <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400 stat-number count-up-text" data-to="35" data-from="0" data-suffix="+" data-duration="2.2">35+</div>
+        <p class="text-xs text-slate-300 mt-2 uppercase tracking-wider font-bold">Tahun Jam Terbang Kolektif</p>
       </div>
-      <div class="p-2 border-l border-blue-900">
-        <div class="text-3xl sm:text-4xl font-black text-amber-400 stat-number count-up-text" data-to="5" data-from="0" data-duration="1.8">5</div>
-        <p class="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Rekan Penilai Publik Berizin</p>
+      <div class="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-400/40 transition shadow-sm">
+        <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400 stat-number count-up-text" data-to="5" data-from="0" data-duration="1.8">5</div>
+        <p class="text-xs text-slate-300 mt-2 uppercase tracking-wider font-bold">Rekan Penilai Publik Berizin</p>
       </div>
-      <div class="p-2 border-l md:border-l border-blue-900">
-        <div class="text-3xl sm:text-4xl font-black text-amber-400 stat-number count-up-text" data-to="5" data-from="0" data-duration="1.8">5</div>
-        <p class="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Jaringan Kantor Wilayah</p>
+      <div class="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-400/40 transition shadow-sm">
+        <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400 stat-number count-up-text" data-to="5" data-from="0" data-duration="1.8">5</div>
+        <p class="text-xs text-slate-300 mt-2 uppercase tracking-wider font-bold">Jaringan Kantor Wilayah</p>
       </div>
-      <div class="p-2 border-l border-blue-900">
-        <div class="text-3xl sm:text-4xl font-black text-amber-400 stat-number count-up-text" data-to="40" data-from="0" data-suffix="+" data-duration="2.0">40+</div>
-        <p class="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Mitra Bank &amp; Korporasi</p>
+      <div class="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-400/40 transition shadow-sm">
+        <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400 stat-number count-up-text" data-to="40" data-from="0" data-suffix="+" data-duration="2.0">40+</div>
+        <p class="text-xs text-slate-300 mt-2 uppercase tracking-wider font-bold">Mitra Bank &amp; Korporasi</p>
       </div>
-      <div class="p-2 border-l md:border-l border-blue-900 col-span-2 md:col-span-1">
-        <div class="text-3xl sm:text-4xl font-black text-amber-400 stat-number count-up-text" data-to="15" data-from="0" data-suffix="+" data-duration="1.8">15+</div>
-        <p class="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Ruas Tol &amp; PSN Nasional</p>
+      <div class="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-400/40 transition shadow-sm col-span-2 md:col-span-1">
+        <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400 stat-number count-up-text" data-to="15" data-from="0" data-suffix="+" data-duration="1.8">15+</div>
+        <p class="text-xs text-slate-300 mt-2 uppercase tracking-wider font-bold">Ruas Tol &amp; PSN Nasional</p>
       </div>
     </div>
   </section>
@@ -1803,80 +1799,27 @@
       <!-- Header & Pengantar -->
       <div class="max-w-3xl mb-10 sm:mb-12">
         <span class="text-xs font-bold uppercase tracking-wider text-amber-400 block mb-2 font-mono">
-          PERJALANAN DAN TRANSFORMASI
+          REKAM JEJAK &bull; EMPAT TONGGAK TRANSFORMASI
         </span>
         <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
-          Jejak Profesional dan Perkembangan Kelembagaan KJPP NSR
+          Jejak Profesional dan Transformasi Kelembagaan KJPP NSR
         </h2>
         <p class="mt-3.5 text-xs sm:text-sm text-slate-300 leading-relaxed">
-          Perjalanan profesional yang berawal dari kegiatan konsultasi dan penilaian independen, berkembang melalui penyesuaian terhadap regulasi profesi penilai, penguatan kelembagaan, serta perluasan jaringan pelayanan. Setiap tahapan mencerminkan komitmen terhadap integritas, independensi, kompetensi, dan profesionalisme dalam memberikan jasa penilaian kepada sektor pemerintah, perbankan, dunia usaha, dan masyarakat.
+          Perjalanan panjang yang berawal dari jasa konsultasi independen pasar modal, berkembang melalui penyesuaian regulasi profesi penilai, penguatan kemitraan rekan, hingga kini beroperasi sebagai kantor jasa penilai publik definitif dengan 5 kantor wilayah operasional nasional.
         </p>
       </div>
 
-      <!-- Garis Waktu Sejarah (Timeline Sederhana) -->
-      <div class="mb-10 sm:mb-12 p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg">
-        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80 text-[11px] font-bold text-slate-400">
-          <span class="flex items-center gap-2 text-slate-300">
-            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Garis Waktu Perkembangan Kelembagaan</span>
-          </span>
-          <span class="text-[10px] text-slate-500 font-mono">4 Tahapan Kronologis</span>
-        </div>
-        
-        <!-- Stepper Flow: Desktop Horizontal, Mobile Wrap -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-2 relative">
-          
-          <!-- Step 1 -->
-          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-950/60 border border-amber-500/30">
-            <span class="w-6 h-6 rounded-full bg-amber-400/20 text-amber-400 font-black text-xs flex items-center justify-center shrink-0 border border-amber-400/40">1</span>
-            <div class="min-w-0">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-amber-400 font-mono">Periode Awal</p>
-              <p class="text-xs font-bold text-slate-200 truncate">PT Independensia</p>
-            </div>
-          </div>
-
-          <!-- Step 2 -->
-          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-950/60 border border-sky-500/30">
-            <span class="w-6 h-6 rounded-full bg-sky-400/20 text-sky-400 font-black text-xs flex items-center justify-center shrink-0 border border-sky-400/40">2</span>
-            <div class="min-w-0">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-sky-400 font-mono">2008–2009</p>
-              <p class="text-xs font-bold text-slate-200 truncate">UJP / KJPP Perorangan</p>
-            </div>
-          </div>
-
-          <!-- Step 3 -->
-          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-950/60 border border-violet-500/30">
-            <span class="w-6 h-6 rounded-full bg-violet-400/20 text-violet-400 font-black text-xs flex items-center justify-center shrink-0 border border-violet-400/40">3</span>
-            <div class="min-w-0">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-violet-400 font-mono">2009–2011</p>
-              <p class="text-xs font-bold text-slate-200 truncate">Persekutuan Perdata</p>
-            </div>
-          </div>
-
-          <!-- Step 4 -->
-          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-950/60 border border-emerald-500/30">
-            <span class="w-6 h-6 rounded-full bg-emerald-400/20 text-emerald-400 font-black text-xs flex items-center justify-center shrink-0 border border-emerald-400/40">4</span>
-            <div class="min-w-0">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 font-mono">2019–Sekarang</p>
-              <p class="text-xs font-bold text-slate-200 truncate">KJPP NSR &amp; 5 Cabang</p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Grid 4 Kartu Sejarah (2 Kolom x 2 Baris di Komputer, 1 Kolom di HP) -->
+      <!-- Grid 4 Milestone Utama Transformasi (2x2 di Desktop, 1 Kolom di Mobile) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-7 items-stretch">
         
-        <!-- ==================== FASE 1 ==================== -->
+        <!-- ==================== MILESTONE 1 ==================== -->
         <div class="p-6 sm:p-7 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-amber-400/50 transition-all duration-300 flex flex-col justify-between shadow-xl relative group">
           <div class="absolute top-0 left-6 right-6 h-1 bg-gradient-to-r from-transparent via-amber-400/70 to-transparent rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
-          
           <div>
-            <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="flex items-center justify-between gap-3 mb-3.5">
               <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold font-mono tracking-wider bg-amber-400/10 text-amber-300 border border-amber-400/30">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                FASE 1 &bull; PERIODE AWAL
+                MILESTONE 01 &bull; PERIODE AWAL
               </span>
               <span class="text-[11px] font-semibold text-slate-500 font-mono">Tahap 01</span>
             </div>
@@ -1885,127 +1828,88 @@
               PT Independensia Consultindo Appraisal
             </h3>
             <p class="text-xs sm:text-sm font-semibold text-amber-300/90 italic mt-1 mb-3">
-              Fondasi Pengalaman Profesional
+              Fondasi Pengalaman Profesional &amp; Penilaian Independen Pasar Modal
             </p>
 
             <p class="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
-              Perjalanan profesional berawal dari PT Independensia Consultindo Appraisal, badan usaha berbentuk Perseroan Terbatas yang bergerak dalam bidang jasa konsultasi dan penilaian (<em>appraisal/valuation</em>).
+              Perjalanan profesional berawal dari PT Independensia Consultindo Appraisal, badan usaha berbentuk Perseroan Terbatas yang bergerak dalam jasa konsultasi dan penilaian independen (<em>appraisal/valuation</em>). Pengalaman pada periode ini meletakkan fondasi integritas, penguasaan metodologi, serta profesionalisme dalam penilaian aset komersial dan korporasi.
             </p>
-
-            <!-- Uraian Lengkap (Expandable) -->
-            <div id="detail-fase-1" class="hidden mt-3 pt-3 border-t border-slate-800/80 space-y-2.5 text-xs text-slate-300 leading-relaxed transition-all duration-300">
-              <p>
-                Perusahaan tersebut memiliki riwayat kegiatan sebagai penilai independen dalam lingkungan pasar modal Indonesia. Informasi mengenai registrasi pada Bursa Efek Indonesia (BEI) dan Bapepam hanya dicantumkan apabila telah didukung dokumen resmi.
-              </p>
-              <p>
-                Pengalaman pada periode ini menjadi salah satu fondasi dalam pengembangan kompetensi dan profesionalisme di bidang jasa penilaian.
-              </p>
-            </div>
           </div>
 
-          <!-- Tombol Baca Selengkapnya -->
-          <div class="mt-5 pt-3 border-t border-slate-800/60 flex items-center justify-between">
-            <button type="button" id="btn-detail-fase-1" onclick="toggleDetailFase('detail-fase-1')" aria-expanded="false" class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition cursor-pointer">
-              <span>Baca Selengkapnya</span>
-              <svg class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-            <span class="text-[10px] text-slate-500 font-mono">Konsultansi &amp; Appraisal</span>
+          <div class="mt-6 pt-3.5 border-t border-slate-800/70 flex items-center justify-between text-[11px]">
+            <span class="text-slate-400">Fokus: Konsultansi &amp; Appraisal</span>
+            <span class="text-amber-400 font-mono font-semibold">Pasar Modal</span>
           </div>
         </div>
 
-        <!-- ==================== FASE 2 ==================== -->
+        <!-- ==================== MILESTONE 2 ==================== -->
         <div class="p-6 sm:p-7 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-400/50 transition-all duration-300 flex flex-col justify-between shadow-xl relative group">
           <div class="absolute top-0 left-6 right-6 h-1 bg-gradient-to-r from-transparent via-sky-400/70 to-transparent rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
-          
           <div>
-            <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="flex items-center justify-between gap-3 mb-3.5">
               <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold font-mono tracking-wider bg-sky-400/10 text-sky-300 border border-sky-400/30">
                 <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-                FASE 2 &bull; 2008–2009
+                MILESTONE 02 &bull; 2008–2009
               </span>
               <span class="text-[11px] font-semibold text-slate-500 font-mono">Tahap 02</span>
             </div>
 
             <h3 class="text-lg sm:text-xl font-bold text-white tracking-tight leading-snug">
-              UJP Nanang Rahayu dan KJPP Nanang Rahayu (Perorangan)
+              UJP Nanang Rahayu &amp; KJPP Perorangan
             </h3>
             <p class="text-xs sm:text-sm font-semibold text-sky-300/90 italic mt-1 mb-3">
-              Penyesuaian Regulasi dan Pengembangan Layanan
+              Penyesuaian Regulasi Profesi &amp; Perintisan Penilaian Infrastruktur
             </p>
 
             <p class="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
-              Sejalan dengan perkembangan regulasi profesi penilai di Indonesia, kegiatan jasa penilaian memasuki tahap penyesuaian kelembagaan melalui Usaha Jasa Penilai (UJP) Nanang Rahayu dan selanjutnya KJPP Nanang Rahayu berbentuk perorangan.
+              Menjawab regulasi penataan profesi penilai di Indonesia, kegiatan beralih ke Usaha Jasa Penilai (UJP) Nanang Rahayu dan selanjutnya KJPP Perorangan. Periode ini memfokuskan layanan pada penilaian properti, agunan perbankan, aset industri, serta awal keterlibatan penaksiran ganti rugi pengadaan tanah infrastruktur publik.
             </p>
-
-            <!-- Uraian Lengkap (Expandable) -->
-            <div id="detail-fase-2" class="hidden mt-3 pt-3 border-t border-slate-800/80 space-y-2.5 text-xs text-slate-300 leading-relaxed transition-all duration-300">
-              <p>
-                Pada periode ini, layanan difokuskan pada penilaian properti, agunan perbankan, aset komersial, serta pengembangan kompetensi dalam penilaian untuk kepentingan pengadaan tanah dan pembangunan infrastruktur.
-              </p>
-            </div>
           </div>
 
-          <!-- Tombol Baca Selengkapnya -->
-          <div class="mt-5 pt-3 border-t border-slate-800/60 flex items-center justify-between">
-            <button type="button" id="btn-detail-fase-2" onclick="toggleDetailFase('detail-fase-2')" aria-expanded="false" class="inline-flex items-center gap-1.5 text-xs font-bold text-sky-400 hover:text-sky-300 transition cursor-pointer">
-              <span>Baca Selengkapnya</span>
-              <svg class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-            <span class="text-[10px] text-slate-500 font-mono">UJP &bull; Perorangan</span>
+          <div class="mt-6 pt-3.5 border-t border-slate-800/70 flex items-center justify-between text-[11px]">
+            <span class="text-slate-400">Bentuk: UJP &bull; Perorangan</span>
+            <span class="text-sky-400 font-mono font-semibold">Regulasi Kemenkeu</span>
           </div>
         </div>
 
-        <!-- ==================== FASE 3 ==================== -->
+        <!-- ==================== MILESTONE 3 ==================== -->
         <div class="p-6 sm:p-7 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-violet-400/50 transition-all duration-300 flex flex-col justify-between shadow-xl relative group">
           <div class="absolute top-0 left-6 right-6 h-1 bg-gradient-to-r from-transparent via-violet-400/70 to-transparent rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
-          
           <div>
-            <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="flex items-center justify-between gap-3 mb-3.5">
               <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold font-mono tracking-wider bg-violet-400/10 text-violet-300 border border-violet-400/30">
                 <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
-                FASE 3 &bull; 2009–2011
+                MILESTONE 03 &bull; 2009–2011
               </span>
               <span class="text-[11px] font-semibold text-slate-500 font-mono">Tahap 03</span>
             </div>
 
             <h3 class="text-lg sm:text-xl font-bold text-white tracking-tight leading-snug">
-              KJPP Nanang Rahayu &amp; Rekan (Persekutuan Perdata)
+              KJPP Nanang Rahayu &amp; Rekan
             </h3>
             <p class="text-xs sm:text-sm font-semibold text-violet-300/90 italic mt-1 mb-3">
-              Penguatan Kelembagaan dan Kolaborasi Profesional
+              Penguatan Persekutuan Perdata &amp; Skalabilitas Layanan
             </p>
 
             <p class="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
-              Perjalanan kelembagaan berlanjut melalui KJPP Nanang Rahayu &amp; Rekan dalam bentuk persekutuan perdata.
+              Pengembangan kapasitas kelembagaan berlanjut melalui persekutuan perdata antarpenilai publik. Tahapan ini memperkuat kerja sama multidisiplin, standardisasi sistem kendali mutu (quality control) internal, serta kesiapan organisasi menangani penugasan skala besar bagi BUMN dan korporasi nasional.
             </p>
-
-            <!-- Uraian Lengkap (Expandable) -->
-            <div id="detail-fase-3" class="hidden mt-3 pt-3 border-t border-slate-800/80 space-y-2.5 text-xs text-slate-300 leading-relaxed transition-all duration-300">
-              <p>
-                Tahapan ini menandai penguatan kerja sama profesional antarpenilai, pengembangan kapasitas organisasi, serta peningkatan kemampuan dalam menangani penugasan penilaian dengan ruang lingkup yang lebih beragam.
-              </p>
-            </div>
           </div>
 
-          <!-- Tombol Baca Selengkapnya -->
-          <div class="mt-5 pt-3 border-t border-slate-800/60 flex items-center justify-between">
-            <button type="button" id="btn-detail-fase-3" onclick="toggleDetailFase('detail-fase-3')" aria-expanded="false" class="inline-flex items-center gap-1.5 text-xs font-bold text-violet-400 hover:text-violet-300 transition cursor-pointer">
-              <span>Baca Selengkapnya</span>
-              <svg class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-            <span class="text-[10px] text-slate-500 font-mono">Kemitraan Rekan</span>
+          <div class="mt-6 pt-3.5 border-t border-slate-800/70 flex items-center justify-between text-[11px]">
+            <span class="text-slate-400">Bentuk: Persekutuan Perdata</span>
+            <span class="text-violet-400 font-mono font-semibold">Kemitraan Rekan</span>
           </div>
         </div>
 
-        <!-- ==================== FASE 4 ==================== -->
-        <div class="p-6 sm:p-7 rounded-2xl bg-slate-900/90 border border-emerald-500/30 hover:border-emerald-400/60 transition-all duration-300 flex flex-col justify-between shadow-xl relative group bg-gradient-to-b from-slate-900 to-slate-950">
+        <!-- ==================== MILESTONE 4 ==================== -->
+        <div class="p-6 sm:p-7 rounded-2xl bg-slate-900/90 border border-emerald-500/40 hover:border-emerald-400/70 transition-all duration-300 flex flex-col justify-between shadow-xl relative group bg-gradient-to-b from-slate-900 to-slate-950">
           <div class="absolute top-0 left-6 right-6 h-1 bg-gradient-to-r from-transparent via-emerald-400/80 to-transparent rounded-full opacity-70 group-hover:opacity-100 transition-opacity"></div>
-          
           <div>
-            <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="flex items-center justify-between gap-3 mb-3.5">
               <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold font-mono tracking-wider bg-emerald-400/10 text-emerald-300 border border-emerald-400/30">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                FASE 4 &bull; 2019–SEKARANG
+                MILESTONE 04 &bull; 2019–SEKARANG
               </span>
               <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Definitif</span>
             </div>
@@ -2014,34 +1918,28 @@
               KJPP Nanang Rahayu Sigit Paryanto dan Rekan
             </h3>
             <p class="text-xs sm:text-sm font-semibold text-emerald-300/90 italic mt-1 mb-3">
-              Pengembangan Jaringan Pelayanan Nasional
+              Izin Kemenkeu No. 2.19.0160 &bull; Kantor Pusat &amp; 4 Kantor Cabang
             </p>
 
             <p class="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
-              Memasuki tahun 2019, pengembangan kelembagaan dilanjutkan melalui KJPP Nanang Rahayu Sigit Paryanto dan Rekan (KJPP NSR), dengan Izin Usaha No. 2.19.0160 berdasarkan Keputusan Menteri Keuangan Republik Indonesia No. 248/KM.1/2019.
+              Memasuki tahun 2019, kelembagaan beroperasi penuh berdasarkan Keputusan Menteri Keuangan RI No. 248/KM.1/2019. Melayani seluruh wilayah Indonesia melalui 1 Kantor Pusat di Jakarta dan 4 Kantor Cabang (Bandung, Padang, Makassar, Palembang) dengan sistem operasional berbasis cloud terpadu dan kepatuhan penuh Standar Penilaian Indonesia (SPI).
             </p>
-
-            <!-- Uraian Lengkap (Expandable) -->
-            <div id="detail-fase-4" class="hidden mt-3 pt-3 border-t border-slate-800/80 space-y-2.5 text-xs text-slate-300 leading-relaxed transition-all duration-300">
-              <p>
-                KJPP NSR mengembangkan jaringan pelayanan melalui kantor pusat di Jakarta dan kantor cabang di Bandung, Padang, Makassar, serta Palembang.
-              </p>
-              <p>
-                Didukung oleh penilai publik, tenaga ahli, dan tim manajemen profesional, KJPP NSR terus meningkatkan kapasitas pelayanan penilaian untuk sektor perbankan, korporasi, pemerintah, dan pembangunan infrastruktur nasional.
-              </p>
-            </div>
           </div>
 
-          <!-- Tombol Baca Selengkapnya -->
-          <div class="mt-5 pt-3 border-t border-slate-800/60 flex items-center justify-between">
-            <button type="button" id="btn-detail-fase-4" onclick="toggleDetailFase('detail-fase-4')" aria-expanded="false" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition cursor-pointer">
-              <span>Baca Selengkapnya</span>
-              <svg class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-            <span class="text-[10px] text-emerald-400 font-mono font-bold">KMK No. 248/KM.1/2019</span>
+          <div class="mt-6 pt-3.5 border-t border-slate-800/70 flex items-center justify-between text-[11px]">
+            <span class="text-emerald-300 font-semibold">1 Pusat &bull; 4 Cabang (5 Wilayah)</span>
+            <span class="text-emerald-400 font-mono font-bold">KMK 248/KM.1/2019</span>
           </div>
         </div>
 
+      </div>
+
+      <!-- Tombol Link ke Halaman Profil & Sejarah Lengkap -->
+      <div class="mt-10 sm:mt-12 text-center" data-aos="fade-up">
+        <a href="profil-legalitas.html#transformasi" class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-amber-300 hover:text-white border border-amber-400/40 text-xs font-bold transition shadow-xl group">
+          <span>Pelajari Dokumentasi Lengkap Sejarah, Akta &amp; Transformasi di Halaman Profil</span>
+          <span class="group-hover:translate-x-1.5 transition-transform">&rarr;</span>
+        </a>
       </div>
 
     </div>
@@ -2332,6 +2230,24 @@
           </div>
         </div>
       </div>
+
+      <!-- CTA ke Halaman Layanan Lengkap & Konsultasi Penilai -->
+      <div class="mt-12 pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono">KONSULTASI RUANG LINGKUP &bull; DOKUMEN PERSYARATAN</p>
+          <p class="text-sm sm:text-base font-extrabold text-white mt-1">Konsultasikan kebutuhan spesifik penilaian aset dan estimasi waktu penugasan.</p>
+        </div>
+        <div class="flex flex-wrap items-center justify-center sm:justify-end gap-3 shrink-0">
+          <a href="layanan.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-sky-300 hover:text-white border border-slate-700 text-xs font-bold transition shadow-sm group">
+            <span>Buka Katalog Layanan Lengkap</span>
+            <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+          </a>
+          <button type="button" onclick="bukaModal('modal-rfp')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-md transition cursor-pointer">
+            Minta Penawaran (RFP)
+          </button>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -2863,7 +2779,10 @@
         <strong class="text-white">Annual Management Review:</strong> Sistem Pengendalian Mutu dievaluasi berkala minimal 1 (satu) tahun sekali oleh Dewan Pimpinan bersama Manajer SPM guna penyempurnaan berkelanjutan (*continuous improvement*).
       </p>
     </div>
-    <div class="shrink-0 flex items-center gap-2">
+    <div class="shrink-0 flex flex-wrap items-center gap-2">
+      <a href="profil-legalitas.html" class="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs border border-slate-700 transition">
+        Pelajari SPM Lengkap &rarr;
+      </a>
       <button type="button" onclick="bukaModal('modal-rfp')" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white font-bold text-xs border border-slate-700 transition">
         Permintaan Kualifikasi Tender &rarr;
       </button>
@@ -2966,9 +2885,9 @@
           <div class="bg-slate-900/90 p-5 rounded-xl border border-slate-700/80 shadow-lg hover:border-sky-500/50 transition flex flex-col justify-between">
             <div>
               <div class="inline-block px-2.5 py-1 rounded text-[10px] font-bold bg-sky-400/20 text-sky-300 border border-sky-400/30 mb-2">Jawa Barat - Jawa Tengah</div>
-              <p>&bull; <strong>Jalan Tol Gedebage &ndash; Tasikmalaya &ndash; Cilacap (Getaci):</strong> Penilaian 168 bidang di Desa Padamukti, Kec. Solokan Jeruk, Kab. Bandung (PPK Pengadaan Tanah Getaci Wilayah I, 2022).</p>
+              <h4 class="font-bold text-white text-sm">Tol Gedebage &ndash; Tasikmalaya &ndash; Cilacap (Getaci)</h4>
               <p class="text-slate-300 mt-2 leading-relaxed">
-                Penilaian tanah, bangunan, tanaman, dan objek lainnya terdampak Segmen Gedebage &ndash; Garut Utara sebanyak 168 bidang di Desa Padamukti, Kec. Solokan Jeruk, Kab. Bandung.
+                Penilaian ganti kerugian tanah, bangunan, tanaman, dan sarana pelengkap terdampak Segmen Gedebage &ndash; Garut Utara sebanyak 168 bidang di Desa Padamukti, Kec. Solokan Jeruk, Kab. Bandung.
               </p>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-800 text-slate-400 space-y-1">
@@ -2979,13 +2898,13 @@
           <div class="bg-slate-900/90 p-5 rounded-xl border border-slate-700/80 shadow-lg hover:border-sky-500/50 transition flex flex-col justify-between">
             <div>
               <div class="inline-block px-2.5 py-1 rounded text-[10px] font-bold bg-sky-400/20 text-sky-300 border border-sky-400/30 mb-2">JORR II / Jabodetabek</div>
-              <p>&bull; <strong>Jalan Tol Cimanggis &ndash; Cibitung (Cimaci I &amp; II):</strong> Penilaian 252 bidang Desa Gandamekar Kab. Bekasi, serta Desa Nagrak, Limusnunggal, dan Pasir Angin Kab. Bogor (Satker Wilayah I, 2021 &amp; 2025).</p>
+              <h4 class="font-bold text-white text-sm">Tol Cimanggis &ndash; Cibitung (Cimaci I &amp; II)</h4>
               <p class="text-slate-300 mt-2 leading-relaxed">
-                Penilaian harga tanah (second opinion) 252 bidang Desa Gandamekar Kab. Bekasi, serta Desa Nagrak Kec. Gunung Putri, Desa Limusnunggal, dan Desa Pasir Angin Kec. Cileungsi Kab. Bogor.
+                Penilaian harga tanah (second opinion) 252 bidang di Desa Gandamekar Kab. Bekasi, serta Desa Nagrak Kec. Gunung Putri, Desa Limusnunggal, dan Desa Pasir Angin Kec. Cileungsi Kab. Bogor.
               </p>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-800 text-slate-400 space-y-1">
-              <p>&bull; Pemberi Tugas: Satker Pengadaan Tanah Jalan Tol Wilayah I &bull; Penugasan Kontrak: Tahap I (2021) &amp; Tahap Lanjutan (2025)</p>
+              <p>&bull; Pemberi Tugas: Satker Pengadaan Tanah Jalan Tol Wilayah I (Tahap I 2021 &amp; Lanjutan 2025)</p>
             </div>
           </div>
 
@@ -3060,6 +2979,15 @@
             <span>Buka Galeri Lengkap (12+ Foto)</span>
             <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
           </a>
+        </div>
+      </div>
+
+      <!-- Interactive WebGL 3D FlexCarousel Component -->
+      <div class="mb-10 relative w-full h-[360px] sm:h-[440px] md:h-[480px] overflow-hidden rounded-2xl md:rounded-3xl bg-slate-950/70 border border-slate-800 shadow-2xl">
+        <div id="galeri-flex-carousel" class="w-full h-full"></div>
+        <div class="absolute bottom-3 right-4 pointer-events-none text-[10px] font-bold text-slate-300 bg-slate-950/85 px-3 py-1 rounded-full border border-slate-800 shadow flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Eksplorasi WebGL 3D (Geser / Drag Foto Lapangan)</span>
         </div>
       </div>
 
@@ -5219,109 +5147,72 @@
   </div>
 
   <!-- MODAL LOGIN PORTAL INTERNAL -->
+  <!-- POP-UP MODAL PORTAL OPERASIONAL INTERNAL (PROTEKSI SERVERLESS) -->
   <div id="modal-portal" class="fixed inset-0 z-50 bg-slate-950/75 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 relative text-xs">
-      <button onclick="tutupModalPortal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center cursor-pointer">&times;</button>
+      <button onclick="tutupModal('modal-portal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center cursor-pointer">&times;</button>
       <div class="flex items-center gap-2 mb-1.5">
         <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900">Area Terbatas Cabang &amp; Pusat</span>
       </div>
       <h3 class="text-base font-bold text-slate-900 mb-1">Portal Layanan Internal NSR</h3>
       <p class="text-slate-500 mb-1">Dokumen &amp; SOP Cabang, Permintaan Kwitansi, Nolap &amp; Presensi</p>
-      <p class="text-[10px] text-sky-700 font-bold mb-1">Terintegrasi online untuk operasional kantor pusat &amp; seluruh cabang</p>
-      <p class="text-[10px] text-rose-600 font-bold mb-4 flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5 text-rose-600 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span>Akses dibatasi - masukkan token resmi kantor cabang untuk membuka folder SOP &amp; formulir.</span>
-      </p>
+      <p class="text-[10px] text-sky-700 font-bold mb-3">Akses portal kerja operasional resmi kantor pusat &amp; cabang.</p>
 
-      <form onsubmit="verifikasiTokenPortal(event)" id="form-token-portal" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold leading-none text-slate-800 mb-1.5">Token Akses Kantor Cabang / Petugas</label>
-          <div class="relative">
-            <input type="password" id="input-token" placeholder="" required class="input-basic flex h-10 w-full rounded-md border border-slate-300 bg-white pl-3.5 pr-11 py-2 text-sm sm:text-base text-slate-900 font-bold placeholder:text-slate-400 placeholder:font-normal shadow-sm transition-colors tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" autocomplete="current-password">
-            <button type="button" id="btn-toggle-token" onclick="toggleTokenVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-800 focus:outline-none cursor-pointer" aria-label="Tampilkan token" title="Tampilkan / sembunyikan token">
-              <svg id="icon-eye-show" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1 19.876 0"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <svg id="icon-eye-hide" class="w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
-                <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
-                <path d="M17.479 17.499A10.75 10.75 0 0 1 2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 5.275-5.275"/>
-                <line x1="2" x2="22" y1="2" y2="22"/>
-              </svg>
-            </button>
-          </div>
-          <p id="pesan-error" class="text-xs text-rose-600 font-semibold mt-1.5 hidden flex items-center gap-1">
-            <svg class="w-3.5 h-3.5 text-rose-600 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-            <span>Token tidak terdaftar. Pastikan memasukkan token kantor cabang yang valid.</span>
-          </p>
-        </div>
-        <button type="submit" class="w-full py-2.5 rounded-lg bg-blue-950 text-white font-semibold hover:bg-blue-900 transition flex items-center justify-center gap-2 cursor-pointer">
-          <span>Verifikasi Otorisasi Token</span> &rarr;
-        </button>
-      </form>
-
-      <div id="panel-layanan" class="hidden mt-4 pt-4 border-t border-slate-200 space-y-3">
-        <div class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-center">
-          <p class="text-emerald-800 font-black text-xs" id="label-lokasi">Token Terverifikasi</p>
-          <p class="text-[10px] text-emerald-600 mt-0.5">Silakan pilih menu operasional internal di bawah ini:</p>
-        </div>
-
-        <div class="space-y-2 pt-1">
-          <a id="link-portal-sop" href="#" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black flex items-center justify-between shadow-sm transition hover:shadow border border-amber-400">
-            <span class="flex items-center gap-2.5 text-left">
-              <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
-              </span>
-              <span>
-                <span class="block text-xs font-black">Folder Dokumen &amp; SOP Cabang</span>
-                <span class="block text-[9.5px] font-normal text-amber-100">Format Laporan, Template &amp; SOP Internal</span>
-              </span>
+      <div class="space-y-2 pt-2 border-t border-slate-200">
+        <a href="portal-nolap.html" class="w-full py-2.5 px-4 rounded-lg bg-blue-950 hover:bg-blue-900 text-white font-bold flex items-center justify-between shadow-sm transition hover:shadow">
+          <span class="flex items-center gap-2.5 text-left">
+            <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
             </span>
-            <span class="text-[11px] font-bold bg-slate-950 text-amber-300 px-2 py-1 rounded shrink-0 ml-2">Buka Drive &nearr;</span>
-          </a>
-
-          <a id="link-portal-kwitansi" href="portal-kwitansi.html" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black flex items-center justify-between shadow-sm transition hover:shadow border border-amber-300">
-            <span class="flex items-center gap-2.5 text-left">
-              <span class="w-7 h-7 rounded-lg bg-slate-950/15 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
-              </span>
-              <span>
-                <span class="block text-xs font-black">Sistem Kwitansi Cabang &amp; Verifikasi Pusat</span>
-                <span class="block text-[9.5px] font-normal text-slate-800">Draf Tagihan, PPN &amp; Terbilang Otomatis (Khusus Bagian Keuangan)</span>
-              </span>
+            <span>
+              <span class="block text-xs font-black">Portal Nomor Laporan (NoLap)</span>
+              <span class="block text-[9.5px] font-normal text-blue-200">Registrasi 7 Segmen Kemenkeu &amp; SPM Mitigasi</span>
             </span>
-            <span class="text-[11px] font-bold bg-slate-950 text-amber-300 px-2 py-1 rounded shrink-0 ml-2">Buka Sistem &nearr;</span>
-          </a>
+          </span>
+          <span class="text-[11px] font-bold bg-white/10 px-2 py-1 rounded shrink-0 ml-2">Masuk Portal &nearr;</span>
+        </a>
 
-          <a id="link-portal-nolap" href="#" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 rounded-lg bg-blue-950 hover:bg-blue-900 text-white font-bold flex items-center justify-between shadow-sm transition hover:shadow">
-            <span class="flex items-center gap-2.5 text-left">
-              <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-              </span>
-              <span>
-                <span class="block text-xs font-black">Pengajuan Penomoran Laporan (Nolap)</span>
-                <span class="block text-[9.5px] font-normal text-blue-200">Registrasi Nomor Laporan Resmi Terpusat</span>
-              </span>
+        <a href="portal-kwitansi.html" class="w-full py-2.5 px-4 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black flex items-center justify-between shadow-sm transition hover:shadow border border-amber-300">
+          <span class="flex items-center gap-2.5 text-left">
+            <span class="w-7 h-7 rounded-lg bg-slate-950/15 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
             </span>
-            <span class="text-[11px] font-bold bg-white/10 px-2 py-1 rounded shrink-0 ml-2">Buka Form &nearr;</span>
-          </a>
+            <span>
+              <span class="block text-xs font-black">Portal Kwitansi &amp; Keuangan</span>
+              <span class="block text-[9.5px] font-normal text-slate-800">Draf Tagihan Cabang &amp; Verifikasi Keuangan Pusat</span>
+            </span>
+          </span>
+          <span class="text-[11px] font-bold bg-slate-950 text-amber-300 px-2 py-1 rounded shrink-0 ml-2">Masuk Portal &nearr;</span>
+        </a>
 
-          <a id="link-portal-absen" href="#" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold flex items-center justify-between shadow-sm transition hover:shadow">
-            <span class="flex items-center gap-2.5 text-left">
-              <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              </span>
-              <span>
-                <span class="block text-xs font-black">Presensi Kehadiran Online</span>
-                <span class="block text-[9.5px] font-normal text-emerald-100">Presensi Kehadiran &amp; Koordinasi Kantor</span>
-              </span>
+        <a href="https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz?usp=sharing" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black flex items-center justify-between shadow-sm transition hover:shadow border border-amber-400">
+          <span class="flex items-center gap-2.5 text-left">
+            <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
             </span>
-            <span class="text-[11px] font-bold bg-white/10 px-2 py-1 rounded shrink-0 ml-2">Buka Form &nearr;</span>
-          </a>
-        </div>
+            <span>
+              <span class="block text-xs font-black">Folder Dokumen &amp; SOP Cabang</span>
+              <span class="block text-[9.5px] font-normal text-amber-100">Format Laporan, Template &amp; SOP Internal</span>
+            </span>
+          </span>
+          <span class="text-[11px] font-bold bg-slate-950 text-amber-300 px-2 py-1 rounded shrink-0 ml-2">Buka Drive &nearr;</span>
+        </a>
+
+        <a href="https://s.id/absen-nsr" target="_blank" rel="noopener noreferrer" class="w-full py-2.5 px-4 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold flex items-center justify-between shadow-sm transition hover:shadow">
+          <span class="flex items-center gap-2.5 text-left">
+            <span class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </span>
+            <span>
+              <span class="block text-xs font-black">Presensi Kehadiran Online</span>
+              <span class="block text-[9.5px] font-normal text-emerald-100">Presensi Kehadiran &amp; Koordinasi Kantor</span>
+            </span>
+          </span>
+          <span class="text-[11px] font-bold bg-white/10 px-2 py-1 rounded shrink-0 ml-2">Buka Form &nearr;</span>
+        </a>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- POP-UP MODAL CV REKAN 1: IR. NANANG RAHAYU -->
@@ -6243,48 +6134,6 @@
 
     function bukaModalPortal() {
       bukaModal('modal-portal');
-      document.getElementById('pesan-error')?.classList.add('hidden');
-      document.getElementById('panel-layanan')?.classList.add('hidden');
-      document.getElementById('form-token-portal')?.classList.remove('hidden');
-
-      const linkSop = document.getElementById('link-portal-sop');
-      const linkKwitansi = document.getElementById('link-portal-kwitansi');
-      const linkNolap = document.getElementById('link-portal-nolap');
-      const linkAbsen = document.getElementById('link-portal-absen');
-      if (linkSop) linkSop.href = '#';
-      if (linkKwitansi) linkKwitansi.href = '#';
-      if (linkNolap) linkNolap.href = '#';
-      if (linkAbsen) linkAbsen.href = '#';
-
-      const inp = document.getElementById('input-token');
-      if (inp) {
-        inp.value = '';
-        inp.type = 'password';
-        const eyeShow = document.getElementById('icon-eye-show');
-        const eyeHide = document.getElementById('icon-eye-hide');
-        if (eyeShow) eyeShow.classList.remove('hidden');
-        if (eyeHide) eyeHide.classList.add('hidden');
-        setTimeout(() => inp.focus(), 100);
-      }
-    }
-
-    function toggleTokenVisibility() {
-      const inp = document.getElementById('input-token');
-      const eyeShow = document.getElementById('icon-eye-show');
-      const eyeHide = document.getElementById('icon-eye-hide');
-      const btn = document.getElementById('btn-toggle-token');
-      if (!inp) return;
-      if (inp.type === 'password') {
-        inp.type = 'text';
-        if (eyeShow) eyeShow.classList.add('hidden');
-        if (eyeHide) eyeHide.classList.remove('hidden');
-        if (btn) btn.setAttribute('aria-label', 'Sembunyikan token');
-      } else {
-        inp.type = 'password';
-        if (eyeShow) eyeShow.classList.remove('hidden');
-        if (eyeHide) eyeHide.classList.add('hidden');
-        if (btn) btn.setAttribute('aria-label', 'Tampilkan token');
-      }
     }
 
     function tutupModalPortal() {
@@ -6471,116 +6320,6 @@
         tutupModal(target.id);
       }
     });
-
-    // 3. Login Token Portal & Otorisasi Cabang
-    const TOKEN_CABANG_NSR = {
-      // Kantor Cabang & Pusat
-      "JKT#00": "Akses Resmi Kantor Pusat Jakarta",
-      "BDG#010": "Akses Resmi Cabang Bandung",
-      "PDG#020": "Akses Resmi Cabang Padang",
-      "MKS#030": "Akses Resmi Cabang Makassar",
-      "PLB#040": "Akses Resmi Cabang Palembang",
-      "NSR-PST-2026": "Akses Resmi Kantor Pusat Jakarta",
-      "NSR-BDG-2026": "Akses Resmi Cabang Bandung",
-      "NSR-PDG-2026": "Akses Resmi Cabang Padang",
-      "NSR-MKS-2026": "Akses Resmi Cabang Makassar",
-      "NSR-PLB-2026": "Akses Resmi Cabang Palembang",
-      "NSR-PLM-2026": "Akses Resmi Cabang Palembang",
-      // Master Akses Operasional
-      "NSR8899": "Master Akses Operasional",
-      // Token NIK Karyawan Resmi KJPP NSR (22 Pegawai)
-      "NSR-2019-001": "Nanang Rahayu — Pemimpin Rekan (Manajemen)",
-      "NSR-2019-002": "Deni Siswandi — Rekan (Manajemen)",
-      "NSR-2019-003": "Mini Intan Cahyani — Rekan (Manajemen)",
-      "NSR-2019-004": "Milda Hidayati Dewi — Manager Keuangan (Keuangan & Perpajakan)",
-      "NSR-2019-005": "Danny Taufik Hidayat — Manager Admin & Umum (Divisi Admin & Umum)",
-      "NSR-2019-006": "Arie Indra Permana — Manager Marketing (Administrasi & Pemasaran)",
-      "NSR-2019-007": "Tedi Setiadi — Reviewer (Divisi Teknik)",
-      "NSR-2019-008": "Ricca Noer Farikha — Accounting & Tax (Keuangan & Perpajakan)",
-      "NSR-2019-009": "Angga Malid Cahyadi — Reviewer (Divisi Teknik)",
-      "NSR-2019-010": "Fadri Nurdin — Surveyor (Divisi Teknik)",
-      "NSR-2019-011": "Erwandi — Staf Operasional (Divisi Umum & Operasional)",
-      "NSR-2019-012": "Latief Satihi — Staf Operasional (Divisi Umum & Operasional)",
-      "NSR-2019-013": "Aryanto — Staf Operasional (Divisi Umum & Operasional)",
-      "NSR-2019-014": "Yanto — Staf Operasional (Divisi Umum & Operasional)",
-      "NSR-2019-015": "Lasiman — Staf Operasional (Divisi Umum & Operasional)",
-      "NSR-2019-016": "Sukirno — Staf Operasional (Divisi Umum & Operasional)",
-      "NSR-2019-017": "Muhammad Syahrul Ruly — Surveyor (Divisi Teknik)",
-      "NSR-2019-018": "Uci Sanusi — Surveyor (Divisi Teknik)",
-      "NSR-2019-019": "Yasir Rizal — Surveyor (Divisi Teknik)",
-      "NSR-2019-020": "Udin Syamsudin — Staf Operasional (Divisi Umum & Operasional)",
-      "NSR-2025-021": "Dhea Safitri Ningrum — Staf Administrasi (Administrasi)",
-      "NSR-2026-022": "Siti Nuraeni Ependi — Staf Administrasi (Administrasi)"
-    };
-
-    function tampilkanPanelLayanan(tokenKey) {
-      const formToken = document.getElementById('form-token-portal');
-      const panelLayanan = document.getElementById('panel-layanan');
-      const labelLokasi = document.getElementById('label-lokasi');
-      const linkSop = document.getElementById('link-portal-sop');
-      const linkNolap = document.getElementById('link-portal-nolap');
-      const linkAbsen = document.getElementById('link-portal-absen');
-      const linkKwitansi = document.getElementById('link-portal-kwitansi');
-
-      const URL_DRIVE_SOP = "https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz?usp=sharing";
-      const URL_FORM_KWITANSI = "portal-kwitansi.html";
-      const URL_FORM_NOLAP = "portal-nolap.html";
-      const URL_FORM_ABSEN = "https://s.id/absen-nsr";
-
-      if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${TOKEN_CABANG_NSR[tokenKey] || 'Master Akses Operasional'}`;
-      if (linkSop) linkSop.href = URL_DRIVE_SOP;
-
-      // Otorisasi Khusus Kwitansi: Hanya untuk token khusus Bagian Keuangan Pusat, Cabang terdaftar, dan NIK Keuangan
-      const TOKEN_KHUSUS_KEUANGAN = ["BDG#010", "PDG#020", "MKS#030", "PLB#040", "JKT#00", "NSR-2019-004", "NSR-2019-008", "NSR-2019-001", "NSR-2019-005"];
-      if (linkKwitansi) {
-        if (TOKEN_KHUSUS_KEUANGAN.includes(tokenKey)) {
-          linkKwitansi.href = `${URL_FORM_KWITANSI}?token=${encodeURIComponent(tokenKey)}`;
-        } else {
-          // Token umum (NSR-PST-2026, NSR-BDG-2026, dll.) hanya membuka menu Area Terbatas Portal Internal.
-          // Akses menu pengajuan kwitansi tetap terkunci dan memerlukan otorisasi token khusus bagian keuangan.
-          linkKwitansi.href = URL_FORM_KWITANSI;
-        }
-      }
-
-      if (linkNolap) linkNolap.href = `${URL_FORM_NOLAP}?token=${encodeURIComponent(tokenKey)}`;
-      if (linkAbsen) linkAbsen.href = URL_FORM_ABSEN;
-
-      if (formToken) formToken.classList.add('hidden');
-      if (panelLayanan) panelLayanan.classList.remove('hidden');
-    }
-
-    function verifikasiTokenPortal(e) {
-      if (e) e.preventDefault();
-      const inputEl = document.getElementById('input-token');
-      if (!inputEl) return;
-      const input = inputEl.value.trim().toUpperCase();
-      const err = document.getElementById('pesan-error');
-
-      // Rate limiting anti-brute-force: maks 5 percobaan per 5 menit
-      const RL_KEY = 'nsr_token_attempts';
-      const RL_WIN = 300000; // 5 menit
-      const RL_MAX = 5;
-      let rl = JSON.parse(localStorage.getItem(RL_KEY) || '{"count":0,"ts":0}');
-      const now = Date.now();
-      if (now - rl.ts > RL_WIN) rl = { count: 0, ts: now };
-      if (rl.count >= RL_MAX) {
-        const sisaMenit = Math.ceil((RL_WIN - (now - rl.ts)) / 60000);
-        if (err) { err.textContent = `Terlalu banyak percobaan. Coba lagi dalam ${sisaMenit} menit.`; err.classList.remove('hidden'); }
-        return;
-      }
-
-      if (TOKEN_CABANG_NSR[input]) {
-        if (err) err.classList.add('hidden');
-        localStorage.removeItem(RL_KEY);
-        sessionStorage.setItem('kjpp_token_internal', input);
-        tampilkanPanelLayanan(input);
-      } else {
-        rl.count++;
-        localStorage.setItem(RL_KEY, JSON.stringify(rl));
-        if (err) { err.textContent = `Token tidak valid. Sisa percobaan: ${RL_MAX - rl.count}`; err.classList.remove('hidden'); }
-        inputEl.select();
-      }
-    }
 
     // 4. Form RFP (Minta Penawaran Biaya ke WA)
     function kirimFormRFP(e) {
@@ -7164,6 +6903,9 @@
   <script src="lib/flex-carousel.bundle.js"></script>
   <script>
     function runCarouselInit() {
+      if (typeof window.initFlexCarousel === 'undefined' && typeof FlexCarouselModule !== 'undefined' && FlexCarouselModule.initFlexCarousel) {
+        window.initFlexCarousel = FlexCarouselModule.initFlexCarousel;
+      }
       const carouselContainer = document.getElementById('galeri-flex-carousel');
       if (carouselContainer && window.initFlexCarousel) {
         const kjppPhotos = [

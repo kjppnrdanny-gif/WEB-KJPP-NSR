@@ -98,8 +98,11 @@
       <div class="flex items-center gap-2 sm:gap-3">
         <div id="badge-cabang-aktif" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200">
           <span id="dot-sesi-cabang" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-          <span id="label-sesi-cabang" class="font-bold">Akses: Menunggu Token</span>
+          <span id="label-sesi-cabang" class="font-bold">Akses: Belum Login</span>
         </div>
+        <button id="btn-logout-header" onclick="keluarSesiKwitansi()" class="hidden px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-rose-300 text-xs font-semibold transition border border-slate-700">
+          Keluar
+        </button>
         <a href="portal-nolap.html" title="Buka Portal Nomor Laporan" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
           <span>📁 Portal NoLap</span>
         </a>
@@ -145,37 +148,44 @@
          ========================================== -->
     <div id="panel-cabang" class="space-y-6">
       
-      <!-- Box Proteksi Token Cabang -->
-      <div id="box-auth-cabang" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 shadow-2xl">
+      <!-- Box Proteksi Autentikasi Server Terpadu -->
+      <div id="box-auth-kwitansi" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 shadow-2xl">
         <div class="w-12 h-12 rounded-full bg-amber-400/10 text-amber-400 mx-auto flex items-center justify-center border border-amber-400/20">
-          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
         <div>
-          <h2 class="text-base font-bold text-white">Akses Draf Pengajuan Kantor Cabang</h2>
-          <p class="text-xs text-slate-400 mt-1">Masukkan Nomor Token Khusus Bagian Keuangan Kantor Cabang untuk membuka formulir pengajuan draf tagihan kwitansi.</p>
+          <h2 class="text-base font-bold text-white">Autentikasi Server Sistem Kwitansi</h2>
+          <p class="text-xs text-slate-400 mt-1">Sistem Kwitansi dilindungi autentikasi serverless. Masukkan nama pengguna dan kata sandi resmi Anda.</p>
         </div>
-        <div class="space-y-2">
-          <input type="password" id="input-token-cabang" onkeydown="if(event.key==='Enter') bukaAksesCabangManual()" placeholder="" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400 uppercase">
-          <button type="button" onclick="bukaAksesCabangManual()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
-            Buka Formulir Cabang &rarr;
+        <div class="space-y-3 text-left">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Pengguna (Username)</label>
+            <input type="text" id="kwitansi-auth-username" autocomplete="username" placeholder="Nama Pengguna Terdaftar" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Kata Sandi (Password)</label>
+            <input type="password" id="kwitansi-auth-password" autocomplete="current-password" onkeydown="if(event.key==='Enter') masukSesiKwitansi()" placeholder="••••••••" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
+          </div>
+          <button type="button" id="btn-login-kwitansi" onclick="masukSesiKwitansi()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition cursor-pointer">
+            Masuk Sesi Server &rarr;
           </button>
-          <p id="pesan-auth-cabang" class="text-xs text-rose-400 hidden">Akses Ditolak: Token tidak valid atau tidak memiliki otorisasi.</p>
+          <p id="pesan-auth-kwitansi" class="text-xs text-rose-400 hidden text-center font-semibold"></p>
         </div>
         <div class="pt-2 border-t border-slate-800/80 text-[10.5px] text-slate-500">
-          <span>🔒 Akses Terbatas: Khusus Bagian Keuangan Cabang Resmi KJPP NSR</span>
+          <span>🔒 Akses Terproteksi: Sesi HttpOnly &bull; Otorisasi Serverless</span>
         </div>
       </div>
 
-      <!-- Konten Formulir Cabang (Terbuka setelah Token Valid) -->
+      <!-- Konten Formulir Cabang (Terbuka setelah Sesi Sah) -->
       <div id="konten-form-cabang" class="hidden space-y-4">
         
         <!-- Bar Notifikasi Sesi Cabang Terverifikasi -->
         <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs shadow-md">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-slate-300">Sesi Cabang Terverifikasi: <strong id="label-cabang-terverifikasi" class="text-amber-400">Kantor Cabang</strong></span>
+            <span class="text-slate-300">Sesi Terverifikasi: <strong id="label-cabang-terverifikasi" class="text-amber-400">Kantor Cabang</strong></span>
           </div>
-          <button type="button" onclick="kunciKembaliCabang()" class="text-[11px] text-slate-400 hover:text-rose-400 underline transition">Ganti Token / Keluar</button>
+          <button type="button" onclick="keluarSesiKwitansi()" class="text-[11px] text-slate-400 hover:text-rose-400 underline transition">Keluar Sesi</button>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xl">
@@ -381,28 +391,18 @@
          ========================================== -->
     <div id="panel-pusat" class="hidden space-y-6">
       
-      <!-- Box Proteksi Token Pusat -->
-      <div id="box-auth-pusat" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 shadow-2xl">
-        <div class="w-12 h-12 rounded-full bg-amber-400/10 text-amber-400 mx-auto flex items-center justify-center border border-amber-400/20">
-          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <!-- Banner Guard Akses Khusus Keuangan Pusat -->
+      <div id="guard-akses-pusat-cabang" class="hidden bg-slate-900 border border-rose-500/30 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-3 shadow-2xl">
+        <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 mx-auto flex items-center justify-center border border-rose-500/20">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
         </div>
-        <div>
-          <h2 class="text-base font-bold text-white">Otorisasi Verifikasi &amp; Pengesahan Keuangan Pusat</h2>
-          <p class="text-xs text-slate-400 mt-1">Halaman ini memerlukan token lanjutan khusus yang hanya dapat diverifikasi oleh Bagian Keuangan Kantor Pusat untuk menetapkan Nomor Kwitansi Resmi, TTD/Stempel, dan mencetak dokumen sah.</p>
-        </div>
-        <div class="space-y-2">
-          <input type="password" id="input-token-pusat" onkeydown="if(event.key==='Enter') bukaAksesPusat()" placeholder="" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400">
-          <button type="button" onclick="bukaAksesPusat()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
-            Otorisasi Akses Keuangan Pusat &rarr;
-          </button>
-          <p id="pesan-auth-pusat" class="text-xs text-rose-400 hidden">Akses Ditolak: Token tidak valid untuk otorisasi Keuangan Pusat.</p>
-        </div>
-        <div class="pt-2 border-t border-slate-800/80 text-[10.5px] text-slate-500">
-          <span>🔒 Akses Khusus: Bagian Keuangan Kantor Pusat Jakarta</span>
-        </div>
+        <h2 class="text-base font-bold text-white">Akses Dibatasi (Keuangan Pusat)</h2>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Akun Anda terdaftar sebagai <strong class="text-amber-400">Kantor Cabang</strong>. Hak akses verifikasi administrasi dan pengesahan kwitansi resmi dibatasi secara eksklusif untuk Bagian Keuangan Kantor Pusat.
+        </p>
       </div>
 
-      <!-- Form Pengesahan Resmi (Terbuka setelah Token Valid) -->
+      <!-- Form Pengesahan Resmi (Terbuka setelah Sesi Sah) -->
       <div id="konten-operasional-pusat" class="hidden grid lg:grid-cols-12 gap-6">
         
         <!-- Kolom Form Otorisasi Keuangan -->
@@ -923,24 +923,13 @@
     };
 
     // Inisialisasi Saat Halaman Terbuka
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       // Set tanggal default hari ini
       const today = new Date().toISOString().split('T')[0];
       const tglInput = document.getElementById('tgl-pengajuan');
       const tglResmi = document.getElementById('tgl-kwitansi-resmi');
       if (tglInput) tglInput.value = today;
       if (tglResmi) tglResmi.value = today;
-
-      // Cek parameter token di URL jika ada
-      const urlParams = new URLSearchParams(window.location.search);
-      const tokenQuery = urlParams.get('token');
-      if (tokenQuery) {
-        verifikasiTokenOtomatis(tokenQuery);
-        // HAPUS TOKEN DARI URL BROWSER SECARA RAHASIA AGAR TIDAK MUNCUL DI PRINT MAUPUN HISTORI
-        try {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (e) {}
-      }
 
       // Hitung awal
       const elHarga = document.getElementById('harga-dasar');
@@ -951,6 +940,9 @@
       gantiPejabatTTD();
       initSignaturePad();
       initPasteListeners();
+
+      // Periksa sesi server HttpOnly secara otomatis
+      await periksaSesiKwitansi();
 
       // Pasang listener manual input pada nama & wa pengaju
       const inpNama = document.getElementById('nama-staf-pengaju');
@@ -1667,11 +1659,166 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
     }
 
     // 15. Navigasi Antar Tab
+    // 15. Variabel Sesi Pengguna
+    let currentUser = null;
+
+    // 16. Pemeriksaan Sesi Server-Side (GET /api/auth-verify)
+    async function periksaSesiKwitansi() {
+      try {
+        const res = await fetch('/api/auth-verify', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const result = await res.json();
+          if (result && result.authenticated && result.user) {
+            terapkanSesiPengguna(result.user);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal verifikasi sesi:', e.message);
+      }
+      tampilkanLoginState();
+    }
+
+    // 17. Login Pengguna ke Server (POST /api/auth-login)
+    async function masukSesiKwitansi() {
+      const usernameInput = document.getElementById('kwitansi-auth-username');
+      const passwordInput = document.getElementById('kwitansi-auth-password');
+      const errEl = document.getElementById('pesan-auth-kwitansi');
+      const btn = document.getElementById('btn-login-kwitansi');
+
+      const identifier = (usernameInput?.value || '').trim();
+      const password = passwordInput?.value || '';
+
+      if (!identifier || !password) {
+        if (errEl) {
+          errEl.innerText = 'Nama pengguna dan kata sandi wajib diisi.';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Memverifikasi...';
+      }
+      if (errEl) errEl.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ identifier, password })
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success) {
+          if (passwordInput) passwordInput.value = '';
+          await periksaSesiKwitansi();
+        } else {
+          if (errEl) {
+            errEl.innerText = data.error || 'Autentikasi gagal. Periksa kredensial Anda.';
+            errEl.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        if (errEl) {
+          errEl.innerText = 'Gagal menghubungi server autentikasi.';
+          errEl.classList.remove('hidden');
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'Masuk Sesi Server →';
+        }
+      }
+    }
+
+    // 18. Logout Pengguna (POST /api/auth-logout)
+    async function keluarSesiKwitansi() {
+      try {
+        await fetch('/api/auth-logout', { method: 'POST', credentials: 'include' });
+      } catch (e) {}
+      currentUser = null;
+      tampilkanLoginState();
+    }
+
+    function tampilkanLoginState() {
+      document.getElementById('box-auth-kwitansi').classList.remove('hidden');
+      document.getElementById('konten-form-cabang').classList.add('hidden');
+      document.getElementById('konten-operasional-pusat').classList.add('hidden');
+      document.getElementById('guard-akses-pusat-cabang').classList.add('hidden');
+      document.getElementById('btn-logout-header')?.classList.add('hidden');
+      
+      const labelBadge = document.getElementById('label-sesi-cabang');
+      const dot = document.getElementById('dot-sesi-cabang');
+      if (labelBadge) labelBadge.innerText = 'Akses: Belum Login';
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+    }
+
+    // 19. Terapkan Sesi Sesuai Role Pengguna
+    function terapkanSesiPengguna(user) {
+      currentUser = user;
+      document.getElementById('box-auth-kwitansi').classList.add('hidden');
+      document.getElementById('btn-logout-header')?.classList.remove('hidden');
+
+      const labelBadge = document.getElementById('label-sesi-cabang');
+      const dot = document.getElementById('dot-sesi-cabang');
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+
+      const isCabang = user.role === 'CABANG';
+      const isKeuangan = user.role === 'KEUANGAN' || user.role === 'ADMIN_PUSAT' || user.role === 'ADMIN';
+
+      if (labelBadge) {
+        labelBadge.innerText = `Akses: ${user.displayName || user.sub} (${user.role})`;
+      }
+
+      const labelVerified = document.getElementById('label-cabang-terverifikasi');
+      if (labelVerified) {
+        labelVerified.innerText = isCabang ? `Cabang ${user.branch}` : `${user.displayName || user.sub} (${user.role})`;
+      }
+
+      // Kunci pilihan dropdown jika role Cabang
+      const selCabang = document.getElementById('cabang-pengaju');
+      if (selCabang && isCabang && user.branch) {
+        for (let i = 0; i < selCabang.options.length; i++) {
+          if (selCabang.options[i].value.toLowerCase().includes(user.branch.toLowerCase())) {
+            selCabang.selectedIndex = i;
+            break;
+          }
+        }
+        selCabang.disabled = true;
+      } else if (selCabang) {
+        selCabang.disabled = false;
+      }
+
+      // Default buka tab cabang untuk submit draf
+      document.getElementById('konten-form-cabang').classList.remove('hidden');
+
+      if (isKeuangan) {
+        document.getElementById('guard-akses-pusat-cabang').classList.add('hidden');
+      }
+
+      perbaruiPreviewKwitansi();
+    }
+
+    // 20. Navigasi Antar Tab dengan Proteksi RBAC
     function gantiTab(tab) {
+      if (!currentUser) {
+        alert('Silakan login terlebih dahulu untuk mengakses modul ini.');
+        return;
+      }
+
       const btnCabang = document.getElementById('tab-btn-cabang');
       const btnPusat = document.getElementById('tab-btn-pusat');
       const pCabang = document.getElementById('panel-cabang');
       const pPusat = document.getElementById('panel-pusat');
+
+      const isKeuangan = currentUser.role === 'KEUANGAN' || currentUser.role === 'ADMIN_PUSAT' || currentUser.role === 'ADMIN';
 
       if (tab === 'cabang') {
         btnCabang.className = "py-3 px-4 sm:px-6 font-extrabold text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition";
@@ -1683,173 +1830,18 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         btnCabang.className = "py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition";
         pPusat.classList.remove('hidden');
         pCabang.classList.add('hidden');
-        perbaruiPreviewKwitansi();
-      }
-    }
 
-    // 16. Otorisasi Akses Draf Kantor Cabang & Staf Internal
-    const TOKEN_CABANG_MAP = {
-      "BDG#010": { nama: "Cabang Bandung", valueCabang: "Cabang Bandung", isPusat: false },
-      "PDG#020": { nama: "Cabang Padang", valueCabang: "Cabang Padang", isPusat: false },
-      "MKS#030": { nama: "Cabang Makassar", valueCabang: "Cabang Makassar", isPusat: false },
-      "PLB#040": { nama: "Cabang Palembang", valueCabang: "Cabang Palembang", isPusat: false },
-      "JKT#00":  { nama: "Kantor Pusat Jakarta", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      // NIK Karyawan KJPP NSR
-      "NSR-2019-001": { nama: "Nanang Rahayu (Pemimpin Rekan)", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      "NSR-2019-002": { nama: "Deni Siswandi (Rekan)", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      "NSR-2019-003": { nama: "Mini Intan Cahyani (Rekan)", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      "NSR-2019-004": { nama: "Milda Hidayati Dewi (Manager Keuangan)", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      "NSR-2019-005": { nama: "Danny Taufik Hidayat (Manager Admin & Umum)", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      "NSR-2019-006": { nama: "Arie Indra Permana (Manager Marketing)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-007": { nama: "Tedi Setiadi (Reviewer)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-008": { nama: "Ricca Noer Farikha (Accounting & Tax)", valueCabang: "Kantor Pusat Jakarta", isPusat: true },
-      "NSR-2019-009": { nama: "Angga Malid Cahyadi (Reviewer)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-010": { nama: "Fadri Nurdin (Surveyor)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-011": { nama: "Erwandi (Staf Operasional)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-012": { nama: "Latief Satihi (Staf Operasional)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-013": { nama: "Aryanto (Staf Operasional)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-014": { nama: "Yanto (Staf Operasional)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-015": { nama: "Lasiman (Staf Operasional)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-016": { nama: "Sukirno (Staf Operasional)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-017": { nama: "Muhammad Syahrul Ruly (Surveyor)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-018": { nama: "Uci Sanusi (Surveyor)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-019": { nama: "Yasir Rizal (Surveyor)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2019-020": { nama: "Udin Syamsudin (Staf Operasional)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2025-021": { nama: "Dhea Safitri Ningrum (Staf Administrasi)", valueCabang: "Kantor Pusat Jakarta", isPusat: false },
-      "NSR-2026-022": { nama: "Siti Nuraeni Ependi (Staf Administrasi)", valueCabang: "Kantor Pusat Jakarta", isPusat: false }
-    };
-
-    const TOKEN_PUSAT_VALID = ["JKT#00", "NSR-FIN", "NSR-2019-004", "NSR-2019-008", "NSR-2019-001", "NSR-2019-005", "NSR8899"];
-
-    function checkRateLimitKwitansi(errEl) {
-      const RL_KEY = 'nsr_kwitansi_auth_rl';
-      const RL_WIN = 300000; // 5 menit
-      const RL_MAX = 5;
-      let rl = JSON.parse(localStorage.getItem(RL_KEY) || '{"count":0,"ts":0}');
-      const now = Date.now();
-      if (now - rl.ts > RL_WIN) rl = { count: 0, ts: now };
-      if (rl.count >= RL_MAX) {
-        const sisaMenit = Math.ceil((RL_WIN - (now - rl.ts)) / 60000);
-        if (errEl) {
-          errEl.innerText = `Terlalu banyak percobaan tidak valid. Sistem dikunci sementara. Silakan coba lagi dalam ${sisaMenit} menit.`;
-          errEl.classList.remove('hidden');
+        if (!isKeuangan) {
+          // Role Cabang: Tampilkan peringatan pembatasan akses
+          document.getElementById('guard-akses-pusat-cabang').classList.remove('hidden');
+          document.getElementById('konten-operasional-pusat').classList.add('hidden');
+        } else {
+          // Role Keuangan/Admin: Buka panel verifikasi operasional
+          document.getElementById('guard-akses-pusat-cabang').classList.add('hidden');
+          document.getElementById('konten-operasional-pusat').classList.remove('hidden');
+          perbaruiPreviewKwitansi();
         }
-        return false;
       }
-      return true;
-    }
-
-    function recordFailedAttempt(errEl, pesanDefault) {
-      const RL_KEY = 'nsr_kwitansi_auth_rl';
-      const RL_WIN = 300000;
-      const RL_MAX = 5;
-      let rl = JSON.parse(localStorage.getItem(RL_KEY) || '{"count":0,"ts":0}');
-      const now = Date.now();
-      if (now - rl.ts > RL_WIN) rl = { count: 0, ts: now };
-      rl.count++;
-      localStorage.setItem(RL_KEY, JSON.stringify(rl));
-      const sisa = RL_MAX - rl.count;
-      if (errEl) {
-        errEl.innerText = `${pesanDefault} (Sisa kesempatan: ${sisa > 0 ? sisa : 0})`;
-        errEl.classList.remove('hidden');
-      }
-    }
-
-    function clearRateLimitKwitansi() {
-      localStorage.removeItem('nsr_kwitansi_auth_rl');
-    }
-
-    function bukaAksesCabang(token) {
-      const val = (token || "").trim().toUpperCase();
-      const err = document.getElementById('pesan-auth-cabang');
-
-      if (!checkRateLimitKwitansi(err)) return false;
-
-      if (TOKEN_CABANG_MAP[val]) {
-        if (err) err.classList.add('hidden');
-        clearRateLimitKwitansi();
-        document.getElementById('box-auth-cabang').classList.add('hidden');
-        document.getElementById('konten-form-cabang').classList.remove('hidden');
-
-        const dataCabang = TOKEN_CABANG_MAP[val];
-        document.getElementById('label-sesi-cabang').innerText = `Akses: ${dataCabang.nama}`;
-        const dot = document.getElementById('dot-sesi-cabang');
-        if (dot) {
-          dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-        }
-        
-        const labelVerified = document.getElementById('label-cabang-terverifikasi');
-        if (labelVerified) {
-          labelVerified.innerText = dataCabang.nama;
-        }
-
-        // Set pilihan dropdown cabang otomatis sesuai token
-        const selCabang = document.getElementById('cabang-pengaju');
-        if (selCabang) {
-          selCabang.value = dataCabang.valueCabang;
-          dataKwitansiAktif.cabang = dataCabang.valueCabang;
-          updateDefaultPengaju(dataCabang.valueCabang);
-        }
-
-        perbaruiPreviewKwitansi();
-        return true;
-      } else {
-        recordFailedAttempt(err, "Token cabang tidak terdaftar.");
-        return false;
-      }
-    }
-
-    function bukaAksesCabangManual() {
-      const inp = document.getElementById('input-token-cabang').value;
-      bukaAksesCabang(inp);
-    }
-
-    function kunciKembaliCabang() {
-      document.getElementById('konten-form-cabang').classList.add('hidden');
-      document.getElementById('box-auth-cabang').classList.remove('hidden');
-      document.getElementById('input-token-cabang').value = '';
-      document.getElementById('label-sesi-cabang').innerText = 'Akses: Menunggu Token';
-      const dot = document.getElementById('dot-sesi-cabang');
-      if (dot) {
-        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-      }
-    }
-
-    // 17. Otorisasi Keuangan Kantor Pusat
-    function bukaAksesPusat(token) {
-      const val = (token || document.getElementById('input-token-pusat').value).trim().toUpperCase();
-      const err = document.getElementById('pesan-auth-pusat');
-
-      if (!checkRateLimitKwitansi(err)) return false;
-
-      // Jika user memasukkan token tanpa otorisasi pusat:
-      if (TOKEN_CABANG_MAP[val] && !TOKEN_CABANG_MAP[val].isPusat) {
-        recordFailedAttempt(err, `Akses Ditolak: Token tidak memiliki otorisasi untuk panel verifikasi keuangan pusat.`);
-        return false;
-      }
-
-      if (TOKEN_PUSAT_VALID.includes(val)) {
-        if (err) err.classList.add('hidden');
-        clearRateLimitKwitansi();
-        document.getElementById('box-auth-pusat').classList.add('hidden');
-        document.getElementById('konten-operasional-pusat').classList.remove('hidden');
-        document.getElementById('label-sesi-cabang').innerText = "Akses: Keuangan Pusat";
-        const dot = document.getElementById('dot-sesi-cabang');
-        if (dot) {
-          dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-        }
-        perbaruiPreviewKwitansi();
-        return true;
-      } else {
-        recordFailedAttempt(err, "Token tidak valid untuk otorisasi Keuangan Pusat.");
-        return false;
-      }
-    }
-
-    function kunciKembaliPusat() {
-      document.getElementById('box-auth-pusat').classList.remove('hidden');
-      document.getElementById('konten-operasional-pusat').classList.add('hidden');
-      document.getElementById('input-token-pusat').value = '';
     }
 
     function sahkanDanKunciKwitansi() {
@@ -1860,24 +1852,10 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       alert("Kwitansi Resmi BERHASIL DISAHKAN!\nNomor Resmi: " + document.getElementById('no-kwitansi-resmi').value + "\nPenandatangan: " + dataKwitansiAktif.namaPejabat + "\n\nSekarang Anda dapat menekan tombol 'Cetak / Simpan PDF (A4)'.");
     }
 
-    // 18. Cetak Dokumen PDF Resmi
+    // 21. Cetak Dokumen PDF Resmi
     function cetakPDFKwitansi() {
       perbaruiPreviewKwitansi();
       window.print();
-    }
-
-    // 19. Verifikasi Token Otomatis dari parameter URL (?token=...)
-    function verifikasiTokenOtomatis(token) {
-      const val = (token || "").trim().toUpperCase();
-      if (!val) return;
-
-      if (TOKEN_CABANG_MAP[val]) {
-        bukaAksesCabang(val);
-        if (TOKEN_CABANG_MAP[val].isPusat) {
-          document.getElementById('input-token-pusat').value = val;
-          bukaAksesPusat(val);
-        }
-      }
     }
   </script>
 

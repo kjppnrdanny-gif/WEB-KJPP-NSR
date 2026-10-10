@@ -1,6 +1,64 @@
 [build]
-  publish = "."
+  command = "node scripts/build-production.mjs"
+  publish = "dist"
   functions = "netlify/functions"
+
+# Routing API Serverless Functions
+[[redirects]]
+  from = "/api/auth-login"
+  to = "/.netlify/functions/auth-login"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth-verify"
+  to = "/.netlify/functions/auth-verify"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth-logout"
+  to = "/.netlify/functions/auth-logout"
+  status = 200
+
+[[redirects]]
+  from = "/api/nolap-data-proxy"
+  to = "/.netlify/functions/nolap-data-proxy"
+  status = 200
+
+[[redirects]]
+  from = "/api/kwitansi-data-proxy"
+  to = "/.netlify/functions/kwitansi-data-proxy"
+  status = 200
+
+# Proteksi Fallback Akses Internal
+[[redirects]]
+  from = "/tests/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/scratch/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/screenshots/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/staging-*/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/index.html"
+  status = 404
+  force = true
 
 [functions]
   node_bundler = "esbuild"

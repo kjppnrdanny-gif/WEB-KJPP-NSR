@@ -4,14 +4,41 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Simulasi pengujian tanpa mengubah server (true / false)'
+        required: false
+        default: 'false'
+      rollback_sha:
+        description: 'Commit SHA untuk rollback (opsional, kosongkan untuk deploy commit HEAD)'
+        required: false
+        default: ''
 
 jobs:
   web-deploy:
     name: Deploy Website to cPanel
     runs-on: ubuntu-latest
     steps:
-      - name: 🚚 Ambil Kode Terbaru dari Repo
+      - name: 🚚 Ambil Kode Repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.rollback_sha != '' && github.event.inputs.rollback_sha || github.ref }}
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Build Website Publik ke dist/ (Proteksi Portal cPanel)
+        run: node scripts/build-production.mjs --cpanel
+
+      - name: 💾 Simpan Snapshot Cadangan Deployment (Rollback Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpanel-snapshot-${{ github.sha }}
+          path: dist/
+          retention-days: 30
 
       - name: 📂 Sinkronisasi File ke cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -19,10 +46,15 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
           server-dir: public_html/
+          dry-run: ${{ github.event.inputs.dry_run == 'true' }}
+          dangerous-clean-slate: false
           exclude: |
-            **/.git*
-            **/.git*/**
+            portal-nolap.html
+            portal-kwitansi.html
+            **/portal-nolap.html
+            **/portal-kwitansi.html
             **/visitor-data.json
             **/README*.txt
             *.md

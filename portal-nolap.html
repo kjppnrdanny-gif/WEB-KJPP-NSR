@@ -73,7 +73,7 @@
       <div class="flex items-center gap-2 sm:gap-3">
         <div id="badge-sesi-header" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200">
           <span id="dot-sesi" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-          <span id="label-sesi" class="font-bold">Akses: Menunggu Token</span>
+          <span id="label-sesi" class="font-bold">Akses: Menunggu Login</span>
         </div>
         <a href="portal-kwitansi.html" title="Buka Portal Kwitansi" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
           <span>🧾 Portal Kwitansi</span>
@@ -112,24 +112,31 @@
         </svg>
       </div>
       <div>
-        <h2 class="text-lg font-bold text-white">Autentikasi Akses Sistem NoLap</h2>
-        <p class="text-xs text-slate-400 mt-1">Gunakan Token Akses internal resmi Anda untuk membuka instrumen penomoran &amp; approval KJPP NSR.</p>
+        <h2 class="text-lg font-bold text-white">Autentikasi Server Sistem NoLap</h2>
+        <p class="text-xs text-slate-400 mt-1">Sistem NoLap dilindungi autentikasi serverless. Masukkan nama pengguna dan kata sandi resmi Anda.</p>
       </div>
-      <div class="space-y-3">
-        <div class="relative">
-          <input type="password" id="input-token-akses" onkeydown="if(event.key==='Enter') verifikasiTokenNoLap()" placeholder="" class="w-full h-11 pl-4 pr-11 rounded-xl bg-slate-950 border border-slate-700 text-center font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400 uppercase text-sm tracking-wider" autocomplete="current-password">
-          <button type="button" onclick="toggleTokenNoLapVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-amber-400 focus:outline-none transition cursor-pointer" title="Lihat / Sembunyikan Token" aria-label="Toggle Token">
-            <svg id="eye-icon-nolap" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
+      <form onsubmit="loginKeServer(event)" class="space-y-3 text-left">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Pengguna (Username / Email)</label>
+          <input type="text" id="input-auth-id" placeholder="Nama Pengguna Terdaftar" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 font-mono text-amber-400 focus:outline-none focus:border-amber-400 text-xs tracking-wider" required autocomplete="username">
         </div>
-        <button type="button" onclick="verifikasiTokenNoLap()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Kata Sandi (Password)</label>
+          <div class="relative">
+            <input type="password" id="input-auth-pass" placeholder="••••••••" class="w-full h-11 pl-4 pr-11 rounded-xl bg-slate-950 border border-slate-700 font-mono text-amber-400 focus:outline-none focus:border-amber-400 text-xs tracking-wider" required autocomplete="current-password">
+            <button type="button" onclick="togglePassVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-amber-400 focus:outline-none transition cursor-pointer" title="Lihat / Sembunyikan Sandi" aria-label="Toggle Password">
+              <svg id="eye-icon-nolap" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" id="btn-login-submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20 cursor-pointer">
           Masuk ke Sistem &rarr;
         </button>
-        <p id="pesan-auth-error" class="text-xs text-rose-400 hidden font-semibold">Akses Ditolak: Kredensial tidak valid atau tidak memiliki otorisasi.</p>
-      </div>
+        <p id="pesan-auth-error" class="text-xs text-rose-400 hidden font-semibold text-center"></p>
+      </form>
     </div>
 
     <!-- AREA APLIKASI (TERBUKA SETELAH TOKEN TERVERIFIKASI) -->
@@ -155,7 +162,7 @@
             ★ OTORITAS ADMIN APPROVAL AKTIF
           </span>
           <button onclick="keluarSesi()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-rose-300 font-semibold transition border border-slate-700">
-            Ganti Token / Keluar
+            Keluar Sesi
           </button>
         </div>
       </div>
@@ -1071,86 +1078,10 @@
       "Palembang": { kode: "2.0160-05", nama: "Cabang Palembang" }
     };
 
-    const MASTER_TOKEN = {
-      // Token Pengajuan Cabang & Karyawan Internal Pusat
-      "NSR-PST-2026": { cabang: "Pusat", role: "CABANG", label: "Kantor Pusat Jakarta (Pengajuan)" },
-      "JKT#00": { cabang: "Pusat", role: "CABANG", label: "Kantor Pusat Jakarta (Pengajuan)" },
-      "NSR-PDG-2026": { cabang: "Padang", role: "CABANG", label: "Cabang Padang" },
-      "PDG#020": { cabang: "Padang", role: "CABANG", label: "Cabang Padang" },
-      "NSR-MKS-2026": { cabang: "Makassar", role: "CABANG", label: "Cabang Makassar" },
-      "MKS#030": { cabang: "Makassar", role: "CABANG", label: "Cabang Makassar" },
-      "NSR-BDG-2026": { cabang: "Bandung", role: "CABANG", label: "Cabang Bandung" },
-      "BDG#010": { cabang: "Bandung", role: "CABANG", label: "Cabang Bandung" },
-      "NSR-PLB-2026": { cabang: "Palembang", role: "CABANG", label: "Cabang Palembang" },
-      "PLB#040": { cabang: "Palembang", role: "CABANG", label: "Cabang Palembang" },
-      // Token Khusus Admin Approval Pusat & Master Akses
-      "NSR-ADM-99": { cabang: "Pusat", role: "ADMIN", label: "Administrator Pengendalian Mutu Pusat" },
-      "ADMIN#NSR": { cabang: "Pusat", role: "ADMIN", label: "Administrator Pengendalian Mutu Pusat" },
-      "NSR8899": { cabang: "Pusat", role: "ADMIN", label: "Super Admin Master Akses NSR" },
-
-      // Token NIK Karyawan Resmi KJPP NSR (22 Pegawai Terdaftar)
-      "NSR-2019-001": { cabang: "Pusat", role: "ADMIN", label: "Nanang Rahayu — Pemimpin Rekan (Manajemen)", nama: "Nanang Rahayu", jabatan: "Pemimpin Rekan" },
-      "NSR-2019-002": { cabang: "Pusat", role: "ADMIN", label: "Deni Siswandi — Rekan (Manajemen)", nama: "Deni Siswandi", jabatan: "Rekan" },
-      "NSR-2019-003": { cabang: "Pusat", role: "ADMIN", label: "Mini Intan Cahyani — Rekan (Manajemen)", nama: "Mini Intan Cahyani", jabatan: "Rekan" },
-      "NSR-2019-004": { cabang: "Pusat", role: "CABANG", label: "Milda Hidayati Dewi — Manager Keuangan", nama: "Milda Hidayati Dewi", jabatan: "Manager Keuangan" },
-      "NSR-2019-005": { cabang: "Pusat", role: "ADMIN", label: "Danny Taufik Hidayat — Manager Admin & Umum", nama: "Danny Taufik Hidayat", jabatan: "Manager Admin & Umum" },
-      "NSR-2019-006": { cabang: "Pusat", role: "CABANG", label: "Arie Indra Permana — Manager Marketing", nama: "Arie Indra Permana", jabatan: "Manager Marketing" },
-      "NSR-2019-007": { cabang: "Pusat", role: "CABANG", label: "Tedi Setiadi — Reviewer (Divisi Teknik)", nama: "Tedi Setiadi", jabatan: "Reviewer" },
-      "NSR-2019-008": { cabang: "Pusat", role: "CABANG", label: "Ricca Noer Farikha — Accounting & Tax", nama: "Ricca Noer Farikha", jabatan: "Accounting & Tax" },
-      "NSR-2019-009": { cabang: "Pusat", role: "CABANG", label: "Angga Malid Cahyadi — Reviewer (Divisi Teknik)", nama: "Angga Malid Cahyadi", jabatan: "Reviewer" },
-      "NSR-2019-010": { cabang: "Pusat", role: "CABANG", label: "Fadri Nurdin — Surveyor (Divisi Teknik)", nama: "Fadri Nurdin", jabatan: "Surveyor" },
-      "NSR-2019-011": { cabang: "Pusat", role: "CABANG", label: "Erwandi — Staf Operasional", nama: "Erwandi", jabatan: "Staf Operasional" },
-      "NSR-2019-012": { cabang: "Pusat", role: "CABANG", label: "Latief Satihi — Staf Operasional", nama: "Latief Satihi", jabatan: "Staf Operasional" },
-      "NSR-2019-013": { cabang: "Pusat", role: "CABANG", label: "Aryanto — Staf Operasional", nama: "Aryanto", jabatan: "Staf Operasional" },
-      "NSR-2019-014": { cabang: "Pusat", role: "CABANG", label: "Yanto — Staf Operasional", nama: "Yanto", jabatan: "Staf Operasional" },
-      "NSR-2019-015": { cabang: "Pusat", role: "CABANG", label: "Lasiman — Staf Operasional", nama: "Lasiman", jabatan: "Staf Operasional" },
-      "NSR-2019-016": { cabang: "Pusat", role: "CABANG", label: "Sukirno — Staf Operasional", nama: "Sukirno", jabatan: "Staf Operasional" },
-      "NSR-2019-017": { cabang: "Pusat", role: "CABANG", label: "Muhammad Syahrul Ruly — Surveyor", nama: "Muhammad Syahrul Ruly", jabatan: "Surveyor" },
-      "NSR-2019-018": { cabang: "Pusat", role: "CABANG", label: "Uci Sanusi — Surveyor", nama: "Uci Sanusi", jabatan: "Surveyor" },
-      "NSR-2019-019": { cabang: "Pusat", role: "CABANG", label: "Yasir Rizal — Surveyor", nama: "Yasir Rizal", jabatan: "Surveyor" },
-      "NSR-2019-020": { cabang: "Pusat", role: "CABANG", label: "Udin Syamsudin — Staf Operasional", nama: "Udin Syamsudin", jabatan: "Staf Operasional" },
-      "NSR-2025-021": { cabang: "Pusat", role: "CABANG", label: "Dhea Safitri Ningrum — Staf Administrasi", nama: "Dhea Safitri Ningrum", jabatan: "Staf Administrasi" },
-      "NSR-2026-022": { cabang: "Pusat", role: "CABANG", label: "Siti Nuraeni Ependi — Staf Administrasi", nama: "Siti Nuraeni Ependi", jabatan: "Staf Administrasi" }
-    };
-
-    // Daftar Akun Resmi dari MASTER_USER Google Sheets Terverifikasi
-    const MASTER_USER_ACCOUNTS = {
-      // Admin Pusat Berwenang Approval & Verifikasi
-      "kjppnsr.adm2@gmail.com": { cabang: "Pusat", role: "ADMIN", label: "Zahra — Admin Pusat", nama: "Zahra", jabatan: "Admin Pusat" },
-      "kjppnanang.adm@gmail.com": { cabang: "Pusat", role: "ADMIN", label: "Ir. Nanang Rahayu — Admin Pusat", nama: "Ir. Nanang Rahayu", jabatan: "Pemimpin Rekan" },
-      "kjppnr.danny@gmail.com": { cabang: "Pusat", role: "ADMIN", label: "Danny Taufik Hidayat, S.H. (Admin Pusat)", nama: "Danny Taufik Hidayat, S.H.", jabatan: "Manager Admin & Umum" },
-      // Admin Cabang (Pengajuan Only)
-      "nanangnsr8@gmail.com": { cabang: "Padang", role: "CABANG", label: "Admin KJPP NSR Cabang Padang", nama: "Admin Padang", jabatan: "Admin Cabang" },
-      "kjppnsrpalembang@gmail.com": { cabang: "Palembang", role: "CABANG", label: "Admin KJPP NSR Cabang Palembang", nama: "Admin Palembang", jabatan: "Admin Cabang" },
-      "kjpp.nsrmks@gmail.com": { cabang: "Makassar", role: "CABANG", label: "Admin KJPP NSR Cabang Makassar", nama: "Admin Makassar", jabatan: "Admin Cabang" },
-      "nsr.bdg1@gmail.com": { cabang: "Bandung", role: "CABANG", label: "Admin KJPP NSR Cabang Bandung", nama: "Admin Bandung", jabatan: "Admin Cabang" },
-      // Karyawan Internal Pusat (Pengajuan Only - Tidak Bisa Akses Tab 3, 4, 5)
-      "kjppnr.tedi@gmail.com": { cabang: "Pusat", role: "CABANG", label: "Tedi Setiadi (Penilai Pusat)", nama: "Tedi Setiadi", jabatan: "Reviewer" },
-      "anggamalid@gmail.com": { cabang: "Pusat", role: "CABANG", label: "Angga Malid Cahyadi (Penilai Pusat)", nama: "Angga Malid Cahyadi", jabatan: "Reviewer" },
-      "fn.kjppnr@gmail.com": { cabang: "Pusat", role: "CABANG", label: "Fadri Nurdin (Surveyor Pusat)", nama: "Fadri Nurdin", jabatan: "Surveyor" },
-      "onisahroni.nsr@gmail.com": { cabang: "Pusat", role: "CABANG", label: "Oni Sahroni (Surveyor Pusat)", nama: "Oni Sahroni", jabatan: "Surveyor" },
-      "rida.gary@gmail.com": { cabang: "Pusat", role: "CABANG", label: "Muhammad Syahrul Ruly (Surveyor Pusat)", nama: "Muhammad Syahrul Ruly", jabatan: "Surveyor" },
-      "sanusinr@gmail.com": { cabang: "Pusat", role: "CABANG", label: "Uci Sanusi (Surveyor Pusat)", nama: "Uci Sanusi", jabatan: "Surveyor" },
-      "rizal.yasir2424@gmail.com": { cabang: "Pusat", role: "CABANG", label: "Yasir Rizal (Surveyor Pusat)", nama: "Yasir Rizal", jabatan: "Surveyor" },
-      "riendra.ok@gmail.com": { cabang: "Pusat", role: "CABANG", label: "Arie Indra Permana (Marketing Pusat)", nama: "Arie Indra Permana", jabatan: "Manager Marketing" }
-    };
-
-    // Fungsi Validasi Otoritas Khusus Admin Pusat & Master Akses (NSR8899)
+    // Autentikasi server-side aman via Netlify Serverless Function (/api/auth-verify & /api/auth-login)
     function isSuperOrAdminPusat() {
       if (!sesiAktif) return false;
-      // HANYA Admin Master Akses (NSR8899), Token Admin Pusat, dan Manajemen Pusat
-      const masterTokens = [
-        "NSR8899", "NSR-ADM-99", "ADMIN#NSR",
-        "NSR-2019-001", "NSR-2019-002", "NSR-2019-003", "NSR-2019-005"
-      ];
-      const adminPusatEmails = [
-        "kjppnsr.adm2@gmail.com",
-        "kjppnanang.adm@gmail.com",
-        "kjppnr.danny@gmail.com"
-      ];
-      if (masterTokens.includes(sesiAktif.token)) return true;
-      if (sesiAktif.email && adminPusatEmails.includes(sesiAktif.email.toLowerCase())) return true;
-      return false;
+      return sesiAktif.role === 'ADMIN_PUSAT' || sesiAktif.role === 'ADMIN';
     }
 
     const MASTER_PENILAI = {
@@ -1327,7 +1258,7 @@
     /* =========================================================================
        2. INISIALISASI SISTEM & LOCAL STORAGE
        ========================================================================= */
-    function inisialisasiSistem() {
+    async function inisialisasiSistem() {
       // Muat database lokal jika ada, atau gunakan master awal
       const savedData = localStorage.getItem('nsr_nolap_database');
       if (savedData) {
@@ -1350,23 +1281,8 @@
       if (elTglSpk) elTglSpk.value = hariIni;
       if (elTglPenilaian) elTglPenilaian.value = hariIni;
 
-      // Cek apakah ada parameter token dari URL (misal: ?token=NSR-BDG-2026)
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlToken = urlParams.get('token');
-      if (urlToken) {
-        const inputEl = document.getElementById('input-token-akses');
-        if (inputEl) inputEl.value = urlToken;
-        verifikasiTokenNoLap();
-      } else {
-        // Cek sesi tersimpan sebelumnya
-        const savedSession = sessionStorage.getItem('nsr_nolap_session');
-        if (savedSession) {
-          try {
-            sesiAktif = JSON.parse(savedSession);
-            aktifkanPanelUtama();
-          } catch(e) {}
-        }
-      }
+      // Periksa sesi autentikasi serverless via /api/auth-verify
+      await periksaSesiServer();
 
       updateLivePreview();
       // Sinkronkan data terbaru secara otomatis dari Google Spreadsheet di latar belakang
@@ -1378,48 +1294,132 @@
     }
 
     /* =========================================================================
-       3. AUTENTIKASI TOKEN & MANAJEMEN ROLE
+       3. AUTENTIKASI SERVER-SIDE & MANAJEMEN ROLE TERPROTEKSI
        ========================================================================= */
-    function verifikasiTokenNoLap() {
-      const inputEl = document.getElementById('input-token-akses');
-      const errorEl = document.getElementById('pesan-auth-error');
-      if (!inputEl) return;
-
-      const rawInput = inputEl.value.trim();
-      if (!rawInput) {
-        if (errorEl) { errorEl.innerText = 'Harap masukkan Token Akses atau Kredensial Terdaftar.'; errorEl.classList.remove('hidden'); }
-        return;
-      }
-
-      const tokenUpper = rawInput.toUpperCase();
-      const emailLower = rawInput.toLowerCase();
-
-      // Cek berdasarkan Token Cabang / PIN Admin
-      const infoToken = MASTER_TOKEN[tokenUpper] || MASTER_USER_ACCOUNTS[emailLower];
-      if (infoToken) {
-        sesiAktif = {
-          token: tokenUpper,
-          cabang: infoToken.cabang,
-          role: infoToken.role,
-          label: infoToken.label,
-          nama: infoToken.nama || '',
-          jabatan: infoToken.jabatan || ''
-        };
-        sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
-        if (errorEl) errorEl.classList.add('hidden');
-        aktifkanPanelUtama();
-      } else {
-        if (errorEl) {
-          errorEl.innerText = 'Akses Ditolak: Kredensial tidak valid atau tidak memiliki otorisasi.';
-          errorEl.classList.remove('hidden');
-        }
+    function togglePassVisibility() {
+      const inp = document.getElementById('input-auth-pass');
+      if (inp) {
+        inp.type = (inp.type === 'password') ? 'text' : 'password';
       }
     }
 
-    function toggleTokenNoLapVisibility() {
-      const inp = document.getElementById('input-token-akses');
-      if (!inp) return;
-      inp.type = (inp.type === 'password') ? 'text' : 'password';
+    async function periksaSesiServer() {
+      try {
+        const res = await fetch('/api/auth-verify', {
+          method: 'GET',
+          headers: { 'accept': 'application/json' },
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            sesiAktif = {
+              sub: data.user.sub,
+              username: data.user.sub,
+              role: data.user.role,
+              cabang: data.user.branch || 'Pusat',
+              label: `${data.user.displayName || data.user.sub} (${data.user.title || data.user.role})`,
+              nama: data.user.displayName || data.user.sub,
+              jabatan: data.user.title || data.user.role
+            };
+            sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            aktifkanPanelUtama();
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Pemeriksaan sesi server offline atau belum login:', err);
+      }
+
+      // Cek sesi tersimpan sebelumnya jika server offline
+      const savedSession = sessionStorage.getItem('nsr_nolap_session');
+      if (savedSession) {
+        try {
+          sesiAktif = JSON.parse(savedSession);
+          aktifkanPanelUtama();
+          return;
+        } catch(e) {}
+      }
+
+      // Jika belum login / sesi tidak sah:
+      sesiAktif = null;
+      document.getElementById('box-auth-token').classList.remove('hidden');
+      document.getElementById('panel-aplikasi-utama').classList.add('hidden');
+    }
+
+    async function loginKeServer(event) {
+      if (event) event.preventDefault();
+      const inpId = document.getElementById('input-auth-id');
+      const inpPass = document.getElementById('input-auth-pass');
+      const errorEl = document.getElementById('pesan-auth-error');
+      const btnSubmit = document.getElementById('btn-login-submit');
+
+      if (!inpId || !inpPass) return;
+      const id = inpId.value.trim();
+      const pass = inpPass.value;
+
+      if (!id || !pass) {
+        if (errorEl) {
+          errorEl.innerText = 'Nama pengguna dan kata sandi wajib diisi.';
+          errorEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = 'Memverifikasi Kredensial...';
+      }
+      if (errorEl) errorEl.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth-login', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ identifier: id, password: pass })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          inpPass.value = '';
+          if (data.user) {
+            sesiAktif = {
+              sub: data.user.sub,
+              username: data.user.sub,
+              role: data.user.role,
+              cabang: data.user.branch || 'Pusat',
+              label: `${data.user.displayName || data.user.sub} (${data.user.title || data.user.role})`,
+              nama: data.user.displayName || data.user.sub,
+              jabatan: data.user.title || data.user.role
+            };
+            sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            aktifkanPanelUtama();
+          } else {
+            await periksaSesiServer();
+          }
+        } else {
+          if (errorEl) {
+            errorEl.innerText = data.error || 'Akses Ditolak: Kredensial tidak valid.';
+            errorEl.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        if (errorEl) {
+          errorEl.innerText = 'Gagal menghubungi server autentikasi. Pastikan backend serverless aktif.';
+          errorEl.classList.remove('hidden');
+        }
+      } finally {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerText = 'Masuk ke Sistem →';
+        }
+      }
     }
 
     function aktifkanPanelUtama() {
@@ -1442,7 +1442,7 @@
       infoRole.innerText = `Otoritas: ${sesiAktif.label}`;
 
       // Pembatasan Ketat: Tab 3 (Approval), Tab 4 (eLSa PPPK), Tab 5 (Riwayat Seluruh NoLap)
-      // HANYA untuk Admin Master Akses (NSR8899) & Admin Pusat Resmi!
+      // HANYA untuk Admin Pusat Resmi!
       // Pengajuan dari Cabang & Karyawan Internal Pusat HANYA dapat mengakses Tab 1 (Form) & Tab 2 (SPM).
       const tabApproval = document.getElementById('tab-btn-approval');
       const tabElsa = document.getElementById('tab-btn-elsa');
@@ -1500,14 +1500,24 @@
       updateLivePreview();
     }
 
-    function keluarSesi() {
+    async function keluarSesi() {
+      try {
+        await fetch('/api/auth-logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (e) {}
       sessionStorage.removeItem('nsr_nolap_session');
       sesiAktif = null;
       document.getElementById('box-auth-token').classList.remove('hidden');
       document.getElementById('panel-aplikasi-utama').classList.add('hidden');
-      document.getElementById('label-sesi').innerText = 'Akses: Menunggu Token';
-      document.getElementById('dot-sesi').classList.add('bg-amber-400', 'animate-pulse');
-      document.getElementById('dot-sesi').classList.remove('bg-emerald-400');
+      const labelSesi = document.getElementById('label-sesi');
+      const dotSesi = document.getElementById('dot-sesi');
+      if (labelSesi) labelSesi.innerText = 'Akses: Menunggu Login';
+      if (dotSesi) {
+        dotSesi.classList.add('bg-amber-400', 'animate-pulse');
+        dotSesi.classList.remove('bg-emerald-400');
+      }
       document.getElementById('tab-btn-approval')?.classList.add('hidden');
       document.getElementById('tab-btn-approval')?.classList.remove('flex');
       document.getElementById('tab-btn-elsa')?.classList.add('hidden');
