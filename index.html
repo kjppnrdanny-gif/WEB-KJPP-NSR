@@ -911,33 +911,97 @@
             <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500">Terhubung</span>
             <span class="text-xs font-extrabold text-[#002060]">dengan Kami</span>
           </div>
-          <div class="flex items-center gap-1.5 sm:gap-2">
-            <!-- Email Resmi -->
-            <a href="mailto:nanang_kjpp@yahoo.co.id" 
+          <div class="flex items-center gap-1.5 sm:gap-2 relative">
+            <!-- Email Resmi (Dengan Popover Interaktif) -->
+            <button type="button" 
                id="header-btn-email"
-               class="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-300 transition-all duration-200 shadow-sm group cursor-pointer" 
-               title="Kirim Email ke nanang_kjpp@yahoo.co.id" 
-               aria-label="Kirim Email Resmi ke nanang_kjpp@yahoo.co.id">
-              <svg class="w-5 h-5 text-slate-600 group-hover:text-blue-700 transition-colors shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               onclick="toggleEmailPopover(event)"
+               aria-expanded="false"
+               aria-haspopup="dialog"
+               aria-controls="header-email-popover"
+               class="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-white hover:bg-gradient-to-b hover:from-blue-50 hover:to-indigo-50/50 text-[#002060] border border-slate-200 hover:border-blue-400 shadow-sm hover:shadow transition-all duration-200 group cursor-pointer" 
+               title="Email Resmi: nanang_kjpp@yahoo.co.id (Klik untuk Opsi)" 
+               aria-label="Email Resmi KJPP NSR (Buka Informasi & Opsi)">
+              <svg class="w-5 h-5 text-slate-600 group-hover:text-[#002060] transition-colors shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="20" height="16" x="2" y="4" rx="2"/>
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
               </svg>
-            </a>
+            </button>
 
             <!-- Instagram Resmi -->
             <a href="https://www.instagram.com/kjppnsr/" 
                id="header-btn-instagram"
                target="_blank" 
                rel="noopener noreferrer" 
-               class="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 hover:border-rose-300 transition-all duration-200 shadow-sm group cursor-pointer" 
+               class="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-white hover:bg-gradient-to-b hover:from-rose-50 hover:to-pink-50/50 text-slate-700 hover:text-[#E1306C] border border-slate-200 hover:border-rose-300 shadow-sm hover:shadow transition-all duration-200 group cursor-pointer" 
                title="Kunjungi Instagram Resmi @kjppnsr" 
                aria-label="Instagram Resmi KJPP NSR (@kjppnsr)">
-              <svg class="w-5 h-5 text-slate-600 group-hover:text-rose-600 transition-colors shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="w-5 h-5 text-slate-600 group-hover:text-[#E1306C] transition-colors shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
                 <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
               </svg>
             </a>
+
+            <!-- Popover Interaktif Email Resmi -->
+            <div id="header-email-popover" 
+                 role="dialog" 
+                 aria-label="Informasi Email Resmi KJPP NSR"
+                 class="hidden absolute right-0 top-full mt-2.5 z-[60] w-[290px] sm:w-[320px] max-w-[calc(100vw-24px)] p-4 rounded-2xl bg-white border border-slate-200 shadow-2xl ring-1 ring-slate-900/5 transition-all text-left">
+              <!-- Panah Caret Indikator -->
+              <div class="absolute -top-1.5 right-[68px] w-3 h-3 bg-white border-t border-l border-slate-200 rotate-45"></div>
+
+              <!-- Header Popover -->
+              <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-100">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-[#002060]">Email Korespondensi Resmi</span>
+                </div>
+                <button type="button" 
+                        onclick="tutupEmailPopover()" 
+                        class="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition text-sm cursor-pointer" 
+                        aria-label="Tutup Popover">&times;</button>
+              </div>
+
+              <!-- Alamat Email Card -->
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 mb-3 group hover:border-blue-300 transition-colors">
+                <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-0.5">Alamat Email</span>
+                <span id="header-email-text" class="font-mono text-xs sm:text-[13px] font-bold text-[#002060] break-all select-all">nanang_kjpp@yahoo.co.id</span>
+              </div>
+
+              <!-- Aksi: Salin Email & Kirim Email -->
+              <div class="grid grid-cols-2 gap-2">
+                <!-- Tombol Salin Email -->
+                <button type="button" 
+                        id="btn-salin-email-header" 
+                        onclick="salinEmailHeader()" 
+                        class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer border border-slate-200"
+                        title="Salin alamat email ke clipboard">
+                  <svg id="icon-salin-email" class="w-3.5 h-3.5 text-slate-600 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                  </svg>
+                  <span id="label-salin-email">Salin Email</span>
+                </button>
+
+                <!-- Tombol Kirim Email -->
+                <a href="mailto:nanang_kjpp@yahoo.co.id" 
+                   id="btn-kirim-email-header" 
+                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#002060] hover:bg-blue-900 text-white font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer border border-blue-950"
+                   title="Buka aplikasi email untuk mengirim pesan">
+                  <svg class="w-3.5 h-3.5 text-amber-300 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                  <span>Kirim Email</span>
+                </a>
+              </div>
+
+              <!-- Info Keterangan -->
+              <p class="text-[10px] text-slate-400 text-center mt-2 leading-tight">
+                Permohonan penawaran biaya (RFP), valuasi aset &amp; konsultasi.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -4314,6 +4378,102 @@
       const menu = document.getElementById('mobile-menu');
       if (menu) menu.classList.toggle('hidden');
     }
+
+    /* Popover Email Resmi Header */
+    function toggleEmailPopover(event) {
+      if (event) {
+        event.stopPropagation();
+      }
+      const popover = document.getElementById('header-email-popover');
+      const btn = document.getElementById('header-btn-email');
+      if (!popover) return;
+      const isHidden = popover.classList.contains('hidden');
+      if (isHidden) {
+        popover.classList.remove('hidden');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+      } else {
+        popover.classList.add('hidden');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    function tutupEmailPopover() {
+      const popover = document.getElementById('header-email-popover');
+      const btn = document.getElementById('header-btn-email');
+      if (popover && !popover.classList.contains('hidden')) {
+        popover.classList.add('hidden');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    function salinEmailHeader() {
+      const email = 'nanang_kjpp@yahoo.co.id';
+      const label = document.getElementById('label-salin-email');
+      const btn = document.getElementById('btn-salin-email-header');
+      const icon = document.getElementById('icon-salin-email');
+      
+      const copyFeedback = function() {
+        if (label) label.textContent = 'Tersalin!';
+        if (btn) {
+          btn.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
+          btn.classList.remove('bg-slate-100', 'text-slate-800', 'border-slate-200');
+        }
+        if (icon) {
+          icon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+          icon.setAttribute('class', 'w-3.5 h-3.5 text-emerald-600 shrink-0');
+        }
+        setTimeout(function() {
+          if (label) label.textContent = 'Salin Email';
+          if (btn) {
+            btn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
+            btn.classList.add('bg-slate-100', 'text-slate-800', 'border-slate-200');
+          }
+          if (icon) {
+            icon.innerHTML = '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>';
+            icon.setAttribute('class', 'w-3.5 h-3.5 text-slate-600 shrink-0');
+          }
+        }, 2000);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(copyFeedback).catch(function() {
+          copyFallbackEmail(email, copyFeedback);
+        });
+      } else {
+        copyFallbackEmail(email, copyFeedback);
+      }
+    }
+
+    function copyFallbackEmail(text, cb) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        if (cb) cb();
+      } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    // Auto-close popover jika klik di luar atau tekan tombol Escape
+    document.addEventListener('click', function(e) {
+      const popover = document.getElementById('header-email-popover');
+      const btn = document.getElementById('header-btn-email');
+      if (popover && !popover.classList.contains('hidden')) {
+        if (!popover.contains(e.target) && (!btn || !btn.contains(e.target))) {
+          tutupEmailPopover();
+        }
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        tutupEmailPopover();
+      }
+    });
 
     function switchFaqTab(kategori, btn) {
       const tabButtons = document.querySelectorAll('.btn-faq-tab');
