@@ -497,6 +497,26 @@
     }
     #back-to-top.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
+    /* Efek & Transisi 4 Tab Ekosistem Utama */
+    @keyframes tabFadeSlide {
+      0% { opacity: 0; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .tab-panel-transition {
+      animation: tabFadeSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: opacity, transform;
+    }
+    .tab-btn-utama {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tab-btn-utama[aria-selected="false"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.4);
+    }
+    .tab-btn-utama:active {
+      transform: translateY(0);
+    }
+
     /* Focus states yang jelas */
     :where(a, button, input, select, textarea):focus-visible {
       outline: 3px solid rgba(56,189,248,.55);
@@ -1706,11 +1726,11 @@
           aria-selected="true" 
           aria-controls="tab-panel-mutu" 
           onclick="pilihTabUtama('mutu')" 
-          class="tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-950/70"
+          class="tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-950/70 ring-2 ring-sky-400/50 cursor-pointer"
           style="scroll-snap-align: start;">
           <svg class="w-4 h-4 text-sky-200 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
           <span>NSR Cloud &amp; Mutu</span>
-          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/20 text-sky-200 uppercase tracking-wider">Default</span>
+          <span class="tab-indicator-badge flex items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/30 text-sky-100 uppercase tracking-wider border border-sky-300/40 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>Aktif</span>
         </button>
 
         <!-- Tab 2: Layanan Unggulan -->
@@ -1721,10 +1741,11 @@
           aria-selected="false" 
           aria-controls="tab-panel-layanan" 
           onclick="pilihTabUtama('layanan')" 
-          class="tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white"
+          class="tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white cursor-pointer"
           style="scroll-snap-align: start;">
           <svg class="w-4 h-4 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
           <span>Layanan Unggulan</span>
+          <span class="tab-indicator-badge hidden items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/30 text-sky-100 uppercase tracking-wider border border-sky-300/40 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>Aktif</span>
         </button>
 
         <!-- Tab 3: Galeri FlexCarousel 3D -->
@@ -1735,10 +1756,11 @@
           aria-selected="false" 
           aria-controls="tab-panel-galeri" 
           onclick="pilihTabUtama('galeri')" 
-          class="tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white"
+          class="tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white cursor-pointer"
           style="scroll-snap-align: start;">
           <svg class="w-4 h-4 text-emerald-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
           <span>Galeri FlexCarousel 3D</span>
+          <span class="tab-indicator-badge hidden items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/30 text-sky-100 uppercase tracking-wider border border-sky-300/40 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>Aktif</span>
         </button>
 
         <!-- Tab 4: 5 Kantor Wilayah & Peta -->
@@ -1749,10 +1771,11 @@
           aria-selected="false" 
           aria-controls="tab-panel-kantor" 
           onclick="pilihTabUtama('kantor')" 
-          class="tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white"
+          class="tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white cursor-pointer"
           style="scroll-snap-align: start;">
           <svg class="w-4 h-4 text-rose-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
           <span>5 Kantor &amp; Peta</span>
+          <span class="tab-indicator-badge hidden items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-400/30 text-sky-100 uppercase tracking-wider border border-sky-300/40 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>Aktif</span>
         </button>
       </div>
     </div>
@@ -1760,7 +1783,7 @@
     <!-- TAB PANELS (Only 1 active at a time in the exact same spot) -->
     
     <!-- PANEL 1: NSR CLOUD & SISTEM MUTU (Default Visible) -->
-    <div id="tab-panel-mutu" role="tabpanel" aria-labelledby="tab-btn-mutu" class="tab-panel-item transition-all duration-300">
+    <div id="tab-panel-mutu" role="tabpanel" aria-labelledby="tab-btn-mutu" class="tab-panel-item tab-panel-transition">
       <div id="sistem-mutu" class="relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
@@ -3042,8 +3065,8 @@
   </a>
 
   <!-- Tombol kembali ke atas -->
-  <button id="back-to-top" type="button" aria-label="Kembali ke atas" title="Kembali ke atas" class="fixed bottom-6 left-6 z-40 w-11 h-11 rounded-full bg-slate-950 hover:bg-blue-950 text-white shadow-xl border border-slate-700 flex items-center justify-center">
-    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 15 7-7 7 7"/></svg>
+  <button id="back-to-top" type="button" aria-label="Kembali ke atas" title="Kembali ke atas" class="fixed bottom-6 left-6 z-[45] w-11 h-11 rounded-full bg-slate-950 hover:bg-blue-950 text-white shadow-xl border border-slate-700 hover:border-sky-400 flex items-center justify-center cursor-pointer transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m5 15 7-7 7 7"/></svg>
   </button>
 
   <!-- Toast global -->
@@ -5319,18 +5342,31 @@
       tabList.forEach(t => {
         const panel = document.getElementById(t.panelId);
         const btn = document.getElementById(t.btnId);
+        const badge = btn?.querySelector('.tab-indicator-badge');
         if (!panel) return;
         if (t.key === kunci) {
           panel.classList.remove('hidden');
+          panel.classList.remove('tab-panel-transition');
+          void panel.offsetWidth;
+          panel.classList.add('tab-panel-transition');
           if (btn) {
-            btn.className = 'tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-950/70';
+            btn.className = 'tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border bg-sky-600 text-white border-sky-400 shadow-lg shadow-sky-950/70 ring-2 ring-sky-400/50 cursor-pointer';
             btn.setAttribute('aria-selected', 'true');
+          }
+          if (badge) {
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
           }
         } else {
           panel.classList.add('hidden');
+          panel.classList.remove('tab-panel-transition');
           if (btn) {
-            btn.className = 'tab-btn-utama shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white';
+            btn.className = 'tab-btn-utama relative shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 border bg-slate-900/90 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white cursor-pointer';
             btn.setAttribute('aria-selected', 'false');
+          }
+          if (badge) {
+            badge.classList.add('hidden');
+            badge.classList.remove('flex');
           }
         }
       });
