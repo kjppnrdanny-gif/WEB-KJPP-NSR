@@ -193,61 +193,74 @@ export async function runCapture() {
     const dFull = await cdp.send("Page.captureScreenshot", { format: "png" });
     saveDual("restorasi_desktop_full.png", Buffer.from(dFull.data, "base64"));
 
+    cdp.close();
+
     // ==========================================
     // 2. MOBILE VIEWPORT & SECTIONS (390 x 844)
     // ==========================================
-    console.log(`\n📱 [Mobile] Setting viewport 390x844...`);
-    await cdp.send("Emulation.setDeviceMetricsOverride", {
+    console.log(`\n📱 [Mobile] Membuka tab baru untuk mobile capture...`);
+    const mobTargetRes = await fetch(`http://127.0.0.1:9222/json/new?about:blank`, { method: "PUT" });
+    const mobTargetData = await mobTargetRes.json();
+    const mobCdp = new CdpClient(mobTargetData.webSocketDebuggerUrl);
+    await mobCdp.connect();
+
+    await mobCdp.send("Page.enable");
+    await mobCdp.send("DOM.enable");
+    await mobCdp.send("Runtime.enable");
+
+    console.log(`📱 [Mobile] Setting viewport 390x844...`);
+    await mobCdp.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
       height: 844,
-      deviceScaleFactor: 2,
+      deviceScaleFactor: 1,
       mobile: true
     });
 
-    await cdp.send("Page.navigate", { url: `http://127.0.0.1:${port}/` });
-    await new Promise((r) => setTimeout(r, 2500));
+    await mobCdp.send("Page.navigate", { url: `http://127.0.0.1:${port}/` });
+    await new Promise((r) => setTimeout(r, 3000));
 
     // A. Mobile Hero
     console.log(`📸 Mengambil mobile hero...`);
-    const mHero = await cdp.send("Page.captureScreenshot", { format: "png" });
+    const mHero = await mobCdp.send("Page.captureScreenshot", { format: "png" });
     saveDual("restorasi_mobile_hero.png", Buffer.from(mHero.data, "base64"));
 
     // B. Mobile NSR Cloud
     console.log(`📸 Mengambil mobile NSR Cloud...`);
-    await cdp.send("Runtime.evaluate", {
+    await mobCdp.send("Runtime.evaluate", {
       expression: `document.getElementById('sistem-mutu')?.scrollIntoView({ block: 'start' });`
     });
-    await new Promise((r) => setTimeout(r, 1000));
-    const mCloud = await cdp.send("Page.captureScreenshot", { format: "png" });
+    await new Promise((r) => setTimeout(r, 1200));
+    const mCloud = await mobCdp.send("Page.captureScreenshot", { format: "png" });
     saveDual("restorasi_mobile_nsr_cloud.png", Buffer.from(mCloud.data, "base64"));
 
     // C. Mobile 5 Kantor
     console.log(`📸 Mengambil mobile 5 Kantor...`);
-    await cdp.send("Runtime.evaluate", {
+    await mobCdp.send("Runtime.evaluate", {
       expression: `document.getElementById('kantor')?.scrollIntoView({ block: 'start' });`
     });
-    await new Promise((r) => setTimeout(r, 1000));
-    const mKantor = await cdp.send("Page.captureScreenshot", { format: "png" });
+    await new Promise((r) => setTimeout(r, 1200));
+    const mKantor = await mobCdp.send("Page.captureScreenshot", { format: "png" });
     saveDual("restorasi_mobile_5_kantor.png", Buffer.from(mKantor.data, "base64"));
 
     // D. Full-Page Mobile
     console.log(`📸 Mengambil mobile Full-Page...`);
-    await cdp.send("Runtime.evaluate", { expression: `window.scrollTo(0, 0);` });
-    const mMetrics = await cdp.send("Page.getLayoutMetrics");
+    await mobCdp.send("Runtime.evaluate", { expression: `window.scrollTo(0, 0);` });
+    await new Promise((r) => setTimeout(r, 500));
+    const mMetrics = await mobCdp.send("Page.getLayoutMetrics");
     const mHeight = Math.ceil(mMetrics.contentSize ? mMetrics.contentSize.height : mMetrics.cssContentSize.height);
     console.log(`   Total tinggi mobile: ${mHeight}px`);
 
-    await cdp.send("Emulation.setDeviceMetricsOverride", {
+    await mobCdp.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
       height: mHeight,
       deviceScaleFactor: 1,
       mobile: true
     });
     await new Promise((r) => setTimeout(r, 1500));
-    const mFull = await cdp.send("Page.captureScreenshot", { format: "png" });
+    const mFull = await mobCdp.send("Page.captureScreenshot", { format: "png" });
     saveDual("restorasi_mobile_full.png", Buffer.from(mFull.data, "base64"));
 
-    cdp.close();
+    mobCdp.close();
     console.log(`\n🎉 Semua screenshot restorasi berhasil diambil dan disimpan!`);
   } finally {
     try { chromeProc.kill(); } catch (e) {}

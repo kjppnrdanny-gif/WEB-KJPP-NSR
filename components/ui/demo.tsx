@@ -24,11 +24,11 @@ export const FAQDemo = () => {
     "layanan": [
       {
         question: "Objek aset apa saja yang dapat dinilai oleh KJPP NSR?",
-        answer: "Kami melayani Penilaian Properti (tanah, bangunan, hotel, pabrik, mesin & alat berat, perkebunan) serta Penilaian Bisnis (saham korporasi, merger/akuisisi, dan studi kelayakan proyek)."
+        answer: "Kami melayani Penilaian Properti (tanah, bangunan komersial, perumahan, instalasi pabrik, mesin & alat berat industri, perkebunan & aset biologis, serta studi kelayakan proyek & HBU)."
       },
       {
         question: "Apakah KJPP NSR melayani penilaian aset biologis & perkebunan?",
-        answer: "Ya, kami memiliki tim spesialis penilai perkebunan kelapa sawit, karet, hutan tanaman industri, dan aset biologis berbasis PSAK 69."
+        answer: "Ya, kami memiliki tim spesialis penilai perkebunan kelapa sawit, karet, hutan tanaman industri, dan aset biologis berbasis PSAK 241 (SPI 304)."
       }
     ],
     "psn": [
