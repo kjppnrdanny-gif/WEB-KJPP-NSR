@@ -10,6 +10,10 @@ on:
         description: 'Simulasi pengujian tanpa mengubah server (true / false)'
         required: false
         default: 'false'
+      index_only:
+        description: 'Paket isolasi: hanya deploy index.html (true / false)'
+        required: false
+        default: 'true'
       rollback_sha:
         description: 'Commit SHA untuk rollback (opsional, kosongkan untuk deploy commit HEAD)'
         required: false
@@ -30,8 +34,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: 📦 Build Website Publik ke dist/ (Proteksi Portal cPanel)
-        run: node scripts/build-production.mjs --cpanel
+      - name: 📦 Build Website Publik ke dist/ (Proteksi Portal cPanel & Index-Only)
+        run: |
+          if [ "${{ github.event.inputs.index_only }}" = "false" ]; then
+            node scripts/build-production.mjs --cpanel
+          else
+            node scripts/build-production.mjs --cpanel --index-only
+          fi
 
       - name: 💾 Simpan Snapshot Cadangan Deployment (Rollback Artifact)
         uses: actions/upload-artifact@v4

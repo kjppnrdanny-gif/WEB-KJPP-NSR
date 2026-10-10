@@ -139,9 +139,10 @@ function auditPortalHardcodedTokens(distDir) {
 
 export function buildProduction(options = {}) {
   const isCpanel = options.cpanel || process.argv.includes("--cpanel") || process.env.TARGET_ENV === "cpanel";
+  const isIndexOnly = options.indexOnly || process.argv.includes("--index-only") || process.env.INDEX_ONLY === "true";
 
   console.log("=======================================================");
-  console.log(`🔒 MEMULAI BUILD PRODUKSI ALLOWLIST KJPP NSR -> dist/ [Target: ${isCpanel ? "cPanel" : "Lokal/Lengkap"}]`);
+  console.log(`🔒 MEMULAI BUILD PRODUKSI ALLOWLIST KJPP NSR -> dist/ [Target: ${isCpanel ? "cPanel" : "Lokal/Lengkap"}${isIndexOnly ? " | INDEX ONLY" : ""}]`);
   console.log("=======================================================");
 
   // Reset dist/
@@ -152,7 +153,10 @@ export function buildProduction(options = {}) {
 
   // 1. Tentukan berkas allowlist berdasarkan target
   let filesToCopy = [...ALLOWED_FILES];
-  if (isCpanel) {
+  if (isIndexOnly) {
+    filesToCopy = ["index.html"];
+    console.log("⚡ Mode Isolasi Maksimum: HANYA index.html yang disalin ke paket deployment.");
+  } else if (isCpanel) {
     // Portal NoLap dan Kwitansi dikecualikan dari paket cPanel
     // agar file portal operasional yang sedang berjalan di server cPanel tidak tertimpa
     filesToCopy = filesToCopy.filter(
@@ -176,13 +180,15 @@ export function buildProduction(options = {}) {
   }
   console.log(`✓ Menyalin ${fileCount} berkas web publik resmi.`);
 
-  // 2. Salin Direktori Allowlist
-  for (const d of ALLOWED_DIRS) {
-    const src = path.join(ROOT_DIR, d);
-    const dest = path.join(DIST_DIR, d);
-    if (fs.existsSync(src)) {
-      copyDirRecursive(src, dest);
-      console.log(`✓ Menyalin direktori aset: ${d}/`);
+  // 2. Salin Direktori Allowlist (dilewati bila mode index-only)
+  if (!isIndexOnly) {
+    for (const d of ALLOWED_DIRS) {
+      const src = path.join(ROOT_DIR, d);
+      const dest = path.join(DIST_DIR, d);
+      if (fs.existsSync(src)) {
+        copyDirRecursive(src, dest);
+        console.log(`✓ Menyalin direktori aset: ${d}/`);
+      }
     }
   }
 
@@ -197,7 +203,7 @@ export function buildProduction(options = {}) {
   console.log("✓ Audit Token LULUS: Portal bebas dari kamus token lama dan parameter bypass URL.");
 
   // 4. Verifikasi Keberadaan Berkas Kunci
-  const requiredFiles = [
+  const requiredFiles = isIndexOnly ? ["index.html"] : [
     "index.html",
     "company-profile.html",
     "profil-legalitas.html",
@@ -206,7 +212,7 @@ export function buildProduction(options = {}) {
     "tim-cabang.html",
     "wawasan-regulasi.html"
   ];
-  if (!isCpanel) {
+  if (!isCpanel && !isIndexOnly) {
     requiredFiles.push("portal-nolap.html", "portal-kwitansi.html");
   }
 
