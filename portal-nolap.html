@@ -623,70 +623,1683 @@
           </div>
         </div>
 
-        <!-- FORM SUB-SPM 2: PENGADAAN TANAH -->
-        <div id="box-sub-spm-tanah" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-5 shadow-xl">
-          <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
-            <div>
-              <h3 class="text-base font-extrabold text-white">Client Acceptance Khusus Pengadaan Tanah (Kepentingan Umum)</h3>
-              <p class="text-xs text-slate-400">Kode Dokumen: KJPP-RM-CA-01 (Pengadaan Tanah) • UU No. 2/2012 jo. PP 19/2021</p>
-            </div>
-            <span class="px-2.5 py-1 rounded bg-blue-500/10 text-blue-300 font-mono text-xs font-bold border border-blue-500/20">Pengadaan Tanah</span>
+        <!-- FORM SUB-SPM 2: PENGADAAN TANAH (SMART MITIGASI SPI 204) -->
+        <div id="box-sub-spm-tanah" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-7 space-y-6 shadow-2xl">
+          
+          <!-- Backwards-Compatible Hidden Elements for Existing Code -->
+          <div class="hidden sr-only" aria-hidden="true">
+            <input type="checkbox" id="rf-sengketa">
+            <input type="checkbox" id="rf-adat">
+            <input type="checkbox" id="rf-peta">
+            <input type="checkbox" id="rf-target">
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <!-- HEADER FORM -->
+          <div class="border-b border-slate-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Skala Pengadaan Tanah *</label>
-              <select id="spm-t-skala" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
-                <option value="Skala Kecil (≤ 5 Ha) - Langsung">Skala Kecil (≤ 5 Ha) — Pembelian / Pengadaan Langsung</option>
-                <option value="Skala Kecil (≤ 5 Ha) - Tahapan">Skala Kecil (≤ 5 Ha) — Melalui Tahapan Lengkap</option>
-                <option value="Skala Besar (> 5 Ha) - Tahapan">Skala Besar (> 5 Ha) — Wajib Tahapan Pengadaan Tanah</option>
-              </select>
+              <div class="flex items-center gap-2 flex-wrap mb-1">
+                <span class="px-2.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono text-[11px] font-bold border border-blue-500/30">KJPP-RM-CA-01 (Tanah)</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/30">SPI 204 (NPW)</span>
+                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/30">UU No. 2/2012 jo. PP 19/2021</span>
+                <span id="badge-status-spm-tanah" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] font-bold border border-slate-700">STATUS: DRAFT</span>
+              </div>
+              <h3 class="text-base sm:text-lg font-black text-white tracking-tight">Smart Mitigasi &amp; Client Acceptance Pengadaan Tanah</h3>
+              <p class="text-xs text-slate-400">Sistem Pengendalian Mutu &amp; Manajemen Risiko Khusus Pengadaan Tanah untuk Kepentingan Umum.</p>
             </div>
 
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Dasar Nilai Output *</label>
-              <select id="spm-t-output" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
-                <option value="Nilai Penggantian Wajar (NPW)">Nilai Penggantian Wajar (NPW) — SPI 204</option>
-                <option value="Nilai Pasar">Nilai Pasar (Untuk Skala Kecil Tanpa Tahapan)</option>
+            <!-- Pre-fill Selector dari NoLap Request -->
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs">
+              <span class="text-slate-400 font-semibold whitespace-nowrap text-[11px]">Tautkan NoLap:</span>
+              <select id="spm-t-pilih-req" onchange="muatDataPengajuanKeSpmTanah(this.value)" class="h-8 px-2.5 rounded bg-slate-900 border border-slate-700 text-amber-400 font-mono text-xs focus:outline-none focus:border-amber-400">
+                <option value="">-- Pilih Permohonan NoLap --</option>
               </select>
             </div>
+          </div>
 
-            <div class="sm:col-span-2">
-              <label class="block font-semibold text-slate-300 mb-2">Pemeriksaan Risiko Khusus (Red Flags Checklist):</label>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] bg-slate-950 p-4 rounded-xl border border-slate-800">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="rf-sengketa" class="rounded bg-slate-800 border-slate-700 text-amber-400 focus:ring-0">
-                  <span>Terdapat sengketa kepemilikan / perkara hukum aktif</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="rf-adat" class="rounded bg-slate-800 border-slate-700 text-amber-400 focus:ring-0">
-                  <span>Objek tanah ulayat / tanah adat</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="rf-peta" class="rounded bg-slate-800 border-slate-700 text-amber-400 focus:ring-0">
-                  <span>Daftar nominatif atau peta bidang BPN belum final</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="rf-target" class="rounded bg-slate-800 border-slate-700 text-amber-400 focus:ring-0">
-                  <span>Ada indikasi intervensi / target nilai dari pihak pemohon</span>
-                </label>
+          <!-- SUMMARY STATUS DASHBOARD BAR -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Pemeriksaan Mandatory</span>
+              <span id="stat-spm-mandatory" class="text-sm font-extrabold text-blue-400">15/15 Diperiksa</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Red Flags Aktif</span>
+              <span id="stat-spm-redflags" class="text-sm font-extrabold text-emerald-400">0 Teridentifikasi</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Keputusan Acceptance</span>
+              <span id="stat-spm-decision" class="text-sm font-extrabold text-slate-300">Belum Diputuskan</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Status Verifikasi SPM</span>
+              <span id="stat-spm-approval" class="text-sm font-extrabold text-amber-400">DRAFT (Review)</span>
+            </div>
+          </div>
+
+          <!-- ========================================================
+               BAGIAN A: IDENTIFIKASI DAN KESESUAIAN PENUGASAN (Q1 - Q15) [M]
+               ======================================================== -->
+          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+            <button type="button" onclick="toggleSmartSection('sec-tanah-a')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 flex items-center justify-center font-bold text-xs">A</span>
+                <div>
+                  <h4 class="text-xs sm:text-sm font-extrabold text-white">Identifikasi &amp; Kesesuaian Penugasan</h4>
+                  <p class="text-[11px] text-slate-400">Pertanyaan 1 s.d. 15 • Seluruh pemeriksaan wajib diselesaikan [M]</p>
+                </div>
+              </div>
+              <span id="chevron-sec-tanah-a" class="text-slate-400 text-xs font-bold">▲</span>
+            </button>
+
+            <div id="sec-tanah-a" class="p-5 space-y-4 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block font-semibold text-slate-300 mb-1">1. Nama Proyek Pengadaan Tanah * [M]</label>
+                  <input type="text" id="spm-t-nama-proyek" placeholder="Contoh: Pengadaan Tanah Pembangunan Bendungan / Jalan Tol..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Instansi yang Memerlukan Tanah * [M]</label>
+                  <input type="text" id="spm-t-instansi" placeholder="Contoh: Kementerian PUPR / BBPJN / Pemkab" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Lokasi Objek Pengadaan Tanah * [M]</label>
+                  <input type="text" id="spm-t-lokasi-objek" placeholder="Desa/Kecamatan, Kabupaten/Kota, Provinsi" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">2. Identitas Pemberi Tugas * [M]</label>
+                  <input type="text" id="spm-t-pemberi-tugas" placeholder="Pemberi Tugas (PPK / Dinas Terkait)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Pengguna Laporan Terkonfirmasi * [M]</label>
+                  <input type="text" id="spm-t-pengguna-laporan" placeholder="Pihak Pengguna Laporan Penilaian" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 border-t border-slate-800/60">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">3. Luas Keseluruhan Rencana * [M]</label>
+                  <div class="flex gap-2">
+                    <input type="number" step="0.01" id="spm-t-luas" placeholder="Luas" class="w-2/3 h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <select id="spm-t-luas-satuan" class="w-1/3 h-10 px-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400">
+                      <option value="Ha">Hektare (Ha)</option>
+                      <option value="m²">m²</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">4. Skala Pengadaan Tanah * [M]</label>
+                  <select id="spm-t-skala" onchange="onTanahSkalaMekanismeChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="Skala Kecil (≤ 5 Ha) - Langsung">Skala Kecil (≤ 5 Ha) — Pembelian / Pengadaan Langsung</option>
+                    <option value="Skala Kecil (≤ 5 Ha) - Tahapan">Skala Kecil (≤ 5 Ha) — Melalui Tahapan Lengkap</option>
+                    <option value="Skala Besar (> 5 Ha) - Tahapan">Skala Besar (> 5 Ha) — Wajib Tahapan Pengadaan Tanah</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">5. Mekanisme Pengadaan Tanah * [M]</label>
+                  <select id="spm-t-mekanisme" onchange="onTanahSkalaMekanismeChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="Pembelian / Pengadaan Langsung">Pembelian / Pengadaan Langsung (Skala Kecil ≤ 5 Ha)</option>
+                    <option value="Melalui Tahapan Pengadaan Tanah Lengkap">Melalui Tahapan Lengkap (UU 2/2012 jo. PP 19/2021)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">6. Dasar Nilai Output * [M]</label>
+                  <select id="spm-t-output" onchange="onTanahDasarNilaiChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="Nilai Penggantian Wajar (NPW)">Nilai Penggantian Wajar (NPW) — SPI 204</option>
+                    <option value="Nilai Pasar">Nilai Pasar (Untuk Skala Kecil Tanpa Tahapan)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Banner Validasi Keselarasan Regulasi -->
+              <div id="banner-keselarasan-dasar-nilai" class="p-3 rounded-lg bg-blue-950/40 border border-blue-800/60 text-[11px] text-blue-200 flex items-start gap-2">
+                <span class="text-blue-400 font-bold">ℹ️</span>
+                <span>Standar SPI 204: Penugasan pengadaan tanah untuk kepentingan umum melalui tahapan wajib menggunakan dasar <strong>Nilai Penggantian Wajar (NPW)</strong>. Skala kecil tanpa tahapan dapat menggunakan <strong>Nilai Pasar</strong>.</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-800/60">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">7. Kesesuaian Pemilihan Dasar Nilai * [M]</label>
+                  <select id="spm-t-kesesuaian-dasar-nilai" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="SESUAI">SESUAI — Sesuai Maksud, Tujuan, Mekanisme &amp; SPI 204</option>
+                    <option value="PERLU KLARIFIKASI">PERLU KLARIFIKASI — Memerlukan Konfirmasi Pemberi Tugas</option>
+                    <option value="TIDAK SESUAI">TIDAK SESUAI — Berpotensi Melanggar Standar (Eskalasi)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">8. Surat Penugasan / Kontrak / SPK / KAK * [M]</label>
+                  <select id="spm-t-dok-spk" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="TERSEDIA & DIVERIFIKASI">TERSEDIA &amp; TELAH DIVERIFIKASI</option>
+                    <option value="DALAM PROSES PENERBITAN">DALAM PROSES PENERBITAN RESMI</option>
+                    <option value="BELUM TERSEDIA">BELUM TERSEDIA (Syarat Tunda)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">9. Dokumen Perencanaan (DPPT) * [M]</label>
+                  <select id="spm-t-dok-dppt" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="TERSEDIA LENGKAP">TERSEDIA LENGKAP</option>
+                    <option value="TELAH DIMINTAKAN">TELAH DIMINTAKAN KEPADA INSTANSI</option>
+                    <option value="TIDAK TERSEDIA (N/A)">TIDAK TERSEDIA (N/A untuk Skala Kecil Tertentu)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-800/60">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">10. Tanggal Penilaian Ditentukan * [M]</label>
+                  <div class="flex gap-2">
+                    <select id="spm-t-status-tgl-penilaian" class="w-1/2 h-10 px-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                      <option value="YA - Sesuai Ketentuan">YA (Sesuai Ketentuan)</option>
+                      <option value="BELUM DAPAT DITENTUKAN">BELUM DAPAT DITENTUKAN</option>
+                    </select>
+                    <input type="date" id="spm-t-tgl-penilaian" class="w-1/2 h-10 px-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">11. Kompetensi &amp; Kewenangan Penilai * [M]</label>
+                  <select id="spm-t-kompetensi-penilai" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="SESUAI (Lisensi BPN & Izin Menkeu)">SESUAI — Lisensi Pertanahan BPN &amp; Izin Menkeu Aktif</option>
+                    <option value="TIDAK SESUAI">TIDAK SESUAI — Belum Berlisensi Pertanahan BPN</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">12. Kecukupan Waktu Pelaksanaan * [M]</label>
+                  <select id="spm-t-waktu-cukup" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="MEMADAI">MEMADAI — Sesuai Standar Profesi &amp; Beban Bidang</option>
+                    <option value="TIDAK MEMADAI">TIDAK MEMADAI — Risiko Keterlambatan Tinggi</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Baris Tata Kelola & Integritas (Q13 - Q15) -->
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                <span class="text-slate-400 font-bold block text-[11px] uppercase tracking-wider">Uji Independensi &amp; Bebas Tekanan Integritas (Q13 - Q15):</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1">13. Pemeriksaan Independensi * [M]</label>
+                    <select id="spm-t-independensi" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                      <option value="TELAH DIPERIKSA & BEBAS KONFLIK">TELAH DIPERIKSA &amp; BEBAS KONFLIK</option>
+                      <option value="BELUM DIPERIKSA">BELUM DIPERIKSA (Wajib Sebelum Approval)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1">14. Potensi Benturan Kepentingan * [M]</label>
+                    <select id="spm-t-benturan-kepentingan" onchange="onIntegritasFieldChange()" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                      <option value="TIDAK ADA">TIDAK ADA — Bebas Benturan Kepentingan (Aman)</option>
+                      <option value="YA - TERDAPAT POTENSI">YA — TERDAPAT POTENSI (Wajib Eskalasi / Mitigasi)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1">15. Permintaan / Tekanan Target Nilai * [M]</label>
+                    <select id="spm-t-tekanan-nilai" onchange="onIntegritasFieldChange()" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                      <option value="TIDAK ADA">TIDAK ADA — Bebas Tekanan Nilai (Aman)</option>
+                      <option value="YA - TERDAPAT TEKANAN">YA — TERDAPAT TEKANAN (Wajib Eskalasi / Decline)</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div class="sm:col-span-2">
-              <label class="block font-semibold text-slate-300 mb-1">Tindakan Mitigasi Khusus yang Diterapkan</label>
-              <input type="text" id="spm-t-mitigasi" placeholder="Contoh: Meminta peta bidang BPN resmi, pendampingan satgas A/B, review khusus Pemimpin Rekan..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+          <!-- ========================================================
+               BAGIAN B: SCREENING RISIKO KHUSUS / RED FLAGS (Q16 - Q33) [M]
+               ======================================================== -->
+          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+            <button type="button" onclick="toggleSmartSection('sec-tanah-b')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold text-xs">B</span>
+                <div>
+                  <h4 class="text-xs sm:text-sm font-extrabold text-white">Screening Risiko Khusus Pengadaan Tanah (Red Flags Checklist)</h4>
+                  <p class="text-[11px] text-slate-400">Pertanyaan 16 s.d. 33 • 18 Indikator Risiko Wajib Diskrining [M]</p>
+                </div>
+              </div>
+              <span id="chevron-sec-tanah-b" class="text-slate-400 text-xs font-bold">▲</span>
+            </button>
+
+            <div id="sec-tanah-b" class="p-5 space-y-3 text-xs">
+              <div class="flex items-center justify-between pb-2 text-[11px] text-slate-400 border-b border-slate-800">
+                <span>Pilih opsi: <strong>TIDAK</strong> (Aman) | <strong>YA</strong> (Memicu IRAC &amp; Mitigasi) | <strong>KLARIFIKASI</strong> (Perlu PIC &amp; Tenggat).</span>
+                <span id="label-redflags-terhitung" class="font-bold text-emerald-400">0 Risiko Aktif</span>
+              </div>
+
+              <!-- LIST 18 INDIKATOR RED FLAGS -->
+              <div class="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+                
+            <!-- Indikator RF-01 (Q16) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-01</span>
+                    <strong class="text-xs text-white">16. Kepastian Skala & Luas</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah skala atau luas pengadaan tanah masih belum pasti?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-skala-pasti" value="TIDAK" checked onchange="onSmartRfChange('rf-skala-pasti', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-skala-pasti" value="YA" onchange="onSmartRfChange('rf-skala-pasti', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-skala-pasti" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-skala-pasti', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-skala-pasti" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-skala-pasti" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-skala-pasti" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-skala-pasti" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-02 (Q17) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-02</span>
+                    <strong class="text-xs text-white">17. Kejelasan Mekanisme Pengadaan</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah mekanisme pengadaan tanah belum ditetapkan atau belum jelas?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-mekanisme-jelas" value="TIDAK" checked onchange="onSmartRfChange('rf-mekanisme-jelas', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-mekanisme-jelas" value="YA" onchange="onSmartRfChange('rf-mekanisme-jelas', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-mekanisme-jelas" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-mekanisme-jelas', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-mekanisme-jelas" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-mekanisme-jelas" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-mekanisme-jelas" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-mekanisme-jelas" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-03 (Q18) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-03</span>
+                    <strong class="text-xs text-white">18. Kesesuaian Dasar Nilai vs Mekanisme</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah terdapat potensi ketidaksesuaian antara dasar nilai dengan mekanisme pengadaan tanah?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-dasar-nilai-sesuai" value="TIDAK" checked onchange="onSmartRfChange('rf-dasar-nilai-sesuai', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-dasar-nilai-sesuai" value="YA" onchange="onSmartRfChange('rf-dasar-nilai-sesuai', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-dasar-nilai-sesuai" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-dasar-nilai-sesuai', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-dasar-nilai-sesuai" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-dasar-nilai-sesuai" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-dasar-nilai-sesuai" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-dasar-nilai-sesuai" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-04 (Q19) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-04</span>
+                    <strong class="text-xs text-white">19. Status Peta Bidang BPN</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah peta bidang belum tersedia atau belum final?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-peta" value="TIDAK" checked onchange="onSmartRfChange('rf-peta', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-peta" value="YA" onchange="onSmartRfChange('rf-peta', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-peta" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-peta', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-peta" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-peta" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-peta" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-peta" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-05 (Q20) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-05</span>
+                    <strong class="text-xs text-white">20. Status Daftar Nominatif</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah daftar nominatif belum tersedia, belum lengkap, atau belum final?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-nominatif" value="TIDAK" checked onchange="onSmartRfChange('rf-nominatif', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-nominatif" value="YA" onchange="onSmartRfChange('rf-nominatif', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-nominatif" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-nominatif', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-nominatif" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-nominatif" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-nominatif" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-nominatif" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-06 (Q21) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-06</span>
+                    <strong class="text-xs text-white">21. Kejelasan Status Hak & Kepemilikan</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah terdapat ketidakjelasan status hak, kepemilikan, atau penguasaan tanah?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-status-hak" value="TIDAK" checked onchange="onSmartRfChange('rf-status-hak', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-status-hak" value="YA" onchange="onSmartRfChange('rf-status-hak', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-status-hak" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-status-hak', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-status-hak" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-status-hak" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-status-hak" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-status-hak" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-07 (Q22) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-07</span>
+                    <strong class="text-xs text-white">22. Sengketa & Litigasi Aktif</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah terdapat sengketa tanah, klaim pihak lain, atau potensi litigasi?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-sengketa" value="TIDAK" checked onchange="onSmartRfChange('rf-sengketa', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-sengketa" value="YA" onchange="onSmartRfChange('rf-sengketa', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-sengketa" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-sengketa', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-sengketa" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-sengketa" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-sengketa" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-sengketa" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-08 (Q23) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-08</span>
+                    <strong class="text-xs text-white">23. Tanah Adat / Tanah Ulayat</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah objek mencakup tanah adat atau tanah ulayat?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-adat" value="TIDAK" checked onchange="onSmartRfChange('rf-adat', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-adat" value="YA" onchange="onSmartRfChange('rf-adat', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-adat" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-adat', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-adat" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-adat" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-adat" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-adat" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-09 (Q24) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-09</span>
+                    <strong class="text-xs text-white">24. Tanah Wakaf</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah objek mencakup tanah wakaf?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-wakaf" value="TIDAK" checked onchange="onSmartRfChange('rf-wakaf', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-wakaf" value="YA" onchange="onSmartRfChange('rf-wakaf', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-wakaf" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-wakaf', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-wakaf" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-wakaf" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-wakaf" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-wakaf" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-10 (Q25) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-10</span>
+                    <strong class="text-xs text-white">25. Aset BMN / BMD / BUMN / BUMD</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah objek mencakup aset BMN, BMD, BUMN, atau BUMD?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-aset-negara" value="TIDAK" checked onchange="onSmartRfChange('rf-aset-negara', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-aset-negara" value="YA" onchange="onSmartRfChange('rf-aset-negara', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-aset-negara" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-aset-negara', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-aset-negara" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-aset-negara" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-aset-negara" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-aset-negara" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-11 (Q26) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-11</span>
+                    <strong class="text-xs text-white">26. Kawasan Hutan / Pembatasan Khusus</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah objek berada di kawasan hutan atau memiliki pembatasan penggunaan khusus?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-kawasan-hutan" value="TIDAK" checked onchange="onSmartRfChange('rf-kawasan-hutan', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-kawasan-hutan" value="YA" onchange="onSmartRfChange('rf-kawasan-hutan', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-kawasan-hutan" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-kawasan-hutan', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-kawasan-hutan" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-kawasan-hutan" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-kawasan-hutan" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-kawasan-hutan" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-12 (Q27) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-12</span>
+                    <strong class="text-xs text-white">27. Perbedaan Fisik vs Yuridis</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah terdapat perbedaan kondisi fisik lapangan dengan dokumen yuridis atau data inventarisasi?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-beda-fisik-yuridis" value="TIDAK" checked onchange="onSmartRfChange('rf-beda-fisik-yuridis', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-beda-fisik-yuridis" value="YA" onchange="onSmartRfChange('rf-beda-fisik-yuridis', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-beda-fisik-yuridis" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-beda-fisik-yuridis', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-beda-fisik-yuridis" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-beda-fisik-yuridis" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-beda-fisik-yuridis" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-beda-fisik-yuridis" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-13 (Q28) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-13</span>
+                    <strong class="text-xs text-white">28. Potensi Tanah Sisa (Severance)</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah terdapat potensi tanah sisa yang perlu dianalisis?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-tanah-sisa" value="TIDAK" checked onchange="onSmartRfChange('rf-tanah-sisa', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-tanah-sisa" value="YA" onchange="onSmartRfChange('rf-tanah-sisa', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-tanah-sisa" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-tanah-sisa', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-tanah-sisa" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-tanah-sisa" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-tanah-sisa" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-tanah-sisa" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-14 (Q29) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-14</span>
+                    <strong class="text-xs text-white">29. Kegiatan Usaha / Pendapatan Terdampak</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah terdapat kegiatan usaha atau sumber pendapatan yang terdampak?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-usaha-terdampak" value="TIDAK" checked onchange="onSmartRfChange('rf-usaha-terdampak', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-usaha-terdampak" value="YA" onchange="onSmartRfChange('rf-usaha-terdampak', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-usaha-terdampak" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-usaha-terdampak', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-usaha-terdampak" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-usaha-terdampak" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-usaha-terdampak" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-usaha-terdampak" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-15 (Q30) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-15</span>
+                    <strong class="text-xs text-white">30. Keterbatasan Data Pasar Pembanding</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah data pasar atau data pembanding penilaian terbatas?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-data-pasar" value="TIDAK" checked onchange="onSmartRfChange('rf-data-pasar', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-data-pasar" value="YA" onchange="onSmartRfChange('rf-data-pasar', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-data-pasar" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-data-pasar', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-data-pasar" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-data-pasar" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-data-pasar" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-data-pasar" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-16 (Q31) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-16</span>
+                    <strong class="text-xs text-white">31. Permintaan Target Nilai / Intervensi</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah terdapat indikasi permintaan target nilai atau intervensi terhadap independensi Penilai?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-target" value="TIDAK" checked onchange="onSmartRfChange('rf-target', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-target" value="YA" onchange="onSmartRfChange('rf-target', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-target" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-target', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-target" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-target" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-target" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-target" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-17 (Q32) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-17</span>
+                    <strong class="text-xs text-white">32. Risiko Waktu & Keterbatasan Akses</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah terdapat risiko keterlambatan, keterbatasan akses, atau ketidakcukupan waktu pekerjaan?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-waktu-akses" value="TIDAK" checked onchange="onSmartRfChange('rf-waktu-akses', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-waktu-akses" value="YA" onchange="onSmartRfChange('rf-waktu-akses', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-waktu-akses" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-waktu-akses', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-waktu-akses" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-waktu-akses" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-waktu-akses" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-waktu-akses" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Indikator RF-18 (Q33) -->
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 transition hover:border-slate-700/80 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="pr-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">RF-18</span>
+                    <strong class="text-xs text-white">33. Risiko Material Khusus Lainnya</strong>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Apakah ditemukan risiko material lainnya yang belum tercakup dalam indikator di atas?</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                  <!-- Radio Pill Buttons -->
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-material-lain" value="TIDAK" checked onchange="onSmartRfChange('rf-material-lain', 'TIDAK')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50">
+                      TIDAK
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-material-lain" value="YA" onchange="onSmartRfChange('rf-material-lain', 'YA')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border-rose-500/50">
+                      YA (Risiko)
+                    </span>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="rf_val_rf-material-lain" value="BELUM DIKETAHUI" onchange="onSmartRfChange('rf-material-lain', 'BELUM DIKETAHUI')" class="peer sr-only">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition block select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-500/20 peer-checked:text-amber-300 peer-checked:border-amber-500/50">
+                      KLARIFIKASI
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Drawer Klarifikasi (Jika BELUM DIKETAHUI) -->
+              <div id="drawer-clarify-rf-material-lain" class="hidden pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-lg">
+                <div class="sm:col-span-2">
+                  <label class="block text-slate-400 font-semibold mb-0.5">Kebutuhan Klarifikasi &amp; Fakta yang Perlu Dicari:</label>
+                  <input type="text" id="clarify-desc-rf-material-lain" placeholder="Uraikan aspek yang perlu dikonfirmasi..." class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-slate-400 font-semibold mb-0.5">PIC / Tenggat Waktu:</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="clarify-pic-rf-material-lain" placeholder="PIC" class="w-1/2 h-8 px-2 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                    <input type="date" id="clarify-tgl-rf-material-lain" class="w-1/2 h-8 px-1.5 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-amber-400">
+                  </div>
+                </div>
+              </div>
+            </div>
+              </div>
             </div>
           </div>
 
-          <div class="flex justify-end gap-3 pt-2">
-            <button type="button" onclick="cetakKertasKerjaSpm('tanah')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center gap-2 border border-slate-700">
-              <span>🖨️ Cetak Kertas Kerja Tanah (A4 PDF)</span>
+          <!-- ========================================================
+               BAGIAN C: KOMPONEN PENILAIAN DAN KERUGIAN (Q34 - Q39) [M & C]
+               ======================================================== -->
+          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+            <button type="button" onclick="toggleSmartSection('sec-tanah-c')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs">C</span>
+                <div>
+                  <h4 class="text-xs sm:text-sm font-extrabold text-white">Komponen Penilaian &amp; Kerugian (Fisik &amp; Nonfisik)</h4>
+                  <p class="text-[11px] text-slate-400">Pertanyaan 34 s.d. 39 • Logika bersyarat dasar nilai NPW (SPI 204)</p>
+                </div>
+              </div>
+              <span id="chevron-sec-tanah-c" class="text-slate-400 text-xs font-bold">▲</span>
             </button>
-            <button type="button" onclick="simpanLogSpm('tanah')" class="px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs transition">
-              Simpan Mitigasi Tanah
-            </button>
+
+            <div id="sec-tanah-c" class="p-5 space-y-4 text-xs">
+              <!-- Q34: Multiselect Komponen Objek Ruang Lingkup -->
+              <div>
+                <label class="block font-semibold text-slate-300 mb-2">34. Komponen Objek dalam Ruang Lingkup Penilaian * [M]:</label>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-[11px]">
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Tanah" checked class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Tanah</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Ruang Atas Tanah" class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Ruang Atas Tanah</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Ruang Bawah Tanah" class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Ruang Bawah Tanah</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Bangunan" checked class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Bangunan</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Tanaman" checked class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Tanaman</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Sarana Pelengkap" checked class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Sarana Pelengkap</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Benda Lain Terkait Tanah" class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Benda Lain Terkait</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Tanah Sisa" class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Tanah Sisa</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Kegiatan Usaha Terdampak" class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Usaha Terdampak</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                    <input type="checkbox" name="spm_c_objek" value="Lainnya" class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <span>Lainnya</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- CONTAINER KHUSUS NPW (Q35 & Q36) -->
+              <div id="box-komponen-npw" class="space-y-4">
+                <div class="border-t border-slate-800/80 pt-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="block font-semibold text-amber-300 text-xs">Pemeriksaan Komponen Kerugian NPW (SPI 204) [C — NPW]:</label>
+                    <span class="text-[10px] text-slate-400">Centang hanya komponen yang terbukti relevan berdasarkan data nominatif/lapangan</span>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Q35: Kerugian Fisik -->
+                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                      <strong class="text-xs text-white block">35. Komponen Kerugian Fisik:</strong>
+                      <div class="space-y-1.5 text-[11px]">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_fisik" value="Bangunan & Utilitas" checked class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Bangunan, Konstruksi &amp; Utilitas</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_fisik" value="Tanaman & Vegetasi Produktif" checked class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Tanaman &amp; Vegetasi Produktif</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_fisik" value="Sarana Pelengkap Lapangan" class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Sarana Pelengkap (Pagar, Sumur, Gapura, Saluran)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_fisik" value="Benda Lain Berkaitan" class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Benda lain yang berkaitan dengan tanah</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Q36: Kerugian Nonfisik -->
+                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                      <strong class="text-xs text-white block">36. Komponen Kerugian Nonfisik:</strong>
+                      <div class="space-y-1.5 text-[11px]">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_nonfisik" value="Solatium (Kerugian Emosional)" class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Solatium (Kerugian Emosional Rumah Tinggal Milik)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_nonfisik" value="Kehilangan Pendapatan / Usaha" class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Kehilangan Pendapatan / Usaha (Loss of Income)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_nonfisik" value="Biaya Transaksi (Pajak, Notaris/PPAT)" class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Biaya Transaksi (Pajak BPHTB, PPAT/Notaris)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_nonfisik" value="Biaya Pindah (Relocation Cost)" class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Biaya Pindah (Relocation Cost)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_nonfisik" value="Masa Tunggu (Waiting Period / Loss of Interest)" class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Masa Tunggu (Waiting Period / Loss of Interest)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="spm_c_nonfisik" value="Kerugian Fisik Tanah Sisa (Severance Damage)" class="rounded bg-slate-800 border-slate-700 text-amber-400">
+                          <span>Kerugian Fisik Tanah Sisa (Severance Damage)</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- BANNER JIKA DASAR NILAI PASAR -->
+              <div id="banner-npw-disabled" class="hidden p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400">
+                <span class="text-blue-400 font-bold">ℹ️ Catatan Dasar Nilai Pasar:</span> Penugasan menggunakan Dasar Nilai Pasar (Skala Kecil Tanpa Tahapan). Komponen Kerugian Nonfisik NPW (SPI 204) Tidak Diaktifkan (N/A).
+              </div>
+
+              <!-- Q37 - Q39: Kecukupan Data & Dukungan Ahli -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-800/80">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">37. Ketersediaan Bukti &amp; Data Komponen * [C]</label>
+                  <select id="spm-c-bukti-pendukung" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="TERSEDIA & MEMADAI">TERSEDIA &amp; MEMADAI LENGKAP</option>
+                    <option value="SEBAGIAN TERSEDIA">SEBAGIAN TERSEDIA (Perlu Verifikasi Lapangan)</option>
+                    <option value="BELUM MEMADAI">BELUM MEMADAI (Risiko Keterbatasan Data)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">38. Keterbatasan Data Komponen Kerugian * [C]</label>
+                  <select id="spm-c-keterbatasan-data" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="TIDAK ADA">TIDAK ADA — Data Komponen Cukup</option>
+                    <option value="YA - ADA KETERBATASAN">YA — Terdapat Keterbatasan Data Pembuktian</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">39. Kebutuhan Klarifikasi / Tenaga Ahli * [C]</label>
+                  <select id="spm-c-tenaga-ahli" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="TIDAK DIPERLUKAN">TIDAK DIPERLUKAN</option>
+                    <option value="DIPERLUKAN TENAGA AHLI KHUSUS">DIPERLUKAN TENAGA AHLI KHUSUS (Agronomi/Sipil)</option>
+                    <option value="DIPERLUKAN KLARIFIKASI INSTANSI">DIPERLUKAN KLARIFIKASI DARI INSTANSI PEMOHON</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- ========================================================
+               BAGIAN D: ANALISIS IRAC BERDASARKAN KASUS (Q40 - Q45) [C - ISSUE]
+               ======================================================== -->
+          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+            <button type="button" onclick="toggleSmartSection('sec-tanah-d')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-xs">D</span>
+                <div>
+                  <h4 class="text-xs sm:text-sm font-extrabold text-white">Analisis IRAC Berdasarkan Kasus (Issue, Rule, Application, Conclusion)</h4>
+                  <p class="text-[11px] text-slate-400">Pertanyaan 40 s.d. 45 • Legalitas, Regulasi, Sengketa, Data &amp; Objek Khusus [C]</p>
+                </div>
+              </div>
+              <span id="chevron-sec-tanah-d" class="text-slate-400 text-xs font-bold">▲</span>
+            </button>
+
+            <div id="sec-tanah-d" class="p-5 space-y-4 text-xs">
+              <!-- Banner Kondisi IRAC -->
+              <div id="banner-irac-status" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-slate-200 block text-xs">Pemeriksaan Inti Legalitas &amp; Regulasi:</span>
+                  <p class="text-[11px] text-slate-400">Analisis IRAC mendalam diwajibkan bila ditemukan isu material atau indikator Red Flag bernilai YA.</p>
+                </div>
+                <button type="button" onclick="tambahFormIracManual()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-[11px] border border-slate-700 transition">
+                  + Buat Isu IRAC Baru
+                </button>
+              </div>
+
+              <!-- FORM IRAC ITEM AKTIF -->
+              <div id="container-irac-items" class="space-y-4">
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                  <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">IRAC #1</span>
+                      <strong class="text-xs text-white">Kategori Isu Kasus:</strong>
+                      <select id="irac-kategori" class="h-8 px-2 rounded bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400">
+                        <option value="1. Legalitas Objek">1. Legalitas Objek &amp; Status Hak</option>
+                        <option value="2. Kepatuhan Regulasi">2. Kepatuhan Regulasi (SPI 204 / PP 19/2021)</option>
+                        <option value="3. Sengketa dan Litigasi">3. Sengketa, Klaim Pihak Ketiga &amp; Litigasi</option>
+                        <option value="4. Risiko Data Penilaian">4. Risiko Keterbatasan Data Penilaian / Pasar</option>
+                        <option value="5. Objek Khusus">5. Objek Khusus (Tanah Adat / Wakaf / Kawasan Hutan / Aset Negara)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block font-semibold text-slate-300 mb-1">40. ISSUE — Permasalahan, Fakta &amp; Risiko Material yang Ditemukan * [C]</label>
+                      <textarea id="irac-issue" rows="2" placeholder="Uraikan fakta persoalan, dokumen pendukung, dan pihak terkait..." class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs"></textarea>
+                    </div>
+
+                    <div>
+                      <label class="block font-semibold text-slate-300 mb-1">41. RULE — Dasar Hukum, SPI 204, KEPI, PP 19/2021 yang Relevan * [C]</label>
+                      <input type="text" id="irac-rule" placeholder="Contoh: SPI 204 butir 5.4, UU No. 2/2012 Pasal 33, PP No. 19/2021, Kode Etik KEPI..." class="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs">
+                    </div>
+
+                    <div>
+                      <label class="block font-semibold text-slate-300 mb-1">42. APPLICATION — Penerapan Ketentuan terhadap Fakta &amp; Dokumen * [C]</label>
+                      <textarea id="irac-application" rows="2" placeholder="Jelaskan bagaimana aturan diterapkan pada kondisi fisik lapangan, data nominatif, dan alas hak..." class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs"></textarea>
+                    </div>
+
+                    <div>
+                      <label class="block font-semibold text-slate-300 mb-1">43. CONCLUSION — Kesimpulan Analisis &amp; Rekomendasi Tindakan Mitigasi * [C]</label>
+                      <textarea id="irac-conclusion" rows="2" placeholder="Kesimpulan hukum/teknis dan langkah pencegahan risiko yang wajib diambil..." class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+                      <div>
+                        <label class="block font-semibold text-slate-300 mb-1">44. Kebutuhan Klarifikasi Instansi / Tenaga Ahli * [C]</label>
+                        <select id="irac-ahli" class="w-full h-9 px-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs">
+                          <option value="TIDAK DIPERLUKAN">TIDAK DIPERLUKAN (Data Mandiri Cukup)</option>
+                          <option value="YA - PERLU KLARIFIKASI INSTANSI">YA — Perlu Surat Klarifikasi Resmi ke Instansi</option>
+                          <option value="YA - PERLU PEMERIKSAAN TENAGA AHLI">YA — Perlu Pemeriksaan Tenaga Ahli Independen</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label class="block font-semibold text-slate-300 mb-1">45. Kebutuhan Eskalasi ke SPM / Legal / Partner * [C]</label>
+                        <select id="irac-eskalasi" class="w-full h-9 px-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs">
+                          <option value="TIDAK">TIDAK (Dapat Dimonitor Tim Penilai)</option>
+                          <option value="YA - ESKALASI KE LEGAL & KEPALA SPM">YA — Eskalasi ke Legal Internal &amp; Kepala SPM</option>
+                          <option value="YA - ESKALASI KE PEMIMPIN REKAN">YA — Eskalasi Khusus ke Pemimpin Rekan (High Risk)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================================
+               BAGIAN E: MATRIKS RISIKO DAN TINDAKAN MITIGASI (Q46 - Q55) [C]
+               ======================================================== -->
+          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+            <button type="button" onclick="toggleSmartSection('sec-tanah-e')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 flex items-center justify-center font-bold text-xs">E</span>
+                <div>
+                  <h4 class="text-xs sm:text-sm font-extrabold text-white">Matriks Risiko &amp; Tindakan Mitigasi (Risk Register)</h4>
+                  <p class="text-[11px] text-slate-400">Pertanyaan 46 s.d. 55 • Rubrik risiko internal KJPP &amp; Corrective Action [C]</p>
+                </div>
+              </div>
+              <span id="chevron-sec-tanah-e" class="text-slate-400 text-xs font-bold">▲</span>
+            </button>
+
+            <div id="sec-tanah-e" class="p-5 space-y-4 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block font-semibold text-slate-300 mb-1">46. Deskripsi Risiko Material yang Teridentifikasi * [C]</label>
+                  <input type="text" id="spm-e-risk-desc" placeholder="Contoh: Ketiadaan peta bidang final BPN / Potensi tuntutan ganti rugi tanah sisa..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">49. Tingkat Risiko (Rubrik Internal KJPP) * [C]</label>
+                  <select id="spm-e-risk-level" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="LOW">LOW — Risiko Rendah (Terkendali)</option>
+                    <option value="MODERATE">MODERATE — Risiko Sedang (Perlu Mitigasi)</option>
+                    <option value="HIGH">HIGH — Risiko Tinggi (Supervisi Ketat Partner)</option>
+                    <option value="UNACCEPTABLE">UNACCEPTABLE — Pelanggaran Standar (Wajib Ditolak)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">47. Dampak Risiko terhadap Penugasan / Litigasi * [C]</label>
+                  <select id="spm-e-risk-impact" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="Minor">Minor (Dampak Administratif Terbatas)</option>
+                    <option value="Moderate">Moderate (Penyesuaian Jadwal / Klarifikasi Teknis)</option>
+                    <option value="Major">Major (Potensi Koreksi Nilai / Komplain Pemilik Objek)</option>
+                    <option value="Critical">Critical (Potensi Gugatan Hukum / Pelanggaran Etika)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">48. Kemungkinan Terjadi (Probability) * [C]</label>
+                  <select id="spm-e-risk-prob" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="Jarang">Jarang Terjadi (&lt; 20%)</option>
+                    <option value="Mungkin">Mungkin Terjadi (20% – 60%)</option>
+                    <option value="Sangat Mungkin">Sangat Mungkin Terjadi (&gt; 60%)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Q50: Tindakan Mitigasi Khusus (ID spm-t-mitigasi TETAP ADA UNTUK KOMPATIBILITAS PENUH) -->
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">50. Tindakan Mitigasi / Corrective Action Khusus yang Diterapkan * [C]</label>
+                <input type="text" id="spm-t-mitigasi" placeholder="Contoh: Meminta berita acara inventarisasi BPN resmi, pendampingan satgas A/B, review khusus Pemimpin Rekan..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 border-t border-slate-800/60">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">51. PIC Penanggung Jawab * [C]</label>
+                  <input type="text" id="spm-e-risk-pic" placeholder="Nama Penilai / Reviewer" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">52. Tenggat Penyelesaian * [C]</label>
+                  <input type="date" id="spm-e-risk-deadline" class="w-full h-10 px-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">53. Bukti Dokumen Pelaksanaan * [C]</label>
+                  <input type="text" id="spm-e-risk-evidence" placeholder="BA Hasil Klarifikasi / SPK / Surat Ket." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">55. Tingkat Risiko Sisa (Residual) * [C]</label>
+                  <select id="spm-e-risk-residual" class="w-full h-10 px-2 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="LOW">LOW (Terkendali Aman)</option>
+                    <option value="MODERATE">MODERATE (Monitoring Berkala)</option>
+                    <option value="HIGH">HIGH (Memerlukan Persetujuan Rekan)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between text-[11px]">
+                <span class="text-slate-400">54. Status Verifikasi Mitigasi oleh Reviewer:</span>
+                <select id="spm-e-risk-verified" class="h-8 px-2.5 rounded bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                  <option value="BELUM DIVERIFIKASI">BELUM DIVERIFIKASI (Draft)</option>
+                  <option value="SUDAH DIVERIFIKASI">TELAH DIVERIFIKASI OLEH REVIEWER QC</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================================
+               BAGIAN F: CLIENT ACCEPTANCE DAN KEPUTUSAN (Q56 - Q61) [M & C]
+               ======================================================== -->
+          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+            <button type="button" onclick="toggleSmartSection('sec-tanah-f')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center font-bold text-xs">F</span>
+                <div>
+                  <h4 class="text-xs sm:text-sm font-extrabold text-white">Client Acceptance &amp; Keputusan Penugasan</h4>
+                  <p class="text-[11px] text-slate-400">Pertanyaan 56 s.d. 61 • Penentuan kelayakan penerimaan penugasan [M]</p>
+                </div>
+              </div>
+              <span id="chevron-sec-tanah-f" class="text-slate-400 text-xs font-bold">▲</span>
+            </button>
+
+            <div id="sec-tanah-f" class="p-5 space-y-4 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">56. Kelengkapan Seluruh Pemeriksaan Mandatory * [M]</label>
+                  <select id="spm-f-mandatory-selesai" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="YA - LENGKAP">YA — Seluruh Pertanyaan Mandatory Telah Diselesaikan</option>
+                    <option value="BELUM LENGKAP">BELUM LENGKAP (Terdapat Data yang Belum Diperiksa)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">57. Persoalan Material yang Belum Diselesaikan * [M]</label>
+                  <select id="spm-f-persoalan-terbuka" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="TIDAK ADA">TIDAK ADA — Seluruh Isu Material Telah Memiliki Solusi/Mitigasi</option>
+                    <option value="YA - ADA PERSOALAN TERBUKA">YA — Masih Terdapat Persoalan Terbuka yang Belum Selesai</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">58. Keputusan Client Acceptance Penugasan Pengadaan Tanah * [M]</label>
+                <select id="spm-f-keputusan" onchange="onAcceptanceDecisionChange()" class="w-full h-11 px-3.5 rounded-xl bg-slate-950 border-2 border-slate-700 text-amber-400 font-bold focus:outline-none focus:border-amber-400 text-xs">
+                  <option value="">-- Pilih Keputusan Acceptance (Tidak Dipilih Otomatis) --</option>
+                  <option value="ACCEPT">ACCEPT (Penugasan Diterima Penuh — Risiko Terkendali)</option>
+                  <option value="ACCEPT WITH MITIGATION">ACCEPT WITH MITIGATION (Diterima dengan Syarat Tindakan Mitigasi Wajib)</option>
+                  <option value="ESCALATE">ESCALATE (Eskalasi ke Komite Pengendalian Mutu &amp; Rekan Penilai)</option>
+                  <option value="DECLINE">DECLINE (Penugasan Ditolak — Risiko Tidak Dapat Diterima / Melanggar SPI)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">59. Alasan &amp; Dasar Pertimbangan Keputusan * [M]</label>
+                <textarea id="spm-f-alasan" rows="2" placeholder="Uraikan dasar pertimbangan penerimaan/penolakan berdasarkan kepatuhan SPI 204, ketersediaan dokumen, dan profil risiko..." class="w-full p-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400"></textarea>
+              </div>
+
+              <!-- Q60: Conditional jika ACCEPT WITH MITIGATION -->
+              <div id="drawer-acc-mitigation" class="hidden p-3.5 rounded-xl bg-amber-950/20 border border-amber-800/40 space-y-2">
+                <label class="block font-bold text-amber-300">60. Syarat Mitigasi, PIC &amp; Batas Penutupan Tindakan * [C]:</label>
+                <textarea id="spm-f-mitigasi-syarat" rows="2" placeholder="Tindakan yang harus diselesaikan, nama PIC penanggung jawab, dan tahapan penutupan (sebelum survei / sebelum laporan final terbit)..." class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs"></textarea>
+              </div>
+
+              <!-- Q61: Conditional jika ESCALATE / DECLINE -->
+              <div id="drawer-acc-decline" class="hidden p-3.5 rounded-xl bg-rose-950/20 border border-rose-800/40 space-y-2">
+                <label class="block font-bold text-rose-300">61. Risiko Utama &amp; Rekomendasi Tindak Lanjut Penolakan / Eskalasi * [C]:</label>
+                <textarea id="spm-f-eskalasi-rekomendasi" rows="2" placeholder="Uraikan faktor pelanggaran, ancaman independensi, atau ketidaklengkapan fatal yang mendasari keputusan ini..." class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================================
+               BAGIAN G: VERIFIKASI SPM DAN PERSETUJUAN INTERNAL (Q62 - Q70)
+               ======================================================== -->
+          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+            <button type="button" onclick="toggleSmartSection('sec-tanah-g')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-xs">G</span>
+                <div>
+                  <h4 class="text-xs sm:text-sm font-extrabold text-white">Verifikasi SPM &amp; Persetujuan Internal (Quality Control)</h4>
+                  <p class="text-[11px] text-slate-400">Pertanyaan 62 s.d. 70 • Diperiksa Reviewer SPM &amp; Pejabat Berwenang [M-REVIEW &amp; M-APPROVAL]</p>
+                </div>
+              </div>
+              <span id="chevron-sec-tanah-g" class="text-slate-400 text-xs font-bold">▲</span>
+            </button>
+
+            <div id="sec-tanah-g" class="p-5 space-y-4 text-xs">
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+                <span class="text-slate-300 font-bold block text-[11px] uppercase tracking-wider">Reviewer SPM Quality Control (Q62 - Q66):</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[11px]">
+                  <div>
+                    <label class="block text-slate-400 mb-1">62. Dokumen Penugasan &amp; KAK Diperiksa * [M]:</label>
+                    <select id="spm-g-rev-dokumen" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                      <option value="YA - LENGKAP">YA — Telah Diperiksa &amp; Lengkap</option>
+                      <option value="TIDAK">TIDAK (Belum Diperiksa)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-400 mb-1">63. Uji Independensi &amp; Kepatuhan SPI/KEPI * [M]:</label>
+                    <select id="spm-g-rev-independensi" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                      <option value="YA - SESUAI">YA — Kepatuhan SPI/KEPI Terpenuhi</option>
+                      <option value="TIDAK">TIDAK — Terdapat Catatan Kepatuhan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-400 mb-1">64. Analisis Risiko &amp; IRAC Sesuai Temuan * [M]:</label>
+                    <select id="spm-g-rev-irac" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                      <option value="SESUAI">SESUAI — Sesuai Kondisi Dokumen Pendukung</option>
+                      <option value="PERLU PENYESUAIAN">PERLU PENYESUAIAN (Revisi Diperlukan)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-400 mb-1">65. Mitigasi Memadai &amp; Status Jelas * [M]:</label>
+                    <select id="spm-g-rev-mitigasi" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                      <option value="MEMADAI">MEMADAI — Rencana Aksi Jelas</option>
+                      <option value="BELUM MEMADAI">BELUM MEMADAI</option>
+                    </select>
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="block text-slate-400 mb-1">66. Isu Hukum Material / Review Legal Internal * [C]:</label>
+                    <select id="spm-g-rev-legal" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                      <option value="TIDAK PERLU LEGAL REVIEW">TIDAK PERLU REVIEW LEGAL TAMBAHAN (Isu Hukum Terkendali)</option>
+                      <option value="DIPERLUKAN LEGAL OPINION">DIPERLUKAN PENDAPAT HUKUM (LEGAL OPINION) INTERNAL</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- HASIL VERIFIKASI SPM & APPROVAL PEJABAT (Q67 - Q69) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">67. Hasil Verifikasi Pengendalian Mutu (SPM) * [M]</label>
+                  <select id="spm-g-hasil-spm" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="APPROVED">APPROVED (Memenuhi Standar Mutu)</option>
+                    <option value="RETURN FOR REVISION">RETURN FOR REVISION (Dikembalikan untuk Revisi)</option>
+                    <option value="ESCALATE">ESCALATE (Eskalasi ke Komite Teknis)</option>
+                    <option value="REJECTED">REJECTED (Ditolak SPM)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">68. Keputusan Akhir Pejabat Berwenang * [M]</label>
+                  <select id="spm-g-keputusan-approval" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <option value="DISETUJUI">DISETUJUI UNTUK DILAKSANAKAN</option>
+                    <option value="DISETUJUI BERSYARAT">DISETUJUI BERSYARAT DENGAN MITIGASI</option>
+                    <option value="DITOLAK">DITOLAK SECARA RESMI</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">69. Pejabat Pengambil Keputusan * [M]</label>
+                  <input type="text" id="spm-g-approver-name" placeholder="Nama Pejabat SPM / Rekan Penandatangan" value="Tim Kendali Mutu KJPP NSR" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Tanggal Persetujuan Resmi * [M]</label>
+                  <input type="date" id="spm-g-approval-date" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+              </div>
+
+              <!-- Q70: Catatan Perbaikan / Batasan Tambahan -->
+              <div>
+                <label class="block font-semibold text-slate-300 mb-1">70. Catatan Perbaikan, Batasan, atau Persyaratan Tambahan [C]</label>
+                <textarea id="spm-g-catatan-perbaikan" rows="2" placeholder="Catatan perbaikan teknis, syarat sebelum survei lapangan, atau instruksi kerja khusus..." class="w-full p-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400"></textarea>
+              </div>
+
+              <!-- Tombol Khusus Otoritas SPM -->
+              <div id="box-tombol-approval-spm" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="text-[11px] text-slate-400">
+                  <span class="font-bold text-white block">Otoritas Persetujuan Sah:</span>
+                  Status resmi Kertas Kerja dikunci menjadi APPROVED hanya setelah persetujuan Tim Pengendalian Mutu Pusat.
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="tetapkanApprovalSpmTanah('APPROVED')" id="btn-set-spm-approved" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow flex items-center gap-1.5">
+                    <span>🛡️ Beri Persetujuan Resmi (APPROVED)</span>
+                  </button>
+                  <button type="button" onclick="tetapkanApprovalSpmTanah('DRAFT')" id="btn-set-spm-draft" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition border border-slate-700">
+                    Set ke DRAFT
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================================
+               BAR TOMBOL AKSI UTAMA DI BAGIAN BAWAH
+               ======================================================== -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+            <div class="flex items-center gap-2 flex-wrap">
+              <button type="button" onclick="salinFormatGsheetSpmTanah()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition flex items-center gap-1.5 border border-slate-700" title="Salin Format Google Spreadsheet">
+                <span>📋 Salin Format GSheet</span>
+              </button>
+              <button type="button" onclick="resetSmartSpmTanah()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-300 font-semibold text-xs transition border border-slate-700" title="Bersihkan dan Mulai Ulang Isian">
+                <span>🔄 Reset Form</span>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap justify-end">
+              <button type="button" onclick="cetakKertasKerjaSpm('tanah', 'draft')" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center gap-2 border border-slate-700 shadow">
+                <span>🖨️ Cetak Draft (A4 PDF)</span>
+              </button>
+              <button type="button" onclick="cetakKertasKerjaSpm('tanah', 'approved')" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition flex items-center gap-2 shadow">
+                <span>🖨️ Cetak Approved (A4 PDF)</span>
+              </button>
+              <button type="button" onclick="simpanLogSpm('tanah')" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition shadow-lg shadow-blue-600/20">
+                💾 Simpan Mitigasi Tanah
+              </button>
+            </div>
+          </div>
+
         </div>
 
         <!-- FORM SUB-SPM 3: RUISLAGH TKD -->
@@ -1288,6 +2901,7 @@
       await periksaSesiServer();
 
       updateLivePreview();
+      try { inisialisasiSmartSpmTanah(); } catch(e){}
       // Sinkronkan data terbaru secara otomatis dari Google Spreadsheet di latar belakang
       setTimeout(() => sinkronkanDariSpreadsheetLive(true), 800);
     }
@@ -2187,6 +3801,873 @@
     }
 
     /* =========================================================================
+   SMART MITIGASI PENGADAAN TANAH (KJPP-RM-CA-01 TANAH)
+   Standar: SPI 204 (NPW) & UU No. 2/2012 jo. PP 19/2021
+   ========================================================================= */
+
+const SMART_TANAH_RED_FLAGS_CONFIG = [
+  { id: 'rf-skala-pasti', code: 'RF-01', qNum: 16, title: 'Kepastian Skala & Luas' },
+  { id: 'rf-mekanisme-jelas', code: 'RF-02', qNum: 17, title: 'Kejelasan Mekanisme Pengadaan' },
+  { id: 'rf-dasar-nilai-sesuai', code: 'RF-03', qNum: 18, title: 'Kesesuaian Dasar Nilai vs Mekanisme' },
+  { id: 'rf-peta', code: 'RF-04', qNum: 19, title: 'Status Peta Bidang BPN' },
+  { id: 'rf-nominatif', code: 'RF-05', qNum: 20, title: 'Status Daftar Nominatif' },
+  { id: 'rf-status-hak', code: 'RF-06', qNum: 21, title: 'Kejelasan Status Hak & Kepemilikan' },
+  { id: 'rf-sengketa', code: 'RF-07', qNum: 22, title: 'Sengketa & Litigasi Aktif' },
+  { id: 'rf-adat', code: 'RF-08', qNum: 23, title: 'Tanah Adat / Tanah Ulayat' },
+  { id: 'rf-wakaf', code: 'RF-09', qNum: 24, title: 'Tanah Wakaf' },
+  { id: 'rf-aset-negara', code: 'RF-10', qNum: 25, title: 'Aset BMN / BMD / BUMN / BUMD' },
+  { id: 'rf-kawasan-hutan', code: 'RF-11', qNum: 26, title: 'Kawasan Hutan / Pembatasan Khusus' },
+  { id: 'rf-beda-fisik-yuridis', code: 'RF-12', qNum: 27, title: 'Perbedaan Fisik vs Yuridis' },
+  { id: 'rf-tanah-sisa', code: 'RF-13', qNum: 28, title: 'Potensi Tanah Sisa (Severance)' },
+  { id: 'rf-usaha-terdampak', code: 'RF-14', qNum: 29, title: 'Kegiatan Usaha / Pendapatan Terdampak' },
+  { id: 'rf-data-pasar', code: 'RF-15', qNum: 30, title: 'Keterbatasan Data Pasar Pembanding' },
+  { id: 'rf-target', code: 'RF-16', qNum: 31, title: 'Permintaan Target Nilai / Intervensi' },
+  { id: 'rf-waktu-akses', code: 'RF-17', qNum: 32, title: 'Risiko Waktu & Keterbatasan Akses' },
+  { id: 'rf-material-lain', code: 'RF-18', qNum: 33, title: 'Risiko Material Khusus Lainnya' }
+];
+
+let smartTanahState = {
+  statusDokumen: 'DRAFT', // 'DRAFT' | 'APPROVED'
+  linkedNoReq: '',
+  redFlags: {}, // { 'rf-id': { val: 'TIDAK'|'YA'|'BELUM DIKETAHUI', clarifyDesc: '', pic: '', tgl: '' } }
+  lastUpdated: null
+};
+
+// 1. Inisialisasi Modul Smart SPM Tanah
+function inisialisasiSmartSpmTanah() {
+  muatPilihanReqNoLap();
+  muatStateSmartSpmTanah();
+  updateSmartSpmTanahStats();
+  pasangAutoSaveListeners();
+}
+
+function muatPilihanReqNoLap() {
+  const sel = document.getElementById('spm-t-pilih-req');
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">-- Pilih Permohonan NoLap --</option>';
+  if (Array.isArray(daftarPermohonan)) {
+    daftarPermohonan.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.noPermintaan;
+      opt.innerText = `${p.noPermintaan} - ${p.namaKlien || 'Klien'} (${p.cabang || 'Pusat'})`;
+      sel.appendChild(opt);
+    });
+  }
+  if (currentVal) sel.value = currentVal;
+}
+
+function toggleSmartSection(secId) {
+  const el = document.getElementById(secId);
+  const chev = document.getElementById('chevron-' + secId);
+  if (!el) return;
+  if (el.classList.contains('hidden')) {
+    el.classList.remove('hidden');
+    if (chev) chev.innerText = '▲';
+  } else {
+    el.classList.add('hidden');
+    if (chev) chev.innerText = '▼';
+  }
+}
+
+function onSmartRfChange(rfId, val) {
+  if (!smartTanahState.redFlags[rfId]) {
+    smartTanahState.redFlags[rfId] = {};
+  }
+  smartTanahState.redFlags[rfId].val = val;
+
+  const drawer = document.getElementById('drawer-clarify-' + rfId);
+  if (drawer) {
+    if (val === 'BELUM DIKETAHUI') {
+      drawer.classList.remove('hidden');
+    } else {
+      drawer.classList.add('hidden');
+    }
+  }
+
+  // Sinkronisasi checkbox lama (backwards-compatibility)
+  if (rfId === 'rf-sengketa') {
+    const elOld = document.getElementById('rf-sengketa');
+    if (elOld) elOld.checked = (val === 'YA');
+  } else if (rfId === 'rf-adat') {
+    const elOld = document.getElementById('rf-adat');
+    if (elOld) elOld.checked = (val === 'YA');
+  } else if (rfId === 'rf-peta') {
+    const elOld = document.getElementById('rf-peta');
+    if (elOld) elOld.checked = (val === 'YA');
+  } else if (rfId === 'rf-target') {
+    const elOld = document.getElementById('rf-target');
+    if (elOld) elOld.checked = (val === 'YA');
+  }
+
+  // Jika YA, buka section IRAC & Risk Register dan suggest deskripsi risiko
+  if (val === 'YA') {
+    const rfCfg = SMART_TANAH_RED_FLAGS_CONFIG.find(c => c.id === rfId);
+    const descEl = document.getElementById('spm-e-risk-desc');
+    if (descEl && !descEl.value && rfCfg) {
+      descEl.value = `Teridentifikasi ${rfCfg.title}: Perlu tindakan mitigasi khusus sesuai regulasi.`;
+    }
+    const issueEl = document.getElementById('irac-issue');
+    if (issueEl && !issueEl.value && rfCfg) {
+      issueEl.value = `Ditemukan indikasi risiko pada indikator ${rfCfg.code} (${rfCfg.title}).`;
+    }
+    // Buka accordion D & E jika tertutup
+    document.getElementById('sec-tanah-d')?.classList.remove('hidden');
+    document.getElementById('sec-tanah-e')?.classList.remove('hidden');
+  }
+
+  simpanStateSmartSpmTanah();
+  updateSmartSpmTanahStats();
+}
+
+function onTanahDasarNilaiChange() {
+  const outputVal = document.getElementById('spm-t-output')?.value || '';
+  const boxNpw = document.getElementById('box-komponen-npw');
+  const banDisabled = document.getElementById('banner-npw-disabled');
+  const banKeselarasan = document.getElementById('banner-keselarasan-dasar-nilai');
+
+  if (outputVal.includes('NPW')) {
+    boxNpw?.classList.remove('hidden');
+    banDisabled?.classList.add('hidden');
+    if (banKeselarasan) {
+      banKeselarasan.innerHTML = `<span class="text-blue-400 font-bold">ℹ️</span><span>Standar SPI 204: Penugasan menggunakan dasar <strong>Nilai Penggantian Wajar (NPW)</strong>. Seluruh komponen kerugian fisik &amp; nonfisik aktif untuk diverifikasi.</span>`;
+    }
+  } else {
+    boxNpw?.classList.add('hidden');
+    banDisabled?.classList.remove('hidden');
+    if (banKeselarasan) {
+      banKeselarasan.innerHTML = `<span class="text-amber-400 font-bold">⚠️</span><span>Catatan Standar: Dasar <strong>Nilai Pasar</strong> hanya diperbolehkan untuk pengadaan tanah skala kecil (&le; 5 Ha) yang dilakukan secara langsung tanpa tahapan.</span>`;
+    }
+  }
+  simpanStateSmartSpmTanah();
+}
+
+function onTanahSkalaMekanismeChange() {
+  const skala = document.getElementById('spm-t-skala')?.value || '';
+  const mekanisme = document.getElementById('spm-t-mekanisme');
+  const output = document.getElementById('spm-t-output');
+
+  if (skala.includes('Skala Besar (> 5 Ha)')) {
+    if (mekanisme) mekanisme.value = 'Melalui Tahapan Pengadaan Tanah Lengkap';
+    if (output) {
+      output.value = 'Nilai Penggantian Wajar (NPW)';
+      onTanahDasarNilaiChange();
+    }
+  }
+  simpanStateSmartSpmTanah();
+}
+
+function onIntegritasFieldChange() {
+  const benturan = document.getElementById('spm-t-benturan-kepentingan')?.value || '';
+  const tekanan = document.getElementById('spm-t-tekanan-nilai')?.value || '';
+
+  if (benturan.includes('YA') || tekanan.includes('YA')) {
+    const kep = document.getElementById('spm-f-keputusan');
+    if (kep && kep.value === 'ACCEPT') {
+      kep.value = 'ESCALATE';
+      onAcceptanceDecisionChange();
+    }
+    // Auto sync Red Flag 16 / Target Nilai
+    if (tekanan.includes('YA')) {
+      const rfTargetRadio = document.querySelector('input[name="rf_val_rf-target"][value="YA"]');
+      if (rfTargetRadio) {
+        rfTargetRadio.checked = true;
+        onSmartRfChange('rf-target', 'YA');
+      }
+    }
+  }
+  simpanStateSmartSpmTanah();
+}
+
+function onAcceptanceDecisionChange() {
+  const kep = document.getElementById('spm-f-keputusan')?.value || '';
+  const drawerMitigation = document.getElementById('drawer-acc-mitigation');
+  const drawerDecline = document.getElementById('drawer-acc-decline');
+
+  if (kep === 'ACCEPT WITH MITIGATION') {
+    drawerMitigation?.classList.remove('hidden');
+    drawerDecline?.classList.add('hidden');
+  } else if (kep === 'ESCALATE' || kep === 'DECLINE') {
+    drawerDecline?.classList.remove('hidden');
+    drawerMitigation?.classList.add('hidden');
+  } else {
+    drawerMitigation?.classList.add('hidden');
+    drawerDecline?.classList.add('hidden');
+  }
+  simpanStateSmartSpmTanah();
+  updateSmartSpmTanahStats();
+}
+
+function tambahFormIracManual() {
+  document.getElementById('sec-tanah-d')?.classList.remove('hidden');
+  const issueEl = document.getElementById('irac-issue');
+  if (issueEl) {
+    issueEl.focus();
+    if (!issueEl.value) {
+      issueEl.placeholder = 'Tuliskan isu hukum, kepatuhan, atau objek khusus yang ditemukan...';
+    }
+  }
+}
+
+function updateSmartSpmTanahStats() {
+  // Hitung Red Flags
+  let yaCount = 0;
+  let clarifyCount = 0;
+  SMART_TANAH_RED_FLAGS_CONFIG.forEach(rf => {
+    const checked = document.querySelector(`input[name="rf_val_${rf.id}"]:checked`);
+    if (checked) {
+      if (checked.value === 'YA') yaCount++;
+      if (checked.value === 'BELUM DIKETAHUI') clarifyCount++;
+    }
+  });
+
+  const rfBadge = document.getElementById('stat-spm-redflags');
+  const rfLabel = document.getElementById('label-redflags-terhitung');
+  if (rfBadge) {
+    if (yaCount === 0) {
+      rfBadge.innerText = '0 Teridentifikasi';
+      rfBadge.className = 'text-sm font-extrabold text-emerald-400';
+    } else {
+      rfBadge.innerText = `${yaCount} Risiko Aktif`;
+      rfBadge.className = 'text-sm font-extrabold text-rose-400';
+    }
+  }
+  if (rfLabel) {
+    rfLabel.innerText = `${yaCount} Risiko Aktif • ${clarifyCount} Klarifikasi`;
+    rfLabel.className = yaCount > 0 ? 'font-bold text-rose-400' : 'font-bold text-emerald-400';
+  }
+
+  // Hitung Mandatory Section A (15 Pertanyaan)
+  const mandatoryFields = [
+    'spm-t-nama-proyek', 'spm-t-instansi', 'spm-t-lokasi-objek', 'spm-t-pemberi-tugas',
+    'spm-t-pengguna-laporan', 'spm-t-luas', 'spm-t-skala', 'spm-t-mekanisme',
+    'spm-t-output', 'spm-t-kesesuaian-dasar-nilai', 'spm-t-dok-spk', 'spm-t-dok-dppt',
+    'spm-t-status-tgl-penilaian', 'spm-t-kompetensi-penilai', 'spm-t-waktu-cukup'
+  ];
+  let filledCount = 0;
+  mandatoryFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value && el.value.trim() !== '') filledCount++;
+  });
+
+  const manStat = document.getElementById('stat-spm-mandatory');
+  if (manStat) {
+    manStat.innerText = `${filledCount}/${mandatoryFields.length} Diperiksa`;
+    manStat.className = filledCount >= mandatoryFields.length ? 'text-sm font-extrabold text-emerald-400' : 'text-sm font-extrabold text-blue-400';
+  }
+
+  // Keputusan Acceptance
+  const kepVal = document.getElementById('spm-f-keputusan')?.value || '';
+  const decStat = document.getElementById('stat-spm-decision');
+  if (decStat) {
+    if (!kepVal) {
+      decStat.innerText = 'Belum Diputuskan';
+      decStat.className = 'text-sm font-extrabold text-slate-400';
+    } else if (kepVal === 'ACCEPT') {
+      decStat.innerText = 'ACCEPT (Diterima)';
+      decStat.className = 'text-sm font-extrabold text-emerald-400';
+    } else if (kepVal === 'ACCEPT WITH MITIGATION') {
+      decStat.innerText = 'ACCEPT DENGAN SYARAT';
+      decStat.className = 'text-sm font-extrabold text-amber-400';
+    } else if (kepVal === 'ESCALATE') {
+      decStat.innerText = 'ESKALASI SPM';
+      decStat.className = 'text-sm font-extrabold text-purple-400';
+    } else {
+      decStat.innerText = 'DECLINE (Ditolak)';
+      decStat.className = 'text-sm font-extrabold text-rose-400';
+    }
+  }
+
+  // Status Dokumen
+  const statusDoc = smartTanahState.statusDokumen || 'DRAFT';
+  const statApproval = document.getElementById('stat-spm-approval');
+  const badgeTop = document.getElementById('badge-status-spm-tanah');
+  if (statApproval) {
+    statApproval.innerText = statusDoc === 'APPROVED' ? 'APPROVED (Resmi)' : 'DRAFT (Review)';
+    statApproval.className = statusDoc === 'APPROVED' ? 'text-sm font-extrabold text-emerald-400' : 'text-sm font-extrabold text-amber-400';
+  }
+  if (badgeTop) {
+    badgeTop.innerText = `STATUS: ${statusDoc}`;
+    badgeTop.className = statusDoc === 'APPROVED'
+      ? 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/30'
+      : 'px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/30';
+  }
+}
+
+function muatDataPengajuanKeSpmTanah(noReq) {
+  if (!noReq) return;
+  const item = daftarPermohonan.find(p => p.noPermintaan === noReq);
+  if (!item) return;
+
+  smartTanahState.linkedNoReq = noReq;
+
+  if (document.getElementById('spm-t-nama-proyek') && !document.getElementById('spm-t-nama-proyek').value) {
+    document.getElementById('spm-t-nama-proyek').value = `Penilaian ${item.jenisObjek || 'Pengadaan Tanah'} - ${item.namaKlien || ''}`;
+  }
+  if (document.getElementById('spm-t-instansi') && !document.getElementById('spm-t-instansi').value) {
+    document.getElementById('spm-t-instansi').value = item.namaKlien || '';
+  }
+  if (document.getElementById('spm-t-lokasi-objek') && !document.getElementById('spm-t-lokasi-objek').value) {
+    document.getElementById('spm-t-lokasi-objek').value = item.lokasiObjek || '';
+  }
+  if (document.getElementById('spm-t-pemberi-tugas') && !document.getElementById('spm-t-pemberi-tugas').value) {
+    document.getElementById('spm-t-pemberi-tugas').value = item.namaKlien || '';
+  }
+  if (document.getElementById('spm-t-pengguna-laporan') && !document.getElementById('spm-t-pengguna-laporan').value) {
+    document.getElementById('spm-t-pengguna-laporan').value = item.penggunaLaporan || item.namaKlien || '';
+  }
+  if (document.getElementById('spm-t-tgl-penilaian') && !document.getElementById('spm-t-tgl-penilaian').value) {
+    document.getElementById('spm-t-tgl-penilaian').value = item.tglPenilaian || item.deadline || new Date().toISOString().split('T')[0];
+  }
+
+  simpanStateSmartSpmTanah();
+  updateSmartSpmTanahStats();
+  alert(`✅ Data pengajuan ${noReq} berhasil ditautkan ke Formulir Smart Mitigasi Pengadaan Tanah.`);
+}
+
+function tetapkanApprovalSpmTanah(statusBaru) {
+  if (statusBaru === 'APPROVED') {
+    if (!isSuperOrAdminPusat()) {
+      alert('⚠️ Akses Terbatas: Penetapan status APPROVED pada Kertas Kerja SPM hanya dapat disahkan oleh Tim Pengendalian Mutu Pusat atau Pemimpin Rekan.');
+      return;
+    }
+    const kepVal = document.getElementById('spm-f-keputusan')?.value;
+    if (kepVal === 'DECLINE') {
+      alert('⚠️ Tidak dapat menyetujui: Keputusan Client Acceptance adalah DECLINE (Ditolak).');
+      return;
+    }
+
+    smartTanahState.statusDokumen = 'APPROVED';
+    const approverInput = document.getElementById('spm-g-approver-name');
+    const dateInput = document.getElementById('spm-g-approval-date');
+    if (approverInput) approverInput.value = sesiAktif ? `${sesiAktif.nama} (${sesiAktif.jabatan})` : 'Tim Kendali Mutu KJPP NSR';
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+    const spmHasil = document.getElementById('spm-g-hasil-spm');
+    if (spmHasil) spmHasil.value = 'APPROVED';
+    const spmKep = document.getElementById('spm-g-keputusan-approval');
+    if (spmKep) spmKep.value = 'DISETUJUI';
+
+    simpanStateSmartSpmTanah();
+    updateSmartSpmTanahStats();
+    alert('🛡️ Kertas Kerja Smart Mitigasi Pengadaan Tanah RESMI DISETUJUI (APPROVED) oleh Tim Pengendalian Mutu KJPP NSR.');
+  } else {
+    smartTanahState.statusDokumen = 'DRAFT';
+    simpanStateSmartSpmTanah();
+    updateSmartSpmTanahStats();
+    alert('Status Kertas Kerja dikembalikan ke DRAFT.');
+  }
+}
+
+function kumpulkanDataSmartTanah() {
+  const data = {
+    statusDokumen: smartTanahState.statusDokumen || 'DRAFT',
+    linkedNoReq: document.getElementById('spm-t-pilih-req')?.value || smartTanahState.linkedNoReq || '',
+    waktuSimpan: new Date().toISOString(),
+    // Bagian A
+    secA: {
+      namaProyek: document.getElementById('spm-t-nama-proyek')?.value || '',
+      instansi: document.getElementById('spm-t-instansi')?.value || '',
+      lokasiObjek: document.getElementById('spm-t-lokasi-objek')?.value || '',
+      pemberiTugas: document.getElementById('spm-t-pemberi-tugas')?.value || '',
+      penggunaLaporan: document.getElementById('spm-t-pengguna-laporan')?.value || '',
+      luas: document.getElementById('spm-t-luas')?.value || '',
+      luasSatuan: document.getElementById('spm-t-luas-satuan')?.value || 'Ha',
+      skala: document.getElementById('spm-t-skala')?.value || '',
+      mekanisme: document.getElementById('spm-t-mekanisme')?.value || '',
+      outputDasarNilai: document.getElementById('spm-t-output')?.value || '',
+      kesesuaianDasarNilai: document.getElementById('spm-t-kesesuaian-dasar-nilai')?.value || '',
+      dokSpk: document.getElementById('spm-t-dok-spk')?.value || '',
+      dokDppt: document.getElementById('spm-t-dok-dppt')?.value || '',
+      statusTglPenilaian: document.getElementById('spm-t-status-tgl-penilaian')?.value || '',
+      tglPenilaian: document.getElementById('spm-t-tgl-penilaian')?.value || '',
+      kompetensiPenilai: document.getElementById('spm-t-kompetensi-penilai')?.value || '',
+      waktuCukup: document.getElementById('spm-t-waktu-cukup')?.value || '',
+      independensi: document.getElementById('spm-t-independensi')?.value || '',
+      benturanKepentingan: document.getElementById('spm-t-benturan-kepentingan')?.value || '',
+      tekananNilai: document.getElementById('spm-t-tekanan-nilai')?.value || ''
+    },
+    // Bagian B (18 Red Flags)
+    secB_redFlags: {},
+    // Bagian C
+    secC: {
+      objekLingkup: Array.from(document.querySelectorAll('input[name="spm_c_objek"]:checked')).map(c => c.value),
+      kerugianFisik: Array.from(document.querySelectorAll('input[name="spm_c_fisik"]:checked')).map(c => c.value),
+      kerugianNonfisik: Array.from(document.querySelectorAll('input[name="spm_c_nonfisik"]:checked')).map(c => c.value),
+      buktiPendukung: document.getElementById('spm-c-bukti-pendukung')?.value || '',
+      keterbatasanData: document.getElementById('spm-c-keterbatasan-data')?.value || '',
+      tenagaAhli: document.getElementById('spm-c-tenaga-ahli')?.value || ''
+    },
+    // Bagian D
+    secD_irac: {
+      kategori: document.getElementById('irac-kategori')?.value || '',
+      issue: document.getElementById('irac-issue')?.value || '',
+      rule: document.getElementById('irac-rule')?.value || '',
+      application: document.getElementById('irac-application')?.value || '',
+      conclusion: document.getElementById('irac-conclusion')?.value || '',
+      ahli: document.getElementById('irac-ahli')?.value || '',
+      eskalasi: document.getElementById('irac-eskalasi')?.value || ''
+    },
+    // Bagian E
+    secE_matriks: {
+      riskDesc: document.getElementById('spm-e-risk-desc')?.value || '',
+      riskLevel: document.getElementById('spm-e-risk-level')?.value || '',
+      impact: document.getElementById('spm-e-risk-impact')?.value || '',
+      prob: document.getElementById('spm-e-risk-prob')?.value || '',
+      mitigasi: document.getElementById('spm-t-mitigasi')?.value || '',
+      pic: document.getElementById('spm-e-risk-pic')?.value || '',
+      deadline: document.getElementById('spm-e-risk-deadline')?.value || '',
+      evidence: document.getElementById('spm-e-risk-evidence')?.value || '',
+      residual: document.getElementById('spm-e-risk-residual')?.value || '',
+      verified: document.getElementById('spm-e-risk-verified')?.value || ''
+    },
+    // Bagian F
+    secF_acceptance: {
+      mandatorySelesai: document.getElementById('spm-f-mandatory-selesai')?.value || '',
+      persoalanTerbuka: document.getElementById('spm-f-persoalan-terbuka')?.value || '',
+      keputusan: document.getElementById('spm-f-keputusan')?.value || '',
+      alasan: document.getElementById('spm-f-alasan')?.value || '',
+      syaratMitigasi: document.getElementById('spm-f-mitigasi-syarat')?.value || '',
+      eskalasiRekomendasi: document.getElementById('spm-f-eskalasi-rekomendasi')?.value || ''
+    },
+    // Bagian G
+    secG_qc: {
+      dokumenOk: document.getElementById('spm-g-rev-dokumen')?.value || '',
+      independensiOk: document.getElementById('spm-g-rev-independensi')?.value || '',
+      iracOk: document.getElementById('spm-g-rev-irac')?.value || '',
+      mitigasiOk: document.getElementById('spm-g-rev-mitigasi')?.value || '',
+      legalOk: document.getElementById('spm-g-rev-legal')?.value || '',
+      hasilSpm: document.getElementById('spm-g-hasil-spm')?.value || '',
+      keputusanApproval: document.getElementById('spm-g-keputusan-approval')?.value || '',
+      approverName: document.getElementById('spm-g-approver-name')?.value || '',
+      approvalDate: document.getElementById('spm-g-approval-date')?.value || '',
+      catatanPerbaikan: document.getElementById('spm-g-catatan-perbaikan')?.value || ''
+    }
+  };
+
+  SMART_TANAH_RED_FLAGS_CONFIG.forEach(rf => {
+    const radio = document.querySelector(`input[name="rf_val_${rf.id}"]:checked`);
+    data.secB_redFlags[rf.id] = {
+      code: rf.code,
+      title: rf.title,
+      val: radio ? radio.value : 'TIDAK',
+      clarifyDesc: document.getElementById('clarify-desc-' + rf.id)?.value || '',
+      pic: document.getElementById('clarify-pic-' + rf.id)?.value || '',
+      tgl: document.getElementById('clarify-tgl-' + rf.id)?.value || ''
+    };
+  });
+
+  return data;
+}
+
+function simpanStateSmartSpmTanah() {
+  try {
+    const data = kumpulkanDataSmartTanah();
+    localStorage.setItem('kjpp_smart_spm_tanah_state', JSON.stringify(data));
+  } catch (e) {
+    console.warn('Gagal simpan state tanah ke local storage:', e);
+  }
+}
+
+function muatStateSmartSpmTanah() {
+  try {
+    const raw = localStorage.getItem('kjpp_smart_spm_tanah_state');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d) return;
+
+    smartTanahState.statusDokumen = d.statusDokumen || 'DRAFT';
+    smartTanahState.linkedNoReq = d.linkedNoReq || '';
+    if (d.linkedNoReq && document.getElementById('spm-t-pilih-req')) {
+      document.getElementById('spm-t-pilih-req').value = d.linkedNoReq;
+    }
+
+    // Restore Bagian A
+    if (d.secA) {
+      if (document.getElementById('spm-t-nama-proyek')) document.getElementById('spm-t-nama-proyek').value = d.secA.namaProyek || '';
+      if (document.getElementById('spm-t-instansi')) document.getElementById('spm-t-instansi').value = d.secA.instansi || '';
+      if (document.getElementById('spm-t-lokasi-objek')) document.getElementById('spm-t-lokasi-objek').value = d.secA.lokasiObjek || '';
+      if (document.getElementById('spm-t-pemberi-tugas')) document.getElementById('spm-t-pemberi-tugas').value = d.secA.pemberiTugas || '';
+      if (document.getElementById('spm-t-pengguna-laporan')) document.getElementById('spm-t-pengguna-laporan').value = d.secA.penggunaLaporan || '';
+      if (document.getElementById('spm-t-luas')) document.getElementById('spm-t-luas').value = d.secA.luas || '';
+      if (document.getElementById('spm-t-luas-satuan')) document.getElementById('spm-t-luas-satuan').value = d.secA.luasSatuan || 'Ha';
+      if (document.getElementById('spm-t-skala')) document.getElementById('spm-t-skala').value = d.secA.skala || 'Skala Kecil (≤ 5 Ha) - Langsung';
+      if (document.getElementById('spm-t-mekanisme')) document.getElementById('spm-t-mekanisme').value = d.secA.mekanisme || 'Pembelian / Pengadaan Langsung';
+      if (document.getElementById('spm-t-output')) {
+        document.getElementById('spm-t-output').value = d.secA.outputDasarNilai || 'Nilai Penggantian Wajar (NPW)';
+        onTanahDasarNilaiChange();
+      }
+      if (document.getElementById('spm-t-kesesuaian-dasar-nilai')) document.getElementById('spm-t-kesesuaian-dasar-nilai').value = d.secA.kesesuaianDasarNilai || 'SESUAI';
+      if (document.getElementById('spm-t-dok-spk')) document.getElementById('spm-t-dok-spk').value = d.secA.dokSpk || 'TERSEDIA & DIVERIFIKASI';
+      if (document.getElementById('spm-t-dok-dppt')) document.getElementById('spm-t-dok-dppt').value = d.secA.dokDppt || 'TERSEDIA LENGKAP';
+      if (document.getElementById('spm-t-status-tgl-penilaian')) document.getElementById('spm-t-status-tgl-penilaian').value = d.secA.statusTglPenilaian || 'YA - Sesuai Ketentuan';
+      if (document.getElementById('spm-t-tgl-penilaian')) document.getElementById('spm-t-tgl-penilaian').value = d.secA.tglPenilaian || '';
+      if (document.getElementById('spm-t-kompetensi-penilai')) document.getElementById('spm-t-kompetensi-penilai').value = d.secA.kompetensiPenilai || 'SESUAI (Lisensi BPN & Izin Menkeu)';
+      if (document.getElementById('spm-t-waktu-cukup')) document.getElementById('spm-t-waktu-cukup').value = d.secA.waktuCukup || 'MEMADAI';
+      if (document.getElementById('spm-t-independensi')) document.getElementById('spm-t-independensi').value = d.secA.independensi || 'TELAH DIPERIKSA & BEBAS KONFLIK';
+      if (document.getElementById('spm-t-benturan-kepentingan')) document.getElementById('spm-t-benturan-kepentingan').value = d.secA.benturanKepentingan || 'TIDAK ADA';
+      if (document.getElementById('spm-t-tekanan-nilai')) document.getElementById('spm-t-tekanan-nilai').value = d.secA.tekananNilai || 'TIDAK ADA';
+    }
+
+    // Restore Bagian B (Red Flags)
+    if (d.secB_redFlags) {
+      SMART_TANAH_RED_FLAGS_CONFIG.forEach(rf => {
+        const item = d.secB_redFlags[rf.id];
+        if (item) {
+          const radio = document.querySelector(`input[name="rf_val_${rf.id}"][value="${item.val}"]`);
+          if (radio) radio.checked = true;
+          if (item.val === 'BELUM DIKETAHUI') {
+            document.getElementById('drawer-clarify-' + rf.id)?.classList.remove('hidden');
+          }
+          if (document.getElementById('clarify-desc-' + rf.id)) document.getElementById('clarify-desc-' + rf.id).value = item.clarifyDesc || '';
+          if (document.getElementById('clarify-pic-' + rf.id)) document.getElementById('clarify-pic-' + rf.id).value = item.pic || '';
+          if (document.getElementById('clarify-tgl-' + rf.id)) document.getElementById('clarify-tgl-' + rf.id).value = item.tgl || '';
+        }
+      });
+    }
+
+    // Restore Bagian C
+    if (d.secC) {
+      if (Array.isArray(d.secC.objekLingkup)) {
+        document.querySelectorAll('input[name="spm_c_objek"]').forEach(c => {
+          c.checked = d.secC.objekLingkup.includes(c.value);
+        });
+      }
+      if (Array.isArray(d.secC.kerugianFisik)) {
+        document.querySelectorAll('input[name="spm_c_fisik"]').forEach(c => {
+          c.checked = d.secC.kerugianFisik.includes(c.value);
+        });
+      }
+      if (Array.isArray(d.secC.kerugianNonfisik)) {
+        document.querySelectorAll('input[name="spm_c_nonfisik"]').forEach(c => {
+          c.checked = d.secC.kerugianNonfisik.includes(c.value);
+        });
+      }
+      if (document.getElementById('spm-c-bukti-pendukung')) document.getElementById('spm-c-bukti-pendukung').value = d.secC.buktiPendukung || 'TERSEDIA & MEMADAI';
+      if (document.getElementById('spm-c-keterbatasan-data')) document.getElementById('spm-c-keterbatasan-data').value = d.secC.keterbatasanData || 'TIDAK ADA';
+      if (document.getElementById('spm-c-tenaga-ahli')) document.getElementById('spm-c-tenaga-ahli').value = d.secC.tenagaAhli || 'TIDAK DIPERLUKAN';
+    }
+
+    // Restore Bagian D
+    if (d.secD_irac) {
+      if (document.getElementById('irac-kategori')) document.getElementById('irac-kategori').value = d.secD_irac.kategori || '1. Legalitas Objek';
+      if (document.getElementById('irac-issue')) document.getElementById('irac-issue').value = d.secD_irac.issue || '';
+      if (document.getElementById('irac-rule')) document.getElementById('irac-rule').value = d.secD_irac.rule || '';
+      if (document.getElementById('irac-application')) document.getElementById('irac-application').value = d.secD_irac.application || '';
+      if (document.getElementById('irac-conclusion')) document.getElementById('irac-conclusion').value = d.secD_irac.conclusion || '';
+      if (document.getElementById('irac-ahli')) document.getElementById('irac-ahli').value = d.secD_irac.ahli || 'TIDAK DIPERLUKAN';
+      if (document.getElementById('irac-eskalasi')) document.getElementById('irac-eskalasi').value = d.secD_irac.eskalasi || 'TIDAK';
+    }
+
+    // Restore Bagian E
+    if (d.secE_matriks) {
+      if (document.getElementById('spm-e-risk-desc')) document.getElementById('spm-e-risk-desc').value = d.secE_matriks.riskDesc || '';
+      if (document.getElementById('spm-e-risk-level')) document.getElementById('spm-e-risk-level').value = d.secE_matriks.riskLevel || 'LOW';
+      if (document.getElementById('spm-e-risk-impact')) document.getElementById('spm-e-risk-impact').value = d.secE_matriks.impact || 'Minor';
+      if (document.getElementById('spm-e-risk-prob')) document.getElementById('spm-e-risk-prob').value = d.secE_matriks.prob || 'Jarang';
+      if (document.getElementById('spm-t-mitigasi')) document.getElementById('spm-t-mitigasi').value = d.secE_matriks.mitigasi || '';
+      if (document.getElementById('spm-e-risk-pic')) document.getElementById('spm-e-risk-pic').value = d.secE_matriks.pic || '';
+      if (document.getElementById('spm-e-risk-deadline')) document.getElementById('spm-e-risk-deadline').value = d.secE_matriks.deadline || '';
+      if (document.getElementById('spm-e-risk-evidence')) document.getElementById('spm-e-risk-evidence').value = d.secE_matriks.evidence || '';
+      if (document.getElementById('spm-e-risk-residual')) document.getElementById('spm-e-risk-residual').value = d.secE_matriks.residual || 'LOW';
+      if (document.getElementById('spm-e-risk-verified')) document.getElementById('spm-e-risk-verified').value = d.secE_matriks.verified || 'BELUM DIVERIFIKASI';
+    }
+
+    // Restore Bagian F
+    if (d.secF_acceptance) {
+      if (document.getElementById('spm-f-mandatory-selesai')) document.getElementById('spm-f-mandatory-selesai').value = d.secF_acceptance.mandatorySelesai || 'YA - LENGKAP';
+      if (document.getElementById('spm-f-persoalan-terbuka')) document.getElementById('spm-f-persoalan-terbuka').value = d.secF_acceptance.persoalanTerbuka || 'TIDAK ADA';
+      if (document.getElementById('spm-f-keputusan')) {
+        document.getElementById('spm-f-keputusan').value = d.secF_acceptance.keputusan || '';
+        onAcceptanceDecisionChange();
+      }
+      if (document.getElementById('spm-f-alasan')) document.getElementById('spm-f-alasan').value = d.secF_acceptance.alasan || '';
+      if (document.getElementById('spm-f-mitigasi-syarat')) document.getElementById('spm-f-mitigasi-syarat').value = d.secF_acceptance.syaratMitigasi || '';
+      if (document.getElementById('spm-f-eskalasi-rekomendasi')) document.getElementById('spm-f-eskalasi-rekomendasi').value = d.secF_acceptance.eskalasiRekomendasi || '';
+    }
+
+    // Restore Bagian G
+    if (d.secG_qc) {
+      if (document.getElementById('spm-g-rev-dokumen')) document.getElementById('spm-g-rev-dokumen').value = d.secG_qc.dokumenOk || 'YA - LENGKAP';
+      if (document.getElementById('spm-g-rev-independensi')) document.getElementById('spm-g-rev-independensi').value = d.secG_qc.independensiOk || 'YA - SESUAI';
+      if (document.getElementById('spm-g-rev-irac')) document.getElementById('spm-g-rev-irac').value = d.secG_qc.iracOk || 'SESUAI';
+      if (document.getElementById('spm-g-rev-mitigasi')) document.getElementById('spm-g-rev-mitigasi').value = d.secG_qc.mitigasiOk || 'MEMADAI';
+      if (document.getElementById('spm-g-rev-legal')) document.getElementById('spm-g-rev-legal').value = d.secG_qc.legalOk || 'TIDAK PERLU LEGAL REVIEW';
+      if (document.getElementById('spm-g-hasil-spm')) document.getElementById('spm-g-hasil-spm').value = d.secG_qc.hasilSpm || 'APPROVED';
+      if (document.getElementById('spm-g-keputusan-approval')) document.getElementById('spm-g-keputusan-approval').value = d.secG_qc.keputusanApproval || 'DISETUJUI';
+      if (document.getElementById('spm-g-approver-name')) document.getElementById('spm-g-approver-name').value = d.secG_qc.approverName || 'Tim Kendali Mutu KJPP NSR';
+      if (document.getElementById('spm-g-approval-date')) document.getElementById('spm-g-approval-date').value = d.secG_qc.approvalDate || '';
+      if (document.getElementById('spm-g-catatan-perbaikan')) document.getElementById('spm-g-catatan-perbaikan').value = d.secG_qc.catatanPerbaikan || '';
+    }
+  } catch (err) {
+    console.error('Error muatStateSmartSpmTanah:', err);
+  }
+}
+
+function pasangAutoSaveListeners() {
+  const container = document.getElementById('box-sub-spm-tanah');
+  if (!container) return;
+  container.addEventListener('change', () => {
+    simpanStateSmartSpmTanah();
+    updateSmartSpmTanahStats();
+  });
+  container.addEventListener('input', () => {
+    simpanStateSmartSpmTanah();
+  });
+}
+
+function resetSmartSpmTanah() {
+  if (!confirm('Apakah Anda yakin ingin mengosongkan isian formulir Smart Mitigasi Pengadaan Tanah dan memulai formulir baru?')) return;
+  localStorage.removeItem('kjpp_smart_spm_tanah_state');
+  smartTanahState = {
+    statusDokumen: 'DRAFT',
+    linkedNoReq: '',
+    redFlags: {},
+    lastUpdated: null
+  };
+  location.reload();
+}
+
+function salinFormatGsheetSpmTanah() {
+  const d = kumpulkanDataSmartTanah();
+  // Format TSV untuk tab Mitigasi Google Sheets
+  const tsv = [
+    new Date().toISOString().replace('T', ' ').substring(0, 19),
+    'KJPP-RM-CA-01 (Tanah)',
+    d.linkedNoReq || '-',
+    d.secA.namaProyek || '-',
+    d.secA.instansi || '-',
+    `${d.secA.luas || '-'} ${d.secA.luasSatuan}`,
+    d.secA.skala || '-',
+    d.secA.mekanisme || '-',
+    d.secA.outputDasarNilai || '-',
+    d.secF_acceptance.keputusan || '-',
+    d.secE_matriks.riskLevel || 'LOW',
+    d.secE_matriks.mitigasi || d.secF_acceptance.syaratMitigasi || '-',
+    d.secG_qc.approverName || '-',
+    d.statusDokumen || 'DRAFT'
+  ].join('\t');
+
+  navigator.clipboard.writeText(tsv).then(() => {
+    alert('📋 Data Kertas Kerja Smart Mitigasi Pengadaan Tanah berhasil disalin ke clipboard dalam format tabel Google Sheets (TSV).\n\nAnda dapat menempelkan (Ctrl+V) langsung ke tab Mitigasi pada Google Spreadsheet.');
+  }).catch(() => {
+    prompt('Salin data berikut untuk Google Spreadsheet:', tsv);
+  });
+}
+
+// Override / Update simpanLogSpm('tanah')
+const simpanLogSpmOriginal = window.simpanLogSpm;
+window.simpanLogSpm = function(tipe) {
+  if (tipe === 'tanah') {
+    simpanStateSmartSpmTanah();
+    updateSmartSpmTanahStats();
+    const d = kumpulkanDataSmartTanah();
+    // Sinkronkan ke Google Apps Script latar belakang jika tersedia
+    if (typeof kirimKeAppsScriptBackground === 'function') {
+      kirimKeAppsScriptBackground({
+        action: 'saveSmartMitigasiTanah',
+        data: d
+      });
+    }
+    alert(`✅ Data Client Acceptance & Smart Mitigasi Pengadaan Tanah (KJPP-RM-CA-01) berhasil disimpan permanen.\n\nStatus: ${d.statusDokumen}\nKeputusan: ${d.secF_acceptance.keputusan || 'Menunggu Keputusan'}\nProyek: ${d.secA.namaProyek || '-'}`);
+    return;
+  }
+  if (typeof simpanLogSpmOriginal === 'function') {
+    simpanLogSpmOriginal(tipe);
+  } else {
+    alert(`✅ Data Client Acceptance & Mitigasi Risiko (${tipe.toUpperCase()}) berhasil disimpan.`);
+  }
+};
+
+// Override cetakKertasKerjaSpm
+const cetakKertasKerjaSpmOriginal = window.cetakKertasKerjaSpm;
+window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
+  if (tipe !== 'tanah') {
+    if (typeof cetakKertasKerjaSpmOriginal === 'function') {
+      cetakKertasKerjaSpmOriginal(tipe);
+    }
+    return;
+  }
+
+  const d = kumpulkanDataSmartTanah();
+
+  // Validasi mode cetak
+  if (mode === 'approved' && d.statusDokumen !== 'APPROVED') {
+    const lanjut = confirm('⚠️ Perhatian: Kertas Kerja ini belum memperoleh persetujuan resmi (Status masih DRAFT).\n\nApakah Anda tetap ingin mencetak dengan stempel DRAFT KERTAS KERJA?');
+    if (!lanjut) return;
+  }
+
+  const printBody = document.getElementById('print-body-content');
+  const printNama = document.getElementById('print-nama-pengaju');
+  if (printNama) {
+    printNama.innerText = sesiAktif ? `${sesiAktif.nama} (${sesiAktif.jabatan})` : (d.secE_matriks.pic || 'Penilai Pelaksana Pertanahan');
+  }
+
+  // Siapkan baris Red Flags untuk cetak A4
+  let rfPrintRows = '';
+  SMART_TANAH_RED_FLAGS_CONFIG.forEach(rf => {
+    const item = d.secB_redFlags[rf.id] || { val: 'TIDAK' };
+    const valClass = item.val === 'YA' ? 'color:#b91c1c; font-weight:bold;' : (item.val === 'BELUM DIKETAHUI' ? 'color:#b45309; font-weight:bold;' : 'color:#15803d;');
+    rfPrintRows += `
+      <tr>
+        <td style="padding:3px 6px; border:1px solid #cbd5e1; font-family:monospace; width:60px;">${rf.code}</td>
+        <td style="padding:3px 6px; border:1px solid #cbd5e1;">${rf.title}</td>
+        <td style="padding:3px 6px; border:1px solid #cbd5e1; text-align:center; ${valClass}">${item.val}</td>
+        <td style="padding:3px 6px; border:1px solid #cbd5e1; font-size:10px;">${item.clarifyDesc || (item.val === 'YA' ? 'Tindakan Mitigasi Terlampir' : '-')}</td>
+      </tr>
+    `;
+  });
+
+  const isApproved = (mode === 'approved' && d.statusDokumen === 'APPROVED');
+  const watermarkBadge = isApproved ? `
+    <div style="border:2px solid #16a34a; background:#f0fdf4; color:#15803d; padding:6px 14px; border-radius:8px; text-align:center; font-weight:900; letter-spacing:1px; font-size:12px; margin-bottom:12px;">
+      ✓ RESMI DISETUJUI (APPROVED) — SISTEM PENGENDALIAN MUTU KJPP NSR
+    </div>
+  ` : `
+    <div style="border:2px dashed #ca8a04; background:#fefce8; color:#a16207; padding:6px 14px; border-radius:8px; text-align:center; font-weight:900; letter-spacing:1px; font-size:12px; margin-bottom:12px;">
+      ⚠ DRAFT KERTAS KERJA — BELUM FINAL / DALAM PROSES VERIFIKASI PENGENDALIAN MUTU
+    </div>
+  `;
+
+  printBody.innerHTML = `
+    ${watermarkBadge}
+
+    <!-- IDENTITAS DOKUMEN -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #94a3b8; padding-bottom:6px; margin-bottom:10px;">
+      <div>
+        <strong style="font-size:13px; text-transform:uppercase;">FORMULIR KENDALI MUTU KHUSUS PENGADAAN TANAH (SPI 204)</strong><br>
+        <span style="font-size:10px; color:#475569;">Kode Dokumen: KJPP-RM-CA-01 (Pengadaan Tanah) • UU No. 2/2012 jo. PP 19/2021</span>
+      </div>
+      <div style="text-align:right; font-size:10px;">
+        <span>No. Registrasi: <strong>${d.linkedNoReq || '(Mandiri)'}</strong></span><br>
+        <span>Tanggal Kertas Kerja: ${new Date().toLocaleDateString('id-ID')}</span>
+      </div>
+    </div>
+
+    <!-- TABEL 1: IDENTIFIKASI & KESESUAIAN PENUGASAN -->
+    <div style="margin-bottom:12px;">
+      <h4 style="font-size:11px; font-weight:bold; margin-bottom:4px; background:#f1f5f9; padding:4px 8px; border-left:3px solid #2563eb;">1. IDENTIFIKASI &amp; KESESUAIAN PENUGASAN (BAGIAN A)</h4>
+      <table style="width:100%; font-size:10px; border-collapse:collapse;" border="1">
+        <tr><td style="width:25%; padding:4px; font-weight:600; background:#f8fafc;">Nama Proyek</td><td style="padding:4px;" colspan="3"><strong>${d.secA.namaProyek || '-'}</strong></td></tr>
+        <tr><td style="padding:4px; font-weight:600; background:#f8fafc;">Instansi yang Memerlukan</td><td style="padding:4px;">${d.secA.instansi || '-'}</td><td style="width:20%; padding:4px; font-weight:600; background:#f8fafc;">Pemberi Tugas / Pengguna</td><td style="padding:4px;">${d.secA.pemberiTugas || '-'} / ${d.secA.penggunaLaporan || '-'}</td></tr>
+        <tr><td style="padding:4px; font-weight:600; background:#f8fafc;">Lokasi Objek Pengadaan</td><td style="padding:4px;">${d.secA.lokasiObjek || '-'}</td><td style="padding:4px; font-weight:600; background:#f8fafc;">Luas Keseluruhan Rencana</td><td style="padding:4px;">${d.secA.luas || '-'} ${d.secA.luasSatuan}</td></tr>
+        <tr><td style="padding:4px; font-weight:600; background:#f8fafc;">Skala Pengadaan Tanah</td><td style="padding:4px;">${d.secA.skala || '-'}</td><td style="padding:4px; font-weight:600; background:#f8fafc;">Mekanisme Pengadaan</td><td style="padding:4px;">${d.secA.mekanisme || '-'}</td></tr>
+        <tr><td style="padding:4px; font-weight:600; background:#f8fafc;">Dasar Nilai Output</td><td style="padding:4px;"><strong>${d.secA.outputDasarNilai || '-'}</strong></td><td style="padding:4px; font-weight:600; background:#f8fafc;">Kesesuaian Dasar Nilai</td><td style="padding:4px;">${d.secA.kesesuaianDasarNilai || '-'}</td></tr>
+        <tr><td style="padding:4px; font-weight:600; background:#f8fafc;">Surat Penugasan / SPK</td><td style="padding:4px;">${d.secA.dokSpk || '-'}</td><td style="padding:4px; font-weight:600; background:#f8fafc;">Dokumen Perencanaan (DPPT)</td><td style="padding:4px;">${d.secA.dokDppt || '-'}</td></tr>
+        <tr><td style="padding:4px; font-weight:600; background:#f8fafc;">Tanggal Penilaian</td><td style="padding:4px;">${d.secA.tglPenilaian || '-'} (${d.secA.statusTglPenilaian})</td><td style="padding:4px; font-weight:600; background:#f8fafc;">Kompetensi Lisensi Penilai</td><td style="padding:4px;">${d.secA.kompetensiPenilai || '-'}</td></tr>
+        <tr><td style="padding:4px; font-weight:600; background:#f8fafc;">Independensi &amp; Benturan</td><td style="padding:4px;">${d.secA.independensi} / Konflik: ${d.secA.benturanKepentingan}</td><td style="padding:4px; font-weight:600; background:#f8fafc;">Bebas Tekanan Nilai</td><td style="padding:4px;">${d.secA.tekananNilai}</td></tr>
+      </table>
+    </div>
+
+    <!-- TABEL 2: SCREENING RED FLAGS -->
+    <div style="margin-bottom:12px;">
+      <h4 style="font-size:11px; font-weight:bold; margin-bottom:4px; background:#f1f5f9; padding:4px 8px; border-left:3px solid #e11d48;">2. SCREENING 18 INDIKATOR RISIKO KHUSUS / RED FLAGS (BAGIAN B)</h4>
+      <table style="width:100%; font-size:9.5px; border-collapse:collapse;" border="1">
+        <thead>
+          <tr style="background:#e2e8f0; font-weight:bold;">
+            <th style="padding:3px; border:1px solid #cbd5e1;">Kode</th>
+            <th style="padding:3px; border:1px solid #cbd5e1;">Indikator Pemeriksaan</th>
+            <th style="padding:3px; border:1px solid #cbd5e1; width:80px;">Status</th>
+            <th style="padding:3px; border:1px solid #cbd5e1;">Keterangan / Rencana Tindak Lanjut</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rfPrintRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TABEL 3: KOMPONEN OBJEK & KERUGIAN -->
+    <div style="margin-bottom:12px;">
+      <h4 style="font-size:11px; font-weight:bold; margin-bottom:4px; background:#f1f5f9; padding:4px 8px; border-left:3px solid #10b981;">3. KOMPONEN PENILAIAN &amp; KERUGIAN SPI 204 (BAGIAN C)</h4>
+      <table style="width:100%; font-size:10px; border-collapse:collapse;" border="1">
+        <tr>
+          <td style="width:25%; padding:4px; font-weight:600; background:#f8fafc;">Ruang Lingkup Objek</td>
+          <td style="padding:4px;" colspan="3">${(d.secC.objekLingkup && d.secC.objekLingkup.length) ? d.secC.objekLingkup.join(', ') : '-'}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Komponen Kerugian Fisik</td>
+          <td style="padding:4px;">${(d.secC.kerugianFisik && d.secC.kerugianFisik.length) ? d.secC.kerugianFisik.join(', ') : '(N/A)'}</td>
+          <td style="width:20%; padding:4px; font-weight:600; background:#f8fafc;">Komponen Nonfisik (NPW)</td>
+          <td style="padding:4px;">${(d.secC.kerugianNonfisik && d.secC.kerugianNonfisik.length) ? d.secC.kerugianNonfisik.join(', ') : '(N/A / Pasar)'}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Kecukupan Bukti &amp; Data</td>
+          <td style="padding:4px;">${d.secC.buktiPendukung} (Keterbatasan: ${d.secC.keterbatasanData})</td>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Dukungan Tenaga Ahli</td>
+          <td style="padding:4px;">${d.secC.tenagaAhli}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- TABEL 4: ANALISIS IRAC & MATRIKS RISIKO -->
+    <div style="margin-bottom:12px;">
+      <h4 style="font-size:11px; font-weight:bold; margin-bottom:4px; background:#f1f5f9; padding:4px 8px; border-left:3px solid #f59e0b;">4. ANALISIS IRAC &amp; REGISTER RISIKO (BAGIAN D &amp; E)</h4>
+      <table style="width:100%; font-size:10px; border-collapse:collapse;" border="1">
+        <tr>
+          <td style="width:25%; padding:4px; font-weight:600; background:#f8fafc;">Kategori Isu IRAC</td>
+          <td style="padding:4px;">${d.secD_irac.kategori || '1. Legalitas Objek'}</td>
+          <td style="width:20%; padding:4px; font-weight:600; background:#f8fafc;">Dasar Hukum / Rule</td>
+          <td style="padding:4px;">${d.secD_irac.rule || 'SPI 204 & UU No. 2/2012 jo. PP 19/2021'}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Fakta Isu (Issue)</td>
+          <td style="padding:4px;" colspan="3">${d.secD_irac.issue || 'Tidak teridentifikasi isu deviasi legalitas/regulasi material.'}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Kesimpulan &amp; Mitigasi IRAC</td>
+          <td style="padding:4px;" colspan="3">${d.secD_irac.conclusion || 'Pemeriksaan standar terpenuhi.'}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Tingkat Risiko &amp; Dampak</td>
+          <td style="padding:4px;"><strong>Tingkat: ${d.secE_matriks.riskLevel || 'LOW'}</strong> (Dampak: ${d.secE_matriks.impact}, Probabilitas: ${d.secE_matriks.prob})</td>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Risiko Sisa (Residual)</td>
+          <td style="padding:4px;"><strong>${d.secE_matriks.residual || 'LOW'}</strong></td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Tindakan Mitigasi Khusus</td>
+          <td style="padding:4px;" colspan="3"><strong>${d.secE_matriks.mitigasi || d.secF_acceptance.syaratMitigasi || 'Pemeriksaan kepatuhan standar sesuai KAK & SPI 204.'}</strong></td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">PIC &amp; Tenggat Waktu</td>
+          <td style="padding:4px;">${d.secE_matriks.pic || '-'} (Target: ${d.secE_matriks.deadline || '-'})</td>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Bukti Dokumen Mitigasi</td>
+          <td style="padding:4px;">${d.secE_matriks.evidence || 'Kertas Kerja Penilaian & BAI'}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- TABEL 5: CLIENT ACCEPTANCE & VERIFIKASI SPM -->
+    <div style="margin-bottom:12px;">
+      <h4 style="font-size:11px; font-weight:bold; margin-bottom:4px; background:#f1f5f9; padding:4px 8px; border-left:3px solid #8b5cf6;">5. KEPUTUSAN CLIENT ACCEPTANCE &amp; VERIFIKASI PENGENDALIAN MUTU (BAGIAN F &amp; G)</h4>
+      <table style="width:100%; font-size:10px; border-collapse:collapse;" border="1">
+        <tr>
+          <td style="width:25%; padding:4px; font-weight:600; background:#f8fafc;">Keputusan Client Acceptance</td>
+          <td style="padding:4px;"><strong style="font-size:11px; color:#1e40af;">${d.secF_acceptance.keputusan || '(Belum Diputuskan)'}</strong></td>
+          <td style="width:20%; padding:4px; font-weight:600; background:#f8fafc;">Hasil Verifikasi SPM</td>
+          <td style="padding:4px;"><strong>${d.secG_qc.hasilSpm || 'APPROVED'}</strong></td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Dasar Pertimbangan Keputusan</td>
+          <td style="padding:4px;" colspan="3">${d.secF_acceptance.alasan || 'Kesesuaian lingkup, dasar nilai, dan mitigasi risiko terpenuhi.'}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Keputusan Akhir Pejabat</td>
+          <td style="padding:4px;"><strong>${d.secG_qc.keputusanApproval || 'DISETUJUI'}</strong></td>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Pejabat SPM / Rekan</td>
+          <td style="padding:4px;">${d.secG_qc.approverName || 'Tim Kendali Mutu KJPP NSR'} (${d.secG_qc.approvalDate || new Date().toISOString().split('T')[0]})</td>
+        </tr>
+        <tr>
+          <td style="padding:4px; font-weight:600; background:#f8fafc;">Catatan Perbaikan SPM</td>
+          <td style="padding:4px;" colspan="3">${d.secG_qc.catatanPerbaikan || '-'}</td>
+        </tr>
+      </table>
+    </div>
+  `;
+
+  window.print();
+};
+
+    /* =========================================================================
        10. SISTEM PENGENDALIAN MUTU & CLIENT ACCEPTANCE (SPM) LOG
        ========================================================================= */
     function pilihSubSpm(tipe) {
@@ -2204,6 +4685,7 @@
       } else if (tipe === 'tanah') {
         document.getElementById('box-sub-spm-tanah').classList.remove('hidden');
         document.getElementById('btn-spm-tanah').classList.replace('border-slate-800', 'border-blue-400');
+        try { inisialisasiSmartSpmTanah(); } catch(e){}
       } else if (tipe === 'ruislagh') {
         document.getElementById('box-sub-spm-ruislagh').classList.remove('hidden');
         document.getElementById('btn-spm-ruislagh').classList.replace('border-slate-800', 'border-emerald-400');
