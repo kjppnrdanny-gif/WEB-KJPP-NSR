@@ -52,11 +52,56 @@ const CONFIG = {
  * Memanggil file template bernama 'GPS.html'
  */
 function doGet() {
+  try {
+    if (CONFIG.APP_ENV === 'STAGING') {
+      ensureStagingInitialized_();
+    }
+  } catch(e) {
+    Logger.log('Notice initialization: ' + e.message);
+  }
+
   return HtmlService.createTemplateFromFile('GPS')
     .evaluate()
     .setTitle('Absensi Online KJPP NSR')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+}
+
+/**
+ * Inisialisasi otomatis sheet staging saat diakses
+ */
+function ensureStagingInitialized_() {
+  const ss = getSS_();
+  let ssName = '';
+  try { ssName = ss.getName().toUpperCase(); } catch(e) {}
+  if (CONFIG.IS_PRODUCTION === true || ssName.indexOf('PRODUKSI') !== -1 || ssName.indexOf('LIVE') !== -1) {
+    return;
+  }
+  
+  let shKaryawan = ss.getSheetByName(CONFIG.SHEET_KARYAWAN);
+  if (!shKaryawan) {
+    shKaryawan = ss.insertSheet(CONFIG.SHEET_KARYAWAN);
+  }
+  
+  // Set header & data resmi tester staging
+  shKaryawan.getRange(1, 1, 1, 6).setValues([['NIK', 'Nama', 'Jabatan', 'Divisi', 'Email', 'StatusAktif']]);
+  shKaryawan.getRange(1, 1, 1, 6).setFontWeight('bold');
+  shKaryawan.getRange(2, 1, 4, 6).setValues([
+    ['NSR-001', 'Danny Taufik Hidayat, S.T.', 'Penilai Properti', 'Divisi Penilaian Properti', 'kjppnr.danny@gmail.com', 'AKTIF'],
+    ['NSR-002', 'Siti Aminah, S.E.', 'Penilai Bisnis', 'Divisi Penilaian Bisnis', 'kjppnr.danny@gmail.com', 'AKTIF'],
+    ['NSR-003', 'Ahmad Fauzi', 'Staf Teknis Inspeksi', 'Divisi Operasional', 'kjppnr.danny@gmail.com', 'AKTIF'],
+    ['NSR-004', 'Dewi Lestari', 'Administrasi & Keuangan', 'Divisi Keuangan', 'kjppnr.danny@gmail.com', 'AKTIF']
+  ]);
+
+  ensureSheet_(ss, CONFIG.SHEET_ABSENSI, [
+    'Timestamp', 'Tanggal', 'Jam', 'NIK', 'Nama', 'Jabatan', 'Divisi',
+    'JenisPresensi', 'LokasiPresensi', 'KoordinatGPS', 'KantorTerdekat', 'JarakMeter', 'StatusValidasi'
+  ]);
+  ensureSheet_(ss, CONFIG.SHEET_WFH, ['Timestamp', 'NIK', 'Nama', 'AlamatRumah', 'KoordinatGPS', 'Status']);
+  ensureSheet_(ss, CONFIG.SHEET_CUTI, [
+    'Timestamp', 'NIK', 'Nama', 'KategoriCuti', 'TanggalMulai', 'TanggalSelesai',
+    'Alasan', 'FileUrl', 'FileName', 'StatusPersetujuan'
+  ]);
 }
 
 /**
@@ -135,10 +180,10 @@ function setupTestingSheet() {
   const shKaryawan = ss.getSheetByName(CONFIG.SHEET_KARYAWAN);
   if (shKaryawan.getLastRow() <= 1) {
     shKaryawan.getRange(2, 1, 4, 6).setValues([
-      ['NSR-001', 'Budi Santoso, S.T.', 'Penilai Properti', 'Divisi Penilaian Properti', 'budi.santoso.kjpp@gmail.com', 'AKTIF'],
-      ['NSR-002', 'Siti Aminah, S.E.', 'Penilai Bisnis', 'Divisi Penilaian Bisnis', 'siti.aminah.kjpp@gmail.com', 'AKTIF'],
-      ['NSR-003', 'Ahmad Fauzi', 'Staf Teknis Inspeksi', 'Divisi Operasional', 'ahmad.fauzi.kjpp@gmail.com', 'AKTIF'],
-      ['NSR-004', 'Dewi Lestari', 'Administrasi & Keuangan', 'Divisi Keuangan', 'dewi.lestari.kjpp@gmail.com', 'AKTIF']
+      ['NSR-001', 'Danny Taufik Hidayat, S.T.', 'Penilai Properti', 'Divisi Penilaian Properti', 'kjppnr.danny@gmail.com', 'AKTIF'],
+      ['NSR-002', 'Siti Aminah, S.E.', 'Penilai Bisnis', 'Divisi Penilaian Bisnis', 'kjppnr.danny@gmail.com', 'AKTIF'],
+      ['NSR-003', 'Ahmad Fauzi', 'Staf Teknis Inspeksi', 'Divisi Operasional', 'kjppnr.danny@gmail.com', 'AKTIF'],
+      ['NSR-004', 'Dewi Lestari', 'Administrasi & Keuangan', 'Divisi Keuangan', 'kjppnr.danny@gmail.com', 'AKTIF']
     ]);
   }
 
@@ -161,12 +206,16 @@ function ensureSheet_(ss, name, headers) {
  */
 function cekKaryawan(nik) {
   if (!nik) return null;
+  const cleanNik = String(nik).trim().toUpperCase();
   const ss = getSS_();
-  const sh = ss.getSheetByName(CONFIG.SHEET_KARYAWAN);
+  let sh = ss.getSheetByName(CONFIG.SHEET_KARYAWAN);
+  if ((!sh || sh.getLastRow() < 2) && CONFIG.APP_ENV === 'STAGING') {
+    ensureStagingInitialized_();
+    sh = ss.getSheetByName(CONFIG.SHEET_KARYAWAN);
+  }
   if (!sh || sh.getLastRow() < 2) return null;
 
   const data = sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues();
-  const cleanNik = String(nik).trim().toUpperCase();
 
   for (let i = 0; i < data.length; i++) {
     if (String(data[i][0]).trim().toUpperCase() === cleanNik) {
@@ -212,7 +261,12 @@ function getEmailKaryawanInternal_(nik) {
 function mintaOTP(nik) {
   if (!nik) throw new Error('Harap cantumkan NIK Karyawan.');
   const cleanNik = String(nik).trim().toUpperCase();
-  const email = getEmailKaryawanInternal_(cleanNik);
+  let email = getEmailKaryawanInternal_(cleanNik);
+
+  if ((!email || email.indexOf('@') === -1) && CONFIG.APP_ENV === 'STAGING') {
+    ensureStagingInitialized_();
+    email = getEmailKaryawanInternal_(cleanNik);
+  }
 
   if (!email || email.indexOf('@') === -1) {
     throw new Error('Email karyawan belum terdaftar untuk NIK [' + cleanNik + ']. Hubungi HR.');

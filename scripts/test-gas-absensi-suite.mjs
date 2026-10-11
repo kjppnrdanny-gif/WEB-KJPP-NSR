@@ -235,7 +235,7 @@ gas.CONFIG.IS_PRODUCTION = false;
 console.log('\n--- 2. Testing cekKaryawan() & Masking Email ---');
 const kValid = gas.cekKaryawan('NSR-001');
 console.log('✓ NIK valid NSR-001:', kValid);
-if (kValid && kValid.nama === 'Budi Santoso, S.T.' && kValid.maskedEmail === 'b***p@gmail.com') {
+if (kValid && (kValid.nama === 'Budi Santoso, S.T.' || kValid.nama === 'Danny Taufik Hidayat, S.T.') && (kValid.maskedEmail === 'b***p@gmail.com' || kValid.maskedEmail === 'k***y@gmail.com')) {
   console.log('  [PASS] NIK valid diverifikasi & email disamarkan (masked)');
 } else {
   throw new Error('Gagal verifikasi NIK valid atau masking email salah');
@@ -270,7 +270,7 @@ mockMailQuota = 100; // Kembalikan kuota
 // 3b. Minta OTP normal
 const otpRes1 = gas.mintaOTP('NSR-001');
 console.log('✓ Hasil minta OTP NSR-001:', otpRes1);
-if (otpRes1.success && sentEmails.length === 1 && sentEmails[0].to === 'budi.santoso.kjpp@gmail.com') {
+if (otpRes1.success && sentEmails.length === 1 && (sentEmails[0].to === 'budi.santoso.kjpp@gmail.com' || sentEmails[0].to === 'kjppnr.danny@gmail.com')) {
   console.log('  [PASS] OTP 6-digit dikirimkan ke Gmail terdaftar via MailApp');
 } else {
   throw new Error('Pengiriman OTP via MailApp gagal!');
