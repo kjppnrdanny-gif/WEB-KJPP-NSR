@@ -14005,7 +14005,8 @@ function getFilteredPermohonan(query) {
     'dki': 'bank dki'
   };
   Object.keys(ALIAS_MAP).forEach(k => {
-    if (q === k || q.includes(k)) searchTerms.push(ALIAS_MAP[k]);
+    const re = new RegExp('\\b' + k + '\\b', 'i');
+    if (re.test(q)) searchTerms.push(ALIAS_MAP[k]);
     if (q.includes(ALIAS_MAP[k])) searchTerms.push(k);
   });
 
