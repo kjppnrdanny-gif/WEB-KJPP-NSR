@@ -180,6 +180,22 @@ async function run() {
         const boxPsn = document.getElementById('box-ruislagh-jalur-psn');
         results.jalurPsnVisible = boxPsn && !boxPsn.classList.contains('hidden');
 
+        // Test Jalur 4 (Kepentingan Desa)
+        jalurSel.value = 'KEPENTINGAN_DESA';
+        onRuislaghJalurChange();
+        const desaBanner = document.getElementById('text-regulasi-dinamis-ruislagh')?.innerText || '';
+        results.desaBannerText = desaBanner;
+        results.desaHasNoLatex = !desaBanner.includes('$\\rightarrow') && !desaBanner.includes('rightarrow');
+        results.desaHasArrow = desaBanner.includes('→');
+
+        // Test Jalur 3 (Swasta / Bukan Kepentingan Umum)
+        jalurSel.value = 'BUKAN_KEPENTINGAN_UMUM';
+        onRuislaghJalurChange();
+        const swastaBanner = document.getElementById('text-regulasi-dinamis-ruislagh')?.innerText || '';
+        results.swastaBannerText = swastaBanner;
+        results.swastaHasNoLatex = !swastaBanner.includes('$\\rightarrow') && !swastaBanner.includes('rightarrow');
+        results.swastaHasArrow = swastaBanner.includes('→');
+
         // Test Historis Checkbox
         const chkHistoris = document.getElementById('check-ruislagh-historis');
         chkHistoris.checked = true;
@@ -309,6 +325,17 @@ async function run() {
     await captureElement('sec-ruislagh-acceptance', 'smart_spm_ruislagh_sec_acceptance.png');
     await captureElement('sec-ruislagh-approval', 'smart_spm_ruislagh_sec_approval.png');
 
+    await send('Runtime.evaluate', {
+      expression: `(() => {
+        const sel = document.getElementById('spm-r-jalur-ruislagh');
+        if (sel) {
+          sel.value = 'KEPENTINGAN_DESA';
+          onRuislaghJalurChange();
+        }
+      })()`
+    });
+    await captureElement('box-banner-regulasi-ruislagh', 'smart_spm_ruislagh_banner_desa_desktop.png');
+
     console.log('\n======================================================');
     console.log('--- 3. MOBILE VIEWPORT VERIFIKASI (390x844) ---');
     console.log('======================================================');
@@ -320,8 +347,21 @@ async function run() {
     });
     await new Promise(r => setTimeout(r, 600));
 
+    await captureElement('box-banner-regulasi-ruislagh', 'smart_spm_ruislagh_banner_desa_mobile.png');
     await captureElement('box-sub-spm-ruislagh', 'smart_spm_ruislagh_mobile.png');
     await captureElement('sec-ruislagh-c', 'smart_spm_ruislagh_mobile_ekivalensi.png');
+
+    console.log('\n======================================================');
+    console.log('--- 4. TABLET VIEWPORT VERIFIKASI (768x1024) ---');
+    console.log('======================================================');
+    await send('Emulation.setDeviceMetricsOverride', {
+      width: 768,
+      height: 1024,
+      deviceScaleFactor: 2,
+      mobile: false
+    });
+    await new Promise(r => setTimeout(r, 400));
+    await captureElement('box-banner-regulasi-ruislagh', 'smart_spm_ruislagh_banner_desa_tablet.png');
 
     console.log('\n✅ ALL RUISLAGH VERIFICATION CHECKS COMPLETED SUCCESSFULLY!');
   } finally {
