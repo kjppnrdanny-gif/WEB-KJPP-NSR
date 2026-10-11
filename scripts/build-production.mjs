@@ -27,6 +27,7 @@ const ALLOWED_FILES = [
   "portal-kwitansi.html",
   "portal-absensi.html",
   "trusted-by.html",
+  "panduan-sosialisasi-karyawan.html",
 
   // Aset Brand, Icon, dan Dokumen Resmi
   "favicon.ico",
