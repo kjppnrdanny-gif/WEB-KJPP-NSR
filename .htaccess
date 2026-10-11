@@ -14,7 +14,13 @@ RewriteRule ^trusted-by\.html$ /#rekanan [R=301,L]
 # 3. Route endpoint /api/visitor-stats ke visitor-stats.php
 RewriteRule ^api/visitor-stats/?$ visitor-stats.php [L,QSA]
 
-# 4. Lindungi data json counter dari akses publik langsung
+# 4. Route endpoint /api/auth-* ke auth-handler.php
+RewriteRule ^api/auth-token/?$ auth-handler.php?action=token [L,QSA]
+RewriteRule ^api/auth-login/?$ auth-handler.php?action=login [L,QSA]
+RewriteRule ^api/auth-verify/?$ auth-handler.php?action=verify [L,QSA]
+RewriteRule ^api/auth-logout/?$ auth-handler.php?action=logout [L,QSA]
+
+# 5. Lindungi data json counter dan file sistem dari akses publik langsung
 <Files "visitor-data.json">
     Require all denied
 </Files>

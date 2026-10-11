@@ -51,7 +51,8 @@ const ALLOWED_FILES = [
   "sitemap.xml",
   "humans.txt",
   ".htaccess",
-  "visitor-stats.php"
+  "visitor-stats.php",
+  "auth-handler.php"
 ];
 
 // 2. ALLOWLIST DIREKTORI PUBLIK

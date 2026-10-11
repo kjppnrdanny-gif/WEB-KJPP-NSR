@@ -1330,23 +1330,21 @@
             aktifkanPanelUtama();
             return;
           }
+        } else {
+          // Server eksplisit menolak (401 unauthenticated / sesi kedaluwarsa)
+          sessionStorage.removeItem('nsr_nolap_session');
+          sesiAktif = null;
+          document.getElementById('box-auth-token').classList.remove('hidden');
+          document.getElementById('panel-aplikasi-utama').classList.add('hidden');
+          return;
         }
       } catch (err) {
         console.warn('Pemeriksaan sesi server offline atau belum login:', err);
       }
 
-      // Cek sesi tersimpan sebelumnya jika server offline
-      const savedSession = sessionStorage.getItem('nsr_nolap_session');
-      if (savedSession) {
-        try {
-          sesiAktif = JSON.parse(savedSession);
-          aktifkanPanelUtama();
-          return;
-        } catch(e) {}
-      }
-
       // Jika belum login / sesi tidak sah:
       sesiAktif = null;
+      sessionStorage.removeItem('nsr_nolap_session');
       document.getElementById('box-auth-token').classList.remove('hidden');
       document.getElementById('panel-aplikasi-utama').classList.add('hidden');
     }
