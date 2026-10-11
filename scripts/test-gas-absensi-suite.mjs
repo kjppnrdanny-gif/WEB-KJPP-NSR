@@ -152,6 +152,21 @@ if (karyawanRows.length >= 4) {
   throw new Error('Setup database gagal!');
 }
 
+// 1b. Test Guard: Cegah setupTestingSheet pada lingkungan produksi
+gas.CONFIG.IS_PRODUCTION = true;
+try {
+  gas.setupTestingSheet();
+  throw new Error('Guard gagal memblokir setup pada produksi!');
+} catch (err) {
+  if (err.message.includes('DIBLOKIR')) {
+    console.log('✓ Guard berhasil memblokir setup pada database produksi:', err.message);
+    console.log('  [PASS] Proteksi anti-modifikasi database produksi aktif');
+  } else {
+    throw err;
+  }
+}
+gas.CONFIG.IS_PRODUCTION = false;
+
 // 2. CEK KARYAWAN
 console.log('\n--- 2. Testing cekKaryawan() ---');
 const kValid = gas.cekKaryawan('NSR-001');
@@ -217,7 +232,7 @@ const resBandung = gas.simpanAbsensi({
   nik: 'NSR-003',
   jenis: 'Masuk',
   lokasi: 'KANTOR',
-  gps: '-6.938880, 107.625830' // Di Cabang Bandung
+  gps: '-6.8597817, 107.5604289' // Koordinat resmi Cabang Bandung (Pasteur)
 });
 console.log('✓ Hasil Absen Cabang Bandung:', resBandung);
 if (resBandung.success && resBandung.status === 'VALID' && resBandung.kantor === 'Cabang Bandung') {

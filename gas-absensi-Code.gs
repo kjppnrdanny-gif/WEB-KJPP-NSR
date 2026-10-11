@@ -22,19 +22,28 @@ const CONFIG = {
   
   // Folder Drive untuk lampiran surat sakit/bukti cuti
   // PENTING: Gunakan ID Folder pengujian khusus, jangan mencari nama global "BUKTI_CUTI_KJPP"
+  APP_ENV: 'STAGING', // PENGUJIAN TERISOLASI
+  IS_PRODUCTION: false,
+  SPREADSHEET_ID: '', // ID Spreadsheet Staging Pengujian (Container-bound jika kosong)
+  SHEET_KARYAWAN: 'MASTER_KARYAWAN',
+  SHEET_ABSENSI: 'ABSENSI',
+  SHEET_WFH: 'MASTER_WFH',
+  SHEET_CUTI: 'PENGAJUAN_CUTI',
+  
+  // Folder Drive untuk lampiran surat sakit/bukti cuti (Terisolasi di staging)
   DRIVE_FOLDER_ID: '', 
   
   // Radius toleransi kehadiran resmi (dalam meter)
   RADIUS_KANTOR_METER: 150,
   RADIUS_WFH_METER: 100,
 
-  // Daftar Koordinat Resmi Kantor KJPP NSR
+  // Daftar Koordinat RESMI Kantor KJPP NSR (Terverifikasi dari Google Maps resmi)
   KANTOR_CABANG: [
     { nama: "Pusat Jakarta", lat: -6.287972658138783, lng: 106.82477864308436 },
-    { nama: "Cabang Bandung", lat: -6.938889, lng: 107.625833 },
-    { nama: "Cabang Padang", lat: -0.947222, lng: 100.363889 },
-    { nama: "Cabang Makassar", lat: -5.155833, lng: 119.412778 },
-    { nama: "Cabang Palembang", lat: -2.936667, lng: 104.721667 }
+    { nama: "Cabang Bandung", lat: -6.8597817, lng: 107.5604289 },
+    { nama: "Cabang Padang", lat: -0.94932, lng: 100.376055 },
+    { nama: "Cabang Makassar", lat: -5.1582, lng: 119.4095 },
+    { nama: "Cabang Palembang", lat: -2.929044, lng: 104.695981 }
   ]
 };
 
@@ -62,9 +71,17 @@ function getSS_() {
 
 /**
  * Setup struktur sheet pengujian otomatis
+ * KEAMANAN TINGGI: Hanya boleh dijalankan pada Database Pengujian / Staging
  */
 function setupTestingSheet() {
   const ss = getSS_();
+  let ssName = '';
+  try { ssName = ss.getName().toUpperCase(); } catch(e) {}
+
+  // GUARD: Menolak eksekusi pada database produksi
+  if (CONFIG.IS_PRODUCTION === true || ssName.indexOf('PRODUKSI') !== -1 || ssName.indexOf('LIVE') !== -1) {
+    throw new Error('KEAMANAN: setupTestingSheet() DIBLOKIR! Dilarang mengeksekusi setup dummy pada database produksi asli!');
+  }
   
   // 1. MASTER KARYAWAN
   ensureSheet_(ss, CONFIG.SHEET_KARYAWAN, ['NIK', 'Nama', 'Jabatan', 'Divisi', 'Email', 'StatusAktif']);
