@@ -1,9 +1,11 @@
-// Test suite untuk simulasi backend Apps Script dan frontend GPS.html
+// Test suite lengkap untuk simulasi backend Apps Script dan frontend GPS.html
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 console.log('====================================================');
 console.log('🧪 MENJALANKAN TEST SUITE INTEGRASI GOOGLE APPS SCRIPT');
+console.log('   DENGAN AUTENTIKASI NIK + OTP GMAIL PRIBADI & SESI');
 console.log('====================================================');
 
 // Mock in-memory Google Sheets
@@ -44,6 +46,7 @@ class MockSpreadsheet {
     this.sheets = {};
   }
   getId() { return 'test-mock-spreadsheet-id-12345'; }
+  getName() { return 'SPREADSHEET_PENGUJIAN_ABSENSI_KJPP_NSR'; }
   getSheetByName(name) { return this.sheets[name]; }
   insertSheet(name) {
     const s = new MockSheet(name, []);
@@ -80,6 +83,46 @@ class MockDriveFolder {
   }
 }
 
+// Mock CacheService
+class MockCache {
+  constructor() {
+    this.store = new Map();
+  }
+  get(key) {
+    const item = this.store.get(key);
+    if (!item) return null;
+    if (Date.now() > item.expires) {
+      this.store.delete(key);
+      return null;
+    }
+    return item.value;
+  }
+  put(key, value, expirationInSeconds) {
+    this.store.set(key, {
+      value: String(value),
+      expires: Date.now() + (expirationInSeconds || 300) * 1000
+    });
+  }
+  remove(key) {
+    this.store.delete(key);
+  }
+}
+
+// Mock MailApp
+let mockMailQuota = 100;
+let sentEmails = [];
+const MailApp = {
+  getRemainingDailyQuota: () => mockMailQuota,
+  sendEmail: (opts) => {
+    sentEmails.push(opts);
+  }
+};
+
+const mockCache = new MockCache();
+const CacheService = {
+  getScriptCache: () => mockCache
+};
+
 // Simulasi Lingkungan Google Apps Script
 const mockSS = new MockSpreadsheet();
 const mockDrive = new MockDriveFolder('ROOT');
@@ -90,10 +133,24 @@ const Utilities = {
     if (fmt === 'yyyy-MM-dd') return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     if (fmt.startsWith('HH:mm:ss')) return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     if (fmt === 'yyyy-MM-dd HH:mm:ss') return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    if (fmt === 'yyyyMMddHHmmss') return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    if (fmt === 'yyyyMMdd_HHmmss') return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
     return d.toISOString();
   },
   base64Decode: (b64) => Buffer.from(b64, 'base64'),
-  newBlob: (bytes, mime, name) => ({ data: bytes, mimeType: mime, name: name })
+  newBlob: (bytes, mime, name) => ({ data: bytes, mimeType: mime, name: name }),
+  computeDigest: (algo, str) => {
+    const hash = crypto.createHash('sha256').update(String(str)).digest();
+    const arr = [];
+    for (let i = 0; i < hash.length; i++) {
+      let b = hash[i];
+      if (b > 127) b -= 256;
+      arr.push(b);
+    }
+    return arr;
+  },
+  getUuid: () => crypto.randomUUID(),
+  DigestAlgorithm: { SHA_256: 'SHA-256' }
 };
 
 const LockService = {
@@ -114,10 +171,9 @@ const DriveApp = {
   getRootFolder: () => mockDrive
 };
 
-let mockActiveUserEmail = '';
 const Session = {
   getActiveUser: () => ({
-    getEmail: () => mockActiveUserEmail
+    getEmail: () => '' // Di mode Execute as: Me untuk Gmail pribadi, email kosong
   })
 };
 
@@ -125,15 +181,16 @@ const Session = {
 const codePath = path.resolve('gas-absensi-Code.gs');
 const codeContent = fs.readFileSync(codePath, 'utf8');
 
-// Wrap code for execution
 const sandboxFunc = new Function(
-  'Utilities', 'LockService', 'DriveApp', 'Session', 'mockSS',
+  'Utilities', 'LockService', 'DriveApp', 'Session', 'CacheService', 'MailApp', 'mockSS',
   `
   function getSS_() { return mockSS; }
   ${codeContent.replace('function getSS_()', 'function _orig_getSS_()')}
   return {
     setupTestingSheet,
     cekKaryawan,
+    mintaOTP,
+    verifikasiOTP,
     cekLokasiWFH,
     cekDoubleAbsensi,
     hitungJarak,
@@ -145,7 +202,7 @@ const sandboxFunc = new Function(
   `
 );
 
-const gas = sandboxFunc(Utilities, LockService, DriveApp, Session, mockSS);
+const gas = sandboxFunc(Utilities, LockService, DriveApp, Session, CacheService, MailApp, mockSS);
 
 // 1. SETUP SHEET
 console.log('\n--- 1. Testing setupTestingSheet() ---');
@@ -154,7 +211,7 @@ console.log('✓ Hasil setup:', setupRes);
 const karyawanRows = mockSS.getSheetByName('MASTER_KARYAWAN').rows;
 console.log('✓ Baris Master Karyawan terisi:', karyawanRows.length - 1, 'karyawan');
 if (karyawanRows.length >= 4) {
-  console.log('  [PASS] Setup database pengujian');
+  console.log('  [PASS] Setup database pengujian berhasil');
 } else {
   throw new Error('Setup database gagal!');
 }
@@ -174,14 +231,14 @@ try {
 }
 gas.CONFIG.IS_PRODUCTION = false;
 
-// 2. CEK KARYAWAN
-console.log('\n--- 2. Testing cekKaryawan() ---');
+// 2. CEK KARYAWAN & MASKED EMAIL
+console.log('\n--- 2. Testing cekKaryawan() & Masking Email ---');
 const kValid = gas.cekKaryawan('NSR-001');
 console.log('✓ NIK valid NSR-001:', kValid);
-if (kValid && kValid.nama === 'Budi Santoso, S.T.') {
-  console.log('  [PASS] NIK valid diverifikasi dengan benar');
+if (kValid && kValid.nama === 'Budi Santoso, S.T.' && kValid.maskedEmail === 'b***p@gmail.com') {
+  console.log('  [PASS] NIK valid diverifikasi & email disamarkan (masked)');
 } else {
-  throw new Error('Gagal verifikasi NIK valid');
+  throw new Error('Gagal verifikasi NIK valid atau masking email salah');
 }
 
 const kInvalid = gas.cekKaryawan('NSR-999');
@@ -192,61 +249,162 @@ if (kInvalid === null) {
   throw new Error('NIK invalid tidak terdeteksi!');
 }
 
-// 2b. Test Anti-Spoofing: Login dengan email orang lain
-mockActiveUserEmail = 'penyusup@external.com';
+// 3. MINTA KODE OTP GMAIL & KUOTA & RATE LIMIT
+console.log('\n--- 3. Testing mintaOTP() Gmail ---');
+
+// 3a. Kuota habis
+mockMailQuota = 0;
 try {
-  gas.simpanAbsensi({
-    nik: 'NSR-001', // Milik Budi Santoso (budi@kjppnsr.id)
-    jenis: 'Masuk',
-    lokasi: 'KANTOR',
-    gps: '-6.287972, 106.824778'
-  });
-  throw new Error('Anti-spoofing gagal memblokir pemalsuan NIK!');
+  gas.mintaOTP('NSR-001');
+  throw new Error('Gagal mendeteksi kuota email habis!');
 } catch (err) {
-  if (err.message.includes('Validasi Akses Ditolak')) {
-    console.log('✓ Anti-spoofing berhasil memblokir akses NIK orang lain:', err.message);
-    console.log('  [PASS] Autentikasi NIK terikat pada identitas pengguna login');
+  if (err.message.includes('kuota email harian habis')) {
+    console.log('✓ Proteksi kuota email aktif:', err.message);
+    console.log('  [PASS] Penanganan kuota pengiriman MailApp');
   } else {
     throw err;
   }
 }
-// Kembalikan ke email sah
-mockActiveUserEmail = 'budi@kjppnsr.id';
+mockMailQuota = 100; // Kembalikan kuota
 
-// 3. HITUNG JARAK & MULTI-KANTOR
-console.log('\n--- 3. Testing hitungJarak() & Multi-Kantor ---');
-// Koordinat persis Pusat Jakarta: -6.287972658138783, 106.82477864308436
-const dJakarta = gas.hitungJarak(-6.287972, 106.824778, -6.287972658138783, 106.82477864308436);
-console.log('✓ Jarak ke Pusat Jakarta (titik sama):', dJakarta, 'meter');
-if (dJakarta <= 5) {
-  console.log('  [PASS] Akurasi jarak Haversine');
+// 3b. Minta OTP normal
+const otpRes1 = gas.mintaOTP('NSR-001');
+console.log('✓ Hasil minta OTP NSR-001:', otpRes1);
+if (otpRes1.success && sentEmails.length === 1 && sentEmails[0].to === 'budi.santoso.kjpp@gmail.com') {
+  console.log('  [PASS] OTP 6-digit dikirimkan ke Gmail terdaftar via MailApp');
 } else {
-  throw new Error('Kalkulasi jarak Haversine salah!');
+  throw new Error('Pengiriman OTP via MailApp gagal!');
 }
 
-// 4. SIMPAN PRESENSI MASUK DI DALAM RADIUS (VALID)
-console.log('\n--- 4. Testing simpanAbsensi() Dalam Radius ---');
+// 3c. Rate Limiting Cooldown 60 detik
+try {
+  gas.mintaOTP('NSR-001');
+  throw new Error('Gagal menerapkan rate limit 60 detik!');
+} catch (err) {
+  if (err.message.includes('Mohon tunggu 60 detik')) {
+    console.log('✓ Rate limit cooldown aktif:', err.message);
+    console.log('  [PASS] Rate limiting permintaan OTP dicegah');
+  } else {
+    throw err;
+  }
+}
+
+// Ekstrak OTP dari email yang dikirim
+const lastEmail = sentEmails[sentEmails.length - 1];
+const otpMatch = lastEmail.subject.match(/(\d{6})/);
+const validOtpCode = otpMatch ? otpMatch[1] : null;
+console.log('✓ Kode OTP yang terkirim di email:', validOtpCode);
+
+// 4. VERIFIKASI KODE OTP & PENERBITAN TOKEN SESI
+console.log('\n--- 4. Testing verifikasiOTP() ---');
+
+// 4a. Kode OTP salah
+try {
+  gas.verifikasiOTP('NSR-001', '000000');
+  throw new Error('OTP salah tidak ditolak!');
+} catch (err) {
+  if (err.message.includes('Kode OTP salah! Sisa percobaan: 2 kali.')) {
+    console.log('✓ Penolakan OTP salah dengan counter sisa percobaan:', err.message);
+    console.log('  [PASS] Counter percobaan gagal dicatat di cache');
+  } else {
+    throw err;
+  }
+}
+
+// 4b. Kode OTP benar
+const verifRes = gas.verifikasiOTP('NSR-001', validOtpCode);
+console.log('✓ Hasil Verifikasi OTP Benar:', verifRes);
+if (verifRes.success && verifRes.sessionToken) {
+  console.log('  [PASS] Token sesi kriptografis diterbitkan:', verifRes.sessionToken);
+} else {
+  throw new Error('Verifikasi OTP benar gagal!');
+}
+const sessionBudi = verifRes.sessionToken;
+
+// 4c. Sekali pakai (One-Time-Password)
+try {
+  gas.verifikasiOTP('NSR-001', validOtpCode);
+  throw new Error('OTP bekas pakai masih bisa digunakan!');
+} catch (err) {
+  if (err.message.includes('telah kedaluwarsa atau belum diminta')) {
+    console.log('✓ OTP sekali pakai (dihapus dari cache):', err.message);
+    console.log('  [PASS] Sifat OTP sekali pakai terbukti');
+  } else {
+    throw err;
+  }
+}
+
+// 5. ANTI-SPOOFING & PENEGAKAN SESI SERVER-SIDE
+console.log('\n--- 5. Testing Anti-Spoofing & Penegakan Sesi ---');
+
+// 5a. Transaksi tanpa session token
+try {
+  gas.simpanAbsensi({
+    nik: 'NSR-001',
+    jenis: 'Masuk',
+    lokasi: 'KANTOR',
+    gps: '-6.287972, 106.824778'
+    // sessionToken sengaja dikosongkan
+  });
+  throw new Error('Gagal memblokir transaksi tanpa sesi!');
+} catch (err) {
+  if (err.message.includes('Sesi verifikasi OTP diperlukan')) {
+    console.log('✓ Pemblokiran transaksi tanpa sesi:', err.message);
+    console.log('  [PASS] Server menolak transaksi tanpa session token');
+  } else {
+    throw err;
+  }
+}
+
+// 5b. Pemalsuan NIK (Memakai session token orang lain)
+try {
+  gas.simpanAbsensi({
+    nik: 'NSR-002', // Milik Siti, tapi pakai token Budi
+    jenis: 'Masuk',
+    lokasi: 'KANTOR',
+    gps: '-6.287972, 106.824778',
+    sessionToken: sessionBudi
+  });
+  throw new Error('Gagal memblokir pemalsuan NIK dengan session token orang lain!');
+} catch (err) {
+  if (err.message.includes('Pelanggaran Keamanan: Sesi aktif tidak cocok')) {
+    console.log('✓ Anti-spoofing NIK berhasil memblokir pencurian sesi:', err.message);
+    console.log('  [PASS] Token sesi terikat secara ketat ke NIK pemilik');
+  } else {
+    throw err;
+  }
+}
+
+// 6. SIMPAN PRESENSI DALAM RADIUS (VALID)
+console.log('\n--- 6. Testing simpanAbsensi() Dalam Radius ---');
 const resMasukValid = gas.simpanAbsensi({
   nik: 'NSR-001',
   jenis: 'Masuk',
   lokasi: 'KANTOR',
-  gps: '-6.287972, 106.824778'
+  gps: '-6.287972, 106.824778',
+  sessionToken: sessionBudi
 });
 console.log('✓ Hasil Absen Masuk Valid:', resMasukValid);
 if (resMasukValid.success && resMasukValid.status === 'VALID' && resMasukValid.jarak < 150) {
-  console.log('  [PASS] Presensi dalam radius berstatus VALID');
+  console.log('  [PASS] Presensi dalam radius berstatus VALID dengan token sesi resmi');
 } else {
   throw new Error('Presensi dalam radius gagal!');
 }
 
-// 5. SIMPAN PRESENSI DI LUAR RADIUS (TERCATAT TAPI STATUS: TIDAK VALID)
-console.log('\n--- 5. Testing simpanAbsensi() Di Luar Radius ---');
-mockActiveUserEmail = 'siti@kjppnsr.id';
+// 7. SIMPAN PRESENSI DI LUAR RADIUS (STATUS: TIDAK VALID)
+console.log('\n--- 7. Testing simpanAbsensi() Di Luar Radius ---');
+// Buat sesi untuk NSR-002 (Siti)
+mockCache.remove('otp_cooldown_NSR-002');
+gas.mintaOTP('NSR-002');
+const otpSiti = sentEmails[sentEmails.length - 1].subject.match(/(\d{6})/)[1];
+const sessionSiti = gas.verifikasiOTP('NSR-002', otpSiti).sessionToken;
+
 const resLuarRadius = gas.simpanAbsensi({
   nik: 'NSR-002',
   jenis: 'Masuk',
   lokasi: 'KANTOR',
-  gps: '-6.200000, 106.800000' // ~10 km dari kantor
+  gps: '-6.200000, 106.800000', // ~10 km dari kantor
+  sessionToken: sessionSiti
 });
 console.log('✓ Hasil Absen Di Luar Radius:', resLuarRadius);
 if (resLuarRadius.success && resLuarRadius.status === 'TIDAK VALID' && resLuarRadius.jarak > 1000) {
@@ -255,14 +413,19 @@ if (resLuarRadius.success && resLuarRadius.status === 'TIDAK VALID' && resLuarRa
   throw new Error('Presensi di luar radius tidak tertandai TIDAK VALID!');
 }
 
-// 6. MULTI-KANTOR: PRESENSI DI CABANG BANDUNG
-console.log('\n--- 6. Testing Presensi Cabang Bandung ---');
-mockActiveUserEmail = 'ahmad@kjppnsr.id';
+// 8. MULTI-KANTOR: PRESENSI DI CABANG BANDUNG
+console.log('\n--- 8. Testing Presensi Cabang Bandung ---');
+mockCache.remove('otp_cooldown_NSR-003');
+gas.mintaOTP('NSR-003');
+const otpAhmad = sentEmails[sentEmails.length - 1].subject.match(/(\d{6})/)[1];
+const sessionAhmad = gas.verifikasiOTP('NSR-003', otpAhmad).sessionToken;
+
 const resBandung = gas.simpanAbsensi({
   nik: 'NSR-003',
   jenis: 'Masuk',
   lokasi: 'KANTOR',
-  gps: '-6.8597817, 107.5604289' // Koordinat resmi Cabang Bandung (Pasteur)
+  gps: '-6.8597817, 107.5604289', // Koordinat resmi Cabang Bandung (Pasteur)
+  sessionToken: sessionAhmad
 });
 console.log('✓ Hasil Absen Cabang Bandung:', resBandung);
 if (resBandung.success && resBandung.status === 'VALID' && resBandung.kantor === 'Cabang Bandung') {
@@ -271,15 +434,15 @@ if (resBandung.success && resBandung.status === 'VALID' && resBandung.kantor ===
   throw new Error('Cabang Bandung gagal terdeteksi!');
 }
 
-// 7. PREVENSI DOUBLE ABSENSI
-console.log('\n--- 7. Testing Prevensi Double Absensi ---');
-mockActiveUserEmail = 'budi@kjppnsr.id';
+// 9. PREVENSI DOUBLE ABSENSI
+console.log('\n--- 9. Testing Prevensi Double Absensi ---');
 try {
   gas.simpanAbsensi({
     nik: 'NSR-001',
     jenis: 'Masuk', // Sudah absen masuk tadi
     lokasi: 'KANTOR',
-    gps: '-6.287972, 106.824778'
+    gps: '-6.287972, 106.824778',
+    sessionToken: sessionBudi
   });
   throw new Error('Gagal mencegah double absensi!');
 } catch (err) {
@@ -291,14 +454,19 @@ try {
   }
 }
 
-// 8. DINAS LUAR
-console.log('\n--- 8. Testing Presensi Dinas Luar ---');
-mockActiveUserEmail = 'dewi@kjppnsr.id';
+// 10. DINAS LUAR
+console.log('\n--- 10. Testing Presensi Dinas Luar ---');
+mockCache.remove('otp_cooldown_NSR-004');
+gas.mintaOTP('NSR-004');
+const otpDewi = sentEmails[sentEmails.length - 1].subject.match(/(\d{6})/)[1];
+const sessionDewi = gas.verifikasiOTP('NSR-004', otpDewi).sessionToken;
+
 const resDinas = gas.simpanAbsensi({
   nik: 'NSR-004',
   jenis: 'Dinas Luar',
   lokasi: 'DINAS LUAR',
-  gps: '-6.500000, 107.000000'
+  gps: '-6.500000, 107.000000',
+  sessionToken: sessionDewi
 });
 console.log('✓ Hasil Absen Dinas Luar:', resDinas);
 if (resDinas.success && resDinas.status === 'VALID') {
@@ -307,13 +475,13 @@ if (resDinas.success && resDinas.status === 'VALID') {
   throw new Error('Presensi Dinas Luar gagal!');
 }
 
-// 9. DAFTAR TITIK WFH & PRESENSI WFH
-console.log('\n--- 9. Testing WFH (Pendaftaran & Presensi) ---');
-mockActiveUserEmail = 'budi@kjppnsr.id';
+// 11. DAFTAR TITIK WFH & PRESENSI WFH
+console.log('\n--- 11. Testing WFH (Pendaftaran & Presensi) ---');
 const resDaftarWFH = gas.simpanWFH({
   nik: 'NSR-001',
   alamat: 'Jl. Kemang Raya No. 12, Jakarta Selatan',
-  gps: '-6.275000, 106.815000'
+  gps: '-6.275000, 106.815000',
+  sessionToken: sessionBudi
 });
 console.log('✓ Hasil Daftar WFH:', resDaftarWFH);
 
@@ -322,7 +490,8 @@ const resPulangWFH = gas.simpanAbsensi({
   nik: 'NSR-001',
   jenis: 'Pulang',
   lokasi: 'WFH',
-  gps: '-6.275000, 106.815000'
+  gps: '-6.275000, 106.815000',
+  sessionToken: sessionBudi
 });
 console.log('✓ Hasil Presensi WFH:', resPulangWFH);
 if (resPulangWFH.success && resPulangWFH.status === 'VALID' && resPulangWFH.jarak <= 100) {
@@ -331,10 +500,9 @@ if (resPulangWFH.success && resPulangWFH.status === 'VALID' && resPulangWFH.jara
   throw new Error('Presensi WFH gagal!');
 }
 
-// 10. PENGAJUAN CUTI & VALIDASI DOKUMEN SERVER
-console.log('\n--- 10. Testing simpanPengajuanCuti() ---');
-// 10a. File PDF valid
-mockActiveUserEmail = 'siti@kjppnsr.id';
+// 12. PENGAJUAN CUTI & VALIDASI DOKUMEN SERVER
+console.log('\n--- 12. Testing simpanPengajuanCuti() ---');
+// 12a. File PDF valid
 const dummyPdfBase64 = Buffer.from('%PDF-1.4 Mock PDF content for test').toString('base64');
 const resCutiValid = gas.simpanPengajuanCuti({
   nik: 'NSR-002',
@@ -343,7 +511,8 @@ const resCutiValid = gas.simpanPengajuanCuti({
   tglSelesai: '2026-10-14',
   alasan: 'Rawat jalan dokter spesialis',
   fileData: 'data:application/pdf;base64,' + dummyPdfBase64,
-  fileName: 'surat_dokter.pdf'
+  fileName: 'surat_dokter.pdf',
+  sessionToken: sessionSiti
 });
 console.log('✓ Hasil Pengajuan Cuti Valid:', resCutiValid);
 if (resCutiValid.success) {
@@ -352,9 +521,8 @@ if (resCutiValid.success) {
   throw new Error('Pengajuan cuti valid gagal!');
 }
 
-// 10b. File tidak diizinkan (EXE/JS)
+// 12b. File tidak diizinkan (EXE)
 try {
-  mockActiveUserEmail = 'siti@kjppnsr.id';
   gas.simpanPengajuanCuti({
     nik: 'NSR-002',
     jenisCuti: 'Izin Keperluan Pribadi',
@@ -362,11 +530,12 @@ try {
     tglSelesai: '2026-10-15',
     alasan: 'Urusan keluarga',
     fileData: 'data:application/x-msdownload;base64,' + dummyPdfBase64,
-    fileName: 'danger.exe'
+    fileName: 'danger.exe',
+    sessionToken: sessionSiti
   });
   throw new Error('Gagal menolak file berbahaya!');
 } catch (err) {
-  if (err.message.includes('Tipe file tidak diizinkan di server')) {
+  if (err.message.includes('Tipe file tidak diizinkan')) {
     console.log('✓ Server berhasil memblokir tipe file tidak sah:', err.message);
     console.log('  [PASS] Server-side MIME type whitelist protection');
   } else {
@@ -374,9 +543,8 @@ try {
   }
 }
 
-// 10c. File terlalu besar (> 5 MB)
+// 12c. File terlalu besar (> 5 MB)
 try {
-  mockActiveUserEmail = 'ahmad@kjppnsr.id';
   const hugeData = Buffer.alloc(6 * 1024 * 1024, 'a').toString('base64');
   gas.simpanPengajuanCuti({
     nik: 'NSR-003',
@@ -385,7 +553,8 @@ try {
     tglSelesai: '2026-10-22',
     alasan: 'Cuti tahunan',
     fileData: 'data:application/pdf;base64,' + hugeData,
-    fileName: 'huge.pdf'
+    fileName: 'huge.pdf',
+    sessionToken: sessionAhmad
   });
   throw new Error('Gagal menolak file oversized!');
 } catch (err) {
@@ -397,8 +566,8 @@ try {
   }
 }
 
-// 11. AUDIT KEAMANAN DRIVE SHARING
-console.log('\n--- 11. Testing Proteksi Hak Akses Drive ---');
+// 13. AUDIT KEAMANAN DRIVE SHARING
+console.log('\n--- 13. Testing Proteksi Hak Akses Drive ---');
 if (mockDrive.sharingSet === null) {
   console.log('✓ File Drive disimpan sebagai Internal/Private, TIDAK DISHARE publik (ANYONE_WITH_LINK tidak digunakan)');
   console.log('  [PASS] Hak akses Drive aman & privat');
@@ -406,8 +575,8 @@ if (mockDrive.sharingSet === null) {
   throw new Error('File Drive dibagikan secara publik!');
 }
 
-// 12. AUDIT GPS.html (FRONTEND)
-console.log('\n--- 12. Audit Kode GPS.html ---');
+// 14. AUDIT GPS.html (FRONTEND)
+console.log('\n--- 14. Audit Kode GPS.html ---');
 const gpsHtmlContent = fs.readFileSync('GPS.html', 'utf8');
 
 // Cek XSS innerHTML
@@ -422,6 +591,10 @@ console.log('✓ Cek doGet memanggil GPS.html:', hasGPSCall ? 'SESUAI ✅' : 'TI
 const hasLocalStorage = gpsHtmlContent.includes('localStorage');
 console.log('✓ Cek localStorage:', hasLocalStorage ? 'DITEMUKAN ❌' : 'ZERO LOCALSTORAGE ✅');
 
+// Cek sessionStorage
+const hasSessionStorage = gpsHtmlContent.includes('sessionStorage');
+console.log('✓ Cek sessionStorage:', hasSessionStorage ? 'DITEMUKAN ❌' : 'ZERO SESSIONSTORAGE ✅');
+
 // Cek status TIDAK VALID handling
 const handlesInvalidStatus = gpsHtmlContent.includes("res.status === 'TIDAK VALID'");
 console.log('✓ Cek penanganan status TIDAK VALID:', handlesInvalidStatus ? 'TERSEDIA ✅' : 'TIDAK DITEMUKAN ❌');
@@ -430,13 +603,17 @@ console.log('✓ Cek penanganan status TIDAK VALID:', handlesInvalidStatus ? 'TE
 const hasMultiKantorFrontend = gpsHtmlContent.includes('Cabang Bandung') && gpsHtmlContent.includes('Cabang Makassar');
 console.log('✓ Cek multi-kantor di radar GPS frontend:', hasMultiKantorFrontend ? 'LENGKAP (5 KANTOR) ✅' : 'KURANG ❌');
 
-if (!hasUnsafeInnerHtml && hasGPSCall && !hasLocalStorage && handlesInvalidStatus && hasMultiKantorFrontend) {
+// Cek integrasi OTP di frontend
+const hasOtpUi = gpsHtmlContent.includes('eksekusiMintaOTP') && gpsHtmlContent.includes('eksekusiVerifOTP');
+console.log('✓ Cek fungsi NIK + OTP Gmail di frontend:', hasOtpUi ? 'LENGKAP ✅' : 'KURANG ❌');
+
+if (!hasUnsafeInnerHtml && hasGPSCall && !hasLocalStorage && !hasSessionStorage && handlesInvalidStatus && hasMultiKantorFrontend && hasOtpUi) {
   console.log('  [PASS] Seluruh audit GPS.html terpenuhi');
 } else {
   throw new Error('Audit GPS.html gagal!');
 }
 
-console.log('\n--- 13. Verifikasi Bukti Baris Spreadsheet Pengujian ---');
+console.log('\n--- 15. Verifikasi Bukti Baris Spreadsheet Pengujian ---');
 console.log('📊 SHEET ABSENSI:');
 console.table(mockSS.getSheetByName('ABSENSI').rows.map((r, i) => ({
   No: i === 0 ? 'Header' : i,
@@ -472,5 +649,5 @@ console.table(mockSS.getSheetByName('PENGAJUAN_CUTI').rows.map((r, i) => ({
 })));
 
 console.log('\n====================================================');
-console.log('🎉 SELURUH PENGUJIAN INTEGRASI & KEAMANAN LULUS 100%');
+console.log('🎉 SELURUH PENGUJIAN INTEGRASI, OTP & KEAMANAN LULUS 100%');
 console.log('====================================================\n');

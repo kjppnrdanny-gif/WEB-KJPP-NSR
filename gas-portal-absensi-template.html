@@ -70,19 +70,6 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 w-full max-w-xl mx-auto px-3.5 py-4 space-y-4">
 
-    <!-- NAVIGATION TABS -->
-    <div class="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
-      <button type="button" id="tab-btn-absen" onclick="gantiMode('absen')" class="tab-btn active py-2.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-transparent">
-        <span>⏱️ Presensi</span>
-      </button>
-      <button type="button" id="tab-btn-wfh" onclick="gantiMode('wfh')" class="tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent">
-        <span>🏠 Titik WFH</span>
-      </button>
-      <button type="button" id="tab-btn-cuti" onclick="gantiMode('cuti')" class="tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent">
-        <span>📋 Izin / Cuti</span>
-      </button>
-    </div>
-
     <!-- GPS STATUS RADAR -->
     <div id="gps-radar-box" class="rounded-2xl p-3.5 border transition bg-slate-900/90 border-slate-800 shadow-md">
       <div class="flex items-center justify-between gap-3">
@@ -110,6 +97,95 @@
       </div>
     </div>
 
+    <!-- KARTU AUTENTIKASI NIK & OTP GMAIL PRIBADI -->
+    <div id="auth-card" class="rounded-2xl p-4 border transition bg-slate-900 border-slate-800 shadow-lg space-y-3">
+      <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-base shrink-0">🔐</span>
+          <div class="min-w-0">
+            <h2 class="text-xs font-bold text-white uppercase tracking-wide truncate">Autentikasi NIK &amp; OTP Gmail</h2>
+            <p class="text-[10px] text-slate-400 truncate">Verifikasi identitas karyawan via email pribadi</p>
+          </div>
+        </div>
+        <span id="auth-status-pill" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30 shrink-0">Belum Terverifikasi</span>
+      </div>
+
+      <!-- FORM LOGIN NIK & OTP (JIKA BELUM TERVERIFIKASI) -->
+      <div id="auth-box-unverified" class="space-y-3">
+        <!-- Input NIK -->
+        <div>
+          <label for="auth-nik-input" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            1. Masukkan NIK Karyawan <span class="text-rose-400">*</span>
+          </label>
+          <div class="flex gap-2">
+            <input type="text" id="auth-nik-input" placeholder="Contoh: NSR-001" autocomplete="off" class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition uppercase">
+            <button type="button" id="btn-minta-otp" onclick="eksekusiMintaOTP()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition btn-tactile cursor-pointer disabled:opacity-50 whitespace-nowrap">
+              Kirim OTP
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview Info Karyawan / Masked Email -->
+        <div id="auth-nik-preview" class="hidden p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px]"></div>
+
+        <!-- Section Input 6-Digit OTP (Muncul setelah OTP berhasil dikirim) -->
+        <div id="auth-box-otp-input" class="hidden space-y-2.5 pt-2.5 border-t border-slate-800/80">
+          <div class="p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 text-[11px] text-sky-200">
+            Kode OTP 6-digit dikirim ke: <strong id="auth-target-email" class="text-amber-300 font-mono">email</strong>. Berlaku 5 menit.
+          </div>
+          <div>
+            <label for="auth-otp-input" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              2. Masukkan 6-Digit Kode OTP <span class="text-rose-400">*</span>
+            </label>
+            <div class="flex gap-2">
+              <input type="text" id="auth-otp-input" maxlength="6" placeholder="• • • • • •" inputmode="numeric" autocomplete="one-time-code" class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-center text-sm font-mono font-bold tracking-widest focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400/20 transition">
+              <button type="button" id="btn-verif-otp" onclick="eksekusiVerifOTP()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs shadow-md transition btn-tactile cursor-pointer disabled:opacity-50 whitespace-nowrap">
+                Verifikasi
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+            <span>Tidak menerima kode?</span>
+            <button type="button" id="btn-resend-otp" onclick="eksekusiMintaOTP()" class="text-sky-400 hover:underline font-semibold cursor-pointer disabled:opacity-40 disabled:no-underline" disabled>
+              Kirim Ulang (<span id="cooldown-counter">60</span>s)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KARTU IDENTITAS TERVERIFIKASI (JIKA SESI AKTIF) -->
+      <div id="auth-box-verified" class="hidden space-y-2.5">
+        <div class="p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-sm shrink-0">
+              ✓
+            </div>
+            <div class="min-w-0">
+              <span id="verified-karyawan-nama" class="block font-bold text-white text-xs truncate">Nama Karyawan</span>
+              <span id="verified-karyawan-sub" class="block text-[10px] text-emerald-300 truncate">NIK &bull; Jabatan</span>
+              <span id="verified-karyawan-email" class="block text-[10px] text-slate-400 truncate">Email Terdaftar</span>
+            </div>
+          </div>
+          <button type="button" onclick="logoutSesi()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold border border-slate-700 transition shrink-0 btn-tactile cursor-pointer" title="Ganti NIK / Keluar dari sesi">
+            Ganti NIK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <div class="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
+      <button type="button" id="tab-btn-absen" onclick="gantiMode('absen')" class="tab-btn active py-2.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-transparent">
+        <span>⏱️ Presensi</span>
+      </button>
+      <button type="button" id="tab-btn-wfh" onclick="gantiMode('wfh')" class="tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent">
+        <span>🏠 Titik WFH</span>
+      </button>
+      <button type="button" id="tab-btn-cuti" onclick="gantiMode('cuti')" class="tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent">
+        <span>📋 Izin / Cuti</span>
+      </button>
+    </div>
+
     <!-- PANEL 1: PRESENSI -->
     <div id="panelAbsensi" class="space-y-4">
       <div class="grid grid-cols-3 gap-2">
@@ -131,19 +207,21 @@
       </div>
 
       <div class="card-glass rounded-3xl p-5 shadow-2xl space-y-4">
+        <!-- Status Identitas Terikat -->
         <div>
-          <label for="nik" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-            1. NIK Karyawan <span class="text-rose-400">*</span>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            Identitas Karyawan Presensi
           </label>
-          <input type="text" id="nik" placeholder="Ketik NIK Karyawan" autocomplete="off" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition">
-          <div id="infoKaryawan" class="hidden mt-2 p-3 rounded-2xl bg-blue-950/70 border border-blue-500/30 text-xs"></div>
+          <div id="presensi-id-badge" class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400">
+            Silakan verifikasi NIK &amp; OTP Gmail di atas terlebih dahulu.
+          </div>
         </div>
 
         <input type="hidden" id="jenis" value="Masuk">
 
         <div>
           <label for="lokasi" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-            2. Lokasi Penugasan / Presensi <span class="text-rose-400">*</span>
+            Lokasi Penugasan / Presensi <span class="text-rose-400">*</span>
           </label>
           <select id="lokasi" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-semibold focus:outline-none focus:border-amber-400 transition cursor-pointer">
             <option value="KANTOR">🏢 KANTOR PUSAT / CABANG RESMI</option>
@@ -171,13 +249,14 @@
           <p class="text-[11px] text-slate-400 mt-0.5">Kunci titik koordinat domisili tempat tinggal.</p>
         </div>
         <div>
-          <label for="nikWFH" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">NIK Karyawan *</label>
-          <input type="text" id="nikWFH" placeholder="Ketik NIK Karyawan" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-semibold focus:outline-none focus:border-amber-400">
-          <div id="infoKaryawanWFH" class="hidden mt-2 p-3 rounded-2xl bg-slate-900 border border-blue-500/30 text-xs"></div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Identitas Karyawan</label>
+          <div id="wfh-id-badge" class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400">
+            Silakan verifikasi NIK &amp; OTP Gmail di atas terlebih dahulu.
+          </div>
         </div>
         <div>
           <label for="alamatWFH" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Alamat Rumah Lengkap *</label>
-          <textarea id="alamatWFH" rows="3" placeholder="Alamat lengkap domisili..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-400 resize-none"></textarea>
+          <textarea id="alamatWFH" rows="3" placeholder="Alamat lengkap domisili tempat tinggal..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-400 resize-none"></textarea>
         </div>
         <div class="p-3 rounded-xl bg-sky-950/40 border border-sky-500/30 text-xs">
           <span class="block font-bold text-slate-200">Koordinat Saat Ini Terdeteksi:</span>
@@ -200,9 +279,10 @@
           <p class="text-[11px] text-slate-400 mt-0.5">Pengajuan izin tidak masuk, sakit, atau cuti resmi.</p>
         </div>
         <div>
-          <label for="nikCuti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">NIK Karyawan *</label>
-          <input type="text" id="nikCuti" placeholder="Ketik NIK Karyawan" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-semibold focus:outline-none focus:border-amber-400">
-          <div id="infoKaryawanCuti" class="hidden mt-2 p-3 rounded-2xl bg-slate-900 border border-blue-500/30 text-xs"></div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Identitas Karyawan</label>
+          <div id="cuti-id-badge" class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400">
+            Silakan verifikasi NIK &amp; OTP Gmail di atas terlebih dahulu.
+          </div>
         </div>
         <div>
           <label for="jenisCuti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Kategori Permohonan *</label>
@@ -246,7 +326,7 @@
   <!-- MODAL NOTIFIKASI ELEGAN -->
   <div id="modal-notif" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="card-glass max-w-sm w-full rounded-3xl p-6 text-center space-y-4 shadow-2xl border border-slate-700">
-      <div id="modal-notif-icon" class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
+      <div id="modal-notif-icon" class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 font-bold text-lg">
         ✓
       </div>
       <div>
@@ -270,7 +350,12 @@
       { nama: "Cabang Palembang", lat: -2.929044, lng: 104.695981 }
     ];
 
+    // Status State dalam Memory JavaScript (TIDAK MENGGUNAKAN LOCALSTORAGE!)
     let gpsUser = "";
+    let sessionToken = "";
+    let sessionNik = "";
+    let sessionUser = null;
+    let cooldownTimerId = null;
 
     function bukaModalNotif(title, desc, isSuccess) {
       const modal = document.getElementById('modal-notif');
@@ -279,10 +364,10 @@
       const d = document.getElementById('modal-notif-desc');
 
       if (isSuccess === false) {
-        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-rose-400 bg-rose-500/20 border border-rose-500/30";
+        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-rose-400 bg-rose-500/20 border border-rose-500/30 font-bold text-lg";
         icon.textContent = "✕";
       } else {
-        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30";
+        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 font-bold text-lg";
         icon.textContent = "✓";
       }
 
@@ -338,75 +423,276 @@
       });
     }
 
-    // Rendering aman tanpa innerHTML (Mencegah XSS)
-    function renderKaryawanAman(container, data) {
-      container.textContent = '';
-      if (!data) return;
+    // Update Banner Identitas di Seluruh Tab
+    function updateIdentitasBadges() {
+      const badges = ['presensi-id-badge', 'wfh-id-badge', 'cuti-id-badge'];
+      badges.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = '';
+        if (sessionToken && sessionUser) {
+          const w = document.createElement('div');
+          w.className = 'flex items-center justify-between gap-2';
 
-      if (data && data.nama) {
-        const wrap = document.createElement('div');
-        wrap.className = 'flex items-center gap-2.5';
+          const left = document.createElement('div');
+          left.className = 'min-w-0';
 
-        const ic = document.createElement('div');
-        ic.className = 'w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-bold text-xs shrink-0';
-        ic.textContent = '✓';
+          const nm = document.createElement('span');
+          nm.className = 'block font-bold text-white text-xs truncate';
+          nm.textContent = sessionUser.nama + ' (' + sessionNik + ')';
 
-        const txt = document.createElement('div');
-        txt.className = 'leading-tight min-w-0';
+          const det = document.createElement('span');
+          det.className = 'block text-[11px] text-emerald-400 truncate';
+          det.textContent = sessionUser.jabatan + ' • ' + sessionUser.divisi;
 
-        const nm = document.createElement('span');
-        nm.className = 'block font-bold text-white text-xs uppercase';
-        nm.textContent = data.nama;
+          left.appendChild(nm);
+          left.appendChild(det);
 
-        const sub = document.createElement('span');
-        sub.className = 'block text-[11px] text-slate-300 mt-0.5';
-        sub.textContent = `${data.jabatan} • ${data.divisi}`;
+          const r = document.createElement('span');
+          r.className = 'px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0';
+          r.textContent = 'TERVERIFIKASI';
 
-        txt.appendChild(nm);
-        txt.appendChild(sub);
-        wrap.appendChild(ic);
-        wrap.appendChild(txt);
-        container.appendChild(wrap);
-        container.style.display = 'block';
-      } else {
-        const err = document.createElement('div');
-        err.className = 'flex items-center gap-2 text-rose-400 text-xs font-semibold';
-        err.textContent = 'NIK tidak ditemukan dalam Master Karyawan!';
-        container.appendChild(err);
-        container.style.display = 'block';
-      }
+          w.appendChild(left);
+          w.appendChild(r);
+          el.appendChild(w);
+        } else {
+          el.textContent = 'Silakan verifikasi NIK & OTP Gmail di atas terlebih dahulu.';
+        }
+      });
     }
 
-    function cekNIK(nik, targetId) {
-      const info = document.getElementById(targetId);
-      if (!nik || !info) { if (info) info.style.display = 'none'; return; }
-      info.style.display = 'block';
-      info.textContent = 'Memverifikasi database karyawan...';
+    // Helper: Validasi NIK di Database dan Tampilkan Masked Email
+    function periksaInputNIK() {
+      const input = document.getElementById('auth-nik-input');
+      const preview = document.getElementById('auth-nik-preview');
+      if (!input || !preview) return;
+
+      const nik = input.value.trim().toUpperCase();
+      if (!nik) {
+        preview.style.display = 'none';
+        return;
+      }
+
+      preview.style.display = 'block';
+      preview.textContent = 'Memeriksa NIK di database Master Karyawan...';
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function(data) {
-            renderKaryawanAman(info, data);
+            preview.textContent = '';
+            if (data && data.nama) {
+              const div = document.createElement('div');
+              div.className = 'flex items-center gap-2';
+
+              const icon = document.createElement('span');
+              icon.className = 'text-emerald-400 font-bold';
+              icon.textContent = '✓';
+
+              const info = document.createElement('div');
+              info.className = 'leading-tight';
+
+              const title = document.createElement('strong');
+              title.className = 'text-white block';
+              title.textContent = data.nama + ' (' + (data.divisi || '-') + ')';
+
+              const emailTxt = document.createElement('span');
+              emailTxt.className = 'text-slate-300 text-[10px] block';
+              emailTxt.textContent = data.maskedEmail ? 'Gmail Terdaftar: ' + data.maskedEmail : 'Email belum terdaftar';
+
+              info.appendChild(title);
+              info.appendChild(emailTxt);
+              div.appendChild(icon);
+              div.appendChild(info);
+              preview.appendChild(div);
+            } else {
+              preview.textContent = 'NIK tidak terdaftar dalam Master Karyawan.';
+              preview.className = 'p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[11px]';
+            }
           })
           .withFailureHandler(function(err) {
-            info.textContent = 'Gagal verifikasi: ' + (err.message || 'Koneksi terputus');
+            preview.textContent = 'Gagal memverifikasi NIK: ' + (err.message || 'Koneksi terputus');
           })
           .cekKaryawan(nik);
       } else {
-        info.textContent = 'Koneksi Google Apps Script aktif di lingkungan aplikasi resmi.';
+        preview.textContent = 'Koneksi Google Apps Script aktif di lingkungan aplikasi resmi.';
       }
     }
 
-    ['nik', 'nikWFH', 'nikCuti'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('blur', function() {
-          const map = { 'nik': 'infoKaryawan', 'nikWFH': 'infoKaryawanWFH', 'nikCuti': 'infoKaryawanCuti' };
-          cekNIK(this.value.trim(), map[id]);
-        });
-      }
-    });
+    // Event Listener NIK
+    const nikInputEl = document.getElementById('auth-nik-input');
+    if (nikInputEl) {
+      nikInputEl.addEventListener('blur', periksaInputNIK);
+      nikInputEl.addEventListener('input', function() {
+        // Jika NIK diubah, reset sesi aktif di memori untuk mencegah spoofing
+        if (sessionToken && this.value.trim().toUpperCase() !== sessionNik) {
+          logoutSesi();
+        }
+      });
+    }
 
+    // 1. MINTA KODE OTP GMAIL
+    function eksekusiMintaOTP() {
+      const input = document.getElementById('auth-nik-input');
+      const btn = document.getElementById('btn-minta-otp');
+      const resendBtn = document.getElementById('btn-resend-otp');
+
+      const nik = input ? input.value.trim().toUpperCase() : "";
+      if (!nik) {
+        bukaModalNotif("Perhatian ⚠️", "Harap masukkan NIK Karyawan terlebih dahulu!", false);
+        if (input) input.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Mengirim...";
+      if (resendBtn) resendBtn.disabled = true;
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = "Kirim OTP";
+
+            // Buka section input OTP
+            document.getElementById('auth-box-otp-input').classList.remove('hidden');
+            document.getElementById('auth-target-email').textContent = res.maskedEmail || 'Gmail Anda';
+            document.getElementById('auth-status-pill').textContent = 'Menunggu OTP';
+            document.getElementById('auth-status-pill').className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-sky-500/10 text-sky-300 border border-sky-500/30 shrink-0';
+
+            // Mulai countdown cooldown 60 detik
+            mulaiCooldownOTP(60);
+
+            bukaModalNotif(
+              "Kode OTP Berhasil Dikirim 📩",
+              res.pesan || `Kode 6-digit telah dikirimkan ke ${res.maskedEmail}. Harap periksa Kotak Masuk atau folder Spam.`
+            );
+            const otpInput = document.getElementById('auth-otp-input');
+            if (otpInput) otpInput.focus();
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = "Kirim OTP";
+            bukaModalNotif("Permintaan OTP Gagal ❌", err.message || "Gagal mengirimkan kode OTP.", false);
+          })
+          .mintaOTP(nik);
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Kirim OTP";
+        bukaModalNotif("Koneksi Diperlukan ⚠️", "Aplikasi harus dijalankan di lingkungan Google Apps Script resmi.", false);
+      }
+    }
+
+    function mulaiCooldownOTP(detik) {
+      const resendBtn = document.getElementById('btn-resend-otp');
+      const counterEl = document.getElementById('cooldown-counter');
+      if (!resendBtn || !counterEl) return;
+
+      if (cooldownTimerId) clearInterval(cooldownTimerId);
+      resendBtn.disabled = true;
+      let sisa = detik;
+      counterEl.textContent = sisa;
+
+      cooldownTimerId = setInterval(function() {
+        sisa -= 1;
+        if (sisa <= 0) {
+          clearInterval(cooldownTimerId);
+          resendBtn.disabled = false;
+          counterEl.textContent = '0';
+        } else {
+          counterEl.textContent = sisa;
+        }
+      }, 1000);
+    }
+
+    // 2. VERIFIKASI KODE OTP
+    function eksekusiVerifOTP() {
+      const nik = document.getElementById('auth-nik-input').value.trim().toUpperCase();
+      const otpInput = document.getElementById('auth-otp-input');
+      const btn = document.getElementById('btn-verif-otp');
+
+      const otp = otpInput ? otpInput.value.trim() : "";
+      if (!nik || !otp || otp.length !== 6) {
+        bukaModalNotif("Perhatian ⚠️", "Harap masukkan 6-digit kode OTP dengan lengkap!", false);
+        if (otpInput) otpInput.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Memverifikasi...";
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = "Verifikasi";
+
+            // Simpan Session Token HANYA di Memory JavaScript
+            sessionToken = res.sessionToken;
+            sessionNik = nik;
+
+            // Ambil data profil karyawan
+            google.script.run
+              .withSuccessHandler(function(userData) {
+                sessionUser = userData;
+                pasangStateTerverifikasi();
+                bukaModalNotif("Autentikasi Berhasil ✅", res.pesan || "Identitas Anda berhasil diverifikasi. Sesi aktif.");
+              })
+              .cekKaryawan(nik);
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = "Verifikasi";
+            bukaModalNotif("Verifikasi Gagal ❌", err.message || "Kode OTP salah atau telah kedaluwarsa.", false);
+          })
+          .verifikasiOTP(nik, otp);
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Verifikasi";
+        bukaModalNotif("Koneksi Diperlukan ⚠️", "Aplikasi harus dijalankan di lingkungan Google Apps Script resmi.", false);
+      }
+    }
+
+    function pasangStateTerverifikasi() {
+      // Sembunyikan form unverified, tampilkan verified
+      document.getElementById('auth-box-unverified').classList.add('hidden');
+      document.getElementById('auth-box-verified').classList.remove('hidden');
+
+      const pill = document.getElementById('auth-status-pill');
+      pill.textContent = 'Sesi Aktif (12 Jam)';
+      pill.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 shrink-0';
+
+      if (sessionUser) {
+        document.getElementById('verified-karyawan-nama').textContent = sessionUser.nama;
+        document.getElementById('verified-karyawan-sub').textContent = sessionNik + ' • ' + (sessionUser.jabatan || '-') + ' • ' + (sessionUser.divisi || '-');
+        document.getElementById('verified-karyawan-email').textContent = 'Gmail: ' + (sessionUser.maskedEmail || '-');
+      }
+
+      updateIdentitasBadges();
+    }
+
+    function logoutSesi() {
+      // Bersihkan Memory JavaScript (Zero LocalStorage)
+      sessionToken = "";
+      sessionNik = "";
+      sessionUser = null;
+
+      if (cooldownTimerId) clearInterval(cooldownTimerId);
+
+      document.getElementById('auth-box-unverified').classList.remove('hidden');
+      document.getElementById('auth-box-verified').classList.add('hidden');
+      document.getElementById('auth-box-otp-input').classList.add('hidden');
+
+      const otpInput = document.getElementById('auth-otp-input');
+      if (otpInput) otpInput.value = "";
+
+      const pill = document.getElementById('auth-status-pill');
+      pill.textContent = 'Belum Terverifikasi';
+      pill.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30 shrink-0';
+
+      updateIdentitasBadges();
+    }
+
+    // 3. AMBIL KOORDINAT GPS SATELIT
     function ambilGPS() {
       const badge = document.getElementById('gps-status-badge');
       const accText = document.getElementById('gps-accuracy-text');
@@ -450,15 +736,26 @@
     }
     ambilGPS();
 
-    // 1. KIRIM PRESENSI DENGAN DETEKSI STATUS VALID / TIDAK VALID
+    // 4. KIRIM PRESENSI DENGAN TOKEN SESI SERVER & STATUS VALID / TIDAK VALID
     function kirimAbsensi() {
-      const nik = document.getElementById("nik").value.trim();
       const jenis = document.getElementById("jenis").value;
       const lokasi = document.getElementById("lokasi").value;
       const btn = document.getElementById("btnAbsen");
 
-      if (!nik || !gpsUser) {
-        bukaModalNotif("Perhatian ⚠️", "Pastikan NIK telah diisi dan GPS perangkat sudah terkunci!", false);
+      // Cek Sesi Autentikasi
+      if (!sessionToken || !sessionNik) {
+        bukaModalNotif(
+          "Autentikasi Diperlukan ⚠️",
+          "Silakan masukkan NIK dan verifikasi kode OTP yang dikirim ke Gmail Anda terlebih dahulu sebelum presensi.",
+          false
+        );
+        const nikInp = document.getElementById('auth-nik-input');
+        if (nikInp) nikInp.focus();
+        return;
+      }
+
+      if (!gpsUser) {
+        bukaModalNotif("Perhatian ⚠️", "GPS perangkat belum terkunci. Klik tombol 'Segarkan GPS' untuk mendeteksi posisi satelit.", false);
         return;
       }
 
@@ -474,7 +771,7 @@
             if (res && res.status === 'VALID') {
               bukaModalNotif(
                 "Presensi Berhasil Terverifikasi ✅",
-                `Kehadiran ${jenis} untuk ${res.nama || nik} telah DICATAT & VALID.\nLokasi: ${lokasi}\nJarak kantor terdekat: ${res.jarakMaks || res.jarak || 0} meter.`
+                `Kehadiran ${jenis} untuk ${res.nama || sessionNik} telah DICATAT & VALID.\nLokasi: ${lokasi}\nJarak kantor terdekat: ${res.jarakMaks || res.jarak || 0} meter.`
               );
             } else if (res && res.status === 'TIDAK VALID') {
               bukaModalNotif(
@@ -491,7 +788,13 @@
             btn.textContent = "Simpan Presensi Kehadiran";
             bukaModalNotif("Gagal Mencatat Presensi ❌", err.message || "Terjadi kesalahan pada server.", false);
           })
-          .simpanAbsensi({ nik: nik, jenis: jenis, lokasi: lokasi, gps: gpsUser });
+          .simpanAbsensi({
+            nik: sessionNik,
+            jenis: jenis,
+            lokasi: lokasi,
+            gps: gpsUser,
+            sessionToken: sessionToken
+          });
       } else {
         btn.disabled = false;
         btn.textContent = "Simpan Presensi Kehadiran";
@@ -499,14 +802,19 @@
       }
     }
 
-    // 2. DAFTAR LOKASI WFH
+    // 5. DAFTAR LOKASI WFH DENGAN TOKEN SESI SERVER
     function kirimWFH() {
-      const nik = document.getElementById("nikWFH").value.trim();
       const alamat = document.getElementById("alamatWFH").value.trim();
       const btn = document.getElementById("btnDaftarWFH");
 
-      if (!nik || !alamat || !gpsUser) {
-        bukaModalNotif("Perhatian ⚠️", "Lengkapi NIK, Alamat rumah, dan pastikan GPS terkunci!", false);
+      // Cek Sesi Autentikasi
+      if (!sessionToken || !sessionNik) {
+        bukaModalNotif("Autentikasi Diperlukan ⚠️", "Silakan verifikasi NIK & OTP Gmail terlebih dahulu.", false);
+        return;
+      }
+
+      if (!alamat || !gpsUser) {
+        bukaModalNotif("Perhatian ⚠️", "Lengkapi Alamat rumah dan pastikan GPS perangkat sudah terkunci!", false);
         return;
       }
 
@@ -518,7 +826,7 @@
           .withSuccessHandler(function(res) {
             btn.disabled = false;
             btn.textContent = "Kunci & Daftarkan Titik Rumah";
-            bukaModalNotif("Titik Rumah Berhasil Didaftarkan! 🏡", "Koordinat tempat tinggal berhasil dikunci. Anda kini dapat memilih opsi WFH saat presensi.");
+            bukaModalNotif("Titik Rumah Berhasil Didaftarkan! 🏡", "Koordinat domisili berhasil dikunci untuk akun " + sessionNik + ". Anda kini dapat presensi dengan opsi WFH.");
             gantiMode('absen');
           })
           .withFailureHandler(function(err) {
@@ -526,7 +834,12 @@
             btn.textContent = "Kunci & Daftarkan Titik Rumah";
             bukaModalNotif("Pendaftaran Gagal ❌", err.message || "Gagal menyimpan koordinat rumah.", false);
           })
-          .simpanWFH({ nik: nik, alamat: alamat, gps: gpsUser });
+          .simpanWFH({
+            nik: sessionNik,
+            alamat: alamat,
+            gps: gpsUser,
+            sessionToken: sessionToken
+          });
       } else {
         btn.disabled = false;
         btn.textContent = "Kunci & Daftarkan Titik Rumah";
@@ -534,9 +847,14 @@
       }
     }
 
-    // 3. PENGAJUAN IZIN / CUTI DENGAN VALIDASI TIPE & UKURAN
+    // 6. PENGAJUAN IZIN / CUTI DENGAN TOKEN SESI SERVER & VALIDASI FILE
     function kirimCuti() {
-      const nik = document.getElementById("nikCuti").value.trim();
+      // Cek Sesi Autentikasi
+      if (!sessionToken || !sessionNik) {
+        bukaModalNotif("Autentikasi Diperlukan ⚠️", "Silakan verifikasi NIK & OTP Gmail terlebih dahulu.", false);
+        return;
+      }
+
       const jenisCuti = document.getElementById("jenisCuti").value;
       const tglMulai = document.getElementById("tglMulai").value;
       const tglSelesai = document.getElementById("tglSelesai").value;
@@ -544,19 +862,20 @@
       const fInput = document.getElementById("fileBukti");
       const btn = document.getElementById("btnKirimCuti");
 
-      if (!nik || !tglMulai || !tglSelesai) {
-        bukaModalNotif("Perhatian ⚠️", "Harap isi NIK dan rentang tanggal permohonan!", false);
+      if (!tglMulai || !tglSelesai) {
+        bukaModalNotif("Perhatian ⚠️", "Harap isi rentang tanggal mulai dan selesai permohonan!", false);
         return;
       }
 
       const payload = {
-        nik: nik,
+        nik: sessionNik,
         jenisCuti: jenisCuti,
         tglMulai: tglMulai,
         tglSelesai: tglSelesai,
         alasan: alasan,
         fileData: null,
-        fileName: null
+        fileName: null,
+        sessionToken: sessionToken
       };
 
       btn.disabled = true;
