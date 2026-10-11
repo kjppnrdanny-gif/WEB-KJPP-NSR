@@ -918,6 +918,76 @@
 </head>
 <body class="bg-slate-950 text-slate-100 antialiased selection:bg-amber-400 selection:text-slate-950">
 
+  <!-- Script Cepat Inisialisasi Kontrol Navigasi & Modal Universal -->
+  <script>
+    function bukaModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        el.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('overflow-hidden');
+      }
+    }
+    function tutupModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        el.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
+      }
+    }
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+    function bukaModalPortal() {
+      const modal = document.getElementById('modal-portal');
+      if (!modal) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', bukaModalPortal, { once: true });
+          return;
+        }
+      }
+      bukaModal('modal-portal');
+      const storedSession = sessionStorage.getItem('kjpp_token_internal');
+      const panelLayanan = document.getElementById('panel-layanan');
+      const formToken = document.getElementById('form-token-portal');
+      const labelLokasi = document.getElementById('label-lokasi');
+      const pesanError = document.getElementById('pesan-error');
+      if (pesanError) pesanError.classList.add('hidden');
+
+      if (storedSession) {
+        try {
+          const sess = JSON.parse(storedSession);
+          const isExpired = sess.expiresAt && sess.expiresAt < Date.now();
+          if (!isExpired && sess.branch) {
+            if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${sess.branch}`;
+            if (formToken) formToken.classList.add('hidden');
+            if (panelLayanan) panelLayanan.classList.remove('hidden');
+            return;
+          }
+        } catch (e) {
+          if (typeof storedSession === 'string' && storedSession.length > 0) {
+            if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${storedSession}`;
+            if (formToken) formToken.classList.add('hidden');
+            if (panelLayanan) panelLayanan.classList.remove('hidden');
+            return;
+          }
+        }
+      }
+
+      if (formToken) formToken.classList.remove('hidden');
+      if (panelLayanan) panelLayanan.classList.add('hidden');
+      const inp = document.getElementById('input-token');
+      if (inp) {
+        inp.value = '';
+        setTimeout(() => inp.focus(), 150);
+      }
+    }
+    function tutupModalPortal() {
+      tutupModal('modal-portal');
+    }
+  </script>
 
   <!-- ==================== 2. HEADER RESMI PROPORSIONAL (3 BAR) ==================== -->
   <header id="site-header" class="sticky top-0 z-50 shadow-md bg-white">
@@ -3651,6 +3721,7 @@
             <span class="text-[10.5px] font-bold text-blue-700">Call &rarr;</span>
           </a>
         </div>
+      </div>
 
       <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
         <span class="flex items-center gap-1.5 font-medium">
@@ -3872,7 +3943,7 @@
 
   <!-- MODAL LOGIN PORTAL INTERNAL -->
   <!-- POP-UP MODAL PORTAL OPERASIONAL INTERNAL (PROTEKSI SERVER-SIDE) -->
-  <div id="modal-portal" class="fixed inset-0 z-50 bg-slate-950/75 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-hidden="true">
+  <div id="modal-portal" class="fixed inset-0 z-50 bg-slate-950/75 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-hidden="true" onclick="if(event.target === this) tutupModalPortal()">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 relative text-xs">
       <button onclick="tutupModalPortal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center cursor-pointer" aria-label="Tutup Modal">&times;</button>
       <div class="flex items-center gap-2 mb-1.5">
