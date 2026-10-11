@@ -274,18 +274,101 @@
       background-color: rgba(15, 23, 42, 0.95) !important;
     }
 
-    /* Animasi Marquee Berjalan Otomatis untuk Logo Rekanan */
-    @keyframes marqueeScroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
+    /* ========================================================
+       SEAMLESS INFINITE MARQUEE LOGO REKANAN (2-ROW FAST-PATH)
+       ======================================================== */
+    :root {
+      --partner-card-w: 260px;
+      --partner-card-h: 135px;
+      --partner-pill-w: 195px;
+      --partner-pill-h: 70px;
+      --partner-gap: 20px;
+      --partner-speed: 55s;
     }
-    .animate-marquee {
-      display: flex;
-      width: max-content;
-      animation: marqueeScroll 35s linear infinite;
+
+    @media (max-width: 1439px) {
+      :root {
+        --partner-card-w: 220px;
+        --partner-card-h: 120px;
+        --partner-pill-w: 165px;
+        --partner-pill-h: 60px;
+        --partner-gap: 16px;
+        --partner-speed: 50s;
+      }
     }
-    .animate-marquee:hover {
-      animation-play-state: paused;
+
+    @media (max-width: 1023px) {
+      :root {
+        --partner-card-w: 180px;
+        --partner-card-h: 105px;
+        --partner-pill-w: 140px;
+        --partner-pill-h: 52px;
+        --partner-gap: 14px;
+        --partner-speed: 45s;
+      }
+    }
+
+    @media (max-width: 767px) {
+      :root {
+        --partner-card-w: 150px;
+        --partner-card-h: 94px;
+        --partner-pill-w: 120px;
+        --partner-pill-h: 46px;
+        --partner-gap: 12px;
+        --partner-speed: 40s;
+      }
+    }
+
+    .partner-card-item {
+      width: var(--partner-card-w);
+      height: var(--partner-card-h);
+      margin-right: var(--partner-gap);
+      flex-shrink: 0;
+    }
+
+    .partner-pill-item {
+      width: var(--partner-pill-w);
+      height: var(--partner-pill-h);
+    }
+
+    @keyframes partnerMarqueeRight {
+      0% {
+        transform: translate3d(-50%, 0, 0);
+      }
+      100% {
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    @keyframes partnerMarqueeLeft {
+      0% {
+        transform: translate3d(0, 0, 0);
+      }
+      100% {
+        transform: translate3d(-50%, 0, 0);
+      }
+    }
+
+    .marquee-row-right {
+      animation: partnerMarqueeRight var(--partner-speed) linear infinite;
+      will-change: transform;
+    }
+
+    .marquee-row-left {
+      animation: partnerMarqueeLeft var(--partner-speed) linear infinite;
+      will-change: transform;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .partner-marquee-track:hover {
+        animation-play-state: paused;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .partner-marquee-track {
+        animation: none !important;
+      }
     }
 
 
@@ -825,7 +908,7 @@
         scroll-behavior: auto !important;
         transition-duration: .01ms !important;
       }
-      .animate-marquee, .animate-flow-ltr { animation: none !important; transform: none !important; }
+      .animate-marquee, .animate-flow-ltr, .partner-marquee-track { animation: none !important; transform: none !important; }
     }
 
   </style>
@@ -1594,140 +1677,404 @@
   </section>
 
   <!-- ==================== 4. KREDIBILITAS REKANAN & KLIEN UTAMA ==================== -->
-  <section id="rekanan" aria-label="Kredibilitas Mitra Perbankan &amp; Klien Utama" class="w-full bg-slate-950 text-white border-y border-slate-800/80 py-6 sm:py-12 scroll-mt-20">
-    <div id="trusted-by" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="text-center max-w-3xl mx-auto mb-5 sm:mb-8">
-        <span class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-blue-900/40 border border-blue-700/50 text-sky-300 text-[11px] font-semibold mb-1.5">
-          KREDIBILITAS INSTITUSI &bull; MITRA PERBANKAN &amp; BUMN
-        </span>
-        <h2 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white">
-          Dipercaya Lembaga Keuangan, BUMN &amp; Instansi Pemerintah
-        </h2>
-        <p class="hidden sm:block text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-          Dipercaya oleh institusi perbankan nasional terdaftar OJK, kementerian negara, dan BUMN strategis untuk opini penilaian aset independen berstandar SPI dan KEPI.
-        </p>
+  <section id="rekanan" aria-label="Kredibilitas Mitra Perbankan &amp; Klien Utama" class="w-full bg-slate-950 text-white border-y border-slate-800/80 py-6 sm:py-12 scroll-mt-20 overflow-hidden">
+    <div id="trusted-by" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-5 sm:mb-8 text-center">
+      <span class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-blue-900/40 border border-blue-700/50 text-sky-300 text-[11px] font-semibold mb-1.5">
+        KREDIBILITAS INSTITUSI &bull; MITRA PERBANKAN &amp; BUMN
+      </span>
+      <h2 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white">
+        Dipercaya Lembaga Keuangan, BUMN &amp; Instansi Pemerintah
+      </h2>
+      <p class="hidden sm:block text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed max-w-3xl mx-auto">
+        Dipercaya oleh institusi perbankan nasional terdaftar OJK, kementerian negara, dan BUMN strategis untuk opini penilaian aset independen berstandar SPI dan KEPI.
+      </p>
+    </div>
+
+    <!-- MARQUEE VIEW CONTAINER DENGAN GRADIENT FADE DI KEDUA SISI -->
+    <div class="relative w-full overflow-hidden space-y-3 sm:space-y-4">
+      <!-- Gradient Fade Mask Kiri & Kanan -->
+      <div class="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-24 md:w-36 z-20 bg-gradient-to-r from-slate-950 to-transparent"></div>
+      <div class="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-24 md:w-36 z-20 bg-gradient-to-l from-slate-950 to-transparent"></div>
+
+      <!-- ================= BARIS ATAS: MENGALIR KE KANAN -> ================= -->
+      <div class="flex overflow-hidden">
+        <div class="partner-marquee-track marquee-row-right flex items-center shrink-0">
+          <!-- HALF 1: 12 CARDS (2 CYCLES OF 6 LOGOS) -->
+          <div class="flex items-center shrink-0">
+            <!-- 1. BRI -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bri.svg" alt="Bank BRI" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BRI</span>
+              </div>
+            </div>
+            <!-- 2. BCA -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bca.svg" alt="Bank BCA" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BCA</span>
+              </div>
+            </div>
+            <!-- 3. Bank DKI -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bank-dki.svg" alt="Bank DKI" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank DKI</span>
+              </div>
+            </div>
+            <!-- 4. BTN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/btn.svg" alt="Bank BTN" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BTN</span>
+              </div>
+            </div>
+            <!-- 5. Kasikornbank -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/kasikornbank.svg" alt="Kasikornbank" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Kasikornbank</span>
+              </div>
+            </div>
+            <!-- 6. Bank BJB -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bjb.svg" alt="Bank BJB" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BJB</span>
+              </div>
+            </div>
+
+            <!-- REPEAT CYCLE 2 -->
+            <!-- 1. BRI -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bri.svg" alt="Bank BRI" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BRI</span>
+              </div>
+            </div>
+            <!-- 2. BCA -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bca.svg" alt="Bank BCA" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BCA</span>
+              </div>
+            </div>
+            <!-- 3. Bank DKI -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bank-dki.svg" alt="Bank DKI" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank DKI</span>
+              </div>
+            </div>
+            <!-- 4. BTN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/btn.svg" alt="Bank BTN" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BTN</span>
+              </div>
+            </div>
+            <!-- 5. Kasikornbank -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/kasikornbank.svg" alt="Kasikornbank" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Kasikornbank</span>
+              </div>
+            </div>
+            <!-- 6. Bank BJB -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bjb.svg" alt="Bank BJB" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BJB</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- HALF 2: IDENTICAL 12 CARDS DUPLICATE (aria-hidden="true") -->
+          <div class="flex items-center shrink-0" aria-hidden="true">
+            <!-- 1. BRI -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bri.svg" alt="Bank BRI" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BRI</span>
+              </div>
+            </div>
+            <!-- 2. BCA -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bca.svg" alt="Bank BCA" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BCA</span>
+              </div>
+            </div>
+            <!-- 3. Bank DKI -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bank-dki.svg" alt="Bank DKI" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank DKI</span>
+              </div>
+            </div>
+            <!-- 4. BTN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/btn.svg" alt="Bank BTN" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BTN</span>
+              </div>
+            </div>
+            <!-- 5. Kasikornbank -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/kasikornbank.svg" alt="Kasikornbank" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Kasikornbank</span>
+              </div>
+            </div>
+            <!-- 6. Bank BJB -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bjb.svg" alt="Bank BJB" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BJB</span>
+              </div>
+            </div>
+
+            <!-- REPEAT CYCLE 2 -->
+            <!-- 1. BRI -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bri.svg" alt="Bank BRI" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BRI</span>
+              </div>
+            </div>
+            <!-- 2. BCA -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bca.svg" alt="Bank BCA" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BCA</span>
+              </div>
+            </div>
+            <!-- 3. Bank DKI -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bank-dki.svg" alt="Bank DKI" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank DKI</span>
+              </div>
+            </div>
+            <!-- 4. BTN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/btn.svg" alt="Bank BTN" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BTN</span>
+              </div>
+            </div>
+            <!-- 5. Kasikornbank -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/kasikornbank.svg" alt="Kasikornbank" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Kasikornbank</span>
+              </div>
+            </div>
+            <!-- 6. Bank BJB -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bjb.svg" alt="Bank BJB" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bank BJB</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- DESKTOP GRID: 12 LOGO (hidden on mobile) -->
-      <div class="hidden md:grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 items-center">
-        <!-- 1. BANK BRI -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/bri.svg" alt="Bank BRI" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 2. BANK BCA -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/bca.svg" alt="Bank BCA" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 3. BANK DKI -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/bank-dki.svg" alt="Bank DKI" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 4. BANK BTN -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/btn.svg" alt="Bank BTN" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 5. BANK KASIKORN -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/kasikornbank.svg" alt="Kasikornbank" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 6. BANK BJB -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/bjb.svg" alt="Bank BJB" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 7. PT PLN -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/pln.svg" alt="PT PLN (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 8. PT PERTAMINA -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/pertamina.svg" alt="PT Pertamina (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 9. KEMENTERIAN PUPR -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/kemen-pupr.svg" alt="Kementerian PUPR" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 10. KEMENTERIAN ATR/BPN -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/atr-bpn.png" alt="Kementerian ATR/BPN" class="h-9 sm:h-11 w-auto object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 11. PT SEMEN INDONESIA -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/sig.svg" alt="PT Semen Indonesia (SIG)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-        <!-- 12. PT BIO FARMA -->
-        <div class="h-20 sm:h-24 flex items-center justify-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
-          <div class="relative z-10 flex items-center justify-center p-2 rounded-lg bg-white/95 group-hover:bg-white shadow-sm transition-all duration-300 group-hover:scale-105 w-[130px] sm:w-[145px] h-11 sm:h-13">
-            <img decoding="async" src="images/logos/bio-farma.svg" alt="PT Bio Farma (Persero)" class="max-h-full max-w-full object-contain filter group-hover:brightness-105 transition-all duration-300">
-          </div>
-        </div>
-      </div>
+      <!-- ================= BARIS BAWAH: MENGALIR KE KIRI <- ================= -->
+      <div class="flex overflow-hidden">
+        <div class="partner-marquee-track marquee-row-left flex items-center shrink-0">
+          <!-- HALF 1: 12 CARDS (2 CYCLES OF 6 LOGOS) -->
+          <div class="flex items-center shrink-0">
+            <!-- 1. PLN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/pln.svg" alt="PT PLN (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">PT PLN</span>
+              </div>
+            </div>
+            <!-- 2. Pertamina -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/pertamina.svg" alt="PT Pertamina (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">PT Pertamina</span>
+              </div>
+            </div>
+            <!-- 3. Kementerian PUPR -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/kemen-pupr.svg" alt="Kementerian PUPR" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Kementerian PUPR</span>
+              </div>
+            </div>
+            <!-- 4. ATR/BPN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/atr-bpn.png" alt="Kementerian ATR/BPN" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">ATR / BPN</span>
+              </div>
+            </div>
+            <!-- 5. SIG -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/sig.svg" alt="PT Semen Indonesia (SIG)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">SIG</span>
+              </div>
+            </div>
+            <!-- 6. Bio Farma -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bio-farma.svg" alt="PT Bio Farma (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bio Farma</span>
+              </div>
+            </div>
 
-      <!-- MOBILE HORIZONTAL SCROLL TICKER: Ramping & Tidak Menumpuk (md:hidden) -->
-      <div class="md:hidden overflow-x-auto pb-2 flex items-center gap-2.5 no-scrollbar" style="scroll-snap-type: x mandatory;">
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/bri.svg" alt="BRI" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/bca.svg" alt="BCA" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/bank-dki.svg" alt="Bank DKI" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/btn.svg" alt="BTN" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/kasikornbank.svg" alt="Kasikorn" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/bjb.svg" alt="BJB" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/pln.svg" alt="PLN" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/pertamina.svg" alt="Pertamina" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/kemen-pupr.svg" alt="PUPR" class="max-h-full max-w-full object-contain">
-        </div>
-        <div class="shrink-0 w-24 h-12 bg-white rounded-lg p-1.5 flex items-center justify-center shadow" style="scroll-snap-align: start;">
-          <img decoding="async" src="images/logos/atr-bpn.png" alt="ATR BPN" class="max-h-full max-w-full object-contain">
-        </div>
-      </div>
+            <!-- REPEAT CYCLE 2 -->
+            <!-- 1. PLN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/pln.svg" alt="PT PLN (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">PT PLN</span>
+              </div>
+            </div>
+            <!-- 2. Pertamina -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/pertamina.svg" alt="PT Pertamina (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">PT Pertamina</span>
+              </div>
+            </div>
+            <!-- 3. Kementerian PUPR -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/kemen-pupr.svg" alt="Kementerian PUPR" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Kementerian PUPR</span>
+              </div>
+            </div>
+            <!-- 4. ATR/BPN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/atr-bpn.png" alt="Kementerian ATR/BPN" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">ATR / BPN</span>
+              </div>
+            </div>
+            <!-- 5. SIG -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/sig.svg" alt="PT Semen Indonesia (SIG)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">SIG</span>
+              </div>
+            </div>
+            <!-- 6. Bio Farma -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bio-farma.svg" alt="PT Bio Farma (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bio Farma</span>
+              </div>
+            </div>
+          </div>
 
-      <!-- Bottom Bar & Navigation to Full Directory -->
-      <div class="mt-4 sm:mt-8 pt-3 sm:pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 text-center sm:text-left">
-        <div class="text-[11px] sm:text-xs text-slate-400">
-          <span class="font-bold text-slate-200">Terdaftar di 40+ Mitra Perbankan &amp; Klien Institusi</span> terkemuka di Indonesia.
+          <!-- HALF 2: IDENTICAL 12 CARDS DUPLICATE (aria-hidden="true") -->
+          <div class="flex items-center shrink-0" aria-hidden="true">
+            <!-- 1. PLN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/pln.svg" alt="PT PLN (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">PT PLN</span>
+              </div>
+            </div>
+            <!-- 2. Pertamina -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/pertamina.svg" alt="PT Pertamina (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">PT Pertamina</span>
+              </div>
+            </div>
+            <!-- 3. Kementerian PUPR -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/kemen-pupr.svg" alt="Kementerian PUPR" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Kementerian PUPR</span>
+              </div>
+            </div>
+            <!-- 4. ATR/BPN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/atr-bpn.png" alt="Kementerian ATR/BPN" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">ATR / BPN</span>
+              </div>
+            </div>
+            <!-- 5. SIG -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/sig.svg" alt="PT Semen Indonesia (SIG)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">SIG</span>
+              </div>
+            </div>
+            <!-- 6. Bio Farma -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bio-farma.svg" alt="PT Bio Farma (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bio Farma</span>
+              </div>
+            </div>
+
+            <!-- REPEAT CYCLE 2 -->
+            <!-- 1. PLN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/pln.svg" alt="PT PLN (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">PT PLN</span>
+              </div>
+            </div>
+            <!-- 2. Pertamina -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/pertamina.svg" alt="PT Pertamina (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">PT Pertamina</span>
+              </div>
+            </div>
+            <!-- 3. Kementerian PUPR -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/kemen-pupr.svg" alt="Kementerian PUPR" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Kementerian PUPR</span>
+              </div>
+            </div>
+            <!-- 4. ATR/BPN -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/atr-bpn.png" alt="Kementerian ATR/BPN" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">ATR / BPN</span>
+              </div>
+            </div>
+            <!-- 5. SIG -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/sig.svg" alt="PT Semen Indonesia (SIG)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">SIG</span>
+              </div>
+            </div>
+            <!-- 6. Bio Farma -->
+            <div class="partner-card-item flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-sm group">
+              <div class="partner-pill-item relative z-10 flex items-center justify-center p-2 rounded-xl bg-slate-100 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img decoding="async" src="images/logos/bio-farma.svg" alt="PT Bio Farma (Persero)" width="160" height="40" class="max-h-full max-w-full object-contain" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden text-xs font-bold text-slate-800">Bio Farma</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <a href="portofolio-rekanan.html" class="inline-flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition group">
-          <span>Lihat Direktori 40+ Mitra</span> &rarr;
-        </a>
       </div>
+    </div>
+
+    <!-- Bottom Bar & Navigation to Full Directory -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 text-center sm:text-left">
+      <div class="text-[11px] sm:text-xs text-slate-400">
+        <span class="font-bold text-slate-200">Terdaftar di 40+ Mitra Perbankan &amp; Klien Institusi</span> terkemuka di Indonesia.
+      </div>
+      <a href="portofolio-rekanan.html" class="inline-flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition group">
+        <span>Lihat Direktori 40+ Mitra</span> &rarr;
+      </a>
     </div>
   </section>
 
