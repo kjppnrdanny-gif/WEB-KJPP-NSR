@@ -18,14 +18,14 @@
 const CONFIG = {
   APP_ENV: 'STAGING', // Ganti ke 'PRODUCTION' saat rilis resmi
   IS_PRODUCTION: false,
-  SPREADSHEET_ID: '', // ID Spreadsheet Pengujian (Container-bound jika kosong)
+  SPREADSHEET_ID: '1X7kJ8tJbb_bOC08RWmy6us9O-U1fkoSRTxQ3rx8b9VY', // [STAGING] ABSENSI KJPP NSR
   SHEET_KARYAWAN: 'MASTER_KARYAWAN',
   SHEET_ABSENSI: 'ABSENSI',
   SHEET_WFH: 'MASTER_WFH',
   SHEET_CUTI: 'PENGAJUAN_CUTI',
   
   // Folder Drive untuk lampiran cuti/izin (Terisolasi)
-  DRIVE_FOLDER_ID: '', 
+  DRIVE_FOLDER_ID: '1SP1qV6ky_ZyDZ3yrbgYr_HoyWxz9vvB1', 
   
   // Konfigurasi Keamanan OTP
   OTP_EXPIRY_SECONDS: 300,      // 5 menit
