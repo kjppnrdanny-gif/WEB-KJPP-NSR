@@ -114,13 +114,20 @@ const DriveApp = {
   getRootFolder: () => mockDrive
 };
 
+let mockActiveUserEmail = '';
+const Session = {
+  getActiveUser: () => ({
+    getEmail: () => mockActiveUserEmail
+  })
+};
+
 // Evaluasi gas-absensi-Code.gs dalam sandbox node
 const codePath = path.resolve('gas-absensi-Code.gs');
 const codeContent = fs.readFileSync(codePath, 'utf8');
 
 // Wrap code for execution
 const sandboxFunc = new Function(
-  'Utilities', 'LockService', 'DriveApp', 'mockSS',
+  'Utilities', 'LockService', 'DriveApp', 'Session', 'mockSS',
   `
   function getSS_() { return mockSS; }
   ${codeContent.replace('function getSS_()', 'function _orig_getSS_()')}
@@ -138,7 +145,7 @@ const sandboxFunc = new Function(
   `
 );
 
-const gas = sandboxFunc(Utilities, LockService, DriveApp, mockSS);
+const gas = sandboxFunc(Utilities, LockService, DriveApp, Session, mockSS);
 
 // 1. SETUP SHEET
 console.log('\n--- 1. Testing setupTestingSheet() ---');
@@ -185,6 +192,27 @@ if (kInvalid === null) {
   throw new Error('NIK invalid tidak terdeteksi!');
 }
 
+// 2b. Test Anti-Spoofing: Login dengan email orang lain
+mockActiveUserEmail = 'penyusup@external.com';
+try {
+  gas.simpanAbsensi({
+    nik: 'NSR-001', // Milik Budi Santoso (budi@kjppnsr.id)
+    jenis: 'Masuk',
+    lokasi: 'KANTOR',
+    gps: '-6.287972, 106.824778'
+  });
+  throw new Error('Anti-spoofing gagal memblokir pemalsuan NIK!');
+} catch (err) {
+  if (err.message.includes('Validasi Akses Ditolak')) {
+    console.log('✓ Anti-spoofing berhasil memblokir akses NIK orang lain:', err.message);
+    console.log('  [PASS] Autentikasi NIK terikat pada identitas pengguna login');
+  } else {
+    throw err;
+  }
+}
+// Kembalikan ke email sah
+mockActiveUserEmail = 'budi@kjppnsr.id';
+
 // 3. HITUNG JARAK & MULTI-KANTOR
 console.log('\n--- 3. Testing hitungJarak() & Multi-Kantor ---');
 // Koordinat persis Pusat Jakarta: -6.287972658138783, 106.82477864308436
@@ -213,6 +241,7 @@ if (resMasukValid.success && resMasukValid.status === 'VALID' && resMasukValid.j
 
 // 5. SIMPAN PRESENSI DI LUAR RADIUS (TERCATAT TAPI STATUS: TIDAK VALID)
 console.log('\n--- 5. Testing simpanAbsensi() Di Luar Radius ---');
+mockActiveUserEmail = 'siti@kjppnsr.id';
 const resLuarRadius = gas.simpanAbsensi({
   nik: 'NSR-002',
   jenis: 'Masuk',
@@ -228,6 +257,7 @@ if (resLuarRadius.success && resLuarRadius.status === 'TIDAK VALID' && resLuarRa
 
 // 6. MULTI-KANTOR: PRESENSI DI CABANG BANDUNG
 console.log('\n--- 6. Testing Presensi Cabang Bandung ---');
+mockActiveUserEmail = 'ahmad@kjppnsr.id';
 const resBandung = gas.simpanAbsensi({
   nik: 'NSR-003',
   jenis: 'Masuk',
@@ -243,6 +273,7 @@ if (resBandung.success && resBandung.status === 'VALID' && resBandung.kantor ===
 
 // 7. PREVENSI DOUBLE ABSENSI
 console.log('\n--- 7. Testing Prevensi Double Absensi ---');
+mockActiveUserEmail = 'budi@kjppnsr.id';
 try {
   gas.simpanAbsensi({
     nik: 'NSR-001',
@@ -262,6 +293,7 @@ try {
 
 // 8. DINAS LUAR
 console.log('\n--- 8. Testing Presensi Dinas Luar ---');
+mockActiveUserEmail = 'dewi@kjppnsr.id';
 const resDinas = gas.simpanAbsensi({
   nik: 'NSR-004',
   jenis: 'Dinas Luar',
@@ -277,6 +309,7 @@ if (resDinas.success && resDinas.status === 'VALID') {
 
 // 9. DAFTAR TITIK WFH & PRESENSI WFH
 console.log('\n--- 9. Testing WFH (Pendaftaran & Presensi) ---');
+mockActiveUserEmail = 'budi@kjppnsr.id';
 const resDaftarWFH = gas.simpanWFH({
   nik: 'NSR-001',
   alamat: 'Jl. Kemang Raya No. 12, Jakarta Selatan',
@@ -301,6 +334,7 @@ if (resPulangWFH.success && resPulangWFH.status === 'VALID' && resPulangWFH.jara
 // 10. PENGAJUAN CUTI & VALIDASI DOKUMEN SERVER
 console.log('\n--- 10. Testing simpanPengajuanCuti() ---');
 // 10a. File PDF valid
+mockActiveUserEmail = 'siti@kjppnsr.id';
 const dummyPdfBase64 = Buffer.from('%PDF-1.4 Mock PDF content for test').toString('base64');
 const resCutiValid = gas.simpanPengajuanCuti({
   nik: 'NSR-002',
@@ -320,6 +354,7 @@ if (resCutiValid.success) {
 
 // 10b. File tidak diizinkan (EXE/JS)
 try {
+  mockActiveUserEmail = 'siti@kjppnsr.id';
   gas.simpanPengajuanCuti({
     nik: 'NSR-002',
     jenisCuti: 'Izin Keperluan Pribadi',
@@ -341,6 +376,7 @@ try {
 
 // 10c. File terlalu besar (> 5 MB)
 try {
+  mockActiveUserEmail = 'ahmad@kjppnsr.id';
   const hugeData = Buffer.alloc(6 * 1024 * 1024, 'a').toString('base64');
   gas.simpanPengajuanCuti({
     nik: 'NSR-003',

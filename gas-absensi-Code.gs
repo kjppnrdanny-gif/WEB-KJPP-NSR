@@ -146,11 +146,30 @@ function cekKaryawan(nik) {
       return {
         nama: String(data[i][1]).trim(),
         jabatan: String(data[i][2]).trim(),
-        divisi: String(data[i][3]).trim()
+        divisi: String(data[i][3]).trim(),
+        email: String(data[i][4]).trim()
       };
     }
   }
   return null;
+}
+
+/**
+ * Autentikasi Pengguna: Memastikan pengguna Google login cocok dengan email NIK
+ */
+function verifikasiUserAktif_(emailKaryawan) {
+  try {
+    const userEmail = Session.getActiveUser().getEmail();
+    if (userEmail && emailKaryawan) {
+      if (userEmail.trim().toLowerCase() !== emailKaryawan.trim().toLowerCase()) {
+        throw new Error('Validasi Akses Ditolak: Akun login Google (' + userEmail + ') tidak sesuai dengan email terdaftar NIK ini (' + emailKaryawan + ').');
+      }
+    }
+  } catch (err) {
+    if (err.message && err.message.indexOf('Validasi Akses Ditolak') !== -1) {
+      throw err;
+    }
+  }
 }
 
 /**
@@ -238,6 +257,9 @@ function simpanAbsensi(params) {
     if (!profil) {
       throw new Error('NIK [' + nik + '] tidak terdaftar di database Master Karyawan.');
     }
+
+    // Autentikasi Pengguna: Batasi agar akun login Google cocok dengan NIK
+    verifikasiUserAktif_(profil.email);
 
     const now = new Date();
     const tglStr = Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd');
@@ -363,6 +385,9 @@ function simpanWFH(params) {
       throw new Error('NIK [' + nik + '] tidak terdaftar di database Master Karyawan.');
     }
 
+    // Autentikasi Pengguna: Batasi agar akun login Google cocok dengan NIK
+    verifikasiUserAktif_(profil.email);
+
     const now = new Date();
     const ts = Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss');
     const ss = getSS_();
@@ -404,6 +429,9 @@ function simpanPengajuanCuti(params) {
     if (!profil) {
       throw new Error('NIK [' + nik + '] tidak terdaftar di database Master Karyawan.');
     }
+
+    // Autentikasi Pengguna: Batasi agar akun login Google cocok dengan NIK
+    verifikasiUserAktif_(profil.email);
 
     let fileUrl = '-';
     let storedFileName = '-';
