@@ -305,20 +305,6 @@
 
       </div>
 
-      <!-- LOCAL LOG HARI INI (CONVENIENCE FOR EMPLOYEES) -->
-      <div id="box-riwayat-hari-ini" class="rounded-2xl p-4 bg-slate-900/60 border border-slate-800/80 text-xs">
-        <div class="flex items-center justify-between text-slate-300 font-bold mb-2">
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>Riwayat Presensi Perangkat Ini</span>
-          </span>
-          <span id="riwayat-count" class="text-[10px] text-slate-400">Hari ini</span>
-        </div>
-        <div id="riwayat-list" class="space-y-1.5 text-slate-400">
-          <p class="italic text-[11px] text-slate-500">Belum ada catatan presensi tersimpan hari ini.</p>
-        </div>
-      </div>
-
     </div>
 
 
@@ -683,16 +669,12 @@
           })
           .cekKaryawan(nik);
       } else {
-        // Fallback untuk Staging/Browser Preview
-        setTimeout(() => {
-          // Simulasi preview master
-          const mockData = {
-            nama: "Karyawan Terdaftar KJPP NSR",
-            jabatan: "Penilai Properti / Staf Teknis",
-            divisi: "Operasional & Valuasi"
-          };
-          renderInfoKaryawan(info, mockData);
-        }, 400);
+        info.innerHTML = `
+          <div class="flex items-center gap-2 text-amber-300 text-xs">
+            <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+            <span>Verifikasi NIK otomatis aktif saat dijalankan di aplikasi resmi Google Apps Script.</span>
+          </div>
+        `;
       }
     }
 
@@ -814,43 +796,7 @@
     // Auto detect GPS saat dibuka
     ambilGPS();
 
-    // 6. LOCAL ATTENDANCE LOG CACHE
-    function simpanLogLokal(data) {
-      try {
-        const key = 'kjpp_nsr_log_' + new Date().toISOString().slice(0, 10);
-        let logs = JSON.parse(localStorage.getItem(key) || '[]');
-        logs.unshift(data);
-        localStorage.setItem(key, JSON.stringify(logs.slice(0, 10)));
-        muatLogLokal();
-      } catch(e) {}
-    }
-
-    function muatLogLokal() {
-      const list = document.getElementById('riwayat-list');
-      if (!list) return;
-
-      const key = 'kjpp_nsr_log_' + new Date().toISOString().slice(0, 10);
-      const logs = JSON.parse(localStorage.getItem(key) || '[]');
-
-      if (logs.length === 0) {
-        list.innerHTML = `<p class="italic text-[11px] text-slate-500">Belum ada catatan presensi tersimpan hari ini.</p>`;
-        return;
-      }
-
-      list.innerHTML = logs.map(l => `
-        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-slate-700/50">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full ${l.jenis === 'Masuk' ? 'bg-emerald-400' : (l.jenis === 'Pulang' ? 'bg-amber-400' : 'bg-sky-400')}"></span>
-            <span class="font-bold text-slate-200 text-xs">${l.jenis}</span>
-            <span class="text-[10px] text-slate-400">(${l.lokasi})</span>
-          </div>
-          <span class="font-mono text-slate-300 text-[11px] font-semibold">${l.waktu}</span>
-        </div>
-      `).join('');
-    }
-    muatLogLokal();
-
-    // 7. FILE ATTACHMENT PREVIEW
+    // 6. FILE ATTACHMENT PREVIEW
     const fileInput = document.getElementById('fileBukti');
     if (fileInput) {
       fileInput.addEventListener('change', function() {
@@ -919,12 +865,6 @@
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function() {
-            simpanLogLokal({
-              nik: nik,
-              jenis: jenis,
-              lokasi: lokasi,
-              waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-            });
             bukaModalNotif("Presensi Berhasil Dicatat! ✅", `Kehadiran ${jenis} untuk NIK ${nik} berhasil tersimpan ke sistem database resmi KJPP NSR.`);
             btn.disabled = false;
             btnText.innerText = "Simpan Presensi Kehadiran";
@@ -936,18 +876,13 @@
           })
           .simpanAbsensi(payload);
       } else {
-        // Staging / Browser Preview Simulation
-        setTimeout(() => {
-          simpanLogLokal({
-            nik: nik,
-            jenis: jenis,
-            lokasi: lokasi,
-            waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-          });
-          bukaModalNotif("Presensi Berhasil Dicatat! ✅", `[Mode Staging] Presensi ${jenis} NIK ${nik} berhasil diverifikasi dengan GPS (${gpsUser}).`);
-          btn.disabled = false;
-          btnText.innerText = "Simpan Presensi Kehadiran";
-        }, 800);
+        bukaModalNotif(
+          "Koneksi Google Apps Script Diperlukan ⚠️",
+          "Halaman ini merupakan pratinjau desain antarmuka. Pencatatan presensi nyata tersimpan langsung ke database Google Sheets via aplikasi resmi Google Apps Script (https://s.id/absen-nsr).",
+          false
+        );
+        btn.disabled = false;
+        btnText.innerText = "Simpan Presensi Kehadiran";
       }
     }
 
@@ -988,12 +923,13 @@
           })
           .simpanWFH(payload);
       } else {
-        setTimeout(() => {
-          bukaModalNotif("Titik Rumah Berhasil Didaftarkan! 🏡", `[Mode Staging] Titik koordinat rumah NIK ${nik} berhasil dikunci pada ${gpsUser}.`);
-          btn.disabled = false;
-          btnText.innerText = "Kunci & Daftarkan Titik Rumah";
-          gantiMode('absen');
-        }, 800);
+        bukaModalNotif(
+          "Koneksi Google Apps Script Diperlukan ⚠️",
+          "Pendaftaran titik lokasi WFH resmi tersimpan langsung ke Google Sheets melalui aplikasi Google Apps Script (https://s.id/absen-nsr).",
+          false
+        );
+        btn.disabled = false;
+        btnText.innerText = "Kunci & Daftarkan Titik Rumah";
       }
     }
 
@@ -1053,6 +989,10 @@
             bukaModalNotif("Permohonan Cuti Terkirim! 📋", "Pengajuan izin/cuti berhasil terkirim. Status: Menunggu Persetujuan HR/Manajemen.");
             btn.disabled = false;
             btnText.innerText = "Kirimkan Pengajuan Permohonan";
+            const fileInput = document.getElementById("fileBukti");
+            if (fileInput) fileInput.value = "";
+            const preview = document.getElementById('file-name-preview');
+            if (preview) preview.innerText = "";
             gantiMode('absen');
           })
           .withFailureHandler(function(err) {
@@ -1062,12 +1002,13 @@
           })
           .simpanPengajuanCuti(payload);
       } else {
-        setTimeout(() => {
-          bukaModalNotif("Permohonan Cuti Terkirim! 📋", `[Mode Staging] Pengajuan ${payload.jenisCuti} (${payload.tglMulai} s.d ${payload.tglSelesai}) berhasil terkirim.`);
-          btn.disabled = false;
-          btnText.innerText = "Kirimkan Pengajuan Permohonan";
-          gantiMode('absen');
-        }, 800);
+        bukaModalNotif(
+          "Koneksi Google Apps Script Diperlukan ⚠️",
+          "Pengajuan izin/cuti resmi diproses langsung oleh Google Sheets melalui aplikasi Google Apps Script (https://s.id/absen-nsr).",
+          false
+        );
+        btn.disabled = false;
+        btnText.innerText = "Kirimkan Pengajuan Permohonan";
       }
     }
   </script>
