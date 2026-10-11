@@ -1,22 +1,3 @@
-<!-- ==========================================================================
-     KANTOR JASA PENILAI PUBLIK (KJPP)
-     NANANG RAHAYU SIGIT PARYANTO DAN REKAN (KJPP NSR)
-     --------------------------------------------------------------------------
-     TEMPLATE REDESIGN HTML GOOGLE APPS SCRIPT: ABSENSI & LAYANAN MANDIRI
-     
-     Petunjuk Penggunaan:
-     1. Buka script Google Apps Script Anda (script.google.com).
-     2. Pilih file HTML antarmuka (biasanya bernama "Index.html" atau sejenisnya).
-     3. Salin (Copy) seluruh kode di bawah ini dan Ganti (Paste) isi file HTML tersebut.
-     4. Simpan (Save) dan Deploy versi baru (New Deployment -> Web App).
-     
-     Backend / Code.gs tidak perlu diubah, semua fungsi:
-     - cekKaryawan(nik)
-     - simpanAbsensi({ nik, jenis, lokasi, gps })
-     - simpanWFH({ nik, alamat, gps })
-     - simpanPengajuanCuti(payload)
-     terhubung 100% otomatis tanpa migrasi database.
-     ========================================================================== -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -77,7 +58,7 @@
           <p class="text-[10px] text-amber-400 font-semibold">Sistem Presensi &amp; Layanan Mandiri Karyawan</p>
         </div>
       </div>
-      <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Online</span>
+      <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Terhubung</span>
     </div>
   </header>
 
@@ -115,16 +96,16 @@
               <span id="gps-status-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-400/10 text-amber-300 border border-amber-400/30">Mendeteksi GPS</span>
               <span id="gps-accuracy-text" class="text-[10px] text-slate-400 font-mono">Akurasi: Menunggu</span>
             </div>
-            <p id="gps-coord-text" class="text-xs text-slate-200 font-mono mt-0.5 truncate">Mencari posisi satelit GPS...</p>
+            <p id="gps-coord-text" class="text-xs text-slate-200 font-mono mt-0.5 truncate">Mencari sinyal satelit GPS...</p>
           </div>
         </div>
-        <button type="button" onclick="ambilGPS()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0 border border-slate-700/60 btn-tactile">
+        <button type="button" onclick="ambilGPS()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0 border border-slate-700/60 btn-tactile" title="Segarkan GPS">
           🔄
         </button>
       </div>
 
       <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-        <span>Kantor Terdekat: <strong id="nearest-office-name" class="text-slate-200">-</strong></span>
+        <span>Kantor KJPP Terdekat: <strong id="nearest-office-name" class="text-slate-200">-</strong></span>
         <span id="nearest-office-dist" class="font-mono text-sky-400 font-bold">-</span>
       </div>
     </div>
@@ -248,8 +229,8 @@
           <textarea id="alasanCuti" rows="3" placeholder="Keterangan permohonan..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm resize-none"></textarea>
         </div>
         <div>
-          <label for="fileBukti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Lampiran Bukti (Opsional)</label>
-          <input type="file" id="fileBukti" accept="image/*,.pdf" class="w-full text-xs text-slate-400">
+          <label for="fileBukti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Lampiran Dokumen (Maksimal 5 MB, Format: PDF, PNG, JPG)</label>
+          <input type="file" id="fileBukti" accept="image/jpeg,image/png,application/pdf" class="w-full text-xs text-slate-400">
         </div>
         <button type="button" id="btnKirimCuti" onclick="kirimCuti()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm transition btn-tactile cursor-pointer disabled:opacity-50">
           Kirimkan Pengajuan
@@ -262,8 +243,25 @@
 
   </main>
 
+  <!-- MODAL NOTIFIKASI ELEGAN -->
+  <div id="modal-notif" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card-glass max-w-sm w-full rounded-3xl p-6 text-center space-y-4 shadow-2xl border border-slate-700">
+      <div id="modal-notif-icon" class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
+        ✓
+      </div>
+      <div>
+        <h3 id="modal-notif-title" class="text-base font-extrabold text-white">Notifikasi</h3>
+        <p id="modal-notif-desc" class="text-xs text-slate-300 mt-1.5 leading-relaxed whitespace-pre-line"></p>
+      </div>
+      <button type="button" onclick="tutupModalNotif()" class="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition border border-slate-600 cursor-pointer">
+        Tutup
+      </button>
+    </div>
+  </div>
+
   <!-- JAVASCRIPT LOGIC DIRECT TO GOOGLE APPS SCRIPT -->
   <script>
+    // Koordinat Resmi Kantor KJPP NSR
     const KANTOR_REF = [
       { nama: "Pusat Jakarta", lat: -6.287972658138783, lng: 106.82477864308436 },
       { nama: "Cabang Bandung", lat: -6.938889, lng: 107.625833 },
@@ -274,12 +272,35 @@
 
     let gpsUser = "";
 
+    function bukaModalNotif(title, desc, isSuccess) {
+      const modal = document.getElementById('modal-notif');
+      const icon = document.getElementById('modal-notif-icon');
+      const t = document.getElementById('modal-notif-title');
+      const d = document.getElementById('modal-notif-desc');
+
+      if (isSuccess === false) {
+        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-rose-400 bg-rose-500/20 border border-rose-500/30";
+        icon.textContent = "✕";
+      } else {
+        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30";
+        icon.textContent = "✓";
+      }
+
+      t.textContent = title;
+      d.textContent = desc;
+      modal.classList.remove('hidden');
+    }
+
+    function tutupModalNotif() {
+      document.getElementById('modal-notif').classList.add('hidden');
+    }
+
     function updateClock() {
       const now = new Date();
       const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][now.getDay()];
       const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][now.getMonth()];
       const el = document.getElementById('live-clock');
-      if (el) el.innerText = `${hari}, ${now.getDate()} ${bulan} ${now.getFullYear()} • ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} WIB`;
+      if (el) el.textContent = `${hari}, ${now.getDate()} ${bulan} ${now.getFullYear()} • ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} WIB`;
     }
     setInterval(updateClock, 1000);
     updateClock();
@@ -300,7 +321,7 @@
 
       if (mode === 'wfh') {
         const d = document.getElementById('wfh-gps-display');
-        if (d) d.innerText = gpsUser ? `${gpsUser} (Terkunci ✅)` : 'Menunggu GPS...';
+        if (d) d.textContent = gpsUser ? `${gpsUser} (Terkunci ✅)` : 'Menunggu GPS...';
       }
     }
 
@@ -317,21 +338,63 @@
       });
     }
 
+    // Rendering aman tanpa innerHTML (Mencegah XSS)
+    function renderKaryawanAman(container, data) {
+      container.textContent = '';
+      if (!data) return;
+
+      if (data && data.nama) {
+        const wrap = document.createElement('div');
+        wrap.className = 'flex items-center gap-2.5';
+
+        const ic = document.createElement('div');
+        ic.className = 'w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-bold text-xs shrink-0';
+        ic.textContent = '✓';
+
+        const txt = document.createElement('div');
+        txt.className = 'leading-tight min-w-0';
+
+        const nm = document.createElement('span');
+        nm.className = 'block font-bold text-white text-xs uppercase';
+        nm.textContent = data.nama;
+
+        const sub = document.createElement('span');
+        sub.className = 'block text-[11px] text-slate-300 mt-0.5';
+        sub.textContent = `${data.jabatan} • ${data.divisi}`;
+
+        txt.appendChild(nm);
+        txt.appendChild(sub);
+        wrap.appendChild(ic);
+        wrap.appendChild(txt);
+        container.appendChild(wrap);
+        container.style.display = 'block';
+      } else {
+        const err = document.createElement('div');
+        err.className = 'flex items-center gap-2 text-rose-400 text-xs font-semibold';
+        err.textContent = 'NIK tidak ditemukan dalam Master Karyawan!';
+        container.appendChild(err);
+        container.style.display = 'block';
+      }
+    }
+
     function cekNIK(nik, targetId) {
       const info = document.getElementById(targetId);
       if (!nik || !info) { if (info) info.style.display = 'none'; return; }
       info.style.display = 'block';
-      info.innerHTML = `<em>Memverifikasi database master...</em>`;
+      info.textContent = 'Memverifikasi database karyawan...';
 
-      google.script.run
-        .withSuccessHandler(function(data) {
-          if (data && data.nama) {
-            info.innerHTML = `<strong>${data.nama}</strong><br>${data.jabatan} &bull; ${data.divisi}`;
-          } else {
-            info.innerHTML = `<span style="color:#f87171;">NIK tidak ditemukan dalam Master Karyawan!</span>`;
-          }
-        })
-        .cekKaryawan(nik);
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(data) {
+            renderKaryawanAman(info, data);
+          })
+          .withFailureHandler(function(err) {
+            info.textContent = 'Gagal verifikasi: ' + (err.message || 'Koneksi terputus');
+          })
+          .cekKaryawan(nik);
+      } else {
+        info.textContent = 'Koneksi Google Apps Script aktif di lingkungan aplikasi resmi.';
+      }
     }
 
     ['nik', 'nikWFH', 'nikCuti'].forEach(id => {
@@ -350,7 +413,7 @@
       const coordText = document.getElementById('gps-coord-text');
 
       if (!navigator.geolocation) {
-        if (badge) badge.innerText = "GPS Error";
+        if (badge) badge.textContent = "GPS Error";
         return;
       }
 
@@ -359,12 +422,12 @@
           gpsUser = pos.coords.latitude + "," + pos.coords.longitude;
           if (badge) {
             badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-            badge.innerText = "Terkunci ✅";
+            badge.textContent = "Terkunci ✅";
           }
-          if (accText) accText.innerText = `±${Math.round(pos.coords.accuracy)}m`;
-          if (coordText) coordText.innerText = gpsUser;
+          if (accText) accText.textContent = `±${Math.round(pos.coords.accuracy)}m`;
+          if (coordText) coordText.textContent = gpsUser;
 
-          // Hitung jarak kantor
+          // Hitung jarak ke seluruh kantor cabang KJPP NSR
           let minD = Infinity; let nearOffice = "";
           KANTOR_REF.forEach(k => {
             const dLat = (k.lat - pos.coords.latitude) * Math.PI / 180;
@@ -373,13 +436,13 @@
             const d = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             if (d < minD) { minD = d; nearOffice = k.nama; }
           });
-          document.getElementById('nearest-office-name').innerText = nearOffice;
-          document.getElementById('nearest-office-dist').innerText = minD < 1 ? `${Math.round(minD*1000)} m` : `${minD.toFixed(1)} km`;
+          document.getElementById('nearest-office-name').textContent = nearOffice;
+          document.getElementById('nearest-office-dist').textContent = minD < 1 ? `${Math.round(minD*1000)} m` : `${minD.toFixed(1)} km`;
         },
         function(err) {
           if (badge) {
             badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30";
-            badge.innerText = "Gagal ❌";
+            badge.textContent = "Gagal ❌";
           }
         },
         { enableHighAccuracy: true, timeout: 25000 }
@@ -387,6 +450,7 @@
     }
     ambilGPS();
 
+    // 1. KIRIM PRESENSI DENGAN DETEKSI STATUS VALID / TIDAK VALID
     function kirimAbsensi() {
       const nik = document.getElementById("nik").value.trim();
       const jenis = document.getElementById("jenis").value;
@@ -394,54 +458,83 @@
       const btn = document.getElementById("btnAbsen");
 
       if (!nik || !gpsUser) {
-        alert("Pastikan NIK telah diisi dan GPS telah terkunci!");
+        bukaModalNotif("Perhatian ⚠️", "Pastikan NIK telah diisi dan GPS perangkat sudah terkunci!", false);
         return;
       }
 
       btn.disabled = true;
-      btn.innerText = "Memproses Presensi...";
+      btn.textContent = "Memproses Presensi...";
 
-      google.script.run
-        .withSuccessHandler(function() {
-          alert("Presensi kehadiran berhasil dicatat!");
-          location.reload();
-        })
-        .withFailureHandler(function(err) {
-          alert("Gagal mencatat presensi: " + err.message);
-          btn.disabled = false;
-          btn.innerText = "Simpan Presensi Kehadiran";
-        })
-        .simpanAbsensi({ nik: nik, jenis: jenis, lokasi: lokasi, gps: gpsUser });
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = "Simpan Presensi Kehadiran";
+
+            if (res && res.status === 'VALID') {
+              bukaModalNotif(
+                "Presensi Berhasil Terverifikasi ✅",
+                `Kehadiran ${jenis} untuk ${res.nama || nik} telah DICATAT & VALID.\nLokasi: ${lokasi}\nJarak kantor terdekat: ${res.jarakMaks || res.jarak || 0} meter.`
+              );
+            } else if (res && res.status === 'TIDAK VALID') {
+              bukaModalNotif(
+                "Presensi Dicatat (Status: TIDAK VALID) ⚠️",
+                `Kehadiran ${jenis} telah TERSIMPAN di sistem, namun berstatus TIDAK VALID karena berada di luar radius izin (${res.jarak || 0} meter dari titik kantor/rumah).\nCatatan ini tetap tersimpan untuk ditinjau HR.`,
+                false
+              );
+            } else {
+              bukaModalNotif("Presensi Berhasil Dicatat", res && res.pesan ? res.pesan : "Presensi kehadiran berhasil tersimpan.");
+            }
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = "Simpan Presensi Kehadiran";
+            bukaModalNotif("Gagal Mencatat Presensi ❌", err.message || "Terjadi kesalahan pada server.", false);
+          })
+          .simpanAbsensi({ nik: nik, jenis: jenis, lokasi: lokasi, gps: gpsUser });
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Simpan Presensi Kehadiran";
+        bukaModalNotif("Koneksi Diperlukan ⚠️", "Aplikasi harus dijalankan di dalam lingkungan Google Apps Script resmi (https://s.id/absen-nsr).", false);
+      }
     }
 
+    // 2. DAFTAR LOKASI WFH
     function kirimWFH() {
       const nik = document.getElementById("nikWFH").value.trim();
       const alamat = document.getElementById("alamatWFH").value.trim();
       const btn = document.getElementById("btnDaftarWFH");
 
       if (!nik || !alamat || !gpsUser) {
-        alert("Lengkapi NIK, Alamat rumah, dan pastikan GPS terkunci!");
+        bukaModalNotif("Perhatian ⚠️", "Lengkapi NIK, Alamat rumah, dan pastikan GPS terkunci!", false);
         return;
       }
 
       btn.disabled = true;
-      btn.innerText = "Menyimpan Titik...";
+      btn.textContent = "Menyimpan Titik...";
 
-      google.script.run
-        .withSuccessHandler(function() {
-          alert("Titik rumah berhasil didaftarkan!");
-          gantiMode('absen');
-          btn.disabled = false;
-          btn.innerText = "Kunci & Daftarkan Titik Rumah";
-        })
-        .withFailureHandler(function(err) {
-          alert("Pendaftaran lokasi gagal: " + err.message);
-          btn.disabled = false;
-          btn.innerText = "Kunci & Daftarkan Titik Rumah";
-        })
-        .simpanWFH({ nik: nik, alamat: alamat, gps: gpsUser });
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = "Kunci & Daftarkan Titik Rumah";
+            bukaModalNotif("Titik Rumah Berhasil Didaftarkan! 🏡", "Koordinat tempat tinggal berhasil dikunci. Anda kini dapat memilih opsi WFH saat presensi.");
+            gantiMode('absen');
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = "Kunci & Daftarkan Titik Rumah";
+            bukaModalNotif("Pendaftaran Gagal ❌", err.message || "Gagal menyimpan koordinat rumah.", false);
+          })
+          .simpanWFH({ nik: nik, alamat: alamat, gps: gpsUser });
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Kunci & Daftarkan Titik Rumah";
+        bukaModalNotif("Koneksi Diperlukan ⚠️", "Aplikasi harus dijalankan di dalam Google Apps Script resmi.", false);
+      }
     }
 
+    // 3. PENGAJUAN IZIN / CUTI DENGAN VALIDASI TIPE & UKURAN
     function kirimCuti() {
       const nik = document.getElementById("nikCuti").value.trim();
       const jenisCuti = document.getElementById("jenisCuti").value;
@@ -452,7 +545,7 @@
       const btn = document.getElementById("btnKirimCuti");
 
       if (!nik || !tglMulai || !tglSelesai) {
-        alert("Harap isi NIK dan rentang tanggal permohonan!");
+        bukaModalNotif("Perhatian ⚠️", "Harap isi NIK dan rentang tanggal permohonan!", false);
         return;
       }
 
@@ -467,16 +560,28 @@
       };
 
       btn.disabled = true;
-      btn.innerText = "Mengirimkan Pengajuan...";
+      btn.textContent = "Mengirimkan Pengajuan...";
 
       if (fInput && fInput.files && fInput.files.length > 0) {
         const file = fInput.files[0];
+        
+        // Validasi ukuran klien (maksimal 5 MB)
         if (file.size > 5 * 1024 * 1024) {
-          alert("Ukuran dokumen terlalu besar (maksimal 5 MB)");
+          bukaModalNotif("File Terlalu Besar ⚠️", "Ukuran dokumen melebihi batas maksimal 5 MB.", false);
           btn.disabled = false;
-          btn.innerText = "Kirimkan Pengajuan";
+          btn.textContent = "Kirimkan Pengajuan";
           return;
         }
+
+        // Validasi tipe file klien
+        const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        if (!validTypes.includes(file.type)) {
+          bukaModalNotif("Format Dokumen Tidak Didukung ⚠️", "Hanya format PDF, PNG, atau JPG yang diperbolehkan.", false);
+          btn.disabled = false;
+          btn.textContent = "Kirimkan Pengajuan";
+          return;
+        }
+
         const reader = new FileReader();
         reader.onload = function(e) {
           payload.fileData = e.target.result;
@@ -490,21 +595,27 @@
     }
 
     function eksekusiKirimCuti(payload, btn) {
-      google.script.run
-        .withSuccessHandler(function() {
-          alert("Permohonan izin/cuti berhasil terkirim! Status: Menunggu Persetujuan.");
-          gantiMode('absen');
-          btn.disabled = false;
-          btn.innerText = "Kirimkan Pengajuan";
-          const fileInput = document.getElementById("fileBukti");
-          if (fileInput) fileInput.value = "";
-        })
-        .withFailureHandler(function(err) {
-          alert("Gagal mengirimkan permohonan: " + err.message);
-          btn.disabled = false;
-          btn.innerText = "Kirimkan Pengajuan";
-        })
-        .simpanPengajuanCuti(payload);
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = "Kirimkan Pengajuan";
+            bukaModalNotif("Permohonan Berhasil Terkirim! 📋", "Pengajuan izin/cuti berhasil terkirim. Status saat ini: Menunggu Persetujuan HR/Manajemen.");
+            const fileInput = document.getElementById("fileBukti");
+            if (fileInput) fileInput.value = "";
+            gantiMode('absen');
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = "Kirimkan Pengajuan";
+            bukaModalNotif("Gagal Mengirimkan Permohonan ❌", err.message || "Koneksi terputus.", false);
+          })
+          .simpanPengajuanCuti(payload);
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Kirimkan Pengajuan";
+        bukaModalNotif("Koneksi Diperlukan ⚠️", "Aplikasi harus dijalankan di dalam Google Apps Script resmi.", false);
+      }
     }
   </script>
 

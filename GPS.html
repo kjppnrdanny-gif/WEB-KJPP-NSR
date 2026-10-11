@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Absensi &amp; Layanan Mandiri Karyawan - KJPP NSR</title>
+
+  <!-- Tailwind CSS & Inter Font -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b1329; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    
+    @keyframes radarPulse {
+      0% { transform: scale(0.95); opacity: 0.9; }
+      50% { transform: scale(1.4); opacity: 0; }
+      100% { transform: scale(0.95); opacity: 0; }
+    }
+    .radar-ping { animation: radarPulse 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+    .card-glass {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .btn-tactile:active { transform: scale(0.98); }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
+    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 p-0.5 shadow-md shadow-amber-500/20 shrink-0">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center p-1 font-black text-amber-400 text-sm tracking-wider">
+            NSR
+          </div>
+        </div>
+        <div class="leading-tight">
+          <h1 class="text-xs sm:text-sm font-black text-white uppercase tracking-tight">KJPP NANANG RAHAYU &amp; REKAN</h1>
+          <p class="text-[10px] text-amber-400 font-semibold">Sistem Presensi &amp; Layanan Mandiri Karyawan</p>
+        </div>
+      </div>
+      <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Terhubung</span>
+    </div>
+  </header>
+
+  <!-- LIVE DIGITAL CLOCK -->
+  <div class="bg-slate-950 border-b border-slate-800/80 py-1.5 px-4 text-center text-xs text-slate-300 font-mono">
+    <span id="live-clock">Memuat waktu...</span>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 w-full max-w-xl mx-auto px-3.5 py-4 space-y-4">
+
+    <!-- NAVIGATION TABS -->
+    <div class="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
+      <button type="button" id="tab-btn-absen" onclick="gantiMode('absen')" class="tab-btn active py-2.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-transparent">
+        <span>⏱️ Presensi</span>
+      </button>
+      <button type="button" id="tab-btn-wfh" onclick="gantiMode('wfh')" class="tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent">
+        <span>🏠 Titik WFH</span>
+      </button>
+      <button type="button" id="tab-btn-cuti" onclick="gantiMode('cuti')" class="tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent">
+        <span>📋 Izin / Cuti</span>
+      </button>
+    </div>
+
+    <!-- GPS STATUS RADAR -->
+    <div id="gps-radar-box" class="rounded-2xl p-3.5 border transition bg-slate-900/90 border-slate-800 shadow-md">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-sky-950/80 border border-sky-500/30 text-sky-400 shrink-0">
+            <span class="absolute w-7 h-7 rounded-full bg-sky-400/30 radar-ping"></span>
+            <svg class="w-4 h-4 text-sky-400 relative z-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span id="gps-status-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-400/10 text-amber-300 border border-amber-400/30">Mendeteksi GPS</span>
+              <span id="gps-accuracy-text" class="text-[10px] text-slate-400 font-mono">Akurasi: Menunggu</span>
+            </div>
+            <p id="gps-coord-text" class="text-xs text-slate-200 font-mono mt-0.5 truncate">Mencari sinyal satelit GPS...</p>
+          </div>
+        </div>
+        <button type="button" onclick="ambilGPS()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0 border border-slate-700/60 btn-tactile" title="Segarkan GPS">
+          🔄
+        </button>
+      </div>
+
+      <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+        <span>Kantor KJPP Terdekat: <strong id="nearest-office-name" class="text-slate-200">-</strong></span>
+        <span id="nearest-office-dist" class="font-mono text-sky-400 font-bold">-</span>
+      </div>
+    </div>
+
+    <!-- PANEL 1: PRESENSI -->
+    <div id="panelAbsensi" class="space-y-4">
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" onclick="pilihKategoriAbsen('Masuk')" id="card-btn-masuk" class="p-3 rounded-2xl border text-center transition btn-tactile flex flex-col items-center justify-center gap-1.5 bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-sm">
+          <span class="text-lg">🌅</span>
+          <span class="text-xs font-bold">Absen Masuk</span>
+          <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 font-semibold text-emerald-300">Pagi</span>
+        </button>
+        <button type="button" onclick="pilihKategoriAbsen('Pulang')" id="card-btn-pulang" class="p-3 rounded-2xl border text-center transition btn-tactile flex flex-col items-center justify-center gap-1.5 bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200">
+          <span class="text-lg">🌇</span>
+          <span class="text-xs font-bold">Absen Pulang</span>
+          <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-800 font-semibold text-slate-400">Sore</span>
+        </button>
+        <button type="button" onclick="pilihKategoriAbsen('Dinas Luar')" id="card-btn-dinas" class="p-3 rounded-2xl border text-center transition btn-tactile flex flex-col items-center justify-center gap-1.5 bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200">
+          <span class="text-lg">💼</span>
+          <span class="text-xs font-bold">Dinas Luar</span>
+          <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-800 font-semibold text-slate-400">Inspeksi</span>
+        </button>
+      </div>
+
+      <div class="card-glass rounded-3xl p-5 shadow-2xl space-y-4">
+        <div>
+          <label for="nik" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            1. NIK Karyawan <span class="text-rose-400">*</span>
+          </label>
+          <input type="text" id="nik" placeholder="Ketik NIK Karyawan" autocomplete="off" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition">
+          <div id="infoKaryawan" class="hidden mt-2 p-3 rounded-2xl bg-blue-950/70 border border-blue-500/30 text-xs"></div>
+        </div>
+
+        <input type="hidden" id="jenis" value="Masuk">
+
+        <div>
+          <label for="lokasi" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            2. Lokasi Penugasan / Presensi <span class="text-rose-400">*</span>
+          </label>
+          <select id="lokasi" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-semibold focus:outline-none focus:border-amber-400 transition cursor-pointer">
+            <option value="KANTOR">🏢 KANTOR PUSAT / CABANG RESMI</option>
+            <option value="WFH">🏡 WFH (LOKASI RUMAH TERDAFTAR)</option>
+            <option value="DINAS LUAR">📍 DINAS LUAR / INSPEKSI LAPANGAN</option>
+          </select>
+        </div>
+
+        <button type="button" id="btnAbsen" onclick="kirimAbsensi()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm tracking-wide shadow-lg shadow-emerald-600/30 transition-all btn-tactile cursor-pointer disabled:opacity-50">
+          Simpan Presensi Kehadiran
+        </button>
+
+        <div class="pt-3 border-t border-slate-800 text-center space-y-1.5 text-xs text-slate-400">
+          <p>Belum mendaftarkan rumah? <a onclick="gantiMode('wfh')" class="text-sky-400 underline font-bold cursor-pointer">Titik WFH di sini</a></p>
+          <p>Berhalangan hadir? <a onclick="gantiMode('cuti')" class="text-rose-400 underline font-bold cursor-pointer">Form Izin / Cuti di sini</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL 2: WFH -->
+    <div id="panelWFH" class="hidden space-y-4">
+      <div class="card-glass rounded-3xl p-5 shadow-2xl space-y-4">
+        <div class="text-center pb-2 border-b border-slate-800">
+          <h2 class="text-sm font-extrabold text-white">Pendaftaran Titik Lokasi WFH</h2>
+          <p class="text-[11px] text-slate-400 mt-0.5">Kunci titik koordinat domisili tempat tinggal.</p>
+        </div>
+        <div>
+          <label for="nikWFH" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">NIK Karyawan *</label>
+          <input type="text" id="nikWFH" placeholder="Ketik NIK Karyawan" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-semibold focus:outline-none focus:border-amber-400">
+          <div id="infoKaryawanWFH" class="hidden mt-2 p-3 rounded-2xl bg-slate-900 border border-blue-500/30 text-xs"></div>
+        </div>
+        <div>
+          <label for="alamatWFH" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Alamat Rumah Lengkap *</label>
+          <textarea id="alamatWFH" rows="3" placeholder="Alamat lengkap domisili..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-400 resize-none"></textarea>
+        </div>
+        <div class="p-3 rounded-xl bg-sky-950/40 border border-sky-500/30 text-xs">
+          <span class="block font-bold text-slate-200">Koordinat Saat Ini Terdeteksi:</span>
+          <span id="wfh-gps-display" class="block font-mono text-[11px] text-sky-300 mt-0.5">Menunggu GPS...</span>
+        </div>
+        <button type="button" id="btnDaftarWFH" onclick="kirimWFH()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-black text-sm transition btn-tactile cursor-pointer disabled:opacity-50">
+          Kunci &amp; Daftarkan Titik Rumah
+        </button>
+        <div class="text-center">
+          <a onclick="gantiMode('absen')" class="text-xs text-slate-400 hover:text-white underline cursor-pointer">&larr; Kembali ke Presensi</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL 3: CUTI -->
+    <div id="panelCuti" class="hidden space-y-4">
+      <div class="card-glass rounded-3xl p-5 shadow-2xl space-y-4">
+        <div class="text-center pb-2 border-b border-slate-800">
+          <h2 class="text-sm font-extrabold text-white">Formulir Permohonan Izin &amp; Cuti</h2>
+          <p class="text-[11px] text-slate-400 mt-0.5">Pengajuan izin tidak masuk, sakit, atau cuti resmi.</p>
+        </div>
+        <div>
+          <label for="nikCuti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">NIK Karyawan *</label>
+          <input type="text" id="nikCuti" placeholder="Ketik NIK Karyawan" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-semibold focus:outline-none focus:border-amber-400">
+          <div id="infoKaryawanCuti" class="hidden mt-2 p-3 rounded-2xl bg-slate-900 border border-blue-500/30 text-xs"></div>
+        </div>
+        <div>
+          <label for="jenisCuti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Kategori Permohonan *</label>
+          <select id="jenisCuti" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-semibold focus:outline-none focus:border-amber-400 cursor-pointer">
+            <option value="Sakit">🩺 Sakit (Rawat Jalan / Inap)</option>
+            <option value="Izin Keperluan Pribadi">📄 Izin Tidak Masuk</option>
+            <option value="Cuti Tahunan">🏖️ Cuti Tahunan</option>
+            <option value="Cuti Alasan Penting">⚠️ Cuti Alasan Penting / Duka</option>
+            <option value="Cuti Melahirkan">👶 Cuti Melahirkan</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="tglMulai" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Tanggal Mulai *</label>
+            <input type="date" id="tglMulai" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs">
+          </div>
+          <div>
+            <label for="tglSelesai" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Tanggal Selesai *</label>
+            <input type="date" id="tglSelesai" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs">
+          </div>
+        </div>
+        <div>
+          <label for="alasanCuti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Keterangan / Alasan</label>
+          <textarea id="alasanCuti" rows="3" placeholder="Keterangan permohonan..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm resize-none"></textarea>
+        </div>
+        <div>
+          <label for="fileBukti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Lampiran Dokumen (Maksimal 5 MB, Format: PDF, PNG, JPG)</label>
+          <input type="file" id="fileBukti" accept="image/jpeg,image/png,application/pdf" class="w-full text-xs text-slate-400">
+        </div>
+        <button type="button" id="btnKirimCuti" onclick="kirimCuti()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm transition btn-tactile cursor-pointer disabled:opacity-50">
+          Kirimkan Pengajuan
+        </button>
+        <div class="text-center">
+          <a onclick="gantiMode('absen')" class="text-xs text-slate-400 hover:text-white underline cursor-pointer">&larr; Kembali ke Presensi</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL NOTIFIKASI ELEGAN -->
+  <div id="modal-notif" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="card-glass max-w-sm w-full rounded-3xl p-6 text-center space-y-4 shadow-2xl border border-slate-700">
+      <div id="modal-notif-icon" class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
+        ✓
+      </div>
+      <div>
+        <h3 id="modal-notif-title" class="text-base font-extrabold text-white">Notifikasi</h3>
+        <p id="modal-notif-desc" class="text-xs text-slate-300 mt-1.5 leading-relaxed whitespace-pre-line"></p>
+      </div>
+      <button type="button" onclick="tutupModalNotif()" class="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition border border-slate-600 cursor-pointer">
+        Tutup
+      </button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC DIRECT TO GOOGLE APPS SCRIPT -->
+  <script>
+    // Koordinat Resmi Kantor KJPP NSR
+    const KANTOR_REF = [
+      { nama: "Pusat Jakarta", lat: -6.287972658138783, lng: 106.82477864308436 },
+      { nama: "Cabang Bandung", lat: -6.938889, lng: 107.625833 },
+      { nama: "Cabang Padang", lat: -0.947222, lng: 100.363889 },
+      { nama: "Cabang Makassar", lat: -5.155833, lng: 119.412778 },
+      { nama: "Cabang Palembang", lat: -2.936667, lng: 104.721667 }
+    ];
+
+    let gpsUser = "";
+
+    function bukaModalNotif(title, desc, isSuccess) {
+      const modal = document.getElementById('modal-notif');
+      const icon = document.getElementById('modal-notif-icon');
+      const t = document.getElementById('modal-notif-title');
+      const d = document.getElementById('modal-notif-desc');
+
+      if (isSuccess === false) {
+        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-rose-400 bg-rose-500/20 border border-rose-500/30";
+        icon.textContent = "✕";
+      } else {
+        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30";
+        icon.textContent = "✓";
+      }
+
+      t.textContent = title;
+      d.textContent = desc;
+      modal.classList.remove('hidden');
+    }
+
+    function tutupModalNotif() {
+      document.getElementById('modal-notif').classList.add('hidden');
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][now.getDay()];
+      const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][now.getMonth()];
+      const el = document.getElementById('live-clock');
+      if (el) el.textContent = `${hari}, ${now.getDate()} ${bulan} ${now.getFullYear()} • ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} WIB`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function gantiMode(mode) {
+      document.getElementById("panelAbsensi").style.display = (mode === 'absen') ? 'block' : 'none';
+      document.getElementById("panelWFH").style.display = (mode === 'wfh') ? 'block' : 'none';
+      document.getElementById("panelCuti").style.display = (mode === 'cuti') ? 'block' : 'none';
+
+      ['absen', 'wfh', 'cuti'].forEach(m => {
+        const b = document.getElementById('tab-btn-' + m);
+        if (b) {
+          b.className = (m === mode) 
+            ? "tab-btn active py-2.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-transparent"
+            : "tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent";
+        }
+      });
+
+      if (mode === 'wfh') {
+        const d = document.getElementById('wfh-gps-display');
+        if (d) d.textContent = gpsUser ? `${gpsUser} (Terkunci ✅)` : 'Menunggu GPS...';
+      }
+    }
+
+    function pilihKategoriAbsen(kat) {
+      document.getElementById("jenis").value = kat;
+      ['Masuk', 'Pulang', 'Dinas Luar'].forEach(k => {
+        const id = k === 'Masuk' ? 'masuk' : (k === 'Pulang' ? 'pulang' : 'dinas');
+        const el = document.getElementById('card-btn-' + id);
+        if (el) {
+          el.className = (k === kat)
+            ? "p-3 rounded-2xl border text-center transition btn-tactile flex flex-col items-center justify-center gap-1.5 bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-sm"
+            : "p-3 rounded-2xl border text-center transition btn-tactile flex flex-col items-center justify-center gap-1.5 bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200";
+        }
+      });
+    }
+
+    // Rendering aman tanpa innerHTML (Mencegah XSS)
+    function renderKaryawanAman(container, data) {
+      container.textContent = '';
+      if (!data) return;
+
+      if (data && data.nama) {
+        const wrap = document.createElement('div');
+        wrap.className = 'flex items-center gap-2.5';
+
+        const ic = document.createElement('div');
+        ic.className = 'w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-bold text-xs shrink-0';
+        ic.textContent = '✓';
+
+        const txt = document.createElement('div');
+        txt.className = 'leading-tight min-w-0';
+
+        const nm = document.createElement('span');
+        nm.className = 'block font-bold text-white text-xs uppercase';
+        nm.textContent = data.nama;
+
+        const sub = document.createElement('span');
+        sub.className = 'block text-[11px] text-slate-300 mt-0.5';
+        sub.textContent = `${data.jabatan} • ${data.divisi}`;
+
+        txt.appendChild(nm);
+        txt.appendChild(sub);
+        wrap.appendChild(ic);
+        wrap.appendChild(txt);
+        container.appendChild(wrap);
+        container.style.display = 'block';
+      } else {
+        const err = document.createElement('div');
+        err.className = 'flex items-center gap-2 text-rose-400 text-xs font-semibold';
+        err.textContent = 'NIK tidak ditemukan dalam Master Karyawan!';
+        container.appendChild(err);
+        container.style.display = 'block';
+      }
+    }
+
+    function cekNIK(nik, targetId) {
+      const info = document.getElementById(targetId);
+      if (!nik || !info) { if (info) info.style.display = 'none'; return; }
+      info.style.display = 'block';
+      info.textContent = 'Memverifikasi database karyawan...';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(data) {
+            renderKaryawanAman(info, data);
+          })
+          .withFailureHandler(function(err) {
+            info.textContent = 'Gagal verifikasi: ' + (err.message || 'Koneksi terputus');
+          })
+          .cekKaryawan(nik);
+      } else {
+        info.textContent = 'Koneksi Google Apps Script aktif di lingkungan aplikasi resmi.';
+      }
+    }
+
+    ['nik', 'nikWFH', 'nikCuti'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('blur', function() {
+          const map = { 'nik': 'infoKaryawan', 'nikWFH': 'infoKaryawanWFH', 'nikCuti': 'infoKaryawanCuti' };
+          cekNIK(this.value.trim(), map[id]);
+        });
+      }
+    });
+
+    function ambilGPS() {
+      const badge = document.getElementById('gps-status-badge');
+      const accText = document.getElementById('gps-accuracy-text');
+      const coordText = document.getElementById('gps-coord-text');
+
+      if (!navigator.geolocation) {
+        if (badge) badge.textContent = "GPS Error";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          gpsUser = pos.coords.latitude + "," + pos.coords.longitude;
+          if (badge) {
+            badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            badge.textContent = "Terkunci ✅";
+          }
+          if (accText) accText.textContent = `±${Math.round(pos.coords.accuracy)}m`;
+          if (coordText) coordText.textContent = gpsUser;
+
+          // Hitung jarak ke seluruh kantor cabang KJPP NSR
+          let minD = Infinity; let nearOffice = "";
+          KANTOR_REF.forEach(k => {
+            const dLat = (k.lat - pos.coords.latitude) * Math.PI / 180;
+            const dLon = (k.lng - pos.coords.longitude) * Math.PI / 180;
+            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(pos.coords.latitude*Math.PI/180)*Math.cos(k.lat*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+            const d = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            if (d < minD) { minD = d; nearOffice = k.nama; }
+          });
+          document.getElementById('nearest-office-name').textContent = nearOffice;
+          document.getElementById('nearest-office-dist').textContent = minD < 1 ? `${Math.round(minD*1000)} m` : `${minD.toFixed(1)} km`;
+        },
+        function(err) {
+          if (badge) {
+            badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30";
+            badge.textContent = "Gagal ❌";
+          }
+        },
+        { enableHighAccuracy: true, timeout: 25000 }
+      );
+    }
+    ambilGPS();
+
+    // 1. KIRIM PRESENSI DENGAN DETEKSI STATUS VALID / TIDAK VALID
+    function kirimAbsensi() {
+      const nik = document.getElementById("nik").value.trim();
+      const jenis = document.getElementById("jenis").value;
+      const lokasi = document.getElementById("lokasi").value;
+      const btn = document.getElementById("btnAbsen");
+
+      if (!nik || !gpsUser) {
+        bukaModalNotif("Perhatian ⚠️", "Pastikan NIK telah diisi dan GPS perangkat sudah terkunci!", false);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Memproses Presensi...";
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = "Simpan Presensi Kehadiran";
+
+            if (res && res.status === 'VALID') {
+              bukaModalNotif(
+                "Presensi Berhasil Terverifikasi ✅",
+                `Kehadiran ${jenis} untuk ${res.nama || nik} telah DICATAT & VALID.\nLokasi: ${lokasi}\nJarak kantor terdekat: ${res.jarakMaks || res.jarak || 0} meter.`
+              );
+            } else if (res && res.status === 'TIDAK VALID') {
+              bukaModalNotif(
+                "Presensi Dicatat (Status: TIDAK VALID) ⚠️",
+                `Kehadiran ${jenis} telah TERSIMPAN di sistem, namun berstatus TIDAK VALID karena berada di luar radius izin (${res.jarak || 0} meter dari titik kantor/rumah).\nCatatan ini tetap tersimpan untuk ditinjau HR.`,
+                false
+              );
+            } else {
+              bukaModalNotif("Presensi Berhasil Dicatat", res && res.pesan ? res.pesan : "Presensi kehadiran berhasil tersimpan.");
+            }
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = "Simpan Presensi Kehadiran";
+            bukaModalNotif("Gagal Mencatat Presensi ❌", err.message || "Terjadi kesalahan pada server.", false);
+          })
+          .simpanAbsensi({ nik: nik, jenis: jenis, lokasi: lokasi, gps: gpsUser });
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Simpan Presensi Kehadiran";
+        bukaModalNotif("Koneksi Diperlukan ⚠️", "Aplikasi harus dijalankan di dalam lingkungan Google Apps Script resmi (https://s.id/absen-nsr).", false);
+      }
+    }
+
+    // 2. DAFTAR LOKASI WFH
+    function kirimWFH() {
+      const nik = document.getElementById("nikWFH").value.trim();
+      const alamat = document.getElementById("alamatWFH").value.trim();
+      const btn = document.getElementById("btnDaftarWFH");
+
+      if (!nik || !alamat || !gpsUser) {
+        bukaModalNotif("Perhatian ⚠️", "Lengkapi NIK, Alamat rumah, dan pastikan GPS terkunci!", false);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Menyimpan Titik...";
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = "Kunci & Daftarkan Titik Rumah";
+            bukaModalNotif("Titik Rumah Berhasil Didaftarkan! 🏡", "Koordinat tempat tinggal berhasil dikunci. Anda kini dapat memilih opsi WFH saat presensi.");
+            gantiMode('absen');
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = "Kunci & Daftarkan Titik Rumah";
+            bukaModalNotif("Pendaftaran Gagal ❌", err.message || "Gagal menyimpan koordinat rumah.", false);
+          })
+          .simpanWFH({ nik: nik, alamat: alamat, gps: gpsUser });
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Kunci & Daftarkan Titik Rumah";
+        bukaModalNotif("Koneksi Diperlukan ⚠️", "Aplikasi harus dijalankan di dalam Google Apps Script resmi.", false);
+      }
+    }
+
+    // 3. PENGAJUAN IZIN / CUTI DENGAN VALIDASI TIPE & UKURAN
+    function kirimCuti() {
+      const nik = document.getElementById("nikCuti").value.trim();
+      const jenisCuti = document.getElementById("jenisCuti").value;
+      const tglMulai = document.getElementById("tglMulai").value;
+      const tglSelesai = document.getElementById("tglSelesai").value;
+      const alasan = document.getElementById("alasanCuti").value.trim();
+      const fInput = document.getElementById("fileBukti");
+      const btn = document.getElementById("btnKirimCuti");
+
+      if (!nik || !tglMulai || !tglSelesai) {
+        bukaModalNotif("Perhatian ⚠️", "Harap isi NIK dan rentang tanggal permohonan!", false);
+        return;
+      }
+
+      const payload = {
+        nik: nik,
+        jenisCuti: jenisCuti,
+        tglMulai: tglMulai,
+        tglSelesai: tglSelesai,
+        alasan: alasan,
+        fileData: null,
+        fileName: null
+      };
+
+      btn.disabled = true;
+      btn.textContent = "Mengirimkan Pengajuan...";
+
+      if (fInput && fInput.files && fInput.files.length > 0) {
+        const file = fInput.files[0];
+        
+        // Validasi ukuran klien (maksimal 5 MB)
+        if (file.size > 5 * 1024 * 1024) {
+          bukaModalNotif("File Terlalu Besar ⚠️", "Ukuran dokumen melebihi batas maksimal 5 MB.", false);
+          btn.disabled = false;
+          btn.textContent = "Kirimkan Pengajuan";
+          return;
+        }
+
+        // Validasi tipe file klien
+        const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        if (!validTypes.includes(file.type)) {
+          bukaModalNotif("Format Dokumen Tidak Didukung ⚠️", "Hanya format PDF, PNG, atau JPG yang diperbolehkan.", false);
+          btn.disabled = false;
+          btn.textContent = "Kirimkan Pengajuan";
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          payload.fileData = e.target.result;
+          payload.fileName = file.name;
+          eksekusiKirimCuti(payload, btn);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        eksekusiKirimCuti(payload, btn);
+      }
+    }
+
+    function eksekusiKirimCuti(payload, btn) {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = "Kirimkan Pengajuan";
+            bukaModalNotif("Permohonan Berhasil Terkirim! 📋", "Pengajuan izin/cuti berhasil terkirim. Status saat ini: Menunggu Persetujuan HR/Manajemen.");
+            const fileInput = document.getElementById("fileBukti");
+            if (fileInput) fileInput.value = "";
+            gantiMode('absen');
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = "Kirimkan Pengajuan";
+            bukaModalNotif("Gagal Mengirimkan Permohonan ❌", err.message || "Koneksi terputus.", false);
+          })
+          .simpanPengajuanCuti(payload);
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Kirimkan Pengajuan";
+        bukaModalNotif("Koneksi Diperlukan ⚠️", "Aplikasi harus dijalankan di dalam Google Apps Script resmi.", false);
+      }
+    }
+  </script>
+
+</body>
+</html>
