@@ -25,6 +25,7 @@ const ALLOWED_FILES = [
   "wawasan-regulasi.html",
   "portal-nolap.html",
   "portal-kwitansi.html",
+  "portal-absensi.html",
   "trusted-by.html",
 
   // Aset Brand, Icon, dan Dokumen Resmi
@@ -157,12 +158,12 @@ export function buildProduction(options = {}) {
     filesToCopy = ["index.html"];
     console.log("⚡ Mode Isolasi Maksimum: HANYA index.html yang disalin ke paket deployment.");
   } else if (isCpanel) {
-    // Portal NoLap dan Kwitansi dikecualikan dari paket cPanel
+    // Portal NoLap, Kwitansi, dan Absensi dikecualikan dari paket cPanel
     // agar file portal operasional yang sedang berjalan di server cPanel tidak tertimpa
     filesToCopy = filesToCopy.filter(
-      (f) => f !== "portal-nolap.html" && f !== "portal-kwitansi.html"
+      (f) => f !== "portal-nolap.html" && f !== "portal-kwitansi.html" && f !== "portal-absensi.html"
     );
-    console.log("🛡️ cPanel Protection Active: portal-nolap.html & portal-kwitansi.html DIKECUALIKAN dari dist/");
+    console.log("🛡️ cPanel Protection Active: portal-nolap.html, portal-kwitansi.html & portal-absensi.html DIKECUALIKAN dari dist/");
     console.log("   (File portal aktif di server cPanel dipertahankan tanpa gangguan)");
   }
 
