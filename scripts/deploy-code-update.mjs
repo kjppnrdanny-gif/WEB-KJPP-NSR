@@ -17,6 +17,12 @@ async function main() {
   const codeIndex = files.findIndex(f => f.name === 'Code');
   files[codeIndex].source = codeGsSource;
 
+  const gpsSource = fs.readFileSync('GPS.html', 'utf8');
+  const gpsIndex = files.findIndex(f => f.name === 'GPS');
+  if (gpsIndex !== -1) {
+    files[gpsIndex].source = gpsSource;
+  }
+
   console.log('2. Mengunggah source code ke proyek standalone...');
   await script.projects.updateContent({
     scriptId: SCRIPT_ID,

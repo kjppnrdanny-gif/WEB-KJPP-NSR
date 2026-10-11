@@ -158,13 +158,11 @@ export function buildProduction(options = {}) {
     filesToCopy = ["index.html"];
     console.log("⚡ Mode Isolasi Maksimum: HANYA index.html yang disalin ke paket deployment.");
   } else if (isCpanel) {
-    // Portal NoLap, Kwitansi, dan Absensi dikecualikan dari paket cPanel
-    // agar file portal operasional yang sedang berjalan di server cPanel tidak tertimpa
-    filesToCopy = filesToCopy.filter(
-      (f) => f !== "portal-nolap.html" && f !== "portal-kwitansi.html" && f !== "portal-absensi.html"
-    );
-    console.log("🛡️ cPanel Protection Active: portal-nolap.html, portal-kwitansi.html & portal-absensi.html DIKECUALIKAN dari dist/");
-    console.log("   (File portal aktif di server cPanel dipertahankan tanpa gangguan)");
+    // Portal NoLap dan Kwitansi kini menyertakan tautan Google Apps Script Live baru
+    // Hanya portal-absensi.html (desain mockup) yang dikecualikan dari cPanel
+    filesToCopy = filesToCopy.filter((f) => f !== "portal-absensi.html");
+    console.log("🛡️ cPanel Protection Active: portal-absensi.html (mock) DIKECUALIKAN dari dist/");
+    console.log("   (Portal NoLap & Portal Kwitansi aktif dengan link GAS baru disertakan)");
   }
 
   // Salin File Allowlist
