@@ -24,11 +24,11 @@ async function main() {
   });
   console.log('✓ Source code terupdate!');
 
-  console.log('3. Membuat Versi 4...');
+  console.log('3. Membuat Versi 7 (PRODUCTION GO-LIVE RELEASE)...');
   const ver = await script.projects.versions.create({
     scriptId: SCRIPT_ID,
     requestBody: {
-      description: 'Staging Versi 4 - Bulletproof Auto-Init & Direct Staging Fallback'
+      description: 'Production Go-Live Release - Database 12gf52mLEAizuFvP03DiGddxX6HiYqD6UO5CF0Cl_C3E'
     }
   });
   const versionNumber = ver.data.versionNumber;
