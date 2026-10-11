@@ -574,12 +574,74 @@
               <p class="text-xs text-slate-400">Sistem Pengendalian Mutu &amp; Manajemen Risiko Penilaian untuk 8 Kategori Pekerjaan Penilaian.</p>
             </div>
 
-            <!-- Pre-fill Selector dari NoLap Request -->
-            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs">
-              <span class="text-slate-400 font-semibold whitespace-nowrap text-[11px]">Tautkan NoLap:</span>
-              <select id="spm-u-pilih-req" onchange="muatDataPengajuanKeSpmUmum(this.value)" class="h-8 px-2.5 rounded bg-slate-900 border border-slate-700 text-amber-400 font-mono text-xs focus:outline-none focus:border-amber-400">
-                <option value="">-- Pilih Permohonan NoLap --</option>
-              </select>
+            <!-- Pre-fill Selector dari NoLap Request: Searchable Combobox -->
+            <div class="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs w-full sm:w-auto relative" id="combobox-container-spm-u">
+              <label for="combobox-input-spm-u" class="text-slate-400 font-semibold whitespace-nowrap text-[11px] flex items-center gap-1.5 shrink-0">
+                <span>🔗</span>
+                <span>Tautkan NoLap:</span>
+              </label>
+              
+              <div class="relative w-full sm:w-80 md:w-96" id="combobox-wrapper-spm-u">
+                <div class="relative flex items-center">
+                  <div class="absolute left-2.5 text-amber-400 pointer-events-none flex items-center">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <input type="text"
+                         id="combobox-input-spm-u"
+                         autocomplete="off"
+                         spellcheck="false"
+                         placeholder="Cari nomor REQ, pemberi tugas, atau nama objek..."
+                         class="w-full h-8 pl-8 pr-14 rounded-lg bg-slate-900 border border-amber-400/50 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 transition shadow-inner"
+                         role="combobox"
+                         aria-autocomplete="list"
+                         aria-expanded="false"
+                         aria-controls="combobox-dropdown-spm-u"
+                         onfocus="bukaComboboxDropdown('u')"
+                         oninput="filterComboboxOptions('u', this.value)"
+                         onkeydown="handleComboboxKeydown(event, 'u')">
+                  
+                  <div class="absolute right-1.5 flex items-center gap-0.5">
+                    <button type="button"
+                            id="combobox-clear-spm-u"
+                            onclick="resetNolapCombobox('u')"
+                            class="hidden w-5 h-5 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-300 items-center justify-center text-xs transition"
+                            title="Hapus pilihan NoLap">
+                      ✕
+                    </button>
+                    <button type="button"
+                            id="combobox-toggle-spm-u"
+                            onclick="toggleNolapCombobox('u')"
+                            class="w-5 h-5 rounded hover:bg-slate-800 text-amber-400 flex items-center justify-center text-[10px] transition"
+                            title="Buka / tutup daftar permohonan">
+                      ▼
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Hidden native select for backward compatibility -->
+                <select id="spm-u-pilih-req" onchange="muatDataPengajuanKeSpmUmum(this.value)" class="hidden">
+                  <option value="">-- Pilih Permohonan NoLap --</option>
+                </select>
+
+                <!-- Dropdown Menu -->
+                <div id="combobox-dropdown-spm-u"
+                     class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-slate-900 border border-amber-400/40 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md"
+                     style="min-width: 100%;">
+                  <div class="px-3 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] bg-slate-950/80">
+                    <span class="text-slate-400 font-semibold flex items-center gap-1.5">
+                      <span>📋</span>
+                      <span>Daftar Permohonan NoLap</span>
+                    </span>
+                    <span id="combobox-count-spm-u" class="text-amber-400 font-mono text-[10px] font-bold">0 item</span>
+                  </div>
+                  <div id="combobox-list-spm-u"
+                       class="max-h-64 sm:max-h-72 overflow-y-auto divide-y divide-slate-800/60 p-1 text-xs"
+                       role="listbox">
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -5483,12 +5545,74 @@
               <p class="text-xs text-slate-400">Sistem Pengendalian Mutu &amp; Manajemen Risiko Khusus Pengadaan Tanah untuk Kepentingan Umum.</p>
             </div>
 
-            <!-- Pre-fill Selector dari NoLap Request -->
-            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs">
-              <span class="text-slate-400 font-semibold whitespace-nowrap text-[11px]">Tautkan NoLap:</span>
-              <select id="spm-t-pilih-req" onchange="muatDataPengajuanKeSpmTanah(this.value)" class="h-8 px-2.5 rounded bg-slate-900 border border-slate-700 text-amber-400 font-mono text-xs focus:outline-none focus:border-amber-400">
-                <option value="">-- Pilih Permohonan NoLap --</option>
-              </select>
+            <!-- Pre-fill Selector dari NoLap Request: Searchable Combobox -->
+            <div class="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs w-full sm:w-auto relative" id="combobox-container-spm-t">
+              <label for="combobox-input-spm-t" class="text-slate-400 font-semibold whitespace-nowrap text-[11px] flex items-center gap-1.5 shrink-0">
+                <span>🔗</span>
+                <span>Tautkan NoLap:</span>
+              </label>
+              
+              <div class="relative w-full sm:w-80 md:w-96" id="combobox-wrapper-spm-t">
+                <div class="relative flex items-center">
+                  <div class="absolute left-2.5 text-amber-400 pointer-events-none flex items-center">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <input type="text"
+                         id="combobox-input-spm-t"
+                         autocomplete="off"
+                         spellcheck="false"
+                         placeholder="Cari nomor REQ, pemberi tugas, atau nama objek..."
+                         class="w-full h-8 pl-8 pr-14 rounded-lg bg-slate-900 border border-amber-400/50 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 transition shadow-inner"
+                         role="combobox"
+                         aria-autocomplete="list"
+                         aria-expanded="false"
+                         aria-controls="combobox-dropdown-spm-t"
+                         onfocus="bukaComboboxDropdown('t')"
+                         oninput="filterComboboxOptions('t', this.value)"
+                         onkeydown="handleComboboxKeydown(event, 't')">
+                  
+                  <div class="absolute right-1.5 flex items-center gap-0.5">
+                    <button type="button"
+                            id="combobox-clear-spm-t"
+                            onclick="resetNolapCombobox('t')"
+                            class="hidden w-5 h-5 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-300 items-center justify-center text-xs transition"
+                            title="Hapus pilihan NoLap">
+                      ✕
+                    </button>
+                    <button type="button"
+                            id="combobox-toggle-spm-t"
+                            onclick="toggleNolapCombobox('t')"
+                            class="w-5 h-5 rounded hover:bg-slate-800 text-amber-400 flex items-center justify-center text-[10px] transition"
+                            title="Buka / tutup daftar permohonan">
+                      ▼
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Hidden native select for backward compatibility -->
+                <select id="spm-t-pilih-req" onchange="muatDataPengajuanKeSpmTanah(this.value)" class="hidden">
+                  <option value="">-- Pilih Permohonan NoLap --</option>
+                </select>
+
+                <!-- Dropdown Menu -->
+                <div id="combobox-dropdown-spm-t"
+                     class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-slate-900 border border-amber-400/40 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md"
+                     style="min-width: 100%;">
+                  <div class="px-3 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] bg-slate-950/80">
+                    <span class="text-slate-400 font-semibold flex items-center gap-1.5">
+                      <span>📋</span>
+                      <span>Daftar Permohonan NoLap</span>
+                    </span>
+                    <span id="combobox-count-spm-t" class="text-amber-400 font-mono text-[10px] font-bold">0 item</span>
+                  </div>
+                  <div id="combobox-list-spm-t"
+                       class="max-h-64 sm:max-h-72 overflow-y-auto divide-y divide-slate-800/60 p-1 text-xs"
+                       role="listbox">
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -7154,12 +7278,74 @@
               <p class="text-xs text-slate-400">Sistem Pengendalian Mutu &amp; Manajemen Risiko Tukar-Menukar Tanah Kas Desa Berdasarkan Regulasi Aset Desa Terbaru.</p>
             </div>
 
-            <!-- Pre-fill Selector dari NoLap Request -->
-            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs">
-              <span class="text-slate-400 font-semibold whitespace-nowrap text-[11px]">Tautkan NoLap:</span>
-              <select id="spm-r-pilih-req" onchange="muatDataPengajuanKeSpmRuislagh(this.value)" class="h-8 px-2.5 rounded bg-slate-900 border border-slate-700 text-emerald-400 font-mono text-xs focus:outline-none focus:border-emerald-400">
-                <option value="">-- Pilih Permohonan NoLap --</option>
-              </select>
+            <!-- Pre-fill Selector dari NoLap Request: Searchable Combobox -->
+            <div class="bg-slate-950 p-2 sm:p-2.5 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs w-full sm:w-auto relative" id="combobox-container-spm-r">
+              <label for="combobox-input-spm-r" class="text-slate-400 font-semibold whitespace-nowrap text-[11px] flex items-center gap-1.5 shrink-0">
+                <span>🔗</span>
+                <span>Tautkan NoLap:</span>
+              </label>
+              
+              <div class="relative w-full sm:w-80 md:w-96" id="combobox-wrapper-spm-r">
+                <div class="relative flex items-center">
+                  <div class="absolute left-2.5 text-amber-400 pointer-events-none flex items-center">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <input type="text"
+                         id="combobox-input-spm-r"
+                         autocomplete="off"
+                         spellcheck="false"
+                         placeholder="Cari nomor REQ, pemberi tugas, atau nama objek..."
+                         class="w-full h-8 pl-8 pr-14 rounded-lg bg-slate-900 border border-amber-400/50 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 transition shadow-inner"
+                         role="combobox"
+                         aria-autocomplete="list"
+                         aria-expanded="false"
+                         aria-controls="combobox-dropdown-spm-r"
+                         onfocus="bukaComboboxDropdown('r')"
+                         oninput="filterComboboxOptions('r', this.value)"
+                         onkeydown="handleComboboxKeydown(event, 'r')">
+                  
+                  <div class="absolute right-1.5 flex items-center gap-0.5">
+                    <button type="button"
+                            id="combobox-clear-spm-r"
+                            onclick="resetNolapCombobox('r')"
+                            class="hidden w-5 h-5 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-300 items-center justify-center text-xs transition"
+                            title="Hapus pilihan NoLap">
+                      ✕
+                    </button>
+                    <button type="button"
+                            id="combobox-toggle-spm-r"
+                            onclick="toggleNolapCombobox('r')"
+                            class="w-5 h-5 rounded hover:bg-slate-800 text-amber-400 flex items-center justify-center text-[10px] transition"
+                            title="Buka / tutup daftar permohonan">
+                      ▼
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Hidden native select for backward compatibility -->
+                <select id="spm-r-pilih-req" onchange="muatDataPengajuanKeSpmRuislagh(this.value)" class="hidden">
+                  <option value="">-- Pilih Permohonan NoLap --</option>
+                </select>
+
+                <!-- Dropdown Menu -->
+                <div id="combobox-dropdown-spm-r"
+                     class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-slate-900 border border-amber-400/40 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md"
+                     style="min-width: 100%;">
+                  <div class="px-3 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] bg-slate-950/80">
+                    <span class="text-slate-400 font-semibold flex items-center gap-1.5">
+                      <span>📋</span>
+                      <span>Daftar Permohonan NoLap</span>
+                    </span>
+                    <span id="combobox-count-spm-r" class="text-amber-400 font-mono text-[10px] font-bold">0 item</span>
+                  </div>
+                  <div id="combobox-list-spm-r"
+                       class="max-h-64 sm:max-h-72 overflow-y-auto divide-y divide-slate-800/60 p-1 text-xs"
+                       role="listbox">
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -13760,6 +13946,397 @@ let smartTanahState = {
   lastUpdated: null
 };
 
+/* =========================================================================
+   SEARCHABLE DROPDOWN / AUTOCOMPLETE COMBOBOX - TAUTKAN NOLAP
+   Mendukung pencarian REQ, Klien, Objek, Lokasi, Cabang, Penilai (Case-Insensitive)
+   ========================================================================= */
+
+const comboboxState = {
+  u: { highlightedIndex: -1, currentQuery: '', debounceTimer: null },
+  t: { highlightedIndex: -1, currentQuery: '', debounceTimer: null },
+  r: { highlightedIndex: -1, currentQuery: '', debounceTimer: null }
+};
+
+function escapeHtmlCombobox(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function highlightMatchCombobox(text, query) {
+  if (!text) return '';
+  const escaped = escapeHtmlCombobox(text);
+  if (!query || !query.trim()) return escaped;
+  const q = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(${q})`, 'gi');
+  return escaped.replace(re, '<mark class="bg-amber-400/35 text-amber-200 px-0.5 rounded font-bold">$1</mark>');
+}
+
+function getDaftarPermohonanTersedia() {
+  if (!Array.isArray(daftarPermohonan)) return [];
+  if (typeof isSuperOrAdminPusat === 'function' && isSuperOrAdminPusat()) {
+    return daftarPermohonan;
+  }
+  if (typeof sesiAktif !== 'undefined' && sesiAktif && sesiAktif.cabang && sesiAktif.cabang !== 'Pusat') {
+    return daftarPermohonan.filter(p => !p.cabang || p.cabang.toLowerCase() === sesiAktif.cabang.toLowerCase());
+  }
+  return daftarPermohonan;
+}
+
+function getFilteredPermohonan(query) {
+  const all = getDaftarPermohonanTersedia();
+  if (!query || !query.trim()) return all;
+  const q = query.trim().toLowerCase();
+
+  // Smart Alias Expansion untuk singkatan perbankan & instansi populer di Indonesia
+  const searchTerms = [q];
+  const ALIAS_MAP = {
+    'btn': 'bank tabungan negara',
+    'bri': 'bank rakyat indonesia',
+    'bni': 'bank negara indonesia',
+    'bca': 'bank central asia',
+    'bsi': 'bank syariah indonesia',
+    'mandiri': 'bank mandiri',
+    'bjb': 'bank bjb',
+    'dki': 'bank dki'
+  };
+  Object.keys(ALIAS_MAP).forEach(k => {
+    if (q === k || q.includes(k)) searchTerms.push(ALIAS_MAP[k]);
+    if (q.includes(ALIAS_MAP[k])) searchTerms.push(k);
+  });
+
+  return all.filter(p => {
+    const combined = [
+      p.noPermintaan || '',
+      p.nomorLaporan || '',
+      p.namaKlien || '',
+      p.penggunaLaporan || '',
+      p.jenisObjek || '',
+      p.lokasiObjek || '',
+      p.pemilikObjek || '',
+      p.cabang || '',
+      p.penilai || '',
+      p.namaPemohon || '',
+      p.status || ''
+    ].join(' ').toLowerCase();
+
+    return searchTerms.some(term => combined.includes(term));
+  });
+}
+
+function getLinkedNoReq(moduleKey) {
+  if (moduleKey === 'u') return (typeof smartUmumState !== 'undefined' ? smartUmumState.linkedNoReq : '') || document.getElementById('spm-u-pilih-req')?.value || '';
+  if (moduleKey === 't') return (typeof smartTanahState !== 'undefined' ? smartTanahState.linkedNoReq : '') || document.getElementById('spm-t-pilih-req')?.value || '';
+  if (moduleKey === 'r') return (typeof smartRuislaghState !== 'undefined' ? smartRuislaghState.linkedNoReq : '') || document.getElementById('spm-r-pilih-req')?.value || '';
+  return '';
+}
+
+function updateComboboxDisplay(moduleKey, noReq) {
+  const inp = document.getElementById(`combobox-input-spm-${moduleKey}`);
+  const clearBtn = document.getElementById(`combobox-clear-spm-${moduleKey}`);
+  if (!inp) return;
+
+  if (!noReq) {
+    inp.value = '';
+    if (clearBtn) {
+      clearBtn.classList.add('hidden');
+      clearBtn.classList.remove('flex');
+    }
+    return;
+  }
+
+  const all = Array.isArray(daftarPermohonan) ? daftarPermohonan : [];
+  const item = all.find(p => p.noPermintaan === noReq);
+  if (item) {
+    inp.value = `${item.noPermintaan} — ${item.namaKlien || 'Klien'}`;
+    if (clearBtn) {
+      clearBtn.classList.remove('hidden');
+      clearBtn.classList.add('flex');
+    }
+  } else {
+    inp.value = noReq;
+    if (clearBtn) {
+      clearBtn.classList.remove('hidden');
+      clearBtn.classList.add('flex');
+    }
+  }
+}
+
+function renderComboboxList(moduleKey, items, query = '') {
+  const listEl = document.getElementById(`combobox-list-spm-${moduleKey}`);
+  const countEl = document.getElementById(`combobox-count-spm-${moduleKey}`);
+  if (!listEl) return;
+
+  const currentLinked = getLinkedNoReq(moduleKey);
+
+  if (countEl) {
+    countEl.innerText = `${items.length} permohonan`;
+  }
+
+  if (items.length === 0) {
+    listEl.innerHTML = `
+      <div class="p-4 text-center text-xs text-slate-400 select-none">
+        <span class="block text-base mb-1">🔍</span>
+        Tidak ada permohonan NoLap yang sesuai dengan kata kunci "<strong class="text-amber-300">${escapeHtmlCombobox(query)}</strong>"
+      </div>
+    `;
+    return;
+  }
+
+  const displayItems = items.slice(0, 40);
+  let html = '';
+
+  displayItems.forEach((item, index) => {
+    const isSelected = item.noPermintaan === currentLinked;
+    html += `
+      <div class="combobox-item p-2.5 rounded-lg hover:bg-amber-400/10 cursor-pointer transition flex flex-col gap-1 border-b border-slate-800/40 last:border-0 ${isSelected ? 'bg-amber-500/15 border-l-2 border-amber-400 pl-2' : ''}"
+           role="option"
+           aria-selected="${isSelected ? 'true' : 'false'}"
+           data-index="${index}"
+           data-req="${escapeHtmlCombobox(item.noPermintaan)}"
+           onclick="pilihPermohonanCombobox('${moduleKey}', '${escapeHtmlCombobox(item.noPermintaan)}')">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-mono font-bold text-amber-400 text-xs">${highlightMatchCombobox(item.noPermintaan, query)}</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">${escapeHtmlCombobox(item.cabang || 'Pusat')}</span>
+          </div>
+          ${item.nomorLaporan ? `<span class="font-mono text-[10px] text-emerald-400 truncate max-w-[150px] sm:max-w-[200px]" title="${escapeHtmlCombobox(item.nomorLaporan)}">${escapeHtmlCombobox(item.nomorLaporan)}</span>` : `<span class="text-[9px] text-slate-500 font-semibold uppercase">${escapeHtmlCombobox(item.status || 'DIAJUKAN')}</span>`}
+        </div>
+        <div class="text-white font-semibold text-xs leading-snug line-clamp-1">
+          ${highlightMatchCombobox(item.namaKlien || '-', query)}
+        </div>
+        <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-1 leading-tight">
+          <span class="truncate max-w-[180px] sm:max-w-[240px]">🏢 ${highlightMatchCombobox(item.jenisObjek || '-', query)}</span>
+          ${item.lokasiObjek ? `<span class="text-slate-600">•</span><span class="truncate max-w-[180px] sm:max-w-[240px]">📍 ${highlightMatchCombobox(item.lokasiObjek, query)}</span>` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  if (items.length > 40) {
+    html += `
+      <div class="p-2 text-center text-[10px] text-slate-500 font-mono italic">
+        Menampilkan 40 dari total ${items.length} data. Ketik kata kunci lebih spesifik untuk mempersempit.
+      </div>
+    `;
+  }
+
+  listEl.innerHTML = html;
+  comboboxState[moduleKey].highlightedIndex = -1;
+}
+
+function bukaComboboxDropdown(moduleKey) {
+  ['u', 't', 'r'].forEach(k => {
+    if (k !== moduleKey) tutupComboboxDropdown(k);
+  });
+
+  const dropdown = document.getElementById(`combobox-dropdown-spm-${moduleKey}`);
+  const inp = document.getElementById(`combobox-input-spm-${moduleKey}`);
+  if (!dropdown) return;
+
+  let query = inp ? inp.value.trim() : '';
+  if (query.includes(' — ')) {
+    query = '';
+  }
+
+  const items = getFilteredPermohonan(query);
+  renderComboboxList(moduleKey, items, query);
+
+  dropdown.classList.remove('hidden');
+  if (inp) inp.setAttribute('aria-expanded', 'true');
+}
+
+function tutupComboboxDropdown(moduleKey) {
+  const dropdown = document.getElementById(`combobox-dropdown-spm-${moduleKey}`);
+  const inp = document.getElementById(`combobox-input-spm-${moduleKey}`);
+  if (dropdown) dropdown.classList.add('hidden');
+  if (inp) inp.setAttribute('aria-expanded', 'false');
+  comboboxState[moduleKey].highlightedIndex = -1;
+}
+
+function toggleNolapCombobox(moduleKey) {
+  const dropdown = document.getElementById(`combobox-dropdown-spm-${moduleKey}`);
+  const inp = document.getElementById(`combobox-input-spm-${moduleKey}`);
+  if (!dropdown) return;
+  if (dropdown.classList.contains('hidden')) {
+    bukaComboboxDropdown(moduleKey);
+    if (inp) inp.focus();
+  } else {
+    tutupComboboxDropdown(moduleKey);
+  }
+}
+
+function filterComboboxOptions(moduleKey, rawQuery) {
+  clearTimeout(comboboxState[moduleKey].debounceTimer);
+  comboboxState[moduleKey].debounceTimer = setTimeout(() => {
+    const query = rawQuery ? rawQuery.trim() : '';
+    const clearBtn = document.getElementById(`combobox-clear-spm-${moduleKey}`);
+    if (clearBtn) {
+      if (query.length > 0) {
+        clearBtn.classList.remove('hidden');
+        clearBtn.classList.add('flex');
+      } else {
+        clearBtn.classList.add('hidden');
+        clearBtn.classList.remove('flex');
+      }
+    }
+    const items = getFilteredPermohonan(query);
+    renderComboboxList(moduleKey, items, query);
+    const dropdown = document.getElementById(`combobox-dropdown-spm-${moduleKey}`);
+    const inp = document.getElementById(`combobox-input-spm-${moduleKey}`);
+    if (dropdown) dropdown.classList.remove('hidden');
+    if (inp) inp.setAttribute('aria-expanded', 'true');
+  }, 250);
+}
+
+function pilihPermohonanCombobox(moduleKey, noReq) {
+  if (!noReq) return;
+  const currentLinked = getLinkedNoReq(moduleKey);
+
+  if (currentLinked && currentLinked !== noReq) {
+    const itemLama = (daftarPermohonan || []).find(p => p.noPermintaan === currentLinked);
+    const itemBaru = (daftarPermohonan || []).find(p => p.noPermintaan === noReq);
+    const namaLama = itemLama ? itemLama.namaKlien : currentLinked;
+    const namaBaru = itemBaru ? itemBaru.namaKlien : noReq;
+
+    const konfirm = confirm(
+      `⚠️ Konfirmasi Pergantian Permohonan NoLap:\n\n` +
+      `Formulir saat ini telah ditautkan ke:\n` +
+      `[${currentLinked}] ${namaLama}\n\n` +
+      `Apakah Anda yakin ingin mengganti penautan ke:\n` +
+      `[${noReq}] ${namaBaru}?\n\n` +
+      `Data identitas penugasan pada formulir mitigasi akan disinkronkan dengan permohonan baru.`
+    );
+    if (!konfirm) {
+      updateComboboxDisplay(moduleKey, currentLinked);
+      tutupComboboxDropdown(moduleKey);
+      return;
+    }
+  }
+
+  const selId = moduleKey === 'u' ? 'spm-u-pilih-req' : (moduleKey === 't' ? 'spm-t-pilih-req' : 'spm-r-pilih-req');
+  const sel = document.getElementById(selId);
+  if (sel) {
+    sel.value = noReq;
+  }
+
+  if (moduleKey === 'u') {
+    muatDataPengajuanKeSpmUmum(noReq);
+  } else if (moduleKey === 't') {
+    muatDataPengajuanKeSpmTanah(noReq);
+  } else if (moduleKey === 'r') {
+    muatDataPengajuanKeSpmRuislagh(noReq);
+  }
+
+  updateComboboxDisplay(moduleKey, noReq);
+  tutupComboboxDropdown(moduleKey);
+}
+
+function resetNolapCombobox(moduleKey) {
+  const currentLinked = getLinkedNoReq(moduleKey);
+  if (currentLinked) {
+    const konfirm = confirm(`⚠️ Lepaskan Tautan Permohonan:\n\nApakah Anda ingin melepaskan tautan permohonan ${currentLinked} dari formulir mitigasi ini?`);
+    if (!konfirm) return;
+  }
+
+  const selId = moduleKey === 'u' ? 'spm-u-pilih-req' : (moduleKey === 't' ? 'spm-t-pilih-req' : 'spm-r-pilih-req');
+  const sel = document.getElementById(selId);
+  if (sel) sel.value = '';
+
+  if (moduleKey === 'u' && typeof smartUmumState !== 'undefined') {
+    smartUmumState.linkedNoReq = '';
+    simpanStateSmartSpmUmum();
+  } else if (moduleKey === 't' && typeof smartTanahState !== 'undefined') {
+    smartTanahState.linkedNoReq = '';
+    simpanStateSmartSpmTanah();
+  } else if (moduleKey === 'r' && typeof smartRuislaghState !== 'undefined') {
+    smartRuislaghState.linkedNoReq = '';
+    simpanStateSmartSpmRuislagh();
+  }
+
+  updateComboboxDisplay(moduleKey, '');
+  tutupComboboxDropdown(moduleKey);
+}
+
+function handleComboboxKeydown(event, moduleKey) {
+  const dropdown = document.getElementById(`combobox-dropdown-spm-${moduleKey}`);
+  const listEl = document.getElementById(`combobox-list-spm-${moduleKey}`);
+  if (!dropdown || !listEl) return;
+
+  const isOpen = !dropdown.classList.contains('hidden');
+  const items = listEl.querySelectorAll('.combobox-item');
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (!isOpen) {
+      bukaComboboxDropdown(moduleKey);
+      return;
+    }
+    if (items.length === 0) return;
+    comboboxState[moduleKey].highlightedIndex++;
+    if (comboboxState[moduleKey].highlightedIndex >= items.length) {
+      comboboxState[moduleKey].highlightedIndex = 0;
+    }
+    updateHighlightedItem(items, comboboxState[moduleKey].highlightedIndex);
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (!isOpen) {
+      bukaComboboxDropdown(moduleKey);
+      return;
+    }
+    if (items.length === 0) return;
+    comboboxState[moduleKey].highlightedIndex--;
+    if (comboboxState[moduleKey].highlightedIndex < 0) {
+      comboboxState[moduleKey].highlightedIndex = items.length - 1;
+    }
+    updateHighlightedItem(items, comboboxState[moduleKey].highlightedIndex);
+  } else if (event.key === 'Enter') {
+    if (isOpen && comboboxState[moduleKey].highlightedIndex >= 0 && items[comboboxState[moduleKey].highlightedIndex]) {
+      event.preventDefault();
+      const reqId = items[comboboxState[moduleKey].highlightedIndex].getAttribute('data-req');
+      if (reqId) pilihPermohonanCombobox(moduleKey, reqId);
+    }
+  } else if (event.key === 'Escape') {
+    tutupComboboxDropdown(moduleKey);
+    const current = getLinkedNoReq(moduleKey);
+    updateComboboxDisplay(moduleKey, current);
+  }
+}
+
+function updateHighlightedItem(items, activeIndex) {
+  items.forEach((item, idx) => {
+    if (idx === activeIndex) {
+      item.classList.add('bg-amber-400/20', 'border-l-2', 'border-amber-400', 'pl-2');
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.classList.remove('bg-amber-400/20', 'border-l-2', 'border-amber-400', 'pl-2');
+    }
+  });
+}
+
+function inisialisasiComboboxNolap(moduleKey) {
+  const selId = moduleKey === 'u' ? 'spm-u-pilih-req' : (moduleKey === 't' ? 'spm-t-pilih-req' : 'spm-r-pilih-req');
+  const sel = document.getElementById(selId);
+  const currentVal = sel ? sel.value : getLinkedNoReq(moduleKey);
+  if (currentVal) {
+    updateComboboxDisplay(moduleKey, currentVal);
+  }
+}
+
+// Global click-outside listener untuk menutup combobox dropdown
+document.addEventListener('click', function(e) {
+  ['u', 't', 'r'].forEach(k => {
+    const wrapper = document.getElementById(`combobox-wrapper-spm-${k}`);
+    if (wrapper && !wrapper.contains(e.target)) {
+      tutupComboboxDropdown(k);
+    }
+  });
+});
+
 // 1. Inisialisasi Modul Smart SPM Tanah
 function inisialisasiSmartSpmTanah() {
   muatPilihanReqNoLap();
@@ -13782,6 +14359,7 @@ function muatPilihanReqNoLap() {
     });
   }
   if (currentVal) sel.value = currentVal;
+  inisialisasiComboboxNolap('t');
 }
 
 function toggleSmartSection(secId) {
@@ -14028,19 +14606,19 @@ function muatDataPengajuanKeSpmTanah(noReq) {
 
   smartTanahState.linkedNoReq = noReq;
 
-  if (document.getElementById('spm-t-nama-proyek') && !document.getElementById('spm-t-nama-proyek').value) {
+  if (document.getElementById('spm-t-nama-proyek')) {
     document.getElementById('spm-t-nama-proyek').value = `Penilaian ${item.jenisObjek || 'Pengadaan Tanah'} - ${item.namaKlien || ''}`;
   }
-  if (document.getElementById('spm-t-instansi') && !document.getElementById('spm-t-instansi').value) {
+  if (document.getElementById('spm-t-instansi')) {
     document.getElementById('spm-t-instansi').value = item.namaKlien || '';
   }
-  if (document.getElementById('spm-t-lokasi-objek') && !document.getElementById('spm-t-lokasi-objek').value) {
+  if (document.getElementById('spm-t-lokasi-objek')) {
     document.getElementById('spm-t-lokasi-objek').value = item.lokasiObjek || '';
   }
-  if (document.getElementById('spm-t-pemberi-tugas') && !document.getElementById('spm-t-pemberi-tugas').value) {
+  if (document.getElementById('spm-t-pemberi-tugas')) {
     document.getElementById('spm-t-pemberi-tugas').value = item.namaKlien || '';
   }
-  if (document.getElementById('spm-t-pengguna-laporan') && !document.getElementById('spm-t-pengguna-laporan').value) {
+  if (document.getElementById('spm-t-pengguna-laporan')) {
     document.getElementById('spm-t-pengguna-laporan').value = item.penggunaLaporan || item.namaKlien || '';
   }
   if (document.getElementById('spm-t-tgl-penilaian') && !document.getElementById('spm-t-tgl-penilaian').value) {
@@ -14207,6 +14785,7 @@ function muatStateSmartSpmTanah() {
     if (d.linkedNoReq && document.getElementById('spm-t-pilih-req')) {
       document.getElementById('spm-t-pilih-req').value = d.linkedNoReq;
     }
+    updateComboboxDisplay('t', smartTanahState.linkedNoReq);
 
     // Restore Bagian A
     if (d.secA) {
@@ -14780,6 +15359,7 @@ function muatPilihanReqNoLapUmum() {
     });
   }
   if (currentVal) sel.value = currentVal;
+  inisialisasiComboboxNolap('u');
 }
 
 function onUmumKategoriChange() {
@@ -15191,6 +15771,7 @@ function muatStateSmartSpmUmum() {
     if (d.linkedNoReq && document.getElementById('spm-u-pilih-req')) {
       document.getElementById('spm-u-pilih-req').value = d.linkedNoReq;
     }
+    updateComboboxDisplay('u', smartUmumState.linkedNoReq);
     if (d.kategori && document.getElementById('spm-u-kategori')) {
       document.getElementById('spm-u-kategori').value = d.kategori;
     }
@@ -15633,6 +16214,7 @@ function muatPilihanReqNoLapRuislagh() {
     });
   }
   if (currentVal) sel.value = currentVal;
+  inisialisasiComboboxNolap('r');
 }
 
 // Sinkronisasi teks lokasi A01 ke hidden spm-r-desa (Backward Compatibility)
@@ -16000,6 +16582,7 @@ function muatStateSmartSpmRuislagh() {
     if (d.linkedNoReq && document.getElementById('spm-r-pilih-req')) {
       document.getElementById('spm-r-pilih-req').value = d.linkedNoReq;
     }
+    updateComboboxDisplay('r', smartRuislaghState.linkedNoReq);
     if (d.jalurRuislagh && document.getElementById('spm-r-jalur-ruislagh')) {
       document.getElementById('spm-r-jalur-ruislagh').value = d.jalurRuislagh;
     }
@@ -16584,6 +17167,9 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
             simpanDatabaseLokal();
             muatUlangTabel();
             updateLivePreview();
+            if (typeof muatPilihanReqNoLap === 'function') muatPilihanReqNoLap();
+            if (typeof muatPilihanReqNoLapUmum === 'function') muatPilihanReqNoLapUmum();
+            if (typeof muatPilihanReqNoLapRuislagh === 'function') muatPilihanReqNoLapRuislagh();
           }
         }
 
