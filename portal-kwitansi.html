@@ -374,7 +374,7 @@
         <div id="panel-notifikasi-sukses" class="hidden mt-6 p-4 sm:p-5 rounded-xl bg-emerald-950/70 border border-emerald-500/40 space-y-3.5 shadow-xl">
           <div class="flex items-center gap-2.5 text-emerald-300 font-bold text-xs sm:text-sm">
             <svg class="w-5 h-5 text-emerald-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <span>Draf Berhasil Diajukan &amp; Tercatat di Google Sheet Pusat!</span>
+            <span>Draf Berhasil Diajukan &amp; Tersimpan di Server Keuangan Pusat!</span>
           </div>
           <p class="text-xs text-slate-300 leading-relaxed">
             Data pengajuan draf kwitansi Anda telah masuk ke rekapitulasi Keuangan Kantor Pusat. Silakan kirimkan notifikasi langsung ke PIC Keuangan Pusat agar dapat segera diverifikasi dan diterbitkan:
@@ -1099,6 +1099,7 @@
       dataKwitansiAktif.terbilang = kalimatTerbilang;
       
       perbaruiPreviewKwitansi();
+      muatDaftarKwitansi();
     }
 
     function setTermin(teks) {
@@ -1167,6 +1168,32 @@
 
       const lblTujuanCabang = document.getElementById('label-tujuan-cabang-pusat');
       if (lblTujuanCabang) lblTujuanCabang.innerText = cabang;
+
+      // Bedakan status DRAFT vs DISAHKAN pada lembar cetak PDF & preview
+      const isApproved = (dataKwitansiAktif.isApproved === true || dataKwitansiAktif.status === 'DISAHKAN');
+      const watermarkEl = document.getElementById('print-watermark-draft');
+      const stempelEl = document.getElementById('print-kontainer-stempel');
+      const ttdEl = document.getElementById('print-kontainer-ttd');
+      const noOtorisasiEl = document.getElementById('print-nomor-otorisasi');
+
+      if (watermarkEl) {
+        if (isApproved) {
+          watermarkEl.classList.add('hidden');
+        } else {
+          watermarkEl.classList.remove('hidden');
+        }
+      }
+
+      if (stempelEl) {
+        stempelEl.style.visibility = isApproved ? 'visible' : 'hidden';
+      }
+      if (ttdEl) {
+        ttdEl.style.visibility = isApproved ? 'visible' : 'hidden';
+      }
+      if (noOtorisasiEl) {
+        noOtorisasiEl.innerText = isApproved ? 'No. Verifikasi: FIN-NSR-RESMI/VALID' : 'STATUS: DRAFT TAGIHAN (BELUM DISAHKAN)';
+        noOtorisasiEl.className = isApproved ? 'text-[8.5px] text-slate-400 font-mono mt-0.5' : 'text-[8.5px] text-rose-600 font-mono font-bold mt-0.5';
+      }
 
       // Sinkronkan ke Preview Mini di Panel Pusat
       const containerMini = document.getElementById('preview-kwitansi-container');
@@ -1634,6 +1661,15 @@
       }
 
       hitungKwitansi();
+      if (document.getElementById('badge-status-pusat')) {
+        if (item.status === 'DISAHKAN') {
+          document.getElementById('badge-status-pusat').innerText = "✅ Telah Disahkan Keuangan Pusat";
+          document.getElementById('badge-status-pusat').className = "px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        } else {
+          document.getElementById('badge-status-pusat').innerText = "⏳ Belum Disahkan (Draf Tagihan)";
+          document.getElementById('badge-status-pusat').className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30";
+        }
+      }
       perbaruiPreviewKwitansi();
 
       // Pindahkan fokus / scroll ke preview
@@ -2182,12 +2218,76 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       }
     }
 
-    function sahkanDanKunciKwitansi() {
-      perbaruiPreviewKwitansi();
-      dataKwitansiAktif.isApproved = true;
-      document.getElementById('badge-status-pusat').innerText = "✅ Telah Disahkan Keuangan Pusat";
-      document.getElementById('badge-status-pusat').className = "px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
-      alert("Kwitansi Resmi BERHASIL DISAHKAN!\nNomor Resmi: " + document.getElementById('no-kwitansi-resmi').value + "\nPenandatangan: " + dataKwitansiAktif.namaPejabat + "\n\nSekarang Anda dapat menekan tombol 'Cetak / Simpan PDF (A4)'.");
+    async function sahkanDanKunciKwitansi() {
+      if (!currentUser || (currentUser.role !== 'KEUANGAN' && currentUser.role !== 'ADMIN_PUSAT' && currentUser.role !== 'ADMIN')) {
+        alert('Akses Ditolak (403): Hanya Bagian Keuangan Pusat yang berhak mengesahkan kwitansi resmi.');
+        return;
+      }
+
+      if (!dataKwitansiAktif.idKwitansi) {
+        alert('Peringatan: Silakan pilih draf kwitansi yang ingin disahkan dari daftar di Meja Verifikasi terlebih dahulu.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-sahkan-kwitansi');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white inline mr-1" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Mengesahkan ke Server Pusat...`;
+      }
+
+      const noResmiInput = document.getElementById('no-kwitansi-resmi')?.value?.trim() || '';
+      const tglSah = document.getElementById('tgl-kwitansi-resmi')?.value || '';
+      const tempatSah = document.getElementById('tempat-kwitansi-resmi')?.value || 'Jakarta';
+
+      try {
+        const res = await fetch('/api/kwitansi-data-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'approveKwitansi',
+            payload: {
+              idKwitansi: dataKwitansiAktif.idKwitansi,
+              noKwitansiResmi: noResmiInput,
+              tglSah: tglSah,
+              tempatSah: tempatSah,
+              namaPejabat: dataKwitansiAktif.namaPejabat,
+              jabatanPejabat: dataKwitansiAktif.jabatanPejabat,
+              subjabatanPejabat: dataKwitansiAktif.subjabatanPejabat
+            }
+          })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success) {
+          dataKwitansiAktif.isApproved = true;
+          dataKwitansiAktif.status = 'DISAHKAN';
+          if (data.noKwitansiResmi) {
+            dataKwitansiAktif.noKwitansiResmi = data.noKwitansiResmi;
+            if (document.getElementById('no-kwitansi-resmi')) {
+              document.getElementById('no-kwitansi-resmi').value = data.noKwitansiResmi;
+            }
+          }
+          perbaruiPreviewKwitansi();
+          if (document.getElementById('badge-status-pusat')) {
+            document.getElementById('badge-status-pusat').innerText = "✅ Telah Disahkan Keuangan Pusat";
+            document.getElementById('badge-status-pusat').className = "px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+          }
+          await muatDaftarKwitansi();
+          alert("✅ Kwitansi Resmi BERHASIL DISAHKAN & TERSIMPAN DI SERVER!\n\nNomor Resmi: " + (data.noKwitansiResmi || document.getElementById('no-kwitansi-resmi').value) + "\nPenandatangan: " + dataKwitansiAktif.namaPejabat + "\n\nSekarang kwitansi sah dapat dicetak / disimpan ke format PDF (A4).");
+        } else {
+          alert('❌ Gagal Mengesahkan Kwitansi: ' + (data.error || 'Terjadi kesalahan server.'));
+        }
+      } catch (err) {
+        alert('❌ Gagal Menghubungi Server: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+      }
     }
 
     // 21. Cetak Dokumen PDF Resmi
