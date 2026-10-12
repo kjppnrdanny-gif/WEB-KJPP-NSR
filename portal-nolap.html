@@ -261,6 +261,7 @@
 
         <!-- FORM ISIAN PENGAJUAN -->
         <form id="form-pengajuan-nolap" onsubmit="ajukanPermohonanNoLap(event)" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+          <input type="hidden" id="f-idempotency-key" value="">
           
           <div class="border-b border-slate-800 pb-4">
             <h3 class="text-base font-extrabold text-white flex items-center gap-2">
@@ -501,7 +502,7 @@
               <div class="grid sm:grid-cols-3 gap-3">
                 <!-- Nominal DPP (Harga Dasar) -->
                 <div>
-                  <label class="block text-xs font-semibold text-slate-300 mb-1">Nominal DPP (Harga Dasar) <span class="text-rose-400">*</span></label>
+                  <label class="block text-xs font-semibold text-slate-300 mb-1">Nilai Biaya Jasa / DPP (Harga Dasar) <span class="text-rose-400">*</span> <span class="text-[10px] text-slate-400 font-normal">(Nilai jasa penugasan sebelum pajak sesuai SPK)</span></label>
                   <div class="relative">
                     <span class="absolute left-2.5 top-2.5 text-xs text-slate-500 font-bold">Rp</span>
                     <input type="number" id="f-dpp" required min="1" step="1" placeholder="Contoh: 25500100" oninput="hitungFinansialNoLap()" class="w-full h-10 pl-9 pr-2.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-amber-400">
@@ -573,7 +574,7 @@
               <span>🔒 Data tersimpan otomatis di database sistem &amp; terkirim ke Admin Pusat.</span>
             </div>
             <div class="flex items-center gap-3">
-              <button type="reset" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+              <button type="reset" onclick="setTimeout(perbaruiIdempotencyKey, 20);" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
                 Reset Isian
               </button>
               <button type="submit" id="btn-submit-pengajuan" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber-400/20">
@@ -13039,7 +13040,22 @@
     /* =========================================================================
        2. INISIALISASI SISTEM & LOCAL STORAGE
        ========================================================================= */
+    function generateIdempotencyKey() {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return 'idemp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+    }
+
+    function perbaruiIdempotencyKey() {
+      const el = document.getElementById('f-idempotency-key');
+      const key = generateIdempotencyKey();
+      if (el) el.value = key;
+      return key;
+    }
+
     async function inisialisasiSistem() {
+      perbaruiIdempotencyKey();
       // Muat database lokal jika ada, atau gunakan master awal
       const savedData = localStorage.getItem('nsr_nolap_database');
       if (savedData) {
@@ -13522,14 +13538,11 @@
       const cleanDigits = npwp.replace(/\D/g, '');
       const kodeNpwp = cleanDigits.length >= 10 ? "1" : "0";
 
-      // Idempotency Key stabil untuk proteksi retry jaringan
-      const idempotencyKey = [
-        cabang,
-        klien.toLowerCase().replace(/[^a-z0-9]/g, '_'),
-        (noSpk || 'NOSPK').toLowerCase().replace(/[^a-z0-9]/g, '_'),
-        tglSpk || 'NOTGL',
-        dpp
-      ].join('::');
+      // Idempotency Key unik per transaksi/sesi formulir (UUID) untuk proteksi retry jaringan
+      let idempotencyKey = document.getElementById('f-idempotency-key')?.value?.trim();
+      if (!idempotencyKey) {
+        idempotencyKey = perbaruiIdempotencyKey();
+      }
 
       const dataBaru = {
         idempotencyKey: idempotencyKey,
@@ -13623,6 +13636,7 @@
 
         // Reset form hanya setelah berhasil disimpan
         document.getElementById('form-pengajuan-nolap').reset();
+        perbaruiIdempotencyKey();
         hitungFinansialNoLap();
         updateLivePreview();
         muatUlangTabel();

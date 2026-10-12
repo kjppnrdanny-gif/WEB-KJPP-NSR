@@ -64,8 +64,8 @@ if (session_status() === PHP_SESSION_NONE) {
 // 1. DATA TOKENS RESMI UNTUK VALIDASI API / BEARER / HEADER
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
-    // Otorisasi Kantor Pusat Jakarta (Hashed Token)
-    '3d5d2d69641b1e88d2b96d64119430b1716a24f00937acfe79f22a713d3a9be7' => ['sub' => 'cabang_jkt', 'branch' => 'Pusat', 'displayName' => 'Akses Resmi Kantor Pusat Jakarta', 'role' => 'ADMIN_PUSAT'],
+    // Otorisasi Kantor Pusat Jakarta (Rotated Secure Token)
+    '1f43a0f065bc44637dbb2b2021932c570ee4d40fb42a294985f00e05aef42285' => ['sub' => 'cabang_jkt', 'branch' => 'Pusat', 'displayName' => 'Akses Resmi Kantor Pusat Jakarta', 'role' => 'ADMIN_PUSAT'],
     '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2' => ['sub' => 'cabang_jkt', 'branch' => 'Pusat', 'displayName' => 'Akses Resmi Kantor Pusat Jakarta', 'role' => 'ADMIN_PUSAT'],
     // Otorisasi Cabang Bandung (Hashed Token)
     'a52e824efe550c1e89aa3026587e4aa54620e597fcc977b2c88876870c88a4cb' => ['sub' => 'cabang_bdg', 'branch' => 'Bandung', 'displayName' => 'Akses Resmi Cabang Bandung', 'role' => 'CABANG'],
@@ -474,6 +474,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $targetItem = &$records[$targetIndex];
 
+        // Proteksi Record VOID / Data Uji: Tidak dapat diubah mitigasinya
+        if (($targetItem['status'] ?? '') === 'VOID' || !empty($targetItem['isTestRecord'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success'   => false,
+                'error'     => "Permohonan {$noReq} berstatus VOID / DATA UJI dan tidak dapat menerima perubahan data mitigasi risiko.",
+                'violation' => 'VOID_RECORD_IMMUTABLE'
+            ]);
+            exit;
+        }
+
         // 1. ISOLASI CABANG (Server-side RBAC)
         if ($userRole === 'CABANG') {
             if (strcasecmp($targetItem['cabang'] ?? '', $userBranch) !== 0) {
@@ -679,7 +690,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $idReq = 'REQ-' . str_pad((string)($maxNum + 1), 6, '0', STR_PAD_LEFT);
 
-        // Anti-duplikasi Tingkat 1: Cek Idempotency Key unik jika disediakan
+        // Anti-duplikasi Atomik: Cek Idempotency Key unik jika disediakan
         $idempotencyKey = trim($payload['idempotencyKey'] ?? '');
         if ($idempotencyKey !== '') {
             foreach ($records as $rec) {
@@ -695,22 +706,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
             }
-        }
-
-        // Anti-duplikasi Tingkat 2: Jika pengajuan dengan nama klien & pemohon yang sama dikirim dalam 30 detik terakhir
-        $recentThreshold = time() - 30;
-        foreach ($records as $rec) {
-            if (($rec['namaKlien'] ?? '') === trim($payload['namaKlien']) &&
-                ($rec['cabang'] ?? '') === $cabangPengaju &&
-                isset($rec['timestamp']) && strtotime($rec['timestamp']) >= $recentThreshold) {
-                echo json_encode([
-                    'success'      => true,
-                    'duplicate'    => true,
-                    'message'      => 'Pengajuan telah diterima sebelumnya. Mengembalikan nomor permohonan yang sama.',
-                    'noPermintaan' => $rec['noPermintaan'],
-                    'record'       => $rec
-                ]);
-                exit;
+            // Catatan: Jika Idempotency Key baru disediakan, lewati proteksi 30-detik nama klien
+            // agar dua pengajuan sah dengan isian identik dapat diterima secara independen.
+        } else {
+            // Anti-duplikasi Legacy: Hanya berlaku jika klien tidak mengirimkan Idempotency Key
+            $recentThreshold = time() - 30;
+            foreach ($records as $rec) {
+                if (($rec['namaKlien'] ?? '') === trim($payload['namaKlien']) &&
+                    ($rec['cabang'] ?? '') === $cabangPengaju &&
+                    isset($rec['timestamp']) && strtotime($rec['timestamp']) >= $recentThreshold) {
+                    echo json_encode([
+                        'success'      => true,
+                        'duplicate'    => true,
+                        'message'      => 'Pengajuan telah diterima sebelumnya. Mengembalikan nomor permohonan yang sama.',
+                        'noPermintaan' => $rec['noPermintaan'],
+                        'record'       => $rec
+                    ]);
+                    exit;
+                }
             }
         }
 
@@ -779,6 +792,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($targetIndex === -1) {
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Data permohonan tidak ditemukan']);
+            exit;
+        }
+
+        // Proteksi Record VOID / Data Uji: Tidak dapat di-approve atau diterbitkan nomor laporan
+        if (($records[$targetIndex]['status'] ?? '') === 'VOID' || !empty($records[$targetIndex]['isTestRecord'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success'   => false,
+                'error'     => "Permohonan {$noReq} berstatus VOID / DATA UJI dan tidak dapat disetujui atau diterbitkan nomor laporan resminya.",
+                'violation' => 'VOID_RECORD_CANNOT_BE_APPROVED'
+            ]);
             exit;
         }
 
