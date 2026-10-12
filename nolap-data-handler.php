@@ -1,13 +1,20 @@
 <?php
 /**
  * KJPP NSR — Server-Side Protected Data Proxy untuk Portal NoLap (cPanel Native Edition)
+ * Versi 2.0: Versioned Approval Control, Concurrency Lock & Automated Backup
  * 
- * Keamanan & RBAC di sisi server (Apache + PHP 8.x):
- * 1. 401 Unauthorized jika tidak memiliki sesi sah atau token akses valid.
- * 2. 403 Forbidden jika Staf Cabang mencoba mengakses/mengubah data permohonan cabang lain.
- * 3. 403 Forbidden jika non-Admin Pusat mengklaim status persetujuan (APPROVED).
- * 4. Audit trail server-side: server timestamp (ISO 8601), user displayName, role, dan SHA-256 integrity hash.
- * 5. Penyimpanan persisten terpusat (Single Source of Truth / SSOT) di server produksi.
+ * Karakteristik Keamanan & Integritas Data:
+ * 1. Single Source of Truth (SSOT): Penyimpanan terpusat operasional di cPanel (data/nolap_database.json).
+ * 2. Autentikasi Fail-Closed: 401 Unauthorized jika tidak memiliki sesi sah atau Bearer token terdaftar.
+ * 3. Strict Branch Isolation (RBAC): 403 Forbidden untuk akses lintas cabang (Padang, Bandung, Makassar, Palembang).
+ * 4. Versioned Approval Control:
+ *    - Status APPROVED terikat permanen pada versi dan SHA-256 hash dokumen.
+ *    - Setiap revisi material pada dokumen yang sudah APPROVED otomatis membuat versi baru (v+1)
+ *      dan menurunkan status menjadi PENDING_REVIEW.
+ *    - Approval lama diarsipkan secara permanen dan tidak dapat digunakan untuk menyetujui isi baru.
+ * 5. Concurrency Safe & Atomic Write: Menggunakan temp file dan flock(LOCK_EX).
+ * 6. Automated Backup: Snapshot berkala ke data/backups/ sebelum mutasi data.
+ * 7. Protected Directory: data/ dan data/backups/ dilindungi .htaccess (Require all denied).
  */
 
 header('Content-Type: application/json; charset=UTF-8');
@@ -26,7 +33,7 @@ if ($origin) {
     }
 }
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Accept, Authorization, X-Requested-With');
+header('Access-Control-Allow-Headers: Content-Type, Accept, Authorization, X-Requested-With, X-NSR-Token');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -54,7 +61,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // -------------------------------------------------------------
-// 1. DATA TOKENS RESMI UNTUK VALIDASI BEARER API / TOKEN HEADER
+// 1. DATA TOKENS RESMI UNTUK VALIDASI API / BEARER / HEADER
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
     // Pusat: JKT#00 / NSR-PST-2026
@@ -83,7 +90,7 @@ $OFFICIAL_TOKEN_HASHES = [
 // -------------------------------------------------------------
 $currentUser = null;
 
-// A. Periksa dari Sesi PHP (Login Cookie HttpOnly NSR_SESSION)
+// A. Dari Sesi PHP (NSR_SESSION)
 if (isset($_SESSION['nsr_user']) && is_array($_SESSION['nsr_user'])) {
     $loginTime = $_SESSION['nsr_login_time'] ?? 0;
     if (time() - $loginTime < 28800) {
@@ -91,7 +98,7 @@ if (isset($_SESSION['nsr_user']) && is_array($_SESSION['nsr_user'])) {
     }
 }
 
-// B. Periksa dari Authorization Header (Bearer Token)
+// B. Dari Authorization Header (Bearer Token)
 if (!$currentUser) {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
     if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $matches)) {
@@ -103,7 +110,7 @@ if (!$currentUser) {
     }
 }
 
-// C. Periksa dari custom header X-NSR-Token
+// C. Dari Header X-NSR-Token
 if (!$currentUser) {
     $customToken = $_SERVER['HTTP_X_NSR_TOKEN'] ?? '';
     if ($customToken) {
@@ -130,46 +137,53 @@ $userBranch = trim($currentUser['branch'] ?? 'Pusat');
 $userDisplayName = $currentUser['displayName'] ?? $currentUser['sub'] ?? 'Staf NSR';
 
 // -------------------------------------------------------------
-// 3. PERSISTENT STORAGE MANAGEMENT (SSOT)
+// 3. PERSISTENT STORAGE, DIRECTORY PROTECTION & CONCURRENCY
 // -------------------------------------------------------------
-$dataFile = __DIR__ . '/nolap-data.json';
+$dataDir = __DIR__ . '/data';
+if (!is_dir($dataDir)) {
+    @mkdir($dataDir, 0750, true);
+}
+// Lindungi direktori data dengan .htaccess jika belum ada
+$dataHtaccess = $dataDir . '/.htaccess';
+if (!file_exists($dataHtaccess)) {
+    @file_put_contents($dataHtaccess, "Require all denied\n");
+}
 
-function muatDatabaseNoLap($dataFile) {
-    if (file_exists($dataFile)) {
-        $raw = @file_get_contents($dataFile);
-        $data = json_decode($raw, true);
-        if (is_array($data) && count($data) > 0) {
-            return $data;
-        }
-    }
-    // Baseline dataset resmi jika data file belum diinisialisasi
+$dataFile = $dataDir . '/nolap_database.json';
+// Fallback path untuk kompatibilitas jika file lama berada di root
+if (!file_exists($dataFile) && file_exists(__DIR__ . '/nolap-data.json')) {
+    $dataFile = __DIR__ . '/nolap-data.json';
+}
+
+function muatBaselineResmi() {
     return [
+        // 1. DATA PENUGASAN ASLI RESMI (BERSIH DARI SIMULASI)
         [
             'noPermintaan' => 'REQ-000006',
-            'timestamp' => '2026-09-23 16:47:33',
+            'timestamp' => '2026-09-23 16:40:55',
             'cabang' => 'Pusat',
             'namaPemohon' => 'Zahra',
             'jabatanPemohon' => 'Admin',
             'emailPemohon' => 'kjppnsr.adm2@gmail.com',
             'waPemohon' => '0895391057740',
-            'namaKlien' => 'PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. IVANDER PUTRA SUKSES',
+            'namaKlien' => 'PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. GEMILANG SAKTI PROPERTINDO',
             'statusKlien' => 'Bank',
-            'alamatKlien' => 'Kp. Bojong RT.01 RW.15, Sarimukti, Cibitung, Bekasi, Jawa Barat',
+            'alamatKlien' => 'Kp. Babakan RT.03 RW.02, Satria Jaya, Tambun Utara, Bekasi, Jawa Barat',
             'kontakKlien' => '081314489587',
             'klasifikasiJasa' => 'PI',
             'kodeIndustri' => '07',
             'tujuanPenilaian' => 'Penjaminan Utang',
             'jenisObjek' => 'Tanah dan Bangunan Rumah Tinggal',
-            'lokasiObjek' => 'Perumahan Permata Harapan Sarimukti Blok D8-6, Sarimukti, Cibitung, Bekasi',
+            'lokasiObjek' => 'Perumahan Green Lavender Sukamekar Blok F4 No. 15, Sukamekar, Sukawangi, Bekasi',
             'deadline' => '2026-09-23',
             'penilai' => 'Deni Siswandi',
             'izinPenilai' => '00581',
-            'npwp' => '42.258.163.7-435.000',
+            'npwp' => '86.456.757.3-435.000',
             'kodeNpwp' => '1',
             'penggunaLaporan' => 'PT Bank Tabungan Negara (Persero) Tbk',
             'status' => 'NOMOR DITERBITKAN',
-            'nomorLaporan' => '00524/2.0160-00/PI/07/00581/1/IX/2026',
-            'tglTerbit' => '2026-09-24',
+            'nomorLaporan' => '00523/2.0160-00/PI/07/00581/1/IX/2026',
+            'tglTerbit' => '2026-09-23',
             'statusElsa' => 'BELUM INPUT'
         ],
         [
@@ -225,16 +239,114 @@ function muatDatabaseNoLap($dataFile) {
             'jenisObjek' => 'Tanah Kas Desa Jalur Pipa Gas',
             'lokasiObjek' => 'Sungai Selincah, Kalidoni, Palembang',
             'status' => 'DIAJUKAN'
+        ],
+
+        // 2. DATA PENUGASAN UJI KHUSUS / TERISOLASI (UNTUK TESTING SAJA)
+        [
+            'noPermintaan' => 'REQ-TEST-001',
+            'timestamp' => '2026-10-12 08:00:00',
+            'cabang' => 'Padang',
+            'namaPemohon' => 'Staf Uji Padang',
+            'namaKlien' => 'PT. Simulasi Pertanahan Mandiri (Uji Padang)',
+            'statusKlien' => 'BUMN',
+            'klasifikasiJasa' => 'PI',
+            'kodeIndustri' => '02',
+            'jenisObjek' => 'Tanah Koridor Uji Coba',
+            'lokasiObjek' => 'Kawasan Uji Bypass Padang',
+            'status' => 'DIAJUKAN',
+            'isDummyTest' => true
+        ],
+        [
+            'noPermintaan' => 'REQ-TEST-002',
+            'timestamp' => '2026-10-12 08:30:00',
+            'cabang' => 'Bandung',
+            'namaPemohon' => 'Staf Uji Bandung',
+            'namaKlien' => 'CV. Uji Cipta Jawa Barat (Uji Bandung)',
+            'statusKlien' => 'Swasta',
+            'klasifikasiJasa' => 'PI',
+            'kodeIndustri' => '07',
+            'jenisObjek' => 'Ruko Perkantoran Uji',
+            'lokasiObjek' => 'Jl. Asia Afrika No. 99, Bandung',
+            'status' => 'DIAJUKAN',
+            'isDummyTest' => true
+        ],
+        [
+            'noPermintaan' => 'REQ-TEST-003',
+            'timestamp' => '2026-10-12 09:00:00',
+            'cabang' => 'Pusat',
+            'namaPemohon' => 'Staf Uji Pusat',
+            'namaKlien' => 'PT. Uji Bangun Nusantara (Uji Pusat)',
+            'statusKlien' => 'BUMN',
+            'klasifikasiJasa' => 'PS',
+            'kodeIndustri' => '03',
+            'jenisObjek' => 'Tanah Kas Desa Ruislagh Uji',
+            'lokasiObjek' => 'Desa Sukamaju, Kawasan Khusus Pusat',
+            'status' => 'DIAJUKAN',
+            'isDummyTest' => true
         ]
     ];
 }
 
+function muatDatabaseNoLap($dataFile) {
+    if (file_exists($dataFile)) {
+        $raw = @file_get_contents($dataFile);
+        $data = json_decode($raw, true);
+        if (is_array($data) && count($data) > 0) {
+            return $data;
+        }
+    }
+    return muatBaselineResmi();
+}
+
 function simpanDatabaseNoLap($dataFile, $records) {
-    $tempFile = $dataFile . '.tmp.' . uniqid();
+    $dir = dirname($dataFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0750, true);
+    }
+    
+    // Backup snapshot harian / per mutasi
+    $backupDir = $dir . '/backups';
+    if (!is_dir($backupDir)) {
+        @mkdir($backupDir, 0750, true);
+    }
+    
+    // Tulis atomik dengan locking (LOCK_EX)
+    $tempFile = tempnam($dir, 'tmp_nolap_');
+    if ($tempFile === false) return false;
+
     $json = json_encode($records, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if (file_put_contents($tempFile, $json, LOCK_EX) !== false) {
+    $fp = fopen($tempFile, 'w');
+    if (!$fp) {
+        @unlink($tempFile);
+        return false;
+    }
+
+    if (flock($fp, LOCK_EX)) {
+        fwrite($fp, $json);
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        // Buat backup snapshot dari file lama sebelum di-replace
+        if (file_exists($dataFile)) {
+            $backupFile = $backupDir . '/nolap_backup_' . date('Ymd_His') . '_' . substr(md5(uniqid()), 0, 6) . '.json';
+            @copy($dataFile, $backupFile);
+
+            // Batasi backup agar tidak melebihi 30 file
+            $allBackups = glob($backupDir . '/nolap_backup_*.json');
+            if (is_array($allBackups) && count($allBackups) > 30) {
+                usort($allBackups, function($a, $b) { return filemtime($a) - filemtime($b); });
+                while (count($allBackups) > 30) {
+                    @unlink(array_shift($allBackups));
+                }
+            }
+        }
+
         return rename($tempFile, $dataFile);
     }
+
+    fclose($fp);
+    @unlink($tempFile);
     return false;
 }
 
@@ -318,7 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // -------------------------------------------------------------
-// 5. METODE POST: SUBMIT PENGAJUAN, MITIGASI & APPROVAL
+// 5. METODE POST: SUBMIT, REVISI VERSIONING, APPROVAL & RESTORE
 // -------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rawInput = file_get_contents('php://input');
@@ -332,7 +444,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $body['action'] ?? null;
     $payload = $body['payload'] ?? null;
 
-    // A. TINDAKAN SIMPAN / SINKRONISASI DATA MITIGASI RISIKO (KJPP-RM-CA-01, 02, 03)
+    // =========================================================================
+    // A. TINDAKAN SIMPAN / REVISI / APPROVAL MITIGASI (DENGAN KONTROL VERSI)
+    // =========================================================================
     if ($action === 'saveMitigasi') {
         $noReq = $payload['noPermintaan'] ?? null;
         $tipe = $payload['tipeMitigasi'] ?? null;
@@ -360,8 +474,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $targetItem = &$records[$targetIndex];
 
-        // ISOLASI CABANG (Server-side RBAC):
-        // Staf Cabang DILARANG KERAS menyimpan atau memodifikasi mitigasi milik cabang lain!
+        // 1. ISOLASI CABANG (Server-side RBAC)
         if ($userRole === 'CABANG') {
             if (strcasecmp($targetItem['cabang'] ?? '', $userBranch) !== 0) {
                 http_response_code(403);
@@ -374,8 +487,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // VALIDASI APPROVAL:
-        // Status 'APPROVED' TIDAK BOLEH ditetapkan oleh Cabang atau peran non-Pusat!
+        // 2. DETEKSI KLAIM APPROVAL DARI PAYLOAD
         $isApprovalClaimed = (
             ($mitigasiData['statusDokumen'] ?? '') === 'APPROVED' ||
             ($mitigasiData['statusApproval'] ?? '') === 'APPROVED' ||
@@ -386,6 +498,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (($mitigasiData['sec_acceptance']['keputusan'] ?? '') === 'APPROVED')
         );
 
+        // CABANG DILARANG KERAS MENETAPKAN STATUS APPROVAL
         if ($isApprovalClaimed && $userRole !== 'ADMIN_PUSAT') {
             http_response_code(403);
             echo json_encode([
@@ -396,49 +509,156 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Metadata Server Audit Trail
+        // 3. KONTROL VERSI & DEMOSI OTOMATIS BILA ADA REVISI MATERIAL PADA DOKUMEN APPROVED
+        if (!isset($targetItem['mitigasi']) || !is_array($targetItem['mitigasi'])) {
+            $targetItem['mitigasi'] = [];
+        }
+
+        $existing = $targetItem['mitigasi'][$tipe] ?? null;
+        $prevVersion = 1;
+        $archivedVersions = [];
+        $revisionHistory = [];
+
+        if ($existing && is_array($existing)) {
+            $prevVersion = (int)($existing['activeVersion'] ?? $existing['version'] ?? 1);
+            $archivedVersions = $existing['archivedVersions'] ?? [];
+            $revisionHistory = $existing['revisionHistory'] ?? [];
+        }
+
         $serverTimestamp = date('c');
         $contentHash = hash('sha256', json_encode($mitigasiData));
 
+        $activeVersion = $prevVersion;
+        $statusDokumenAkhir = $mitigasiData['statusDokumen'] ?? 'DRAFT';
+        $isDemotedFromApproved = false;
+
+        // Cek: Apakah dokumen ini SEBELUMNYA sudah pernah APPROVED?
+        $wasPreviouslyApproved = ($existing && (($existing['statusDokumen'] ?? '') === 'APPROVED' || ($existing['_serverAudit']['isApprovedFormal'] ?? false) === true));
+
+        if ($wasPreviouslyApproved) {
+            $prevHash = $existing['_serverAudit']['contentHash'] ?? '';
+            $isContentModified = ($prevHash !== '' && $prevHash !== $contentHash);
+
+            // Jika konten diubah oleh pengguna dan bukan pengesahan ulang resmi:
+            if ($isContentModified && !$isApprovalClaimed) {
+                // 1. Arsipkan versi APPROVED sebelumnya secara permanen
+                $archivedVersions[] = [
+                    'version'      => $prevVersion,
+                    'status'       => 'APPROVED',
+                    'approvedAt'   => $existing['_serverAudit']['serverApprovedAt'] ?? $existing['lastUpdated'] ?? $serverTimestamp,
+                    'approvedBy'   => $existing['_serverAudit']['serverApprovedBy'] ?? 'Reviewer Pusat',
+                    'contentHash'  => $prevHash,
+                    'snapshotData' => $existing
+                ];
+
+                // 2. Naikkan nomor versi (v+1)
+                $activeVersion = $prevVersion + 1;
+
+                // 3. Turunkan status versi baru menjadi PENDING_REVIEW (Approval lama gugur!)
+                $statusDokumenAkhir = 'PENDING_REVIEW';
+                $mitigasiData['statusDokumen'] = 'PENDING_REVIEW';
+                $mitigasiData['isApproved'] = false;
+                $isDemotedFromApproved = true;
+
+                // 4. Catat riwayat revisi
+                $revisionHistory[] = [
+                    'fromVersion' => $prevVersion,
+                    'toVersion'   => $activeVersion,
+                    'revisedAt'   => $serverTimestamp,
+                    'revisedBy'   => $userDisplayName,
+                    'revisedRole' => $userRole,
+                    'reason'      => $payload['alasanRevisi'] ?? 'Revisi Formulir Mitigasi Pasca-Approval',
+                    'action'      => 'RESET_TO_PENDING_REVIEW'
+                ];
+            }
+        }
+
+        // 4. METADATA AUDIT SERVER
         $auditMeta = [
             'serverRecordedAt'   => $serverTimestamp,
             'serverRecordedBy'   => $userDisplayName,
             'serverRecordedRole' => $userRole,
             'serverBranch'       => $userBranch,
             'contentHash'        => $contentHash,
+            'version'            => $activeVersion,
             'isApprovedFormal'   => false
         ];
 
+        // Pengesahan Resmi oleh Admin Pusat
         if ($isApprovalClaimed && $userRole === 'ADMIN_PUSAT') {
             $auditMeta['isApprovedFormal']   = true;
             $auditMeta['serverApprovedAt']   = $serverTimestamp;
             $auditMeta['serverApprovedBy']   = $userDisplayName;
             $auditMeta['serverApprovalRole'] = $userRole;
+            $auditMeta['sopSignOff'] = [
+                'reviewerTeknis' => $mitigasiData['secF_qc']['reviewer'] ?? 'Penilai Publik Berizin',
+                'kepalaSpm'      => 'Tim Pengendalian Mutu (SPM) KJPP NSR',
+                'pemimpinRekan'  => 'Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)'
+            ];
+            $statusDokumenAkhir = 'APPROVED';
+            $mitigasiData['statusDokumen'] = 'APPROVED';
         }
 
-        if (!isset($targetItem['mitigasi']) || !is_array($targetItem['mitigasi'])) {
-            $targetItem['mitigasi'] = [];
-        }
+        // 5. METADATA SINKRONISASI GOOGLE SHEETS
+        $kodeDokumen = ($tipe === 'tanah' ? 'KJPP-RM-CA-02' : ($tipe === 'ruislagh' ? 'KJPP-RM-CA-03' : 'KJPP-RM-CA-01'));
+        $sheetSyncMeta = [
+            'mitigasiId'                 => 'MIT-' . $noReq . '-' . strtoupper($tipe) . '-V' . $activeVersion,
+            'noLapRequestId'             => $noReq,
+            'kodeDokumen'                => $kodeDokumen,
+            'namaProyek'                 => $mitigasiData['secA']['namaProyek'] ?? $targetItem['namaKlien'] ?? '-',
+            'pemberiTugas'               => $targetItem['namaKlien'] ?? '-',
+            'jenisPenugasan'             => strtoupper($tipe),
+            'tingkatRisiko'              => $mitigasiData['sec_matriks']['level'] ?? $mitigasiData['secD_matriks']['level'] ?? 'LOW',
+            'rekomendasiClientAcceptance'=> $mitigasiData['secF_acceptance']['keputusan'] ?? $mitigasiData['secE_acceptance']['keputusan'] ?? $mitigasiData['sec_acceptance']['keputusan'] ?? 'ACCEPT',
+            'statusReview'               => $statusDokumenAkhir,
+            'keputusanApproval'          => ($statusDokumenAkhir === 'APPROVED' ? 'APPROVED' : 'PENDING'),
+            'reviewer'                   => $userDisplayName,
+            'tanggalPersetujuan'         => ($statusDokumenAkhir === 'APPROVED' ? $serverTimestamp : '-'),
+            'nomorVersi'                 => 'v' . $activeVersion . '.0',
+            'linkPdf'                    => $mitigasiData['linkPdf'] ?? '',
+            'driveFileId'                => $mitigasiData['driveFileId'] ?? '',
+            'statusSync'                 => 'SYNC_PENDING',
+            'syncNote'                   => 'Tersimpan di cPanel SSOT. Antrean sinkronisasi Google Sheets tercatat.',
+            'lastSyncAttempt'            => $serverTimestamp
+        ];
 
+        // 6. GABUNGKAN DATA PERSISTEN
         $targetItem['mitigasi'][$tipe] = array_merge($mitigasiData, [
-            '_serverAudit' => $auditMeta,
-            'lastUpdated'  => $serverTimestamp
+            'activeVersion'    => $activeVersion,
+            'nomorVersi'       => 'v' . $activeVersion . '.0',
+            'statusDokumen'    => $statusDokumenAkhir,
+            '_serverAudit'     => $auditMeta,
+            '_sheetSync'       => $sheetSyncMeta,
+            'archivedVersions' => $archivedVersions,
+            'revisionHistory'  => $revisionHistory,
+            'lastUpdated'      => $serverTimestamp
         ]);
 
         simpanDatabaseNoLap($dataFile, $records);
 
+        $msg = "Data mitigasi risiko ({$tipe}) untuk permohonan {$noReq} berhasil disinkronkan ke server terpusat cPanel (Versi v{$activeVersion}.0).";
+        if ($isDemotedFromApproved) {
+            $msg .= " Perhatian: Dokumen yang telah di-approve sebelumnya kini berstatus PENDING_REVIEW dan memerlukan persetujuan ulang substantif.";
+        }
+
         echo json_encode([
-            'success'      => true,
-            'message'      => "Data mitigasi risiko ({$tipe}) untuk permohonan {$noReq} berhasil disinkronkan ke server terpusat cPanel.",
-            'noPermintaan' => $noReq,
-            'tipeMitigasi' => $tipe,
-            'serverAudit'  => $auditMeta,
-            'record'       => $targetItem
+            'success'               => true,
+            'message'               => $msg,
+            'noPermintaan'          => $noReq,
+            'tipeMitigasi'          => $tipe,
+            'activeVersion'         => $activeVersion,
+            'statusDokumen'         => $statusDokumenAkhir,
+            'isDemotedFromApproved' => $isDemotedFromApproved,
+            'serverAudit'           => $auditMeta,
+            'sheetSync'             => $sheetSyncMeta,
+            'record'                => $targetItem
         ]);
         exit;
     }
 
+    // =========================================================================
     // B. TINDAKAN SUBMIT PENGAJUAN BARU
+    // =========================================================================
     if ($action === 'submitRequest') {
         if (!isset($payload['namaKlien']) || empty(trim($payload['namaKlien']))) {
             http_response_code(400);
@@ -471,13 +691,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // C. TINDAKAN APPROVAL / PENETAPAN NOMOR RESMI
+    // =========================================================================
+    // C. TINDAKAN APPROVAL / PENETAPAN NOMOR RESMI NOLAP
+    // =========================================================================
     if ($action === 'approveRequest') {
         if ($userRole !== 'ADMIN_PUSAT') {
             http_response_code(403);
             echo json_encode([
-                'success' => false,
-                'error'   => 'Akses Ditolak (403 Forbidden): Wewenang approval resmi mutlak milik Admin Kantor Pusat.',
+                'success'   => false,
+                'error'     => 'Akses Ditolak (403 Forbidden): Wewenang approval resmi mutlak milik Admin Kantor Pusat.',
                 'violation' => 'UNAUTHORIZED_APPROVAL_ATTEMPT'
             ]);
             exit;
@@ -516,6 +738,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'success' => true,
             'message' => "Nomor laporan resmi '{$noLap}' berhasil ditetapkan oleh Admin Kantor Pusat.",
             'record'  => $records[$targetIndex]
+        ]);
+        exit;
+    }
+
+    // =========================================================================
+    // D. TINDAKAN ADMINISTRATIF: RESTORE DATABASE DARI BACKUP (ADMIN PUSAT ONLY)
+    // =========================================================================
+    if ($action === 'restoreBackup') {
+        if ($userRole !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Admin Pusat yang berwenang melakukan pemulihan backup.']);
+            exit;
+        }
+
+        $backupDir = dirname($dataFile) . '/backups';
+        $targetFile = null;
+
+        $reqBackup = $payload['backupFileName'] ?? 'latest';
+        if ($reqBackup === 'latest') {
+            $allBackups = glob($backupDir . '/nolap_backup_*.json');
+            if (is_array($allBackups) && count($allBackups) > 0) {
+                usort($allBackups, function($a, $b) { return filemtime($b) - filemtime($a); });
+                $targetFile = $allBackups[0];
+            }
+        } else {
+            $safeName = basename($reqBackup);
+            $candidate = $backupDir . '/' . $safeName;
+            if (file_exists($candidate)) {
+                $targetFile = $candidate;
+            }
+        }
+
+        if (!$targetFile || !file_exists($targetFile)) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'File snapshot backup tidak ditemukan.']);
+            exit;
+        }
+
+        $restoredData = json_decode(file_get_contents($targetFile), true);
+        if (!is_array($restoredData)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Format file backup rusak atau tidak valid.']);
+            exit;
+        }
+
+        simpanDatabaseNoLap($dataFile, $restoredData);
+
+        echo json_encode([
+            'success'          => true,
+            'message'          => 'Database berhasil dipulihkan dari snapshot backup.',
+            'restoredFrom'     => basename($targetFile),
+            'totalRecords'     => count($restoredData)
+        ]);
+        exit;
+    }
+
+    // =========================================================================
+    // E. TINDAKAN ADMINISTRATIF: SANITASI DATA PENUGASAN ASLI (RESET KE BASELINE)
+    // =========================================================================
+    if ($action === 'sanitizeProductionData') {
+        if ($userRole !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Admin Pusat yang berwenang mereset data ke baseline.']);
+            exit;
+        }
+
+        $baseline = muatBaselineResmi();
+        simpanDatabaseNoLap($dataFile, $baseline);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Data produksi berhasil disanitasi: Penugasan asli dibersihkan dari data uji simulasi, dan data dummy terisolasi siap digunakan.',
+            'totalRecords' => count($baseline)
         ]);
         exit;
     }

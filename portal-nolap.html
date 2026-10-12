@@ -13489,7 +13489,7 @@
 
     async function sinkronkanMitigasiKeBackend(tipe, mitigasiData) {
       const noReq = mitigasiData ? (mitigasiData.linkedNoReq || (typeof getLinkedNoReq === 'function' ? getLinkedNoReq(tipe[0]) : '')) : '';
-      if (!noReq) return;
+      if (!noReq) return { success: false, error: 'Nomor permohonan NoLap belum ditautkan' };
 
       // 1. Simpan ke daftarPermohonan in-memory lokal
       const item = daftarPermohonan.find(p => p.noPermintaan === noReq);
@@ -13520,10 +13520,14 @@
 
         if (res.ok) {
           const json = await res.json();
-          if (json.serverAudit && item) {
-            item.mitigasi[tipe]._serverAudit = json.serverAudit;
+          if (item && item.mitigasi && item.mitigasi[tipe]) {
+            if (json.serverAudit) item.mitigasi[tipe]._serverAudit = json.serverAudit;
+            if (json.sheetSync) item.mitigasi[tipe]._sheetSync = json.sheetSync;
+            if (json.activeVersion) item.mitigasi[tipe].activeVersion = json.activeVersion;
+            if (json.statusDokumen) item.mitigasi[tipe].statusDokumen = json.statusDokumen;
             simpanDatabaseLokal();
           }
+          return json;
         } else if (res.status === 403) {
           const err = await res.json().catch(() => ({}));
           console.warn('⚠️ Server proxy menolak mitigasi (RBAC 403):', err);
@@ -13532,9 +13536,13 @@
           } else if (err.violation === 'UNAUTHORIZED_MITIGATION_APPROVAL_ATTEMPT') {
             alert('⚠️ Peringatan Keamanan Server: Penetapan status APPROVED ditolak karena akun Anda tidak memiliki kewenangan approval pusat.');
           }
+          return { success: false, error: err.error || 'Akses ditolak (403)', violation: err.violation };
+        } else {
+          const err = await res.json().catch(() => ({}));
+          return { success: false, error: err.error || ('HTTP ' + res.status) };
         }
       } catch (err) {
-        // Fail-soft jika berjalan pada static web server
+        return { success: false, error: err.message };
       }
     }
 
@@ -15062,11 +15070,23 @@ function salinFormatGsheetSpmTanah() {
 
 // Override / Update simpanLogSpm('tanah')
 const simpanLogSpmOriginal = window.simpanLogSpm;
-window.simpanLogSpm = function(tipe) {
+window.simpanLogSpm = async function(tipe) {
   if (tipe === 'tanah') {
     simpanStateSmartSpmTanah();
     updateSmartSpmTanahStats();
     const d = kumpulkanDataSmartTanah();
+
+    let backendResult = null;
+    if (typeof sinkronkanMitigasiKeBackend === 'function') {
+      backendResult = await sinkronkanMitigasiKeBackend('tanah', d);
+      if (backendResult && backendResult.activeVersion) {
+        smartTanahState.activeVersion = backendResult.activeVersion;
+        smartTanahState.statusDokumen = backendResult.statusDokumen;
+        simpanStateSmartSpmTanah();
+        updateSmartSpmTanahStats();
+      }
+    }
+
     // Sinkronkan ke Google Apps Script latar belakang jika tersedia
     if (typeof kirimKeAppsScriptBackground === 'function') {
       kirimKeAppsScriptBackground({
@@ -15074,10 +15094,23 @@ window.simpanLogSpm = function(tipe) {
         data: d
       });
     }
-    if (typeof sinkronkanMitigasiKeBackend === 'function') {
-      sinkronkanMitigasiKeBackend('tanah', d);
+
+    if (backendResult && backendResult.success) {
+      let alertMsg = `✅ Data Client Acceptance & Smart Mitigasi Pengadaan Tanah (KJPP-RM-CA-02) BERHASIL DISIMPAN.\n\n` +
+        `• Single Source of Truth: Terkonfirmasi cPanel Server\n` +
+        `• Nomor Versi: v${backendResult.activeVersion || 1}.0\n` +
+        `• Status Dokumen: ${backendResult.statusDokumen || d.statusDokumen}\n` +
+        `• Keputusan: ${d.secF_acceptance.keputusan || 'Menunggu Keputusan'}\n` +
+        `• Registri Google Sheets: SYNC PENDING (Tercatat dalam antrean sinkronisasi resmi)`;
+      if (backendResult.isDemotedFromApproved) {
+        alertMsg += `\n\n⚠️ PERHATIAN REVISI PASCA-APPROVAL:\nDokumen yang sebelumnya telah di-APPROVED telah mengalami perubahan isi. Sesuai tata kelola SPM KJPP NSR, status dokumen diturunkan menjadi PENDING REVIEW dan memerlukan persetujuan ulang substantif.`;
+      }
+      alert(alertMsg);
+    } else if (backendResult && !backendResult.success) {
+      alert(`⚠️ PERINGATAN PENYIMPANAN SERVER:\nData gagal disimpan ke server terpusat: ${backendResult.error || 'Kesalahan koneksi'}`);
+    } else {
+      alert(`✅ Data Client Acceptance & Smart Mitigasi Pengadaan Tanah (KJPP-RM-CA-02) berhasil disimpan di sesi lokal.\n\nStatus: ${d.statusDokumen}\nKeputusan: ${d.secF_acceptance.keputusan || 'Menunggu Keputusan'}`);
     }
-    alert(`✅ Data Client Acceptance & Smart Mitigasi Pengadaan Tanah (KJPP-RM-CA-02) berhasil disimpan permanen.\n\nStatus: ${d.statusDokumen}\nKeputusan: ${d.secF_acceptance.keputusan || 'Menunggu Keputusan'}\nProyek: ${d.secA.namaProyek || '-'}`);
     return;
   }
   if (typeof simpanLogSpmOriginal === 'function') {
@@ -15144,11 +15177,13 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #94a3b8; padding-bottom:6px; margin-bottom:10px;">
       <div>
         <strong style="font-size:13px; text-transform:uppercase;">FORMULIR KENDALI MUTU KHUSUS PENGADAAN TANAH (SPI 204)</strong><br>
-        <span style="font-size:10px; color:#475569;">Kode Dokumen: <strong>KJPP-RM-CA-02</strong> (Pengadaan Tanah) • UU No. 2/2012 jo. PP 19/2021</span>
+        <span style="font-size:10px; color:#475569;">Kode Dokumen: <strong>KJPP-RM-CA-02</strong> (Pengadaan Tanah) • UU No. 2/2012 jo. PP 19/2021</span><br>
+        <span style="font-size:9.5px; color:#64748b;">Versi Dokumen: <strong>${d.activeVersion ? 'v' + d.activeVersion + '.0' : (smartTanahState.activeVersion ? 'v' + smartTanahState.activeVersion + '.0' : (d.nomorVersi || 'v1.0'))}</strong> • Status: <strong>${isApproved ? 'APPROVED (Resmi)' : (d.statusDokumen || 'DRAFT')}</strong></span>
       </div>
       <div style="text-align:right; font-size:10px;">
-        <span>No. Registrasi: <strong>${d.linkedNoReq || '(Mandiri)'}</strong></span><br>
-        <span>Tanggal Kertas Kerja: ${new Date().toLocaleDateString('id-ID')}</span>
+        <span>No. Registrasi NoLap: <strong>${d.linkedNoReq || '(Mandiri)'}</strong></span><br>
+        <span>Tanggal Kertas Kerja: ${new Date().toLocaleDateString('id-ID')}</span><br>
+        <span style="font-size:9px; color:#64748b;">Tgl Approval / Server: ${d._serverAudit && d._serverAudit.serverApprovedAt ? d._serverAudit.serverApprovedAt.substring(0, 10) : (d.secG_qc && d.secG_qc.approvalDate ? d.secG_qc.approvalDate : '-')} • ID Arsip: ${d.driveFileId ? d.driveFileId : (d._serverAudit && d._serverAudit.contentHash ? d._serverAudit.contentHash.substring(0, 12) + '...' : 'CPANEL-SSOT')}</span>
       </div>
     </div>
 
@@ -16035,21 +16070,47 @@ function salinFormatGsheetSpmUmum() {
 
 // Override simpanLogSpm('umum')
 const simpanLogSpmUmumOriginal = window.simpanLogSpm;
-window.simpanLogSpm = function(tipe) {
+window.simpanLogSpm = async function(tipe) {
   if (tipe === 'umum') {
     simpanStateSmartSpmUmum();
     updateSmartSpmUmumStats();
     const d = kumpulkanDataSmartUmum();
+
+    let backendResult = null;
+    if (typeof sinkronkanMitigasiKeBackend === 'function') {
+      backendResult = await sinkronkanMitigasiKeBackend('umum', d);
+      if (backendResult && backendResult.activeVersion) {
+        smartUmumState.activeVersion = backendResult.activeVersion;
+        smartUmumState.statusDokumen = backendResult.statusDokumen;
+        simpanStateSmartSpmUmum();
+        updateSmartSpmUmumStats();
+      }
+    }
+
     if (typeof kirimKeAppsScriptBackground === 'function') {
       kirimKeAppsScriptBackground({
         action: 'saveSmartMitigasiUmum',
         data: d
       });
     }
-    if (typeof sinkronkanMitigasiKeBackend === 'function') {
-      sinkronkanMitigasiKeBackend('umum', d);
+
+    if (backendResult && backendResult.success) {
+      let alertMsg = `✅ Data Client Acceptance & Mitigasi Penugasan Umum (KJPP-RM-CA-01) BERHASIL DISIMPAN.\n\n` +
+        `• Single Source of Truth: Terkonfirmasi cPanel Server\n` +
+        `• Nomor Versi: v${backendResult.activeVersion || 1}.0\n` +
+        `• Status Dokumen: ${backendResult.statusDokumen || d.statusDokumen}\n` +
+        `• Kategori: ${d.kategori}\n` +
+        `• Keputusan: ${d.secE_acceptance.keputusan || 'Menunggu Keputusan'}\n` +
+        `• Registri Google Sheets: SYNC PENDING (Tercatat dalam antrean sinkronisasi resmi)`;
+      if (backendResult.isDemotedFromApproved) {
+        alertMsg += `\n\n⚠️ PERHATIAN REVISI PASCA-APPROVAL:\nDokumen yang sebelumnya telah di-APPROVED telah mengalami perubahan isi. Sesuai tata kelola SPM KJPP NSR, status dokumen diturunkan menjadi PENDING REVIEW dan memerlukan persetujuan ulang substantif.`;
+      }
+      alert(alertMsg);
+    } else if (backendResult && !backendResult.success) {
+      alert(`⚠️ PERINGATAN PENYIMPANAN SERVER:\nData gagal disimpan ke server terpusat: ${backendResult.error || 'Kesalahan koneksi'}`);
+    } else {
+      alert(`✅ Data Client Acceptance & Mitigasi Penugasan Umum (KJPP-RM-CA-01) berhasil disimpan di sesi lokal.\n\nStatus: ${d.statusDokumen}\nKategori: ${d.kategori}\nKeputusan: ${d.secE_acceptance.keputusan || 'Menunggu Keputusan'}`);
     }
-    alert(`✅ Data Client Acceptance & Mitigasi Penugasan Umum (KJPP-RM-CA-01) berhasil disimpan permanen.\n\nStatus: ${d.statusDokumen}\nKategori: ${d.kategori}\nKeputusan: ${d.secE_acceptance.keputusan || 'Menunggu Keputusan'}`);
     return;
   }
   if (typeof simpanLogSpmUmumOriginal === 'function') {
@@ -16117,11 +16178,13 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #94a3b8; padding-bottom:6px; margin-bottom:10px;">
       <div>
         <strong style="font-size:13px; text-transform:uppercase;">KERTAS KERJA ADAPTIVE CLIENT ACCEPTANCE &amp; MITIGASI RISIKO</strong><br>
-        <span style="font-size:10px; color:#475569;">Kode Dokumen: KJPP-RM-CA-01 (Umum) • Standar Penilaian Indonesia (SPI) &amp; KEPI</span>
+        <span style="font-size:10px; color:#475569;">Kode Dokumen: <strong>KJPP-RM-CA-01</strong> (Umum) • Standar Penilaian Indonesia (SPI) &amp; KEPI</span><br>
+        <span style="font-size:9.5px; color:#64748b;">Versi Dokumen: <strong>${d.activeVersion ? 'v' + d.activeVersion + '.0' : (smartUmumState.activeVersion ? 'v' + smartUmumState.activeVersion + '.0' : (d.nomorVersi || 'v1.0'))}</strong> • Status: <strong>${isApproved ? 'APPROVED (Resmi)' : (d.statusDokumen || 'DRAFT')}</strong></span>
       </div>
       <div style="text-align:right; font-size:10px;">
-        <span>No. Registrasi: <strong>${d.linkedNoReq || '(Mandiri)'}</strong></span><br>
-        <span>Tanggal Kertas Kerja: ${new Date().toLocaleDateString('id-ID')}</span>
+        <span>No. Registrasi NoLap: <strong>${d.linkedNoReq || '(Mandiri)'}</strong></span><br>
+        <span>Tanggal Kertas Kerja: ${new Date().toLocaleDateString('id-ID')}</span><br>
+        <span style="font-size:9px; color:#64748b;">Tgl Approval / Server: ${d._serverAudit && d._serverAudit.serverApprovedAt ? d._serverAudit.serverApprovedAt.substring(0, 10) : (d.secF_qc && d.secF_qc.f06 ? d.secF_qc.f06 : '-')} • ID Arsip: ${d.driveFileId ? d.driveFileId : (d._serverAudit && d._serverAudit.contentHash ? d._serverAudit.contentHash.substring(0, 12) + '...' : 'CPANEL-SSOT')}</span>
       </div>
     </div>
 
@@ -16951,11 +17014,13 @@ window.cetakKertasKerjaSpmRuislagh = function(targetStatus) {
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #94a3b8; padding-bottom:6px; margin-bottom:10px;">
       <div>
         <strong style="font-size:13px; text-transform:uppercase;">KERTAS KERJA MITIGASI RISIKO TUKAR-MENUKAR TANAH KAS DESA (RUISLAGH TKD)</strong><br>
-        <span style="font-size:10px; color:#475569;">Kode Dokumen: <strong>KJPP-RM-CA-03</strong> • Permendagri No. 1/2016 jo. No. 3/2024 &amp; UU Desa No. 3/2024</span>
+        <span style="font-size:10px; color:#475569;">Kode Dokumen: <strong>KJPP-RM-CA-03</strong> • Permendagri No. 1/2016 jo. No. 3/2024 &amp; UU Desa No. 3/2024</span><br>
+        <span style="font-size:9.5px; color:#64748b;">Versi Dokumen: <strong>${d.activeVersion ? 'v' + d.activeVersion + '.0' : (smartRuislaghState.activeVersion ? 'v' + smartRuislaghState.activeVersion + '.0' : (d.nomorVersi || 'v1.0'))}</strong> • Status: <strong>${isApproved ? 'APPROVED (Resmi)' : (d.statusDokumen || 'DRAFT')}</strong></span>
       </div>
       <div style="text-align:right; font-size:10px;">
-        <span>No. Registrasi: <strong>${d.linkedNoReq || '(Mandiri)'}</strong></span><br>
-        <span>Tanggal Kertas Kerja: ${new Date().toLocaleDateString('id-ID')}</span>
+        <span>No. Registrasi NoLap: <strong>${d.linkedNoReq || '(Mandiri)'}</strong></span><br>
+        <span>Tanggal Kertas Kerja: ${new Date().toLocaleDateString('id-ID')}</span><br>
+        <span style="font-size:9px; color:#64748b;">Tgl Approval / Server: ${d._serverAudit && d._serverAudit.serverApprovedAt ? d._serverAudit.serverApprovedAt.substring(0, 10) : (d.sec_qc && d.sec_qc.approvalDate ? d.sec_qc.approvalDate : '-')} • ID Arsip: ${d.driveFileId ? d.driveFileId : (d._serverAudit && d._serverAudit.contentHash ? d._serverAudit.contentHash.substring(0, 12) + '...' : 'CPANEL-SSOT')}</span>
       </div>
     </div>
 
@@ -17081,21 +17146,47 @@ window.cetakKertasKerjaSpmRuislagh = function(targetStatus) {
 
 // 12. Override simpanLogSpm('ruislagh')
 const simpanLogSpmRuislaghOriginal = window.simpanLogSpm;
-window.simpanLogSpm = function(tipe) {
+window.simpanLogSpm = async function(tipe) {
   if (tipe === 'ruislagh') {
     simpanStateSmartSpmRuislagh();
     updateSmartSpmRuislaghStats();
     const d = kumpulkanDataSmartRuislagh();
+
+    let backendResult = null;
+    if (typeof sinkronkanMitigasiKeBackend === 'function') {
+      backendResult = await sinkronkanMitigasiKeBackend('ruislagh', d);
+      if (backendResult && backendResult.activeVersion) {
+        smartRuislaghState.activeVersion = backendResult.activeVersion;
+        smartRuislaghState.statusDokumen = backendResult.statusDokumen;
+        simpanStateSmartSpmRuislagh();
+        updateSmartSpmRuislaghStats();
+      }
+    }
+
     if (typeof kirimKeAppsScriptBackground === 'function') {
       kirimKeAppsScriptBackground({
         action: 'saveSmartMitigasiRuislagh',
         data: d
       });
     }
-    if (typeof sinkronkanMitigasiKeBackend === 'function') {
-      sinkronkanMitigasiKeBackend('ruislagh', d);
+
+    if (backendResult && backendResult.success) {
+      let alertMsg = `✅ Data Client Acceptance & Smart Mitigasi Ruislagh TKD (KJPP-RM-CA-03) BERHASIL DISIMPAN.\n\n` +
+        `• Single Source of Truth: Terkonfirmasi cPanel Server\n` +
+        `• Nomor Versi: v${backendResult.activeVersion || 1}.0\n` +
+        `• Status Dokumen: ${backendResult.statusDokumen || d.statusDokumen}\n` +
+        `• Jalur Ruislagh: ${d.jalurRuislagh}\n` +
+        `• Keputusan: ${d.sec_acceptance.keputusan || 'Menunggu Keputusan'}\n` +
+        `• Registri Google Sheets: SYNC PENDING (Tercatat dalam antrean sinkronisasi resmi)`;
+      if (backendResult.isDemotedFromApproved) {
+        alertMsg += `\n\n⚠️ PERHATIAN REVISI PASCA-APPROVAL:\nDokumen yang sebelumnya telah di-APPROVED telah mengalami perubahan isi. Sesuai tata kelola SPM KJPP NSR, status dokumen diturunkan menjadi PENDING REVIEW dan memerlukan persetujuan ulang substantif.`;
+      }
+      alert(alertMsg);
+    } else if (backendResult && !backendResult.success) {
+      alert(`⚠️ PERINGATAN PENYIMPANAN SERVER:\nData gagal disimpan ke server terpusat: ${backendResult.error || 'Kesalahan koneksi'}`);
+    } else {
+      alert(`✅ Data Client Acceptance & Smart Mitigasi Ruislagh TKD (KJPP-RM-CA-03) berhasil disimpan di sesi lokal.\n\nStatus: ${d.statusDokumen}\nJalur: ${d.jalurRuislagh}\nKeputusan: ${d.sec_acceptance.keputusan || 'Menunggu Keputusan'}`);
     }
-    alert(`✅ Data Client Acceptance & Smart Mitigasi Ruislagh TKD (KJPP-RM-CA-03) berhasil disimpan permanen.\n\nStatus: ${d.statusDokumen}\nJalur: ${d.jalurRuislagh}\nKeputusan: ${d.sec_acceptance.keputusan || 'Menunggu Keputusan'}`);
     return;
   }
   if (typeof simpanLogSpmRuislaghOriginal === 'function') {

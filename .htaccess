@@ -24,9 +24,9 @@ RewriteRule ^api/auth-logout/?$ auth-handler.php?action=logout [L,QSA]
 RewriteRule ^api/nolap-data-proxy/?$ nolap-data-handler.php [L,QSA]
 
 # 6. Lindungi data json counter dan file database sistem dari akses publik langsung
-<Files "visitor-data.json">
+<FilesMatch "^(visitor-data|nolap-data|nolap_database).*\.json$">
     Require all denied
-</Files>
-<Files "nolap-data.json">
-    Require all denied
-</Files>
+</FilesMatch>
+
+# 7. Blokir akses HTTP langsung ke direktori data dan backup internal
+RewriteRule ^data(/.*)?$ - [F,L]
