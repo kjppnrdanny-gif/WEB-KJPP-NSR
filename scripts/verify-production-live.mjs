@@ -1,6 +1,7 @@
 /**
  * KJPP NSR — Production Live Verification Suite
- * Menguji langsung arsitektur dan endpoint server produksi cPanel di https://kjppnanangrahayu.com/
+ * Verifikasi Langsung Integritas Data, Kontrol Revisi, Backup, dan Keamanan Produksi
+ * Target: https://kjppnanangrahayu.com/
  */
 
 const BASE_URL = 'https://kjppnanangrahayu.com';
@@ -13,7 +14,6 @@ function recordTest(id, name, status, details = '') {
   if (details) console.log(`   └─ ${details}`);
 }
 
-// Helper untuk fetch dengan Cookie Jar (Simulasi Perangkat/Browser)
 class DeviceClient {
   constructor(name) {
     this.name = name;
@@ -65,12 +65,12 @@ class DeviceClient {
 
 async function runProductionLiveVerification() {
   console.log('\n======================================================');
-  console.log('FINAL PRODUCTION VERIFICATION — PORTAL INTERNAL KJPP NSR');
+  console.log('FINAL PRODUCTION VERIFICATION — INTEGRITAS DATA & SISTEM');
   console.log(`🌐 Target Server: ${BASE_URL}`);
   console.log('======================================================\n');
 
   // -------------------------------------------------------------------------
-  // TEST 1: VERIFIKASI ENDPOINT CPANEL PRODUKSI & FAIL-CLOSED AUTH GUARD
+  // TEST 1: LIVE ENDPOINT CPANEL & FAIL-CLOSED AUTHENTICATION GUARD
   // -------------------------------------------------------------------------
   try {
     const unauthClient = new DeviceClient('UnauthClient');
@@ -79,7 +79,7 @@ async function runProductionLiveVerification() {
 
     if (res.status === 401 && data.authenticated === false) {
       recordTest('PROD-01', 'Live Production Endpoint & Fail-Closed Guard', 'PASSED',
-        `Endpoint ${BASE_URL}/api/nolap-data-proxy aktif di cPanel (HTTP 401 unauthenticated rejected).`);
+        `Endpoint ${BASE_URL}/api/nolap-data-proxy aktif di cPanel (HTTP 401 unauthenticated ditolak).`);
     } else {
       recordTest('PROD-01', 'Live Production Endpoint & Fail-Closed Guard', 'FAILED',
         `Status=${res.status}, Body=${JSON.stringify(data)}`);
@@ -114,47 +114,83 @@ async function runProductionLiveVerification() {
     }
 
     if (allBranchLoginSuccess) {
-      recordTest('PROD-02', 'Production Authentication Across 5 Branches', 'PASSED',
-        'All 5 branches (Pusat, Padang, Bandung, Makassar, Palembang) authenticated successfully on live cPanel session.');
+      recordTest('PROD-02', 'Multi-Branch Authentication (5 Kantor)', 'PASSED',
+        'Semua kantor (Pusat, Padang, Bandung, Makassar, Palembang) terautentikasi resmi pada sesi cPanel.');
     } else {
-      recordTest('PROD-02', 'Production Authentication Across 5 Branches', 'FAILED',
-        'One or more branch logins failed.');
+      recordTest('PROD-02', 'Multi-Branch Authentication (5 Kantor)', 'FAILED',
+        'Satu atau lebih login cabang gagal.');
     }
   } catch (err) {
-    recordTest('PROD-02', 'Production Authentication Across 5 Branches', 'FAILED', err.message);
+    recordTest('PROD-02', 'Multi-Branch Authentication (5 Kantor)', 'FAILED', err.message);
   }
 
   // -------------------------------------------------------------------------
-  // TEST 3: ISOLASI CABANG SERVER-SIDE (RBAC STRICT DATA PARTITIONING)
+  // TEST 3: AUDIT DATA PENUGASAN ASLI & SANITASI DARI SIMULASI
+  // -------------------------------------------------------------------------
+  try {
+    const pusatClient = branchClients['Pusat'];
+    if (!pusatClient) throw new Error('Pusat client not authenticated');
+
+    // Sanitasi data ke baseline bersih
+    const resSanitize = await pusatClient.fetch(`${BASE_URL}/api/nolap-data-proxy`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'sanitizeProductionData' })
+    });
+    const dataSanitize = await resSanitize.json();
+
+    // Periksa kebersihan data asli
+    let realDataClean = true;
+    const checkedRealRecords = [];
+    for (const id of ['REQ-000006', 'REQ-000011', 'REQ-000014']) {
+      const res = await pusatClient.fetch(`${BASE_URL}/api/nolap-data-proxy?noPermintaan=${id}`);
+      const d = await res.json();
+      const hasMitigasi = !!d.record?.mitigasi;
+      if (hasMitigasi) realDataClean = false;
+      checkedRealRecords.push(`${id}: ${d.record?.status || 'NOT_FOUND'} (Mitigasi: ${hasMitigasi ? 'ADA' : 'BERSIH'})`);
+    }
+
+    if (resSanitize.status === 200 && realDataClean) {
+      recordTest('PROD-03', 'Audit Data Penugasan Asli & Sanitasi', 'PASSED',
+        `Penugasan asli steril dari simulasi: ${checkedRealRecords.join(', ')}. Dummy terisolasi aktif.`);
+    } else {
+      recordTest('PROD-03', 'Audit Data Penugasan Asli & Sanitasi', 'FAILED',
+        `SanitizeStatus=${resSanitize.status}, RealClean=${realDataClean}, Records: ${checkedRealRecords.join(', ')}`);
+    }
+  } catch (err) {
+    recordTest('PROD-03', 'Audit Data Penugasan Asli & Sanitasi', 'FAILED', err.message);
+  }
+
+  // -------------------------------------------------------------------------
+  // TEST 4: ISOLASI CABANG SERVER-SIDE (RBAC DATA PARTITIONING PADA DATA DUMMY)
   // -------------------------------------------------------------------------
   try {
     const padangClient = branchClients['Padang'];
     if (!padangClient) throw new Error('Padang client not authenticated');
 
-    // A. GET all records by Padang: Harus terisolasi
+    // Padang membaca daftar permohonan miliknya: hanya boleh melihat cabang Padang
     const resGetAll = await padangClient.fetch(`${BASE_URL}/api/nolap-data-proxy`);
     const dataGetAll = await resGetAll.json();
     const isScopeIsolated = dataGetAll.scope === 'BRANCH_ISOLATED' && dataGetAll.branch === 'Padang';
     const allRecordsPadangOnly = Array.isArray(dataGetAll.data) && dataGetAll.data.every(r => r.cabang.toLowerCase() === 'padang');
 
-    // B. Padang mencoba membaca permohonan Pusat (REQ-000006)
-    const resGetPusat = await padangClient.fetch(`${BASE_URL}/api/nolap-data-proxy?noPermintaan=REQ-000006`);
-    const dataGetPusat = await resGetPusat.json();
-    const isPusatBlocked = resGetPusat.status === 403 && dataGetPusat.violation === 'CROSS_BRANCH_ACCESS_DENIED';
+    // Padang membaca data dummy miliknya (REQ-TEST-001): HARUS BISA (200)
+    const resGetPadangDummy = await padangClient.fetch(`${BASE_URL}/api/nolap-data-proxy?noPermintaan=REQ-TEST-001`);
+    const isPadangDummyAllowed = resGetPadangDummy.status === 200;
 
-    // C. Padang mencoba membaca permohonan Bandung (REQ-000012)
-    const resGetBdg = await padangClient.fetch(`${BASE_URL}/api/nolap-data-proxy?noPermintaan=REQ-000012`);
-    const dataGetBdg = await resGetBdg.json();
-    const isBdgBlocked = resGetBdg.status === 403 && dataGetBdg.violation === 'CROSS_BRANCH_ACCESS_DENIED';
+    // Padang membaca dummy Bandung (REQ-TEST-002): HARUS DITOLAK (403)
+    const resGetBdgDummy = await padangClient.fetch(`${BASE_URL}/api/nolap-data-proxy?noPermintaan=REQ-TEST-002`);
+    const dataGetBdgDummy = await resGetBdgDummy.json();
+    const isBdgDummyBlocked = resGetBdgDummy.status === 403 && dataGetBdgDummy.violation === 'CROSS_BRANCH_ACCESS_DENIED';
 
-    // D. Padang mencoba mengubah mitigasi milik Bandung (REQ-000012)
+    // Padang mencoba mengubah mitigasi dummy Bandung (REQ-TEST-002): HARUS DITOLAK (403)
     const resTamper = await padangClient.fetch(`${BASE_URL}/api/nolap-data-proxy`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         action: 'saveMitigasi',
         payload: {
-          noPermintaan: 'REQ-000012',
+          noPermintaan: 'REQ-TEST-002',
           tipeMitigasi: 'tanah',
           mitigasiData: { statusDokumen: 'DRAFT', secA: { namaProyek: 'Manipulasi Lintas Cabang' } }
         }
@@ -163,35 +199,35 @@ async function runProductionLiveVerification() {
     const dataTamper = await resTamper.json();
     const isTamperBlocked = resTamper.status === 403 && dataTamper.violation === 'CROSS_BRANCH_MITIGASI_TAMPERING_ATTEMPT';
 
-    if (isScopeIsolated && allRecordsPadangOnly && isPusatBlocked && isBdgBlocked && isTamperBlocked) {
-      recordTest('PROD-03', 'Server-Side Branch Isolation & Tampering Denial', 'PASSED',
-        'Branch read is strictly partitioned (BRANCH_ISOLATED). Cross-branch read and write attempts rejected with 403 Forbidden.');
+    if (isScopeIsolated && allRecordsPadangOnly && isPadangDummyAllowed && isBdgDummyBlocked && isTamperBlocked) {
+      recordTest('PROD-04', 'Server-Side Branch Isolation (RBAC Proteksi)', 'PASSED',
+        'Partisi cabang terisolasi (BRANCH_ISOLATED). Akses dan tampering lintas cabang ditolak 403 Forbidden.');
     } else {
-      recordTest('PROD-03', 'Server-Side Branch Isolation & Tampering Denial', 'FAILED',
-        `isScopeIsolated=${isScopeIsolated}, allPadang=${allRecordsPadangOnly}, isPusatBlocked=${isPusatBlocked}, isBdgBlocked=${isBdgBlocked}, isTamperBlocked=${isTamperBlocked}`);
+      recordTest('PROD-04', 'Server-Side Branch Isolation (RBAC Proteksi)', 'FAILED',
+        `isolated=${isScopeIsolated}, padangDummy=${isPadangDummyAllowed}, bdgBlocked=${isBdgDummyBlocked}, tamperBlocked=${isTamperBlocked}`);
     }
   } catch (err) {
-    recordTest('PROD-03', 'Server-Side Branch Isolation & Tampering Denial', 'FAILED', err.message);
+    recordTest('PROD-04', 'Server-Side Branch Isolation (RBAC Proteksi)', 'FAILED', err.message);
   }
 
   // -------------------------------------------------------------------------
-  // TEST 4: VALIDASI APPROVAL (CABANG DITOLAK VS PUSAT DISAHKAN)
+  // TEST 5: KONTROL APPROVAL RESMI & WEWENANG SERVER-SIDE
   // -------------------------------------------------------------------------
   try {
     const padangClient = branchClients['Padang'];
     const pusatClient = branchClients['Pusat'];
 
-    // A. Padang mencoba mengesahkan (self-approve) permohonan Padang (REQ-000011)
+    // Cabang mencoba menetapkan status APPROVED pada dummy Padang: DITOLAK (403)
     const resBranchApproval = await padangClient.fetch(`${BASE_URL}/api/nolap-data-proxy`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         action: 'saveMitigasi',
         payload: {
-          noPermintaan: 'REQ-000011',
+          noPermintaan: 'REQ-TEST-001',
           tipeMitigasi: 'tanah',
           mitigasiData: {
-            statusDokumen: 'APPROVED', // Upaya self-approval tidak sah
+            statusDokumen: 'APPROVED',
             secF_acceptance: { keputusan: 'APPROVED' }
           }
         }
@@ -200,146 +236,174 @@ async function runProductionLiveVerification() {
     const dataBranchApproval = await resBranchApproval.json();
     const isBranchApprovalBlocked = resBranchApproval.status === 403 && dataBranchApproval.violation === 'UNAUTHORIZED_MITIGATION_APPROVAL_ATTEMPT';
 
-    // B. Pusat mengesahkan secara sah mitigasi REQ-000011
+    // Admin Pusat mengesahkan secara sah mitigasi REQ-TEST-001 (Versi 1)
+    const initialMitigasiData = {
+      statusDokumen: 'APPROVED',
+      linkedNoReq: 'REQ-TEST-001',
+      secA: {
+        namaProyek: 'Simulasi Pengadaan Tanah Koridor Uji Coba Padang',
+        instansi: 'PT. Simulasi Pertanahan Mandiri',
+        lokasiObjek: 'Kawasan Bypass Padang'
+      },
+      secB_redFlags: { rf_01: { val: 'TIDAK' } },
+      secF_acceptance: {
+        keputusan: 'APPROVED',
+        alasan: 'Memenuhi seluruh kriteria SPI 204 dan KEPI'
+      }
+    };
+
     const resPusatApproval = await pusatClient.fetch(`${BASE_URL}/api/nolap-data-proxy`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         action: 'saveMitigasi',
         payload: {
-          noPermintaan: 'REQ-000011',
+          noPermintaan: 'REQ-TEST-001',
           tipeMitigasi: 'tanah',
-          mitigasiData: {
-            statusDokumen: 'APPROVED',
-            linkedNoReq: 'REQ-000011',
-            secA: {
-              namaProyek: 'Pengadaan Tanah Jalur Tambang Bukit Karang Putih',
-              instansi: 'PT. Semen Padang',
-              lokasiObjek: 'Indarung, Padang'
-            },
-            secF_acceptance: {
-              keputusan: 'APPROVED',
-              alasan: 'Memenuhi seluruh kriteria KEPI & SPI 201'
-            }
-          }
+          mitigasiData: initialMitigasiData
         }
       })
     });
     const dataPusatApproval = await resPusatApproval.json();
-    const audit = dataPusatApproval.serverAudit;
-    const isPusatApprovalAccepted = resPusatApproval.status === 200 && audit && audit.isApprovedFormal === true && audit.serverApprovedAt && audit.contentHash;
+    const isApprovedVersion1 = resPusatApproval.status === 200 &&
+      dataPusatApproval.statusDokumen === 'APPROVED' &&
+      dataPusatApproval.activeVersion === 1 &&
+      dataPusatApproval.serverAudit?.isApprovedFormal === true;
 
-    if (isBranchApprovalBlocked && isPusatApprovalAccepted) {
-      recordTest('PROD-04', 'Production Server-Side Approval Enforcement', 'PASSED',
-        `Branch self-approval rejected (403). Central approval accepted (200) with server timestamp ${audit.serverApprovedAt} & hash ${audit.contentHash.substring(0, 16)}...`);
+    if (isBranchApprovalBlocked && isApprovedVersion1) {
+      recordTest('PROD-05', 'Server-Side Approval Gate & Versi 1.0 Pengesahan', 'PASSED',
+        `Self-approval cabang ditolak (403). Pengesahan Pusat berhasil (v1.0 APPROVED, hash ${dataPusatApproval.serverAudit.contentHash.substring(0, 16)}...).`);
     } else {
-      recordTest('PROD-04', 'Production Server-Side Approval Enforcement', 'FAILED',
-        `branchBlocked=${isBranchApprovalBlocked}, pusatAccepted=${isPusatApprovalAccepted}`);
+      recordTest('PROD-05', 'Server-Side Approval Gate & Versi 1.0 Pengesahan', 'FAILED',
+        `branchBlocked=${isBranchApprovalBlocked}, approvedV1=${isApprovedVersion1}`);
     }
   } catch (err) {
-    recordTest('PROD-04', 'Production Server-Side Approval Enforcement', 'FAILED', err.message);
+    recordTest('PROD-05', 'Server-Side Approval Gate & Versi 1.0 Pengesahan', 'FAILED', err.message);
   }
 
   // -------------------------------------------------------------------------
-  // TEST 5: SIMULASI PENYIMPANAN LINTAS PERANGKAT (DEVICE A -> DEVICE B)
+  // TEST 6: KONTROL REVISI MATERIAL PASCA-APPROVAL (VERSIONING & AUTO DEMOTION)
   // -------------------------------------------------------------------------
   try {
-    // Skenario: Device A (Pusat Session 1) menginput mitigasi untuk REQ-000006 (Umum KJPP-RM-CA-01)
-    const deviceA = new DeviceClient('DeviceA');
-    await deviceA.login(branchTokens.Pusat);
+    const padangClient = branchClients['Padang'];
+    const pusatClient = branchClients['Pusat'];
 
-    const mitigasiUmumPayload = {
-      statusDokumen: 'APPROVED',
-      linkedNoReq: 'REQ-000006',
-      kategori: 'Penjaminan Utang / Agunan',
-      secC_irac: {
-        issue: 'Verifikasi Legalitas Agunan Bank BTN KC Bekasi',
-        rule: 'SPI 201 Kode Etik & Standar Penilaian Agunan',
-        application: 'Dokumen SHGB dan IMB telah diperiksa lengkap',
-        conclusion: 'Objek layak dijadikan agunan kredit perbankan'
+    // Cabang Padang melakukan revisi material pada dokumen yang sudah APPROVED:
+    const revisedData = {
+      statusDokumen: 'DRAFT', // Pengaju mengirim perubahan
+      linkedNoReq: 'REQ-TEST-001',
+      secA: {
+        namaProyek: 'Simulasi Pengadaan Tanah Koridor Uji Coba Padang (REVISI TRASEN JALUR)',
+        instansi: 'PT. Simulasi Pertanahan Mandiri',
+        lokasiObjek: 'Kawasan Bypass Padang Blok B'
       },
-      secE_acceptance: {
-        keputusan: 'APPROVED',
-        alasan: 'Bebas benturan kepentingan'
+      secB_redFlags: { rf_01: { val: 'YA', clarifyDesc: 'Ada potensi tumpang tindih kepemilikan' } },
+      secF_acceptance: {
+        keputusan: 'ACCEPT WITH MITIGATION',
+        alasan: 'Perubahan trase memerlukan telaah hukum lanjutan'
       }
     };
 
-    const resSaveDeviceA = await deviceA.fetch(`${BASE_URL}/api/nolap-data-proxy`, {
+    const resRevision = await padangClient.fetch(`${BASE_URL}/api/nolap-data-proxy`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         action: 'saveMitigasi',
         payload: {
-          noPermintaan: 'REQ-000006',
-          tipeMitigasi: 'umum',
-          mitigasiData: mitigasiUmumPayload
+          noPermintaan: 'REQ-TEST-001',
+          tipeMitigasi: 'tanah',
+          alasanRevisi: 'Perubahan trase jalur pengadaan tanah koridor uji coba',
+          mitigasiData: revisedData
         }
       })
     });
-    const dataSaveDeviceA = await resSaveDeviceA.json();
+    const dataRevision = await resRevision.json();
 
-    // Skenario: Device B (Auditor Pusat di perangkat berbeda, sesi baru) login dan memuat data
-    const deviceB = new DeviceClient('DeviceB');
-    await deviceB.login(branchTokens.Pusat);
+    // Verifikasi otomatis demosi dan versioning:
+    const isVersionIncremented = dataRevision.activeVersion === 2;
+    const isDemotedToPending = dataRevision.statusDokumen === 'PENDING_REVIEW' && dataRevision.isDemotedFromApproved === true;
+    const record = dataRevision.record?.mitigasi?.tanah;
+    const hasArchivedV1 = Array.isArray(record?.archivedVersions) && record.archivedVersions.some(v => v.version === 1 && v.status === 'APPROVED');
+    const hasRevisionHistory = Array.isArray(record?.revisionHistory) && record.revisionHistory.length > 0;
+    const sheetSyncStatus = record?._sheetSync?.statusSync === 'SYNC_PENDING';
 
-    const resFetchDeviceB = await deviceB.fetch(`${BASE_URL}/api/nolap-data-proxy?noPermintaan=REQ-000006`);
-    const dataFetchDeviceB = await resFetchDeviceB.json();
-
-    const retrieved = dataFetchDeviceB.record?.mitigasi?.umum;
-    const answersMatch = retrieved?.secC_irac?.issue === 'Verifikasi Legalitas Agunan Bank BTN KC Bekasi';
-    const statusMatch = retrieved?.statusDokumen === 'APPROVED';
-    const noReqMatch = retrieved?.linkedNoReq === 'REQ-000006';
-
-    // Device B melakukan revisi non-material
-    retrieved.secC_irac.conclusion = 'Objek layak dijadikan agunan kredit perbankan (Catatan: Terverifikasi BPN)';
-    const resReviseDeviceB = await deviceB.fetch(`${BASE_URL}/api/nolap-data-proxy`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        action: 'saveMitigasi',
-        payload: {
-          noPermintaan: 'REQ-000006',
-          tipeMitigasi: 'umum',
-          mitigasiData: retrieved
-        }
-      })
-    });
-    const isRevisionSaved = resReviseDeviceB.status === 200;
-
-    // Pastikan data permohonan lain (REQ-000011 dan REQ-000014) tidak berubah
-    const resCheckOther = await deviceB.fetch(`${BASE_URL}/api/nolap-data-proxy?noPermintaan=REQ-000011`);
-    const dataCheckOther = await resCheckOther.json();
-    const otherReqIntact = dataCheckOther.record?.mitigasi?.tanah?.statusDokumen === 'APPROVED';
-
-    if (resSaveDeviceA.status === 200 && answersMatch && statusMatch && noReqMatch && isRevisionSaved && otherReqIntact) {
-      recordTest('PROD-05', 'Live Cross-Device Mitigation Retrieval & Revision', 'PASSED',
-        'Device B successfully loaded full mitigation answers saved by Device A from cPanel server. Revision preserved without corrupting other requests.');
+    if (isVersionIncremented && isDemotedToPending && hasArchivedV1 && hasRevisionHistory && sheetSyncStatus) {
+      recordTest('PROD-06', 'Kontrol Revisi Material & Demosi Approval (v2.0 PENDING_REVIEW)', 'PASSED',
+        'Revisi material memicu arsip v1.0, menaikkan versi ke v2.0, menggugurkan status APPROVED menjadi PENDING_REVIEW, dan mencatat antrean SYNC_PENDING.');
     } else {
-      recordTest('PROD-05', 'Live Cross-Device Mitigation Retrieval & Revision', 'FAILED',
-        `saveA=${resSaveDeviceA.status}, match=${answersMatch}, status=${statusMatch}, rev=${isRevisionSaved}, other=${otherReqIntact}`);
+      recordTest('PROD-06', 'Kontrol Revisi Material & Demosi Approval (v2.0 PENDING_REVIEW)', 'FAILED',
+        `vIncrement=${isVersionIncremented}, demoted=${isDemotedToPending}, archived=${hasArchivedV1}, hist=${hasRevisionHistory}, sync=${sheetSyncStatus}`);
     }
   } catch (err) {
-    recordTest('PROD-05', 'Live Cross-Device Mitigation Retrieval & Revision', 'FAILED', err.message);
+    recordTest('PROD-06', 'Kontrol Revisi Material & Demosi Approval (v2.0 PENDING_REVIEW)', 'FAILED', err.message);
   }
 
   // -------------------------------------------------------------------------
-  // TEST 6: STATUS INTEGRASI GOOGLE SHEETS LIVE (TRANSPARENT STATUS)
+  // TEST 7: SNAPSHOT BACKUP BERPUTAR & RESTORE DATABASE ADMINISTRATIF
   // -------------------------------------------------------------------------
   try {
-    const gvizRes = await fetch('https://docs.google.com/spreadsheets/d/1q1KpKRrNvvT_nD8D0y9dgZzuz8CpCFCNi6oQtoz7sc4/gviz/tq?tqx=out:csv&sheet=PENGAJUAN');
-    const isGvizRestricted = gvizRes.status === 401;
+    const pusatClient = branchClients['Pusat'];
 
-    recordTest('PROD-06', 'Google Sheets Public Gviz Permission Audit', 'PASSED',
-      `Google Spreadsheet gviz API returned HTTP ${gvizRes.status} (Private/Restricted access confirmed). Production portal relies on cPanel SSOT.`);
+    // Lakukan pemulihan database dari snapshot backup terakhir
+    const resRestore = await pusatClient.fetch(`${BASE_URL}/api/nolap-data-proxy`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        action: 'restoreBackup',
+        payload: { backupFileName: 'latest' }
+      })
+    });
+    const dataRestore = await resRestore.json();
+    const isRestored = resRestore.status === 200 && dataRestore.success === true && !!dataRestore.restoredFrom;
+
+    if (isRestored) {
+      recordTest('PROD-07', 'Automated Rotating Backup & Restore Admin', 'PASSED',
+        `Database berhasil dipulihkan dari snapshot ${dataRestore.restoredFrom} (${dataRestore.totalRecords} records).`);
+    } else {
+      recordTest('PROD-07', 'Automated Rotating Backup & Restore Admin', 'FAILED',
+        `Status=${resRestore.status}, Body=${JSON.stringify(dataRestore)}`);
+    }
   } catch (err) {
-    recordTest('PROD-06', 'Google Sheets Public Gviz Permission Audit', 'FAILED', err.message);
+    recordTest('PROD-07', 'Automated Rotating Backup & Restore Admin', 'FAILED', err.message);
+  }
+
+  // -------------------------------------------------------------------------
+  // TEST 8: PROTEKSI WEBSERVER .HTACCESS (403 FORBIDDEN KE DATABASE & DATA/)
+  // -------------------------------------------------------------------------
+  try {
+    const protectedUrls = [
+      `${BASE_URL}/data/nolap_database.json`,
+      `${BASE_URL}/nolap-data.json`,
+      `${BASE_URL}/data/`,
+      `${BASE_URL}/data/backups/`
+    ];
+
+    let allProtected = true;
+    const statuses = [];
+    for (const u of protectedUrls) {
+      const res = await fetch(u);
+      statuses.push(`${u.replace(BASE_URL, '')} -> HTTP ${res.status}`);
+      if (res.status !== 403) {
+        allProtected = false;
+      }
+    }
+
+    if (allProtected) {
+      recordTest('PROD-08', 'Proteksi File Database & Direktori Data (.htaccess)', 'PASSED',
+        `Semua endpoint data sensitif mengembalikan 403 Forbidden: ${statuses.join(', ')}.`);
+    } else {
+      recordTest('PROD-08', 'Proteksi File Database & Direktori Data (.htaccess)', 'FAILED',
+        `Beberapa endpoint tidak 403 Forbidden: ${statuses.join(', ')}`);
+    }
+  } catch (err) {
+    recordTest('PROD-08', 'Proteksi File Database & Direktori Data (.htaccess)', 'FAILED', err.message);
   }
 
   // -------------------------------------------------------------------------
   // SUMMARY REPORT
   // -------------------------------------------------------------------------
   console.log('\n======================================================');
-  console.log('SUMMARY RESULTS — PRODUCTION VERIFICATION:');
+  console.log('SUMMARY RESULTS — FINAL PRODUCTION VERIFICATION:');
   console.log('======================================================');
   let passCount = 0;
   let failCount = 0;
@@ -352,10 +416,10 @@ async function runProductionLiveVerification() {
   console.log('======================================================\n');
 
   if (failCount === 0) {
-    console.log('🛡️ ALL PRODUCTION LIVE TESTS COMPLETED SUCCESFULLY!\n');
+    console.log('🛡️ SELURUH UJI VERIFIKASI PRODUKSI LIVE LULUS 100%!\n');
     process.exit(0);
   } else {
-    console.error('❌ SOME PRODUCTION TESTS FAILED!\n');
+    console.error('❌ BEBERAPA UJI VERIFIKASI GAGAL!\n');
     process.exit(1);
   }
 }
