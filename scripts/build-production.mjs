@@ -52,7 +52,8 @@ const ALLOWED_FILES = [
   "humans.txt",
   ".htaccess",
   "visitor-stats.php",
-  "auth-handler.php"
+  "auth-handler.php",
+  "nolap-data-handler.php"
 ];
 
 // 2. ALLOWLIST DIREKTORI PUBLIK

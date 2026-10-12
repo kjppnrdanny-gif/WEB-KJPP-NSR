@@ -20,7 +20,13 @@ RewriteRule ^api/auth-login/?$ auth-handler.php?action=login [L,QSA]
 RewriteRule ^api/auth-verify/?$ auth-handler.php?action=verify [L,QSA]
 RewriteRule ^api/auth-logout/?$ auth-handler.php?action=logout [L,QSA]
 
-# 5. Lindungi data json counter dan file sistem dari akses publik langsung
+# 5. Route endpoint /api/nolap-data-proxy ke nolap-data-handler.php
+RewriteRule ^api/nolap-data-proxy/?$ nolap-data-handler.php [L,QSA]
+
+# 6. Lindungi data json counter dan file database sistem dari akses publik langsung
 <Files "visitor-data.json">
+    Require all denied
+</Files>
+<Files "nolap-data.json">
     Require all denied
 </Files>
