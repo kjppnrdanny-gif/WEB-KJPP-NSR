@@ -64,23 +64,23 @@ if (session_status() === PHP_SESSION_NONE) {
 // 1. DATA TOKENS RESMI UNTUK VALIDASI API / BEARER / HEADER
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
-    // Pusat: JKT#00 / NSR-PST-2026
+    // Otorisasi Kantor Pusat Jakarta (Hashed Token)
     '3d5d2d69641b1e88d2b96d64119430b1716a24f00937acfe79f22a713d3a9be7' => ['sub' => 'cabang_jkt', 'branch' => 'Pusat', 'displayName' => 'Akses Resmi Kantor Pusat Jakarta', 'role' => 'ADMIN_PUSAT'],
     '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2' => ['sub' => 'cabang_jkt', 'branch' => 'Pusat', 'displayName' => 'Akses Resmi Kantor Pusat Jakarta', 'role' => 'ADMIN_PUSAT'],
-    // Bandung: BDG#010 / NSR-BDG-2026
+    // Otorisasi Cabang Bandung (Hashed Token)
     'a52e824efe550c1e89aa3026587e4aa54620e597fcc977b2c88876870c88a4cb' => ['sub' => 'cabang_bdg', 'branch' => 'Bandung', 'displayName' => 'Akses Resmi Cabang Bandung', 'role' => 'CABANG'],
     'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818' => ['sub' => 'cabang_bdg', 'branch' => 'Bandung', 'displayName' => 'Akses Resmi Cabang Bandung', 'role' => 'CABANG'],
-    // Padang: PDG#020 / NSR-PDG-2026
+    // Otorisasi Cabang Padang (Hashed Token)
     '6b838f77d520840a9bd8adb2e01d75ad511ea2f2d371b1ac16809e8fe1ac11bd' => ['sub' => 'cabang_pdg', 'branch' => 'Padang', 'displayName' => 'Akses Resmi Cabang Padang', 'role' => 'CABANG'],
     '45b948d3c75010dcf2b4963c1275e2f0c982df88658616b3d0edaae59e9cd62c' => ['sub' => 'cabang_pdg', 'branch' => 'Padang', 'displayName' => 'Akses Resmi Cabang Padang', 'role' => 'CABANG'],
-    // Makassar: MKS#030 / NSR-MKS-2026
+    // Otorisasi Cabang Makassar (Hashed Token)
     '3c56bf3fbad429421e401e6ca9b335734a90b9986d9af890c12e2cf69f6129d4' => ['sub' => 'cabang_mks', 'branch' => 'Makassar', 'displayName' => 'Akses Resmi Cabang Makassar', 'role' => 'CABANG'],
     '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e' => ['sub' => 'cabang_mks', 'branch' => 'Makassar', 'displayName' => 'Akses Resmi Cabang Makassar', 'role' => 'CABANG'],
-    // Palembang: PLB#040 / NSR-PLB-2026 / NSR-PLM-2026
+    // Otorisasi Cabang Palembang (Hashed Token)
     '8eec45b74d429d76724acd10312485fee4f180cddf0fd7210eb0da736c878ab3' => ['sub' => 'cabang_plb', 'branch' => 'Palembang', 'displayName' => 'Akses Resmi Cabang Palembang', 'role' => 'CABANG'],
     '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b' => ['sub' => 'cabang_plb', 'branch' => 'Palembang', 'displayName' => 'Akses Resmi Cabang Palembang', 'role' => 'CABANG'],
     'c20c16d688a686f8cd5ac12f4949b8dac6b4937d513f92a00514ee6122368ed2' => ['sub' => 'cabang_plb', 'branch' => 'Palembang', 'displayName' => 'Akses Resmi Cabang Palembang', 'role' => 'CABANG'],
-    // Master Ops: NSR8899 / NSR2026
+    // Otorisasi Master Operasional Pusat (Hashed Token)
     '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' => ['sub' => 'admin_master', 'branch' => 'Pusat', 'displayName' => 'Master Operasional Pusat', 'role' => 'ADMIN_PUSAT'],
     'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91' => ['sub' => 'admin_master', 'branch' => 'Pusat', 'displayName' => 'Master Operasional Pusat', 'role' => 'ADMIN_PUSAT']
 ];
@@ -679,7 +679,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $idReq = 'REQ-' . str_pad((string)($maxNum + 1), 6, '0', STR_PAD_LEFT);
 
-        // Anti-duplikasi: Jika pengajuan dengan nama klien & pemohon yang sama dikirim dalam 30 detik terakhir
+        // Anti-duplikasi Tingkat 1: Cek Idempotency Key unik jika disediakan
+        $idempotencyKey = trim($payload['idempotencyKey'] ?? '');
+        if ($idempotencyKey !== '') {
+            foreach ($records as $rec) {
+                if (($rec['idempotencyKey'] ?? '') === $idempotencyKey) {
+                    echo json_encode([
+                        'success'        => true,
+                        'duplicate'      => true,
+                        'idempotent'     => true,
+                        'message'        => 'Pengajuan dengan Idempotency Key yang sama telah diterima sebelumnya. Mengembalikan nomor permohonan yang sama.',
+                        'noPermintaan'   => $rec['noPermintaan'],
+                        'record'         => $rec
+                    ]);
+                    exit;
+                }
+            }
+        }
+
+        // Anti-duplikasi Tingkat 2: Jika pengajuan dengan nama klien & pemohon yang sama dikirim dalam 30 detik terakhir
         $recentThreshold = time() - 30;
         foreach ($records as $rec) {
             if (($rec['namaKlien'] ?? '') === trim($payload['namaKlien']) &&
@@ -708,6 +726,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'dpp'          => $dpp,
             'nominalPpn'   => $ppn,
             'totalBayar'   => $totalBayar,
+            'idempotencyKey'=> $idempotencyKey,
             'terbilang'    => $payload['terbilang'] ?? '',
             'status'       => 'DIAJUKAN',
             'nomorLaporan' => '',
@@ -779,6 +798,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // =========================================================================
+    // C.1. TINDAKAN VOID / DIBATALKAN UNTUK DATA UJI & HISTORIS
+    // =========================================================================
+    if ($action === 'voidRequest') {
+        if ($userRole !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode([
+                'success'   => false,
+                'error'     => 'Akses Ditolak (403 Forbidden): Wewenang pembatalan / VOID record permohonan mutlak milik Admin Kantor Pusat.',
+                'violation' => 'UNAUTHORIZED_VOID_ATTEMPT'
+            ]);
+            exit;
+        }
+
+        $noReq = $payload['noPermintaan'] ?? '';
+        $targetIndex = -1;
+        foreach ($records as $idx => $item) {
+            if ($item['noPermintaan'] === $noReq) {
+                $targetIndex = $idx;
+                break;
+            }
+        }
+
+        if ($targetIndex === -1) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Data permohonan tidak ditemukan']);
+            exit;
+        }
+
+        $records[$targetIndex]['status'] = 'VOID';
+        $records[$targetIndex]['isTestRecord'] = true;
+        $records[$targetIndex]['catatanAdmin'] = $payload['catatanAdmin'] ?? 'Data uji QA hotfix ditandai VOID / DIBATALKAN. Tidak diproses ke approval maupun penugasan operasional riil.';
+        $records[$targetIndex]['voidTimestamp'] = date('Y-m-d H:i:s');
+        $records[$targetIndex]['voidBy'] = $userDisplayName;
+
+        simpanDatabaseNoLap($dataFile, $records);
+
+        // Catat Audit Trail Pemeliharaan
+        $auditLogFile = dirname($dataFile) . '/audit_maintenance.log';
+        $auditEntry = date('c') . " | VOID_RECORD | User: " . $userDisplayName . " | REQ: " . $noReq . " | Reason: " . ($payload['reason'] ?? 'Penandaan VOID Data Uji QA') . "\n";
+        @file_put_contents($auditLogFile, $auditEntry, FILE_APPEND | LOCK_EX);
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Permohonan '{$noReq}' telah berhasil ditandai sebagai VOID / DIBATALKAN dan diarsipkan.",
+            'record'  => $records[$targetIndex]
+        ]);
+        exit;
+    }
+
+    // =========================================================================
     // D. TINDAKAN ADMINISTRATIF: RESTORE DATABASE DARI BACKUP (PROSEDUR PEMELIHARAAN KHUSUS)
     // =========================================================================
     if ($action === 'restoreBackup') {
@@ -791,7 +860,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // AUDIT KEAMANAN: Memerlukan otorisasi darurat khusus dan konfirmasi formal
         $confirmMaint = $payload['confirmMaintenance'] ?? '';
         $maintKey = $_SERVER['HTTP_X_NSR_MAINTENANCE_KEY'] ?? ($payload['maintenanceKey'] ?? '');
-        $isKeyValid = (hash('sha256', trim($maintKey)) === 'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91' || $maintKey === 'NSR-MAINTENANCE-EMERGENCY-2026');
+        $kHash = hash('sha256', trim($maintKey));
+        $isKeyValid = ($kHash === 'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91' || $kHash === '6666dda47d6b92fdf37801037dd9d33bada8fd1d81700b849f3aad89ea0b14a8');
 
         if ($confirmMaint !== 'AUTHORIZE_SPECIAL_MAINTENANCE_2026' || !$isKeyValid) {
             http_response_code(403);

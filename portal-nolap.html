@@ -13522,7 +13522,17 @@
       const cleanDigits = npwp.replace(/\D/g, '');
       const kodeNpwp = cleanDigits.length >= 10 ? "1" : "0";
 
+      // Idempotency Key stabil untuk proteksi retry jaringan
+      const idempotencyKey = [
+        cabang,
+        klien.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+        (noSpk || 'NOSPK').toLowerCase().replace(/[^a-z0-9]/g, '_'),
+        tglSpk || 'NOTGL',
+        dpp
+      ].join('::');
+
       const dataBaru = {
+        idempotencyKey: idempotencyKey,
         cabang: cabang,
         namaPemohon: pemohon,
         jabatanPemohon: jabatan,
@@ -13794,7 +13804,7 @@
       const emptyPending = document.getElementById('empty-pending-state');
       const badgeCount = document.getElementById('badge-count-pending');
 
-      const itemsPending = daftarPermohonan.filter(p => p.status === 'DIAJUKAN' || p.status === 'PERLU REVISI');
+      const itemsPending = daftarPermohonan.filter(p => (p.status === 'DIAJUKAN' || p.status === 'PERLU REVISI') && p.status !== 'VOID' && p.status !== 'DIBATALKAN' && !p.isTestRecord);
       
       if (badgeCount) {
         badgeCount.innerText = itemsPending.length;
@@ -13874,11 +13884,12 @@
           <td class="p-3">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
               p.status === 'NOMOR DITERBITKAN' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+              p.status === 'VOID' || p.status === 'DIBATALKAN' ? 'bg-slate-800 text-slate-400 border border-slate-700' :
               p.status === 'DIAJUKAN' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
               p.status === 'PERLU REVISI' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' :
               'bg-rose-500/20 text-rose-300 border border-rose-500/30'
             }">
-              ${p.status}
+              ${p.status === 'VOID' ? 'VOID (DATA UJI)' : p.status}
             </span>
           </td>
           <td class="p-3 text-center">
@@ -14011,6 +14022,12 @@
       title.innerHTML = `Rincian Pengajuan: <span class="font-mono text-amber-400">${item.noPermintaan}</span>`;
 
       content.innerHTML = `
+        ${(item.status === 'VOID' || item.status === 'DIBATALKAN' || item.isTestRecord) ? `
+          <div class="p-3 mb-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs flex items-center gap-2">
+            <span>ℹ️</span>
+            <span><strong>Catatan Audit:</strong> Nomor permohonan ini berstatus <strong>VOID (DATA UJI QA)</strong>. Tidak diproses ke meja approval operasional, eLSa, maupun penugasan riil.</span>
+          </div>
+        ` : ''}
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800 text-[11px]">
           <div><span class="text-slate-400 block">Status:</span> <strong class="text-amber-400">${item.status}</strong></div>
           <div><span class="text-slate-400 block">Kewenangan Ttd:</span> <strong class="text-white">${item.cabang}</strong></div>
@@ -14070,7 +14087,7 @@
         </button>
       `;
 
-      if (isSuperOrAdminPusat() && item.status !== 'NOMOR DITERBITKAN') {
+      if (isSuperOrAdminPusat() && item.status !== 'NOMOR DITERBITKAN' && item.status !== 'VOID' && item.status !== 'DIBATALKAN') {
         actionButtons += `
           <button onclick="bukaModalTerbitkanManual('${item.noPermintaan}')" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow">
             Setujui &amp; Tetapkan NoLap (Manual)
@@ -14106,7 +14123,7 @@
       select.innerHTML = '<option value="">-- Pilih No. Permintaan --</option>';
       tbody.innerHTML = '';
 
-      daftarPermohonan.forEach(p => {
+      daftarPermohonan.filter(p => p.status !== 'VOID' && p.status !== 'DIBATALKAN' && !p.isTestRecord).forEach(p => {
         // Hanya yang sudah terbit atau diajukan
         const opt = document.createElement('option');
         opt.value = p.noPermintaan;
