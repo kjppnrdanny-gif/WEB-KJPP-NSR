@@ -14,8 +14,15 @@ let allPassed = true;
 const requiredTexts = [
   'Standard Operating Procedure',
   'Alur Penugasan Penilaian Resmi',
-  // Tahap 1
-  'Penelaahan permintaan penawaran, ruang lingkup pekerjaan, penerimaan penugasan, dan kesepakatan SPK.',
+  // Tahap 1 Revised Content (SPI 103 & Surat Representasi)
+  'Permintaan &amp; Lingkup Penugasan (SPK)',
+  'Penelaahan permintaan penawaran (RFP), evaluasi penerimaan penugasan, penetapan Lingkup Penugasan sesuai SPI 103, kesepakatan SPK, serta permintaan Surat Representasi Pemberi Tugas atas data dan dokumen penilaian.',
+  'Evaluasi Penerimaan Penugasan',
+  'Penelaahan permintaan klien, kompetensi, independensi, potensi benturan kepentingan, serta kelayakan penerimaan penugasan sesuai KEPI dan ketentuan profesi.',
+  'Kesepakatan mengenai identitas para pihak, objek dan hak yang dinilai, tujuan penilaian, dasar nilai, tanggal penilaian, mata uang, lingkup investigasi, sumber informasi, asumsi dan batasan, bentuk laporan, serta ketentuan penggunaan dan publikasinya.',
+  'Penetapan ruang lingkup pekerjaan, hak dan kewajiban para pihak, biaya jasa, jadwal pelaksanaan, serta persyaratan dokumen penugasan.',
+  'Permintaan pernyataan tertulis dari Pemberi Tugas mengenai kebenaran, kelengkapan, keabsahan, kewenangan penyampaian, dan pengungkapan informasi material atas data serta dokumen bahan penilaian.',
+  'Surat Representasi tidak menggantikan kewajiban verifikasi dan pertimbangan profesional Penilai. Penerimaan surat mengikuti persyaratan penugasan dan SOP KJPP sebelum finalisasi laporan, apabila dipersyaratkan.',
   // Tahap 2
   'Inspeksi objek jika dipersyaratkan, dokumentasi lapangan, serta verifikasi data dan dokumen pendukung.',
   // Tahap 3
@@ -39,7 +46,7 @@ const requiredSelectorsOrClasses = [
   'lg:grid-cols-5'
 ];
 
-console.log('--- RUNNING SOP TIMELINE VERIFICATION TEST ---');
+console.log('--- RUNNING SOP TIMELINE & TAHAP 01 SPI 103 VERIFICATION TEST ---');
 
 for (const relPath of filesToTest) {
   const filePath = path.join(process.cwd(), relPath);
@@ -56,10 +63,10 @@ for (const relPath of filesToTest) {
   // Check required texts
   for (const text of requiredTexts) {
     if (!content.includes(text)) {
-      console.error(`  [X] Missing text: "${text.substring(0, 40)}..."`);
+      console.error(`  [X] Missing text: "${text.substring(0, 45)}..."`);
       allPassed = false;
     } else {
-      console.log(`  [OK] Found text: "${text.substring(0, 35)}..."`);
+      console.log(`  [OK] Found text: "${text.substring(0, 40)}..."`);
     }
   }
 

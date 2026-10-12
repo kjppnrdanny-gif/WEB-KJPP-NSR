@@ -19,8 +19,8 @@ const lineBreakLayanan = isLayananCrlf ? '\r\n' : '\n';
 const sopComponentLayanan = sopComponent.replace(/\r?\n/g, lineBreakLayanan);
 
 // Find the target section in layanan.html
-const startMarkerLayanan = '<!-- ==================== ALUR SOP TAHAPAN PENUGASAN ==================== -->';
-const endMarkerLayanan = '</section>' + lineBreakLayanan + lineBreakLayanan + '    <!-- ==================== CALL TO ACTION ==================== -->';
+const startMarkerLayanan = '<!-- ==================== STANDARD OPERATING PROCEDURE';
+const endMarkerLayanan = lineBreakLayanan + '    <!-- ==================== CALL TO ACTION ==================== -->';
 
 const startIndexLayanan = layananContent.indexOf(startMarkerLayanan);
 if (startIndexLayanan === -1) {
@@ -39,7 +39,7 @@ const newLayananContent =
   layananContent.substring(0, startIndexLayanan) +
   sopComponentLayanan.trim() +
   lineBreakLayanan + lineBreakLayanan +
-  layananContent.substring(endIndexLayanan + '</section>'.length + lineBreakLayanan.length + lineBreakLayanan.length);
+  layananContent.substring(endIndexLayanan + lineBreakLayanan.length);
 
 fs.writeFileSync(layananPath, newLayananContent, 'utf8');
 console.log('Successfully updated layanan.html!');
@@ -52,24 +52,26 @@ const lineBreakIndex = isIndexCrlf ? '\r\n' : '\n';
 
 const sopComponentIndex = sopComponent.replace(/\r?\n/g, lineBreakIndex);
 
-const targetIndexMarker = lineBreakIndex + '  </section>' + lineBreakIndex + lineBreakIndex + '  <section id="faq"';
-const targetIndexPos = indexContent.indexOf(targetIndexMarker);
+const startMarkerIndex = '<!-- ==================== STANDARD OPERATING PROCEDURE';
+const endMarkerIndex = lineBreakIndex + '  <section id="faq"';
 
-if (targetIndexPos === -1) {
-  console.error('Error: targetIndexMarker not found in index.html!');
+const startIndexIndex = indexContent.indexOf(startMarkerIndex);
+if (startIndexIndex === -1) {
+  console.error('Error: startMarkerIndex not found in index.html!');
   process.exit(1);
 }
 
-// Insert before <section id="faq"
-const replacementIndex = 
-  lineBreakIndex + '  </section>' + lineBreakIndex + lineBreakIndex +
-  sopComponentIndex.trim() + lineBreakIndex + lineBreakIndex +
-  '  <section id="faq"';
+const endIndexIndex = indexContent.indexOf(endMarkerIndex, startIndexIndex);
+if (endIndexIndex === -1) {
+  console.error('Error: endMarkerIndex not found in index.html!');
+  process.exit(1);
+}
 
 const newIndexContent = 
-  indexContent.substring(0, targetIndexPos) + 
-  replacementIndex + 
-  indexContent.substring(targetIndexPos + targetIndexMarker.length);
+  indexContent.substring(0, startIndexIndex) +
+  sopComponentIndex.trim() +
+  lineBreakIndex + lineBreakIndex +
+  indexContent.substring(endIndexIndex + lineBreakIndex.length);
 
 fs.writeFileSync(indexPath, newIndexContent, 'utf8');
 console.log('Successfully updated index.html!');
