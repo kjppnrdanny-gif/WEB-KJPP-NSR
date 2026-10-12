@@ -657,6 +657,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // =========================================================================
+    // =========================================================================
     // B. TINDAKAN SUBMIT PENGAJUAN BARU
     // =========================================================================
     if ($action === 'submitRequest') {
@@ -667,26 +668,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $cabangPengaju = ($userRole === 'ADMIN_PUSAT') ? ($payload['cabang'] ?? 'Pusat') : $userBranch;
-        $idReq = 'REQ-' . str_pad((string)(count($records) + 1), 6, '0', STR_PAD_LEFT);
+
+        // Cari max numeric ID untuk memastikan noPermintaan unik dan selalu bertambah
+        $maxNum = 0;
+        foreach ($records as $r) {
+            if (isset($r['noPermintaan']) && preg_match('/^REQ-(\d+)$/', $r['noPermintaan'], $m)) {
+                $num = (int)$m[1];
+                if ($num > $maxNum) $maxNum = $num;
+            }
+        }
+        $idReq = 'REQ-' . str_pad((string)($maxNum + 1), 6, '0', STR_PAD_LEFT);
+
+        // Anti-duplikasi: Jika pengajuan dengan nama klien & pemohon yang sama dikirim dalam 30 detik terakhir
+        $recentThreshold = time() - 30;
+        foreach ($records as $rec) {
+            if (($rec['namaKlien'] ?? '') === trim($payload['namaKlien']) &&
+                ($rec['cabang'] ?? '') === $cabangPengaju &&
+                isset($rec['timestamp']) && strtotime($rec['timestamp']) >= $recentThreshold) {
+                echo json_encode([
+                    'success'      => true,
+                    'duplicate'    => true,
+                    'message'      => 'Pengajuan telah diterima sebelumnya. Mengembalikan nomor permohonan yang sama.',
+                    'noPermintaan' => $rec['noPermintaan'],
+                    'record'       => $rec
+                ]);
+                exit;
+            }
+        }
+
+        $dpp = isset($payload['dpp']) ? (float)$payload['dpp'] : (isset($payload['biayaJasa']) ? (float)$payload['biayaJasa'] : 0);
+        $ppn = isset($payload['ppn']) ? (float)$payload['ppn'] : (isset($payload['nominalPpn']) ? (float)$payload['nominalPpn'] : round($dpp * 0.11));
+        $totalBayar = isset($payload['totalBayar']) ? (float)$payload['totalBayar'] : ($dpp + $ppn);
 
         $newRecord = array_merge($payload, [
             'noPermintaan' => $idReq,
-            'cabang' => $cabangPengaju,
-            'namaPemohon' => $userDisplayName,
-            'timestamp' => date('Y-m-d H:i:s'),
-            'status' => 'DIAJUKAN',
+            'cabang'       => $cabangPengaju,
+            'namaPemohon'  => $payload['namaPemohon'] ?? $userDisplayName,
+            'timestamp'    => date('Y-m-d H:i:s'),
+            'dpp'          => $dpp,
+            'nominalPpn'   => $ppn,
+            'totalBayar'   => $totalBayar,
+            'terbilang'    => $payload['terbilang'] ?? '',
+            'status'       => 'DIAJUKAN',
             'nomorLaporan' => '',
-            'tglTerbit' => '',
-            'statusElsa' => 'BELUM INPUT'
+            'tglTerbit'    => '',
+            'statusElsa'   => 'BELUM INPUT'
         ]);
 
         array_unshift($records, $newRecord);
         simpanDatabaseNoLap($dataFile, $records);
 
         echo json_encode([
-            'success' => true,
-            'message' => 'Permohonan nomor laporan berhasil direkam di server terpusat cPanel.',
-            'record'  => $newRecord
+            'success'      => true,
+            'message'      => "Permohonan nomor laporan {$idReq} berhasil direkam di server terpusat cPanel.",
+            'noPermintaan' => $idReq,
+            'record'       => $newRecord
         ]);
         exit;
     }
@@ -743,7 +779,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // =========================================================================
-    // D. TINDAKAN ADMINISTRATIF: RESTORE DATABASE DARI BACKUP (ADMIN PUSAT ONLY)
+    // D. TINDAKAN ADMINISTRATIF: RESTORE DATABASE DARI BACKUP (PROSEDUR PEMELIHARAAN KHUSUS)
     // =========================================================================
     if ($action === 'restoreBackup') {
         if ($userRole !== 'ADMIN_PUSAT') {
@@ -751,6 +787,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Admin Pusat yang berwenang melakukan pemulihan backup.']);
             exit;
         }
+
+        // AUDIT KEAMANAN: Memerlukan otorisasi darurat khusus dan konfirmasi formal
+        $confirmMaint = $payload['confirmMaintenance'] ?? '';
+        $maintKey = $_SERVER['HTTP_X_NSR_MAINTENANCE_KEY'] ?? ($payload['maintenanceKey'] ?? '');
+        $isKeyValid = (hash('sha256', trim($maintKey)) === 'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91' || $maintKey === 'NSR-MAINTENANCE-EMERGENCY-2026');
+
+        if ($confirmMaint !== 'AUTHORIZE_SPECIAL_MAINTENANCE_2026' || !$isKeyValid) {
+            http_response_code(403);
+            echo json_encode([
+                'success'   => false,
+                'error'     => 'Akses Ditolak (403 Forbidden): Operasi restore backup dikunci pada prosedur pemeliharaan khusus dengan otorisasi ganda dan konfirmasi formal.',
+                'violation' => 'UNAUTHORIZED_MAINTENANCE_RESTORE_ATTEMPT'
+            ]);
+            exit;
+        }
+
+        // Catat Audit Trail Pemeliharaan
+        $auditLogFile = dirname($dataFile) . '/audit_maintenance.log';
+        $auditEntry = date('c') . " | RESTORE_BACKUP | User: " . $userDisplayName . " | IP: " . ($_SERVER['REMOTE_ADDR'] ?? '-') . " | File: " . ($payload['backupFileName'] ?? 'latest') . " | Reason: " . ($payload['reason'] ?? 'Pemeliharaan Resmi') . "\n";
+        @file_put_contents($auditLogFile, $auditEntry, FILE_APPEND | LOCK_EX);
 
         $backupDir = dirname($dataFile) . '/backups';
         $targetFile = null;
@@ -795,7 +851,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // =========================================================================
-    // E. TINDAKAN ADMINISTRATIF: SANITASI DATA PENUGASAN ASLI (RESET KE BASELINE)
+    // E. TINDAKAN ADMINISTRATIF: SANITASI DATA PENUGASAN ASLI (PROSEDUR PEMELIHARAAN KHUSUS)
     // =========================================================================
     if ($action === 'sanitizeProductionData') {
         if ($userRole !== 'ADMIN_PUSAT') {
@@ -803,6 +859,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Admin Pusat yang berwenang mereset data ke baseline.']);
             exit;
         }
+
+        // AUDIT KEAMANAN: Memerlukan otorisasi darurat khusus dan konfirmasi formal
+        $confirmMaint = $payload['confirmMaintenance'] ?? '';
+        $maintKey = $_SERVER['HTTP_X_NSR_MAINTENANCE_KEY'] ?? ($payload['maintenanceKey'] ?? '');
+        $isKeyValid = (hash('sha256', trim($maintKey)) === 'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91' || $maintKey === 'NSR-MAINTENANCE-EMERGENCY-2026');
+
+        if ($confirmMaint !== 'AUTHORIZE_SPECIAL_MAINTENANCE_2026' || !$isKeyValid) {
+            http_response_code(403);
+            echo json_encode([
+                'success'   => false,
+                'error'     => 'Akses Ditolak (403 Forbidden): Operasi sanitasi baseline dikunci pada prosedur pemeliharaan khusus dengan otorisasi ganda dan konfirmasi formal.',
+                'violation' => 'UNAUTHORIZED_MAINTENANCE_RESET_ATTEMPT'
+            ]);
+            exit;
+        }
+
+        // Catat Audit Trail Pemeliharaan
+        $auditLogFile = dirname($dataFile) . '/audit_maintenance.log';
+        $auditEntry = date('c') . " | SANITIZE_DATA | User: " . $userDisplayName . " | IP: " . ($_SERVER['REMOTE_ADDR'] ?? '-') . " | Reason: " . ($payload['reason'] ?? 'Sanitasi Resmi') . "\n";
+        @file_put_contents($auditLogFile, $auditEntry, FILE_APPEND | LOCK_EX);
 
         $baseline = muatBaselineResmi();
         simpanDatabaseNoLap($dataFile, $baseline);
