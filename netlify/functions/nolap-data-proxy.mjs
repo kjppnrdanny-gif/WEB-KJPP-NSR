@@ -11,6 +11,7 @@
  * 4. Isolasi Total: Menggunakan penyimpanan dummy in-memory/lokal. TIDAK terhubung ke Google Sheets produksi.
  */
 
+import { createHash } from "node:crypto";
 import {
   verifySessionToken,
   ROLES,
@@ -228,6 +229,35 @@ export default async (req) => {
   // METODE GET: Pembacaan Data NoLap Terlindungi (Protected Read)
   // -------------------------------------------------------------------------
   if (req.method === "GET") {
+    let reqUrl;
+    try {
+      reqUrl = new URL(req.url, "http://localhost");
+    } catch (e) {
+      reqUrl = new URL("http://localhost");
+    }
+    const noReqTarget = reqUrl.searchParams.get("noPermintaan");
+
+    if (noReqTarget) {
+      const foundItem = activeData.find((i) => i.noPermintaan === noReqTarget);
+      if (!foundItem) {
+        return jsonResponse({ error: "Data permohonan NoLap tidak ditemukan" }, 404);
+      }
+      // Validasi Isolasi Cabang: Cabang dilarang membaca record cabang lain
+      if (userRole === ROLES.CABANG && (foundItem.cabang || "").toLowerCase() !== userBranch.toLowerCase()) {
+        return jsonResponse(
+          {
+            error: "Akses Ditolak (403 Forbidden): Kantor Cabang tidak diizinkan mengakses data permohonan kantor lain.",
+            violation: "CROSS_BRANCH_ACCESS_DENIED"
+          },
+          403
+        );
+      }
+      return jsonResponse({
+        success: true,
+        record: foundItem
+      });
+    }
+
     // ADMIN_PUSAT: Berhak membaca SELURUH data antrean dan riwayat
     if (userRole === ROLES.ADMIN_PUSAT) {
       return jsonResponse({
@@ -375,6 +405,101 @@ export default async (req) => {
       return jsonResponse({
         success: true,
         message: `Nomor laporan resmi '${nomorLaporan}' berhasil ditetapkan oleh Admin Kantor Pusat.`,
+        record: targetItem
+      });
+    }
+
+    // C. TINDAKAN SIMPAN / SINKRONISASI DATA MITIGASI RISIKO (KJPP-RM-CA-01, 02, 03)
+    if (action === "saveMitigasi") {
+      const { noPermintaan, tipeMitigasi, mitigasiData } = payload || {};
+      if (!noPermintaan || !tipeMitigasi || !mitigasiData) {
+        return jsonResponse(
+          { error: "Parameter mitigasi tidak lengkap (noPermintaan, tipeMitigasi, mitigasiData wajib diisi)" },
+          400
+        );
+      }
+
+      const targetItem = activeData.find((i) => i.noPermintaan === noPermintaan);
+      if (!targetItem) {
+        return jsonResponse({ error: "Data permohonan NoLap tidak ditemukan di sistem." }, 404);
+      }
+
+      // ISOLASI CABANG (Server-side RBAC Enforcement):
+      // Staf Cabang DILARANG KERAS menyimpan atau memodifikasi mitigasi milik cabang lain!
+      if (userRole === ROLES.CABANG) {
+        if ((targetItem.cabang || "").toLowerCase() !== userBranch.toLowerCase()) {
+          return jsonResponse(
+            {
+              error: `Akses Ditolak (403 Forbidden): Cabang '${userBranch}' tidak memiliki kewenangan mengubah data mitigasi milik Cabang '${targetItem.cabang}'.`,
+              violation: "CROSS_BRANCH_MITIGASI_TAMPERING_ATTEMPT"
+            },
+            403
+          );
+        }
+      }
+
+      // VALIDASI APPROVAL:
+      // Status 'APPROVED' TIDAK BOLEH ditetapkan oleh Cabang atau peran non-Pusat!
+      const isApprovalClaimed = Boolean(
+        mitigasiData.statusDokumen === "APPROVED" ||
+        mitigasiData.statusApproval === "APPROVED" ||
+        mitigasiData.isApproved === true ||
+        mitigasiData.rekomendasiKeputusan === "DISETUJUI" ||
+        mitigasiData.secF_qc?.f05 === "APPROVED" ||
+        mitigasiData.secF_acceptance?.keputusan === "APPROVED" ||
+        mitigasiData.sec_acceptance?.keputusan === "APPROVED"
+      );
+
+      if (isApprovalClaimed && userRole !== ROLES.ADMIN_PUSAT) {
+        return jsonResponse(
+          {
+            error: "Akses Ditolak (403 Forbidden): Keputusan formal APPROVAL mitigasi risiko hanya dapat disahkan oleh Reviewer Kantor Pusat / Pemimpin Rekan berwenang.",
+            violation: "UNAUTHORIZED_MITIGATION_APPROVAL_ATTEMPT"
+          },
+          403
+        );
+      }
+
+      // Metadata Audit Server (Server-Side Timestamp & Cryptographic Integrity Hash)
+      const serverTimestamp = new Date().toISOString();
+      const contentHash = createHash("sha256")
+        .update(JSON.stringify(mitigasiData))
+        .digest("hex");
+
+      const auditMeta = {
+        serverRecordedAt: serverTimestamp,
+        serverRecordedBy: user.displayName || user.sub,
+        serverRecordedRole: userRole,
+        serverBranch: userBranch || targetItem.cabang,
+        contentHash: contentHash,
+        isApprovedFormal: false
+      };
+
+      if (isApprovalClaimed && userRole === ROLES.ADMIN_PUSAT) {
+        auditMeta.isApprovedFormal = true;
+        auditMeta.serverApprovedAt = serverTimestamp;
+        auditMeta.serverApprovedBy = user.displayName || user.sub;
+        auditMeta.serverApprovalRole = userRole;
+      }
+
+      if (!targetItem.mitigasi) {
+        targetItem.mitigasi = {};
+      }
+
+      targetItem.mitigasi[tipeMitigasi] = {
+        ...mitigasiData,
+        _serverAudit: auditMeta,
+        lastUpdated: serverTimestamp
+      };
+
+      await _saveNolapDatabase(activeData);
+
+      return jsonResponse({
+        success: true,
+        message: `Data mitigasi risiko (${tipeMitigasi}) untuk permohonan ${noPermintaan} berhasil diverifikasi dan disinkronkan ke server terpusat.`,
+        noPermintaan,
+        tipeMitigasi,
+        serverAudit: auditMeta,
         record: targetItem
       });
     }

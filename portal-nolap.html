@@ -13165,6 +13165,7 @@
       labelSesi.innerText = `Akses: ${sesiAktif.cabang} (${sesiAktif.role})`;
       dotSesi.classList.remove('bg-amber-400', 'animate-pulse');
       dotSesi.classList.add('bg-emerald-400');
+      sinkronkanDariServerProxy();
 
       infoKantor.innerText = `${MASTER_KANTOR[sesiAktif.cabang]?.nama || sesiAktif.cabang} [${MASTER_KANTOR[sesiAktif.cabang]?.kode || ''}]`;
       infoRole.innerText = `Otoritas: ${sesiAktif.label}`;
@@ -13474,14 +13475,100 @@
       const ENDPOINT = "https://script.google.com/macros/s/AKfycbwp15BykI7yuUeSTn2VHs_aZvIUIQIzirrzqJ2yVG7CvmeLbmVEOrLyDkGIQimtFIMG/exec";
       try {
         const payload = new URLSearchParams();
-        payload.append('action', 'submitRequest');
-        payload.append('payload', JSON.stringify(data));
+        const actionToSend = (data && data.action) ? data.action : 'submitRequest';
+        payload.append('action', actionToSend);
+        const bodyToSend = (data && data.data) ? data.data : data;
+        payload.append('payload', JSON.stringify(bodyToSend));
         fetch(ENDPOINT, {
           method: 'POST',
           mode: 'no-cors',
           body: payload
         }).catch(err => console.log('Apps script background sync note:', err));
       } catch(e) {}
+    }
+
+    async function sinkronkanMitigasiKeBackend(tipe, mitigasiData) {
+      const noReq = mitigasiData ? (mitigasiData.linkedNoReq || (typeof getLinkedNoReq === 'function' ? getLinkedNoReq(tipe[0]) : '')) : '';
+      if (!noReq) return;
+
+      // 1. Simpan ke daftarPermohonan in-memory lokal
+      const item = daftarPermohonan.find(p => p.noPermintaan === noReq);
+      if (item) {
+        if (!item.mitigasi) item.mitigasi = {};
+        item.mitigasi[tipe] = JSON.parse(JSON.stringify(mitigasiData));
+        simpanDatabaseLokal();
+      }
+
+      // 2. Kirim ke Serverless Protected Proxy jika backend aktif
+      try {
+        const res = await fetch('/api/nolap-data-proxy', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'saveMitigasi',
+            payload: {
+              noPermintaan: noReq,
+              tipeMitigasi: tipe,
+              mitigasiData: mitigasiData
+            }
+          })
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.serverAudit && item) {
+            item.mitigasi[tipe]._serverAudit = json.serverAudit;
+            simpanDatabaseLokal();
+          }
+        } else if (res.status === 403) {
+          const err = await res.json().catch(() => ({}));
+          console.warn('⚠️ Server proxy menolak mitigasi (RBAC 403):', err);
+          if (err.violation === 'CROSS_BRANCH_MITIGASI_TAMPERING_ATTEMPT') {
+            alert('⚠️ Peringatan Keamanan Server: Anda tidak berwenang mengubah data mitigasi permohonan kantor cabang lain.');
+          } else if (err.violation === 'UNAUTHORIZED_MITIGATION_APPROVAL_ATTEMPT') {
+            alert('⚠️ Peringatan Keamanan Server: Penetapan status APPROVED ditolak karena akun Anda tidak memiliki kewenangan approval pusat.');
+          }
+        }
+      } catch (err) {
+        // Fail-soft jika berjalan pada static web server
+      }
+    }
+
+    async function sinkronkanDariServerProxy() {
+      try {
+        const res = await fetch('/api/nolap-data-proxy', {
+          method: 'GET',
+          headers: { 'accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+            const map = new Map();
+            result.data.forEach(item => map.set(item.noPermintaan, item));
+            daftarPermohonan.forEach(item => {
+              if (!map.has(item.noPermintaan)) {
+                map.set(item.noPermintaan, item);
+              } else {
+                const existing = map.get(item.noPermintaan);
+                if (!existing.mitigasi && item.mitigasi) {
+                  existing.mitigasi = item.mitigasi;
+                }
+              }
+            });
+            daftarPermohonan = Array.from(map.values());
+            simpanDatabaseLokal();
+            muatUlangTabel();
+            if (typeof muatPilihanReqNoLap === 'function') muatPilihanReqNoLap();
+            if (typeof muatPilihanReqNoLapUmum === 'function') muatPilihanReqNoLapUmum();
+            if (typeof muatPilihanReqNoLapRuislagh === 'function') muatPilihanReqNoLapRuislagh();
+          }
+        }
+      } catch (e) {}
     }
 
     function bukaModalSuksesPengajuan(data) {
@@ -14607,6 +14694,15 @@ function muatDataPengajuanKeSpmTanah(noReq) {
 
   smartTanahState.linkedNoReq = noReq;
 
+  // Pemulihan otomatis jika permohonan telah memiliki data mitigasi tersimpan di server/antrean
+  if (item.mitigasi && item.mitigasi.tanah) {
+    muatStateSmartSpmTanah(item.mitigasi.tanah);
+    simpanStateSmartSpmTanah();
+    updateSmartSpmTanahStats();
+    alert(`✅ Data permohonan ${noReq} berhasil ditautkan. Seluruh data mitigasi tanah (${item.mitigasi.tanah.statusDokumen || 'DRAFT'}) berhasil dimuat dari server.`);
+    return;
+  }
+
   if (document.getElementById('spm-t-nama-proyek')) {
     document.getElementById('spm-t-nama-proyek').value = `Penilaian ${item.jenisObjek || 'Pengadaan Tanah'} - ${item.namaKlien || ''}`;
   }
@@ -14774,11 +14870,14 @@ function simpanStateSmartSpmTanah() {
   }
 }
 
-function muatStateSmartSpmTanah() {
+function muatStateSmartSpmTanah(dataOverride) {
   try {
-    const raw = localStorage.getItem('kjpp_smart_spm_tanah_state');
-    if (!raw) return;
-    const d = JSON.parse(raw);
+    let d = dataOverride;
+    if (!d) {
+      const raw = localStorage.getItem('kjpp_smart_spm_tanah_state');
+      if (!raw) return;
+      try { d = JSON.parse(raw); } catch(e) { return; }
+    }
     if (!d) return;
 
     smartTanahState.statusDokumen = d.statusDokumen || 'DRAFT';
@@ -14974,6 +15073,9 @@ window.simpanLogSpm = function(tipe) {
         action: 'saveSmartMitigasiTanah',
         data: d
       });
+    }
+    if (typeof sinkronkanMitigasiKeBackend === 'function') {
+      sinkronkanMitigasiKeBackend('tanah', d);
     }
     alert(`✅ Data Client Acceptance & Smart Mitigasi Pengadaan Tanah (KJPP-RM-CA-02) berhasil disimpan permanen.\n\nStatus: ${d.statusDokumen}\nKeputusan: ${d.secF_acceptance.keputusan || 'Menunggu Keputusan'}\nProyek: ${d.secA.namaProyek || '-'}`);
     return;
@@ -15580,6 +15682,15 @@ function muatDataPengajuanKeSpmUmum(noReq) {
 
   smartUmumState.linkedNoReq = noReq;
 
+  // Pemulihan otomatis jika permohonan telah memiliki data mitigasi umum tersimpan di server
+  if (item.mitigasi && item.mitigasi.umum) {
+    muatStateSmartSpmUmum(item.mitigasi.umum);
+    simpanStateSmartSpmUmum();
+    updateSmartSpmUmumStats();
+    alert(`✅ Data permohonan ${noReq} berhasil ditautkan. Seluruh data mitigasi umum (${item.mitigasi.umum.statusDokumen || 'DRAFT'}) berhasil dimuat dari server.`);
+    return;
+  }
+
   // Auto-set kategori jika sesuai tujuan penilaian
   const tujuan = (item.tujuanPenilaian || '').toLowerCase();
   const selKat = document.getElementById('spm-u-kategori');
@@ -15760,11 +15871,14 @@ function simpanStateSmartSpmUmum() {
   }
 }
 
-function muatStateSmartSpmUmum() {
+function muatStateSmartSpmUmum(dataOverride) {
   try {
-    const raw = localStorage.getItem('kjpp_smart_spm_umum_state');
-    if (!raw) return;
-    const d = JSON.parse(raw);
+    let d = dataOverride;
+    if (!d) {
+      const raw = localStorage.getItem('kjpp_smart_spm_umum_state');
+      if (!raw) return;
+      try { d = JSON.parse(raw); } catch(e) { return; }
+    }
     if (!d) return;
 
     smartUmumState.statusDokumen = d.statusDokumen || 'DRAFT';
@@ -15931,6 +16045,9 @@ window.simpanLogSpm = function(tipe) {
         action: 'saveSmartMitigasiUmum',
         data: d
       });
+    }
+    if (typeof sinkronkanMitigasiKeBackend === 'function') {
+      sinkronkanMitigasiKeBackend('umum', d);
     }
     alert(`✅ Data Client Acceptance & Mitigasi Penugasan Umum (KJPP-RM-CA-01) berhasil disimpan permanen.\n\nStatus: ${d.statusDokumen}\nKategori: ${d.kategori}\nKeputusan: ${d.secE_acceptance.keputusan || 'Menunggu Keputusan'}`);
     return;
@@ -16463,6 +16580,15 @@ function muatDataPengajuanKeSpmRuislagh(noReq) {
 
   smartRuislaghState.linkedNoReq = noReq;
 
+  // Pemulihan otomatis jika permohonan telah memiliki data mitigasi ruislagh tersimpan di server
+  if (item.mitigasi && item.mitigasi.ruislagh) {
+    muatStateSmartSpmRuislagh(item.mitigasi.ruislagh);
+    simpanStateSmartSpmRuislagh();
+    updateSmartSpmRuislaghStats();
+    alert(`📋 Data permohonan ${noReq} berhasil ditautkan. Seluruh data mitigasi ruislagh (${item.mitigasi.ruislagh.statusDokumen || 'DRAFT'}) berhasil dimuat dari server.`);
+    return;
+  }
+
   // Pre-fill pemberi tugas / klien
   const inputKlien = document.getElementById('spm-r-pemberi-tugas');
   if (inputKlien && item.namaKlien) inputKlien.value = item.namaKlien;
@@ -16565,11 +16691,15 @@ function simpanStateSmartSpmRuislagh() {
   } catch(e) {}
 }
 
-function muatStateSmartSpmRuislagh() {
+function muatStateSmartSpmRuislagh(dataOverride) {
   try {
-    const raw = localStorage.getItem('kjpp_smart_spm_ruislagh_state');
-    if (!raw) return;
-    const d = JSON.parse(raw);
+    let d = dataOverride;
+    if (!d) {
+      const raw = localStorage.getItem('kjpp_smart_spm_ruislagh_state');
+      if (!raw) return;
+      try { d = JSON.parse(raw); } catch(e) { return; }
+    }
+    if (!d) return;
 
     smartRuislaghState.statusDokumen = d.statusDokumen || 'DRAFT';
     smartRuislaghState.linkedNoReq = d.linkedNoReq || '';
@@ -16961,6 +17091,9 @@ window.simpanLogSpm = function(tipe) {
         action: 'saveSmartMitigasiRuislagh',
         data: d
       });
+    }
+    if (typeof sinkronkanMitigasiKeBackend === 'function') {
+      sinkronkanMitigasiKeBackend('ruislagh', d);
     }
     alert(`✅ Data Client Acceptance & Smart Mitigasi Ruislagh TKD (KJPP-RM-CA-03) berhasil disimpan permanen.\n\nStatus: ${d.statusDokumen}\nJalur: ${d.jalurRuislagh}\nKeputusan: ${d.sec_acceptance.keputusan || 'Menunggu Keputusan'}`);
     return;
