@@ -242,6 +242,33 @@
             </div>
           </div>
 
+          <!-- Baris: Tautan SPK & Nilai Kontrak Penugasan -->
+          <div class="grid sm:grid-cols-2 gap-4 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+            <div>
+              <label class="block text-xs font-semibold text-slate-200 mb-1">
+                Nomor SPK / Surat Penugasan <span class="text-rose-400">*</span>
+              </label>
+              <input type="text" id="no-spk" required placeholder="Contoh: SPK/NSR/2026/010" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs font-medium focus:outline-none focus:border-amber-400">
+              <p class="text-[10px] text-slate-400 mt-1">Nomor kontrak atau surat perintah kerja yang mendasari penagihan.</p>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-200 mb-1">
+                Nilai Kontrak Total SPK (DPP) <span class="text-slate-400 font-normal">(Kontrol Pagu)</span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-2.5 top-2.5 text-xs text-slate-500 font-bold">Rp</span>
+                <input type="number" id="nilai-kontrak-spk" min="0" step="1" oninput="hitungKwitansi()" placeholder="Contoh: 50000000" class="w-full h-10 pl-9 pr-2.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-amber-400">
+              </div>
+              <span id="preview-nilai-kontrak" class="text-[10px] text-slate-400 mt-0.5 block truncate">Pagu Kontrak: Rp 0</span>
+            </div>
+            <div class="sm:col-span-2 hidden" id="box-akumulasi-termin">
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                <span class="text-slate-300" id="teks-akumulasi-termin">Akumulasi Tertagih: Rp 0</span>
+                <span id="badge-status-pagu" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Pagu Aman</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Baris 2: Identitas Klien -->
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">
@@ -407,6 +434,45 @@
 
       <!-- Form Pengesahan Resmi (Terbuka setelah Sesi Sah) -->
       <div id="konten-operasional-pusat" class="hidden grid lg:grid-cols-12 gap-6">
+        
+        <!-- Meja Verifikasi & Approval Keuangan Pusat -->
+        <div class="lg:col-span-12 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Meja Verifikasi Draf Kwitansi Nasional (Pusat &amp; Seluruh Cabang)</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Pilih draf tagihan masuk dari cabang untuk diverifikasi, disahkan, atau dikembalikan.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="muatDaftarKwitansi()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold transition flex items-center gap-1 border border-slate-700">
+                🔄 Refresh Draf
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 text-[11px] uppercase border-b border-slate-800 font-semibold">
+                <tr>
+                  <th class="py-2.5 px-3">ID / No. Resmi</th>
+                  <th class="py-2.5 px-3">Cabang &amp; Tanggal</th>
+                  <th class="py-2.5 px-3">Klien &amp; SPK</th>
+                  <th class="py-2.5 px-3">Termin</th>
+                  <th class="py-2.5 px-3 text-right">Nilai Total</th>
+                  <th class="py-2.5 px-3 text-center">Status</th>
+                  <th class="py-2.5 px-3 text-center">Tindakan Otoritas</th>
+                </tr>
+              </thead>
+              <tbody id="body-tabel-kwitansi-pusat" class="divide-y divide-slate-800/60 font-medium">
+                <tr>
+                  <td colspan="7" class="py-4 text-center text-slate-500 italic">Memuat antrean draf kwitansi dari server...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
         
         <!-- Kolom Form Otorisasi Keuangan -->
         <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
@@ -683,6 +749,16 @@
     <!-- KOP SURAT RESMI KJPP NSR (SESUAI DOKUMEN RESMI) -->
     <div class="mb-4">
       <img src="images/kop-surat-nsr-resmi.png" alt="Kop Surat Resmi KJPP Nanang Rahayu Sigit Paryanto dan Rekan" class="w-full h-auto block select-none">
+    </div>
+
+    <!-- WATERMARK / BANNER DRAFT -->
+    <div id="print-watermark-draft" class="mb-3 p-2 bg-amber-50 border-2 border-dashed border-amber-600 rounded-lg text-center hidden">
+      <p class="text-xs font-black tracking-widest text-amber-800 uppercase">
+        ⚠️ DRAFT PENGAJUAN TAGIHAN — BELUM DISAHKAN BAGIAN KEUANGAN KANTOR PUSAT
+      </p>
+      <p class="text-[9.5px] text-amber-700 mt-0.5">
+        Dokumen ini berstatus pengajuan draf administrasi dan belum memiliki keabsahan tanda tangan resmi.
+      </p>
     </div>
 
     <!-- JUDUL DOKUMEN & NOMOR REGISTRASI RESMI -->
@@ -1390,6 +1466,219 @@
     }
 
     // 12. Submit Pengajuan Draf ke Google Form / Sheets
+    async function muatDaftarKwitansi() {
+      if (!currentUser) return;
+      try {
+        const res = await fetch('/api/kwitansi-data-proxy', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            daftarKwitansiGlobal = json.data;
+            renderTabelKwitansi();
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal memuat daftar kwitansi dari server:', e);
+      }
+    }
+
+    function renderTabelKwitansi() {
+      const isKeuangan = currentUser && (currentUser.role === 'KEUANGAN' || currentUser.role === 'ADMIN_PUSAT' || currentUser.role === 'ADMIN');
+
+      // 1. Render Tabel Pusat
+      const tbodyPusat = document.getElementById('body-tabel-kwitansi-pusat');
+      if (tbodyPusat && isKeuangan) {
+        if (!daftarKwitansiGlobal || daftarKwitansiGlobal.length === 0) {
+          tbodyPusat.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-500 italic">Belum ada antrean draf kwitansi di sistem.</td></tr>';
+        } else {
+          tbodyPusat.innerHTML = daftarKwitansiGlobal.map(item => {
+            const isApproved = (item.status === 'DISAHKAN' || item.isApproved);
+            const isReturned = (item.status === 'DIKEMBALIKAN');
+            const isVoid = (item.status === 'VOID');
+
+            const statusBadge = isApproved 
+              ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">DISAHKAN</span>`
+              : (isReturned 
+                ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30" title="${item.catatanRevisi || ''}">DIKEMBALIKAN</span>`
+                : (isVoid
+                  ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">VOID</span>`
+                  : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/10 text-amber-300 border border-amber-400/30">MENUNGGU VERIFIKASI</span>`));
+
+            return `
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-3 font-mono font-bold text-amber-300">
+                  ${item.idKwitansi}
+                  ${item.noKwitansiResmi && item.noKwitansiResmi !== 'DRAFT (Belum Disahkan)' ? `<div class="text-[10px] font-semibold text-emerald-400">${item.noKwitansiResmi}</div>` : ''}
+                </td>
+                <td class="py-2.5 px-3">
+                  <div class="font-bold text-white">${item.cabang || 'Pusat'}</div>
+                  <div class="text-[10px] text-slate-400">${item.tglPengajuan || item.createdAt || '-'}</div>
+                </td>
+                <td class="py-2.5 px-3 max-w-xs">
+                  <div class="truncate font-semibold text-slate-200" title="${item.klien}">${item.klien}</div>
+                  <div class="text-[10px] text-slate-400 font-mono truncate">SPK: ${item.noSpk || '-'}</div>
+                </td>
+                <td class="py-2.5 px-3">
+                  <div class="font-medium text-slate-300">${item.banyaknya || '-'}</div>
+                  ${item.isOverbilling ? `<span class="text-[9px] text-rose-400 font-bold">⚠️ Melebihi Pagu SPK</span>` : ''}
+                </td>
+                <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-100">${formatRupiah(item.totalBayar || 0)}</td>
+                <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+                <td class="py-2.5 px-3 text-center">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <button type="button" onclick="pilihDrafUntukVerifikasi('${item.idKwitansi}')" class="px-2 py-1 rounded bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[10.5px] transition shadow cursor-pointer">
+                      🔍 Periksa &amp; Muat
+                    </button>
+                    ${!isApproved && !isVoid ? `
+                      <button type="button" onclick="kembalikanDrafKwitansi('${item.idKwitansi}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 font-bold text-[10.5px] transition border border-slate-700 cursor-pointer" title="Kembalikan Draf ke Cabang">
+                        ↩️ Tolak
+                      </button>
+                    ` : ''}
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 2. Render Tabel Cabang
+      const tbodyCabang = document.getElementById('body-tabel-kwitansi-cabang');
+      if (tbodyCabang) {
+        const filteredCabang = isKeuangan 
+          ? daftarKwitansiGlobal 
+          : daftarKwitansiGlobal.filter(i => !currentUser.branch || (i.cabang || '').toLowerCase().includes((currentUser.branch || '').toLowerCase()));
+
+        if (!filteredCabang || filteredCabang.length === 0) {
+          tbodyCabang.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-500 italic">Belum ada draf kwitansi yang diajukan oleh cabang Anda.</td></tr>';
+        } else {
+          tbodyCabang.innerHTML = filteredCabang.map(item => {
+            const isApproved = (item.status === 'DISAHKAN' || item.isApproved);
+            const isReturned = (item.status === 'DIKEMBALIKAN');
+            const isVoid = (item.status === 'VOID');
+
+            const statusBadge = isApproved 
+              ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">DISAHKAN</span>`
+              : (isReturned 
+                ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30" title="${item.catatanRevisi || ''}">PERLU REVISI</span>`
+                : (isVoid
+                  ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">VOID</span>`
+                  : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/10 text-amber-300 border border-amber-400/30">MENUNGGU PUSAT</span>`));
+
+            return `
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-3 font-mono font-bold text-amber-300">
+                  ${item.idKwitansi}
+                  ${item.noKwitansiResmi && item.noKwitansiResmi !== 'DRAFT (Belum Disahkan)' ? `<div class="text-[10px] font-semibold text-emerald-400">${item.noKwitansiResmi}</div>` : ''}
+                </td>
+                <td class="py-2.5 px-3 text-slate-300">${item.tglPengajuan || item.createdAt || '-'}</td>
+                <td class="py-2.5 px-3 max-w-xs">
+                  <div class="truncate font-semibold text-slate-200" title="${item.klien}">${item.klien}</div>
+                  <div class="text-[10px] text-slate-400 font-mono truncate">SPK: ${item.noSpk || '-'}</div>
+                  ${isReturned && item.catatanRevisi ? `<div class="text-[10px] text-rose-300 italic mt-0.5">Catatan Pusat: "${item.catatanRevisi}"</div>` : ''}
+                </td>
+                <td class="py-2.5 px-3 text-slate-300">${item.banyaknya || '-'}</td>
+                <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-100">${formatRupiah(item.totalBayar || 0)}</td>
+                <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+                <td class="py-2.5 px-3 text-center">
+                  <button type="button" onclick="pilihDrafUntukVerifikasi('${item.idKwitansi}')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-[10.5px] transition border border-slate-700 cursor-pointer">
+                    📄 Muat &amp; Cetak
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function pilihDrafUntukVerifikasi(id) {
+      const item = daftarKwitansiGlobal.find(k => k.idKwitansi === id);
+      if (!item) return;
+
+      dataKwitansiAktif = {
+        ...dataKwitansiAktif,
+        idKwitansi: item.idKwitansi,
+        cabang: item.cabang || dataKwitansiAktif.cabang,
+        klien: item.klien || dataKwitansiAktif.klien,
+        keterangan: item.keterangan || dataKwitansiAktif.keterangan,
+        banyaknya: item.banyaknya || dataKwitansiAktif.banyaknya,
+        noSpk: item.noSpk || '',
+        nilaiKontrakSpk: item.nilaiKontrakSpk || 0,
+        hargaDasar: item.dpp || item.hargaDasar || dataKwitansiAktif.hargaDasar,
+        tarifPpn: item.tarifPpn || 0.11,
+        nominalPpn: item.nominalPpn || 0,
+        totalBayar: item.totalBayar || 0,
+        terbilang: item.terbilang || dataKwitansiAktif.terbilang,
+        status: item.status || 'DRAFT',
+        isApproved: (item.status === 'DISAHKAN' || item.isApproved || false),
+        noKwitansiResmi: item.noKwitansiResmi || (item.status === 'DISAHKAN' ? item.noKwitansiResmi : 'DRAFT (Belum Disahkan)'),
+        namaPejabat: item.namaPejabat || dataKwitansiAktif.namaPejabat,
+        jabatanPejabat: item.jabatanPejabat || dataKwitansiAktif.jabatanPejabat,
+        subjabatanPejabat: item.subjabatanPejabat || dataKwitansiAktif.subjabatanPejabat
+      };
+
+      if (document.getElementById('identitas-klien')) document.getElementById('identitas-klien').value = dataKwitansiAktif.klien;
+      if (document.getElementById('keterangan-penugasan')) document.getElementById('keterangan-penugasan').value = dataKwitansiAktif.keterangan;
+      if (document.getElementById('banyaknya-termin')) document.getElementById('banyaknya-termin').value = dataKwitansiAktif.banyaknya;
+      if (document.getElementById('harga-dasar')) document.getElementById('harga-dasar').value = dataKwitansiAktif.hargaDasar;
+      if (document.getElementById('no-spk')) document.getElementById('no-spk').value = dataKwitansiAktif.noSpk;
+      if (document.getElementById('nilai-kontrak-spk')) document.getElementById('nilai-kontrak-spk').value = dataKwitansiAktif.nilaiKontrakSpk;
+      if (document.getElementById('cabang-pengaju')) document.getElementById('cabang-pengaju').value = dataKwitansiAktif.cabang;
+      if (document.getElementById('no-kwitansi-resmi') && item.noKwitansiResmi && item.status === 'DISAHKAN') {
+        document.getElementById('no-kwitansi-resmi').value = item.noKwitansiResmi;
+      }
+
+      hitungKwitansi();
+      perbaruiPreviewKwitansi();
+
+      // Pindahkan fokus / scroll ke preview
+      const previewEl = document.getElementById('preview-kwitansi-container');
+      if (previewEl) {
+        previewEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    async function kembalikanDrafKwitansi(idKwitansi) {
+      if (!currentUser || (currentUser.role !== 'KEUANGAN' && currentUser.role !== 'ADMIN_PUSAT' && currentUser.role !== 'ADMIN')) {
+        alert('Akses Ditolak: Hanya Bagian Keuangan Pusat yang berhak mengembalikan draf.');
+        return;
+      }
+
+      const alasan = prompt('Masukkan alasan / catatan revisi pengembalian draf kwitansi ke Cabang:');
+      if (!alasan || !alasan.trim()) return;
+
+      try {
+        const res = await fetch('/api/kwitansi-data-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'returnKwitansi',
+            payload: {
+              idKwitansi: idKwitansi,
+              catatanRevisi: alasan.trim()
+            }
+          })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          alert(`Draf ${idKwitansi} telah berhasil dikembalikan ke Cabang dengan status revisi.`);
+          await muatDaftarKwitansi();
+        } else {
+          alert('Gagal Mengembalikan Draf: ' + (data.error || 'Terjadi kesalahan sistem.'));
+        }
+      } catch (e) {
+        alert('Gagal Menghubungi Server: ' + e.message);
+      }
+    }
+
+    // 12. Submit Pengajuan Draf ke Server Terpusat & Google Form
     async function prosesSubmitPengajuan(e) {
       e.preventDefault();
       hitungKwitansi();
@@ -1397,50 +1686,96 @@
       const btn = document.getElementById('btn-submit-pengajuan');
       const textOriginal = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-slate-950 inline mr-1" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Mengirim ke Pusat...`;
+      btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-slate-950 inline mr-1" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Mengirim ke Server Pusat...`;
 
       const tgl = document.getElementById('tgl-pengajuan').value;
-      const klien = document.getElementById('identitas-klien').value;
-      const ket = document.getElementById('keterangan-penugasan').value;
+      const klien = document.getElementById('identitas-klien').value.trim();
+      const ket = document.getElementById('keterangan-penugasan').value.trim();
       const cabang = document.getElementById('cabang-pengaju').value;
-      const banyaknya = document.getElementById('banyaknya-termin').value;
-      const hargaDasar = document.getElementById('harga-dasar').value;
-      const nominalPpn = document.getElementById('nominal-ppn').value;
-      const totalBayar = document.getElementById('total-bayar').value;
+      const banyaknya = document.getElementById('banyaknya-termin').value.trim();
+      const hargaDasar = parseFloat(document.getElementById('harga-dasar').value) || 0;
+      const nominalPpn = parseFloat(document.getElementById('nominal-ppn').value) || 0;
+      const totalBayar = parseFloat(document.getElementById('total-bayar').value) || 0;
       const terbilang = document.getElementById('teks-terbilang').value;
-      const namaPengaju = document.getElementById('nama-staf-pengaju') ? document.getElementById('nama-staf-pengaju').value : 'Staf Cabang';
-      const waPengaju = document.getElementById('wa-staf-pengaju') ? document.getElementById('wa-staf-pengaju').value : '';
-
-      // Susun Form Data untuk Google Form resmi (dengan identitas staf cabang)
-      const formData = new FormData();
-      formData.append(FORM_ENTRY_MAP.tanggal, tgl);
-      formData.append(FORM_ENTRY_MAP.klien, `[${cabang}] [PIC: ${namaPengaju} / ${waPengaju}] ${klien}`);
-      formData.append(FORM_ENTRY_MAP.keterangan, ket);
-      formData.append(FORM_ENTRY_MAP.banyaknya, banyaknya);
-      formData.append(FORM_ENTRY_MAP.hargaDasar, hargaDasar);
-      formData.append(FORM_ENTRY_MAP.nominalPpn, nominalPpn);
-      formData.append(FORM_ENTRY_MAP.totalBayar, totalBayar);
-      formData.append(FORM_ENTRY_MAP.terbilang, terbilang);
+      const namaPengaju = document.getElementById('nama-staf-pengaju') ? document.getElementById('nama-staf-pengaju').value.trim() : 'Staf Cabang';
+      const waPengaju = document.getElementById('wa-staf-pengaju') ? document.getElementById('wa-staf-pengaju').value.trim() : '';
+      const noSpk = document.getElementById('no-spk') ? document.getElementById('no-spk').value.trim() : '';
+      const nilaiKontrakSpk = document.getElementById('nilai-kontrak-spk') ? (parseFloat(document.getElementById('nilai-kontrak-spk').value) || 0) : 0;
+      const tarifPpn = parseFloat(document.getElementById('tarif-ppn')?.value) || 0.11;
 
       try {
-        await fetch(GOOGLE_FORM_ACTION_URL, {
+        const res = await fetch('/api/kwitansi-data-proxy', {
           method: 'POST',
-          mode: 'no-cors',
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'submitDraft',
+            payload: {
+              cabang,
+              tglPengajuan: tgl,
+              namaPengaju,
+              waPengaju,
+              klien,
+              keterangan: ket,
+              noSpk,
+              nilaiKontrakSpk,
+              banyaknya,
+              dpp: hargaDasar,
+              tarifPpn,
+              nominalPpn,
+              totalBayar,
+              terbilang
+            }
+          })
         });
 
-        document.getElementById('panel-notifikasi-sukses').classList.remove('hidden');
-        perbaruiPreviewKwitansi();
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success) {
+          dataKwitansiAktif.idKwitansi = data.idKwitansi;
+          dataKwitansiAktif.status = 'DRAFT';
+          dataKwitansiAktif.isApproved = false;
+          dataKwitansiAktif.noKwitansiResmi = 'DRAFT (Belum Disahkan)';
+          dataKwitansiAktif.noSpk = noSpk;
+          dataKwitansiAktif.nilaiKontrakSpk = nilaiKontrakSpk;
+
+          document.getElementById('panel-notifikasi-sukses').classList.remove('hidden');
+          perbaruiPreviewKwitansi();
+          await muatDaftarKwitansi();
+
+          // Cadangan background notification ke Google Form
+          try {
+            const formData = new FormData();
+            formData.append(FORM_ENTRY_MAP.tanggal, tgl);
+            formData.append(FORM_ENTRY_MAP.klien, `[${cabang}] [PIC: ${namaPengaju} / ${waPengaju}] [SPK: ${noSpk}] ${klien}`);
+            formData.append(FORM_ENTRY_MAP.keterangan, ket);
+            formData.append(FORM_ENTRY_MAP.banyaknya, banyaknya);
+            formData.append(FORM_ENTRY_MAP.hargaDasar, hargaDasar);
+            formData.append(FORM_ENTRY_MAP.nominalPpn, nominalPpn);
+            formData.append(FORM_ENTRY_MAP.totalBayar, totalBayar);
+            formData.append(FORM_ENTRY_MAP.terbilang, terbilang);
+            fetch(GOOGLE_FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body: formData });
+          } catch (e) {}
+
+          let pesanSukses = `✅ Draf kwitansi berhasil dikirim dan tersimpan di server terpusat!\nNomor Referensi Draf: ${data.idKwitansi}`;
+          if (data.isOverbilling) {
+            pesanSukses += `\n\n⚠️ Peringatan Pagu: Total akumulasi tertagih melebihi nilai kontrak SPK. Tercatat di audit server untuk verifikasi Keuangan Pusat.`;
+          }
+          alert(pesanSukses);
+        } else {
+          // GAGAL: Jangan tampilkan notifikasi sukses palsu!
+          alert('❌ Gagal Mengirim Pengajuan Draf: ' + (data.error || 'Respons server tidak valid.') + '\n\nIsian formulir tetap dipertahankan pada layar.');
+        }
       } catch (err) {
-        console.warn('Pengiriman background form:', err);
-        document.getElementById('panel-notifikasi-sukses').classList.remove('hidden');
+        console.error('Error saat menghubungi server kwitansi:', err);
+        // GAGAL SERVER: Jangan tampilkan notifikasi sukses palsu!
+        alert('❌ Gagal Menghubungi Server: ' + err.message + '\n\nIsian formulir tetap dipertahankan pada layar. Silakan periksa koneksi Anda dan coba lagi.');
       } finally {
         btn.disabled = false;
         btn.innerHTML = textOriginal;
       }
     }
 
-    // 13. DATA KONTAK RESMI KELEMBAGAAN KJPP NSR (TERVERIFIKASI)
     const KONTAK_NSR = {
       pusat: {
         nama: "Keuangan Kantor Pusat KJPP NSR",
