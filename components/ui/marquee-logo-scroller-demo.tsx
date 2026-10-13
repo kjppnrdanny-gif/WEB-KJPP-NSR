@@ -82,10 +82,10 @@ export const nsrIndonesianPartners: Logo[] = [
     gradient: { from: '#005596', via: '#0074B7', to: '#F7941D' },
   },
   {
-    name: 'Bank Danamon',
-    alt: 'Bank Danamon',
-    src: '/images/logos/danamon.svg',
-    gradient: { from: '#004B87', via: '#0072CE', to: '#F37021' },
+    name: 'Bank Sahabat Sampoerna',
+    alt: 'Bank Sahabat Sampoerna',
+    src: '/images/logos/bank-sampoerna.png',
+    gradient: { from: '#B45309', via: '#D97706', to: '#1E293B' },
   },
   {
     name: 'Bank DKI',
