@@ -26,6 +26,8 @@ const ALLOWED_FILES = [
   "portal-nolap.html",
   "portal-kwitansi.html",
   "portal-absensi.html",
+  "kebijakan-privasi.html",
+  "disclaimer.html",
   "trusted-by.html",
   "panduan-sosialisasi-karyawan.html",
   "panduan-operasional-nolap-kwitansi.html",
@@ -53,6 +55,7 @@ const ALLOWED_FILES = [
   ".htaccess",
   "visitor-stats.php",
   "auth-handler.php",
+  "pdp-consent-handler.php",
   "nolap-data-handler.php",
   "kwitansi-data-handler.php"
 ];

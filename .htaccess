@@ -24,10 +24,15 @@ RewriteRule ^api/auth-logout/?$ auth-handler.php?action=logout [L,QSA]
 RewriteRule ^api/nolap-data-proxy/?$ nolap-data-handler.php [L,QSA]
 RewriteRule ^api/kwitansi-data-proxy/?$ kwitansi-data-handler.php [L,QSA]
 
-# 6. Lindungi data json counter dan file database sistem dari akses publik langsung
-<FilesMatch "^(visitor-data|nolap-data|nolap_database|kwitansi_database).*\.json$">
+# 6. Route endpoint /api/pdp-* ke pdp-consent-handler.php
+RewriteRule ^api/pdp-consent/?$ pdp-consent-handler.php?action=consent [L,QSA]
+RewriteRule ^api/pdp-request/?$ pdp-consent-handler.php?action=request [L,QSA]
+RewriteRule ^api/pdp-verify/?$ pdp-consent-handler.php?action=verify [L,QSA]
+
+# 7. Lindungi data json counter, database, dan PDP audit logs dari akses publik langsung
+<FilesMatch "^(visitor-data|nolap-data|nolap_database|kwitansi_database|pdp-consent-logs|pdp-requests).*\.json$">
     Require all denied
 </FilesMatch>
 
-# 7. Blokir akses HTTP langsung ke direktori data dan backup internal
+# 8. Blokir akses HTTP langsung ke direktori data dan backup internal
 RewriteRule ^data(/.*)?$ - [F,L]

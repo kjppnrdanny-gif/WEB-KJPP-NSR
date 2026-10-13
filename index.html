@@ -4229,6 +4229,8 @@
           <li>SPI 204 (Pengadaan Tanah Kepentingan Umum)</li>
           <li>PMK No. 101/2014 jo. No. 228/2019</li>
           <li>Izin Lokasi & NIB: 9120403581857</li>
+          <li><a href="kebijakan-privasi.html" class="text-slate-300 hover:text-amber-400 transition">&bull; Kebijakan Privasi (UU PDP)</a></li>
+          <li><a href="disclaimer.html" class="text-slate-300 hover:text-amber-400 transition">&bull; Disclaimer Profesi</a></li>
         </ul>
       </div>
       <div>
@@ -4242,6 +4244,11 @@
       <div>
         <p>&copy; 2026 KJPP Nanang Rahayu Sigit Paryanto dan Rekan. Hak Cipta Dilindungi.</p>
         <p class="text-[11px] text-slate-600 mt-0.5">Licensed Public Appraisers & Property Consultants &bull; KMK RI No. 248/KM.1/2019</p>
+      </div>
+      <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px]">
+        <button type="button" onclick="bukaModalPrivasi()" class="text-slate-400 hover:text-amber-400 transition cursor-pointer">Kebijakan Privasi &amp; Perlindungan Data Klien</button>
+        <span class="text-slate-700 select-none">&bull;</span>
+        <button type="button" onclick="bukaModalDisclaimer()" class="text-slate-400 hover:text-amber-400 transition cursor-pointer">Disclaimer Profesi &amp; Informasi Hukum</button>
       </div>
       <div class="text-center">
         <p class="text-[11px] sm:text-xs md:text-[13px] text-slate-400">
@@ -4504,15 +4511,39 @@
           <label class="block text-xs font-semibold leading-none text-slate-800 mb-1.5">Uraian Singkat Kebutuhan <span class="text-slate-400 font-normal">(Opsional)</span></label>
           <textarea id="rfp-catatan" rows="2" placeholder="Luas tanah/bangunan, estimasi jumlah item, atau batas waktu kebutuhan laporan..." class="input-basic flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"></textarea>
         </div>
-        <div class="flex items-start gap-2.5 bg-slate-50 border border-slate-200 rounded-lg p-3">
-          <input type="checkbox" id="rfp-consent" required class="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 shrink-0">
-          <label for="rfp-consent" class="text-[11px] text-slate-600 leading-relaxed cursor-pointer">
-            Saya menyetujui pemrosesan data pribadi yang saya masukkan untuk keperluan permintaan penawaran jasa penilaian KJPP NSR. Data tidak akan diteruskan kepada pihak ketiga tanpa persetujuan.
-          </label>
+        <!-- PEMBERITAHUAN PRIVASI & PERSETUJUAN PEMROSESAN DATA (UU PDP NO. 27/2022) -->
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-left">
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            Data dan dokumen yang Anda sampaikan melalui Form Permohonan RFP akan diproses oleh KJPP NSR untuk memeriksa permohonan, mengidentifikasi kebutuhan penugasan, melakukan komunikasi, dan menyiapkan tanggapan atau penawaran jasa profesional.
+          </p>
+          <p class="text-[10.5px] text-slate-500">
+            Informasi lebih lanjut mengenai jenis data, dasar pemrosesan, penggunaan, penyimpanan, pengamanan, dan hak Anda tersedia dalam <button type="button" onclick="bukaModalPrivasi()" class="text-sky-700 underline font-semibold hover:text-sky-800">Kebijakan Privasi dan Perlindungan Data Klien</button>.
+          </p>
+          
+          <div class="space-y-2 pt-1 border-t border-slate-200">
+            <div class="flex items-start gap-2.5">
+              <input type="checkbox" id="rfp-consent-notice" required class="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 shrink-0">
+              <label for="rfp-consent-notice" class="text-[11px] text-slate-700 leading-snug cursor-pointer">
+                Saya telah membaca dan memahami <button type="button" onclick="bukaModalPrivasi()" class="text-sky-700 underline font-semibold hover:text-sky-800">Kebijakan Privasi dan Perlindungan Data Klien</button>.
+              </label>
+            </div>
+            
+            <div class="flex items-start gap-2.5">
+              <input type="checkbox" id="rfp-consent-process" required class="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 shrink-0">
+              <label for="rfp-consent-process" class="text-[11px] text-slate-700 leading-snug cursor-pointer">
+                Saya secara sadar dan sukarela memberikan persetujuan kepada KJPP NSR untuk memproses data pribadi yang saya sampaikan bagi tujuan yang telah dijelaskan dalam pemberitahuan privasi.
+              </label>
+            </div>
+          </div>
         </div>
+
         <button type="submit" class="w-full py-2.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider transition shadow mt-2">
-          Kirim Permohonan via WhatsApp &rarr;
+          Kirim Permohonan via WhatsApp Resmi &rarr;
         </button>
+
+        <p class="text-[10px] text-slate-400 text-center leading-relaxed">
+          Catatan: Pengiriman permohonan RFP tidak otomatis membentuk hubungan penugasan profesional atau perjanjian jasa penilaian. Hubungan penugasan resmi wajib dituangkan dalam Surat Perintah Kerja (SPK) / Kontrak Penugasan yang disepakati para pihak.
+        </p>
       </form>
     </div>
   </div>
@@ -6121,6 +6152,25 @@
         return;
       }
 
+      const noticeChk = document.getElementById('rfp-consent-notice');
+      const processChk = document.getElementById('rfp-consent-process');
+      if (!noticeChk || !noticeChk.checked || !processChk || !processChk.checked) {
+        tampilkanToast('Harap beri tanda centang pada kedua konfirmasi kepatuhan privasi dan persetujuan pemrosesan data.');
+        return;
+      }
+
+      if (typeof window.rekamPersetujuanPDP === 'function') {
+        window.rekamPersetujuanPDP({
+          form_type: 'RFP',
+          consent_notice: true,
+          consent_processing: true,
+          nama: nama,
+          kontak: wa,
+          instansi: instansi,
+          purpose: `Permohonan Penawaran Biaya (${objek} - ${tujuan})`
+        });
+      }
+
       const email = document.getElementById('rfp-email') ? document.getElementById('rfp-email').value.trim() : '';
       const catatan = document.getElementById('rfp-catatan') ? document.getElementById('rfp-catatan').value.trim() : '';
 
@@ -6965,6 +7015,9 @@
       else if (h === 'kontak' || h === 'kantor') pilihTabUtama('kantor', false);
     }
   </script>
+
+  <!-- Modul Kepatuhan UU PDP & Disclaimer Profesi -->
+  <script src="lib/privacy-consent.js"></script>
 
 </body>
 </html>
