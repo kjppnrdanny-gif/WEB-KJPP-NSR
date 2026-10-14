@@ -163,6 +163,15 @@ function doGet(e) {
 
     const ss = SpreadsheetApp.getActiveSpreadsheet() || inisialisasiSpreadsheetBaru();
     
+    // Jika forceRefresh aktif, sinkronkan counter ke data riil Data_Penugasan
+    if (forceRefresh) {
+      try {
+        rekalkulasiCounterMax(ss, 2026);
+      } catch (rErr) {
+        console.warn('Gagal rekalkulasiCounterMax di doGet:', rErr);
+      }
+    }
+
     // 1. Baca Counter dari Config_Counter
     const counterData = bacaConfigCounter(ss);
 
@@ -221,12 +230,14 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   
   try {
-    // 1. Tunggu script lock hingga maksimal 30 detik untuk menjamin penomoran atomik
-    const acquired = lock.tryLock(30000);
-    if (!acquired) {
+    // 1. Tunggu script lock hingga maksimal 15 detik sebelum membaca data dan mengecek duplikasi
+    try {
+      lock.waitLock(15000);
+    } catch (lockErr) {
       return respondJSON({
         status: 'error',
         success: false,
+        code: 'SERVER_BUSY',
         error: 'Server sedang sibuk memproses transaksi penomoran lain. Silakan coba kembali beberapa saat lagi.'
       }, 503);
     }
@@ -327,7 +338,16 @@ function doPost(e) {
     }, 500);
 
   } finally {
-    lock.releaseLock();
+    try {
+      SpreadsheetApp.flush();
+    } catch (fErr) {
+      console.warn('Gagal SpreadsheetApp.flush():', fErr);
+    }
+    try {
+      lock.releaseLock();
+    } catch (lErr) {
+      console.warn('Gagal lock.releaseLock():', lErr);
+    }
   }
 }
 
@@ -438,10 +458,77 @@ function cekDuplikasiBackend(sheetData, noLp, noAdm, currentProjectId, targetYea
 }
 
 /**
+ * Menghitung ulang (re-kalkulasi) nilai sequence maksimum aktual dari seluruh
+ * penugasan aktif di sheet Data_Penugasan untuk tahun berjalan (targetYear)
+ * dan memperbarui parameter di Config_Counter.
+ * Mencegah bug lompatan permanen counter akibat typo atau penghapusan data.
+ */
+function rekalkulasiCounterMax(ss, targetYear) {
+  const yr = targetYear || new Date().getFullYear() || 2026;
+  const sheetData = ss.getSheetByName(CONFIG.SHEET_DATA) || ss.getSheetByName('Database_Penugasan');
+  const sheetCounter = ss.getSheetByName(CONFIG.SHEET_COUNTER);
+  if (!sheetData || !sheetCounter) return 415;
+
+  let trueMax = 415; // Baseline awal resmi KJPP NSR
+
+  if (sheetData.getLastRow() >= 2) {
+    const numRows = sheetData.getLastRow() - 1;
+    const numCols = Math.min(sheetData.getLastColumn(), 44);
+    const data = sheetData.getRange(2, 1, numRows, numCols).getValues();
+
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowStatus = String(row[2] || '').trim().toUpperCase();
+      const rowMode = String(row[4] || '').trim().toUpperCase();
+      
+      // Hanya hitung baris yang APPROVED atau penugasan langsung PUSAT
+      if (rowStatus !== 'APPROVED' && rowMode !== 'PUSAT') continue;
+
+      const rowTgl = new Date(row[7] || row[1] || new Date());
+      const rowYear = rowTgl.getFullYear() || yr;
+      if (rowYear !== yr) continue;
+
+      const seqAdm = extractSeq(row[5]); // Col 6: No_Adm_JO
+      const seqLp = extractSeq(row[6]);  // Col 7: No_Lingkup_Penugasan
+      const seqId = extractSeq(row[0]);  // Col 1: ID_Penugasan
+
+      if (seqAdm > trueMax && seqAdm < 50000) trueMax = seqAdm;
+      if (seqLp > trueMax && seqLp < 50000) trueMax = seqLp;
+      if (seqId > trueMax && seqId < 50000) trueMax = seqId;
+    }
+  }
+
+  // Update Config_Counter dengan trueMax yang aktual
+  const counterData = sheetCounter.getDataRange().getValues();
+  let rowAdm = -1;
+  let rowLp = -1;
+
+  for (let i = 0; i < counterData.length; i++) {
+    const k = String(counterData[i][0]).trim();
+    if (k === 'LAST_NO_ADM_JO') rowAdm = i + 1;
+    else if (k === 'LAST_NO_LP_SPK') rowLp = i + 1;
+  }
+
+  if (rowAdm !== -1) {
+    sheetCounter.getRange(rowAdm, 2).setValue(trueMax);
+  } else {
+    sheetCounter.appendRow(['LAST_NO_ADM_JO', trueMax]);
+  }
+
+  if (rowLp !== -1) {
+    sheetCounter.getRange(rowLp, 2).setValue(trueMax);
+  } else {
+    sheetCounter.appendRow(['LAST_NO_LP_SPK', trueMax]);
+  }
+
+  return trueMax;
+}
+
+/**
  * Memperbarui LAST_NO_LP_SPK dan LAST_NO_ADM_JO dengan nilai maksimum jika angka baru lebih besar
  */
 function updateCounterMax(ss, newNumberInt) {
-  if (!newNumberInt || isNaN(newNumberInt) || newNumberInt <= 0 || newNumberInt >= 100000) return;
+  if (!newNumberInt || isNaN(newNumberInt) || newNumberInt <= 0 || newNumberInt >= 50000) return;
   let sheetCounter = ss.getSheetByName(CONFIG.SHEET_COUNTER);
   if (!sheetCounter) return;
 
@@ -459,6 +546,12 @@ function updateCounterMax(ss, newNumberInt) {
       rowLp = i + 1;
       currentCounter = Math.max(currentCounter, parseInt(data[i][1], 10) || 415);
     }
+  }
+
+  // Guard: Cegah lompatan tidak wajar (> 100) tanpa verifikasi
+  if (newNumberInt > currentCounter + 100) {
+    console.warn('Lompatan counter abnormal dicegah:', newNumberInt, 'vs', currentCounter);
+    return;
   }
 
   const finalCounter = Math.max(currentCounter, newNumberInt);
@@ -734,6 +827,13 @@ function prosesUpdateData(ss, projectId, updateData, auth) {
       sheetData.getRange(rowIndex, colIdx + 1).setValue(updateData[header]);
     }
   });
+
+  // Rekalkulasi counter maksimum aktual untuk mencegah bug lompatan permanen
+  if (newLp || newAdm) {
+    const tgl = updateData['Tgl_Dibuat'] || updateData.tanggal_surat || new Date();
+    const thn = new Date(tgl).getFullYear() || 2026;
+    rekalkulasiCounterMax(ss, thn);
+  }
 
   catatLogAktivitas(ss, projectId, 'UPDATE_DATA', auth.token, 'Pembaruan data penugasan');
 

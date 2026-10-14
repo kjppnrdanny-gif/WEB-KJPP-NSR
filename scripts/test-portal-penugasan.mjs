@@ -318,14 +318,16 @@ async function runTests() {
     // Login sebagai Admin Cabang Bandung
     await cdp.send('Runtime.evaluate', {
       expression: `
-        (() => {
+        (async () => {
           window.alert = () => {};
+          window.confirm = () => true;
           sessionStorage.clear();
           localStorage.removeItem('nsr_private_jo_BDG');
           document.getElementById('input_token_auth').value = 'NSR-BDG-2026';
-          verifikasiTokenLogin();
+          await verifikasiTokenLogin();
         })()
-      `
+      `,
+      awaitPromise: true
     });
     await new Promise(r => setTimeout(r, 600));
 
@@ -446,13 +448,15 @@ async function runTests() {
     console.log('\n--- TEST 3B: portal-penugasan-jo.html - Uji Admin Pusat (NSR-PST-2026) & Fix Bug 4172027 ---');
     await cdp.send('Runtime.evaluate', {
       expression: `
-        (() => {
+        (async () => {
           window.alert = () => {};
+          window.confirm = () => true;
           sessionStorage.clear();
           document.getElementById('input_token_auth').value = 'NSR-PST-2026';
-          verifikasiTokenLogin();
+          await verifikasiTokenLogin();
         })()
-      `
+      `,
+      awaitPromise: true
     });
     await new Promise(r => setTimeout(r, 600));
 
@@ -518,18 +522,27 @@ async function runTests() {
     console.log(`✓ Admin Pusat terverifikasi: Input editable (readOnly === false), format nomor bersih '${pstRes.lpValAfterReset}', dan proteksi edit manual aktif!`);
 
     // ------------------------------------------------------------------
-    // TEST 3C: Jenis Laporan (APP vs RTL), Ketik Cepat & Proteksi Anti-Double
+    // TEST 3C: Jenis Laporan (APP vs RTL), Ketik Cepat, Proteksi Anti-Double, Jump Guard & Obfuskasi Token
     // ------------------------------------------------------------------
-    console.log('\n--- TEST 3C: portal-penugasan-jo.html - Uji Jenis Laporan (APP vs RTL) & Proteksi Anti-Double ---');
+    console.log('\n--- TEST 3C: portal-penugasan-jo.html - Uji Jenis Laporan, Proteksi Anti-Double, Jump Guard & Obfuskasi ---');
     const testJenisLaporanAndAntiDouble = await cdp.send('Runtime.evaluate', {
       expression: `
-        (() => {
+        (async () => {
+          window.alert = () => {};
+          window.confirm = () => true;
           resetFormulir(true);
           const elJenis = document.getElementById('jenis_laporan');
           const elLp = document.getElementById('no_lingkup_penugasan');
           const elAdm = document.getElementById('no_adm_jo');
           const warnEl = document.getElementById('warning-duplikat-nomor');
           const btnSubmit = document.getElementById('btn-submit-form');
+
+          // 0. Uji Sinkronisasi Indikator "Terakhir" vs "Saran"
+          const lastNumStr = document.getElementById('helper-last-seq')?.textContent?.replace(/\\D/g, '') || '0415';
+          const nextNumStr = document.getElementById('helper-next-seq')?.textContent?.replace(/\\D/g, '') || '0416';
+          const lastNumInt = parseInt(lastNumStr, 10);
+          const nextNumInt = parseInt(nextNumStr, 10);
+          const isSeqSynced = (nextNumInt === lastNumInt + 1);
 
           // 1. Uji pilihan RTL
           elJenis.value = 'RTL';
@@ -543,11 +556,24 @@ async function runTests() {
           const valAPP = elLp.value;
           const isAPPFormat = valAPP.includes('/NSR/PN-APP/');
 
-          // 3. Uji Kemudahan Ketik Cepat (Smart Auto-Format): ketik '999' lalu blur
+          // 3. Uji Kemudahan Ketik Cepat (Smart Auto-Format): ketik '999' lalu blur (dengan confirm accept)
+          window.confirm = () => true;
           elLp.value = '999';
           elLp.dispatchEvent(new Event('blur', { bubbles: true }));
           const valAfterSmartFormat = elLp.value;
           const isSmartFormatted = valAfterSmartFormat.startsWith('0999/NSR/PN-APP/');
+
+          // 3B. Uji Pengaman Lompatan Nomor (Jump Guard > 20): jika confirm ditolak (return false), nomor tidak melompat
+          let jumpConfirmPrompted = false;
+          window.confirm = (msg) => {
+            jumpConfirmPrompted = msg.includes('Lompatan Nomor');
+            return false;
+          };
+          elLp.value = '4180';
+          elLp.dispatchEvent(new Event('blur', { bubbles: true }));
+          const valAfterJumpReject = elLp.value;
+          const isJumpPrevented = !valAfterJumpReject.startsWith('4180') && jumpConfirmPrompted;
+          window.confirm = () => true;
 
           // 4. Uji Proteksi Anti-Double (Nomor urut 0415 sudah dipakai di SEED_PROJECTS)
           elLp.value = '0415/NSR/PN-APP/X/2026';
@@ -612,13 +638,25 @@ async function runTests() {
           // Bersihkan data dummy
           projectDatabase = projectDatabase.filter(p => p.id !== dummyReqId);
 
+          // 8. Uji Obfuskasi Token (HASHED_TOKENS) & Anonimisasi SEED_PROJECTS
+          const hasHashedTokens = typeof HASHED_TOKENS === 'object' && Object.keys(HASHED_TOKENS).length >= 25;
+          const hashSampleKey = Object.keys(HASHED_TOKENS)[0] || '';
+          const isKeySha256 = hashSampleKey.length === 64; // Panjang string SHA-256 hex
+          const seedDebitur1 = SEED_PROJECTS[0]?.debitur_nama || '';
+          const seedDebitur2 = SEED_PROJECTS[1]?.debitur_nama || '';
+          const isSeedAnonymized = seedDebitur1.includes('SIMULASI') && seedDebitur2.includes('SIMULASI');
+
           return {
+            isSeqSynced,
+            lastNumStr,
+            nextNumStr,
             isRTLFormat,
             valRTL,
             isAPPFormat,
             valAPP,
             isSmartFormatted,
             valAfterSmartFormat,
+            isJumpPrevented,
             isWarnVisibleFor0415,
             isSubmitBlockedFor0415,
             isWarnVisibleForRaw415,
@@ -630,18 +668,25 @@ async function runTests() {
             isModalWarnClean,
             isModalBtnReady,
             isModalClosed,
-            cleanUniqueLp
+            cleanUniqueLp,
+            hasHashedTokens,
+            isKeySha256,
+            isSeedAnonymized,
+            seedDebitur1
           };
         })()
       `,
+      awaitPromise: true,
       returnByValue: true
     });
 
-    console.log('Hasil Test 3C (Jenis Laporan & Anti-Double):', testJenisLaporanAndAntiDouble.result.value);
+    console.log('Hasil Test 3C (Jenis Laporan, Anti-Double, Jump Guard & Obfuskasi):', testJenisLaporanAndAntiDouble.result.value);
     const r3c = testJenisLaporanAndAntiDouble.result.value;
+    if (!r3c.isSeqSynced) throw new Error(`Indikator Terakhir vs Saran tidak sinkron! Terakhir: [${r3c.lastNumStr}], Saran: [${r3c.nextNumStr}]`);
     if (!r3c.isRTLFormat) throw new Error(`Pilihan RTL harus menghasilkan kode /NSR/PN-RTL/, didapat: ${r3c.valRTL}`);
     if (!r3c.isAPPFormat) throw new Error(`Pilihan APP harus menghasilkan kode /NSR/PN-APP/, didapat: ${r3c.valAPP}`);
     if (!r3c.isSmartFormatted) throw new Error(`Ketik cepat '999' harus otomatis terformat menjadi '0999/NSR/PN-APP/...', didapat: ${r3c.valAfterSmartFormat}`);
+    if (!r3c.isJumpPrevented) throw new Error('Pengaman lompatan counter (Jump Guard > 20) harus memicu konfirmasi dan mencegah perubahan saat dibatalkan');
     if (!r3c.isWarnVisibleFor0415 || !r3c.isSubmitBlockedFor0415) {
       throw new Error('Sistem Anti-Double harus memunculkan warning visual dan memblokir submit ketika nomor 0415 (sudah ada) diinputkan!');
     }
@@ -659,6 +704,9 @@ async function runTests() {
       throw new Error('Modal Approval Pusat harus mengizinkan konfirmasi saat nomor unik dimasukkan!');
     }
     if (!r3c.isModalClosed) throw new Error('Modal Approval Pusat harus dapat ditutup dengan benar');
+    if (!r3c.hasHashedTokens || !r3c.isKeySha256) throw new Error('Kamus token wajib ter-obfuskasi menggunakan 64-karakter SHA-256 hash');
+    if (!r3c.isSeedAnonymized) throw new Error(`Nama debitur SEED_PROJECTS wajib disamarkan (KEPI/SPI compliance): ${r3c.seedDebitur1}`);
+    console.log('✓ Fitur Jenis Laporan, Smart Auto-Format, Proteksi Anti-Double, Jump Guard & Obfuskasi Token Terverifikasi Sempurna!');
     console.log('✓ Fitur Jenis Laporan (APP/RTL), Smart Auto-Format, Proteksi Anti-Double & Modal Approval Terverifikasi Sempurna!');
 
     // ------------------------------------------------------------------
@@ -667,13 +715,15 @@ async function runTests() {
     console.log('\n--- TEST 4: Uji Kerahasiaan Komersial / Sensor Fee untuk Penilai (NSR-PNL-2026) ---');
     await cdp.send('Runtime.evaluate', {
       expression: `
-        (() => {
+        (async () => {
           window.alert = () => {};
+          window.confirm = () => true;
           sessionStorage.clear();
           document.getElementById('input_token_auth').value = 'NSR-PNL-2026';
-          verifikasiTokenLogin();
+          await verifikasiTokenLogin();
         })()
-      `
+      `,
+      awaitPromise: true
     });
     await new Promise(r => setTimeout(r, 600));
 
@@ -745,13 +795,15 @@ async function runTests() {
     console.log('\n--- TEST 5: Uji Kerahasiaan Komersial / Sensor Fee untuk Reviewer (NSR-REV-2026) ---');
     await cdp.send('Runtime.evaluate', {
       expression: `
-        (() => {
+        (async () => {
           window.alert = () => {};
+          window.confirm = () => true;
           sessionStorage.clear();
           document.getElementById('input_token_auth').value = 'NSR-REV-2026';
-          verifikasiTokenLogin();
+          await verifikasiTokenLogin();
         })()
-      `
+      `,
+      awaitPromise: true
     });
     await new Promise(r => setTimeout(r, 600));
 

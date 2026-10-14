@@ -870,7 +870,7 @@
       <form onsubmit="verifikasiTokenLogin(event)" class="space-y-3 pt-2">
         <div>
           <label class="block font-semibold text-slate-300 mb-1">Token Akses Otorisasi</label>
-          <input type="text" id="input_token_auth" required placeholder="Contoh: NSR-PST-2026 atau NSR-BDG-2026" class="w-full h-11 px-3.5 rounded-xl bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold tracking-wider text-sm focus:outline-none focus:border-amber-400 uppercase">
+          <input type="text" id="input_token_auth" required placeholder="Masukkan Token Otorisasi Resmi (Contoh: NSR-***-2026)" class="w-full h-11 px-3.5 rounded-xl bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold tracking-wider text-sm focus:outline-none focus:border-amber-400 uppercase">
         </div>
 
         <p id="pesan_error_token" class="text-rose-400 font-semibold text-xs hidden text-center"></p>
@@ -1156,6 +1156,23 @@
 
       if (numOnlyMatch) {
         const seqNum = parseInt(numOnlyMatch[1], 10);
+
+        // Pengaman Lompatan Counter (>20 angka di atas nomor urut tertinggi)
+        const currentMax = parseInt(document.getElementById('helper-last-seq')?.textContent?.replace(/\D/g, '') || '415', 10);
+        if (seqNum > currentMax + 20) {
+          const proceed = confirm(`⚠️ Konfirmasi Lompatan Nomor:\n\nNomor urut yang Anda ketik (${seqNum}) melompat ${seqNum - currentMax} angka di atas nomor urut terakhir (${currentMax}).\n\nApakah Anda yakin ingin menggunakan nomor ini?`);
+          if (!proceed) {
+            const nextSug = document.getElementById('helper-next-seq')?.textContent?.replace(/\D/g, '') || String(currentMax + 1).padStart(4, '0');
+            elLp.value = `${nextSug}/NSR/${kodeLap}/${romawi}/${thn}`;
+            delete elLp.dataset.manualEdited;
+            if (elAdm && elAdm.dataset.manualEdited !== "true") {
+              elAdm.value = `${nextSug}/JO/NSR/${romawi}/${thn}`;
+            }
+            validasiDuplikatLive();
+            return;
+          }
+        }
+
         const numPadded = String(seqNum).padStart(4, '0');
 
         if (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT") {
@@ -1173,6 +1190,18 @@
           }
         }
       } else if (rawVal.includes('/')) {
+        const seqFromSlash = extractSeqNumber(rawVal);
+        const currentMax = parseInt(document.getElementById('helper-last-seq')?.textContent?.replace(/\D/g, '') || '415', 10);
+        if (seqFromSlash > currentMax + 20) {
+          const proceed = confirm(`⚠️ Konfirmasi Lompatan Nomor:\n\nNomor urut (${seqFromSlash}) melompat ${seqFromSlash - currentMax} angka di atas nomor urut terakhir (${currentMax}).\n\nApakah Anda yakin ingin menggunakan nomor ini?`);
+          if (!proceed) {
+            const nextSug = document.getElementById('helper-next-seq')?.textContent?.replace(/\D/g, '') || String(currentMax + 1).padStart(4, '0');
+            elLp.value = `${nextSug}/NSR/${kodeLap}/${romawi}/${thn}`;
+            delete elLp.dataset.manualEdited;
+            validasiDuplikatLive();
+            return;
+          }
+        }
         if (rawVal.includes('PN-APP') && jenisLap === 'RTL') {
           elLp.value = rawVal.replace('PN-APP', 'PN-RTL');
         } else if (rawVal.includes('PN-RTL') && jenisLap === 'APP') {
@@ -1471,12 +1500,22 @@
       const finalAdm = document.getElementById('appr-nomor-adm').value.trim();
       const finalJenis = document.getElementById('appr-jenis-laporan').value;
 
+      // Pengaman Lompatan Counter pada Approval (>20 angka di atas nomor urut tertinggi)
+      const seqApprLp = extractSeqNumber(finalLp);
+      const seqApprAdm = extractSeqNumber(finalAdm);
+      const inputSeq = Math.max(seqApprLp, seqApprAdm);
+      const currentMax = parseInt(document.getElementById('helper-last-seq')?.textContent?.replace(/\D/g, '') || '415', 10);
+      if (inputSeq > currentMax + 20) {
+        const proceed = confirm(`⚠️ Konfirmasi Lompatan Nomor Approval:\n\nNomor urut yang Anda terbitkan (${inputSeq}) melompat ${inputSeq - currentMax} angka di atas nomor terakhir (${currentMax}).\n\nApakah Anda yakin ingin menerbitkan nomor ini?`);
+        if (!proceed) return;
+      }
+
       p.nomor_lp = finalLp;
       p.nomor_adm = finalAdm;
       p.jenis_laporan = finalJenis;
       p.status = "APPROVED";
       p.approved_at = new Date().toISOString();
-      p.disetujui_oleh = `Admin Pusat (${userSession.token || 'NSR-PST-2026'})`;
+      p.disetujui_oleh = `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})`;
 
       const usedSeq = extractSeqNumber(finalAdm) || extractSeqNumber(finalLp);
       if (usedSeq > 0) {
@@ -1551,6 +1590,7 @@
     let projectDatabase = [];     // Array antrean penugasan
 
     // Data Awal Seed Resmi Sinkron dengan Google Spreadsheet DB_PENUGASAN_JO_NSR (Counter: 415)
+    // Nama debitur disamarkan sebagai data simulasi publik (Kepatuhan Kode Etik Penilai Indonesia KEPI & SPI)
     const SEED_PROJECTS = [
       {
         id: "NSR-2026-0415",
@@ -1561,22 +1601,22 @@
         kantor_wilayah: "Kantor Pusat Jakarta",
         mode_pengaju: "PUSAT",
         tanggal_surat: "2026-10-14",
-        rujukan_surat_nomor: "012/BCA-KW5/X/2026",
+        rujukan_surat_nomor: "012/SPK-SIM/X/2026",
         rujukan_surat_tanggal: "2026-10-11",
         masa_berlaku_lp: "2026-11-13",
-        pemberi_tugas_nama: "PT. BANK CENTRAL ASIA, Tbk KANTOR WILAYAH V - MEDAN",
+        pemberi_tugas_nama: "PT BANK CONTOH NASIONAL TBK (SIMULASI)",
         bidang_usaha_klien: "Perbankan",
         pemberi_tugas_pic: "Divisi Kredit Komersial",
         pemberi_tugas_jabatan: "Pimpinan Bagian Agunan",
-        pemberi_tugas_kontak: "061-4527800",
-        pemberi_tugas_email: "kanwil5_medan@bca.co.id",
+        pemberi_tugas_kontak: "021-5000-8899",
+        pemberi_tugas_email: "kanwil_simulasi@bank-contoh.co.id",
         pemberi_tugas_alamat: "Jl. P. Diponegoro No. 15 Medan, Kel. Petisah Tengah, Kec. Medan Petisah, Kota Medan, Sumatera Utara",
-        pemberi_tugas_npwp: "01.308.470.2-091.000",
-        pengguna_laporan_a: "PT. BANK CENTRAL ASIA, Tbk KANTOR WILAYAH V - MEDAN",
+        pemberi_tugas_npwp: "01.000.000.0-000.000 (Simulasi Perbankan)",
+        pengguna_laporan_a: "PT BANK CONTOH NASIONAL TBK (SIMULASI)",
         pengguna_laporan_b: "-",
-        debitur_nama: "PT SUMBER MAKMUR",
-        debitur_cp: "PT Sumber Makmur / Lasiman (0877 7011 1742)",
-        pemilik_sertipikat: "PT Sumber Makmur",
+        debitur_nama: "PT SIMULASI DEBITUR PRIMA (CONTOH)",
+        debitur_cp: "Bpk. Budi Santoso (Simulasi / 0812-0000-1111)",
+        pemilik_sertipikat: "PT SIMULASI DEBITUR PRIMA (CONTOH)",
         hubungan_pemilik: "Milik Sendiri",
         tujuan_penilaian: "Penjaminan Utang / Agunan Kredit",
         dasar_nilai: "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)",
@@ -1590,7 +1630,7 @@
         reviewer_nama: "Angga Malid Cahyadi",
         penilai_nama: "Tedi Setiadi",
         asisten_nama: "Yasir Rizal",
-        surveyor_pendamping: "Heru Kurnia (15-A-05444) / Lasiman (0877 7011 1742)",
+        surveyor_pendamping: "Heru Kurnia (15-A-05444) / Bpk. Budi Santoso (Simulasi)",
         survey_hari: "Kamis",
         survey_tanggal: "2026-10-15",
         sla_inspeksi: 2,
@@ -1617,17 +1657,17 @@
         rekening_resmi: "Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan",
         objek_list: [
           {
-            debitur: "PT Sumber Makmur",
+            debitur: "PT SIMULASI DEBITUR PRIMA (CONTOH)",
             jenis: "Tanah dan Bangunan Gudang",
             lt: "1500",
             lb: "850",
             milik: "Tunggal",
-            status: "SHGB / Hak Milik Tunggal a.n. PT Sumber Makmur",
-            lokasi: "Desa Sindanglaya, Kec. Cinangka, Kab. Serang, Provinsi Banten"
+            status: "SHGB / Hak Milik Tunggal a.n. PT SIMULASI DEBITUR PRIMA",
+            lokasi: "Kawasan Industri Terpadu Blok A No. 1, Banten"
           }
         ],
         approved_at: "2026-10-14T04:15:00.000Z",
-        disetujui_oleh: "Admin Pusat (NSR-PST-2026)",
+        disetujui_oleh: "Admin Pusat (OTORISASI RESMI)",
         folder_drive_url: "-",
         created_at: "2026-10-14T04:00:00.000Z"
       },
@@ -1639,36 +1679,36 @@
         kantor_wilayah: "Kantor Cabang Bandung",
         mode_pengaju: "CABANG",
         tanggal_surat: "2026-10-14",
-        rujukan_surat_nomor: "098/SPK-APP/BCA-BDG/X/2026",
+        rujukan_surat_nomor: "098/SPK-SIM/BDG/X/2026",
         rujukan_surat_tanggal: "2026-10-12",
         masa_berlaku_lp: "2026-11-13",
-        pemberi_tugas_nama: "PT BANK CENTRAL ASIA TBK",
+        pemberi_tugas_nama: "PT BANK CONTOH REGIONAL TBK (SIMULASI)",
         bidang_usaha_klien: "Perbankan",
-        pemberi_tugas_pic: "Ibu Ratna Dewi",
+        pemberi_tugas_pic: "Ibu Simulasi PIC",
         pemberi_tugas_jabatan: "Kepala Operasi Kredit Komersial",
-        pemberi_tugas_kontak: "0813-2233-4455",
-        pemberi_tugas_email: "ratna_dewi@bca.co.id",
+        pemberi_tugas_kontak: "0813-0000-3333",
+        pemberi_tugas_email: "pic@bank-simulasi.co.id",
         pemberi_tugas_alamat: "Jl. Asia Afrika No. 122, Sumur Bandung, Kota Bandung, Jawa Barat 40112",
-        pemberi_tugas_npwp: "01.308.449.1-031.000 (Menara BCA, Grand Indonesia, Jl. MH Thamrin No. 1, Jakarta)",
-        pengguna_laporan_a: "PT BANK CENTRAL ASIA TBK",
-        pengguna_laporan_b: "PT Bank Central Asia Tbk KCU Bandung Asia Afrika",
-        debitur_nama: "PT BANDUNG KARYA MANDIRI",
-        debitur_cp: "Bpk. Suryadi (0812-8877-6655)",
-        pemilik_sertipikat: "PT BANDUNG KARYA MANDIRI",
+        pemberi_tugas_npwp: "01.000.000.0-031.000 (Simulasi Perbankan)",
+        pengguna_laporan_a: "PT BANK CONTOH REGIONAL TBK (SIMULASI)",
+        pengguna_laporan_b: "PT Bank Contoh Regional Tbk KC Bandung",
+        debitur_nama: "PT SIMULASI USAHA MANDIRI (CONTOH)",
+        debitur_cp: "Bpk. Hendra (Simulasi / 0812-0000-2222)",
+        pemilik_sertipikat: "PT SIMULASI USAHA MANDIRI (CONTOH)",
         hubungan_pemilik: "Milik Sendiri",
         tujuan_penilaian: "Penjaminan Hutang / Agunan Kredit",
         dasar_nilai: "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)",
         pendekatan_penilaian: "Pendekatan Biaya (Cost) & Pendekatan Data Pasar (Market)",
         mata_uang: "Rupiah (IDR)",
         tanggal_penilaian: "2026-10-14",
-        sumber_proyek: "KCU Asia Afrika",
+        sumber_proyek: "KCU Wilayah Bandung",
         marketing_nama: "Ardi Nurmayadi",
         rekan_nama: "Deni Siswandi, S.T, MAPPI (Cert.)",
         rekan_izin: "P-1.20.00581",
         reviewer_nama: "Danny Taufik Hidayat, S.H.",
         penilai_nama: "Ardi Nurmayadi",
         asisten_nama: "Yasir Rizal",
-        surveyor_pendamping: "Yasir Rizal / Bpk. Suryadi (0812-8877-6655)",
+        surveyor_pendamping: "Yasir Rizal / Bpk. Hendra (Simulasi)",
         survey_hari: "Selasa",
         survey_tanggal: "2026-10-15",
         sla_inspeksi: 1,
@@ -1698,8 +1738,8 @@
             jenis: "Ruko / Rukan 3 Lantai",
             lt: "150",
             lb: "360",
-            status: "SHGB No. 112/Citeureup",
-            lokasi: "Jl. Raya Cimahi No. 88, Citeureup, Cimahi Utara, Kota Cimahi, Jawa Barat"
+            status: "SHGB No. 112/Simulasi",
+            lokasi: "Jl. Terusan Buah Batu No. 88, Bandung, Jawa Barat"
           }
         ],
         approved_at: "-",
@@ -1839,7 +1879,7 @@
       }
 
       const rincianHari = `${p.sla_inspeksi || 1}|${p.sla_analisa || 2}|${p.sla_final || 2}|${p.sla_total || 5}`;
-      const tokenActor = (session && session.token) ? session.token : 'NSR-PST-2026';
+      const tokenActor = (session && session.token) ? session.token : '';
       const modeActor = (session && session.mode) ? session.mode : 'PUSAT';
 
       return {
@@ -1976,53 +2016,67 @@
     }
 
     // ==========================================================
-    // 4. KAMUS TOKEN UNIFIED & ROLE-BASED ACCESS CONTROL (RBAC)
+    // 4. KAMUS TOKEN RESMI TER-OBFUSKASI (SHA-256 RBAC ENCRYPTION)
     // ==========================================================
-    const UNIFIED_TOKENS = {
+    // Token tidak disimpan sebagai plain-text di source code publik demi keamanan KEPI/SPI.
+    // Verifikasi dilakukan melalui hash pencocokan SHA-256 kriptografis.
+    const HASHED_TOKENS = {
       // ROLE 1: ADMIN PUSAT (Otorisasi Penuh & Master Admin)
-      'NSR-PST-2026': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
-      'NSR2026': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
-      'NSR8899': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
+      '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
+      'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
+      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
 
       // ROLE 2: ADMIN CABANG (Otorisasi Admin Kantor Cabang)
-      'NSR-BDG-2026': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
-      'NSR-PDG-2026': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
-      'NSR-MKS-2026': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
-      'NSR-PLB-2026': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
-      'NSR-PLM-2026': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      '45b948d3c75010dcf2b4963c1275e2f0c982df88658616b3d0edaae59e9cd62c': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      'c20c16d688a686f8cd5ac12f4949b8dac6b4937d513f92a00514ee6122368ed2': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
 
       // ROLE 3: MARKETING (Divisi BD & Marketing - Fee Visible, Kwitansi Denied)
-      'NSR-MKT-2026': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      'MKT-PST-2026': { role: 'MARKETING', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      'MKT-BDG-2026': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      'MKT-PDG-2026': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      'MKT-MKS-2026': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      'MKT-PLB-2026': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      'MKT-PLM-2026': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
+      '336c1d03b83f9a89f3f1fc33cc42192345b435f6e72f8e72ad43aaaaae6310fe': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
+      '270fe5ca5867234522a2f6c3cd0a5d04d2106d4a0043ea91ed7a7718b10c7b7f': { role: 'MARKETING', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
+      '2badf5995baadbb1bff47b5c52a1a383c07c48394a137783e5f41b4dc5f82d92': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
+      'ba7f0ea4de12aae13336ea1e17bbb0e88eddf20bffad8fd61da0da5f746be0e6': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
+      '9edd426c179c8e3ad85f40f98b75bd0a4e118b1ed1ea22a599de87269a0b7dfa': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
+      '32aedd582562d95bd6e3dba0d2184b6aa2fc6ef77a5923c949944e407e97e015': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
+      'f005ee593515b7896f33058be0de86fc5ab5c00e6eab7184dbaa686fb6b2372c': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
 
       // ROLE 4: REVIEWER (QC Mutu KKP - Fee Censored, Kwitansi Denied)
-      'NSR-REV-2026': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'REV-PST-2026': { role: 'REVIEWER', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'REV-BDG-2026': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'REV-PDG-2026': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'REV-MKS-2026': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'REV-PLB-2026': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'REV-PLM-2026': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      'da9ed250de0559c0e8cf6631bbd6e93375eec43c4d114d0f4f1ae17a4f5dd3a9': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '798aa514d77c4ea8ff3114e4435c1221eaf97956d1abede3963cb88773796edd': { role: 'REVIEWER', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '306093fa6fe1fd6c956eb67a5ee38bfe77fa47a70158898b48f37744cacc4b09': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '2c51fd091605e3df28b3a1c739a38e8c7eb5bb9db6fda840f6524d55bf0a661b': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '0fc4d2805534c931a60925a8b7316c41caf28b54fb4570d52cca1a31d3e5f4a2': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      'd8edb5d0c9ecef210c12bcb67b7b1bb905a2cfa609728abbad6c112ecc8bfa2c': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '1f1c5ab8127a397e5805759cc595804dd57d8bf9679793be43eeb894b6fd39c2': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
 
       // ROLE 5: PENILAI (Penilai Lapangan / Asisten / Surveyor - Fee Censored, Kwitansi Denied)
-      'NSR-PNL-2026': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'PNL-PST-2026': { role: 'PENILAI', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'PNL-BDG-2026': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'PNL-PDG-2026': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'PNL-MKS-2026': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'PNL-PLB-2026': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'PNL-PLM-2026': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false }
+      '14b4b51a13a2c3f62cb68bc65a229c6622ceee7528b9aa41f4964491d9e88e22': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      'df1829d85ba31d46af05407c1eb9525ba4f7aa94c11d8cf3a3c8966fea696a6f': { role: 'PENILAI', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      'd4f7d5ff4ff8697e38554e694c8ef0a2c54a8495a1fe42e67db5fafd479d6360': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '59f6a676810b40cd48a230af1b3b839489e3049c8b72d34991d02ec65bc8f0b7': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      'a682f5a2796b6ee0d36cdea5c4df032cc46e2a0d629f1f3045e6a7887f96308b': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '655c027b206affea8e8cfbedd5c12310ba2841a9b6ef734f2feaf00b09c496ca': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '34d0451731810bf9a2d29a0920303c3a84d92a565c24a5ce072e8a7078d1372a': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false }
     };
 
-    function resolveUnifiedToken(rawToken) {
-      if (!rawToken) return null;
+    async function hashTokenSHA256(rawToken) {
+      if (!rawToken) return '';
       const cleaned = String(rawToken).trim().toUpperCase();
-      return UNIFIED_TOKENS[cleaned] || null;
+      if (window.crypto && window.crypto.subtle) {
+        const enc = new TextEncoder();
+        const data = enc.encode(cleaned);
+        const buf = await window.crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      return '';
+    }
+
+    async function resolveUnifiedToken(rawToken) {
+      if (!rawToken) return null;
+      const hash = await hashTokenSHA256(rawToken);
+      return HASHED_TOKENS[hash] || null;
     }
 
     function getKodeCabang(wilayah) {
@@ -2371,12 +2425,12 @@
       document.getElementById('modal-token-auth').classList.add('hidden');
     }
 
-    function verifikasiTokenLogin(event) {
+    async function verifikasiTokenLogin(event) {
       if (event) event.preventDefault();
       const rawInput = document.getElementById('input_token_auth').value.trim().toUpperCase();
       const pesan = document.getElementById('pesan_error_token');
 
-      const info = resolveUnifiedToken(rawInput);
+      const info = await resolveUnifiedToken(rawInput);
       if (!info) {
         pesan.textContent = "Token tidak valid. Pastikan memasukkan token resmi yang diterbitkan Manajemen KJPP NSR.";
         pesan.classList.remove('hidden');
@@ -2404,7 +2458,7 @@
       terapkanSesiUI();
     }
 
-    function periksaSesiLogin() {
+    async function periksaSesiLogin() {
       let tokenToUse = "";
       const stored = sessionStorage.getItem('kjpp_session_jo');
       if (stored) {
@@ -2429,7 +2483,7 @@
       }
 
       if (tokenToUse) {
-        const info = resolveUnifiedToken(tokenToUse);
+        const info = await resolveUnifiedToken(tokenToUse);
         if (info) {
           userSession = {
             isLoggedIn: true,
@@ -2811,20 +2865,34 @@
         const cLp = parseInt(String(serverCounter.LAST_NO_LP_SPK || 415).trim(), 10);
         const cAdm = parseInt(String(serverCounter.LAST_NO_ADM_JO || 415).trim(), 10);
         let maxCounter = Math.max(isNaN(cLp) ? 415 : cLp, isNaN(cAdm) ? 415 : cAdm);
-        if (maxCounter >= 100000) maxCounter = 415;
+        if (maxCounter >= 50000) maxCounter = 415;
+
+        // Pindai database riil untuk mencari sequence tertinggi yang AKTUAL disetujui / aktif
+        let dbMaxSeq = 415;
+        const draftSeqs = [];
 
         projectDatabase.forEach(p => {
+          const pYear = new Date(p.tanggal_surat || p.tgl_dibuat || new Date()).getFullYear() || thn;
+          if (pYear !== thn) return;
+
+          const numAdm = extractSeqNumber(p.nomor_adm);
+          const numLp = extractSeqNumber(p.nomor_lp);
+          const numId = (p.id && !p.id.includes('REQ') && !p.id.includes('BDG') && !p.id.includes('PDG') && !p.id.includes('MKS') && !p.id.includes('PLB') && !p.id.includes('PLM')) ? extractSeqNumber(p.id) : 0;
+          const bestSeq = Math.max(numAdm, numLp, numId);
+
           if (p.status === "APPROVED" || p.mode_pengaju === "PUSAT") {
-            const numAdm = extractSeqNumber(p.nomor_adm);
-            if (numAdm > maxCounter) maxCounter = numAdm;
-            const numLp = extractSeqNumber(p.nomor_lp);
-            if (numLp > maxCounter) maxCounter = numLp;
-            if (p.id && !p.id.includes('REQ') && !p.id.includes('BDG') && !p.id.includes('PDG') && !p.id.includes('MKS') && !p.id.includes('PLB') && !p.id.includes('PLM')) {
-              const numId = extractSeqNumber(p.id);
-              if (numId > maxCounter) maxCounter = numId;
-            }
+            if (bestSeq > dbMaxSeq) dbMaxSeq = bestSeq;
+            if (bestSeq > maxCounter) maxCounter = bestSeq;
+          } else if (p.status === "WAITING_APPROVAL" && bestSeq > 0) {
+            draftSeqs.push(bestSeq);
           }
         });
+
+        // Pastikan maxCounter selaras dengan data riil tertinggi
+        maxCounter = Math.max(maxCounter, dbMaxSeq);
+        serverCounter.LAST_NO_ADM_JO = maxCounter;
+        serverCounter.LAST_NO_LP_SPK = maxCounter;
+
         const nextVal = maxCounter + 1;
         const nextNum = nextVal.toString().padStart(4, '0');
         const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
@@ -2832,7 +2900,7 @@
         const autoLp = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
         const autoAdm = `${nextNum}/JO/NSR/${romawi}/${thn}`;
 
-        // Update helper badge
+        // Update helper badge secara sinkron persis (Terakhir: [maxCounter] & Saran: [nextNum])
         const elLastSeq = document.getElementById('helper-last-seq');
         const elNextSeq = document.getElementById('helper-next-seq');
         const btnSaran = document.getElementById('btn-gunakan-saran');
@@ -2841,6 +2909,25 @@
         if (btnSaran) {
           btnSaran.textContent = `Gunakan ${nextNum}`;
           btnSaran.dataset.saran = nextNum;
+        }
+
+        // Tampilkan badge informatif antrean draft jika ada
+        const helperBox = document.getElementById('helper-nomor-terakhir');
+        let elDraftInfo = document.getElementById('helper-draft-info');
+        if (draftSeqs.length > 0) {
+          const uniqueDrafts = [...new Set(draftSeqs)].sort((a,b) => a-b).map(n => String(n).padStart(4, '0'));
+          if (!elDraftInfo && helperBox) {
+            elDraftInfo = document.createElement('span');
+            elDraftInfo.id = 'helper-draft-info';
+            elDraftInfo.className = 'text-amber-400/90 font-mono text-[10px] ml-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30';
+            helperBox.appendChild(elDraftInfo);
+          }
+          if (elDraftInfo) {
+            elDraftInfo.textContent = `(Antrean: ${uniqueDrafts.join(', ')})`;
+            elDraftInfo.classList.remove('hidden');
+          }
+        } else if (elDraftInfo) {
+          elDraftInfo.classList.add('hidden');
         }
 
         if (elLp) {
@@ -2867,11 +2954,23 @@
         if (currentModeAlur === 'PRIVATE_CABANG') {
           const code = getKodeCabang(userSession.wilayah);
           const localList = ambilDataPrivatCabang(userSession.wilayah);
-          const seq = (localList.length + 1).toString().padStart(4, '0');
+          const lastPrivateSeq = localList.length;
+          const seq = (lastPrivateSeq + 1).toString().padStart(4, '0');
+          const lastPrivateNum = lastPrivateSeq.toString().padStart(4, '0');
           const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
           const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
           const autoLp = `${seq}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
           const autoAdm = `${code}-${seq}`;
+
+          const elLastSeq = document.getElementById('helper-last-seq');
+          const elNextSeq = document.getElementById('helper-next-seq');
+          const btnSaran = document.getElementById('btn-gunakan-saran');
+          if (elLastSeq) elLastSeq.textContent = `[${lastPrivateNum}]`;
+          if (elNextSeq) elNextSeq.textContent = `[${seq}]`;
+          if (btnSaran) {
+            btnSaran.textContent = `Gunakan ${seq}`;
+            btnSaran.dataset.saran = seq;
+          }
 
           if (elLp) {
             elLp.readOnly = false;
@@ -2930,7 +3029,7 @@
       try {
         const bodyData = {
           action: action,
-          token: userSession.token || 'NSR-PST-2026',
+          token: userSession.token || '',
           projectId: projectObj.id,
           idPenugasan: projectObj.id,
           data: payload44,
@@ -3033,10 +3132,18 @@
         noAdm = (rawAdm && !rawAdm.includes('Menunggu')) ? rawAdm : `${nextNum}/JO/NSR/${romawi}/${thn}`;
 
         const usedSeq = extractSeqNumber(noAdm) || extractSeqNumber(noLp) || nextVal;
+
+        // Pengaman Lompatan Counter pada Form Submit (>20 angka di atas nomor urut tertinggi)
+        const currentMax = parseInt(document.getElementById('helper-last-seq')?.textContent?.replace(/\D/g, '') || '415', 10);
+        if (usedSeq > currentMax + 20) {
+          const proceed = confirm(`⚠️ Konfirmasi Lompatan Nomor:\n\nNomor urut (${usedSeq}) melompat ${usedSeq - currentMax} angka di atas nomor terakhir (${currentMax}).\n\nLanjutkan penyimpanan dengan nomor ini?`);
+          if (!proceed) return;
+        }
+
         const usedNumPad = usedSeq.toString().padStart(4, '0');
         projectId = `NSR-${thn}-${usedNumPad}`;
 
-        const finalCounter = Math.max(nextVal, usedSeq);
+        const finalCounter = Math.max(maxCounter, usedSeq);
         serverCounter.LAST_NO_ADM_JO = finalCounter;
         serverCounter.LAST_NO_LP_SPK = finalCounter;
         const badgeCounter = document.getElementById('counter-val-badge');
@@ -3151,7 +3258,7 @@
         rekening_resmi: document.getElementById('rekening_resmi').value.trim(),
         objek_list: JSON.parse(JSON.stringify(objekRows)),
         approved_at: (projectStatus === 'APPROVED') ? new Date().toISOString() : '-',
-        disetujui_oleh: (projectStatus === 'APPROVED') ? (isPusat ? `Admin Pusat (${userSession.token || 'NSR-PST-2026'})` : `Admin Cabang (${userSession.token})`) : '-',
+        disetujui_oleh: (projectStatus === 'APPROVED') ? (isPusat ? `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})` : `Admin Cabang (${userSession.token || 'CABANG'})`) : '-',
         folder_drive_url: '-',
         created_at: new Date().toISOString()
       };
