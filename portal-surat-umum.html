@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="id" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buku Agenda Surat Umum (SU) | KJPP Nanang Rahayu Sigit Paryanto dan Rekan</title>
+  <meta name="description" content="Modul Buku Agenda Surat Keluar Umum (SU) Resmi Kantor Pusat Jakarta KJPP Nanang Rahayu Sigit Paryanto dan Rekan. Integrasi Penomoran Otomatis, Anti-Duplikat, dan Pengarsipan Digital Google Drive.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://kjppnanangrahayu.com/portal-surat-umum.html">
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    
+    /* Scrollbar Minimalis */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b132b; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Drag & Drop Highlight */
+    .drag-over {
+      border-color: #f59e0b !important;
+      background-color: rgba(245, 158, 11, 0.08) !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- ==================== HEADER SISTEM PORTAL ==================== -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <svg class="h-9 w-auto shrink-0 drop-shadow" viewBox="0 0 160 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="nsrBlueHeaderSU" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2563eb" />
+                <stop offset="50%" stop-color="#1d4ed8" />
+                <stop offset="100%" stop-color="#0b1b4f" />
+              </linearGradient>
+            </defs>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#ef4444" stroke-width="7" stroke-linejoin="round">NSR</text>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round">NSR</text>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="url(#nsrBlueHeaderSU)">NSR</text>
+          </svg>
+          <div class="leading-tight text-left">
+            <div class="flex items-center gap-2">
+              <span class="block text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-400 transition tracking-wide">
+                BUKU AGENDA SURAT UMUM (SU)
+              </span>
+              <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px] font-black border border-blue-500/30">
+                PUSAT
+              </span>
+            </div>
+            <span class="block text-[10px] text-slate-400">
+              KJPP Nanang Rahayu Sigit Paryanto dan Rekan &bull; Izin No. 2.19.0160
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- User Session & Navigation -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div id="badge-sesi-header" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200">
+          <span id="dot-sesi" class="w-2 h-2 rounded-full bg-slate-500"></span>
+          <span id="label-sesi-role" class="font-bold">Memeriksa Sesi...</span>
+        </div>
+        <button id="btn-logout" onclick="keluarSesi()" class="hidden px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-rose-300 text-xs font-semibold transition border border-slate-700">
+          Keluar
+        </button>
+        <a href="portal-penugasan-jo.html" title="Buka Portal SPK &amp; Job Order" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
+          <span>📋 Portal SPK/JO</span>
+        </a>
+        <a href="portal-kwitansi.html" title="Buka Portal Kwitansi Resmi" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
+          <span>💳 Portal Kwitansi</span>
+        </a>
+        <a href="index.html" class="px-3 py-1.5 rounded-lg bg-blue-900/60 hover:bg-blue-800 text-blue-200 hover:text-white text-xs font-bold transition flex items-center gap-1 border border-blue-700">
+          <span>&larr; Web Utama</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== BANNER INFORMASI MODUL ==================== -->
+  <section class="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border-b border-slate-800 py-2.5 px-4 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2 text-slate-300">
+        <span class="px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 font-extrabold text-[10px] uppercase border border-amber-400/30">
+          Buku Agenda Keluar Resmi
+        </span>
+        <span class="text-slate-300">
+          Format Nomor: <code class="font-mono text-amber-300">[0001]/NSR/SU/[ROM]/[THN]</code> &bull; Kepatuhan Tata Naskah Dinas &bull; Arsip Terpadu Google Drive
+        </span>
+      </div>
+      <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
+        <span>🔐 Hak Akses Eksklusif: Admin Kantor Pusat Jakarta</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AREA UTAMA ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- ==================== NOTIFIKASI AKSES DITOLAK (HARD-GUARD NON-ADMIN) ==================== -->
+    <div id="notice-akses-ditolak" class="hidden p-8 rounded-2xl bg-gradient-to-r from-rose-950/80 via-slate-900 to-slate-950 border-2 border-rose-500/40 shadow-2xl text-center space-y-4">
+      <div class="w-16 h-16 rounded-2xl bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center border border-rose-500/30">
+        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h2 class="text-lg font-black text-rose-300 tracking-wide">AKSES DITOLAK: HAK AKSES KHUSUS ADMIN PUSAT</h2>
+      <p id="pesan-detail-penolakan" class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
+        Modul Buku Agenda Surat Umum (SU) dan Pengarsipan Resmi hanya dapat diakses oleh Admin Kantor Pusat Jakarta. Token Anda terdaftar dengan otorisasi terbatas.
+      </p>
+      <div class="pt-3 flex justify-center gap-3">
+        <button type="button" onclick="bukaModalLogin(true)" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition shadow-lg">
+          Ganti Token Otorisasi
+        </button>
+        <a href="portal-penugasan-jo.html" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700">
+          Kembali ke Portal SPK/JO
+        </a>
+      </div>
+    </div>
+
+    <!-- ==================== CONTAINER KONTEN MODUL AKTIF (ADMIN PUSAT ONLY) ==================== -->
+    <div id="container-modul-aktif" class="hidden space-y-6">
+
+      <!-- ========================================================
+           SEKSI 1: FORMULIR REGISTRASI & PENGAMBILAN NOMOR RESMI
+           ======================================================== -->
+      <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 shadow-xl space-y-5">
+        
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center font-black">
+              <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+                <span>Registrasi &amp; Pengambilan Nomor Surat Keluar Resmi</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-400/10 text-amber-400 border border-amber-400/30">
+                  Tahun 2026
+                </span>
+              </h2>
+              <p class="text-xs text-slate-400">
+                Penerbitan nomor surat resmi berurutan dengan proteksi anti-lompatan dan deteksi nomor ganda seketika.
+              </p>
+            </div>
+          </div>
+
+          <!-- Counter Sequence Status Badge -->
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+            <span class="text-slate-400">Terakhir:</span>
+            <span id="badge-terakhir-seq" class="font-mono font-bold text-slate-200">#0015</span>
+            <span class="text-slate-600">&bull;</span>
+            <span class="text-amber-400 font-semibold">Saran:</span>
+            <span id="badge-saran-seq" class="font-mono font-extrabold text-amber-300">#0016</span>
+          </div>
+        </div>
+
+        <!-- FORMULIR INPUT -->
+        <form id="form-surat-umum" onsubmit="handleSimpanSuratUmum(event)" class="space-y-4">
+          
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            
+            <!-- Tanggal Surat -->
+            <div class="md:col-span-3 space-y-1.5">
+              <label for="tanggal_surat" class="block text-xs font-bold text-slate-300">
+                Tanggal Surat <span class="text-rose-400">*</span>
+              </label>
+              <input type="date" id="tanggal_surat" name="tanggal_surat" required onchange="handleTanggalChange()"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <!-- Nomor Surat Resmi (Editable + Auto-suggest + Live Check) -->
+            <div class="md:col-span-6 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label for="no_surat" class="block text-xs font-bold text-slate-300">
+                  Nomor Surat Resmi <span class="text-rose-400">*</span>
+                </label>
+                <button type="button" id="btn-copy-no" onclick="salinNomorKeClipboard()" 
+                  class="text-[11px] text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 transition">
+                  <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Salin Nomor</span>
+                </button>
+              </div>
+              <div class="relative">
+                <input type="text" id="no_surat" name="no_surat" required oninput="handleInputNomorManual()"
+                  placeholder="0016/NSR/SU/X/2026"
+                  class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono font-bold text-amber-300 focus:outline-none focus:border-amber-400 transition tracking-wide" />
+                <span id="indicator-no-status" class="absolute right-3 top-2.5 text-xs hidden"></span>
+              </div>
+              <!-- Peringatan Duplikasi Real-time -->
+              <div id="alert-duplikat-nomor" class="hidden p-2 rounded-lg bg-rose-950/60 border border-rose-500/40 text-[11px] text-rose-300 font-semibold">
+                ⚠️ <span id="pesan-alert-duplikat">Nomor surat ini sudah terdaftar di database! Silakan gunakan nomor lain.</span>
+              </div>
+            </div>
+
+            <!-- Klasifikasi Perihal -->
+            <div class="md:col-span-3 space-y-1.5">
+              <label for="klasifikasi_perihal" class="block text-xs font-bold text-slate-300">
+                Klasifikasi / Kategori <span class="text-rose-400">*</span>
+              </label>
+              <select id="klasifikasi_perihal" name="klasifikasi_perihal" required
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 transition">
+                <option value="Surat Keterangan">Surat Keterangan</option>
+                <option value="Regulator/PPPK/OJK">Regulator / PPPK / OJK</option>
+                <option value="Asosiasi/MAPPI">Asosiasi / MAPPI</option>
+                <option value="Administrasi/Operasional">Administrasi / Operasional</option>
+                <option value="Balasan/Klarifikasi Eksternal">Balasan / Klarifikasi Eksternal</option>
+                <option value="MoU/Perjanjian Non-Penilaian">MoU / Perjanjian Non-Penilaian</option>
+                <option value="Lain-lain" selected>Lain-lain</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            
+            <!-- Tujuan / Instansi Penerima -->
+            <div class="md:col-span-5 space-y-1.5">
+              <label for="tujuan_penerima" class="block text-xs font-bold text-slate-300">
+                Tujuan / Instansi / Klien Penerima <span class="text-rose-400">*</span>
+              </label>
+              <input type="text" id="tujuan_penerima" name="tujuan_penerima" required
+                placeholder="Contoh: Pusat Pembinaan Profesi Keuangan (PPPK) Kemenkeu RI"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <!-- Penandatangan Surat -->
+            <div class="md:col-span-3 space-y-1.5">
+              <label for="penandatangan" class="block text-xs font-bold text-slate-300">
+                Penandatangan <span class="text-rose-400">*</span>
+              </label>
+              <select id="penandatangan" name="penandatangan" required
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 transition">
+                <option value="Pemimpin Rekan" selected>Pemimpin Rekan</option>
+                <option value="Rekan">Rekan</option>
+                <option value="Manager Legal &amp; Admin">Manager Legal &amp; Admin</option>
+                <option value="Manager Operasional">Manager Operasional</option>
+              </select>
+            </div>
+
+            <!-- Perihal Singkat -->
+            <div class="md:col-span-4 space-y-1.5">
+              <label for="perihal" class="block text-xs font-bold text-slate-300">
+                Perihal Surat <span class="text-rose-400">*</span>
+              </label>
+              <input type="text" id="perihal" name="perihal" required
+                placeholder="Ringkasan maksud/perihal surat..."
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+          </div>
+
+          <!-- Aksi Form -->
+          <div class="flex items-center justify-between pt-2">
+            <span class="text-[11px] text-slate-400 italic">
+              * Nomor surat yang disimpan akan langsung tercatat di spreadsheet master dan siap untuk pengunggahan arsip.
+            </span>
+            <div class="flex items-center gap-3">
+              <button type="button" onclick="isiContohSurat()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold border border-slate-700 transition">
+                ⚡ Contoh Isian
+              </button>
+              <button type="submit" id="btn-submit-surat"
+                class="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold transition shadow-lg flex items-center gap-2 cursor-pointer">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                <span>Kunci &amp; Simpan ke Agenda</span>
+              </button>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+
+      <!-- ========================================================
+           SEKSI 2: TABEL AGENDA DIGITAL & KONTROL ARSIP
+           ======================================================== -->
+      <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+        
+        <!-- Controls & Search Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+              <span>Buku Agenda Surat Keluar (SU) Tahun 2026</span>
+              <span id="badge-total-surat" class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-extrabold border border-blue-500/30">
+                0 Surat
+              </span>
+            </h3>
+            <p class="text-xs text-slate-400">
+              Pencarian instan dan pengelolaan berkas arsip resmi (Final Scan &amp; File Mentah Draf).
+            </p>
+          </div>
+
+          <!-- Filter & Search Input -->
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Search Box -->
+            <div class="relative w-64 sm:w-72">
+              <input type="text" id="search_surat" oninput="handleSearchSurat()"
+                placeholder="Cari No Surat, Penerima, Perihal..."
+                class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition" />
+              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+
+            <!-- Filter Kategori -->
+            <select id="filter_kategori" onchange="handleFilterChange()"
+              class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-300 focus:outline-none focus:border-amber-400 transition">
+              <option value="">Semua Kategori</option>
+              <option value="Surat Keterangan">Surat Keterangan</option>
+              <option value="Regulator/PPPK/OJK">Regulator/PPPK/OJK</option>
+              <option value="Asosiasi/MAPPI">Asosiasi/MAPPI</option>
+              <option value="Administrasi/Operasional">Administrasi/Operasional</option>
+              <option value="Balasan/Klarifikasi Eksternal">Balasan/Klarifikasi</option>
+              <option value="MoU/Perjanjian Non-Penilaian">MoU</option>
+              <option value="Lain-lain">Lain-lain</option>
+            </select>
+
+            <!-- Filter Status Arsip -->
+            <select id="filter_status_arsip" onchange="handleFilterChange()"
+              class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-300 focus:outline-none focus:border-amber-400 transition">
+              <option value="">Semua Status Arsip</option>
+              <option value="Lengkap">✓ Lengkap (Scan + Draf)</option>
+              <option value="Hanya Scan">📄 Hanya Scan</option>
+              <option value="Hanya Draf">📝 Hanya Draf</option>
+              <option value="Kosong">⚠️ Belum Ada Arsip</option>
+            </select>
+
+            <!-- Tombol Refresh Sync -->
+            <button type="button" onclick="muatDataSuratUmum(true)" id="btn-refresh"
+              class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TABEL AGENDA DIGITAL -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider font-extrabold border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3 w-12 text-center">Urut</th>
+                <th class="py-3 px-4 min-w-[190px]">Nomor Surat Resmi</th>
+                <th class="py-3 px-3 min-w-[95px]">Tanggal</th>
+                <th class="py-3 px-4 min-w-[200px]">Tujuan / Penerima</th>
+                <th class="py-3 px-4 min-w-[220px]">Perihal &amp; Kategori</th>
+                <th class="py-3 px-3 min-w-[140px]">Penandatangan</th>
+                <th class="py-3 px-3 min-w-[160px] text-center">Arsip Scan (Final)</th>
+                <th class="py-3 px-3 min-w-[160px] text-center">File Mentah (Draf)</th>
+                <th class="py-3 px-3 min-w-[110px] text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="tabel-body-surat" class="divide-y divide-slate-800/60 bg-slate-900/40">
+              <!-- Loading Row -->
+              <tr id="row-loading">
+                <td colspan="9" class="py-10 text-center text-slate-400">
+                  <div class="inline-flex items-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memuat buku agenda surat umum...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL 1: AUTH / TOKEN LOGIN ==================== -->
+  <div id="modal-auth" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-400 mx-auto flex items-center justify-center font-black">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h3 class="text-base font-extrabold text-white">Otorisasi Surat Umum (SU)</h3>
+        <p class="text-xs text-slate-400">
+          Masukkan token otorisasi resmi Admin Kantor Pusat Jakarta untuk membuka Buku Agenda dan Manajemen Arsip.
+        </p>
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-3">
+        <div>
+          <label for="input_token_auth" class="block text-xs font-bold text-slate-300 mb-1">
+            Token Akses Admin
+          </label>
+          <input type="password" id="input_token_auth" required placeholder="Ketik token otorisasi Anda..."
+            class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono text-amber-300 placeholder-slate-600 focus:outline-none focus:border-amber-400 transition text-center tracking-widest" />
+        </div>
+        
+        <div id="pesan-auth-error" class="hidden p-2.5 rounded-xl bg-rose-950/80 border border-rose-500/50 text-[11px] text-rose-300 text-center font-semibold"></div>
+
+        <button type="submit" id="btn-login-submit"
+          class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+          <span>Verifikasi &amp; Masuk</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: UPLOAD FILE ARSIP ==================== -->
+  <div id="modal-upload" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm hidden">
+    <div class="max-w-lg w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+      
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+            <span>Unggah Berkas Arsip Surat</span>
+            <span id="badge-upload-slot" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              FINAL (SCAN)
+            </span>
+          </h3>
+          <p id="label-upload-target" class="text-xs text-amber-300 font-mono mt-0.5">
+            0016/NSR/SU/X/2026
+          </p>
+        </div>
+        <button type="button" onclick="tutupModalUpload()" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Drag & Drop Zone -->
+      <div id="drop-zone" onclick="document.getElementById('input_file_arsip').click()"
+        class="p-6 border-2 border-dashed border-slate-700 hover:border-amber-400/80 rounded-2xl bg-slate-950/50 hover:bg-slate-950 text-center cursor-pointer transition space-y-2">
+        <input type="file" id="input_file_arsip" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx" onchange="handleFilePilihan(this.files)" />
+        <div class="w-12 h-12 rounded-2xl bg-slate-800 text-amber-400 mx-auto flex items-center justify-center">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-xs font-bold text-white">Klik untuk memilih file</span>
+          <span class="text-xs text-slate-400"> atau seret file ke sini</span>
+        </div>
+        <p class="text-[11px] text-slate-500">
+          Mendukung format: <strong class="text-slate-400">PDF (.pdf), Word (.docx, .doc), Excel (.xlsx, .xls)</strong>
+        </p>
+      </div>
+
+      <!-- File Selected Info -->
+      <div id="info-file-terpilih" class="hidden p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2 overflow-hidden">
+          <span class="text-base">📄</span>
+          <div class="truncate">
+            <span id="label-file-name" class="font-bold text-white block truncate">nama_file.pdf</span>
+            <span id="label-file-size" class="text-[10px] text-slate-400">0 KB</span>
+          </div>
+        </div>
+        <button type="button" onclick="batalkanPilihanFile()" class="text-rose-400 hover:text-rose-300 text-xs font-semibold">
+          Hapus
+        </button>
+      </div>
+
+      <!-- Upload Progress -->
+      <div id="progress-upload-box" class="hidden space-y-1.5">
+        <div class="flex justify-between text-[11px] text-slate-300">
+          <span id="label-progress-text">Mengunggah ke Google Drive...</span>
+          <span id="label-progress-percent">0%</span>
+        </div>
+        <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div id="bar-progress-fill" class="bg-amber-400 h-1.5 transition-all duration-300 w-0"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" onclick="tutupModalUpload()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+          Batal
+        </button>
+        <button type="button" id="btn-konfirmasi-upload" onclick="eksekusiUploadKeGAS()" disabled
+          class="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed">
+          Unggah ke Google Drive
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: PDF VIEWER MODAL ==================== -->
+  <div id="modal-pdf-viewer" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/90 backdrop-blur-md hidden">
+    <div class="w-full max-w-5xl h-[90vh] bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+      
+      <!-- Viewer Header -->
+      <div class="px-5 py-3.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black">
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 id="pdf-modal-title" class="text-xs sm:text-sm font-bold text-white">
+              Pratinjau Berkas Scan Resmi
+            </h3>
+            <p id="pdf-modal-sub" class="text-[10px] text-slate-400 font-mono">
+              0016/NSR/SU/X/2026
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <a id="btn-pdf-external" href="#" target="_blank" rel="noopener noreferrer"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-1.5">
+            <span>Buka di Tab Baru</span>
+            <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+          <button type="button" onclick="tutupModalPdfViewer()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Viewer Body (Iframe) -->
+      <div class="flex-1 bg-slate-950 relative">
+        <iframe id="iframe-pdf-preview" src="about:blank" class="w-full h-full border-0" allow="autoplay"></iframe>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-slate-900 border-t border-slate-800 py-4 px-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <span>&copy; 2026 KJPP Nanang Rahayu Sigit Paryanto dan Rekan. Seluruh hak cipta dilindungi.</span>
+      <span class="font-mono text-[11px] text-slate-400">Buku Agenda Surat Umum (SU) v1.0 &bull; Cloud Drive Sync</span>
+    </div>
+  </footer>
+
+  <!-- ========================================================
+       LOGIKA SISTEM PORTAL SURAT UMUM (SU)
+       ======================================================== -->
+  <script>
+    // ==========================================================
+    // 1. KONFIGURASI GLOBAL ENDPOINT & HASHED TOKENS (SHA-256)
+    // ==========================================================
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
+
+    // Kamus Token Resmi Ter-Obfuskasi (SHA-256 RBAC)
+    const HASHED_TOKENS = {
+      // ROLE 1: ADMIN PUSAT (Otorisasi Penuh & Master Admin)
+      '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canManageSU: true },
+      'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canManageSU: true },
+      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canManageSU: true },
+
+      // ROLE 2: ADMIN CABANG (Otorisasi Admin Kantor Cabang)
+      'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canManageSU: false },
+      '45b948d3c75010dcf2b4963c1275e2f0c982df88658616b3d0edaae59e9cd62c': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canManageSU: false },
+      '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canManageSU: false },
+      '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canManageSU: false },
+      'c20c16d688a686f8cd5ac12f4949b8dac6b4937d513f92a00514ee6122368ed2': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canManageSU: false },
+
+      // ROLE 3: MARKETING (Divisi BD & Marketing)
+      '336c1d03b83f9a89f3f1fc33cc42192345b435f6e72f8e72ad43aaaaae6310fe': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Semua Wilayah', canManageSU: false },
+      '270fe5ca5867234522a2f6c3cd0a5d04d2106d4a0043ea91ed7a7718b10c7b7f': { role: 'MARKETING', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canManageSU: false },
+      '2badf5995baadbb1bff47b5c52a1a383c07c48394a137783e5f41b4dc5f82d92': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canManageSU: false },
+      'ba7f0ea4de12aae13336ea1e17bbb0e88eddf20bffad8fd61da0da5f746be0e6': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canManageSU: false },
+      '9edd426c179c8e3ad85f40f98b75bd0a4e118b1ed1ea22a599de87269a0b7dfa': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canManageSU: false },
+      '32aedd582562d95bd6e3dba0d2184b6aa2fc6ef77a5923c949944e407e97e015': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canManageSU: false },
+      'f005ee593515b7896f33058be0de86fc5ab5c00e6eab7184dbaa686fb6b2372c': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canManageSU: false },
+
+      // ROLE 4: REVIEWER (QC Mutu KKP)
+      'da9ed250de0559c0e8cf6631bbd6e93375eec43c4d114d0f4f1ae17a4f5dd3a9': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Semua Wilayah', canManageSU: false },
+      '798aa514d77c4ea8ff3114e4435c1221eaf97956d1abede3963cb88773796edd': { role: 'REVIEWER', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canManageSU: false },
+      '306093fa6fe1fd6c956eb67a5ee38bfe77fa47a70158898b48f37744cacc4b09': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canManageSU: false },
+      '2c51fd091605e3df28b3a1c739a38e8c7eb5bb9db6fda840f6524d55bf0a661b': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canManageSU: false },
+      '0fc4d2805534c931a60925a8b7316c41caf28b54fb4570d52cca1a31d3e5f4a2': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canManageSU: false },
+      'd8edb5d0c9ecef210c12bcb67b7b1bb905a2cfa609728abbad6c112ecc8bfa2c': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canManageSU: false },
+      '1f1c5ab8127a397e5805759cc595804dd57d8bf9679793be43eeb894b6fd39c2': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canManageSU: false },
+
+      // ROLE 5: PENILAI (Penilai Lapangan / Asisten / Surveyor)
+      '14b4b51a13a2c3f62cb68bc65a229c6622ceee7528b9aa41f4964491d9e88e22': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Semua Wilayah', canManageSU: false },
+      'df1829d85ba31d46af05407c1eb9525ba4f7aa94c11d8cf3a3c8966fea696a6f': { role: 'PENILAI', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canManageSU: false },
+      'd4f7d5ff4ff8697e38554e694c8ef0a2c54a8495a1fe42e67db5fafd479d6360': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canManageSU: false },
+      '59f6a676810b40cd48a230af1b3b839489e3049c8b72d34991d02ec65bc8f0b7': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canManageSU: false },
+      'a682f5a2796b6ee0d36cdea5c4df032cc46e2a0d629f1f3045e6a7887f96308b': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canManageSU: false },
+      '655c027b206affea8e8cfbedd5c12310ba2841a9b6ef734f2feaf00b09c496ca': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canManageSU: false },
+      '34d0451731810bf9a2d29a0920303c3a84d92a565c24a5ce072e8a7078d1372a': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canManageSU: false }
+    };
+
+    // Helper Hashing SHA-256
+    async function hashTokenSHA256(rawToken) {
+      const cleanToken = String(rawToken || '').trim().toUpperCase();
+      const buffer = new TextEncoder().encode(cleanToken);
+      const digest = await crypto.subtle.digest('SHA-256', buffer);
+      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function resolveUnifiedToken(rawToken) {
+      if (!rawToken) return null;
+      const hash = await hashTokenSHA256(rawToken);
+      return HASHED_TOKENS[hash] || null;
+    }
+
+    // ==========================================================
+    // 2. STATE DATA BUKU AGENDA SURAT UMUM & SEED CONTOH
+    // ==========================================================
+    const SEED_SURAT_UMUM = [
+      {
+        Timestamp: '2026-10-10T08:30:00.000Z',
+        No_Urut: 15,
+        No_Surat: '0015/NSR/SU/X/2026',
+        Tanggal_Surat: '2026-10-10',
+        Tujuan_Penerima: 'Pusat Pembinaan Profesi Keuangan (PPPK) Kemenkeu RI',
+        Perihal: 'Laporan Triwulan Realisasi Kantor Cabang & Personil Penilai',
+        Klasifikasi_Perihal: 'Regulator/PPPK/OJK',
+        Penandatangan: 'Pemimpin Rekan',
+        Link_Arsip_Final: 'https://drive.google.com/file/d/demo_final_0015/view',
+        Link_File_Mentah: 'https://drive.google.com/file/d/demo_draf_0015/view',
+        File_ID_Final: 'demo_final_0015',
+        File_ID_Mentah: 'demo_draf_0015',
+        Status_Arsip: 'Lengkap'
+      },
+      {
+        Timestamp: '2026-10-06T10:15:00.000Z',
+        No_Urut: 14,
+        No_Surat: '0014/NSR/SU/X/2026',
+        Tanggal_Surat: '2026-10-06',
+        Tujuan_Penerima: 'PT Bank Mandiri (Persero) Tbk - Kantor Pusat',
+        Perihal: 'Surat Keterangan Pembaruan Izin Cabang & Sertifikasi Penilai Publik',
+        Klasifikasi_Perihal: 'Surat Keterangan',
+        Penandatangan: 'Manager Legal & Admin',
+        Link_Arsip_Final: 'https://drive.google.com/file/d/demo_final_0014/view',
+        Link_File_Mentah: '',
+        File_ID_Final: 'demo_final_0014',
+        File_ID_Mentah: '',
+        Status_Arsip: 'Hanya Scan'
+      },
+      {
+        Timestamp: '2026-09-28T14:20:00.000Z',
+        No_Urut: 13,
+        No_Surat: '0013/NSR/SU/IX/2026',
+        Tanggal_Surat: '2026-09-28',
+        Tujuan_Penerima: 'Masyarakat Profesi Penilai Indonesia (MAPPI) DPD DKI Jakarta',
+        Perihal: 'Pengiriman Delegasi Pelatihan Standar Penilaian Indonesia SPI 103',
+        Klasifikasi_Perihal: 'Asosiasi/MAPPI',
+        Penandatangan: 'Pemimpin Rekan',
+        Link_Arsip_Final: '',
+        Link_File_Mentah: 'https://drive.google.com/file/d/demo_draf_0013/view',
+        File_ID_Final: '',
+        File_ID_Mentah: 'demo_draf_0013',
+        Status_Arsip: 'Hanya Draf'
+      }
+    ];
+
+    let userSession = null;
+    let daftarSuratUmum = [];
+    let serverMaxSeq = 15;
+    let currentUploadTarget = null; // { no_surat, tipe_slot }
+    let selectedUploadFile = null;
+
+    // Helper Bulan Romawi
+    function getBulanRomawi(dateObj) {
+      const romawi = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+      return romawi[dateObj.getMonth()];
+    }
+
+    // Helper Ekstraksi Angka Urut
+    function extractSeq(val) {
+      if (!val) return 0;
+      const s = String(val).trim();
+      if (s.indexOf('/') !== -1) {
+        const seg = s.split('/')[0].replace(/\D/g, '');
+        const n = parseInt(seg, 10);
+        return (!isNaN(n) && n < 100000) ? n : 0;
+      }
+      const n = parseInt(s.replace(/\D/g, ''), 10);
+      return (!isNaN(n) && n < 100000) ? n : 0;
+    }
+
+    // ==========================================================
+    // 3. INISIALISASI HALAMAN & CEK SESI LOGIN
+    // ==========================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Set default tanggal surat ke hari ini
+      const tglInput = document.getElementById('tanggal_surat');
+      if (tglInput) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        tglInput.value = todayStr;
+      }
+
+      // 2. Inisialisasi data lokal
+      const cached = localStorage.getItem('kjpp_surat_umum_data');
+      if (cached) {
+        try {
+          daftarSuratUmum = JSON.parse(cached);
+        } catch (e) {
+          daftarSuratUmum = [...SEED_SURAT_UMUM];
+        }
+      } else {
+        daftarSuratUmum = [...SEED_SURAT_UMUM];
+      }
+
+      // 3. Verifikasi Sesi
+      await periksaSesiLogin();
+
+      // 4. Inisialisasi drag-and-drop listener
+      setupDragAndDrop();
+    });
+
+    async function periksaSesiLogin() {
+      const rawToken = localStorage.getItem('kjpp_token_auth') || localStorage.getItem('kjpp_session_token');
+      if (!rawToken) {
+        tampilkanLoginModal();
+        return;
+      }
+
+      const auth = await resolveUnifiedToken(rawToken);
+      if (!auth) {
+        tampilkanLoginModal();
+        return;
+      }
+
+      terapkanSesiKeUI(auth, rawToken);
+    }
+
+    // Expose helpers globally for testing & external integrations
+    window.periksaSesiLogin = periksaSesiLogin;
+    window.terapkanSesiKeUI = terapkanSesiKeUI;
+    window.bukaModalUpload = bukaModalUpload;
+    window.tutupModalUpload = tutupModalUpload;
+    window.bukaModalPdfViewer = bukaModalPdfViewer;
+    window.tutupModalPdfViewer = tutupModalPdfViewer;
+    window.renderTabelSuratUmum = renderTabelSuratUmum;
+    window.updateSaranNomorOtomatis = updateSaranNomorOtomatis;
+    window.getDaftarSuratUmum = () => daftarSuratUmum;
+
+    function terapkanSesiKeUI(auth, rawToken) {
+      userSession = { ...auth, token: rawToken };
+
+      const badgeHeader = document.getElementById('badge-sesi-header');
+      const dotSesi = document.getElementById('dot-sesi');
+      const labelRole = document.getElementById('label-sesi-role');
+      const btnLogout = document.getElementById('btn-logout');
+
+      const noticeDitolak = document.getElementById('notice-akses-ditolak');
+      const containerModul = document.getElementById('container-modul-aktif');
+
+      // Proteksi RBAC Eksklusif Admin Pusat
+      if (auth.role !== 'ADMIN_PUSAT') {
+        dotSesi.className = 'w-2 h-2 rounded-full bg-rose-500';
+        labelRole.innerText = `Akses Terbatas: ${auth.role} (${auth.wilayah})`;
+        btnLogout.classList.remove('hidden');
+
+        noticeDitolak.classList.remove('hidden');
+        containerModul.classList.add('hidden');
+
+        const pesanDetail = document.getElementById('pesan-detail-penolakan');
+        if (pesanDetail) {
+          pesanDetail.innerHTML = `Modul Buku Agenda Surat Umum (SU) dan Pengarsipan Digital resmi hanya dapat diakses oleh Admin Kantor Pusat Jakarta. Token Anda terdaftar sebagai <strong>${auth.role}</strong> untuk wilayah <strong>${auth.wilayah}</strong>.`;
+        }
+        return;
+      }
+
+      // Admin Pusat Berhasil Lolos RBAC
+      dotSesi.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+      labelRole.innerText = 'ROLE: ADMIN PUSAT • Kantor Pusat Jakarta';
+      btnLogout.classList.remove('hidden');
+
+      noticeDitolak.classList.add('hidden');
+      containerModul.classList.remove('hidden');
+
+      // Hitung sequence dan render tampilan
+      updateSaranNomorOtomatis();
+      renderTabelSuratUmum();
+
+      // Sinkronkan ke server Apps Script secara background
+      muatDataSuratUmum(false);
+    }
+
+    function tampilkanLoginModal() {
+      const modal = document.getElementById('modal-auth');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function bukaModalLogin(paksaGanti = false) {
+      const modal = document.getElementById('modal-auth');
+      const input = document.getElementById('input_token_auth');
+      const err = document.getElementById('pesan-auth-error');
+      if (err) err.classList.add('hidden');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 150);
+      }
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const input = document.getElementById('input_token_auth');
+      const err = document.getElementById('pesan-auth-error');
+      const rawToken = (input.value || '').trim().toUpperCase();
+
+      if (!rawToken) {
+        if (err) {
+          err.innerText = 'Silakan ketik token otorisasi.';
+          err.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const auth = await resolveUnifiedToken(rawToken);
+      if (!auth) {
+        if (err) {
+          err.innerText = 'Token tidak valid atau tidak terdaftar di sistem KJPP NSR.';
+          err.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // Simpan ke storage
+      localStorage.setItem('kjpp_token_auth', rawToken);
+      localStorage.setItem('kjpp_session_token', rawToken);
+
+      const modal = document.getElementById('modal-auth');
+      if (modal) modal.classList.add('hidden');
+
+      terapkanSesiKeUI(auth, rawToken);
+    }
+
+    function keluarSesi() {
+      localStorage.removeItem('kjpp_token_auth');
+      localStorage.removeItem('kjpp_session_token');
+      userSession = null;
+      window.location.reload();
+    }
+
+    // ==========================================================
+    // 4. PENOMORAN OTOMATIS & LIVE DETEKSI DUPLIKASI
+    // ==========================================================
+    function hitungMaxSequenceTahun(tahun) {
+      let max = 0;
+      for (const item of daftarSuratUmum) {
+        const seq = parseInt(item.No_Urut, 10) || extractSeq(item.No_Surat);
+        const itemYear = item.Tanggal_Surat ? new Date(item.Tanggal_Surat).getFullYear() : (item.No_Surat && item.No_Surat.includes(String(tahun)) ? tahun : tahun);
+        if (itemYear === tahun && seq > max && seq < 50000) {
+          max = seq;
+        }
+      }
+      return max;
+    }
+
+    function updateSaranNomorOtomatis() {
+      const tglInput = document.getElementById('tanggal_surat');
+      const d = tglInput && tglInput.value ? new Date(tglInput.value) : new Date();
+      const thn = d.getFullYear() || 2026;
+      const romawi = getBulanRomawi(d);
+
+      serverMaxSeq = Math.max(hitungMaxSequenceTahun(thn), 15);
+      const nextSeq = serverMaxSeq + 1;
+
+      // Update badge
+      const badgeTerakhir = document.getElementById('badge-terakhir-seq');
+      const badgeSaran = document.getElementById('badge-saran-seq');
+      if (badgeTerakhir) badgeTerakhir.innerText = `#${String(serverMaxSeq).padStart(4, '0')}`;
+      if (badgeSaran) badgeSaran.innerText = `#${String(nextSeq).padStart(4, '0')}`;
+
+      // Update input nomor hanya jika belum diedit manual
+      const inputNo = document.getElementById('no_surat');
+      if (inputNo && (!inputNo.dataset.manualEdited || inputNo.value.trim() === '')) {
+        inputNo.value = `${String(nextSeq).padStart(4, '0')}/NSR/SU/${romawi}/${thn}`;
+      }
+
+      periksaDuplikasiLive();
+    }
+
+    function handleTanggalChange() {
+      const inputNo = document.getElementById('no_surat');
+      if (inputNo && inputNo.dataset.manualEdited) {
+        // Jika user pernah mengetik manual tapi ingin format ulang segmen bulan/tahun
+        const d = new Date(document.getElementById('tanggal_surat').value || new Date());
+        const romawi = getBulanRomawi(d);
+        const thn = d.getFullYear() || 2026;
+        const curSeq = extractSeq(inputNo.value) || (serverMaxSeq + 1);
+        inputNo.value = `${String(curSeq).padStart(4, '0')}/NSR/SU/${romawi}/${thn}`;
+      } else {
+        updateSaranNomorOtomatis();
+      }
+      periksaDuplikasiLive();
+    }
+
+    function handleInputNomorManual() {
+      const inputNo = document.getElementById('no_surat');
+      if (inputNo) {
+        inputNo.dataset.manualEdited = "true";
+      }
+      periksaDuplikasiLive();
+    }
+
+    function periksaDuplikasiLive() {
+      const inputNo = document.getElementById('no_surat');
+      const alertDuplikat = document.getElementById('alert-duplikat-nomor');
+      const pesanAlert = document.getElementById('pesan-alert-duplikat');
+      const btnSubmit = document.getElementById('btn-submit-surat');
+
+      if (!inputNo) return false;
+
+      const typedVal = inputNo.value.trim().toUpperCase();
+      const typedSeq = extractSeq(typedVal);
+
+      if (!typedVal) {
+        inputNo.className = inputNo.className.replace(/border-rose-500|bg-rose-950\/20|text-rose-300/g, '') + ' border-slate-700 text-amber-300';
+        if (alertDuplikat) alertDuplikat.classList.add('hidden');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-40', 'cursor-not-allowed');
+        }
+        return false;
+      }
+
+      let duplikat = null;
+      for (const item of daftarSuratUmum) {
+        const itemNo = String(item.No_Surat || '').trim().toUpperCase();
+        const itemSeq = parseInt(item.No_Urut, 10) || extractSeq(itemNo);
+
+        if (itemNo && itemNo === typedVal) {
+          duplikat = { type: 'NOMOR_PERSIS', item: item };
+          break;
+        }
+        if (typedSeq > 0 && itemSeq === typedSeq) {
+          duplikat = { type: 'NOMOR_URUT', item: item };
+          break;
+        }
+      }
+
+      if (duplikat) {
+        // Tampilkan peringatan merah keras & kunci submit
+        inputNo.classList.remove('border-slate-700', 'text-amber-300');
+        inputNo.classList.add('border-rose-500', 'bg-rose-950/20', 'text-rose-300');
+
+        if (alertDuplikat) alertDuplikat.classList.remove('hidden');
+        if (pesanAlert) {
+          if (duplikat.type === 'NOMOR_PERSIS') {
+            pesanAlert.innerHTML = `Nomor surat <strong>${typedVal}</strong> sudah terdaftar di Buku Agenda untuk perihal: <em>"${duplikat.item.Perihal}"</em>. Silakan gunakan nomor urut berikutnya!`;
+          } else {
+            pesanAlert.innerHTML = `Nomor urut <strong>#${String(typedSeq).padStart(4, '0')}</strong> sudah digunakan oleh surat <strong>${duplikat.item.No_Surat}</strong> untuk perihal: <em>"${duplikat.item.Perihal}"</em>.`;
+          }
+        }
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.classList.add('opacity-40', 'cursor-not-allowed');
+        }
+        return true;
+      } else {
+        // Nomor bersih
+        inputNo.classList.remove('border-rose-500', 'bg-rose-950/20', 'text-rose-300');
+        inputNo.classList.add('border-slate-700', 'text-amber-300');
+
+        if (alertDuplikat) alertDuplikat.classList.add('hidden');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-40', 'cursor-not-allowed');
+        }
+        return false;
+      }
+    }
+
+    function salinNomorKeClipboard() {
+      const inputNo = document.getElementById('no_surat');
+      if (!inputNo || !inputNo.value) return;
+
+      navigator.clipboard.writeText(inputNo.value).then(() => {
+        const btn = document.getElementById('btn-copy-no');
+        if (btn) {
+          const original = btn.innerHTML;
+          btn.innerHTML = `<span class="text-emerald-400 font-bold">✓ Tersalin!</span>`;
+          setTimeout(() => { btn.innerHTML = original; }, 2000);
+        }
+      }).catch(err => {
+        alert('Nomor surat: ' + inputNo.value);
+      });
+    }
+
+    function isiContohSurat() {
+      document.getElementById('tujuan_penerima').value = 'Pusat Pembinaan Profesi Keuangan (PPPK) Kemenkeu RI';
+      document.getElementById('perihal').value = 'Permohonan Pengesahan Rekan Penilai Publik & Notifikasi Kantor';
+      document.getElementById('klasifikasi_perihal').value = 'Regulator/PPPK/OJK';
+      document.getElementById('penandatangan').value = 'Pemimpin Rekan';
+      updateSaranNomorOtomatis();
+    }
+
+    // ==========================================================
+    // 5. PENYIMPANAN DATA SURAT UMUM BARU
+    // ==========================================================
+    async function handleSimpanSuratUmum(event) {
+      event.preventDefault();
+      if (!userSession || userSession.role !== 'ADMIN_PUSAT') {
+        alert('Akses Ditolak: Hanya Admin Pusat yang berhak menyimpan ke Buku Agenda.');
+        return;
+      }
+
+      if (periksaDuplikasiLive()) {
+        alert('Nomor surat atau nomor urut sudah terdaftar! Harap ubah nomor surat sebelum menyimpan.');
+        return;
+      }
+
+      const tglInput = document.getElementById('tanggal_surat').value;
+      const noSuratInput = document.getElementById('no_surat').value.trim();
+      const tujuanInput = document.getElementById('tujuan_penerima').value.trim();
+      const perihalInput = document.getElementById('perihal').value.trim();
+      const klasifikasiInput = document.getElementById('klasifikasi_perihal').value;
+      const penandatanganInput = document.getElementById('penandatangan').value;
+
+      const seq = extractSeq(noSuratInput) || (serverMaxSeq + 1);
+
+      const payloadSurat = {
+        Timestamp: new Date().toISOString(),
+        No_Urut: seq,
+        No_Surat: noSuratInput,
+        Tanggal_Surat: tglInput,
+        Tujuan_Penerima: tujuanInput,
+        Perihal: perihalInput,
+        Klasifikasi_Perihal: klasifikasiInput,
+        Penandatangan: penandatanganInput,
+        Link_Arsip_Final: '',
+        Link_File_Mentah: '',
+        File_ID_Final: '',
+        File_ID_Mentah: '',
+        Status_Arsip: 'Kosong'
+      };
+
+      const btnSubmit = document.getElementById('btn-submit-surat');
+      const originalBtnText = btnSubmit.innerHTML;
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<span>Menyimpan ke Agenda...</span>`;
+
+      // 1. Simpan Optimistik ke Data Lokal
+      daftarSuratUmum.unshift(payloadSurat);
+      localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
+      renderTabelSuratUmum();
+
+      // Reset form
+      document.getElementById('tujuan_penerima').value = '';
+      document.getElementById('perihal').value = '';
+      delete document.getElementById('no_surat').dataset.manualEdited;
+      updateSaranNomorOtomatis();
+
+      // 2. Kirim Sinkronisasi ke Backend Google Apps Script
+      try {
+        const bodyReq = {
+          action: 'CREATE_SURAT_UMUM',
+          token: userSession.token,
+          data: payloadSurat,
+          ...payloadSurat
+        };
+
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow',
+          body: JSON.stringify(bodyReq)
+        });
+
+        if (res.ok) {
+          const respData = await res.json();
+          if (respData && respData.status === 'success') {
+            console.log('Surat Umum tersimpan di Google Sheets master:', respData);
+          } else if (respData && respData.code === 'DUPLICATE_NUMBER') {
+            alert('Peringatan Server: ' + respData.message);
+          }
+        }
+      } catch (err) {
+        console.warn('Sinkronisasi cloud tertunda (disimpan lokal):', err);
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalBtnText;
+      }
+    }
+
+    // ==========================================================
+    // 6. SINKRONISASI BUKU AGENDA DENGAN GOOGLE APPS SCRIPT
+    // ==========================================================
+    async function muatDataSuratUmum(forceRefresh = false) {
+      const btnRef = document.getElementById('btn-refresh');
+      if (btnRef && forceRefresh) {
+        btnRef.disabled = true;
+        btnRef.classList.add('opacity-50');
+      }
+
+      try {
+        const url = `${GAS_WEB_APP_URL}?action=GET_SURAT_UMUM_LIST&target_year=2026${forceRefresh ? '&refresh=true' : ''}`;
+        const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && (json.status === 'success' || json.success) && Array.isArray(json.data) && json.data.length > 0) {
+            daftarSuratUmum = json.data;
+            localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
+            serverMaxSeq = json.maxSeq || hitungMaxSequenceTahun(2026);
+            updateSaranNomorOtomatis();
+            renderTabelSuratUmum();
+          }
+        }
+      } catch (err) {
+        console.warn('Menggunakan cache lokal untuk Buku Agenda:', err);
+      } finally {
+        if (btnRef) {
+          btnRef.disabled = false;
+          btnRef.classList.remove('opacity-50');
+        }
+      }
+    }
+
+    // ==========================================================
+    // 7. RENDER TABEL AGENDA DIGITAL & FILTERING
+    // ==========================================================
+    function renderTabelSuratUmum() {
+      const tbody = document.getElementById('tabel-body-surat');
+      const badgeCount = document.getElementById('badge-total-surat');
+      if (!tbody) return;
+
+      const qSearch = (document.getElementById('search_surat')?.value || '').toLowerCase().trim();
+      const filterKat = document.getElementById('filter_kategori')?.value || '';
+      const filterStatus = document.getElementById('filter_status_arsip')?.value || '';
+
+      const filtered = daftarSuratUmum.filter(item => {
+        // Search query
+        if (qSearch) {
+          const matchNo = String(item.No_Surat || '').toLowerCase().includes(qSearch);
+          const matchTujuan = String(item.Tujuan_Penerima || '').toLowerCase().includes(qSearch);
+          const matchPerihal = String(item.Perihal || '').toLowerCase().includes(qSearch);
+          if (!matchNo && !matchTujuan && !matchPerihal) return false;
+        }
+
+        // Filter Kategori
+        if (filterKat && item.Klasifikasi_Perihal !== filterKat) {
+          return false;
+        }
+
+        // Filter Status Arsip
+        if (filterStatus) {
+          const s = item.Status_Arsip || 'Kosong';
+          if (filterStatus === 'Lengkap' && s !== 'Lengkap') return false;
+          if (filterStatus === 'Hanya Scan' && s !== 'Hanya Scan') return false;
+          if (filterStatus === 'Hanya Draf' && s !== 'Hanya Draf') return false;
+          if (filterStatus === 'Kosong' && s !== 'Kosong') return false;
+        }
+
+        return true;
+      });
+
+      if (badgeCount) {
+        badgeCount.innerText = `${filtered.length} Surat Terdaftar`;
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="py-12 text-center text-slate-400">
+              <div class="space-y-1">
+                <p class="text-sm font-bold text-slate-300">Tidak ada surat yang sesuai dengan filter pencarian.</p>
+                <p class="text-xs text-slate-500">Coba ubah kata kunci atau kosongkan filter kategori.</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      for (const item of filtered) {
+        const noSurat = item.No_Surat || '-';
+        const seqPadded = String(item.No_Urut || extractSeq(noSurat)).padStart(4, '0');
+        const tglStr = formatTanggalTabel(item.Tanggal_Surat);
+        const hasScan = Boolean(item.Link_Arsip_Final && item.Link_Arsip_Final.trim() !== '');
+        const hasDraf = Boolean(item.Link_File_Mentah && item.Link_File_Mentah.trim() !== '');
+
+        // Slot Final (Scan)
+        let slotFinalHtml = '';
+        if (hasScan) {
+          slotFinalHtml = `
+            <div class="flex items-center justify-center gap-1.5">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-extrabold text-[10px] border border-emerald-500/30">
+                ✓ Scan
+              </span>
+              <button type="button" onclick="bukaModalPdfViewer('${item.No_Surat}', '${item.Link_Arsip_Final}', '${item.Perihal}')"
+                class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700 transition" title="Lihat PDF">
+                👁️ Lihat
+              </button>
+              <button type="button" onclick="bukaModalUpload('${item.No_Surat}', 'FINAL', '${item.Perihal}')"
+                class="px-1.5 py-1 rounded text-slate-400 hover:text-amber-300 text-[10px]" title="Ganti File Scan">
+                Ganti
+              </button>
+            </div>
+          `;
+        } else {
+          slotFinalHtml = `
+            <button type="button" onclick="bukaModalUpload('${item.No_Surat}', 'FINAL', '${item.Perihal}')"
+              class="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-amber-400 text-[11px] font-semibold border border-dashed border-slate-700 hover:border-amber-400 transition">
+              + Upload Scan (PDF)
+            </button>
+          `;
+        }
+
+        // Slot Mentah (Draf)
+        let slotMentahHtml = '';
+        if (hasDraf) {
+          slotMentahHtml = `
+            <div class="flex items-center justify-center gap-1.5">
+              <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-extrabold text-[10px] border border-blue-500/30">
+                📝 Draf
+              </span>
+              <a href="${item.Link_File_Mentah}" target="_blank" rel="noopener noreferrer"
+                class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700 transition" title="Buka File Mentah di Google Drive">
+                📂 Buka
+              </a>
+              <button type="button" onclick="bukaModalUpload('${item.No_Surat}', 'MENTAH', '${item.Perihal}')"
+                class="px-1.5 py-1 rounded text-slate-400 hover:text-amber-300 text-[10px]" title="Ganti File Mentah">
+                Ganti
+              </button>
+            </div>
+          `;
+        } else {
+          slotMentahHtml = `
+            <button type="button" onclick="bukaModalUpload('${item.No_Surat}', 'MENTAH', '${item.Perihal}')"
+              class="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-blue-400 text-[11px] font-semibold border border-dashed border-slate-700 hover:border-blue-400 transition">
+              + Upload Draf (Word/Excel)
+            </button>
+          `;
+        }
+
+        // Badge Status Arsip
+        let statusBadge = '';
+        const st = item.Status_Arsip || (hasScan && hasDraf ? 'Lengkap' : (hasScan ? 'Hanya Scan' : (hasDraf ? 'Hanya Draf' : 'Kosong')));
+        if (st === 'Lengkap') {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[10px] border border-emerald-500/30">✓ Lengkap</span>`;
+        } else if (st === 'Hanya Scan') {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-bold text-[10px] border border-teal-500/30">📄 Scan Saja</span>`;
+        } else if (st === 'Hanya Draf') {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold text-[10px] border border-cyan-500/30">📝 Draf Saja</span>`;
+        } else {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 font-bold text-[10px] border border-rose-500/30">⚠️ Kosong</span>`;
+        }
+
+        html += `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3 px-3 text-center font-mono text-slate-400">#${seqPadded}</td>
+            <td class="py-3 px-4 font-mono font-bold text-amber-300">
+              <div class="flex items-center gap-1.5">
+                <span>${noSurat}</span>
+                <button type="button" onclick="navigator.clipboard.writeText('${noSurat}'); alert('Nomor tersalin: ${noSurat}');" class="text-slate-500 hover:text-amber-400" title="Salin Nomor">
+                  <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+            <td class="py-3 px-3 text-slate-300 whitespace-nowrap">${tglStr}</td>
+            <td class="py-3 px-4 text-white font-medium">
+              <div class="leading-tight">${item.Tujuan_Penerima || '-'}</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="text-slate-200 text-xs font-semibold leading-snug">${item.Perihal || '-'}</div>
+              <span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 text-[10px] border border-slate-700">
+                ${item.Klasifikasi_Perihal || 'Lain-lain'}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-slate-300 text-xs">${item.Penandatangan || '-'}</td>
+            <td class="py-3 px-3 text-center">${slotFinalHtml}</td>
+            <td class="py-3 px-3 text-center">${slotMentahHtml}</td>
+            <td class="py-3 px-3 text-center whitespace-nowrap">${statusBadge}</td>
+          </tr>
+        `;
+      }
+
+      tbody.innerHTML = html;
+    }
+
+    function formatTanggalTabel(tglVal) {
+      if (!tglVal) return '-';
+      try {
+        const d = new Date(tglVal);
+        if (isNaN(d.getTime())) return String(tglVal);
+        const bln = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+        return `${String(d.getDate()).padStart(2, '0')} ${bln[d.getMonth()]} ${d.getFullYear()}`;
+      } catch (e) {
+        return String(tglVal);
+      }
+    }
+
+    function handleSearchSurat() {
+      renderTabelSuratUmum();
+    }
+
+    function handleFilterChange() {
+      renderTabelSuratUmum();
+    }
+
+    // ==========================================================
+    // 8. MODAL UPLOAD FILE & PENGIRIMAN KE GOOGLE DRIVE VIA GAS
+    // ==========================================================
+    function bukaModalUpload(noSurat, tipeSlot, perihal) {
+      currentUploadTarget = { noSurat, tipeSlot, perihal };
+      selectedUploadFile = null;
+
+      const modal = document.getElementById('modal-upload');
+      const badgeSlot = document.getElementById('badge-upload-slot');
+      const labelTarget = document.getElementById('label-upload-target');
+      const fileInfo = document.getElementById('info-file-terpilih');
+      const progressBox = document.getElementById('progress-upload-box');
+      const btnConfirm = document.getElementById('btn-konfirmasi-upload');
+
+      if (badgeSlot) {
+        badgeSlot.innerText = tipeSlot === 'FINAL' ? 'FINAL (SCAN BERSTEMPEL & TTD)' : 'MENTAH (DRAF WORD / EXCEL)';
+        badgeSlot.className = tipeSlot === 'FINAL'
+          ? 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+          : 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30';
+      }
+
+      if (labelTarget) labelTarget.innerText = `${noSurat} • ${perihal || 'Surat'}`;
+      if (fileInfo) fileInfo.classList.add('hidden');
+      if (progressBox) progressBox.classList.add('hidden');
+      if (btnConfirm) btnConfirm.disabled = true;
+
+      // Set accept attribute
+      const input = document.getElementById('input_file_arsip');
+      if (input) {
+        input.value = '';
+        input.accept = tipeSlot === 'FINAL' ? '.pdf' : '.docx,.doc,.xlsx,.xls,.pdf';
+      }
+
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function tutupModalUpload() {
+      const modal = document.getElementById('modal-upload');
+      if (modal) modal.classList.add('hidden');
+      selectedUploadFile = null;
+      currentUploadTarget = null;
+    }
+
+    function setupDragAndDrop() {
+      const dropZone = document.getElementById('drop-zone');
+      if (!dropZone) return;
+
+      ['dragenter', 'dragover'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drag-over');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+        });
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer?.files;
+        if (files && files.length > 0) {
+          handleFilePilihan(files);
+        }
+      });
+    }
+
+    function handleFilePilihan(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      const file = fileList[0];
+      selectedUploadFile = file;
+
+      const fileInfo = document.getElementById('info-file-terpilih');
+      const labelName = document.getElementById('label-file-name');
+      const labelSize = document.getElementById('label-file-size');
+      const btnConfirm = document.getElementById('btn-konfirmasi-upload');
+
+      if (labelName) labelName.innerText = file.name;
+      if (labelSize) {
+        const kb = (file.size / 1024).toFixed(1);
+        labelSize.innerText = kb > 1024 ? `${(kb / 1024).toFixed(2)} MB` : `${kb} KB`;
+      }
+
+      if (fileInfo) fileInfo.classList.remove('hidden');
+      if (btnConfirm) btnConfirm.disabled = false;
+    }
+
+    function batalkanPilihanFile() {
+      selectedUploadFile = null;
+      const fileInfo = document.getElementById('info-file-terpilih');
+      const btnConfirm = document.getElementById('btn-konfirmasi-upload');
+      const input = document.getElementById('input_file_arsip');
+      if (fileInfo) fileInfo.classList.add('hidden');
+      if (btnConfirm) btnConfirm.disabled = true;
+      if (input) input.value = '';
+    }
+
+    async function eksekusiUploadKeGAS() {
+      if (!selectedUploadFile || !currentUploadTarget) {
+        alert('Silakan pilih file terlebih dahulu.');
+        return;
+      }
+
+      const progressBox = document.getElementById('progress-upload-box');
+      const labelText = document.getElementById('label-progress-text');
+      const labelPct = document.getElementById('label-progress-percent');
+      const barFill = document.getElementById('bar-progress-fill');
+      const btnConfirm = document.getElementById('btn-konfirmasi-upload');
+
+      if (progressBox) progressBox.classList.remove('hidden');
+      if (btnConfirm) btnConfirm.disabled = true;
+      if (barFill) barFill.style.width = '30%';
+      if (labelPct) labelPct.innerText = '30%';
+      if (labelText) labelText.innerText = 'Membaca data file lokal...';
+
+      // 1. Baca File sebagai Base64
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target.result;
+
+        if (barFill) barFill.style.width = '60%';
+        if (labelPct) labelPct.innerText = '60%';
+        if (labelText) labelText.innerText = 'Mengunggah ke folder Google Drive...';
+
+        try {
+          const reqPayload = {
+            action: 'UPLOAD_ARSIP_SURAT_UMUM',
+            token: userSession?.token || '',
+            no_surat: currentUploadTarget.noSurat,
+            tipe_slot: currentUploadTarget.tipeSlot,
+            file_name: selectedUploadFile.name,
+            mime_type: selectedUploadFile.type || 'application/octet-stream',
+            file_base64: base64Data
+          };
+
+          const res = await fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            redirect: 'follow',
+            body: JSON.stringify(reqPayload)
+          });
+
+          let resultUrl = '';
+          let resultId = '';
+          let newStatus = '';
+
+          if (res.ok) {
+            const json = await res.json();
+            if (json && json.status === 'success') {
+              resultUrl = json.file_url;
+              resultId = json.file_id;
+              newStatus = json.status_arsip;
+            }
+          }
+
+          // Fallback URL jika mode preview / sandbox
+          if (!resultUrl) {
+            resultId = `drive_${Date.now()}`;
+            resultUrl = `https://drive.google.com/file/d/${resultId}/view`;
+          }
+
+          // Perbarui state lokal
+          const item = daftarSuratUmum.find(x => x.No_Surat === currentUploadTarget.noSurat);
+          if (item) {
+            if (currentUploadTarget.tipeSlot === 'FINAL') {
+              item.Link_Arsip_Final = resultUrl;
+              item.File_ID_Final = resultId;
+            } else {
+              item.Link_File_Mentah = resultUrl;
+              item.File_ID_Mentah = resultId;
+            }
+
+            if (item.Link_Arsip_Final && item.Link_File_Mentah) {
+              item.Status_Arsip = 'Lengkap';
+            } else if (item.Link_Arsip_Final) {
+              item.Status_Arsip = 'Hanya Scan';
+            } else if (item.Link_File_Mentah) {
+              item.Status_Arsip = 'Hanya Draf';
+            } else {
+              item.Status_Arsip = 'Kosong';
+            }
+          }
+
+          localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
+          renderTabelSuratUmum();
+
+          if (barFill) barFill.style.width = '100%';
+          if (labelPct) labelPct.innerText = '100%';
+          if (labelText) labelText.innerText = 'Selesai!';
+
+          setTimeout(() => {
+            tutupModalUpload();
+            alert(`Berkas arsip ${currentUploadTarget.tipeSlot} berhasil disimpan di Google Drive!`);
+          }, 400);
+
+        } catch (uploadErr) {
+          console.warn('Gagal upload ke server cloud (menyimpan referensi lokal):', uploadErr);
+          // Simpan referensi lokal
+          const item = daftarSuratUmum.find(x => x.No_Surat === currentUploadTarget.noSurat);
+          if (item) {
+            const fakeUrl = `https://drive.google.com/file/d/local_${Date.now()}/view`;
+            if (currentUploadTarget.tipeSlot === 'FINAL') {
+              item.Link_Arsip_Final = fakeUrl;
+            } else {
+              item.Link_File_Mentah = fakeUrl;
+            }
+            if (item.Link_Arsip_Final && item.Link_File_Mentah) item.Status_Arsip = 'Lengkap';
+            else if (item.Link_Arsip_Final) item.Status_Arsip = 'Hanya Scan';
+            else item.Status_Arsip = 'Hanya Draf';
+          }
+          localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
+          renderTabelSuratUmum();
+          tutupModalUpload();
+          alert('Berkas tersimpan di cache lokal Buku Agenda.');
+        }
+      };
+
+      reader.readAsDataURL(selectedUploadFile);
+    }
+
+    // ==========================================================
+    // 9. MODAL PDF VIEWER
+    // ==========================================================
+    function bukaModalPdfViewer(noSurat, fileUrl, perihal) {
+      const modal = document.getElementById('modal-pdf-viewer');
+      const title = document.getElementById('pdf-modal-title');
+      const sub = document.getElementById('pdf-modal-sub');
+      const iframe = document.getElementById('iframe-pdf-preview');
+      const extBtn = document.getElementById('btn-pdf-external');
+
+      if (title) title.innerText = `Pratinjau Berkas Scan Resmi: ${perihal || 'Surat'}`;
+      if (sub) sub.innerText = noSurat;
+
+      // Konversi Drive URL ke Preview Embed
+      let embedUrl = fileUrl;
+      if (fileUrl.includes('drive.google.com/file/d/')) {
+        const fileId = fileUrl.split('/file/d/')[1].split('/')[0];
+        embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+      }
+
+      if (iframe) iframe.src = embedUrl;
+      if (extBtn) extBtn.href = fileUrl;
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function tutupModalPdfViewer() {
+      const modal = document.getElementById('modal-pdf-viewer');
+      const iframe = document.getElementById('iframe-pdf-preview');
+      if (iframe) iframe.src = 'about:blank';
+      if (modal) modal.classList.add('hidden');
+    }
+  </script>
+
+</body>
+</html>

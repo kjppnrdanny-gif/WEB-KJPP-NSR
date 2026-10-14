@@ -25,11 +25,13 @@ const CONFIG = {
   // Web App Endpoint URL Resmi Google Apps Script
   WEB_APP_URL: GAS_WEB_APP_URL,
 
-  // Nama 4 Sheet Utama di Google Spreadsheet DB_PENUGASAN_JO_NSR
+  // Nama Sheet di Google Spreadsheet DB_PENUGASAN_JO_NSR
   SHEET_DATA: 'Data_Penugasan',
   SHEET_COUNTER: 'Config_Counter',
   SHEET_PERSONIL: 'Master_Personil',
   SHEET_LOG: 'Log_Aktivitas',
+  SHEET_SURAT_UMUM: 'Buku_Surat_Umum',
+  FOLDER_SURAT_UMUM: 'ARSIP_SURAT_UMUM_NSR',
   
   // Cache TTL (Detik)
   CACHE_TTL_SECONDS: 120, // 2 Menit
@@ -134,12 +136,38 @@ const HEADERS_DATA_PENUGASAN = [
   'Folder_Drive_URL'
 ];
 
+// 13 KOLOM RESMI SHEET Buku_Surat_Umum
+const HEADERS_SURAT_UMUM = [
+  'Timestamp',
+  'No_Urut',
+  'No_Surat',
+  'Tanggal_Surat',
+  'Tujuan_Penerima',
+  'Perihal',
+  'Klasifikasi_Perihal',
+  'Penandatangan',
+  'Link_Arsip_Final',
+  'Link_File_Mentah',
+  'File_ID_Final',
+  'File_ID_Mentah',
+  'Status_Arsip'
+];
+
 // -----------------------------------------------------------------------------------------
 // 2. ENTRY POINT HTTP GET: doGet(e) DENGAN CacheService & 44-KOLOM MAPPING
 // -----------------------------------------------------------------------------------------
 function doGet(e) {
   try {
     const params = (e && e.parameter) || {};
+
+    // Routing khusus modul Buku Agenda Surat Umum (SU) via GET
+    if (params.action === 'GET_SURAT_UMUM_LIST') {
+      const ss = SpreadsheetApp.getActiveSpreadsheet() || inisialisasiSpreadsheetBaru();
+      const targetYear = parseInt(params.target_year || params.targetYear, 10) || new Date().getFullYear() || 2026;
+      const resSU = bacaDaftarSuratUmum(ss, targetYear);
+      return respondJSON(resSU);
+    }
+
     const forceRefresh = params.refresh === 'true';
 
     const cache = CacheService.getScriptCache();
@@ -313,6 +341,42 @@ function doPost(e) {
           counter: bacaConfigCounter(ss),
           submissions: bacaSemuaSubmissions(ss)
         };
+        break;
+
+      case 'GET_SURAT_UMUM_LIST':
+        if (authResult.role !== 'ADMIN_PUSAT') {
+          return respondJSON({
+            status: 'error',
+            success: false,
+            code: 'FORBIDDEN',
+            error: 'Otorisasi Ditolak: Modul Buku Agenda Surat Umum hanya dapat diakses oleh Admin Kantor Pusat Jakarta.'
+          }, 403);
+        }
+        result = bacaDaftarSuratUmum(ss, parseInt(payload.target_year || payload.targetYear, 10) || new Date().getFullYear() || 2026);
+        break;
+
+      case 'CREATE_SURAT_UMUM':
+        if (authResult.role !== 'ADMIN_PUSAT') {
+          return respondJSON({
+            status: 'error',
+            success: false,
+            code: 'FORBIDDEN',
+            error: 'Otorisasi Ditolak: Hanya Admin Kantor Pusat Jakarta yang berhak meregistrasi nomor Surat Umum di server Pusat.'
+          }, 403);
+        }
+        result = prosesBuatSuratUmum(ss, payload.data || payload, authResult);
+        break;
+
+      case 'UPLOAD_ARSIP_SURAT_UMUM':
+        if (authResult.role !== 'ADMIN_PUSAT') {
+          return respondJSON({
+            status: 'error',
+            success: false,
+            code: 'FORBIDDEN',
+            error: 'Otorisasi Ditolak: Hanya Admin Kantor Pusat Jakarta yang berhak mengunggah berkas arsip Surat Umum.'
+          }, 403);
+        }
+        result = prosesUploadArsipSuratUmum(ss, payload);
         break;
 
       default:
@@ -1176,3 +1240,343 @@ function angkaTerbilang(nilai) {
   }
   return (bagi(nilai).trim() + " Rupiah").replace(/\s+/g, ' ');
 }
+
+// -----------------------------------------------------------------------------------------
+// 7. MODUL BACKEND BUKU AGENDA SURAT UMUM (SU) - ADMIN KANTOR PUSAT
+// -----------------------------------------------------------------------------------------
+
+/**
+ * Inisialisasi sheet Buku_Surat_Umum jika belum tersedia di spreadsheet master
+ */
+function buatSheetSuratUmum(ss) {
+  const sheetName = CONFIG.SHEET_SURAT_UMUM || 'Buku_Surat_Umum';
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow(HEADERS_SURAT_UMUM);
+    sheet.getRange(1, 1, 1, HEADERS_SURAT_UMUM.length)
+      .setFontWeight('bold')
+      .setBackground('#0f172a')
+      .setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+/**
+ * Membaca seluruh data Buku_Surat_Umum untuk tahun berjalan (terurut descending)
+ */
+function bacaDaftarSuratUmum(ss, targetYear) {
+  const yr = targetYear || new Date().getFullYear() || 2026;
+  const sheet = buatSheetSuratUmum(ss);
+  const items = [];
+  let maxSeq = 0;
+
+  if (sheet.getLastRow() >= 2) {
+    const numRows = sheet.getLastRow() - 1;
+    const numCols = Math.min(sheet.getLastColumn(), HEADERS_SURAT_UMUM.length);
+    const rows = sheet.getRange(2, 1, numRows, numCols).getValues();
+
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const noSurat = String(r[2] || '').trim();
+      if (!noSurat) continue;
+
+      const rawSeq = parseInt(r[1], 10);
+      const seq = (!isNaN(rawSeq) && rawSeq > 0) ? rawSeq : extractSeq(noSurat);
+
+      // Cek tahun dari Tanggal_Surat atau Nomor Surat
+      let rowYr = yr;
+      if (r[3]) {
+        try {
+          const dt = new Date(r[3]);
+          if (!isNaN(dt.getTime())) rowYr = dt.getFullYear();
+        } catch (e) {}
+      } else if (noSurat.includes(String(yr))) {
+        rowYr = yr;
+      }
+
+      if (rowYr === yr && seq > maxSeq && seq < 50000) {
+        maxSeq = seq;
+      }
+
+      const item = {
+        Timestamp: r[0] ? (typeof r[0].toISOString === 'function' ? r[0].toISOString() : String(r[0])) : '',
+        No_Urut: seq,
+        No_Surat: noSurat,
+        Tanggal_Surat: r[3] ? (typeof r[3].toISOString === 'function' ? r[3].toISOString().split('T')[0] : String(r[3])) : '',
+        Tujuan_Penerima: String(r[4] || ''),
+        Perihal: String(r[5] || ''),
+        Klasifikasi_Perihal: String(r[6] || 'Lain-lain'),
+        Penandatangan: String(r[7] || 'Pemimpin Rekan'),
+        Link_Arsip_Final: String(r[8] || ''),
+        Link_File_Mentah: String(r[9] || ''),
+        File_ID_Final: String(r[10] || ''),
+        File_ID_Mentah: String(r[11] || ''),
+        Status_Arsip: String(r[12] || 'Kosong')
+      };
+      items.push(item);
+    }
+  }
+
+  // Urutkan data secara descending (terbaru di atas) berdasarkan No_Urut
+  items.sort(function(a, b) {
+    return (b.No_Urut || 0) - (a.No_Urut || 0);
+  });
+
+  const romawi = getBulanRomawi(new Date());
+  const nextSeq = maxSeq + 1;
+  const suggestedNomor = String(nextSeq).padStart(4, '0') + '/NSR/SU/' + romawi + '/' + yr;
+
+  return {
+    status: 'success',
+    success: true,
+    target_year: yr,
+    maxSeq: maxSeq,
+    nextSeq: nextSeq,
+    suggestedNomor: suggestedNomor,
+    data: items,
+    totalCount: items.length
+  };
+}
+
+/**
+ * Menyimpan registrasi Surat Umum baru ke sheet Buku_Surat_Umum dengan validasi anti-duplikasi
+ */
+function prosesBuatSuratUmum(ss, data, authResult) {
+  if (!data) throw new Error('Data surat umum tidak boleh kosong.');
+
+  const sheet = buatSheetSuratUmum(ss);
+  const now = new Date();
+  const dSurat = new Date(data.Tanggal_Surat || data.tanggal_surat || now);
+  const romawi = getBulanRomawi(dSurat);
+  const thn = dSurat.getFullYear() || now.getFullYear() || 2026;
+
+  // Baca daftar surat umum untuk tahun berjalan guna menghitung maxSeq dan verifikasi duplikasi
+  const curList = bacaDaftarSuratUmum(ss, thn);
+  const currentMaxSeq = curList.maxSeq || 0;
+
+  let seq = parseInt(data.No_Urut || data.no_urut, 10);
+  let noSurat = String(data.No_Surat || data.no_surat || '').trim();
+
+  if (!noSurat) {
+    if (!seq || isNaN(seq) || seq <= 0) {
+      seq = currentMaxSeq + 1;
+    }
+    noSurat = String(seq).padStart(4, '0') + '/NSR/SU/' + romawi + '/' + thn;
+  } else {
+    if (!seq || isNaN(seq) || seq <= 0) {
+      seq = extractSeq(noSurat) || (currentMaxSeq + 1);
+    }
+  }
+
+  // VALIDASI DUPLIKASI NOMOR DAN NO_URUT DI DATABASE
+  for (let i = 0; i < curList.data.length; i++) {
+    const existing = curList.data[i];
+    if (existing.No_Surat && existing.No_Surat.toUpperCase() === noSurat.toUpperCase()) {
+      return {
+        status: 'error',
+        success: false,
+        code: 'DUPLICATE_NUMBER',
+        message: 'Nomor surat (' + noSurat + ') sudah terdaftar di database untuk perihal: ' + existing.Perihal
+      };
+    }
+    if (existing.No_Urut === seq) {
+      return {
+        status: 'error',
+        success: false,
+        code: 'DUPLICATE_NUMBER',
+        message: 'Nomor urut ' + seq + ' sudah terdaftar untuk nomor ' + existing.No_Surat + ' (Perihal: ' + existing.Perihal + ')'
+      };
+    }
+  }
+
+  const timestampIso = now.toISOString();
+  let tglSuratStr = '';
+  try {
+    tglSuratStr = Utilities.formatDate(dSurat, Session.getScriptTimeZone() || 'Asia/Jakarta', 'yyyy-MM-dd');
+  } catch (e) {
+    tglSuratStr = dSurat.toISOString().split('T')[0];
+  }
+
+  const tujuan = String(data.Tujuan_Penerima || data.tujuan_penerima || '').trim();
+  const perihal = String(data.Perihal || data.perihal || '').trim();
+  const klasifikasi = String(data.Klasifikasi_Perihal || data.klasifikasi_perihal || 'Lain-lain').trim();
+  const ttd = String(data.Penandatangan || data.penandatangan || 'Pemimpin Rekan').trim();
+
+  const newRow = [
+    timestampIso,
+    seq,
+    noSurat,
+    tglSuratStr,
+    tujuan,
+    perihal,
+    klasifikasi,
+    ttd,
+    '', // Link_Arsip_Final
+    '', // Link_File_Mentah
+    '', // File_ID_Final
+    '', // File_ID_Mentah
+    'Kosong' // Status_Arsip
+  ];
+
+  sheet.appendRow(newRow);
+
+  // Catat ke Log Aktivitas
+  try {
+    catatLogAktivitas(ss, noSurat, 'CREATE_SURAT_UMUM', (authResult && authResult.token) || 'NSR-PST-2026', 'Registrasi Surat Umum: ' + perihal);
+  } catch (logErr) {
+    console.warn('Gagal catatLogAktivitas:', logErr);
+  }
+
+  const newMax = Math.max(currentMaxSeq, seq);
+  const nextSeq = newMax + 1;
+  const suggestedNomor = String(nextSeq).padStart(4, '0') + '/NSR/SU/' + getBulanRomawi(new Date()) + '/' + thn;
+
+  return {
+    status: 'success',
+    success: true,
+    message: 'Nomor Surat Umum berhasil dikunci dan dicatat di Buku Agenda!',
+    data: {
+      Timestamp: timestampIso,
+      No_Urut: seq,
+      No_Surat: noSurat,
+      Tanggal_Surat: tglSuratStr,
+      Tujuan_Penerima: tujuan,
+      Perihal: perihal,
+      Klasifikasi_Perihal: klasifikasi,
+      Penandatangan: ttd,
+      Link_Arsip_Final: '',
+      Link_File_Mentah: '',
+      File_ID_Final: '',
+      File_ID_Mentah: '',
+      Status_Arsip: 'Kosong'
+    },
+    maxSeq: newMax,
+    nextSeq: nextSeq,
+    suggestedNomor: suggestedNomor
+  };
+}
+
+/**
+ * Mengunggah file arsip (Final PDF atau Mentah Word/Excel) ke Google Drive
+ * dan memperbarui kolom terkait di sheet Buku_Surat_Umum
+ */
+function prosesUploadArsipSuratUmum(ss, payload) {
+  if (!payload || !payload.no_surat || !payload.file_base64) {
+    throw new Error('Parameter upload tidak lengkap (no_surat dan file_base64 wajib diisi).');
+  }
+
+  const sheet = buatSheetSuratUmum(ss);
+  const targetNoSurat = String(payload.no_surat).trim().toUpperCase();
+  const tipeSlot = String(payload.tipe_slot || 'FINAL').trim().toUpperCase(); // 'FINAL' atau 'MENTAH'
+
+  if (sheet.getLastRow() < 2) {
+    throw new Error('Belum ada data Surat Umum yang tersimpan.');
+  }
+
+  const numRows = sheet.getLastRow() - 1;
+  const numCols = Math.min(sheet.getLastColumn(), HEADERS_SURAT_UMUM.length);
+  const rows = sheet.getRange(2, 1, numRows, numCols).getValues();
+
+  let targetRowIdx = -1;
+  let rowData = null;
+
+  for (let i = 0; i < rows.length; i++) {
+    const curNoSurat = String(rows[i][2] || '').trim().toUpperCase();
+    if (curNoSurat === targetNoSurat) {
+      targetRowIdx = i + 2; // 1-based index (header = 1)
+      rowData = rows[i];
+      break;
+    }
+  }
+
+  if (targetRowIdx === -1 || !rowData) {
+    throw new Error('Surat Umum dengan nomor (' + payload.no_surat + ') tidak ditemukan di database.');
+  }
+
+  // Tentukan tahun dan perihal untuk pembuatan direktori dan penamaan file
+  let thn = 2026;
+  if (rowData[3]) {
+    try {
+      const dt = new Date(rowData[3]);
+      if (!isNaN(dt.getTime())) thn = dt.getFullYear();
+    } catch (e) {}
+  }
+  const perihal = String(rowData[5] || 'Surat').trim();
+
+  // 1. Dapatkan atau buat Folder di Google Drive: ARSIP_SURAT_UMUM_NSR/[TAHUN]
+  const rootFolderName = CONFIG.FOLDER_SURAT_UMUM || 'ARSIP_SURAT_UMUM_NSR';
+  const rootFolder = getOrCreateFolder(rootFolderName);
+  const yearFolder = getOrCreateFolder(String(thn), rootFolder);
+
+  // 2. Decode Base64 ke Blob
+  let rawB64 = String(payload.file_base64);
+  if (rawB64.indexOf(',') !== -1) {
+    rawB64 = rawB64.split(',')[1];
+  }
+  const decodedBytes = Utilities.base64Decode(rawB64);
+
+  // 3. Standarisasi Nama File
+  const noSuratSanitized = String(payload.no_surat).replace(/[/\\?%*:|"<>]/g, '_');
+  const perihalRingkas = perihal.substring(0, 35).replace(/[/\\?%*:|"<>]/g, '_').trim();
+  const originalFileName = String(payload.file_name || '');
+  let ext = '';
+  if (originalFileName.lastIndexOf('.') !== -1) {
+    ext = originalFileName.substring(originalFileName.lastIndexOf('.'));
+  } else {
+    ext = (tipeSlot === 'FINAL' || payload.mime_type === 'application/pdf') ? '.pdf' : '.docx';
+  }
+
+  const targetFileName = (tipeSlot === 'FINAL')
+    ? (noSuratSanitized + '_FINAL_' + perihalRingkas + ext)
+    : (noSuratSanitized + '_DRAF_' + perihalRingkas + ext);
+
+  const mimeType = payload.mime_type || (tipeSlot === 'FINAL' ? 'application/pdf' : 'application/octet-stream');
+  const blob = Utilities.newBlob(decodedBytes, mimeType, targetFileName);
+
+  // 4. Simpan File ke Drive & Berikan Izin Akses VIEW bagi siapapun yang memiliki tautan
+  const driveFile = yearFolder.createFile(blob);
+  driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  const fileUrl = driveFile.getUrl();
+  const fileId = driveFile.getId();
+
+  // 5. Perbarui baris terkait di Sheet Buku_Surat_Umum
+  let currentFinalUrl = String(rowData[8] || '');
+  let currentMentahUrl = String(rowData[9] || '');
+
+  if (tipeSlot === 'FINAL') {
+    sheet.getRange(targetRowIdx, 9).setValue(fileUrl);
+    sheet.getRange(targetRowIdx, 11).setValue(fileId);
+    currentFinalUrl = fileUrl;
+  } else {
+    sheet.getRange(targetRowIdx, 10).setValue(fileUrl);
+    sheet.getRange(targetRowIdx, 12).setValue(fileId);
+    currentMentahUrl = fileUrl;
+  }
+
+  // Evaluasi ulang Status_Arsip
+  let newStatus = 'Kosong';
+  if (currentFinalUrl && currentMentahUrl) {
+    newStatus = 'Lengkap';
+  } else if (currentFinalUrl) {
+    newStatus = 'Hanya Scan';
+  } else if (currentMentahUrl) {
+    newStatus = 'Hanya Draf';
+  }
+  sheet.getRange(targetRowIdx, 13).setValue(newStatus);
+
+  return {
+    status: 'success',
+    success: true,
+    message: 'Berkas arsip ' + tipeSlot + ' berhasil disimpan di Google Drive!',
+    no_surat: payload.no_surat,
+    tipe_slot: tipeSlot,
+    file_id: fileId,
+    file_url: fileUrl,
+    file_name: targetFileName,
+    status_arsip: newStatus
+  };
+}
+
