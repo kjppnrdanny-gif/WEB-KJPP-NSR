@@ -441,6 +441,83 @@ async function runTests() {
     console.log('✓ Tabel Dashboard menampilkan badge 🔒 MANDIRI CABANG (PRIVAT) dan tombol Backup/Restore!');
 
     // ------------------------------------------------------------------
+    // TEST 3B: Verifikasi Admin Pusat (NSR-PST-2026) - Unlocked Inputs & No 4172027 Bug
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 3B: portal-penugasan-jo.html - Uji Admin Pusat (NSR-PST-2026) & Fix Bug 4172027 ---');
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          window.alert = () => {};
+          sessionStorage.clear();
+          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          verifikasiTokenLogin();
+        })()
+      `
+    });
+    await new Promise(r => setTimeout(r, 600));
+
+    const testAdminPusatResult = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          pindahTab('form');
+          const elLp = document.getElementById('no_lingkup_penugasan');
+          const elAdm = document.getElementById('no_adm_jo');
+          
+          const isLpReadOnly = elLp ? elLp.readOnly : null;
+          const isAdmReadOnly = elAdm ? elAdm.readOnly : null;
+          const lpVal = elLp ? elLp.value : '';
+          const admVal = elAdm ? elAdm.value : '';
+
+          // Cek proteksi edit manual: saat diisi manual, updateNomorOtomatisPreview tidak boleh menimpa
+          if (elLp) {
+            elLp.value = 'MANUAL-LP-999';
+            elLp.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          if (elAdm) {
+            elAdm.value = 'MANUAL-ADM-999';
+            elAdm.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          updateNomorOtomatisPreview();
+          const lpManualPersisted = (elLp ? elLp.value : '') === 'MANUAL-LP-999';
+          const admManualPersisted = (elAdm ? elAdm.value : '') === 'MANUAL-ADM-999';
+
+          // Reset formulir untuk membersihkan dan verifikasi nomor otomatis bersih
+          resetFormulir(true);
+          const lpValAfterReset = elLp ? elLp.value : '';
+          const admValAfterReset = elAdm ? elAdm.value : '';
+
+          return {
+            isLpReadOnly,
+            isAdmReadOnly,
+            lpVal,
+            admVal,
+            lpManualPersisted,
+            admManualPersisted,
+            lpValAfterReset,
+            admValAfterReset
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 3B (Admin Pusat Unlocked & Clean Numbers):', testAdminPusatResult.result.value);
+    const pstRes = testAdminPusatResult.result.value;
+    if (pstRes.isLpReadOnly !== false || pstRes.isAdmReadOnly !== false) {
+      throw new Error(`Input nomor #no_lingkup_penugasan & #no_adm_jo harus terbuka (readOnly === false) untuk Admin Pusat: LP=${pstRes.isLpReadOnly}, ADM=${pstRes.isAdmReadOnly}`);
+    }
+    if (pstRes.lpVal.includes('2027') || pstRes.admVal.includes('2027') || pstRes.lpVal.includes('4172027') || pstRes.admVal.includes('4172027')) {
+      throw new Error(`String concatenation bug terdeteksi! LP: ${pstRes.lpVal}, ADM: ${pstRes.admVal}`);
+    }
+    if (pstRes.lpValAfterReset.includes('2027') || pstRes.admValAfterReset.includes('2027') || pstRes.lpValAfterReset.includes('4172027') || pstRes.admValAfterReset.includes('4172027')) {
+      throw new Error(`String concatenation bug terdeteksi setelah reset! LP: ${pstRes.lpValAfterReset}, ADM: ${pstRes.admValAfterReset}`);
+    }
+    if (!pstRes.lpManualPersisted || !pstRes.admManualPersisted) {
+      throw new Error('Input manual yang diketik Admin Pusat tertimpa oleh updateNomorOtomatisPreview()');
+    }
+    console.log(`✓ Admin Pusat terverifikasi: Input editable (readOnly === false), format nomor bersih '${pstRes.lpValAfterReset}', dan proteksi edit manual aktif!`);
+
+    // ------------------------------------------------------------------
     // TEST 4: Kerahasiaan Komersial (Sensor Fee) untuk Penilai (NSR-PNL-2026)
     // ------------------------------------------------------------------
     console.log('\n--- TEST 4: Uji Kerahasiaan Komersial / Sensor Fee untuk Penilai (NSR-PNL-2026) ---');
