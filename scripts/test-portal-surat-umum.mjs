@@ -184,12 +184,16 @@ async function runTests() {
     console.log('\n--- TEST 1: portal-surat-umum.html - Hard-Guard Penolakan Akses Non-Admin ---');
     await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-surat-umum.html` });
     await waitForCondition(cdp, 'typeof window.periksaSesiLogin === "function"');
+    
+    // Reset state lokal agar setiap run bersih
+    await cdp.send('Runtime.evaluate', { expression: `localStorage.clear()` });
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-surat-umum.html` });
+    await waitForCondition(cdp, 'typeof window.periksaSesiLogin === "function"');
     console.log('✓ portal-surat-umum.html scripts fully loaded and periksaSesiLogin ready');
 
     // Coba login dengan token Cabang Bandung (NSR-BDG-2026)
     const test1Res = await cdp.send('Runtime.evaluate', {
       expression: `(async () => {
-        localStorage.clear();
         localStorage.setItem('kjpp_token_auth', 'NSR-BDG-2026');
         await window.periksaSesiLogin();
         
