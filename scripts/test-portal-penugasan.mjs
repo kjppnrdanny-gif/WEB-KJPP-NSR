@@ -52,6 +52,13 @@ class CDPClient {
     this.ws.onerror = (err) => reject(err);
     this.ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
+      if (data.method === 'Runtime.exceptionThrown') {
+        const ed = data.params?.exceptionDetails;
+        console.error('🔥 BROWSER UNCAUGHT EXCEPTION:', ed?.text, ed?.exception?.description, 'at line:', ed?.lineNumber, 'col:', ed?.columnNumber, 'url:', ed?.url);
+      }
+      if (data.method === 'Page.javascriptDialogOpening') {
+        this.send('Page.handleJavaScriptDialog', { accept: true }).catch(() => {});
+      }
       if (data.id && this.callbacks.has(data.id)) {
         const { resolve, reject } = this.callbacks.get(data.id);
         this.callbacks.delete(data.id);
@@ -110,8 +117,23 @@ function startStaticServer(port = 8787) {
   });
 }
 
+async function waitForCondition(cdp, expr, timeoutMs = 15000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await cdp.send('Runtime.evaluate', {
+        expression: expr,
+        returnByValue: true
+      });
+      if (res.result && res.result.value) return res.result.value;
+    } catch (_) {}
+    await new Promise(r => setTimeout(r, 200));
+  }
+  throw new Error(`Timeout waiting for condition: ${expr}`);
+}
+
 async function runTests() {
-  console.log('🚀 Memulai test suite lokal untuk portal-penugasan-jo.html & index.html...');
+  console.log('🚀 Memulai test suite lokal komprehensif RBAC, Proteksi Kwitansi, & Dual-Mode...');
   const port = 8787;
   const server = await startStaticServer(port);
   console.log(`✓ Local server running on http://127.0.0.1:${port}`);
@@ -157,166 +179,364 @@ async function runTests() {
     await cdp.send('DOM.enable');
 
     // ------------------------------------------------------------------
-    // TEST 1: index.html - Verifikasi Kartu Lingkup Penugasan & JO
+    // TEST 1: index.html - Proteksi Kwitansi untuk Marketing, Reviewer, & Penilai
     // ------------------------------------------------------------------
-    console.log('\n--- TEST 1: Memeriksa index.html Section Internal Operations Directory ---');
+    console.log('\n--- TEST 1: index.html - Verifikasi Penolakan Akses Kwitansi pada Modal Portal ---');
     await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/index.html` });
-    for (let i = 0; i < 40; i++) {
-      const res = await cdp.send('Runtime.evaluate', { expression: `document.readyState === 'complete'` });
-      if (res.result.value) break;
-      await new Promise(r => setTimeout(r, 200));
-    }
-    await new Promise(r => setTimeout(r, 1000));
+    await waitForCondition(cdp, 'typeof window.bukaModalPortal === "function"');
+    console.log('✓ index.html scripts fully loaded and bukaModalPortal is ready');
 
-    const checkIndexResult = await cdp.send('Runtime.evaluate', {
+    const testKwitansiDenialIndex = await cdp.send('Runtime.evaluate', {
       expression: `
         (() => {
-          const links = Array.from(document.querySelectorAll('a[href*="portal-penugasan-jo.html"]'));
-          const hasCard = links.length > 0;
-          const cardText = hasCard ? links[0].innerText : '';
-          return {
-            url: window.location.href,
-            title: document.title,
-            bodyLength: document.body ? document.body.innerHTML.length : 0,
-            hasCard,
-            linkCount: links.length,
-            cardText
-          };
-        })()
-      `,
-      returnByValue: true
-    });
+          window.alert = () => {};
+          sessionStorage.clear();
+          const results = [];
+          const tokensToTest = [
+            { token: 'NSR-PNL-2026', expectedRole: 'Penilai' },
+            { token: 'NSR-REV-2026', expectedRole: 'Reviewer' },
+            { token: 'NSR-MKT-2026', expectedRole: 'Marketing' }
+          ];
 
-    console.log('Result Test 1:', checkIndexResult.result.value);
-    if (!checkIndexResult.result.value.hasCard) {
-      throw new Error('Kartu Lingkup Penugasan & JO tidak ditemukan di index.html');
-    }
-    console.log('✓ Kartu portal-penugasan-jo.html terpasang sempurna di index.html');
-
-    // Screenshot kartu di index.html
-    await cdp.send('Runtime.evaluate', {
-      expression: `
-        (() => {
-          const card = document.querySelector('a[href="portal-penugasan-jo.html"]');
-          if (card) {
-            card.scrollIntoView({ behavior: 'instant', block: 'center' });
-            card.style.outline = '3px solid #f59e0b';
+          for (const item of tokensToTest) {
+            sessionStorage.clear();
+            bukaModalPortal('kwitansi');
+            const input = document.getElementById('input-token');
+            if (!input) {
+              results.push({ token: item.token, error: 'input-token not found' });
+              continue;
+            }
+            input.value = item.token;
+            verifikasiTokenPortal({ preventDefault: () => {} });
+            const errorEl = document.getElementById('pesan-error');
+            const errorTextEl = document.getElementById('pesan-error-text');
+            const isVisible = errorEl && !errorEl.classList.contains('hidden');
+            const errorMsg = errorTextEl ? errorTextEl.textContent : '';
+            results.push({
+              token: item.token,
+              isVisible,
+              errorMsg,
+              hasAksesDitolak: errorMsg.includes('Akses Ditolak') && errorMsg.includes(item.expectedRole)
+            });
+            tutupModalPortal();
           }
-        })()
-      `
-    });
-    await new Promise(r => setTimeout(r, 500));
-    const ssIndex = await cdp.send('Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_index_jo_card.png'), Buffer.from(ssIndex.data, 'base64'));
-    console.log('✓ Screenshot kartu tersimpan: test_index_jo_card.png');
 
-    // ------------------------------------------------------------------
-    // TEST 2: portal-penugasan-jo.html - Token Gate & Mode Pusat
-    // ------------------------------------------------------------------
-    console.log('\n--- TEST 2: Membuka portal-penugasan-jo.html & Token Auth ---');
-    await cdp.send('Page.navigate', { url: `http://localhost:${port}/portal-penugasan-jo.html` });
-    await new Promise(r => setTimeout(r, 1500));
+          // Test Admin Allowed via Modal Kwitansi (seharusnya langsung redirect ke portal-kwitansi.html)
+          sessionStorage.clear();
+          bukaModalPortal('kwitansi');
+          const inputAdmin = document.getElementById('input-token');
+          inputAdmin.value = 'NSR-BDG-2026';
+          verifikasiTokenPortal({ preventDefault: () => {} });
 
-    // Cek modal token terbuka
-    const modalCheck = await cdp.send('Runtime.evaluate', {
-      expression: `
-        (() => {
-          const modal = document.getElementById('modal-token-auth');
-          const isVisible = modal && !modal.classList.contains('hidden');
-          return { isVisible };
+          return { nonAdminResults: results };
         })()
       `,
       returnByValue: true
     });
-    console.log('Modal Token Check:', modalCheck.result.value);
 
-    // Input token NSR-PST-2026 dan submit
-    console.log('Memasukkan token NSR-PST-2026 (Mode Pusat)...');
+    if (!testKwitansiDenialIndex.result || !testKwitansiDenialIndex.result.value) {
+      throw new Error('Test 1 evaluate error: ' + JSON.stringify(testKwitansiDenialIndex));
+    }
+    const t1Results = testKwitansiDenialIndex.result.value.nonAdminResults;
+    console.log('Hasil Test 1 (index.html Kwitansi Denials):', t1Results);
+    for (const r of t1Results) {
+      if (!r.hasAksesDitolak) {
+        throw new Error(`Test 1 Gagal: Token ${r.token} tidak ditolak semestinya: ${r.errorMsg}`);
+      }
+    }
+    console.log('✓ Seluruh token non-admin (Penilai, Reviewer, Marketing) DITOLAK MUTLAK pada modal Kwitansi!');
+
+    // ------------------------------------------------------------------
+    // TEST 2: portal-kwitansi.html - Hard-Guard Keamanan Token Non-Admin
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 2: portal-kwitansi.html - Hard-Guard Proteksi Halaman Kwitansi ---');
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-kwitansi.html` });
+    await waitForCondition(cdp, 'typeof window.masukSesiKwitansi === "function"');
+
+    const testHardGuardKwitansi = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (async () => {
+          window.alert = () => {};
+          sessionStorage.clear();
+          const results = [];
+          const tokens = ['NSR-PNL-2026', 'NSR-REV-2026', 'NSR-MKT-2026'];
+
+          for (const tok of tokens) {
+            sessionStorage.clear();
+            const input = document.getElementById('kwitansi-auth-username');
+            input.value = tok;
+            await masukSesiKwitansi();
+            const errEl = document.getElementById('pesan-auth-kwitansi');
+            const isErrVisible = errEl && !errEl.classList.contains('hidden');
+            const errMsg = errEl ? errEl.textContent : '';
+            const isFormHidden = document.getElementById('konten-form-cabang').classList.contains('hidden');
+            results.push({
+              token: tok,
+              isErrVisible,
+              errMsg,
+              isFormHidden,
+              blocked: isErrVisible && isFormHidden && errMsg.includes('Akses Ditolak')
+            });
+          }
+
+          // Test Admin Allowed (NSR-BDG-2026)
+          sessionStorage.clear();
+          const inputAdmin = document.getElementById('kwitansi-auth-username');
+          inputAdmin.value = 'NSR-BDG-2026';
+          await masukSesiKwitansi();
+          const isFormOpenAdmin = !document.getElementById('konten-form-cabang').classList.contains('hidden');
+          const isBoxAuthHidden = document.getElementById('box-auth-kwitansi').classList.contains('hidden');
+
+          return { nonAdminResults: results, adminAllowed: isFormOpenAdmin && isBoxAuthHidden };
+        })()
+      `,
+      awaitPromise: true,
+      returnByValue: true
+    });
+
+    if (!testHardGuardKwitansi.result || !testHardGuardKwitansi.result.value) {
+      throw new Error('Test 2 evaluate error: ' + JSON.stringify(testHardGuardKwitansi));
+    }
+    console.log('Hasil Test 2 (portal-kwitansi.html Hard-Guard):', testHardGuardKwitansi.result.value);
+    for (const r of testHardGuardKwitansi.result.value.nonAdminResults) {
+      if (!r.blocked) {
+        throw new Error(`Hard-guard portal-kwitansi.html gagal memblokir token ${r.token}: ${r.errMsg}`);
+      }
+    }
+    if (!testHardGuardKwitansi.result.value.adminAllowed) {
+      throw new Error('Admin Cabang (NSR-BDG-2026) seharusnya diizinkan mengakses portal-kwitansi.html');
+    }
+    console.log('✓ Hard-guard portal-kwitansi.html berhasil 100%: Non-admin diblokir, Admin diizinkan!');
+
+    // ------------------------------------------------------------------
+    // TEST 3: portal-penugasan-jo.html - Dual-Mode Privasi Mandiri Cabang (Zero-Cloud)
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 3: portal-penugasan-jo.html - Uji Mode Privasi Mandiri Cabang (NSR-BDG-2026) ---');
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-penugasan-jo.html` });
+    await waitForCondition(cdp, 'typeof window.verifikasiTokenLogin === "function"');
+
+    // Login sebagai Admin Cabang Bandung
     await cdp.send('Runtime.evaluate', {
       expression: `
         (() => {
-          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          window.alert = () => {};
+          sessionStorage.clear();
+          localStorage.removeItem('nsr_private_jo_BDG');
+          document.getElementById('input_token_auth').value = 'NSR-BDG-2026';
           verifikasiTokenLogin();
         })()
       `
     });
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 600));
 
-    // Cek status sesi setelah login
-    const sessionCheck = await cdp.send('Runtime.evaluate', {
+    // Verifikasi Dual-Mode Container & Pemilihan PRIVATE_CABANG
+    const testDualMode = await cdp.send('Runtime.evaluate', {
       expression: `
         (() => {
+          window.alert = () => {};
+          const container = document.getElementById('container-dual-mode');
+          const isDualModeVisible = container && !container.classList.contains('hidden');
           const badgeText = document.getElementById('session-label').innerText;
-          const modeTitle = document.getElementById('mode-title').innerText;
-          return { badgeText, modeTitle, userSession };
-        })()
-      `,
-      returnByValue: true
-    });
-    console.log('Session Check Result:', sessionCheck.result.value);
 
-    // Capture screenshot Tab 1 Form
-    const ssTab1 = await cdp.send('Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_portal_jo_form.png'), Buffer.from(ssTab1.data, 'base64'));
-    console.log('✓ Screenshot Tab 1 tersimpan: test_portal_jo_form.png');
+          // Pilih mode PRIVATE_CABANG
+          pilihModeAlur('PRIVATE_CABANG');
+          const isLpEditable = !document.getElementById('nomor_lp').readOnly;
+          const isAdmEditable = !document.getElementById('nomor_adm').readOnly;
 
-    // ------------------------------------------------------------------
-    // TEST 3: Pindah ke Tab 2 (Dashboard Antrean)
-    // ------------------------------------------------------------------
-    console.log('\n--- TEST 3: Menguji Tab 2 (Dashboard & Antrean) ---');
-    await cdp.send('Runtime.evaluate', { expression: `pindahTab('dashboard')` });
-    await new Promise(r => setTimeout(r, 500));
+          // Isi formulir proyek mandiri cabang
+          document.getElementById('tanggal_surat').value = '2026-10-14';
+          document.getElementById('pemberi_tugas_nama').value = 'PT BANK MANDIRI KC BANDUNG';
+          document.getElementById('pemberi_tugas_pic').value = 'Ibu Kartika';
+          document.getElementById('debitur_nama').value = 'CV BANDUNG TEKSTIL MANDIRI';
+          document.getElementById('debitur_cp').value = 'Bpk. Ridwan (0812-9988-7766)';
+          document.getElementById('biaya_dpp').value = '15000000';
+          kalkulasiBiaya();
 
-    const dashCheck = await cdp.send('Runtime.evaluate', {
-      expression: `
-        (() => {
-          const rows = document.querySelectorAll('#tbody-dashboard tr');
-          return { rowCount: rows.length };
-        })()
-      `,
-      returnByValue: true
-    });
-    console.log('Dashboard Rows Count:', dashCheck.result.value);
+          // Simulasikan submit form (Zero-Cloud)
+          handleFormSubmit({ preventDefault: () => {} });
 
-    const ssTab2 = await cdp.send('Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_portal_jo_dashboard.png'), Buffer.from(ssTab2.data, 'base64'));
-    console.log('✓ Screenshot Tab 2 tersimpan: test_portal_jo_dashboard.png');
+          // Cek localStorage cabang
+          const savedPrivate = JSON.parse(localStorage.getItem('nsr_private_jo_BDG') || '[]');
+          const isSavedLocally = savedPrivate.length > 0;
+          const savedItem = savedPrivate[0] || {};
 
-    // ------------------------------------------------------------------
-    // TEST 4: Pindah ke Tab 3 (Pratinjau & Cetak 9 Dokumen)
-    // ------------------------------------------------------------------
-    console.log('\n--- TEST 4: Menguji Tab 3 (Pratinjau & Cetak 9 Dokumen) ---');
-    await cdp.send('Runtime.evaluate', { expression: `pindahTab('preview')` });
-    await new Promise(r => setTimeout(r, 800));
-
-    const previewCheck = await cdp.send('Runtime.evaluate', {
-      expression: `
-        (() => {
-          const renderedArea = document.getElementById('preview-rendered-area');
-          const text = renderedArea.innerText;
           return {
-            hasSPK: text.includes('LINGKUP PENUGASAN (SPK)'),
-            hasRepresentasi: text.includes('SURAT REPRESENTASI PEMBERI TUGAS'),
-            hasIsianUmum: text.includes('LEMBAR ISIAN UMUM'),
-            hasJO: text.includes('FORM ORDER (JO)'),
-            hasKartuProyek: text.includes('KARTU KENDALI MUTU PROYEK'),
-            hasSuratTugas: text.includes('SURAT TUGAS INSPEKSI LAPANGAN'),
-            hasBAP: text.includes('BERITA ACARA PEMERIKSAAN'),
-            hasETI: text.includes('EVALUASI TINGKAT INDEPENDENSI'),
-            hasPI: text.includes('PERNYATAAN INDEPENDENSI PENILAI'),
-            totalLength: text.length
+            isDualModeVisible,
+            badgeText,
+            isLpEditable,
+            isAdmEditable,
+            isSavedLocally,
+            savedItemId: savedItem.id,
+            savedItemStatus: savedItem.status,
+            savedItemIsPrivate: savedItem.is_private,
+            savedItemNoLp: savedItem.nomor_lp,
+            savedItemNoAdm: savedItem.nomor_adm
           };
         })()
       `,
       returnByValue: true
     });
-    console.log('Preview 9 Dokumen Check:', previewCheck.result.value);
 
-    const ssTab3 = await cdp.send('Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_portal_jo_preview.png'), Buffer.from(ssTab3.data, 'base64'));
-    console.log('✓ Screenshot Tab 3 tersimpan: test_portal_jo_preview.png');
+    console.log('Hasil Test 3 (Mode Privasi Mandiri Cabang):', testDualMode.result.value);
+    const dmRes = testDualMode.result.value;
+    if (!dmRes.isDualModeVisible) throw new Error('Container Dual-Mode Alur Cabang tidak tampil untuk Admin Cabang');
+    if (!dmRes.isLpEditable || !dmRes.isAdmEditable) throw new Error('Kolom nomor SPK/JO harus terbuka (editable) pada mode PRIVATE_CABANG');
+    if (!dmRes.isSavedLocally || !dmRes.savedItemIsPrivate || dmRes.savedItemStatus !== 'APPROVED') {
+      throw new Error('Data PRIVATE_CABANG gagal tersimpan secara lokal dengan status APPROVED');
+    }
+    console.log('✓ Mode Privasi Mandiri Cabang (Zero-Cloud) berfungsi 100%!');
 
-    console.log('\n✨ SELURUH 4 PENGUJIAN OTOMASI LULUS DENGAN SUKSES SEMPURNA!');
+    // Pindah ke Tab 2 dan verifikasi badge "🔒 MANDIRI CABANG (PRIVAT)"
+    await cdp.send('Runtime.evaluate', { expression: `pindahTab('dashboard')` });
+    await new Promise(r => setTimeout(r, 600));
+
+    const checkDashboardPrivateBadge = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const tbody = document.getElementById('tbody-dashboard');
+          const hasPrivateBadge = tbody.innerHTML.includes('MANDIRI CABANG (PRIVAT)');
+          const hasBackupBtn = !!document.getElementById('btn-backup-cabang');
+          const hasRestoreBtn = !!document.getElementById('btn-restore-cabang');
+          return { hasPrivateBadge, hasBackupBtn, hasRestoreBtn };
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Dashboard Private Badge & Backup/Restore Check:', checkDashboardPrivateBadge.result.value);
+    if (!checkDashboardPrivateBadge.result.value.hasPrivateBadge) {
+      throw new Error('Badge 🔒 MANDIRI CABANG (PRIVAT) tidak muncul di tabel dashboard');
+    }
+    if (!checkDashboardPrivateBadge.result.value.hasBackupBtn || !checkDashboardPrivateBadge.result.value.hasRestoreBtn) {
+      throw new Error('Tombol Backup & Restore Cabang (.json) harus tersedia di Tab 2');
+    }
+    console.log('✓ Tabel Dashboard menampilkan badge 🔒 MANDIRI CABANG (PRIVAT) dan tombol Backup/Restore!');
+
+    // ------------------------------------------------------------------
+    // TEST 4: Kerahasiaan Komersial (Sensor Fee) untuk Penilai (NSR-PNL-2026)
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 4: Uji Kerahasiaan Komersial / Sensor Fee untuk Penilai (NSR-PNL-2026) ---');
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          window.alert = () => {};
+          sessionStorage.clear();
+          document.getElementById('input_token_auth').value = 'NSR-PNL-2026';
+          verifikasiTokenLogin();
+        })()
+      `
+    });
+    await new Promise(r => setTimeout(r, 600));
+
+    // Periksa Tab 1: Notice Penilai & Tab 2: Masking Fee
+    const testPenilaiNoticeAndDash = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const noticeEl = document.getElementById('notice-penilai-reviewer');
+          const isNoticeVisible = noticeEl && !noticeEl.classList.contains('hidden');
+          const isFormHidden = document.getElementById('form-penugasan').classList.contains('hidden');
+          const badgeText = document.getElementById('session-label').innerText;
+
+          // Periksa tabel dashboard untuk sensor fee
+          pindahTab('dashboard');
+          const tbody = document.getElementById('tbody-dashboard');
+          const tableHtml = tbody.innerHTML;
+          const hasMaskedFee = tableHtml.includes('[Sesuai SPK / Khusus Admin]');
+          const hasUnmaskedRp = tableHtml.includes('Rp 15.000.000') || tableHtml.includes('Rp 16.650.000');
+
+          return {
+            isNoticeVisible,
+            isFormHidden,
+            badgeText,
+            hasMaskedFee,
+            hasUnmaskedRp
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 4 (Penilai Dashboard & Notice):', testPenilaiNoticeAndDash.result.value);
+    const pnlDash = testPenilaiNoticeAndDash.result.value;
+    if (!pnlDash.isNoticeVisible || !pnlDash.isFormHidden) {
+      throw new Error('Form Tab 1 harus digantikan dengan notice informatif bagi Penilai/Reviewer');
+    }
+    if (!pnlDash.hasMaskedFee) {
+      throw new Error('Tabel Dashboard Tab 2 harus menampilkan teks "[Sesuai SPK / Khusus Admin]" untuk Penilai');
+    }
+    console.log('✓ Tab 1 Notice dan Sensor Fee di Dashboard Tab 2 untuk Penilai terverifikasi sempurna!');
+
+    // Periksa Tab 3: Pratinjau Dokumen 1, 3A, 3B untuk Penilai
+    await cdp.send('Runtime.evaluate', { expression: `pindahTab('preview')` });
+    await new Promise(r => setTimeout(r, 600));
+
+    const testPenilaiPreviewDocs = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          if (projectDatabase.length > 0) {
+            bukaPratinjauProyek(projectDatabase[0].id);
+          }
+          const renderedText = document.getElementById('preview-rendered-area').innerText;
+          const hasMaskedSPK = renderedText.includes('[Sesuai SPK / Khusus Admin]');
+          return { hasMaskedSPK };
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 4 (Penilai Tab 3 Dokumen Cetak):', testPenilaiPreviewDocs.result.value);
+    if (!testPenilaiPreviewDocs.result.value.hasMaskedSPK) {
+      throw new Error('Dokumen cetak Tab 3 harus menampilkan teks sensor "[Sesuai SPK / Khusus Admin]" untuk Penilai');
+    }
+    console.log('✓ Dokumen Cetak Tab 3 berhasil menyensor nominal biaya dengan teks "[Sesuai SPK / Khusus Admin]"!');
+
+    // ------------------------------------------------------------------
+    // TEST 5: Kerahasiaan Komersial (Sensor Fee) untuk Reviewer (NSR-REV-2026)
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 5: Uji Kerahasiaan Komersial / Sensor Fee untuk Reviewer (NSR-REV-2026) ---');
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          window.alert = () => {};
+          sessionStorage.clear();
+          document.getElementById('input_token_auth').value = 'NSR-REV-2026';
+          verifikasiTokenLogin();
+        })()
+      `
+    });
+    await new Promise(r => setTimeout(r, 600));
+
+    const revCheck = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          pindahTab('dashboard');
+          const tableHtml = document.getElementById('tbody-dashboard').innerHTML;
+          pindahTab('preview');
+          if (projectDatabase.length > 0) {
+            bukaPratinjauProyek(projectDatabase[0].id);
+          }
+          const renderedText = document.getElementById('preview-rendered-area').innerText;
+          return {
+            hasMaskedFeeRev: tableHtml.includes('[Sesuai Kontrak / Khusus Admin]'),
+            hasMaskedDocRev: renderedText.includes('[Sesuai Kontrak / Khusus Admin]')
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 5 (Reviewer Fee Masking):', revCheck.result.value);
+    if (!revCheck.result.value.hasMaskedFeeRev || !revCheck.result.value.hasMaskedDocRev) {
+      throw new Error('Reviewer harus melihat teks sensor "[Sesuai Kontrak / Khusus Admin]" di Dashboard & Dokumen Cetak');
+    }
+    console.log('✓ Reviewer berhasil melihat teks sensor "[Sesuai Kontrak / Khusus Admin]"!');
+
+    // Tangkap screenshot final
+    const ssFinal = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_portal_jo_rbac_verified.png'), Buffer.from(ssFinal.data, 'base64'));
+    console.log('✓ Screenshot final tersimpan: test_portal_jo_rbac_verified.png');
+
+    console.log('\n🎉 SELURUH 5 PENGUJIAN OTOMASI RBAC, KEAMANAN KWITANSI & DUAL-MODE LULUS 100%!');
 
   } finally {
     if (cdp) await cdp.close();

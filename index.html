@@ -1053,53 +1053,6 @@
       const menu = document.getElementById('mobile-menu');
       if (menu) menu.classList.toggle('hidden');
     }
-    function bukaModalPortal() {
-      const modal = document.getElementById('modal-portal');
-      if (!modal) {
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', bukaModalPortal, { once: true });
-          return;
-        }
-      }
-      bukaModal('modal-portal');
-      const storedSession = sessionStorage.getItem('kjpp_token_internal');
-      const panelLayanan = document.getElementById('panel-layanan');
-      const formToken = document.getElementById('form-token-portal');
-      const labelLokasi = document.getElementById('label-lokasi');
-      const pesanError = document.getElementById('pesan-error');
-      if (pesanError) pesanError.classList.add('hidden');
-
-      if (storedSession) {
-        try {
-          const sess = JSON.parse(storedSession);
-          const isExpired = sess.expiresAt && sess.expiresAt < Date.now();
-          if (!isExpired && sess.branch) {
-            if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${sess.branch}`;
-            if (formToken) formToken.classList.add('hidden');
-            if (panelLayanan) panelLayanan.classList.remove('hidden');
-            return;
-          }
-        } catch (e) {
-          if (typeof storedSession === 'string' && storedSession.length > 0) {
-            if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${storedSession}`;
-            if (formToken) formToken.classList.add('hidden');
-            if (panelLayanan) panelLayanan.classList.remove('hidden');
-            return;
-          }
-        }
-      }
-
-      if (formToken) formToken.classList.remove('hidden');
-      if (panelLayanan) panelLayanan.classList.add('hidden');
-      const inp = document.getElementById('input-token');
-      if (inp) {
-        inp.value = '';
-        setTimeout(() => inp.focus(), 150);
-      }
-    }
-    function tutupModalPortal() {
-      tutupModal('modal-portal');
-    }
   </script>
 
   <!-- ==================== 2. HEADER RESMI PROPORSIONAL (3 BAR) ==================== -->
@@ -2483,7 +2436,7 @@
                   </div>
                 </a>
 
-                <div onclick="bukaModalPortal()" role="button" tabindex="0" class="relative overflow-hidden rounded-2xl p-4 bg-amber-950/40 border border-amber-800/50 shadow-lg cursor-pointer hover:border-amber-400/80 hover:bg-amber-950/60 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 group card-shimmer">
+                <div onclick="bukaModalPortal('sop')" role="button" tabindex="0" class="relative overflow-hidden rounded-2xl p-4 bg-amber-950/40 border border-amber-800/50 shadow-lg cursor-pointer hover:border-amber-400/80 hover:bg-amber-950/60 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 group card-shimmer">
                   <div class="absolute inset-0 bg-slate-950/10 pointer-events-none"></div>
                   <div class="relative">
                     <div class="flex items-center justify-between gap-3">
@@ -2507,7 +2460,7 @@
                   </div>
                 </div>
 
-                <div onclick="bukaModalPortal()" role="button" tabindex="0" class="relative overflow-hidden rounded-2xl p-4 bg-amber-950/30 border border-amber-800/40 shadow-lg cursor-pointer hover:border-amber-400/80 hover:bg-amber-950/50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 group card-shimmer">
+                <div onclick="bukaModalPortal('kwitansi')" role="button" tabindex="0" class="relative overflow-hidden rounded-2xl p-4 bg-amber-950/30 border border-amber-800/40 shadow-lg cursor-pointer hover:border-amber-400/80 hover:bg-amber-950/50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 group card-shimmer">
                   <div class="absolute inset-0 bg-slate-950/10 pointer-events-none"></div>
                   <div class="relative">
                     <div class="flex items-center justify-between gap-3">
@@ -2531,7 +2484,7 @@
                   </div>
                 </div>
 
-                <div onclick="bukaModalPortal()" role="button" tabindex="0" class="relative overflow-hidden rounded-2xl p-4 bg-blue-950/70 border border-blue-800/60 shadow-lg cursor-pointer hover:border-sky-400/80 hover:bg-blue-950/90 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 group card-shimmer">
+                <div onclick="bukaModalPortal('nolap')" role="button" tabindex="0" class="relative overflow-hidden rounded-2xl p-4 bg-blue-950/70 border border-blue-800/60 shadow-lg cursor-pointer hover:border-sky-400/80 hover:bg-blue-950/90 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 group card-shimmer">
                   <div class="absolute inset-0 bg-slate-950/10 pointer-events-none"></div>
                   <div class="relative">
                     <div class="flex items-center justify-between gap-3">
@@ -2555,7 +2508,7 @@
                   </div>
                 </div>
 
-                <div onclick="bukaModalPortal()" role="button" tabindex="0" class="relative overflow-hidden rounded-2xl p-4 bg-emerald-950/50 border border-emerald-800/50 shadow-lg cursor-pointer hover:border-emerald-400/80 hover:bg-emerald-950/70 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 group card-shimmer">
+                <div onclick="bukaModalPortal('absen')" role="button" tabindex="0" class="relative overflow-hidden rounded-2xl p-4 bg-emerald-950/50 border border-emerald-800/50 shadow-lg cursor-pointer hover:border-emerald-400/80 hover:bg-emerald-950/70 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 group card-shimmer">
                   <div class="absolute inset-0 bg-slate-950/10 pointer-events-none"></div>
                   <div class="relative">
                     <div class="flex items-center justify-between gap-3">
@@ -5622,36 +5575,235 @@
       }
     }
 
-    function bukaModalPortal() {
-      bukaModal('modal-portal');
+    // ==========================================================
+    // 2. SISTEM OTORISASI RBAC 5 KELOMPOK USER (KJPP NSR 2026)
+    // ==========================================================
+    function resolveUnifiedToken(rawToken) {
+      if (!rawToken || typeof rawToken !== 'string') return null;
+      const t = rawToken.trim().toUpperCase();
+
+      // 1. ADMIN_PUSAT (Otorisasi Penuh Kantor Pusat & Master Admin)
+      if (t === 'NSR-PST-2026' || t === 'NSR2026' || t === 'NSR8899') {
+        return {
+          token: t,
+          role: 'ADMIN_PUSAT',
+          roleLabel: 'Admin Pusat',
+          displayRole: 'Admin Pusat / Master Admin',
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          lockWilayah: false,
+          canAccessKwitansi: true,
+          canApprovePusat: true,
+          canApproveCabang: true,
+          canInputForm: true,
+          seeFee: true
+        };
+      }
+
+      // 2. ADMIN_CABANG (Otorisasi Admin Kantor Cabang)
+      const cabangMap = {
+        'NSR-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
+        'NSR-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
+        'NSR-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
+        'NSR-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
+        'NSR-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      };
+      if (cabangMap[t]) {
+        return {
+          token: t,
+          role: 'ADMIN_CABANG',
+          roleLabel: 'Admin Cabang',
+          displayRole: 'Admin Kantor Cabang',
+          mode: 'CABANG',
+          wilayah: cabangMap[t].wilayah,
+          wilayahCode: cabangMap[t].code,
+          lockWilayah: true,
+          canAccessKwitansi: true,
+          canApprovePusat: false,
+          canApproveCabang: true,
+          canInputForm: true,
+          seeFee: true
+        };
+      }
+
+      // 3. MARKETING (Divisi Business Development & Marketing)
+      const mktBranchMap = {
+        'MKT-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
+        'MKT-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
+        'MKT-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
+        'MKT-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
+        'MKT-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
+        'MKT-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      };
+      if (t === 'NSR-MKT-2026' || mktBranchMap[t]) {
+        const isBranch = !!mktBranchMap[t];
+        const targetWil = isBranch ? mktBranchMap[t].wilayah : 'Semua Wilayah';
+        const code = isBranch ? mktBranchMap[t].code : 'ALL';
+        return {
+          token: t,
+          role: 'MARKETING',
+          roleLabel: 'Marketing',
+          displayRole: 'Divisi Business Development & Marketing',
+          mode: (isBranch && code !== 'PST') ? 'CABANG' : 'PUSAT',
+          wilayah: targetWil,
+          wilayahCode: code,
+          lockWilayah: isBranch,
+          canAccessKwitansi: false,
+          canApprovePusat: false,
+          canApproveCabang: false,
+          canInputForm: true,
+          seeFee: true
+        };
+      }
+
+      // 4. REVIEWER (Tim Quality Control / Reviewer KKP)
+      const revBranchMap = {
+        'REV-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
+        'REV-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
+        'REV-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
+        'REV-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
+        'REV-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
+        'REV-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      };
+      if (t === 'NSR-REV-2026' || revBranchMap[t]) {
+        const isBranch = !!revBranchMap[t];
+        const targetWil = isBranch ? revBranchMap[t].wilayah : 'Semua Wilayah';
+        const code = isBranch ? revBranchMap[t].code : 'ALL';
+        return {
+          token: t,
+          role: 'REVIEWER',
+          roleLabel: 'Reviewer',
+          displayRole: 'Reviewer KKP / Quality Control',
+          mode: (isBranch && code !== 'PST') ? 'CABANG' : 'PUSAT',
+          wilayah: targetWil,
+          wilayahCode: code,
+          lockWilayah: isBranch,
+          canAccessKwitansi: false,
+          canApprovePusat: false,
+          canApproveCabang: false,
+          canInputForm: false,
+          seeFee: false,
+          feeMaskText: '[Sesuai Kontrak / Khusus Admin]'
+        };
+      }
+
+      // 5. PENILAI (Penilai Lapangan / Asisten Penilai / Surveyor)
+      const pnlBranchMap = {
+        'PNL-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
+        'PNL-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
+        'PNL-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
+        'PNL-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
+        'PNL-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
+        'PNL-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      };
+      if (t === 'NSR-PNL-2026' || pnlBranchMap[t]) {
+        const isBranch = !!pnlBranchMap[t];
+        const targetWil = isBranch ? pnlBranchMap[t].wilayah : 'Semua Wilayah';
+        const code = isBranch ? pnlBranchMap[t].code : 'ALL';
+        return {
+          token: t,
+          role: 'PENILAI',
+          roleLabel: 'Penilai',
+          displayRole: 'Penilai Lapangan / Surveyor',
+          mode: (isBranch && code !== 'PST') ? 'CABANG' : 'PUSAT',
+          wilayah: targetWil,
+          wilayahCode: code,
+          lockWilayah: isBranch,
+          canAccessKwitansi: false,
+          canApprovePusat: false,
+          canApproveCabang: false,
+          canInputForm: false,
+          seeFee: false,
+          feeMaskText: '[Sesuai SPK / Khusus Admin]'
+        };
+      }
+
+      return null;
+    }
+
+    function setupPanelKwitansiLink(allowed, roleLabel) {
+      const linkKwitansi = document.getElementById('link-portal-kwitansi');
+      if (!linkKwitansi) return;
+      if (!allowed) {
+        linkKwitansi.classList.add('opacity-50', 'cursor-not-allowed');
+        linkKwitansi.onclick = (e) => {
+          e.preventDefault();
+          alert(`Akses Ditolak: Modul Permintaan Kwitansi & Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${roleLabel}.`);
+          return false;
+        };
+      } else {
+        linkKwitansi.classList.remove('opacity-50', 'cursor-not-allowed');
+        linkKwitansi.onclick = null;
+      }
+    }
+
+    function bukaModalPortal(targetPortal) {
+      window._targetPortal = targetPortal || null;
       const storedSession = sessionStorage.getItem('kjpp_token_internal');
       const panelLayanan = document.getElementById('panel-layanan');
       const formToken = document.getElementById('form-token-portal');
       const labelLokasi = document.getElementById('label-lokasi');
       const pesanError = document.getElementById('pesan-error');
+      const pesanErrorText = document.getElementById('pesan-error-text');
       if (pesanError) pesanError.classList.add('hidden');
 
       if (storedSession) {
         try {
           const sess = JSON.parse(storedSession);
           const isExpired = sess.expiresAt && sess.expiresAt < Date.now();
-          if (!isExpired && sess.branch) {
-            if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${sess.branch}`;
+          if (!isExpired) {
+            // Evaluasi hak akses kwitansi jika pengguna klik kartu kwitansi
+            if (targetPortal === 'kwitansi') {
+              if (sess.canAccessKwitansi === false) {
+                bukaModal('modal-portal');
+                if (formToken) formToken.classList.remove('hidden');
+                if (panelLayanan) panelLayanan.classList.add('hidden');
+                if (pesanError && pesanErrorText) {
+                  pesanError.classList.remove('hidden');
+                  pesanErrorText.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${sess.roleLabel || sess.role}.`;
+                }
+                const inp = document.getElementById('input-token');
+                if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 150); }
+                return;
+              } else {
+                window.location.href = 'portal-kwitansi.html';
+                return;
+              }
+            }
+
+            if (targetPortal === 'penugasan') {
+              window.location.href = 'portal-penugasan-jo.html';
+              return;
+            }
+            if (targetPortal === 'nolap') {
+              window.location.href = 'portal-nolap.html';
+              return;
+            }
+            if (targetPortal === 'sop') {
+              window.open('https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz?usp=sharing', '_blank');
+              return;
+            }
+            if (targetPortal === 'absen') {
+              window.open('https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec', '_blank');
+              return;
+            }
+
+            // General launcher
+            bukaModal('modal-portal');
+            if (labelLokasi) labelLokasi.innerHTML = `Terverifikasi: <strong>${sess.branch || sess.wilayah}</strong> &bull; <span class="uppercase text-emerald-800 font-extrabold">${sess.roleLabel || sess.role}</span>`;
             if (formToken) formToken.classList.add('hidden');
-            if (panelLayanan) panelLayanan.classList.remove('hidden');
+            if (panelLayanan) {
+              panelLayanan.classList.remove('hidden');
+              setupPanelKwitansiLink(sess.canAccessKwitansi !== false, sess.roleLabel || sess.role);
+            }
             return;
           }
-        } catch (e) {
-          if (typeof storedSession === 'string' && storedSession.length > 0) {
-            if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${storedSession}`;
-            if (formToken) formToken.classList.add('hidden');
-            if (panelLayanan) panelLayanan.classList.remove('hidden');
-            return;
-          }
-        }
+        } catch (e) {}
       }
 
-      // Default state: formulir input token tampil, panel layanan tersembunyi
+      // Default state: formulir input token tampil
+      bukaModal('modal-portal');
       if (formToken) formToken.classList.remove('hidden');
       if (panelLayanan) panelLayanan.classList.add('hidden');
       const inp = document.getElementById('input-token');
@@ -5684,7 +5836,7 @@
       }
     }
 
-    async function verifikasiTokenPortal(e) {
+    function verifikasiTokenPortal(e) {
       if (e) e.preventDefault();
       const inputEl = document.getElementById('input-token');
       const btnSubmit = document.getElementById('btn-submit-token');
@@ -5700,63 +5852,94 @@
         return;
       }
 
-      if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.classList.add('opacity-75');
-      }
       if (errEl) errEl.classList.add('hidden');
 
-      try {
-        const res = await fetch('/api/auth-token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({ token: input })
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-          const branchName = data.branch || (data.user && data.user.displayName) || 'Master Operasional';
-          const sessionObj = {
-            branch: branchName,
-            user: data.user,
-            expiresAt: Date.now() + (8 * 3600 * 1000)
-          };
-          sessionStorage.setItem('kjpp_token_internal', JSON.stringify(sessionObj));
-          if (data.user) {
-            sessionStorage.setItem('nsr_nolap_session', JSON.stringify(data.user));
-          }
-
-          const formToken = document.getElementById('form-token-portal');
-          const panelLayanan = document.getElementById('panel-layanan');
-          const labelLokasi = document.getElementById('label-lokasi');
-
-          if (labelLokasi) labelLokasi.innerText = `Terverifikasi: ${branchName}`;
-          if (formToken) formToken.classList.add('hidden');
-          if (panelLayanan) panelLayanan.classList.remove('hidden');
-          inputEl.value = '';
-        } else {
-          if (errEl) errEl.classList.remove('hidden');
-          if (errText) errText.innerText = data.error || 'Token akses tidak valid atau belum terdaftar.';
-          inputEl.select();
-        }
-      } catch (err) {
+      const auth = resolveUnifiedToken(input);
+      if (!auth) {
         if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Gagal menghubungi server verifikasi. Periksa koneksi internet Anda.';
-      } finally {
-        if (btnSubmit) {
-          btnSubmit.disabled = false;
-          btnSubmit.classList.remove('opacity-75');
-        }
+        if (errText) errText.innerText = 'Token tidak valid. Pastikan memasukkan token resmi KJPP NSR (Admin Pusat, Admin Cabang, Marketing, Reviewer, atau Penilai).';
+        inputEl.select();
+        return;
       }
+
+      // Pemblokiran akses kwitansi bagi Penilai, Reviewer & Marketing
+      if (window._targetPortal === 'kwitansi' && !auth.canAccessKwitansi) {
+        if (errEl) errEl.classList.remove('hidden');
+        if (errText) {
+          errText.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${auth.roleLabel}.`;
+        }
+        inputEl.select();
+        return;
+      }
+
+      // Simpan sesi terpadu
+      const branchName = auth.wilayah;
+      const sessionObj = {
+        branch: branchName,
+        wilayah: branchName,
+        token: auth.token,
+        role: auth.role,
+        roleLabel: auth.roleLabel,
+        mode: auth.mode,
+        canAccessKwitansi: auth.canAccessKwitansi,
+        seeFee: auth.seeFee,
+        expiresAt: Date.now() + (8 * 3600 * 1000)
+      };
+      sessionStorage.setItem('kjpp_token_internal', JSON.stringify(sessionObj));
+      sessionStorage.setItem('kjpp_session_jo', JSON.stringify({
+        isLoggedIn: true,
+        token: auth.token,
+        role: auth.role,
+        roleLabel: auth.roleLabel,
+        mode: auth.mode,
+        wilayah: auth.wilayah,
+        wilayahCode: auth.wilayahCode,
+        canAccessKwitansi: auth.canAccessKwitansi,
+        seeFee: auth.seeFee,
+        loginAt: new Date().toISOString()
+      }));
+
+      // Rute langsung jika target kartu diklik
+      if (window._targetPortal === 'kwitansi') {
+        window.location.href = 'portal-kwitansi.html';
+        return;
+      }
+      if (window._targetPortal === 'penugasan') {
+        window.location.href = 'portal-penugasan-jo.html';
+        return;
+      }
+      if (window._targetPortal === 'nolap') {
+        window.location.href = 'portal-nolap.html';
+        return;
+      }
+      if (window._targetPortal === 'sop') {
+        window.open('https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz?usp=sharing', '_blank');
+        tutupModalPortal();
+        return;
+      }
+      if (window._targetPortal === 'absen') {
+        window.open('https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec', '_blank');
+        tutupModalPortal();
+        return;
+      }
+
+      // Tampilkan panel layanan di modal
+      const formToken = document.getElementById('form-token-portal');
+      const panelLayanan = document.getElementById('panel-layanan');
+      const labelLokasi = document.getElementById('label-lokasi');
+
+      if (labelLokasi) labelLokasi.innerHTML = `Terverifikasi: <strong>${branchName}</strong> &bull; <span class="uppercase text-emerald-800 font-extrabold">${auth.roleLabel}</span>`;
+      if (formToken) formToken.classList.add('hidden');
+      if (panelLayanan) {
+        panelLayanan.classList.remove('hidden');
+        setupPanelKwitansiLink(auth.canAccessKwitansi, auth.roleLabel);
+      }
+      inputEl.value = '';
     }
 
     function resetTokenSesi() {
       sessionStorage.removeItem('kjpp_token_internal');
+      sessionStorage.removeItem('kjpp_session_jo');
       sessionStorage.removeItem('nsr_nolap_session');
       fetch('/api/auth-logout', { method: 'POST', credentials: 'include' }).catch(() => {});
       const formToken = document.getElementById('form-token-portal');

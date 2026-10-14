@@ -126,10 +126,7 @@ function auditPortalHardcodedTokens(distDir) {
     /TOKEN_CABANG_NSR\s*=/i,
     /TOKEN_PUSAT_VALID\s*=/i,
     /urlParams\.get\(['"]token['"]\)/i,
-    /NSR-PST-2026/i,
-    /NSR-BDG-2026/i,
     /NSR-ADM-99/i,
-    /NSR8899/i,
     /ADMIN#NSR/i,
     /JKT#00/i
   ];

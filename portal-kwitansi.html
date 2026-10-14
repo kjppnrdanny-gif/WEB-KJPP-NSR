@@ -157,20 +157,20 @@
           <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
         <div>
-          <h2 class="text-base font-bold text-white">Autentikasi Server Sistem Kwitansi</h2>
-          <p class="text-xs text-slate-400 mt-1">Sistem Kwitansi dilindungi autentikasi serverless. Masukkan nama pengguna dan kata sandi resmi Anda.</p>
+          <h2 class="text-base font-bold text-white">Autentikasi Modul Kwitansi &amp; Penagihan</h2>
+          <p class="text-xs text-slate-400 mt-1">Akses khusus Admin Pusat dan Admin Cabang. Masukkan Token Otorisasi Admin atau kredensial pengguna Anda.</p>
         </div>
         <div class="space-y-3 text-left">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Pengguna (Username)</label>
-            <input type="text" id="kwitansi-auth-username" autocomplete="username" placeholder="Nama Pengguna Terdaftar" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Token Akses Admin / Nama Pengguna</label>
+            <input type="text" id="kwitansi-auth-username" autocomplete="username" placeholder="Masukkan token otorisasi (Contoh: NSR-BDG-2026)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Kata Sandi (Password)</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Kata Sandi (Opsional jika login dengan Token)</label>
             <input type="password" id="kwitansi-auth-password" autocomplete="current-password" onkeydown="if(event.key==='Enter') masukSesiKwitansi()" placeholder="••••••••" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
           </div>
           <button type="button" id="btn-login-kwitansi" onclick="masukSesiKwitansi()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition cursor-pointer">
-            Masuk Sesi Server &rarr;
+            Masuk Sesi Kwitansi &rarr;
           </button>
           <p id="pesan-auth-kwitansi" class="text-xs text-rose-400 hidden text-center font-semibold"></p>
         </div>
@@ -2042,11 +2042,153 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
     }
 
     // 15. Navigasi Antar Tab
-    // 15. Variabel Sesi Pengguna
+    // 15. Variabel Sesi Pengguna & Kamus Token RBAC Terpadu
     let currentUser = null;
 
-    // 16. Pemeriksaan Sesi Server-Side (GET /api/auth-verify)
+    function resolveUnifiedToken(rawToken) {
+      if (!rawToken || typeof rawToken !== 'string') return null;
+      const t = rawToken.trim().toUpperCase();
+
+      // 1. ADMIN_PUSAT (ALLOWED)
+      if (t === 'NSR-PST-2026' || t === 'NSR2026' || t === 'NSR8899') {
+        return {
+          token: t,
+          role: 'ADMIN_PUSAT',
+          roleLabel: 'Admin Pusat',
+          displayRole: 'Admin Pusat / Master Admin',
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          canAccessKwitansi: true
+        };
+      }
+
+      // 2. ADMIN_CABANG (ALLOWED)
+      const cabangMap = {
+        'NSR-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
+        'NSR-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
+        'NSR-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
+        'NSR-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
+        'NSR-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      };
+      if (cabangMap[t]) {
+        return {
+          token: t,
+          role: 'ADMIN_CABANG',
+          roleLabel: 'Admin Cabang',
+          displayRole: 'Admin Kantor Cabang',
+          mode: 'CABANG',
+          wilayah: cabangMap[t].wilayah,
+          wilayahCode: cabangMap[t].code,
+          canAccessKwitansi: true
+        };
+      }
+
+      // 3. MARKETING (DENIED)
+      const mktBranchMap = {
+        'MKT-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
+        'MKT-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
+        'MKT-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
+        'MKT-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
+        'MKT-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
+        'MKT-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      };
+      if (t === 'NSR-MKT-2026' || mktBranchMap[t]) {
+        const isBranch = !!mktBranchMap[t];
+        return {
+          token: t,
+          role: 'MARKETING',
+          roleLabel: 'Marketing',
+          displayRole: 'Divisi Business Development & Marketing',
+          mode: isBranch ? 'CABANG' : 'PUSAT',
+          wilayah: isBranch ? mktBranchMap[t].wilayah : 'Semua Wilayah',
+          wilayahCode: isBranch ? mktBranchMap[t].code : 'ALL',
+          canAccessKwitansi: false
+        };
+      }
+
+      // 4. REVIEWER (DENIED)
+      const revBranchMap = {
+        'REV-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
+        'REV-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
+        'REV-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
+        'REV-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
+        'REV-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
+        'REV-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      };
+      if (t === 'NSR-REV-2026' || revBranchMap[t]) {
+        const isBranch = !!revBranchMap[t];
+        return {
+          token: t,
+          role: 'REVIEWER',
+          roleLabel: 'Reviewer',
+          displayRole: 'Reviewer KKP / Quality Control',
+          mode: isBranch ? 'CABANG' : 'PUSAT',
+          wilayah: isBranch ? revBranchMap[t].wilayah : 'Semua Wilayah',
+          wilayahCode: isBranch ? revBranchMap[t].code : 'ALL',
+          canAccessKwitansi: false
+        };
+      }
+
+      // 5. PENILAI (DENIED)
+      const pnlBranchMap = {
+        'PNL-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
+        'PNL-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
+        'PNL-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
+        'PNL-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
+        'PNL-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
+        'PNL-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      };
+      if (t === 'NSR-PNL-2026' || pnlBranchMap[t]) {
+        const isBranch = !!pnlBranchMap[t];
+        return {
+          token: t,
+          role: 'PENILAI',
+          roleLabel: 'Penilai',
+          displayRole: 'Penilai Lapangan / Surveyor',
+          mode: isBranch ? 'CABANG' : 'PUSAT',
+          wilayah: isBranch ? pnlBranchMap[t].wilayah : 'Semua Wilayah',
+          wilayahCode: isBranch ? pnlBranchMap[t].code : 'ALL',
+          canAccessKwitansi: false
+        };
+      }
+
+      return null;
+    }
+
+    // 16. Pemeriksaan Sesi Server-Side & Token Terpadu
     async function periksaSesiKwitansi() {
+      // Periksa sesi lokal terlebih dahulu (dari portal utama / sessionStorage)
+      const stored = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('kjpp_session_jo');
+      if (stored) {
+        try {
+          const sess = JSON.parse(stored);
+          const t = sess.token;
+          const auth = resolveUnifiedToken(t);
+          if (auth) {
+            if (!auth.canAccessKwitansi) {
+              tampilkanLoginState();
+              const errEl = document.getElementById('pesan-auth-kwitansi');
+              if (errEl) {
+                errEl.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai <strong>${auth.roleLabel}</strong>.`;
+                errEl.classList.remove('hidden');
+              }
+              return;
+            } else {
+              const simUser = {
+                sub: auth.role === 'ADMIN_PUSAT' ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
+                role: auth.role === 'ADMIN_PUSAT' ? 'KEUANGAN' : 'CABANG',
+                branch: auth.wilayahCode,
+                displayName: auth.wilayah,
+                token: auth.token
+              };
+              terapkanSesiPengguna(simUser);
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+
       try {
         const res = await fetch('/api/auth-verify', {
           method: 'GET',
@@ -2056,6 +2198,15 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         if (res.ok) {
           const result = await res.json();
           if (result && result.authenticated && result.user) {
+            if (['PENILAI', 'REVIEWER', 'MARKETING'].includes((result.user.role || '').toUpperCase())) {
+              tampilkanLoginState();
+              const errEl = document.getElementById('pesan-auth-kwitansi');
+              if (errEl) {
+                errEl.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Akun Anda terdaftar sebagai <strong>${result.user.role}</strong>.`;
+                errEl.classList.remove('hidden');
+              }
+              return;
+            }
             terapkanSesiPengguna(result.user);
             return;
           }
@@ -2066,7 +2217,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       tampilkanLoginState();
     }
 
-    // 17. Login Pengguna ke Server (POST /api/auth-login)
+    // 17. Login Pengguna ke Server / Validasi Token RBAC
     async function masukSesiKwitansi() {
       const usernameInput = document.getElementById('kwitansi-auth-username');
       const passwordInput = document.getElementById('kwitansi-auth-password');
@@ -2076,14 +2227,50 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       const identifier = (usernameInput?.value || '').trim();
       const password = passwordInput?.value || '';
 
-      if (!identifier || !password) {
+      if (!identifier && !password) {
         if (errEl) {
-          errEl.innerText = 'Nama pengguna dan kata sandi wajib diisi.';
+          errEl.innerText = 'Token atau kredensial pengguna wajib diisi.';
           errEl.classList.remove('hidden');
         }
         return;
       }
 
+      // Evaluasi apakah input adalah Token RBAC
+      const tokenCandidate = identifier || password;
+      const auth = resolveUnifiedToken(tokenCandidate);
+      if (auth) {
+        if (!auth.canAccessKwitansi) {
+          tampilkanLoginState();
+          if (errEl) {
+            errEl.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai <strong>${auth.roleLabel}</strong>.`;
+            errEl.classList.remove('hidden');
+          }
+          return;
+        } else {
+          // Token Admin Resmi Diterima
+          const simUser = {
+            sub: auth.role === 'ADMIN_PUSAT' ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
+            role: auth.role === 'ADMIN_PUSAT' ? 'KEUANGAN' : 'CABANG',
+            branch: auth.wilayahCode,
+            displayName: auth.wilayah,
+            token: auth.token
+          };
+          sessionStorage.setItem('kjpp_token_internal', JSON.stringify({
+            branch: auth.wilayah,
+            token: auth.token,
+            role: auth.role,
+            roleLabel: auth.roleLabel,
+            canAccessKwitansi: true,
+            expiresAt: Date.now() + (8 * 3600 * 1000)
+          }));
+          terapkanSesiPengguna(simUser);
+          if (usernameInput) usernameInput.value = '';
+          if (passwordInput) passwordInput.value = '';
+          return;
+        }
+      }
+
+      // Jika bukan token RBAC, coba autentikasi serverless bawaan
       if (btn) {
         btn.disabled = true;
         btn.innerText = 'Memverifikasi...';
@@ -2104,25 +2291,27 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           await periksaSesiKwitansi();
         } else {
           if (errEl) {
-            errEl.innerText = data.error || 'Autentikasi gagal. Periksa kredensial Anda.';
+            errEl.innerText = data.error || 'Token atau kredensial tidak valid.';
             errEl.classList.remove('hidden');
           }
         }
       } catch (err) {
         if (errEl) {
-          errEl.innerText = 'Gagal menghubungi server autentikasi.';
+          errEl.innerText = 'Token atau kredensial tidak terdaftar.';
           errEl.classList.remove('hidden');
         }
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = 'Masuk Sesi Server →';
+          btn.innerText = 'Masuk Sesi Kwitansi →';
         }
       }
     }
 
     // 18. Logout Pengguna (POST /api/auth-logout)
     async function keluarSesiKwitansi() {
+      sessionStorage.removeItem('kjpp_token_internal');
+      sessionStorage.removeItem('kjpp_session_jo');
       try {
         await fetch('/api/auth-logout', { method: 'POST', credentials: 'include' });
       } catch (e) {}

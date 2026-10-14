@@ -34,15 +34,51 @@ const CONFIG = {
   // Cache TTL (Detik)
   CACHE_TTL_SECONDS: 120, // 2 Menit
   
-  // Master Token Otorisasi Resmi KJPP NSR (Case-Insensitive)
+  // Master Token Otorisasi Resmi KJPP NSR (Case-Insensitive - 5 Kelompok User RBAC)
   TOKENS: {
-    PUSAT: ['NSR-PST-2026', 'NSR2026', 'NSR8899'],
-    CABANG: {
+    // 1. ADMIN_PUSAT (Otorisasi Penuh Kantor Pusat & Master Admin)
+    ADMIN_PUSAT: ['NSR-PST-2026', 'NSR2026', 'NSR8899'],
+    
+    // 2. ADMIN_CABANG (Otorisasi Admin Kantor Cabang)
+    ADMIN_CABANG: {
       'NSR-BDG-2026': 'Kantor Cabang Bandung',
       'NSR-PDG-2026': 'Kantor Cabang Padang',
       'NSR-MKS-2026': 'Kantor Cabang Makassar',
       'NSR-PLB-2026': 'Kantor Cabang Palembang',
       'NSR-PLM-2026': 'Kantor Cabang Palembang'
+    },
+
+    // 3. MARKETING (Divisi Business Development & Marketing)
+    MARKETING: {
+      'NSR-MKT-2026': 'Semua Wilayah',
+      'MKT-PST-2026': 'Kantor Pusat Jakarta',
+      'MKT-BDG-2026': 'Kantor Cabang Bandung',
+      'MKT-PDG-2026': 'Kantor Cabang Padang',
+      'MKT-MKS-2026': 'Kantor Cabang Makassar',
+      'MKT-PLB-2026': 'Kantor Cabang Palembang',
+      'MKT-PLM-2026': 'Kantor Cabang Palembang'
+    },
+
+    // 4. REVIEWER (Tim Quality Control / Reviewer KKP)
+    REVIEWER: {
+      'NSR-REV-2026': 'Semua Wilayah',
+      'REV-PST-2026': 'Kantor Pusat Jakarta',
+      'REV-BDG-2026': 'Kantor Cabang Bandung',
+      'REV-PDG-2026': 'Kantor Cabang Padang',
+      'REV-MKS-2026': 'Kantor Cabang Makassar',
+      'REV-PLB-2026': 'Kantor Cabang Palembang',
+      'REV-PLM-2026': 'Kantor Cabang Palembang'
+    },
+
+    // 5. PENILAI (Penilai Lapangan / Asisten Penilai / Surveyor)
+    PENILAI: {
+      'NSR-PNL-2026': 'Semua Wilayah',
+      'PNL-PST-2026': 'Kantor Pusat Jakarta',
+      'PNL-BDG-2026': 'Kantor Cabang Bandung',
+      'PNL-PDG-2026': 'Kantor Cabang Padang',
+      'PNL-MKS-2026': 'Kantor Cabang Makassar',
+      'PNL-PLB-2026': 'Kantor Cabang Palembang',
+      'PNL-PLM-2026': 'Kantor Cabang Palembang'
     }
   },
 
@@ -227,16 +263,23 @@ function doPost(e) {
     switch (action) {
       case 'CREATE_SUBMISSION':
       case 'CREATE':
+        if (authResult.role === 'PENILAI' || authResult.role === 'REVIEWER') {
+          return respondJSON({
+            status: 'error',
+            success: false,
+            error: 'Otorisasi Ditolak: Akun Penilai dan Reviewer tidak memiliki hak akses pengajuan Job Order baru di server Pusat.'
+          }, 403);
+        }
         result = prosesPengajuanBaru(ss, payload.data, authResult);
         break;
 
       case 'APPROVE_SUBMISSION':
       case 'APPROVE':
-        if (authResult.mode !== 'PUSAT') {
+        if (authResult.role !== 'ADMIN_PUSAT') {
           return respondJSON({
             status: 'error',
             success: false,
-            error: 'Otorisasi Ditolak: Hanya Akun Kantor Pusat yang berhak menerbitkan nomor resmi dan melakukan approval.'
+            error: 'Otorisasi Ditolak: Hanya Akun Admin Pusat yang berhak menerbitkan nomor resmi dan melakukan approval di server Pusat.'
           }, 403);
         }
         result = prosesApprovalPusat(ss, payload.projectId || (payload.data && payload.data.ID_Penugasan), payload.data, authResult);
@@ -677,13 +720,79 @@ function getOrCreateFolder(folderName, parentFolder) {
 // -----------------------------------------------------------------------------------------
 function verifikasiAksesToken(token) {
   if (!token) return { valid: false };
+  const t = String(token).trim().toUpperCase();
 
-  if (CONFIG.TOKENS.PUSAT.includes(token)) {
-    return { valid: true, mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', token: token };
+  // 1. ADMIN_PUSAT
+  if (CONFIG.TOKENS.ADMIN_PUSAT && CONFIG.TOKENS.ADMIN_PUSAT.includes(t)) {
+    return {
+      valid: true,
+      role: 'ADMIN_PUSAT',
+      mode: 'PUSAT',
+      wilayah: 'Kantor Pusat Jakarta',
+      token: t,
+      canApprove: true,
+      canSubmit: true,
+      seeFee: true
+    };
   }
 
-  if (CONFIG.TOKENS.CABANG[token]) {
-    return { valid: true, mode: 'CABANG', wilayah: CONFIG.TOKENS.CABANG[token], token: token };
+  // 2. ADMIN_CABANG
+  if (CONFIG.TOKENS.ADMIN_CABANG && CONFIG.TOKENS.ADMIN_CABANG[t]) {
+    return {
+      valid: true,
+      role: 'ADMIN_CABANG',
+      mode: 'CABANG',
+      wilayah: CONFIG.TOKENS.ADMIN_CABANG[t],
+      token: t,
+      canApprove: false, // Approval Pusat hanya oleh Admin Pusat
+      canSubmit: true,
+      seeFee: true
+    };
+  }
+
+  // 3. MARKETING
+  if (CONFIG.TOKENS.MARKETING && CONFIG.TOKENS.MARKETING[t]) {
+    const wil = CONFIG.TOKENS.MARKETING[t];
+    return {
+      valid: true,
+      role: 'MARKETING',
+      mode: (wil !== 'Semua Wilayah' && wil !== 'Kantor Pusat Jakarta') ? 'CABANG' : 'PUSAT',
+      wilayah: wil,
+      token: t,
+      canApprove: false,
+      canSubmit: true,
+      seeFee: true
+    };
+  }
+
+  // 4. REVIEWER
+  if (CONFIG.TOKENS.REVIEWER && CONFIG.TOKENS.REVIEWER[t]) {
+    const wil = CONFIG.TOKENS.REVIEWER[t];
+    return {
+      valid: true,
+      role: 'REVIEWER',
+      mode: (wil !== 'Semua Wilayah' && wil !== 'Kantor Pusat Jakarta') ? 'CABANG' : 'PUSAT',
+      wilayah: wil,
+      token: t,
+      canApprove: false,
+      canSubmit: false,
+      seeFee: false
+    };
+  }
+
+  // 5. PENILAI
+  if (CONFIG.TOKENS.PENILAI && CONFIG.TOKENS.PENILAI[t]) {
+    const wil = CONFIG.TOKENS.PENILAI[t];
+    return {
+      valid: true,
+      role: 'PENILAI',
+      mode: (wil !== 'Semua Wilayah' && wil !== 'Kantor Pusat Jakarta') ? 'CABANG' : 'PUSAT',
+      wilayah: wil,
+      token: t,
+      canApprove: false,
+      canSubmit: false,
+      seeFee: false
+    };
   }
 
   return { valid: false };
