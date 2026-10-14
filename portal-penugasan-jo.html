@@ -128,6 +128,12 @@
           <span id="session-label" class="font-bold">Memuat Sesi...</span>
         </div>
 
+        <!-- Live Cloud Sync Badge -->
+        <div id="status-sync-gas" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/80 text-[11px] font-mono text-emerald-300 font-semibold shadow-inner">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Cloud Sync: DB_PENUGASAN_JO_NSR</span>
+        </div>
+
         <!-- Tombol Keluar / Ganti Token -->
         <button type="button" onclick="bukaModalToken()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5 cursor-pointer" title="Ganti Token / Keluar">
           <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
@@ -670,7 +676,11 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button type="button" onclick="sinkronisasiDataServer()" class="px-3 py-2 rounded-lg bg-blue-900/60 hover:bg-blue-800 text-blue-200 text-xs font-bold border border-blue-700 transition flex items-center gap-1.5">
+          <span id="dashboard-sync-status" class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300">
+            <span>Counter Terakhir:</span>
+            <strong id="counter-val-badge" class="text-amber-400 font-bold">415</strong>
+          </span>
+          <button type="button" onclick="sinkronisasiDataServer()" class="px-3 py-2 rounded-lg bg-blue-900/60 hover:bg-blue-800 text-blue-200 text-xs font-bold border border-blue-700 transition flex items-center gap-1.5 cursor-pointer shadow">
             <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
             <span>Sinkronkan Server</span>
           </button>
@@ -879,7 +889,37 @@
     ];
 
     // ==========================================================
-    // 2. STATE APLIKASI & SESI PENGGUNA
+    // 2. KONFIGURASI INTEGRASI GOOGLE APPS SCRIPT & GOOGLE SPREADSHEET
+    // ==========================================================
+    const GAS_WEB_APP_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQJg4XKaL4o9yium1YvUSE4sJvZ_iqUsN-aJrd9DLVoQGtlBkTwHuCMGd9ak6Zjx-tDHtwPZjUPpEWsYtDjMdtPeSy0MLu0dUYSJeB4aBr78NiuhhXWT4CE-nr6ke2nrwFxpFbcWzGe_WpsQ5XKwK44wI4F9NOmAmUZ3SEbDjZopQcXJGMYdSqGuUKuhW9kzBtI1cxglRLU8V-mNwAh8tFvjfuOj1b5d_ILRzSrbw2rZ7krHaM3cyeCKrL3o-aJ9Ro-PSdCISwtzIkgnb-DFktko2huIQ&lib=MSChYEfVvNPyCoceqVV-aP1ScKf4pGqo7";
+
+    // Counter Sinkronisasi Server DB_PENUGASAN_JO_NSR (Baseline Aktif: 415)
+    let serverCounter = {
+      TAHUN_BERJALAN: 2026,
+      LAST_NO_ADM_JO: 415,
+      LAST_NO_LP_SPK: 415,
+      FORMAT_SURAT_TUGAS: "AKTIF",
+      FORMAT_BAP_INSPEKSI: "AKTIF",
+      FORMAT_ETI: "AKTIF",
+      FORMAT_PI: "AKTIF"
+    };
+
+    // 44 KOLOM RESMI SHEET Data_Penugasan
+    const HEADERS_DATA_PENUGASAN = [
+      'ID_Penugasan', 'Timestamp_Input', 'Status_Approval', 'Kantor_Wilayah', 'Mode_Pengaju',
+      'No_Adm_JO', 'No_Lingkup_Penugasan', 'Tgl_Dibuat', 'No_Surat_Klien', 'Tgl_Surat_Klien',
+      'Masa_Berlaku_LP', 'Rekan_Penilai_Publik', 'No_Izin_Publik_Rekan', 'Reviewer', 'Penilai',
+      'Asisten_Surveyor', 'Surveyor_Pendamping_HP', 'Nama_Pemberi_Tugas', 'Bidang_Usaha_Klien',
+      'NPWP_Klien', 'PIC_Klien', 'Jabatan_PIC', 'Telp_PIC', 'Email_PIC', 'Alamat_Pemberi_Tugas',
+      'Pengguna_Laporan_A', 'Pengguna_Laporan_B', 'Nama_Debitur_Utama', 'Nama_Pemilik_Sertipikat',
+      'Hubungan_Pemilik_Sertipikat', 'Rincian_Objek_JSON', 'Tujuan_Penilaian', 'Dasar_Nilai',
+      'Pendekatan_Penilaian', 'Tgl_Survey', 'Rincian_Hari_Kerja', 'Marketing_Sumber_Proyek',
+      'Biaya_Net_DPP', 'PPN_11_Persen', 'Total_Biaya_All_In', 'Terbilang_Biaya',
+      'Tgl_Approval_Pusat', 'Disetujui_Oleh', 'Folder_Drive_URL'
+    ];
+
+    // ==========================================================
+    // 3. STATE APLIKASI & SESI PENGGUNA
     // ==========================================================
     let userSession = {
       isLoggedIn: false,
@@ -891,45 +931,52 @@
     let activeProjectData = null; // Menyimpan data proyek yang sedang dilihat di Tab 3
     let projectDatabase = [];     // Array antrean penugasan
 
-    // Data Awal Seed Demonstrasi (1 Approved, 1 Waiting)
+    // Data Awal Seed Resmi Sinkron dengan Google Spreadsheet DB_PENUGASAN_JO_NSR (Counter: 415)
     const SEED_PROJECTS = [
       {
-        id: "PRJ-2026-001",
+        id: "NSR-2026-0415",
         status: "APPROVED",
-        nomor_adm: "014/JO/NSR/X/2026",
-        nomor_lp: "014/NSR/PN-APP/X/2026",
+        nomor_adm: "0415/JO/NSR/X/2026",
+        nomor_lp: "0415/NSR/PN-APP/X/2026",
         kantor_wilayah: "Kantor Pusat Jakarta",
+        mode_pengaju: "PUSAT",
         tanggal_surat: "2026-10-14",
-        rujukan_surat_nomor: "B.412/KNC-RWM/ADK/10/2026",
-        rujukan_surat_tanggal: "2026-10-10",
-        pemberi_tugas_nama: "PT BANK RAKYAT INDONESIA (PERSERO) TBK",
-        pemberi_tugas_pic: "Bambang Sutrisno",
-        pemberi_tugas_jabatan: "Relationship Manager Sentra Kredit",
-        pemberi_tugas_kontak: "0812-3456-7890",
-        pemberi_tugas_email: "bambang.sutrisno@bankbri.co.id",
-        pemberi_tugas_alamat: "Jl. Pemuda No. 45, Rawamangun, Pulo Gadung, Jakarta Timur 13220",
-        pemberi_tugas_npwp: "01.001.604.1-092.000 (Alamat sesuai NPWP: Jl. Jend. Sudirman Kav. 44-46, Jakarta Pusat)",
-        pengguna_laporan_a: "PT BANK RAKYAT INDONESIA (PERSERO) TBK",
-        pengguna_laporan_b: "PT Bank Rakyat Indonesia (Persero) Tbk Kantor Cabang Rawamangun",
-        debitur_nama: "PT CITRA JAYA ABADI / H. AHMAD FAUZI",
-        debitur_cp: "H. Ahmad Fauzi (0811-9988-7766)",
-        tujuan_penilaian: "Penjaminan Hutang / Agunan Kredit",
+        rujukan_surat_nomor: "012/BCA-KW5/X/2026",
+        rujukan_surat_tanggal: "2026-10-11",
+        masa_berlaku_lp: "2026-11-13",
+        pemberi_tugas_nama: "PT. BANK CENTRAL ASIA, Tbk KANTOR WILAYAH V - MEDAN",
+        bidang_usaha_klien: "Perbankan",
+        pemberi_tugas_pic: "Divisi Kredit Komersial",
+        pemberi_tugas_jabatan: "Pimpinan Bagian Agunan",
+        pemberi_tugas_kontak: "061-4527800",
+        pemberi_tugas_email: "kanwil5_medan@bca.co.id",
+        pemberi_tugas_alamat: "Jl. P. Diponegoro No. 15 Medan, Kel. Petisah Tengah, Kec. Medan Petisah, Kota Medan, Sumatera Utara",
+        pemberi_tugas_npwp: "01.308.470.2-091.000",
+        pengguna_laporan_a: "PT. BANK CENTRAL ASIA, Tbk KANTOR WILAYAH V - MEDAN",
+        pengguna_laporan_b: "-",
+        debitur_nama: "PT SUMBER MAKMUR",
+        debitur_cp: "PT Sumber Makmur / Lasiman (0877 7011 1742)",
+        pemilik_sertipikat: "PT Sumber Makmur",
+        hubungan_pemilik: "Milik Sendiri",
+        tujuan_penilaian: "Penjaminan Utang / Agunan Kredit",
         dasar_nilai: "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)",
-        pendekatan_penilaian: "Pendekatan Biaya (Cost) & Pendekatan Data Pasar (Market)",
+        pendekatan_penilaian: "Pendekatan Pasar dan Pendekatan Biaya",
         mata_uang: "Rupiah (IDR)",
         tanggal_penilaian: "2026-10-14",
-        sumber_proyek: "Sentra Kredit Rawamangun",
-        marketing_nama: "Danny Taufik Hidayat, S.H.",
+        sumber_proyek: "Divisi BD & Marketing",
+        marketing_nama: "Divisi BD & Marketing",
         rekan_nama: "Deni Siswandi, S.T, MAPPI (Cert.)",
-        reviewer_nama: "Danny Taufik Hidayat, S.H.",
+        rekan_izin: "P-1.20.00581",
+        reviewer_nama: "Angga Malid Cahyadi",
         penilai_nama: "Tedi Setiadi",
-        asisten_nama: "Fadri Nurdin",
-        survey_hari: "Senin",
-        survey_tanggal: "2026-10-14",
-        sla_inspeksi: 1,
-        sla_analisa: 2,
+        asisten_nama: "Yasir Rizal",
+        surveyor_pendamping: "Heru Kurnia (15-A-05444) / Lasiman (0877 7011 1742)",
+        survey_hari: "Kamis",
+        survey_tanggal: "2026-10-15",
+        sla_inspeksi: 2,
+        sla_analisa: 3,
         sla_final: 2,
-        sla_total: 5,
+        sla_total: 7,
         ceklis_tanah: true,
         ceklis_bangunan: true,
         ceklis_ruko: false,
@@ -950,25 +997,33 @@
         rekening_resmi: "Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan",
         objek_list: [
           {
-            jenis: "Tanah & Bangunan Rumah Tinggal",
-            lt: "320",
-            lb: "250",
-            status: "SHM No. 4521/Ragunan a.n. H. Ahmad Fauzi",
-            lokasi: "Jl. Kebagusan Raya No. 18 RT. 004 RW. 002, Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan"
+            debitur: "PT Sumber Makmur",
+            jenis: "Tanah dan Bangunan Gudang",
+            lt: "1500",
+            lb: "850",
+            milik: "Tunggal",
+            status: "SHGB / Hak Milik Tunggal a.n. PT Sumber Makmur",
+            lokasi: "Desa Sindanglaya, Kec. Cinangka, Kab. Serang, Provinsi Banten"
           }
         ],
-        created_at: "2026-10-14T08:30:00Z"
+        approved_at: "2026-10-14T04:15:00.000Z",
+        disetujui_oleh: "Admin Pusat (NSR-PST-2026)",
+        folder_drive_url: "-",
+        created_at: "2026-10-14T04:00:00.000Z"
       },
       {
-        id: "PRJ-2026-002",
+        id: "NSR-2026-REQ-001",
         status: "WAITING_APPROVAL",
         nomor_adm: "Menunggu Otorisasi Pusat",
         nomor_lp: "Menunggu Otorisasi Pusat",
         kantor_wilayah: "Kantor Cabang Bandung",
+        mode_pengaju: "CABANG",
         tanggal_surat: "2026-10-14",
         rujukan_surat_nomor: "098/SPK-APP/BCA-BDG/X/2026",
         rujukan_surat_tanggal: "2026-10-12",
+        masa_berlaku_lp: "2026-11-13",
         pemberi_tugas_nama: "PT BANK CENTRAL ASIA TBK",
+        bidang_usaha_klien: "Perbankan",
         pemberi_tugas_pic: "Ibu Ratna Dewi",
         pemberi_tugas_jabatan: "Kepala Operasi Kredit Komersial",
         pemberi_tugas_kontak: "0813-2233-4455",
@@ -979,6 +1034,8 @@
         pengguna_laporan_b: "PT Bank Central Asia Tbk KCU Bandung Asia Afrika",
         debitur_nama: "PT BANDUNG KARYA MANDIRI",
         debitur_cp: "Bpk. Suryadi (0812-8877-6655)",
+        pemilik_sertipikat: "PT BANDUNG KARYA MANDIRI",
+        hubungan_pemilik: "Milik Sendiri",
         tujuan_penilaian: "Penjaminan Hutang / Agunan Kredit",
         dasar_nilai: "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)",
         pendekatan_penilaian: "Pendekatan Biaya (Cost) & Pendekatan Data Pasar (Market)",
@@ -987,9 +1044,11 @@
         sumber_proyek: "KCU Asia Afrika",
         marketing_nama: "Ardi Nurmayadi",
         rekan_nama: "Deni Siswandi, S.T, MAPPI (Cert.)",
+        rekan_izin: "P-1.20.00581",
         reviewer_nama: "Danny Taufik Hidayat, S.H.",
         penilai_nama: "Ardi Nurmayadi",
         asisten_nama: "Yasir Rizal",
+        surveyor_pendamping: "Yasir Rizal / Bpk. Suryadi (0812-8877-6655)",
         survey_hari: "Selasa",
         survey_tanggal: "2026-10-15",
         sla_inspeksi: 1,
@@ -1023,9 +1082,193 @@
             lokasi: "Jl. Raya Cimahi No. 88, Citeureup, Cimahi Utara, Kota Cimahi, Jawa Barat"
           }
         ],
+        approved_at: "-",
+        disetujui_oleh: "-",
+        folder_drive_url: "-",
         created_at: "2026-10-14T09:15:00Z"
       }
     ];
+
+    // ==========================================================
+    // 4. MAPPING BIDIRECTIONAL 44 KOLOM GOOGLE SPREADSHEET
+    // ==========================================================
+    function mapSheetRowToProject(r) {
+      if (!r) return null;
+      
+      // SLA parse "2|3|2|7"
+      let slaIns = 1, slaAna = 2, slaFin = 2, slaTot = 5;
+      if (r.Rincian_Hari_Kerja) {
+        const parts = String(r.Rincian_Hari_Kerja).split('|');
+        if (parts.length >= 4) {
+          slaIns = parseInt(parts[0], 10) || 1;
+          slaAna = parseInt(parts[1], 10) || 2;
+          slaFin = parseInt(parts[2], 10) || 2;
+          slaTot = parseInt(parts[3], 10) || (slaIns + slaAna + slaFin);
+        }
+      }
+
+      // Objek JSON parse
+      let objekList = [];
+      if (r.Rincian_Objek_JSON) {
+        if (typeof r.Rincian_Objek_JSON === 'string') {
+          try {
+            objekList = JSON.parse(r.Rincian_Objek_JSON);
+          } catch (e) {
+            objekList = [];
+          }
+        } else if (Array.isArray(r.Rincian_Objek_JSON)) {
+          objekList = r.Rincian_Objek_JSON;
+        }
+      }
+
+      const normDate = (val) => {
+        if (!val) return '';
+        if (typeof val === 'string' && val.includes('T')) return val.split('T')[0];
+        return String(val).substring(0, 10);
+      };
+
+      const dSurat = new Date(r.Tgl_Dibuat || r.Timestamp_Input || new Date());
+      const romawi = getBulanRomawi(dSurat);
+      const thn = dSurat.getFullYear() || 2026;
+
+      let noAdmDisplay = r.No_Adm_JO !== undefined && r.No_Adm_JO !== null ? String(r.No_Adm_JO) : 'Menunggu Otorisasi Pusat';
+      if (/^\d+$/.test(noAdmDisplay)) {
+        noAdmDisplay = `${noAdmDisplay.padStart(4, '0')}/JO/NSR/${romawi}/${thn}`;
+      }
+
+      const totalBiaya = Number(r.Total_Biaya_All_In || r.biaya_total || 0);
+
+      return {
+        id: r.ID_Penugasan || ('NSR-' + thn + '-' + String(r.No_Adm_JO || Date.now()).padStart(4, '0')),
+        status: r.Status_Approval || 'WAITING_APPROVAL',
+        nomor_adm: noAdmDisplay,
+        nomor_lp: r.No_Lingkup_Penugasan || 'Menunggu Otorisasi Pusat',
+        kantor_wilayah: r.Kantor_Wilayah || 'Kantor Pusat Jakarta',
+        mode_pengaju: r.Mode_Pengaju || 'PUSAT',
+        tanggal_surat: normDate(r.Tgl_Dibuat) || normDate(r.Timestamp_Input),
+        rujukan_surat_nomor: r.No_Surat_Klien || '',
+        rujukan_surat_tanggal: normDate(r.Tgl_Surat_Klien) || normDate(r.Tgl_Dibuat),
+        masa_berlaku_lp: normDate(r.Masa_Berlaku_LP),
+        pemberi_tugas_nama: r.Nama_Pemberi_Tugas || '',
+        bidang_usaha_klien: r.Bidang_Usaha_Klien || 'Perbankan',
+        pemberi_tugas_pic: r.PIC_Klien || '',
+        pemberi_tugas_jabatan: r.Jabatan_PIC || '',
+        pemberi_tugas_kontak: r.Telp_PIC || '',
+        pemberi_tugas_email: r.Email_PIC || '',
+        pemberi_tugas_alamat: r.Alamat_Pemberi_Tugas || '',
+        pemberi_tugas_npwp: r.NPWP_Klien || '',
+        pengguna_laporan_a: r.Pengguna_Laporan_A || r.Nama_Pemberi_Tugas || '',
+        pengguna_laporan_b: r.Pengguna_Laporan_B || '-',
+        debitur_nama: (r.Nama_Debitur_Utama || '').toUpperCase(),
+        debitur_cp: r.Surveyor_Pendamping_HP ? String(r.Surveyor_Pendamping_HP).split('/').pop().trim() : (r.Nama_Debitur_Utama || ''),
+        pemilik_sertipikat: r.Nama_Pemilik_Sertipikat || r.Nama_Debitur_Utama || '',
+        hubungan_pemilik: r.Hubungan_Pemilik_Sertipikat || 'Milik Sendiri',
+        tujuan_penilaian: r.Tujuan_Penilaian || 'Penjaminan Utang / Agunan Kredit',
+        dasar_nilai: r.Dasar_Nilai || 'Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)',
+        pendekatan_penilaian: r.Pendekatan_Penilaian || 'Pendekatan Pasar dan Pendekatan Biaya',
+        mata_uang: 'Rupiah (IDR)',
+        tanggal_penilaian: normDate(r.Tgl_Dibuat),
+        sumber_proyek: r.Marketing_Sumber_Proyek || '',
+        marketing_nama: r.Marketing_Sumber_Proyek || '',
+        rekan_nama: r.Rekan_Penilai_Publik || 'Deni Siswandi, S.T, MAPPI (Cert.)',
+        rekan_izin: r.No_Izin_Publik_Rekan || 'P-1.20.00581',
+        reviewer_nama: r.Reviewer || 'Angga Malid Cahyadi',
+        penilai_nama: r.Penilai || 'Tedi Setiadi',
+        asisten_nama: r.Asisten_Surveyor || 'Yasir Rizal',
+        surveyor_pendamping: r.Surveyor_Pendamping_HP || '',
+        survey_hari: getNamaHari(normDate(r.Tgl_Survey)),
+        survey_tanggal: normDate(r.Tgl_Survey),
+        sla_inspeksi: slaIns,
+        sla_analisa: slaAna,
+        sla_final: slaFin,
+        sla_total: slaTot,
+        ceklis_tanah: true,
+        ceklis_bangunan: true,
+        ceklis_ruko: false,
+        ceklis_sarana: true,
+        ceklis_mesin: false,
+        ceklis_kendaraan: false,
+        dok_sertifikat: true,
+        dok_imb: true,
+        dok_pbb: true,
+        dok_denah: true,
+        dok_invoice: false,
+        dok_list: false,
+        biaya_dpp: Number(r.Biaya_Net_DPP || 0),
+        biaya_ppn: Number(r.PPN_11_Persen || 0),
+        biaya_total: totalBiaya,
+        terbilang: r.Terbilang_Biaya || angkaTerbilang(totalBiaya),
+        cara_pembayaran: "Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.",
+        rekening_resmi: "Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan",
+        objek_list: objekList,
+        approved_at: normDate(r.Tgl_Approval_Pusat),
+        disetujui_oleh: r.Disetujui_Oleh || '',
+        folder_drive_url: r.Folder_Drive_URL || '-',
+        created_at: normDate(r.Timestamp_Input) || normDate(r.Tgl_Dibuat)
+      };
+    }
+
+    function mapProjectToSheetPayload(p, session) {
+      const dSurat = new Date(p.tanggal_surat || new Date());
+      const dMasa = new Date(dSurat.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      let noAdmRaw = p.nomor_adm;
+      const matchAdm = String(p.nomor_adm).match(/^0*(\d+)/);
+      if (matchAdm) {
+        noAdmRaw = parseInt(matchAdm[1], 10);
+      }
+
+      const rincianHari = `${p.sla_inspeksi || 1}|${p.sla_analisa || 2}|${p.sla_final || 2}|${p.sla_total || 5}`;
+      const tokenActor = (session && session.token) ? session.token : 'NSR-PST-2026';
+      const modeActor = (session && session.mode) ? session.mode : 'PUSAT';
+
+      return {
+        ID_Penugasan: p.id,
+        Timestamp_Input: new Date().toISOString(),
+        Status_Approval: p.status,
+        Kantor_Wilayah: p.kantor_wilayah,
+        Mode_Pengaju: modeActor,
+        No_Adm_JO: noAdmRaw,
+        No_Lingkup_Penugasan: p.nomor_lp,
+        Tgl_Dibuat: p.tanggal_surat,
+        No_Surat_Klien: p.rujukan_surat_nomor || '-',
+        Tgl_Surat_Klien: p.rujukan_surat_tanggal || p.tanggal_surat,
+        Masa_Berlaku_LP: p.masa_berlaku_lp || dMasa.toISOString().split('T')[0],
+        Rekan_Penilai_Publik: p.rekan_nama,
+        No_Izin_Publik_Rekan: p.rekan_izin || 'P-1.20.00581',
+        Reviewer: p.reviewer_nama,
+        Penilai: p.penilai_nama,
+        Asisten_Surveyor: p.asisten_nama,
+        Surveyor_Pendamping_HP: p.surveyor_pendamping || `${p.asisten_nama} / ${p.debitur_cp || '-'}`,
+        Nama_Pemberi_Tugas: p.pemberi_tugas_nama,
+        Bidang_Usaha_Klien: p.bidang_usaha_klien || 'Perbankan',
+        NPWP_Klien: p.pemberi_tugas_npwp,
+        PIC_Klien: p.pemberi_tugas_pic,
+        Jabatan_PIC: p.pemberi_tugas_jabatan,
+        Telp_PIC: p.pemberi_tugas_kontak,
+        Email_PIC: p.pemberi_tugas_email,
+        Alamat_Pemberi_Tugas: p.pemberi_tugas_alamat,
+        Pengguna_Laporan_A: p.pengguna_laporan_a || p.pemberi_tugas_nama,
+        Pengguna_Laporan_B: p.pengguna_laporan_b || '-',
+        Nama_Debitur_Utama: p.debitur_nama,
+        Nama_Pemilik_Sertipikat: p.pemilik_sertipikat || p.debitur_nama,
+        Hubungan_Pemilik_Sertipikat: p.hubungan_pemilik || 'Milik Sendiri',
+        Rincian_Objek_JSON: JSON.stringify(p.objek_list || []),
+        Tujuan_Penilaian: p.tujuan_penilaian,
+        Dasar_Nilai: p.dasar_nilai,
+        Pendekatan_Penilaian: p.pendekatan_penilaian,
+        Tgl_Survey: p.survey_tanggal || p.tanggal_surat,
+        Rincian_Hari_Kerja: rincianHari,
+        Marketing_Sumber_Proyek: p.marketing_nama || p.sumber_proyek || 'Divisi Marketing',
+        Biaya_Net_DPP: Number(p.biaya_dpp || 0),
+        PPN_11_Persen: Number(p.biaya_ppn || 0),
+        Total_Biaya_All_In: Number(p.biaya_total || 0),
+        Terbilang_Biaya: p.terbilang || angkaTerbilang(p.biaya_total || 0),
+        Tgl_Approval_Pusat: p.status === 'APPROVED' ? (p.approved_at || new Date().toISOString()) : '-',
+        Disetujui_Oleh: p.status === 'APPROVED' ? (p.disetujui_oleh || `Admin Pusat (${tokenActor})`) : '-',
+        Folder_Drive_URL: p.folder_drive_url || '-'
+      };
+    }
 
     // ==========================================================
     // 3. FUNGSI UTILITAS: TERBILANG, TANGGAL & FORMAT
@@ -1438,11 +1681,19 @@
       const tglStr = document.getElementById('tanggal_surat').value || new Date().toISOString().split('T')[0];
       const d = new Date(tglStr);
       const romawi = getBulanRomawi(d);
-      const thn = d.getFullYear();
+      const thn = d.getFullYear() || 2026;
 
       if (userSession.mode === "PUSAT") {
-        // Generate nomor urut preview
-        const nextNum = (projectDatabase.length + 1).toString().padStart(3, '0');
+        // Ambil counter tertinggi antara serverCounter (baseline 415) dan projectDatabase
+        let maxCounter = serverCounter.LAST_NO_ADM_JO || 415;
+        projectDatabase.forEach(p => {
+          const numAdm = parseInt(String(p.nomor_adm || '').replace(/\D+/g, ''), 10);
+          if (!isNaN(numAdm) && numAdm > maxCounter) maxCounter = numAdm;
+          const numLp = parseInt(String(p.nomor_lp || '').replace(/\D+/g, ''), 10);
+          if (!isNaN(numLp) && numLp > maxCounter) maxCounter = numLp;
+        });
+        const nextVal = maxCounter + 1;
+        const nextNum = nextVal.toString().padStart(4, '0');
         document.getElementById('nomor_lp').value = `${nextNum}/NSR/PN-APP/${romawi}/${thn}`;
         document.getElementById('nomor_adm').value = `${nextNum}/JO/NSR/${romawi}/${thn}`;
       } else {
@@ -1452,64 +1703,111 @@
     }
 
     // ==========================================================
-    // 9. SUBMIT PENGADAAN & APPROVAL DUAL-TRACK
+    // 9. SUBMIT PENGADAAN & APPROVAL DUAL-TRACK DENGAN GAS SYNC
     // ==========================================================
+    async function kirimDataKeGasServer(action, projectObj) {
+      if (!GAS_WEB_APP_URL) return;
+      const payload44 = mapProjectToSheetPayload(projectObj, userSession);
+      try {
+        const bodyData = {
+          action: action,
+          token: userSession.token || 'NSR-PST-2026',
+          projectId: projectObj.id,
+          data: payload44
+        };
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyData)
+        });
+        console.log(`GAS [${action}] transmitted for:`, projectObj.id);
+      } catch (err) {
+        console.warn('Background GAS POST warning:', err);
+      }
+    }
+
     function handleFormSubmit(event) {
       event.preventDefault();
 
       const tglStr = document.getElementById('tanggal_surat').value;
       const d = new Date(tglStr);
       const romawi = getBulanRomawi(d);
-      const thn = d.getFullYear();
+      const thn = d.getFullYear() || 2026;
 
       let isApproved = (userSession.mode === "PUSAT");
       let noAdm = "";
       let noLp = "";
+      let projectId = "";
 
       if (isApproved) {
-        const nextNum = (projectDatabase.length + 1).toString().padStart(3, '0');
+        let maxCounter = serverCounter.LAST_NO_ADM_JO || 415;
+        projectDatabase.forEach(p => {
+          const numAdm = parseInt(String(p.nomor_adm || '').replace(/\D+/g, ''), 10);
+          if (!isNaN(numAdm) && numAdm > maxCounter) maxCounter = numAdm;
+          const numLp = parseInt(String(p.nomor_lp || '').replace(/\D+/g, ''), 10);
+          if (!isNaN(numLp) && numLp > maxCounter) maxCounter = numLp;
+        });
+        const nextVal = maxCounter + 1;
+        const nextNum = nextVal.toString().padStart(4, '0');
         noAdm = `${nextNum}/JO/NSR/${romawi}/${thn}`;
         noLp = `${nextNum}/NSR/PN-APP/${romawi}/${thn}`;
+        projectId = `NSR-${thn}-${nextNum}`;
+        serverCounter.LAST_NO_ADM_JO = nextVal;
+        serverCounter.LAST_NO_LP_SPK = nextVal;
+        const badgeCounter = document.getElementById('counter-val-badge');
+        if (badgeCounter) badgeCounter.textContent = nextVal;
       } else {
         noAdm = "Menunggu Otorisasi Pusat";
         noLp = "Menunggu Otorisasi Pusat";
+        projectId = `NSR-${thn}-REQ-${Date.now().toString().slice(-4)}`;
       }
 
       const totalSla = parseInt(document.getElementById('sla_inspeksi').value || 1, 10) +
                        parseInt(document.getElementById('sla_analisa').value || 2, 10) +
                        parseInt(document.getElementById('sla_final').value || 2, 10);
 
+      const dMasa = new Date(new Date(tglStr).getTime() + 30 * 24 * 60 * 60 * 1000);
+      const rekanSelected = DATABASE_REKAN.find(r => r.nama === document.getElementById('rekan_nama').value) || {};
+
       const newProject = {
-        id: "PRJ-" + Date.now(),
+        id: projectId,
         status: isApproved ? "APPROVED" : "WAITING_APPROVAL",
         nomor_adm: noAdm,
         nomor_lp: noLp,
         kantor_wilayah: document.getElementById('kantor_wilayah').value,
+        mode_pengaju: userSession.mode,
         tanggal_surat: tglStr,
-        rujukan_surat_nomor: document.getElementById('rujukan_surat_nomor').value,
-        rujukan_surat_tanggal: document.getElementById('rujukan_surat_tanggal').value,
+        rujukan_surat_nomor: document.getElementById('rujukan_surat_nomor').value || '-',
+        rujukan_surat_tanggal: document.getElementById('rujukan_surat_tanggal').value || tglStr,
+        masa_berlaku_lp: dMasa.toISOString().split('T')[0],
         pemberi_tugas_nama: document.getElementById('pemberi_tugas_nama').value.trim(),
+        bidang_usaha_klien: "Perbankan / Finansial",
         pemberi_tugas_pic: document.getElementById('pemberi_tugas_pic').value.trim(),
         pemberi_tugas_jabatan: document.getElementById('pemberi_tugas_jabatan').value.trim(),
         pemberi_tugas_kontak: document.getElementById('pemberi_tugas_kontak').value.trim(),
         pemberi_tugas_email: document.getElementById('pemberi_tugas_email').value.trim(),
         pemberi_tugas_alamat: document.getElementById('pemberi_tugas_alamat').value.trim(),
         pemberi_tugas_npwp: document.getElementById('pemberi_tugas_npwp').value.trim(),
-        pengguna_laporan_a: document.getElementById('pengguna_laporan_a').value.trim(),
-        pengguna_laporan_b: document.getElementById('pengguna_laporan_b').value.trim(),
+        pengguna_laporan_a: document.getElementById('pengguna_laporan_a').value.trim() || document.getElementById('pemberi_tugas_nama').value.trim(),
+        pengguna_laporan_b: document.getElementById('pengguna_laporan_b').value.trim() || '-',
         debitur_nama: document.getElementById('debitur_nama').value.trim().toUpperCase(),
-        debitur_cp: document.getElementById('debitur_cp').value.trim(),
+        debitur_cp: document.getElementById('debitur_cp').value.trim() || document.getElementById('debitur_nama').value.trim(),
+        pemilik_sertipikat: document.getElementById('debitur_nama').value.trim().toUpperCase(),
+        hubungan_pemilik: "Milik Sendiri",
         tujuan_penilaian: document.getElementById('tujuan_penilaian').value,
         dasar_nilai: document.getElementById('dasar_nilai').value,
         pendekatan_penilaian: document.getElementById('pendekatan_penilaian').value,
         mata_uang: document.getElementById('mata_uang').value,
         tanggal_penilaian: document.getElementById('tanggal_penilaian').value,
-        sumber_proyek: document.getElementById('sumber_proyek').value.trim(),
-        marketing_nama: document.getElementById('marketing_nama').value.trim(),
+        sumber_proyek: document.getElementById('sumber_proyek').value.trim() || 'Divisi Marketing',
+        marketing_nama: document.getElementById('marketing_nama').value.trim() || document.getElementById('sumber_proyek').value.trim() || 'Divisi Marketing',
         rekan_nama: document.getElementById('rekan_nama').value,
+        rekan_izin: rekanSelected.izin || 'P-1.20.00581',
         reviewer_nama: document.getElementById('reviewer_nama').value,
         penilai_nama: document.getElementById('penilai_nama').value,
         asisten_nama: document.getElementById('asisten_nama').value,
+        surveyor_pendamping: `${document.getElementById('asisten_nama').value} / ${document.getElementById('debitur_cp').value.trim() || '-'}`,
         survey_hari: document.getElementById('survey_hari').value,
         survey_tanggal: document.getElementById('survey_tanggal').value,
         sla_inspeksi: parseInt(document.getElementById('sla_inspeksi').value, 10),
@@ -1535,19 +1833,24 @@
         cara_pembayaran: document.getElementById('cara_pembayaran').value.trim(),
         rekening_resmi: document.getElementById('rekening_resmi').value.trim(),
         objek_list: JSON.parse(JSON.stringify(objekRows)),
+        approved_at: isApproved ? new Date().toISOString() : '-',
+        disetujui_oleh: isApproved ? `Admin Pusat (${userSession.token || 'NSR-PST-2026'})` : '-',
+        folder_drive_url: '-',
         created_at: new Date().toISOString()
       };
 
       projectDatabase.unshift(newProject);
       simpanDatabaseLokal();
-
       activeProjectData = newProject;
 
+      // Kirim sinkronisasi otomatis ke Google Spreadsheet
+      kirimDataKeGasServer('CREATE_SUBMISSION', newProject);
+
       if (isApproved) {
-        alert("Sukses! Data penugasan berhasil disimpan dan nomor resmi langsung diterbitkan:\n\n• No. SPK: " + noLp + "\n• No. Adm JO: " + noAdm);
+        alert("Sukses! Data penugasan berhasil disimpan dan nomor resmi langsung diterbitkan:\n\n• ID Penugasan: " + projectId + "\n• No. SPK: " + noLp + "\n• No. Adm JO: " + noAdm);
         pindahTab('preview');
       } else {
-        alert("Sukses! Pengajuan penugasan berhasil diajukan ke antrean Kantor Pusat.\nStatus: WAITING_APPROVAL.\nSilakan tunggu verifikasi admin pusat.");
+        alert("Sukses! Pengajuan penugasan berhasil diajukan ke antrean Kantor Pusat.\nID: " + projectId + "\nStatus: WAITING_APPROVAL.\nSilakan tunggu verifikasi admin pusat.");
         pindahTab('dashboard');
       }
     }
@@ -1565,21 +1868,40 @@
 
       const d = new Date(p.tanggal_surat || new Date());
       const romawi = getBulanRomawi(d);
-      const thn = d.getFullYear();
+      const thn = d.getFullYear() || 2026;
 
-      // Hitung counter approved
-      const approvedCount = projectDatabase.filter(item => item.status === "APPROVED").length + 1;
-      const nextNum = approvedCount.toString().padStart(3, '0');
+      // Cari counter tertinggi approved
+      let maxCounter = serverCounter.LAST_NO_ADM_JO || 415;
+      projectDatabase.forEach(item => {
+        if (item.status === "APPROVED") {
+          const numAdm = parseInt(String(item.nomor_adm || '').replace(/\D+/g, ''), 10);
+          if (!isNaN(numAdm) && numAdm > maxCounter) maxCounter = numAdm;
+          const numLp = parseInt(String(item.nomor_lp || '').replace(/\D+/g, ''), 10);
+          if (!isNaN(numLp) && numLp > maxCounter) maxCounter = numLp;
+        }
+      });
+
+      const nextVal = maxCounter + 1;
+      const nextNum = nextVal.toString().padStart(4, '0');
 
       p.nomor_adm = `${nextNum}/JO/NSR/${romawi}/${thn}`;
       p.nomor_lp = `${nextNum}/NSR/PN-APP/${romawi}/${thn}`;
       p.status = "APPROVED";
       p.approved_at = new Date().toISOString();
+      p.disetujui_oleh = `Admin Pusat (${userSession.token || 'NSR-PST-2026'})`;
+
+      serverCounter.LAST_NO_ADM_JO = nextVal;
+      serverCounter.LAST_NO_LP_SPK = nextVal;
+      const badgeCounter = document.getElementById('counter-val-badge');
+      if (badgeCounter) badgeCounter.textContent = nextVal;
 
       simpanDatabaseLokal();
       renderDashboardTabel();
 
-      alert(`Nomor Resmi Berhasil Diterbitkan!\n\n• No. Lingkup Penugasan (SPK): ${p.nomor_lp}\n• No. Adm JO: ${p.nomor_adm}`);
+      // Kirim approval ke GAS
+      kirimDataKeGasServer('APPROVE_SUBMISSION', p);
+
+      alert(`Nomor Resmi Berhasil Diterbitkan!\n\n• No. Lingkup Penugasan (SPK): ${p.nomor_lp}\n• No. Adm JO: ${p.nomor_adm}\n• Counter Server: ${nextVal}`);
     }
 
     function hapusProyek(projectId) {
@@ -1709,6 +2031,17 @@
 
       const p = activeProjectData;
       document.getElementById('preview-active-project-label').innerHTML = `Proyek Aktif: <strong class="text-amber-400">${p.debitur_nama}</strong> &bull; (${p.nomor_lp})`;
+
+      // Metadata Personil Fallback
+      const rekanMeta = DATABASE_REKAN.find(r => r.nama === p.rekan_nama) || { izin: 'P-1.20.00581' };
+      const reviewerMeta = DATABASE_PERSONIL.find(x => x.nama === p.reviewer_nama) || { mappi: '12-P-03478' };
+      const penilaiMeta = DATABASE_PERSONIL.find(x => x.nama === p.penilai_nama) || { mappi: '10-T-02490' };
+      const asistenMeta = DATABASE_PERSONIL.find(x => x.nama === p.asisten_nama) || { mappi: '17-P-08043' };
+
+      const viewRekanIzin = p.rekan_izin || (document.getElementById('view_rekan_izin') ? document.getElementById('view_rekan_izin').textContent : '') || rekanMeta.izin || 'P-1.20.00581';
+      const viewReviewerMappi = (document.getElementById('view_reviewer_mappi') ? document.getElementById('view_reviewer_mappi').textContent : '') || reviewerMeta.mappi || '12-P-03478';
+      const viewPenilaiMappi = (document.getElementById('view_penilai_mappi') ? document.getElementById('view_penilai_mappi').textContent : '') || penilaiMeta.mappi || '10-T-02490';
+      const viewAsistenMappi = (document.getElementById('view_asisten_mappi') ? document.getElementById('view_asisten_mappi').textContent : '') || asistenMeta.mappi || '17-P-08043';
 
       const selDok = document.getElementById('pilih_tampilan_dokumen').value;
       const htmlDocs = [];
@@ -2653,17 +2986,17 @@
                   <td class="w-1/3">
                     <p class="font-bold mb-14">Reviewer,</p>
                     <p class="font-bold underline">${p.reviewer_nama}</p>
-                    <p class="text-[10px] text-slate-500">MAPPI: ${document.getElementById('view_reviewer_mappi').textContent}</p>
+                    <p class="text-[10px] text-slate-500">MAPPI: ${viewReviewerMappi}</p>
                   </td>
                   <td class="w-1/3">
                     <p class="font-bold mb-14">Penilai Lapangan,</p>
                     <p class="font-bold underline">${p.penilai_nama}</p>
-                    <p class="text-[10px] text-slate-500">MAPPI: ${document.getElementById('view_penilai_mappi').textContent}</p>
+                    <p class="text-[10px] text-slate-500">MAPPI: ${viewPenilaiMappi}</p>
                   </td>
                   <td class="w-1/3">
                     <p class="font-bold mb-14">Asisten Penilai,</p>
                     <p class="font-bold underline">${p.asisten_nama}</p>
-                    <p class="text-[10px] text-slate-500">MAPPI: ${document.getElementById('view_asisten_mappi').textContent}</p>
+                    <p class="text-[10px] text-slate-500">MAPPI: ${viewAsistenMappi}</p>
                   </td>
                 </tr>
               </table>
@@ -2718,22 +3051,22 @@
                   <td class="w-1/4 align-top">
                     <p class="font-bold mb-14">Rekan Penilai Publik,</p>
                     <p class="font-bold underline text-[10.5px]">${p.rekan_nama}</p>
-                    <p class="text-[9px] text-slate-500">Izin: ${document.getElementById('view_rekan_izin').textContent}</p>
+                    <p class="text-[9px] text-slate-500">Izin: ${viewRekanIzin}</p>
                   </td>
                   <td class="w-1/4 align-top">
                     <p class="font-bold mb-14">Reviewer,</p>
                     <p class="font-bold underline text-[10.5px]">${p.reviewer_nama}</p>
-                    <p class="text-[9px] text-slate-500">MAPPI: ${document.getElementById('view_reviewer_mappi').textContent}</p>
+                    <p class="text-[9px] text-slate-500">MAPPI: ${viewReviewerMappi}</p>
                   </td>
                   <td class="w-1/4 align-top">
                     <p class="font-bold mb-14">Penilai Lapangan,</p>
                     <p class="font-bold underline text-[10.5px]">${p.penilai_nama}</p>
-                    <p class="text-[9px] text-slate-500">MAPPI: ${document.getElementById('view_penilai_mappi').textContent}</p>
+                    <p class="text-[9px] text-slate-500">MAPPI: ${viewPenilaiMappi}</p>
                   </td>
                   <td class="w-1/4 align-top">
                     <p class="font-bold mb-14">Asisten Penilai,</p>
                     <p class="font-bold underline text-[10.5px]">${p.asisten_nama}</p>
-                    <p class="text-[9px] text-slate-500">MAPPI: ${document.getElementById('view_asisten_mappi').textContent}</p>
+                    <p class="text-[9px] text-slate-500">MAPPI: ${viewAsistenMappi}</p>
                   </td>
                 </tr>
               </table>
@@ -2794,9 +3127,83 @@
       localStorage.setItem('kjpp_jo_database', JSON.stringify(projectDatabase));
     }
 
-    function sinkronisasiDataServer() {
-      alert("Menghubungkan ke API Backend Google Apps Script (Code.gs)...\n\nData lokal tersinkronisasi.");
-      renderDashboardTabel();
+    async function sinkronisasiDataServer(isSilent = false) {
+      const syncBtn = document.querySelector('button[onclick="sinkronisasiDataServer()"]');
+      const syncBadge = document.getElementById('status-sync-gas');
+      const counterBadge = document.getElementById('counter-val-badge');
+      
+      if (syncBtn && !isSilent) {
+        syncBtn.innerHTML = `
+          <svg class="w-3.5 h-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          <span>Sinkronisasi...</span>
+        `;
+      }
+
+      try {
+        const res = await fetch(GAS_WEB_APP_URL, { method: 'GET' });
+        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+        const data = await res.json();
+
+        if (data && (data.status === 'success' || data.success)) {
+          // 1. Update Counter
+          if (data.counter) {
+            serverCounter = Object.assign(serverCounter, data.counter);
+            if (data.counter.LAST_NO_ADM_JO) {
+              serverCounter.LAST_NO_ADM_JO = parseInt(data.counter.LAST_NO_ADM_JO, 10);
+            }
+          }
+
+          // 2. Update Submissions
+          const remoteList = data.submissions || data.data || [];
+          if (Array.isArray(remoteList) && remoteList.length > 0) {
+            const mappedRemote = remoteList.map(mapSheetRowToProject).filter(Boolean);
+
+            mappedRemote.forEach(remItem => {
+              const idx = projectDatabase.findIndex(p => p.id === remItem.id || (p.nomor_lp && p.nomor_lp === remItem.nomor_lp && remItem.nomor_lp !== 'Menunggu Otorisasi Pusat'));
+              if (idx >= 0) {
+                projectDatabase[idx] = Object.assign(projectDatabase[idx], remItem);
+              } else {
+                projectDatabase.push(remItem);
+              }
+            });
+
+            simpanDatabaseLokal();
+          }
+
+          // Update Status UI
+          if (syncBadge) {
+            syncBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>Cloud Sync: DB_PENUGASAN_JO_NSR</span>`;
+            syncBadge.className = "hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800 text-[11px] font-mono text-emerald-300 font-semibold shadow-inner";
+          }
+
+          if (counterBadge) {
+            counterBadge.textContent = serverCounter.LAST_NO_ADM_JO || 415;
+          }
+
+          updateNomorOtomatisPreview();
+          renderDashboardTabel();
+
+          if (!isSilent) {
+            alert(`Sinkronisasi Google Spreadsheet Berhasil!\n\n• Database: DB_PENUGASAN_JO_NSR\n• Counter Terakhir (JO/SPK): ${serverCounter.LAST_NO_ADM_JO || 415}\n• Total Penugasan Tersinkron: ${projectDatabase.length} data`);
+          }
+        }
+      } catch (err) {
+        console.warn("Sinkronisasi server offline / fallback ke lokal:", err);
+        if (syncBadge) {
+          syncBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Local Cache (${projectDatabase.length})</span>`;
+          syncBadge.className = "hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-950/60 border border-amber-800 text-[11px] font-mono text-amber-300 font-semibold shadow-inner";
+        }
+        if (!isSilent) {
+          alert(`Koneksi Server Beroperasi Dalam Mode Cache Lokal.\nJumlah arsip tersimpan: ${projectDatabase.length} data penugasan.`);
+        }
+      } finally {
+        if (syncBtn && !isSilent) {
+          syncBtn.innerHTML = `
+            <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Sinkronkan Server</span>
+          `;
+        }
+      }
     }
 
     // ==========================================================
@@ -2867,6 +3274,9 @@
       hitungTotalSLA();
 
       periksaSesiLogin();
+
+      // Sinkronisasi data live dari Google Spreadsheet di latar belakang
+      sinkronisasiDataServer(true);
     });
   </script>
 </body>
