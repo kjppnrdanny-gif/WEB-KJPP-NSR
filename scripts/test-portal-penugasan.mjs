@@ -518,6 +518,150 @@ async function runTests() {
     console.log(`✓ Admin Pusat terverifikasi: Input editable (readOnly === false), format nomor bersih '${pstRes.lpValAfterReset}', dan proteksi edit manual aktif!`);
 
     // ------------------------------------------------------------------
+    // TEST 3C: Jenis Laporan (APP vs RTL), Ketik Cepat & Proteksi Anti-Double
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 3C: portal-penugasan-jo.html - Uji Jenis Laporan (APP vs RTL) & Proteksi Anti-Double ---');
+    const testJenisLaporanAndAntiDouble = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          resetFormulir(true);
+          const elJenis = document.getElementById('jenis_laporan');
+          const elLp = document.getElementById('no_lingkup_penugasan');
+          const elAdm = document.getElementById('no_adm_jo');
+          const warnEl = document.getElementById('warning-duplikat-nomor');
+          const btnSubmit = document.getElementById('btn-submit-form');
+
+          // 1. Uji pilihan RTL
+          elJenis.value = 'RTL';
+          elJenis.dispatchEvent(new Event('change', { bubbles: true }));
+          const valRTL = elLp.value;
+          const isRTLFormat = valRTL.includes('/NSR/PN-RTL/');
+
+          // 2. Uji kembalikan ke APP
+          elJenis.value = 'APP';
+          elJenis.dispatchEvent(new Event('change', { bubbles: true }));
+          const valAPP = elLp.value;
+          const isAPPFormat = valAPP.includes('/NSR/PN-APP/');
+
+          // 3. Uji Kemudahan Ketik Cepat (Smart Auto-Format): ketik '999' lalu blur
+          elLp.value = '999';
+          elLp.dispatchEvent(new Event('blur', { bubbles: true }));
+          const valAfterSmartFormat = elLp.value;
+          const isSmartFormatted = valAfterSmartFormat.startsWith('0999/NSR/PN-APP/');
+
+          // 4. Uji Proteksi Anti-Double (Nomor urut 0415 sudah dipakai di SEED_PROJECTS)
+          elLp.value = '0415/NSR/PN-APP/X/2026';
+          elLp.dispatchEvent(new Event('input', { bubbles: true }));
+          validasiDuplikatLive();
+          const isWarnVisibleFor0415 = !warnEl.classList.contains('hidden');
+          const isSubmitBlockedFor0415 = btnSubmit.disabled;
+
+          // 5. Uji Proteksi Anti-Double (Ketik raw '415' juga harus terblokir)
+          elLp.value = '415';
+          elLp.dispatchEvent(new Event('input', { bubbles: true }));
+          validasiDuplikatLive();
+          const isWarnVisibleForRaw415 = !warnEl.classList.contains('hidden');
+
+          // 6. Uji Nomor Unik Bersih (Saran berikutnya): Warning harus hilang dan submit terbuka
+          const nextAvailableNum = (document.getElementById('helper-next-seq')?.textContent || '').replace(/[^0-9]/g, '') || '0418';
+          const cleanUniqueLp = nextAvailableNum + '/NSR/PN-APP/X/2026';
+          elLp.value = cleanUniqueLp;
+          elLp.dispatchEvent(new Event('input', { bubbles: true }));
+          validasiDuplikatLive();
+          const isWarnHiddenForClean = warnEl.classList.contains('hidden');
+          const isSubmitOpenForClean = !btnSubmit.disabled;
+
+          // 7. Uji Modal Approval Pusat di Tab 2
+          pindahTab('dashboard');
+          const dummyReqId = 'NSR-2026-REQ-9999';
+          projectDatabase.push({
+            id: dummyReqId,
+            status: 'WAITING_APPROVAL',
+            nomor_adm: 'Menunggu Input & Otorisasi Admin Pusat',
+            nomor_lp: 'Menunggu Input & Otorisasi Admin Pusat',
+            kantor_wilayah: 'Kantor Cabang Bandung',
+            mode_pengaju: 'CABANG',
+            tanggal_surat: '2026-10-14',
+            debitur_nama: 'PT TESTING DUMMY APPROVAL',
+            pemberi_tugas_nama: 'PT BANK TESTING'
+          });
+
+          approveProyekPusat(dummyReqId);
+          const modalAppr = document.getElementById('modal-approval-pusat');
+          const isModalApprOpen = modalAppr && !modalAppr.classList.contains('hidden');
+
+          const modalLpInput = document.getElementById('appr-nomor-lp');
+          const modalWarn = document.getElementById('appr-warning-duplikat');
+          const modalBtnConfirm = document.getElementById('btn-konfirmasi-approval');
+
+          // Ketik nomor 0415 di modal approval -> warning tampil & tombol terblokir
+          modalLpInput.value = '0415/NSR/PN-APP/X/2026';
+          validasiApprovalDuplikatLive();
+          const isModalWarnVisible = modalWarn && !modalWarn.classList.contains('hidden');
+          const isModalBtnBlocked = modalBtnConfirm && modalBtnConfirm.disabled;
+
+          // Ganti ke nomor unik saran berikutnya -> warning hilang & tombol aktif
+          modalLpInput.value = cleanUniqueLp;
+          validasiApprovalDuplikatLive();
+          const isModalWarnClean = modalWarn && modalWarn.classList.contains('hidden');
+          const isModalBtnReady = modalBtnConfirm && !modalBtnConfirm.disabled;
+
+          tutupModalApproval();
+          const isModalClosed = modalAppr && modalAppr.classList.contains('hidden');
+
+          // Bersihkan data dummy
+          projectDatabase = projectDatabase.filter(p => p.id !== dummyReqId);
+
+          return {
+            isRTLFormat,
+            valRTL,
+            isAPPFormat,
+            valAPP,
+            isSmartFormatted,
+            valAfterSmartFormat,
+            isWarnVisibleFor0415,
+            isSubmitBlockedFor0415,
+            isWarnVisibleForRaw415,
+            isWarnHiddenForClean,
+            isSubmitOpenForClean,
+            isModalApprOpen,
+            isModalWarnVisible,
+            isModalBtnBlocked,
+            isModalWarnClean,
+            isModalBtnReady,
+            isModalClosed,
+            cleanUniqueLp
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 3C (Jenis Laporan & Anti-Double):', testJenisLaporanAndAntiDouble.result.value);
+    const r3c = testJenisLaporanAndAntiDouble.result.value;
+    if (!r3c.isRTLFormat) throw new Error(`Pilihan RTL harus menghasilkan kode /NSR/PN-RTL/, didapat: ${r3c.valRTL}`);
+    if (!r3c.isAPPFormat) throw new Error(`Pilihan APP harus menghasilkan kode /NSR/PN-APP/, didapat: ${r3c.valAPP}`);
+    if (!r3c.isSmartFormatted) throw new Error(`Ketik cepat '999' harus otomatis terformat menjadi '0999/NSR/PN-APP/...', didapat: ${r3c.valAfterSmartFormat}`);
+    if (!r3c.isWarnVisibleFor0415 || !r3c.isSubmitBlockedFor0415) {
+      throw new Error('Sistem Anti-Double harus memunculkan warning visual dan memblokir submit ketika nomor 0415 (sudah ada) diinputkan!');
+    }
+    if (!r3c.isWarnVisibleForRaw415) {
+      throw new Error('Sistem Anti-Double harus mendeteksi nomor 415 mentah sebagai duplikat!');
+    }
+    if (!r3c.isWarnHiddenForClean || !r3c.isSubmitOpenForClean) {
+      throw new Error(`Peringatan duplikat harus hilang dan submit harus terbuka ketika nomor unik (${r3c.cleanUniqueLp}) dimasukkan!`);
+    }
+    if (!r3c.isModalApprOpen) throw new Error('Modal Approval Pusat harus terbuka saat tombol Approve diklik di Tab 2');
+    if (!r3c.isModalWarnVisible || !r3c.isModalBtnBlocked) {
+      throw new Error('Modal Approval Pusat harus memblokir konfirmasi dan memunculkan error saat nomor duplikat (0415) diinput!');
+    }
+    if (!r3c.isModalWarnClean || !r3c.isModalBtnReady) {
+      throw new Error('Modal Approval Pusat harus mengizinkan konfirmasi saat nomor unik dimasukkan!');
+    }
+    if (!r3c.isModalClosed) throw new Error('Modal Approval Pusat harus dapat ditutup dengan benar');
+    console.log('✓ Fitur Jenis Laporan (APP/RTL), Smart Auto-Format, Proteksi Anti-Double & Modal Approval Terverifikasi Sempurna!');
+
+    // ------------------------------------------------------------------
     // TEST 4: Kerahasiaan Komersial (Sensor Fee) untuk Penilai (NSR-PNL-2026)
     // ------------------------------------------------------------------
     console.log('\n--- TEST 4: Uji Kerahasiaan Komersial / Sensor Fee untuk Penilai (NSR-PNL-2026) ---');

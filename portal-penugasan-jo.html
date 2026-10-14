@@ -278,7 +278,7 @@
             <span>Wilayah Operasional &amp; Nomor Administrasi Resmi</span>
           </h3>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Kantor Wilayah Operasional <span class="text-rose-400">*</span></label>
               <select id="kantor_wilayah" required onchange="handleWilayahChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
@@ -296,13 +296,34 @@
             </div>
 
             <div>
+              <label class="block font-semibold text-slate-300 mb-1">Jenis Laporan Penilaian <span class="text-rose-400">*</span></label>
+              <select id="jenis_laporan" required onchange="handleJenisLaporanChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
+                <option value="APP" selected>Long Report — Kode: PN-APP (Laporan Lengkap)</option>
+                <option value="RTL">Short Report — Kode: PN-RTL (Laporan Ringkas / Retail)</option>
+              </select>
+            </div>
+
+            <div>
               <label class="block font-semibold text-slate-300 mb-1">No. Lingkup Penugasan (SPK)</label>
-              <input type="text" id="no_lingkup_penugasan" data-alias="nomor_lp" placeholder="Nomor Lingkup Penugasan" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400">
+              <input type="text" id="no_lingkup_penugasan" data-alias="nomor_lp" placeholder="Nomor Lingkup Penugasan" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400 transition">
+              <div id="helper-nomor-terakhir" class="text-[11px] text-slate-400 mt-1 flex flex-wrap items-center gap-1.5">
+                <span>ℹ️ Terakhir: <strong id="helper-last-seq" class="font-mono text-amber-400">[0415]</strong></span>
+                <span>• Saran: <strong id="helper-next-seq" class="font-mono text-emerald-400">[0416]</strong></span>
+                <button type="button" id="btn-gunakan-saran" onclick="terapkanSaranNomorUrut()" class="ml-1 px-1.5 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-mono text-[10px] font-bold transition">Gunakan 0416</button>
+              </div>
             </div>
 
             <div>
               <label class="block font-semibold text-slate-300 mb-1">No. Adm Job Order (JO)</label>
-              <input type="text" id="no_adm_jo" data-alias="nomor_adm" placeholder="Nomor Adm Job Order" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-sky-300 font-mono font-bold focus:outline-none focus:border-amber-400">
+              <input type="text" id="no_adm_jo" data-alias="nomor_adm" placeholder="Nomor Adm Job Order" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-sky-300 font-mono font-bold focus:outline-none focus:border-amber-400 transition">
+            </div>
+          </div>
+
+          <!-- Alert Peringatan Duplikat Nomor (Real-Time Visual Warning) -->
+          <div id="warning-duplikat-nomor" class="hidden mt-3 p-3 rounded-xl bg-rose-950/80 border border-rose-500 text-rose-200 text-xs font-semibold flex items-start gap-2.5 shadow-lg">
+            <svg class="w-5 h-5 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div id="warning-duplikat-nomor-text" class="flex-1 leading-relaxed">
+              ⚠️ PERINGATAN NOMOR DOUBLE / SUDAH TERPAKAI!
             </div>
           </div>
 
@@ -873,6 +894,76 @@
     </div>
   </div>
 
+  <!-- ========================================================
+       MODAL KONFIRMASI APPROVAL & INPUT NOMOR RESMI ADMIN PUSAT
+       ======================================================== -->
+  <div id="modal-approval-pusat" class="fixed inset-0 z-50 bg-slate-950/85 flex items-center justify-center p-4 backdrop-blur-sm hidden" role="dialog" aria-modal="true">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl text-xs space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white">Otorisasi &amp; Penerbitan Nomor Resmi Pusat</h3>
+            <p class="text-[11px] text-slate-400">Verifikasi penugasan dan tentukan nomor resmi yang diterbitkan.</p>
+          </div>
+        </div>
+        <button type="button" onclick="tutupModalApproval()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Info Proyek Singkat -->
+      <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-slate-300 text-[11px]">
+        <div class="flex justify-between"><span class="text-slate-400">ID Pengajuan:</span> <span id="appr-info-id" class="font-mono font-bold text-amber-400">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Debitur / Klien:</span> <span id="appr-info-debitur" class="font-bold text-white">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Kantor Wilayah:</span> <span id="appr-info-wilayah" class="text-sky-300">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Tanggal Surat:</span> <span id="appr-info-tanggal" class="font-mono text-slate-200">-</span></div>
+      </div>
+
+      <form id="form-approval-pusat" onsubmit="eksekusiApprovalPusatSubmit(event)" class="space-y-3.5">
+        <input type="hidden" id="appr-target-project-id" value="">
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Jenis Laporan Penilaian <span class="text-rose-400">*</span></label>
+          <select id="appr-jenis-laporan" onchange="handleApprovalJenisLaporanChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
+            <option value="APP">Long Report — Kode: PN-APP (Laporan Lengkap)</option>
+            <option value="RTL">Short Report — Kode: PN-RTL (Laporan Ringkas / Retail)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">No. Lingkup Penugasan (SPK) Resmi <span class="text-rose-400">*</span></label>
+          <input type="text" id="appr-nomor-lp" required oninput="validasiApprovalDuplikatLive()" onblur="formatApprovalNomorInputOtomatis()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400">
+          <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+            <span>ℹ️ Saran: <span id="appr-saran-seq" class="text-emerald-400 font-mono font-bold">0416</span></span>
+            <button type="button" onclick="gunakanSaranApprovalNomor()" class="text-[10px] text-emerald-400 hover:underline font-mono">Gunakan Nomor Saran</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">No. Adm Job Order (JO) Resmi <span class="text-rose-400">*</span></label>
+          <input type="text" id="appr-nomor-adm" required oninput="validasiApprovalDuplikatLive()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-sky-300 font-mono font-bold focus:outline-none focus:border-amber-400">
+        </div>
+
+        <!-- Warning Duplikat Approval -->
+        <div id="appr-warning-duplikat" class="hidden p-2.5 rounded-lg bg-rose-950/80 border border-rose-500 text-rose-200 text-xs font-semibold leading-relaxed">
+          ⚠️ Nomor sudah terpakai (Double)! Tidak dapat melakukan Approval dengan nomor ini.
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-3">
+          <button type="button" onclick="tutupModalApproval()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">
+            Batal
+          </button>
+          <button type="submit" id="btn-konfirmasi-approval" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg flex items-center gap-2">
+            <span>Setujui &amp; Terbitkan Nomor</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== JAVASCRIPT MASTER SISTEM ==================== -->
   <script>
     // ==========================================================
@@ -993,18 +1084,18 @@
       // Abaikan temporary request ID, format cabang, atau teks status
       if (s.includes('REQ') || s.includes('Menunggu') || s.includes('Bebas') || s.includes('Auto')) return 0;
       if (s.includes('/')) {
-        const seg = s.split('/')[0].trim();
+        const seg = s.split('/')[0].replace(/\D/g, '');
         const num = parseInt(seg, 10);
         return (!isNaN(num) && num < 100000) ? num : 0;
       }
       if (s.includes('-')) {
         // Ambil hanya segmen terakhir setelah tanda hubung terakhir (contoh "NSR-2026-0415" -> "0415")
         const parts = s.split('-');
-        const lastSeg = parts[parts.length - 1].trim();
+        const lastSeg = parts[parts.length - 1].replace(/\D/g, '');
         const num = parseInt(lastSeg, 10);
         return (!isNaN(num) && num < 100000) ? num : 0;
       }
-      const num = parseInt(s, 10);
+      const num = parseInt(s.replace(/\D/g, ''), 10);
       return (!isNaN(num) && num < 100000) ? num : 0;
     }
 
@@ -1014,15 +1105,399 @@
       if (elLp && !elLp._hasManualListener) {
         elLp.addEventListener('input', () => {
           elLp.dataset.manualEdited = "true";
+          validasiDuplikatLive();
+        });
+        elLp.addEventListener('blur', () => {
+          formatNomorInputOtomatis();
         });
         elLp._hasManualListener = true;
       }
       if (elAdm && !elAdm._hasManualListener) {
         elAdm.addEventListener('input', () => {
           elAdm.dataset.manualEdited = "true";
+          validasiDuplikatLive();
         });
         elAdm._hasManualListener = true;
       }
+    }
+
+    function handleJenisLaporanChange() {
+      const elLp = getElLp();
+      const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
+      const targetCode = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
+
+      if (elLp && elLp.value) {
+        if (elLp.value.includes('PN-APP') || elLp.value.includes('PN-RTL')) {
+          elLp.value = elLp.value.replace(/PN-(APP|RTL)/, targetCode);
+        } else if (elLp.dataset.manualEdited !== "true") {
+          updateNomorOtomatisPreview();
+        }
+      } else {
+        updateNomorOtomatisPreview();
+      }
+      validasiDuplikatLive();
+    }
+
+    function formatNomorInputOtomatis() {
+      const elLp = getElLp();
+      const elAdm = getElAdm();
+      if (!elLp) return;
+
+      const rawVal = elLp.value.trim();
+      if (!rawVal) return;
+
+      const numOnlyMatch = rawVal.match(/^(\d{1,5})$/);
+      const tglStr = document.getElementById('tanggal_surat')?.value || new Date().toISOString().split('T')[0];
+      const d = new Date(tglStr);
+      const romawi = getBulanRomawi(d);
+      const thn = d.getFullYear() || 2026;
+      const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
+      const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
+
+      if (numOnlyMatch) {
+        const seqNum = parseInt(numOnlyMatch[1], 10);
+        const numPadded = String(seqNum).padStart(4, '0');
+
+        if (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT") {
+          elLp.value = `${numPadded}/NSR/${kodeLap}/${romawi}/${thn}`;
+          elLp.dataset.manualEdited = "true";
+          if (elAdm && elAdm.dataset.manualEdited !== "true") {
+            elAdm.value = `${numPadded}/JO/NSR/${romawi}/${thn}`;
+          }
+        } else if (currentModeAlur === 'PRIVATE_CABANG') {
+          const code = getKodeCabang(userSession.wilayah);
+          elLp.value = `${numPadded}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
+          elLp.dataset.manualEdited = "true";
+          if (elAdm && elAdm.dataset.manualEdited !== "true") {
+            elAdm.value = `${code}-${numPadded}`;
+          }
+        }
+      } else if (rawVal.includes('/')) {
+        if (rawVal.includes('PN-APP') && jenisLap === 'RTL') {
+          elLp.value = rawVal.replace('PN-APP', 'PN-RTL');
+        } else if (rawVal.includes('PN-RTL') && jenisLap === 'APP') {
+          elLp.value = rawVal.replace('PN-RTL', 'PN-APP');
+        }
+      }
+
+      validasiDuplikatLive();
+    }
+
+    function terapkanSaranNomorUrut() {
+      const btnSaran = document.getElementById('btn-gunakan-saran');
+      const nextNum = btnSaran?.dataset.saran || document.getElementById('helper-next-seq')?.textContent?.replace(/\D/g, '') || '0416';
+      const elLp = getElLp();
+      const elAdm = getElAdm();
+      const tglStr = document.getElementById('tanggal_surat')?.value || new Date().toISOString().split('T')[0];
+      const d = new Date(tglStr);
+      const romawi = getBulanRomawi(d);
+      const thn = d.getFullYear() || 2026;
+      const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
+      const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
+
+      if (elLp) {
+        if (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT") {
+          elLp.value = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
+        } else if (currentModeAlur === 'PRIVATE_CABANG') {
+          const code = getKodeCabang(userSession.wilayah);
+          elLp.value = `${nextNum}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
+        }
+        delete elLp.dataset.manualEdited;
+      }
+      if (elAdm) {
+        if (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT") {
+          elAdm.value = `${nextNum}/JO/NSR/${romawi}/${thn}`;
+        } else if (currentModeAlur === 'PRIVATE_CABANG') {
+          const code = getKodeCabang(userSession.wilayah);
+          elAdm.value = `${code}-${nextNum}`;
+        }
+        delete elAdm.dataset.manualEdited;
+      }
+      validasiDuplikatLive();
+    }
+
+    function cekDuplikasiNomor(noLPInput, noJOInput, currentProjectId) {
+      if (!noLPInput && !noJOInput) return { isDuplicate: false };
+
+      const normLP = String(noLPInput || '').trim().toUpperCase();
+      const normJO = String(noJOInput || '').trim().toUpperCase();
+
+      if (normLP.includes('MENUNGGU') || normLP.includes('BEBAS') || normLP.includes('AUTO')) {
+        return { isDuplicate: false };
+      }
+
+      const seqLP = extractSeqNumber(normLP);
+      const seqJO = extractSeqNumber(normJO);
+
+      const tglStr = document.getElementById('tanggal_surat')?.value || new Date().toISOString().split('T')[0];
+      const targetYear = new Date(tglStr).getFullYear() || 2026;
+
+      const combined = [...projectDatabase];
+      if (typeof ambilDataPrivatCabang === 'function' && userSession && userSession.wilayah) {
+        const localList = ambilDataPrivatCabang(userSession.wilayah);
+        localList.forEach(item => {
+          if (!combined.some(x => x.id === item.id)) combined.push(item);
+        });
+      }
+
+      for (const p of combined) {
+        if (currentProjectId && p.id === currentProjectId) continue;
+        if (p.status !== 'APPROVED' && p.mode_pengaju !== 'PUSAT') continue;
+
+        const pYear = new Date(p.tanggal_surat || p.tgl_dibuat || new Date()).getFullYear() || 2026;
+        if (pYear !== targetYear) continue;
+
+        const pLP = String(p.nomor_lp || '').trim().toUpperCase();
+        const pJO = String(p.nomor_adm || '').trim().toUpperCase();
+
+        // 1. Cek Exact String
+        if (normLP && pLP && normLP === pLP) {
+          return {
+            isDuplicate: true,
+            duplicateItem: p,
+            matchedSeq: seqLP,
+            reason: `Nomor Lingkup Penugasan [${normLP}] sama persis dengan yang sudah terdaftar`
+          };
+        }
+        if (normJO && pJO && normJO === pJO) {
+          return {
+            isDuplicate: true,
+            duplicateItem: p,
+            matchedSeq: seqJO,
+            reason: `Nomor Adm JO [${normJO}] sama persis dengan yang sudah terdaftar`
+          };
+        }
+
+        // 2. Cek Buku Nomor Gabungan (Buku nomor 4 digit sama di alur Pusat untuk PN-APP maupun PN-RTL)
+        const pSeqLP = extractSeqNumber(pLP);
+        const pSeqJO = extractSeqNumber(pJO);
+
+        if (seqLP > 0 && pSeqLP > 0 && seqLP === pSeqLP) {
+          return {
+            isDuplicate: true,
+            duplicateItem: p,
+            matchedSeq: seqLP,
+            reason: `Nomor urut [${String(seqLP).padStart(4, '0')}] (${p.nomor_lp}) sudah terpakai di buku nomor ${targetYear}`
+          };
+        }
+        if (seqJO > 0 && pSeqJO > 0 && seqJO === pSeqJO) {
+          return {
+            isDuplicate: true,
+            duplicateItem: p,
+            matchedSeq: seqJO,
+            reason: `Nomor urut JO [${String(seqJO).padStart(4, '0')}] (${p.nomor_adm}) sudah terpakai di buku nomor ${targetYear}`
+          };
+        }
+      }
+
+      return { isDuplicate: false };
+    }
+
+    function validasiDuplikatLive() {
+      const elLp = getElLp();
+      const elAdm = getElAdm();
+      const warnDiv = document.getElementById('warning-duplikat-nomor');
+      const warnText = document.getElementById('warning-duplikat-nomor-text');
+      const btnSubmit = document.getElementById('btn-submit-form');
+
+      if (!elLp) return true;
+
+      const currentProjectId = window.editingProjectId || null;
+      const lpVal = elLp.value.trim();
+      const admVal = elAdm ? elAdm.value.trim() : '';
+
+      if (userSession.mode !== "PUSAT" && currentModeAlur === "CENTRAL_APPROVAL") {
+        if (warnDiv) warnDiv.classList.add('hidden');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        elLp.classList.remove('border-rose-500', 'bg-rose-950/40', 'text-rose-200');
+        return true;
+      }
+
+      const check = cekDuplikasiNomor(lpVal, admVal, currentProjectId);
+
+      if (check.isDuplicate) {
+        elLp.classList.add('border-rose-500', 'bg-rose-950/40', 'text-rose-200');
+        if (warnDiv && warnText) {
+          const p = check.duplicateItem || {};
+          const deb = p.debitur_nama || p.Nama_Debitur_Utama || 'Debitur Terdaftar';
+          const cl = p.pemberi_tugas_nama || p.Nama_Pemberi_Tugas || '-';
+          const seqStr = String(check.matchedSeq || '').padStart(4, '0');
+          const noRef = p.nomor_lp || p.nomor_adm || '';
+          warnText.innerHTML = `⚠️ <strong>PERINGATAN NOMOR DOUBLE / SUDAH TERPAKAI!</strong> Nomor urut <strong>[${seqStr}]</strong> (<code>${noRef}</code>) sudah digunakan pada penugasan Debitur: <strong>${deb}</strong> (${cl}). Sistem mengunci penyimpanan, silakan gunakan nomor lain!`;
+          warnDiv.classList.remove('hidden');
+        }
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        return false;
+      } else {
+        elLp.classList.remove('border-rose-500', 'bg-rose-950/40', 'text-rose-200');
+        if (warnDiv) warnDiv.classList.add('hidden');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        return true;
+      }
+    }
+
+    function handleApprovalJenisLaporanChange() {
+      const jenis = document.getElementById('appr-jenis-laporan').value;
+      const targetCode = (jenis === 'RTL') ? 'PN-RTL' : 'PN-APP';
+      const elLp = document.getElementById('appr-nomor-lp');
+      if (elLp && elLp.value) {
+        if (elLp.value.includes('PN-APP') || elLp.value.includes('PN-RTL')) {
+          elLp.value = elLp.value.replace(/PN-(APP|RTL)/, targetCode);
+        }
+      }
+      validasiApprovalDuplikatLive();
+    }
+
+    function formatApprovalNomorInputOtomatis() {
+      const elLp = document.getElementById('appr-nomor-lp');
+      const elAdm = document.getElementById('appr-nomor-adm');
+      if (!elLp) return;
+      const rawVal = elLp.value.trim();
+      const match = rawVal.match(/^(\d{1,5})$/);
+      if (match) {
+        const seq = parseInt(match[1], 10);
+        const pad = String(seq).padStart(4, '0');
+        const pId = document.getElementById('appr-target-project-id').value;
+        const p = projectDatabase.find(item => item.id === pId);
+        const d = new Date((p && (p.tanggal_surat || p.tgl_dibuat)) || new Date());
+        const romawi = getBulanRomawi(d);
+        const thn = d.getFullYear() || 2026;
+        const jenis = document.getElementById('appr-jenis-laporan').value;
+        const kodeLap = (jenis === 'RTL') ? 'PN-RTL' : 'PN-APP';
+        elLp.value = `${pad}/NSR/${kodeLap}/${romawi}/${thn}`;
+        if (elAdm) {
+          elAdm.value = `${pad}/JO/NSR/${romawi}/${thn}`;
+        }
+      }
+      validasiApprovalDuplikatLive();
+    }
+
+    function validasiApprovalDuplikatLive() {
+      const elLp = document.getElementById('appr-nomor-lp');
+      const elAdm = document.getElementById('appr-nomor-adm');
+      const warnDiv = document.getElementById('appr-warning-duplikat');
+      const btnSubmit = document.getElementById('btn-konfirmasi-approval');
+      const pId = document.getElementById('appr-target-project-id').value;
+
+      if (!elLp) return true;
+
+      const lpVal = elLp.value.trim();
+      const admVal = elAdm ? elAdm.value.trim() : '';
+
+      const check = cekDuplikasiNomor(lpVal, admVal, pId);
+      if (check.isDuplicate) {
+        elLp.classList.add('border-rose-500', 'bg-rose-950/40', 'text-rose-200');
+        if (warnDiv) {
+          const p = check.duplicateItem || {};
+          const deb = p.debitur_nama || p.Nama_Debitur_Utama || 'Debitur';
+          warnDiv.innerHTML = `⚠️ <strong>Nomor sudah terpakai (Double)!</strong> Tidak dapat melakukan Approval dengan nomor ini (Terpakai di Debitur: <strong>${deb}</strong>). Silakan ganti ke nomor yang unik.`;
+          warnDiv.classList.remove('hidden');
+        }
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        return false;
+      } else {
+        elLp.classList.remove('border-rose-500', 'bg-rose-950/40', 'text-rose-200');
+        if (warnDiv) warnDiv.classList.add('hidden');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        return true;
+      }
+    }
+
+    function tutupModalApproval() {
+      const modal = document.getElementById('modal-approval-pusat');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function gunakanSaranApprovalNomor() {
+      const pId = document.getElementById('appr-target-project-id').value;
+      const p = projectDatabase.find(item => item.id === pId);
+      const d = new Date((p && (p.tanggal_surat || p.tgl_dibuat)) || new Date());
+      const romawi = getBulanRomawi(d);
+      const thn = d.getFullYear() || 2026;
+      const jenis = document.getElementById('appr-jenis-laporan').value;
+      const kodeLap = (jenis === 'RTL') ? 'PN-RTL' : 'PN-APP';
+
+      const cLp = parseInt(String(serverCounter.LAST_NO_LP_SPK || 415).trim(), 10);
+      const cAdm = parseInt(String(serverCounter.LAST_NO_ADM_JO || 415).trim(), 10);
+      let maxCounter = Math.max(isNaN(cLp) ? 415 : cLp, isNaN(cAdm) ? 415 : cAdm);
+      if (maxCounter >= 100000) maxCounter = 415;
+
+      projectDatabase.forEach(item => {
+        if (item.status === "APPROVED") {
+          const numAdm = extractSeqNumber(item.nomor_adm);
+          if (numAdm > maxCounter) maxCounter = numAdm;
+          const numLp = extractSeqNumber(item.nomor_lp);
+          if (numLp > maxCounter) maxCounter = numLp;
+        }
+      });
+      const nextVal = maxCounter + 1;
+      const nextNum = nextVal.toString().padStart(4, '0');
+
+      document.getElementById('appr-nomor-lp').value = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
+      document.getElementById('appr-nomor-adm').value = `${nextNum}/JO/NSR/${romawi}/${thn}`;
+      validasiApprovalDuplikatLive();
+    }
+
+    function eksekusiApprovalPusatSubmit(event) {
+      if (event) event.preventDefault();
+      const pId = document.getElementById('appr-target-project-id').value;
+      const p = projectDatabase.find(item => item.id === pId);
+      if (!p) {
+        alert("Data penugasan tidak ditemukan.");
+        return;
+      }
+
+      if (!validasiApprovalDuplikatLive()) {
+        alert("Approval Ditolak: Nomor Lingkup Penugasan atau JO yang dimasukkan sudah digunakan (Double). Mohon ganti dengan nomor lain!");
+        return;
+      }
+
+      const finalLp = document.getElementById('appr-nomor-lp').value.trim();
+      const finalAdm = document.getElementById('appr-nomor-adm').value.trim();
+      const finalJenis = document.getElementById('appr-jenis-laporan').value;
+
+      p.nomor_lp = finalLp;
+      p.nomor_adm = finalAdm;
+      p.jenis_laporan = finalJenis;
+      p.status = "APPROVED";
+      p.approved_at = new Date().toISOString();
+      p.disetujui_oleh = `Admin Pusat (${userSession.token || 'NSR-PST-2026'})`;
+
+      const usedSeq = extractSeqNumber(finalAdm) || extractSeqNumber(finalLp);
+      if (usedSeq > 0) {
+        const cLp = parseInt(String(serverCounter.LAST_NO_LP_SPK || 415).trim(), 10) || 415;
+        const cAdm = parseInt(String(serverCounter.LAST_NO_ADM_JO || 415).trim(), 10) || 415;
+        const maxVal = Math.max(cLp, cAdm, usedSeq);
+        serverCounter.LAST_NO_ADM_JO = maxVal;
+        serverCounter.LAST_NO_LP_SPK = maxVal;
+        const badgeCounter = document.getElementById('counter-val-badge');
+        if (badgeCounter) badgeCounter.textContent = maxVal;
+      }
+
+      simpanDatabaseLokal();
+      renderDashboardTabel();
+
+      tutupModalApproval();
+
+      // Kirim approval ke GAS
+      kirimDataKeGasServer('APPROVE_SUBMISSION', p);
+
+      alert(`Nomor Resmi Berhasil Diterbitkan!\n\n• No. Lingkup Penugasan (SPK): ${p.nomor_lp}\n• No. Adm JO: ${p.nomor_adm}\n• Status: APPROVED`);
     }
 
     // ==========================================================
@@ -1082,6 +1557,7 @@
         status: "APPROVED",
         nomor_adm: "0415/JO/NSR/X/2026",
         nomor_lp: "0415/NSR/PN-APP/X/2026",
+        jenis_laporan: "APP",
         kantor_wilayah: "Kantor Pusat Jakarta",
         mode_pengaju: "PUSAT",
         tanggal_surat: "2026-10-14",
@@ -1753,12 +2229,14 @@
         const dSurat = new Date(document.getElementById('tanggal_surat').value || new Date());
         const romawi = getBulanRomawi(dSurat);
         const thn = dSurat.getFullYear() || 2026;
+        const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
+        const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
 
         if (noLpInput) {
-          noLpInput.placeholder = `Bebas / Auto: ${seq}/NSR-${code}/PN-APP/${romawi}/${thn}`;
+          noLpInput.placeholder = `Bebas / Auto: ${seq}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
           if (noLpInput.dataset.manualEdited !== "true") {
             if (!noLpInput.value || noLpInput.value.includes('Menunggu')) {
-              noLpInput.value = `${seq}/NSR-${code}/PN-APP/${romawi}/${thn}`;
+              noLpInput.value = `${seq}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
             }
           }
         }
@@ -1795,7 +2273,7 @@
           noLpInput.disabled = false;
           noLpInput.classList.add('bg-slate-950/80');
           noLpInput.classList.remove('bg-slate-950');
-          noLpInput.value = "Menunggu Otorisasi Pusat";
+          noLpInput.value = "Menunggu Input & Otorisasi Admin Pusat";
           noLpInput.placeholder = "Otomatis dari Otorisasi Pusat";
           delete noLpInput.dataset.manualEdited;
         }
@@ -1804,7 +2282,7 @@
           noAdmInput.disabled = false;
           noAdmInput.classList.add('bg-slate-950/80');
           noAdmInput.classList.remove('bg-slate-950');
-          noAdmInput.value = "Menunggu Otorisasi Pusat";
+          noAdmInput.value = "Menunggu Input & Otorisasi Admin Pusat";
           noAdmInput.placeholder = "Otomatis dari Otorisasi Pusat";
           delete noAdmInput.dataset.manualEdited;
         }
@@ -2349,8 +2827,21 @@
         });
         const nextVal = maxCounter + 1;
         const nextNum = nextVal.toString().padStart(4, '0');
-        const autoLp = `${nextNum}/NSR/PN-APP/${romawi}/${thn}`;
+        const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
+        const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
+        const autoLp = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
         const autoAdm = `${nextNum}/JO/NSR/${romawi}/${thn}`;
+
+        // Update helper badge
+        const elLastSeq = document.getElementById('helper-last-seq');
+        const elNextSeq = document.getElementById('helper-next-seq');
+        const btnSaran = document.getElementById('btn-gunakan-saran');
+        if (elLastSeq) elLastSeq.textContent = `[${String(maxCounter).padStart(4, '0')}]`;
+        if (elNextSeq) elNextSeq.textContent = `[${nextNum}]`;
+        if (btnSaran) {
+          btnSaran.textContent = `Gunakan ${nextNum}`;
+          btnSaran.dataset.saran = nextNum;
+        }
 
         if (elLp) {
           elLp.readOnly = false;
@@ -2377,7 +2868,9 @@
           const code = getKodeCabang(userSession.wilayah);
           const localList = ambilDataPrivatCabang(userSession.wilayah);
           const seq = (localList.length + 1).toString().padStart(4, '0');
-          const autoLp = `${seq}/NSR-${code}/PN-APP/${romawi}/${thn}`;
+          const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
+          const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
+          const autoLp = `${seq}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
           const autoAdm = `${code}-${seq}`;
 
           if (elLp) {
@@ -2410,7 +2903,7 @@
             elLp.disabled = false;
             elLp.classList.remove('bg-slate-950');
             elLp.classList.add('bg-slate-950/80');
-            elLp.value = "Menunggu Otorisasi Pusat";
+            elLp.value = "Menunggu Input & Otorisasi Admin Pusat";
             elLp.placeholder = "Otomatis dari Otorisasi Pusat";
             delete elLp.dataset.manualEdited;
           }
@@ -2419,12 +2912,13 @@
             elAdm.disabled = false;
             elAdm.classList.remove('bg-slate-950');
             elAdm.classList.add('bg-slate-950/80');
-            elAdm.value = "Menunggu Otorisasi Pusat";
+            elAdm.value = "Menunggu Input & Otorisasi Admin Pusat";
             elAdm.placeholder = "Otomatis dari Otorisasi Pusat";
             delete elAdm.dataset.manualEdited;
           }
         }
       }
+      validasiDuplikatLive();
     }
 
     // ==========================================================
@@ -2490,10 +2984,18 @@
         return;
       }
 
+      // Guard Anti-Double: Blokir keras jika nomor duplikat
+      if (!validasiDuplikatLive()) {
+        alert("Penyimpanan Dibatalkan (Nomor Double): Nomor Lingkup Penugasan atau JO tersebut sudah terdaftar di sistem. Mohon gunakan nomor urut yang belum digunakan!");
+        return;
+      }
+
       const tglStr = document.getElementById('tanggal_surat').value;
       const d = new Date(tglStr);
       const romawi = getBulanRomawi(d);
       const thn = d.getFullYear() || 2026;
+      const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
+      const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
 
       const isPusat = (userSession.mode === "PUSAT");
       const isPrivateCabang = (!isPusat && currentModeAlur === 'PRIVATE_CABANG');
@@ -2527,7 +3029,7 @@
         const rawLp = (getElLp()?.value || '').trim();
         const rawAdm = (getElAdm()?.value || '').trim();
 
-        noLp = (rawLp && !rawLp.includes('Menunggu')) ? rawLp : `${nextNum}/NSR/PN-APP/${romawi}/${thn}`;
+        noLp = (rawLp && !rawLp.includes('Menunggu')) ? rawLp : `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
         noAdm = (rawAdm && !rawAdm.includes('Menunggu')) ? rawAdm : `${nextNum}/JO/NSR/${romawi}/${thn}`;
 
         const usedSeq = extractSeqNumber(noAdm) || extractSeqNumber(noLp) || nextVal;
@@ -2549,7 +3051,7 @@
         let rawAdm = (getElAdm()?.value || '').trim();
 
         if (!rawLp || rawLp.includes('Menunggu')) {
-          noLp = `${seq}/NSR-${code}/PN-APP/${romawi}/${thn}`;
+          noLp = `${seq}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
         } else {
           noLp = rawLp;
         }
@@ -2563,8 +3065,8 @@
         projectId = `NSR-${code}-${thn}-${seq}`;
       } else {
         // ALUR 1: CENTRAL_APPROVAL
-        noAdm = "Menunggu Otorisasi Pusat";
-        noLp = "Menunggu Otorisasi Pusat";
+        noAdm = "Menunggu Input & Otorisasi Admin Pusat";
+        noLp = "Menunggu Input & Otorisasi Admin Pusat";
         projectId = `NSR-${thn}-REQ-${Date.now().toString().slice(-4)}`;
       }
 
@@ -2587,6 +3089,7 @@
         status: projectStatus,
         nomor_adm: noAdm,
         nomor_lp: noLp,
+        jenis_laporan: jenisLap,
         kantor_wilayah: document.getElementById('kantor_wilayah').value,
         mode_pengaju: userSession.mode,
         is_private: isPrivateCabang,
@@ -2689,17 +3192,18 @@
     }
 
     function approveProyekPusat(projectId) {
-      if (userSession.mode !== "PUSAT") {
+      if (userSession.mode !== "PUSAT" && userSession.role !== "ADMIN_PUSAT") {
         alert("Otorisasi ditolak. Hanya akun ber-Token Pusat yang berhak menerbitkan nomor resmi.");
         return;
       }
 
       const p = projectDatabase.find(item => item.id === projectId);
-      if (!p) return;
+      if (!p) {
+        alert("Data penugasan tidak ditemukan.");
+        return;
+      }
 
-      if (!confirm(`Konfirmasi Approval & Penerbitan Nomor Resmi untuk debitur:\n${p.debitur_nama}?`)) return;
-
-      const d = new Date(p.tanggal_surat || new Date());
+      const d = new Date(p.tanggal_surat || p.tgl_dibuat || new Date());
       const romawi = getBulanRomawi(d);
       const thn = d.getFullYear() || 2026;
 
@@ -2710,7 +3214,7 @@
       if (maxCounter >= 100000) maxCounter = 415;
 
       projectDatabase.forEach(item => {
-        if (item.status === "APPROVED") {
+        if (item.status === "APPROVED" || item.mode_pengaju === "PUSAT") {
           const numAdm = extractSeqNumber(item.nomor_adm);
           if (numAdm > maxCounter) maxCounter = numAdm;
           const numLp = extractSeqNumber(item.nomor_lp);
@@ -2725,24 +3229,34 @@
       const nextVal = maxCounter + 1;
       const nextNum = nextVal.toString().padStart(4, '0');
 
-      p.nomor_adm = `${nextNum}/JO/NSR/${romawi}/${thn}`;
-      p.nomor_lp = `${nextNum}/NSR/PN-APP/${romawi}/${thn}`;
-      p.status = "APPROVED";
-      p.approved_at = new Date().toISOString();
-      p.disetujui_oleh = `Admin Pusat (${userSession.token || 'NSR-PST-2026'})`;
+      let defaultJenis = 'APP';
+      if (p.jenis_laporan === 'RTL' || (p.nomor_lp && p.nomor_lp.includes('PN-RTL'))) {
+        defaultJenis = 'RTL';
+      }
+      const kodeLap = (defaultJenis === 'RTL') ? 'PN-RTL' : 'PN-APP';
 
-      serverCounter.LAST_NO_ADM_JO = nextVal;
-      serverCounter.LAST_NO_LP_SPK = nextVal;
-      const badgeCounter = document.getElementById('counter-val-badge');
-      if (badgeCounter) badgeCounter.textContent = nextVal;
+      const modal = document.getElementById('modal-approval-pusat');
+      if (modal) {
+        document.getElementById('appr-target-project-id').value = p.id;
+        document.getElementById('appr-info-id').textContent = p.id;
+        document.getElementById('appr-info-debitur').textContent = p.debitur_nama || p.Nama_Debitur_Utama || '-';
+        document.getElementById('appr-info-wilayah').textContent = p.kantor_wilayah || p.Kantor_Wilayah || '-';
+        document.getElementById('appr-info-tanggal').textContent = formatTanggalIndo(p.tanggal_surat || p.tgl_dibuat);
 
-      simpanDatabaseLokal();
-      renderDashboardTabel();
+        const elJenis = document.getElementById('appr-jenis-laporan');
+        if (elJenis) elJenis.value = defaultJenis;
 
-      // Kirim approval ke GAS
-      kirimDataKeGasServer('APPROVE_SUBMISSION', p);
+        const elSaran = document.getElementById('appr-saran-seq');
+        if (elSaran) elSaran.textContent = nextNum;
 
-      alert(`Nomor Resmi Berhasil Diterbitkan!\n\n• No. Lingkup Penugasan (SPK): ${p.nomor_lp}\n• No. Adm JO: ${p.nomor_adm}\n• Counter Server: ${nextVal}`);
+        const elApprLp = document.getElementById('appr-nomor-lp');
+        const elApprAdm = document.getElementById('appr-nomor-adm');
+        if (elApprLp) elApprLp.value = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
+        if (elApprAdm) elApprAdm.value = `${nextNum}/JO/NSR/${romawi}/${thn}`;
+
+        modal.classList.remove('hidden');
+        validasiApprovalDuplikatLive();
+      }
     }
 
     function hapusProyek(projectId) {
@@ -4151,15 +4665,23 @@
       objekRows = [];
       tambahBarisObjek();
 
+      // Reset jenis_laporan ke APP
+      const elJenis = document.getElementById('jenis_laporan');
+      if (elJenis) elJenis.value = 'APP';
+
       // Bersihkan flag edit manual agar nomor preview otomatis dihitung ulang
       const elLp = getElLp();
       const elAdm = getElAdm();
-      if (elLp) delete elLp.dataset.manualEdited;
+      if (elLp) {
+        delete elLp.dataset.manualEdited;
+        elLp.classList.remove('border-rose-500', 'bg-rose-950/40', 'text-rose-200');
+      }
       if (elAdm) delete elAdm.dataset.manualEdited;
 
       // Kembalikan dropdown wilayah sesuai token cabang aktif & update pratinjau nomor
       setWilayahDropdown(userSession.wilayah);
       updateNomorOtomatisPreview();
+      validasiDuplikatLive();
     }
 
     function resetForm(skipConfirm) {

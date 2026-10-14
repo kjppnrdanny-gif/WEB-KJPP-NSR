@@ -336,6 +336,142 @@ function doPost(e) {
 // -----------------------------------------------------------------------------------------
 
 /**
+ * Ekstraksi angka urut bersih dari string nomor surat atau ID
+ */
+function extractSeq(val) {
+  if (!val) return 0;
+  const s = String(val).trim();
+  if (s.indexOf('MENUNGGU') !== -1 || s.indexOf('REQ') !== -1 || s.indexOf('BEBAS') !== -1 || s.indexOf('AUTO') !== -1) return 0;
+  if (s.indexOf('/') !== -1) {
+    const seg = s.split('/')[0].replace(/\D/g, '');
+    const n = parseInt(seg, 10);
+    return (!isNaN(n) && n < 100000) ? n : 0;
+  }
+  if (s.indexOf('-') !== -1) {
+    const parts = s.split('-');
+    const lastSeg = parts[parts.length - 1].replace(/\D/g, '');
+    const n = parseInt(lastSeg, 10);
+    return (!isNaN(n) && n < 100000) ? n : 0;
+  }
+  const n = parseInt(s.replace(/\D/g, ''), 10);
+  return (!isNaN(n) && n < 100000) ? n : 0;
+}
+
+/**
+ * Memeriksa duplikasi nomor urut 4 digit atau string nomor lengkap di sheet Data_Penugasan
+ */
+function cekDuplikasiBackend(sheetData, noLp, noAdm, currentProjectId, targetYear) {
+  if (!sheetData || sheetData.getLastRow() < 2) return null;
+
+  const strLp = String(noLp || '').trim().toUpperCase();
+  const strAdm = String(noAdm || '').trim().toUpperCase();
+
+  if (strLp.indexOf('MENUNGGU') !== -1 && strAdm.indexOf('MENUNGGU') !== -1) return null;
+
+  const seqLp = extractSeq(strLp);
+  const seqAdm = extractSeq(strAdm);
+
+  const numRows = sheetData.getLastRow() - 1;
+  const numCols = Math.min(sheetData.getLastColumn(), 44);
+  const data = sheetData.getRange(2, 1, numRows, numCols).getValues();
+
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    const rowId = String(row[0] || '').trim();
+    if (currentProjectId && rowId === String(currentProjectId).trim()) {
+      continue;
+    }
+
+    const rowStatus = String(row[2] || '').trim().toUpperCase();
+    const rowMode = String(row[4] || '').trim().toUpperCase();
+    if (rowStatus !== 'APPROVED' && rowMode !== 'PUSAT') {
+      continue;
+    }
+
+    const rowAdm = String(row[5] || '').trim().toUpperCase();
+    const rowLp = String(row[6] || '').trim().toUpperCase();
+    const rowDebitur = String(row[27] || row[17] || 'Debitur Terdaftar').trim();
+    const rowTgl = new Date(row[7] || row[1] || new Date());
+    const rowYear = rowTgl.getFullYear() || 2026;
+
+    if (targetYear && rowYear !== targetYear) {
+      continue;
+    }
+
+    // 1. Cek Exact String Match
+    if (strLp && rowLp && strLp === rowLp) {
+      return {
+        field: 'Nomor Lingkup Penugasan',
+        debitur: rowDebitur,
+        existingNumber: rowLp
+      };
+    }
+    if (strAdm && rowAdm && strAdm === rowAdm) {
+      return {
+        field: 'Nomor Adm JO',
+        debitur: rowDebitur,
+        existingNumber: rowAdm
+      };
+    }
+
+    // 2. Cek Buku Nomor Gabungan (4 digit urut sama di alur Pusat / nomor resmi untuk APP & RTL)
+    const rowSeqLp = extractSeq(rowLp);
+    const rowSeqAdm = extractSeq(rowAdm);
+
+    if (seqLp > 0 && rowSeqLp > 0 && seqLp === rowSeqLp) {
+      return {
+        field: 'Nomor Lingkup Penugasan [Nomor Urut ' + String(seqLp).padStart(4, '0') + ']',
+        debitur: rowDebitur,
+        existingNumber: rowLp
+      };
+    }
+    if (seqAdm > 0 && rowSeqAdm > 0 && seqAdm === rowSeqAdm) {
+      return {
+        field: 'Nomor Adm JO [Nomor Urut ' + String(seqAdm).padStart(4, '0') + ']',
+        debitur: rowDebitur,
+        existingNumber: rowAdm
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Memperbarui LAST_NO_LP_SPK dan LAST_NO_ADM_JO dengan nilai maksimum jika angka baru lebih besar
+ */
+function updateCounterMax(ss, newNumberInt) {
+  if (!newNumberInt || isNaN(newNumberInt) || newNumberInt <= 0 || newNumberInt >= 100000) return;
+  let sheetCounter = ss.getSheetByName(CONFIG.SHEET_COUNTER);
+  if (!sheetCounter) return;
+
+  const data = sheetCounter.getDataRange().getValues();
+  let rowAdm = -1;
+  let rowLp = -1;
+  let currentCounter = 415;
+
+  for (let i = 0; i < data.length; i++) {
+    const k = String(data[i][0]).trim();
+    if (k === 'LAST_NO_ADM_JO') {
+      rowAdm = i + 1;
+      currentCounter = Math.max(currentCounter, parseInt(data[i][1], 10) || 415);
+    } else if (k === 'LAST_NO_LP_SPK') {
+      rowLp = i + 1;
+      currentCounter = Math.max(currentCounter, parseInt(data[i][1], 10) || 415);
+    }
+  }
+
+  const finalCounter = Math.max(currentCounter, newNumberInt);
+
+  if (rowAdm !== -1) {
+    sheetCounter.getRange(rowAdm, 2).setValue(finalCounter);
+  }
+  if (rowLp !== -1) {
+    sheetCounter.getRange(rowLp, 2).setValue(finalCounter);
+  }
+}
+
+/**
  * Menyimpan pengajuan baru baik dari Cabang (WAITING_APPROVAL) maupun Pusat (APPROVED Langsung)
  */
 function prosesPengajuanBaru(ss, data, auth) {
@@ -348,17 +484,33 @@ function prosesPengajuanBaru(ss, data, auth) {
   const thn = dSurat.getFullYear();
 
   const isPusat = (auth.mode === 'PUSAT');
-  let noAdm = data.No_Adm_JO || data.nomor_adm || 'Menunggu Otorisasi Pusat';
-  let noLp = data.No_Lingkup_Penugasan || data.nomor_lp || 'Menunggu Otorisasi Pusat';
+  const jenisLap = (data.Jenis_Laporan || data.jenis_laporan || '').toUpperCase();
+  const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
+
+  let noAdm = data.No_Adm_JO || data.nomor_adm || 'Menunggu Input & Otorisasi Admin Pusat';
+  let noLp = data.No_Lingkup_Penugasan || data.nomor_lp || 'Menunggu Input & Otorisasi Admin Pusat';
   let status = isPusat ? 'APPROVED' : 'WAITING_APPROVAL';
 
   // Jika input langsung oleh Admin Pusat dan nomor belum dibuat, terbitkan nomor seketika
-  if (isPusat && (!noAdm || noAdm === 'Menunggu Otorisasi Pusat')) {
+  if (isPusat && (!noAdm || String(noAdm).indexOf('Menunggu') !== -1)) {
     const nextSeq = ambilDanKunciNomorUrut(ss, thn);
     const seqPadded = nextSeq.toString().padStart(4, '0');
     noAdm = nextSeq;
-    noLp = `${seqPadded}/NSR/PN-APP/${romawi}/${thn}`;
+    noLp = `${seqPadded}/NSR/${kodeLap}/${romawi}/${thn}`;
     status = 'APPROVED';
+  }
+
+  // PROTEKSI HARD-BLOCK: Cek Duplikasi Nomor
+  if (isPusat || (noLp && String(noLp).indexOf('Menunggu') === -1)) {
+    const duplikat = cekDuplikasiBackend(sheetData, noLp, noAdm, null, thn);
+    if (duplikat) {
+      return {
+        status: 'error',
+        success: false,
+        code: 'DUPLICATE_NUMBER',
+        message: 'GAGAL MENYIMPAN (NOMOR DOUBLE): ' + duplikat.field + ' tersebut sudah terdaftar atas nama debitur ' + duplikat.debitur + '. Gunakan nomor lain!'
+      };
+    }
   }
 
   const nextSeqStr = (typeof noAdm === 'number') ? noAdm.toString().padStart(4, '0') : now.getTime().toString().slice(-4);
@@ -433,6 +585,12 @@ function prosesPengajuanBaru(ss, data, auth) {
   const rowValues = HEADERS_DATA_PENUGASAN.map(h => rowMap[h] !== undefined ? rowMap[h] : '');
   sheetData.appendRow(rowValues);
 
+  // Perbarui counter jika ada nomor urut baru yang lebih tinggi
+  const usedSeq = extractSeq(noAdm) || extractSeq(noLp);
+  if (usedSeq > 0) {
+    updateCounterMax(ss, usedSeq);
+  }
+
   // Catat Log Aktivitas
   catatLogAktivitas(ss, projectId, isPusat ? 'DIRECT_APPROVAL_PUSAT' : 'SUBMIT_CABANG', auth.token, `Debitur: ${rowMap['Nama_Debitur_Utama']}`);
 
@@ -474,11 +632,29 @@ function prosesApprovalPusat(ss, projectId, incomingData, auth) {
   const romawi = getBulanRomawi(dSurat);
   const thn = dSurat.getFullYear();
 
-  // Ambil nomor urut secara atomik terlindungi lock
-  const nextSeq = ambilDanKunciNomorUrut(ss, thn);
-  const seqPadded = nextSeq.toString().padStart(4, '0');
-  const noAdm = nextSeq;
-  const noLp = `${seqPadded}/NSR/PN-APP/${romawi}/${thn}`;
+  let noAdm = incomingData && (incomingData.No_Adm_JO || incomingData.nomor_adm);
+  let noLp = incomingData && (incomingData.No_Lingkup_Penugasan || incomingData.nomor_lp);
+  const jenisLap = incomingData && (incomingData.Jenis_Laporan || incomingData.jenis_laporan);
+  const kodeLap = (jenisLap === 'RTL' || (noLp && String(noLp).indexOf('PN-RTL') !== -1)) ? 'PN-RTL' : 'PN-APP';
+
+  if (!noLp || String(noLp).indexOf('Menunggu') !== -1 || !noAdm || String(noAdm).indexOf('Menunggu') !== -1) {
+    const nextSeq = ambilDanKunciNomorUrut(ss, thn);
+    const seqPadded = nextSeq.toString().padStart(4, '0');
+    noAdm = nextSeq;
+    noLp = `${seqPadded}/NSR/${kodeLap}/${romawi}/${thn}`;
+  }
+
+  // PROTEKSI HARD-BLOCK: Cek Duplikasi Nomor pada Approval
+  const duplikat = cekDuplikasiBackend(sheetData, noLp, noAdm, projectId, thn);
+  if (duplikat) {
+    return {
+      status: 'error',
+      success: false,
+      code: 'DUPLICATE_NUMBER',
+      message: 'GAGAL MENYIMPAN (NOMOR DOUBLE): Nomor Lingkup Penugasan / JO tersebut sudah terdaftar atas nama debitur ' + duplikat.debitur + '. Gunakan nomor lain!'
+    };
+  }
+
   const nowIso = new Date().toISOString();
 
   // Update kolom di baris (1-indexed)
@@ -492,6 +668,12 @@ function prosesApprovalPusat(ss, projectId, incomingData, auth) {
   sheetData.getRange(rowIndex, 7).setValue(noLp);
   sheetData.getRange(rowIndex, 42).setValue(nowIso);
   sheetData.getRange(rowIndex, 43).setValue(`Admin Pusat (${auth.token})`);
+
+  // Perbarui counter jika nomor lebih besar
+  const usedSeq = extractSeq(noAdm) || extractSeq(noLp);
+  if (usedSeq > 0) {
+    updateCounterMax(ss, usedSeq);
+  }
 
   catatLogAktivitas(ss, projectId, 'APPROVAL_RESMI_PUSAT', auth.token, `Nomor resmi: ${noLp} & JO: ${noAdm}`);
 
@@ -526,6 +708,26 @@ function prosesUpdateData(ss, projectId, updateData, auth) {
   }
 
   if (rowIndex === -1) throw new Error('Data penugasan ' + projectId + ' tidak ditemukan.');
+
+  const newLp = updateData['No_Lingkup_Penugasan'] || updateData.nomor_lp;
+  const newAdm = updateData['No_Adm_JO'] || updateData.nomor_adm;
+  if (newLp || newAdm) {
+    const tgl = updateData['Tgl_Dibuat'] || updateData.tanggal_surat || new Date();
+    const thn = new Date(tgl).getFullYear() || 2026;
+    const duplikat = cekDuplikasiBackend(sheetData, newLp, newAdm, projectId, thn);
+    if (duplikat) {
+      return {
+        status: 'error',
+        success: false,
+        code: 'DUPLICATE_NUMBER',
+        message: 'GAGAL MENYIMPAN (NOMOR DOUBLE): Nomor Lingkup Penugasan / JO tersebut sudah terdaftar atas nama debitur ' + duplikat.debitur + '. Gunakan nomor lain!'
+      };
+    }
+    const usedSeq = extractSeq(newAdm) || extractSeq(newLp);
+    if (usedSeq > 0) {
+      updateCounterMax(ss, usedSeq);
+    }
+  }
 
   HEADERS_DATA_PENUGASAN.forEach((header, colIdx) => {
     if (updateData[header] !== undefined) {
