@@ -199,8 +199,8 @@
                 </button>
               </div>
               <div class="relative">
-                <input type="text" id="no_surat" name="no_surat" required oninput="handleInputNomorManual()"
-                  placeholder="0016/NSR/SU/X/2026"
+                <input type="text" id="no_surat" name="no_surat" required oninput="handleInputNomorManual()" onblur="formatNomorInputOtomatis()"
+                  placeholder="0016/NSR/SU-KET/X/2026"
                   class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono font-bold text-amber-300 focus:outline-none focus:border-amber-400 transition tracking-wide" />
                 <span id="indicator-no-status" class="absolute right-3 top-2.5 text-xs hidden"></span>
               </div>
@@ -215,15 +215,14 @@
               <label for="klasifikasi_perihal" class="block text-xs font-bold text-slate-300">
                 Klasifikasi / Kategori <span class="text-rose-400">*</span>
               </label>
-              <select id="klasifikasi_perihal" name="klasifikasi_perihal" required
+              <select id="klasifikasi_perihal" name="klasifikasi_perihal" required onchange="handleKlasifikasiChange()"
                 class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 transition">
-                <option value="Surat Keterangan">Surat Keterangan</option>
-                <option value="Regulator/PPPK/OJK">Regulator / PPPK / OJK</option>
-                <option value="Asosiasi/MAPPI">Asosiasi / MAPPI</option>
-                <option value="Administrasi/Operasional">Administrasi / Operasional</option>
-                <option value="Balasan/Klarifikasi Eksternal">Balasan / Klarifikasi Eksternal</option>
-                <option value="MoU/Perjanjian Non-Penilaian">MoU / Perjanjian Non-Penilaian</option>
-                <option value="Lain-lain" selected>Lain-lain</option>
+                <option value="SU-KET" selected>SU-KET : Surat Keterangan (Kerja / Penilai / Magang)</option>
+                <option value="SU-REG">SU-REG : Regulator &amp; Kedinasan (PPPK Kemenkeu / OJK / ATR-BPN / KPP Pajak)</option>
+                <option value="SU-MAP">SU-MAP : Asosiasi MAPPI (Rekomendasi / Pengantar Ujian / SKP / PPL)</option>
+                <option value="SU-MIT">SU-MIT : Administrasi Mitra &amp; Rekanan (Bank BUMN / Bank Swasta / BUMN)</option>
+                <option value="SU-OPS">SU-OPS : Operasional &amp; Pengadaan (Vendor IT / Sewa Gedung / Utilitas Kantor)</option>
+                <option value="SU-KLR">SU-KLR : Klarifikasi &amp; Tanggapan Surat Masuk Eksternal</option>
               </select>
             </div>
 
@@ -324,14 +323,13 @@
             <!-- Filter Kategori -->
             <select id="filter_kategori" onchange="handleFilterChange()"
               class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-300 focus:outline-none focus:border-amber-400 transition">
-              <option value="">Semua Kategori</option>
-              <option value="Surat Keterangan">Surat Keterangan</option>
-              <option value="Regulator/PPPK/OJK">Regulator/PPPK/OJK</option>
-              <option value="Asosiasi/MAPPI">Asosiasi/MAPPI</option>
-              <option value="Administrasi/Operasional">Administrasi/Operasional</option>
-              <option value="Balasan/Klarifikasi Eksternal">Balasan/Klarifikasi</option>
-              <option value="MoU/Perjanjian Non-Penilaian">MoU</option>
-              <option value="Lain-lain">Lain-lain</option>
+              <option value="">Semua Kategori (SU-*)</option>
+              <option value="SU-KET">SU-KET : Surat Keterangan</option>
+              <option value="SU-REG">SU-REG : Regulator &amp; Kedinasan</option>
+              <option value="SU-MAP">SU-MAP : Asosiasi MAPPI</option>
+              <option value="SU-MIT">SU-MIT : Administrasi Mitra</option>
+              <option value="SU-OPS">SU-OPS : Operasional &amp; Pengadaan</option>
+              <option value="SU-KLR">SU-KLR : Klarifikasi Eksternal</option>
             </select>
 
             <!-- Filter Status Arsip -->
@@ -634,11 +632,11 @@
       {
         Timestamp: '2026-10-10T08:30:00.000Z',
         No_Urut: 15,
-        No_Surat: '0015/NSR/SU/X/2026',
+        No_Surat: '0015/NSR/SU-REG/X/2026',
         Tanggal_Surat: '2026-10-10',
         Tujuan_Penerima: 'Pusat Pembinaan Profesi Keuangan (PPPK) Kemenkeu RI',
         Perihal: 'Laporan Triwulan Realisasi Kantor Cabang & Personil Penilai',
-        Klasifikasi_Perihal: 'Regulator/PPPK/OJK',
+        Klasifikasi_Perihal: 'SU-REG',
         Penandatangan: 'Pemimpin Rekan',
         Link_Arsip_Final: 'https://drive.google.com/file/d/demo_final_0015/view',
         Link_File_Mentah: 'https://drive.google.com/file/d/demo_draf_0015/view',
@@ -649,11 +647,11 @@
       {
         Timestamp: '2026-10-06T10:15:00.000Z',
         No_Urut: 14,
-        No_Surat: '0014/NSR/SU/X/2026',
+        No_Surat: '0014/NSR/SU-KET/X/2026',
         Tanggal_Surat: '2026-10-06',
         Tujuan_Penerima: 'PT Bank Mandiri (Persero) Tbk - Kantor Pusat',
         Perihal: 'Surat Keterangan Pembaruan Izin Cabang & Sertifikasi Penilai Publik',
-        Klasifikasi_Perihal: 'Surat Keterangan',
+        Klasifikasi_Perihal: 'SU-KET',
         Penandatangan: 'Manager Legal & Admin',
         Link_Arsip_Final: 'https://drive.google.com/file/d/demo_final_0014/view',
         Link_File_Mentah: '',
@@ -664,11 +662,11 @@
       {
         Timestamp: '2026-09-28T14:20:00.000Z',
         No_Urut: 13,
-        No_Surat: '0013/NSR/SU/IX/2026',
+        No_Surat: '0013/NSR/SU-MAP/IX/2026',
         Tanggal_Surat: '2026-09-28',
         Tujuan_Penerima: 'Masyarakat Profesi Penilai Indonesia (MAPPI) DPD DKI Jakarta',
         Perihal: 'Pengiriman Delegasi Pelatihan Standar Penilaian Indonesia SPI 103',
-        Klasifikasi_Perihal: 'Asosiasi/MAPPI',
+        Klasifikasi_Perihal: 'SU-MAP',
         Penandatangan: 'Pemimpin Rekan',
         Link_Arsip_Final: '',
         Link_File_Mentah: 'https://drive.google.com/file/d/demo_draf_0013/view',
@@ -701,6 +699,23 @@
       }
       const n = parseInt(s.replace(/\D/g, ''), 10);
       return (!isNaN(n) && n < 100000) ? n : 0;
+    }
+
+    // Helper Ekstraksi / Normalisasi Kode SU-*
+    function getKodeKategori(val) {
+      if (!val) return 'SU-KET';
+      const s = String(val).toUpperCase();
+      if (s.startsWith('SU-')) {
+        const match = s.match(/SU-[A-Z]+/);
+        if (match) return match[0];
+      }
+      if (s.includes('KETERANGAN')) return 'SU-KET';
+      if (s.includes('REGULATOR') || s.includes('PPPK') || s.includes('OJK')) return 'SU-REG';
+      if (s.includes('MAPPI') || s.includes('ASOSIASI')) return 'SU-MAP';
+      if (s.includes('MITRA') || s.includes('REKANAN') || s.includes('BANK')) return 'SU-MIT';
+      if (s.includes('OPERASIONAL') || s.includes('PENGADAAN') || s.includes('ADMINISTRASI')) return 'SU-OPS';
+      if (s.includes('KLARIFIKASI') || s.includes('BALASAN')) return 'SU-KLR';
+      return 'SU-KET';
     }
 
     // ==========================================================
@@ -880,6 +895,8 @@
       const d = tglInput && tglInput.value ? new Date(tglInput.value) : new Date();
       const thn = d.getFullYear() || 2026;
       const romawi = getBulanRomawi(d);
+      const klasifikasiEl = document.getElementById('klasifikasi_perihal');
+      const kode = getKodeKategori(klasifikasiEl ? klasifikasiEl.value : 'SU-KET');
 
       serverMaxSeq = Math.max(hitungMaxSequenceTahun(thn), 15);
       const nextSeq = serverMaxSeq + 1;
@@ -893,21 +910,50 @@
       // Update input nomor hanya jika belum diedit manual
       const inputNo = document.getElementById('no_surat');
       if (inputNo && (!inputNo.dataset.manualEdited || inputNo.value.trim() === '')) {
-        inputNo.value = `${String(nextSeq).padStart(4, '0')}/NSR/SU/${romawi}/${thn}`;
+        inputNo.value = `${String(nextSeq).padStart(4, '0')}/NSR/${kode}/${romawi}/${thn}`;
       }
 
       periksaDuplikasiLive();
     }
 
+    function handleKlasifikasiChange() {
+      const inputNo = document.getElementById('no_surat');
+      const klasifikasiEl = document.getElementById('klasifikasi_perihal');
+      if (!klasifikasiEl || !inputNo) return;
+
+      const kode = getKodeKategori(klasifikasiEl.value);
+      const tglInput = document.getElementById('tanggal_surat');
+      const d = tglInput && tglInput.value ? new Date(tglInput.value) : new Date();
+      const romawi = getBulanRomawi(d);
+      const thn = d.getFullYear() || 2026;
+
+      if (inputNo.value && inputNo.value.trim() !== '') {
+        if (inputNo.value.match(/\/NSR\/SU-[A-Z]+\//)) {
+          inputNo.value = inputNo.value.replace(/\/NSR\/SU-[A-Z]+\//, `/NSR/${kode}/`);
+        } else if (inputNo.value.includes('/NSR/SU/')) {
+          inputNo.value = inputNo.value.replace('/NSR/SU/', `/NSR/${kode}/`);
+        } else {
+          const seq = extractSeq(inputNo.value) || (serverMaxSeq + 1);
+          inputNo.value = `${String(seq).padStart(4, '0')}/NSR/${kode}/${romawi}/${thn}`;
+        }
+      } else {
+        const nextSeq = serverMaxSeq + 1;
+        inputNo.value = `${String(nextSeq).padStart(4, '0')}/NSR/${kode}/${romawi}/${thn}`;
+      }
+      periksaDuplikasiLive();
+    }
+
     function handleTanggalChange() {
       const inputNo = document.getElementById('no_surat');
+      const klasifikasiEl = document.getElementById('klasifikasi_perihal');
+      const kode = getKodeKategori(klasifikasiEl ? klasifikasiEl.value : 'SU-KET');
+
       if (inputNo && inputNo.dataset.manualEdited) {
-        // Jika user pernah mengetik manual tapi ingin format ulang segmen bulan/tahun
         const d = new Date(document.getElementById('tanggal_surat').value || new Date());
         const romawi = getBulanRomawi(d);
         const thn = d.getFullYear() || 2026;
         const curSeq = extractSeq(inputNo.value) || (serverMaxSeq + 1);
-        inputNo.value = `${String(curSeq).padStart(4, '0')}/NSR/SU/${romawi}/${thn}`;
+        inputNo.value = `${String(curSeq).padStart(4, '0')}/NSR/${kode}/${romawi}/${thn}`;
       } else {
         updateSaranNomorOtomatis();
       }
@@ -918,6 +964,48 @@
       const inputNo = document.getElementById('no_surat');
       if (inputNo) {
         inputNo.dataset.manualEdited = "true";
+      }
+      periksaDuplikasiLive();
+    }
+
+    function formatNomorInputOtomatis() {
+      const inputNo = document.getElementById('no_surat');
+      if (!inputNo) return;
+      const rawVal = inputNo.value.trim();
+      if (!rawVal) return;
+
+      const klasifikasiEl = document.getElementById('klasifikasi_perihal');
+      const kode = getKodeKategori(klasifikasiEl ? klasifikasiEl.value : 'SU-KET');
+      const tglInput = document.getElementById('tanggal_surat');
+      const d = tglInput && tglInput.value ? new Date(tglInput.value) : new Date();
+      const romawi = getBulanRomawi(d);
+      const thn = d.getFullYear() || 2026;
+
+      const numOnlyMatch = rawVal.match(/^(\d{1,5})$/);
+      if (numOnlyMatch) {
+        const seqNum = parseInt(numOnlyMatch[1], 10);
+        if (serverMaxSeq > 0 && seqNum > serverMaxSeq + 20) {
+          const proceed = confirm(`⚠️ Konfirmasi Lompatan Nomor:\n\nNomor urut yang Anda ketik (${seqNum}) melompat ${seqNum - serverMaxSeq} angka di atas nomor urut terakhir (${serverMaxSeq}).\n\nApakah Anda yakin ingin menggunakan nomor ini?`);
+          if (!proceed) {
+            inputNo.value = `${String(serverMaxSeq + 1).padStart(4, '0')}/NSR/${kode}/${romawi}/${thn}`;
+            delete inputNo.dataset.manualEdited;
+            periksaDuplikasiLive();
+            return;
+          }
+        }
+        inputNo.value = `${String(seqNum).padStart(4, '0')}/NSR/${kode}/${romawi}/${thn}`;
+        inputNo.dataset.manualEdited = "true";
+      } else if (rawVal.includes('/')) {
+        const seqFromSlash = extractSeq(rawVal);
+        if (serverMaxSeq > 0 && seqFromSlash > serverMaxSeq + 20) {
+          const proceed = confirm(`⚠️ Konfirmasi Lompatan Nomor:\n\nNomor urut (${seqFromSlash}) melompat ${seqFromSlash - serverMaxSeq} angka di atas nomor urut terakhir (${serverMaxSeq}).\n\nApakah Anda yakin ingin menggunakan nomor ini?`);
+          if (!proceed) {
+            inputNo.value = `${String(serverMaxSeq + 1).padStart(4, '0')}/NSR/${kode}/${romawi}/${thn}`;
+            delete inputNo.dataset.manualEdited;
+            periksaDuplikasiLive();
+            return;
+          }
+        }
       }
       periksaDuplikasiLive();
     }
@@ -1009,9 +1097,9 @@
     function isiContohSurat() {
       document.getElementById('tujuan_penerima').value = 'Pusat Pembinaan Profesi Keuangan (PPPK) Kemenkeu RI';
       document.getElementById('perihal').value = 'Permohonan Pengesahan Rekan Penilai Publik & Notifikasi Kantor';
-      document.getElementById('klasifikasi_perihal').value = 'Regulator/PPPK/OJK';
+      document.getElementById('klasifikasi_perihal').value = 'SU-REG';
       document.getElementById('penandatangan').value = 'Pemimpin Rekan';
-      updateSaranNomorOtomatis();
+      handleKlasifikasiChange();
     }
 
     // ==========================================================
@@ -1157,8 +1245,13 @@
         }
 
         // Filter Kategori
-        if (filterKat && item.Klasifikasi_Perihal !== filterKat) {
-          return false;
+        if (filterKat && filterKat !== '') {
+          const itemKat = String(item.Klasifikasi_Perihal || '');
+          const itemNo = String(item.No_Surat || '');
+          const itemCode = getKodeKategori(itemKat) || (itemNo.match(/SU-[A-Z]+/)?.[0] || '');
+          if (filterKat !== itemCode && !itemKat.includes(filterKat)) {
+            return false;
+          }
         }
 
         // Filter Status Arsip
@@ -1285,8 +1378,8 @@
             </td>
             <td class="py-3 px-4">
               <div class="text-slate-200 text-xs font-semibold leading-snug">${item.Perihal || '-'}</div>
-              <span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 text-[10px] border border-slate-700">
-                ${item.Klasifikasi_Perihal || 'Lain-lain'}
+              <span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-slate-800 text-sky-400 font-mono font-bold text-[10px] border border-slate-700">
+                ${getKodeKategori(item.Klasifikasi_Perihal || item.No_Surat)}
               </span>
             </td>
             <td class="py-3 px-3 text-slate-300 text-xs">${item.Penandatangan || '-'}</td>

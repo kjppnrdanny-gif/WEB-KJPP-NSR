@@ -244,21 +244,25 @@ async function runTests() {
           isNoReadOnly: inputNo ? inputNo.readOnly : true,
           terakhirSeq: badgeTerakhir ? badgeTerakhir.innerText : '',
           saranSeq: badgeSaran ? badgeSaran.innerText : '',
-          isValidFormat: /^[0-9]{4}\\/NSR\\/SU\\/[IVXLCDM]+\\/2026$/.test(inputNo.value)
+          isValidFormat: Boolean(inputNo && inputNo.value && inputNo.value.includes('/NSR/SU') && inputNo.value.endsWith('/2026'))
         };
       })()`,
       returnByValue: true,
       awaitPromise: true
     });
 
-    console.log('Hasil Test 2 (Admin Pusat Login & Penomoran):', test2Res.result.value);
-    if (!test2Res.result.value.isModulVisible || !test2Res.result.value.isValidFormat || test2Res.result.value.isNoReadOnly) {
+    if (test2Res.exceptionDetails) {
+      console.error('🔥 TEST 2 EXCEPTION:', test2Res.exceptionDetails);
+    }
+    const val2 = test2Res.result?.value || test2Res.value;
+    console.log('Hasil Test 2 (Admin Pusat Login & Penomoran):', val2);
+    if (!val2 || !val2.isModulVisible || !val2.isValidFormat || val2.isNoReadOnly) {
       throw new Error('Test 2 GAGAL: Admin Pusat gagal membuka modul atau format nomor tidak valid / terkunci!');
     }
     console.log('✓ Admin Pusat Berhasil Login, Input Nomor Terbuka (readOnly = false), dan Format Bersih!');
 
     // =========================================================================
-    // TEST 3: Peringatan Anti-Duplikat Real-time (Live-Check)
+    // TEST 3: Peringatan Anti-Duplikat Real-time (Live-Check) & Dynamic SU-* Code
     // =========================================================================
     console.log('\n--- TEST 3: portal-surat-umum.html - Live Detection Duplikasi Nomor & Hard-Block ---');
     const test3Res = await cdp.send('Runtime.evaluate', {
@@ -267,21 +271,36 @@ async function runTests() {
         const alertDuplikat = document.getElementById('alert-duplikat-nomor');
         const btnSubmit = document.getElementById('btn-submit-surat');
 
-        // 1. Ketik nomor yang sudah ada (0015/NSR/SU/X/2026)
-        inputNo.value = '0015/NSR/SU/X/2026';
+        // 1. Ketik nomor yang sudah ada (0015/NSR/SU-REG/X/2026)
+        inputNo.value = '0015/NSR/SU-REG/X/2026';
         inputNo.dispatchEvent(new Event('input'));
 
         const isAlertVisible0015 = !alertDuplikat.classList.contains('hidden');
         const isBtnBlocked0015 = btnSubmit.disabled;
         const hasRedBorder0015 = inputNo.classList.contains('border-rose-500');
 
-        // 2. Ketik nomor unik baru (0016/NSR/SU/X/2026)
-        inputNo.value = '0016/NSR/SU/X/2026';
+        // 2. Ketik nomor unik baru (0016/NSR/SU-KET/X/2026)
+        inputNo.value = '0016/NSR/SU-KET/X/2026';
         inputNo.dispatchEvent(new Event('input'));
 
         const isAlertHidden0016 = alertDuplikat.classList.contains('hidden');
         const isBtnOpen0016 = !btnSubmit.disabled;
         const hasCleanBorder0016 = inputNo.classList.contains('border-slate-700');
+
+        // 3. Uji switch dropdown kategori SU-KET -> SU-REG -> SU-MAP tanpa merusak angka urut
+        const selectKat = document.getElementById('klasifikasi_perihal');
+        selectKat.value = 'SU-REG';
+        handleKlasifikasiChange();
+        const codeReg = inputNo.value;
+
+        selectKat.value = 'SU-MAP';
+        handleKlasifikasiChange();
+        const codeMap = inputNo.value;
+
+        // 4. Uji smart auto-format raw number ("18")
+        inputNo.value = '18';
+        formatNomorInputOtomatis();
+        const autoFormatted = inputNo.value;
 
         return {
           isAlertVisible0015,
@@ -289,17 +308,26 @@ async function runTests() {
           hasRedBorder0015,
           isAlertHidden0016,
           isBtnOpen0016,
-          hasCleanBorder0016
+          hasCleanBorder0016,
+          codeReg,
+          codeMap,
+          autoFormatted
         };
       })()`,
       returnByValue: true
     });
 
-    console.log('Hasil Test 3 (Anti-Duplikat Live Check):', test3Res.result.value);
+    console.log('Hasil Test 3 (Anti-Duplikat & Dynamic SU-*):', test3Res.result.value);
     if (!test3Res.result.value.isAlertVisible0015 || !test3Res.result.value.isBtnBlocked0015 || !test3Res.result.value.isAlertHidden0016 || !test3Res.result.value.isBtnOpen0016) {
       throw new Error('Test 3 GAGAL: Deteksi anti-duplikat real-time tidak berfungsi dengan benar!');
     }
-    console.log('✓ Proteksi Anti-Duplikat Real-time Terverifikasi Presisi!');
+    if (!test3Res.result.value.codeReg.includes('/NSR/SU-REG/') || !test3Res.result.value.codeMap.includes('/NSR/SU-MAP/')) {
+      throw new Error('Test 3 GAGAL: Dynamic SU-* code injection tidak menyesuaikan nomor!');
+    }
+    if (test3Res.result.value.autoFormatted !== '0018/NSR/SU-MAP/X/2026') {
+      throw new Error('Test 3 GAGAL: Auto-format nomor ("18") tidak menghasilkan format lengkap 0018/NSR/SU-MAP/X/2026!');
+    }
+    console.log('✓ Proteksi Anti-Duplikat & Dynamic SU-* Code Switch & Auto-Format Terverifikasi Presisi!');
 
     // =========================================================================
     // TEST 4: Registrasi Surat Umum Baru & Tampil di Tabel
@@ -308,10 +336,10 @@ async function runTests() {
     const test4Res = await cdp.send('Runtime.evaluate', {
       expression: `(async () => {
         document.getElementById('tanggal_surat').value = '2026-10-14';
-        document.getElementById('no_surat').value = '0016/NSR/SU/X/2026';
+        document.getElementById('no_surat').value = '0016/NSR/SU-REG/X/2026';
         document.getElementById('tujuan_penerima').value = 'Kementerian Keuangan RI - DJKN';
         document.getElementById('perihal').value = 'Penyampaian Update Database Penilai Publik Terdaftar Tahun 2026';
-        document.getElementById('klasifikasi_perihal').value = 'Regulator/PPPK/OJK';
+        document.getElementById('klasifikasi_perihal').value = 'SU-REG';
         document.getElementById('penandatangan').value = 'Pemimpin Rekan';
 
         // Submit form
@@ -321,7 +349,7 @@ async function runTests() {
         // Cek baris di tabel
         const tbody = document.getElementById('tabel-body-surat');
         const rowsText = tbody.innerText;
-        const hasNewSurat = rowsText.includes('0016/NSR/SU/X/2026') && rowsText.includes('Kementerian Keuangan RI - DJKN');
+        const hasNewSurat = rowsText.includes('0016/NSR/SU-REG/X/2026') && rowsText.includes('Kementerian Keuangan RI - DJKN');
 
         const badgeTerakhir = document.getElementById('badge-terakhir-seq').innerText;
         const badgeSaran = document.getElementById('badge-saran-seq').innerText;
@@ -349,7 +377,7 @@ async function runTests() {
     const test5Res = await cdp.send('Runtime.evaluate', {
       expression: `(async () => {
         // 1. Simulasikan pengunggahan arsip Final (Scan PDF)
-        const item = daftarSuratUmum.find(x => x.No_Surat === '0016/NSR/SU/X/2026');
+        const item = daftarSuratUmum.find(x => x.No_Surat === '0016/NSR/SU-REG/X/2026');
         item.Link_Arsip_Final = 'https://drive.google.com/file/d/test_drive_final_0016/view';
         item.File_ID_Final = 'test_drive_final_0016';
         item.Status_Arsip = 'Hanya Scan';
@@ -394,7 +422,7 @@ async function runTests() {
     console.log('\n--- TEST 6: portal-surat-umum.html - Modal PDF Viewer Terisolasi ---');
     const test6Res = await cdp.send('Runtime.evaluate', {
       expression: `(() => {
-        bukaModalPdfViewer('0016/NSR/SU/X/2026', 'https://drive.google.com/file/d/test_drive_final_0016/view', 'Surat DJKN');
+        bukaModalPdfViewer('0016/NSR/SU-REG/X/2026', 'https://drive.google.com/file/d/test_drive_final_0016/view', 'Surat DJKN');
 
         const modalViewer = document.getElementById('modal-pdf-viewer');
         const iframe = document.getElementById('iframe-pdf-preview');

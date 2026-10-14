@@ -1263,6 +1263,10 @@ function buatSheetSuratUmum(ss) {
   return sheet;
 }
 
+function getOrCreateSheetSuratUmum(ss) {
+  return buatSheetSuratUmum(ss);
+}
+
 /**
  * Membaca seluruh data Buku_Surat_Umum untuk tahun berjalan (terurut descending)
  */
@@ -1326,7 +1330,7 @@ function bacaDaftarSuratUmum(ss, targetYear) {
 
   const romawi = getBulanRomawi(new Date());
   const nextSeq = maxSeq + 1;
-  const suggestedNomor = String(nextSeq).padStart(4, '0') + '/NSR/SU/' + romawi + '/' + yr;
+  const suggestedNomor = String(nextSeq).padStart(4, '0') + '/NSR/SU-KET/' + romawi + '/' + yr;
 
   return {
     status: 'success',
@@ -1346,116 +1350,140 @@ function bacaDaftarSuratUmum(ss, targetYear) {
 function prosesBuatSuratUmum(ss, data, authResult) {
   if (!data) throw new Error('Data surat umum tidak boleh kosong.');
 
-  const sheet = buatSheetSuratUmum(ss);
-  const now = new Date();
-  const dSurat = new Date(data.Tanggal_Surat || data.tanggal_surat || now);
-  const romawi = getBulanRomawi(dSurat);
-  const thn = dSurat.getFullYear() || now.getFullYear() || 2026;
-
-  // Baca daftar surat umum untuk tahun berjalan guna menghitung maxSeq dan verifikasi duplikasi
-  const curList = bacaDaftarSuratUmum(ss, thn);
-  const currentMaxSeq = curList.maxSeq || 0;
-
-  let seq = parseInt(data.No_Urut || data.no_urut, 10);
-  let noSurat = String(data.No_Surat || data.no_surat || '').trim();
-
-  if (!noSurat) {
-    if (!seq || isNaN(seq) || seq <= 0) {
-      seq = currentMaxSeq + 1;
-    }
-    noSurat = String(seq).padStart(4, '0') + '/NSR/SU/' + romawi + '/' + thn;
-  } else {
-    if (!seq || isNaN(seq) || seq <= 0) {
-      seq = extractSeq(noSurat) || (currentMaxSeq + 1);
-    }
-  }
-
-  // VALIDASI DUPLIKASI NOMOR DAN NO_URUT DI DATABASE
-  for (let i = 0; i < curList.data.length; i++) {
-    const existing = curList.data[i];
-    if (existing.No_Surat && existing.No_Surat.toUpperCase() === noSurat.toUpperCase()) {
-      return {
-        status: 'error',
-        success: false,
-        code: 'DUPLICATE_NUMBER',
-        message: 'Nomor surat (' + noSurat + ') sudah terdaftar di database untuk perihal: ' + existing.Perihal
-      };
-    }
-    if (existing.No_Urut === seq) {
-      return {
-        status: 'error',
-        success: false,
-        code: 'DUPLICATE_NUMBER',
-        message: 'Nomor urut ' + seq + ' sudah terdaftar untuk nomor ' + existing.No_Surat + ' (Perihal: ' + existing.Perihal + ')'
-      };
-    }
-  }
-
-  const timestampIso = now.toISOString();
-  let tglSuratStr = '';
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
   try {
-    tglSuratStr = Utilities.formatDate(dSurat, Session.getScriptTimeZone() || 'Asia/Jakarta', 'yyyy-MM-dd');
-  } catch (e) {
-    tglSuratStr = dSurat.toISOString().split('T')[0];
+    const sheet = buatSheetSuratUmum(ss);
+    const now = new Date();
+    const dSurat = new Date(data.Tanggal_Surat || data.tanggal_surat || now);
+    const romawi = getBulanRomawi(dSurat);
+    const thn = dSurat.getFullYear() || now.getFullYear() || 2026;
+
+    // Baca daftar surat umum untuk tahun berjalan guna menghitung maxSeq dan verifikasi duplikasi
+    const curList = bacaDaftarSuratUmum(ss, thn);
+    const currentMaxSeq = curList.maxSeq || 0;
+
+    let seq = parseInt(data.No_Urut || data.no_urut, 10);
+    let noSurat = String(data.No_Surat || data.no_surat || '').trim();
+
+    const rawKategori = String(data.Klasifikasi_Perihal || data.klasifikasi_perihal || 'SU-KET').trim();
+    const defaultKode = (function(k) {
+      if (!k) return 'SU-KET';
+      const s = String(k).toUpperCase();
+      if (s.startsWith('SU-')) {
+        const m = s.match(/SU-[A-Z]+/);
+        if (m) return m[0];
+      }
+      if (s.includes('KETERANGAN')) return 'SU-KET';
+      if (s.includes('REGULATOR') || s.includes('PPPK') || s.includes('OJK')) return 'SU-REG';
+      if (s.includes('MAPPI') || s.includes('ASOSIASI')) return 'SU-MAP';
+      if (s.includes('MITRA') || s.includes('REKANAN') || s.includes('BANK')) return 'SU-MIT';
+      if (s.includes('OPERASIONAL') || s.includes('PENGADAAN') || s.includes('ADMINISTRASI')) return 'SU-OPS';
+      if (s.includes('KLARIFIKASI') || s.includes('BALASAN')) return 'SU-KLR';
+      return 'SU-KET';
+    })(rawKategori);
+
+    if (!noSurat) {
+      if (!seq || isNaN(seq) || seq <= 0) {
+        seq = currentMaxSeq + 1;
+      }
+      noSurat = String(seq).padStart(4, '0') + '/NSR/' + defaultKode + '/' + romawi + '/' + thn;
+    } else {
+      if (!seq || isNaN(seq) || seq <= 0) {
+        seq = extractSeq(noSurat) || (currentMaxSeq + 1);
+      }
+    }
+
+    // VALIDASI DUPLIKASI NOMOR DAN NO_URUT DI DATABASE
+    for (let i = 0; i < curList.data.length; i++) {
+      const existing = curList.data[i];
+      if (existing.No_Surat && existing.No_Surat.toUpperCase() === noSurat.toUpperCase()) {
+        return {
+          status: 'error',
+          success: false,
+          code: 'DUPLICATE_NUMBER',
+          message: 'Nomor surat (' + noSurat + ') sudah terdaftar di database untuk perihal: ' + existing.Perihal
+        };
+      }
+      if (existing.No_Urut === seq) {
+        return {
+          status: 'error',
+          success: false,
+          code: 'DUPLICATE_NUMBER',
+          message: 'Nomor urut ' + seq + ' sudah terdaftar untuk nomor ' + existing.No_Surat + ' (Perihal: ' + existing.Perihal + ')'
+        };
+      }
+    }
+
+    const timestampIso = now.toISOString();
+    let tglSuratStr = '';
+    try {
+      tglSuratStr = Utilities.formatDate(dSurat, Session.getScriptTimeZone() || 'Asia/Jakarta', 'yyyy-MM-dd');
+    } catch (e) {
+      tglSuratStr = dSurat.toISOString().split('T')[0];
+    }
+
+    const tujuan = String(data.Tujuan_Penerima || data.tujuan_penerima || '').trim();
+    const perihal = String(data.Perihal || data.perihal || '').trim();
+    const klasifikasi = defaultKode;
+    const ttd = String(data.Penandatangan || data.penandatangan || 'Pemimpin Rekan').trim();
+
+    const newRow = [
+      timestampIso,
+      seq,
+      noSurat,
+      tglSuratStr,
+      tujuan,
+      perihal,
+      klasifikasi,
+      ttd,
+      '', // Link_Arsip_Final
+      '', // Link_File_Mentah
+      '', // File_ID_Final
+      '', // File_ID_Mentah
+      'Kosong' // Status_Arsip
+    ];
+
+    sheet.appendRow(newRow);
+
+    // Catat ke Log Aktivitas
+    try {
+      catatLogAktivitas(ss, noSurat, 'CREATE_SURAT_UMUM', (authResult && authResult.token) || 'NSR-PST-2026', 'Registrasi Surat Umum: ' + perihal);
+    } catch (logErr) {
+      console.warn('Gagal catatLogAktivitas:', logErr);
+    }
+
+    const newMax = Math.max(currentMaxSeq, seq);
+    const nextSeq = newMax + 1;
+    const suggestedNomor = String(nextSeq).padStart(4, '0') + '/NSR/' + defaultKode + '/' + getBulanRomawi(new Date()) + '/' + thn;
+
+    return {
+      status: 'success',
+      success: true,
+      message: 'Nomor Surat Umum berhasil dikunci dan dicatat di Buku Agenda!',
+      data: {
+        Timestamp: timestampIso,
+        No_Urut: seq,
+        No_Surat: noSurat,
+        Tanggal_Surat: tglSuratStr,
+        Tujuan_Penerima: tujuan,
+        Perihal: perihal,
+        Klasifikasi_Perihal: klasifikasi,
+        Penandatangan: ttd,
+        Link_Arsip_Final: '',
+        Link_File_Mentah: '',
+        File_ID_Final: '',
+        File_ID_Mentah: '',
+        Status_Arsip: 'Kosong'
+      },
+      currentMaxSeq: newMax,
+      maxSeq: newMax,
+      nextSeq: nextSeq,
+      suggestedNomor: suggestedNomor
+    };
+  } finally {
+    try { lock.releaseLock(); } catch (e) {}
   }
-
-  const tujuan = String(data.Tujuan_Penerima || data.tujuan_penerima || '').trim();
-  const perihal = String(data.Perihal || data.perihal || '').trim();
-  const klasifikasi = String(data.Klasifikasi_Perihal || data.klasifikasi_perihal || 'Lain-lain').trim();
-  const ttd = String(data.Penandatangan || data.penandatangan || 'Pemimpin Rekan').trim();
-
-  const newRow = [
-    timestampIso,
-    seq,
-    noSurat,
-    tglSuratStr,
-    tujuan,
-    perihal,
-    klasifikasi,
-    ttd,
-    '', // Link_Arsip_Final
-    '', // Link_File_Mentah
-    '', // File_ID_Final
-    '', // File_ID_Mentah
-    'Kosong' // Status_Arsip
-  ];
-
-  sheet.appendRow(newRow);
-
-  // Catat ke Log Aktivitas
-  try {
-    catatLogAktivitas(ss, noSurat, 'CREATE_SURAT_UMUM', (authResult && authResult.token) || 'NSR-PST-2026', 'Registrasi Surat Umum: ' + perihal);
-  } catch (logErr) {
-    console.warn('Gagal catatLogAktivitas:', logErr);
-  }
-
-  const newMax = Math.max(currentMaxSeq, seq);
-  const nextSeq = newMax + 1;
-  const suggestedNomor = String(nextSeq).padStart(4, '0') + '/NSR/SU/' + getBulanRomawi(new Date()) + '/' + thn;
-
-  return {
-    status: 'success',
-    success: true,
-    message: 'Nomor Surat Umum berhasil dikunci dan dicatat di Buku Agenda!',
-    data: {
-      Timestamp: timestampIso,
-      No_Urut: seq,
-      No_Surat: noSurat,
-      Tanggal_Surat: tglSuratStr,
-      Tujuan_Penerima: tujuan,
-      Perihal: perihal,
-      Klasifikasi_Perihal: klasifikasi,
-      Penandatangan: ttd,
-      Link_Arsip_Final: '',
-      Link_File_Mentah: '',
-      File_ID_Final: '',
-      File_ID_Mentah: '',
-      Status_Arsip: 'Kosong'
-    },
-    maxSeq: newMax,
-    nextSeq: nextSeq,
-    suggestedNomor: suggestedNomor
-  };
 }
 
 /**
@@ -1467,9 +1495,12 @@ function prosesUploadArsipSuratUmum(ss, payload) {
     throw new Error('Parameter upload tidak lengkap (no_surat dan file_base64 wajib diisi).');
   }
 
-  const sheet = buatSheetSuratUmum(ss);
-  const targetNoSurat = String(payload.no_surat).trim().toUpperCase();
-  const tipeSlot = String(payload.tipe_slot || 'FINAL').trim().toUpperCase(); // 'FINAL' atau 'MENTAH'
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    const sheet = buatSheetSuratUmum(ss);
+    const targetNoSurat = String(payload.no_surat).trim().toUpperCase();
+    const tipeSlot = String(payload.tipe_slot || 'FINAL').trim().toUpperCase(); // 'FINAL' atau 'MENTAH'
 
   if (sheet.getLastRow() < 2) {
     throw new Error('Belum ada data Surat Umum yang tersimpan.');
@@ -1578,5 +1609,8 @@ function prosesUploadArsipSuratUmum(ss, payload) {
     file_name: targetFileName,
     status_arsip: newStatus
   };
+  } finally {
+    try { lock.releaseLock(); } catch (e) {}
+  }
 }
 
