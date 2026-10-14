@@ -1484,6 +1484,7 @@
 
     function getKodeCabang(wilayah) {
       if (!wilayah) return 'BDG';
+      if (wilayah.includes('Jakarta') || wilayah.includes('Pusat')) return 'PST';
       if (wilayah.includes('Bandung')) return 'BDG';
       if (wilayah.includes('Padang')) return 'PDG';
       if (wilayah.includes('Makassar')) return 'MKS';
@@ -1510,6 +1511,60 @@
         localStorage.setItem(key, JSON.stringify(list));
       } catch (e) {
         console.error('Gagal menulis local private storage cabang:', e);
+      }
+    }
+
+    // ==========================================================
+    // 4B. HELPER PENCOCOKAN FLEKSIBEL DROPDOWN KANTOR WILAYAH
+    // ==========================================================
+    function setWilayahDropdown(targetWilayah) {
+      const elWilayah = document.getElementById('kantor_wilayah');
+      if (!elWilayah) return;
+
+      const target = (targetWilayah || userSession.wilayah || 'Kantor Pusat Jakarta').trim();
+      const targetLower = target.toLowerCase();
+
+      // Deteksi kata kunci kota
+      let keyword = '';
+      if (targetLower.includes('bandung')) keyword = 'bandung';
+      else if (targetLower.includes('padang')) keyword = 'padang';
+      else if (targetLower.includes('makassar')) keyword = 'makassar';
+      else if (targetLower.includes('palembang') || targetLower.includes('plb') || targetLower.includes('plm')) keyword = 'palembang';
+      else if (targetLower.includes('jakarta') || targetLower.includes('pusat')) keyword = 'jakarta';
+
+      let matchedIndex = -1;
+      for (let i = 0; i < elWilayah.options.length; i++) {
+        const opt = elWilayah.options[i];
+        const optVal = (opt.value || '').trim();
+        const optText = (opt.textContent || '').trim();
+
+        // 1. Cocokkan persis (case-insensitive)
+        if (optVal.toLowerCase() === targetLower || optText.toLowerCase() === targetLower) {
+          matchedIndex = i;
+          break;
+        }
+        // 2. Cocokkan kata kunci kota cabang
+        if (keyword && (optVal.toLowerCase().includes(keyword) || optText.toLowerCase().includes(keyword))) {
+          matchedIndex = i;
+          break;
+        }
+      }
+
+      if (matchedIndex >= 0) {
+        elWilayah.selectedIndex = matchedIndex;
+        elWilayah.value = elWilayah.options[matchedIndex].value;
+      } else {
+        elWilayah.selectedIndex = 0;
+        elWilayah.value = elWilayah.options[0].value;
+      }
+
+      // Kunci dropdown (disabled) khusus untuk admin cabang / user dengan wilayah tetap
+      const isLocked = (userSession.role !== 'ADMIN_PUSAT' && userSession.wilayahResmi !== 'Semua Wilayah');
+      elWilayah.disabled = isLocked;
+
+      // Update sinkronisasi pratinjau nomor jika fungsi sudah tersedia
+      if (typeof updateNomorOtomatisPreview === 'function') {
+        updateNomorOtomatisPreview();
       }
     }
 
@@ -1673,6 +1728,9 @@
           modeDesc.innerHTML = `Pengajuan dari cabang akan berstatus <strong class='text-amber-400'>WAITING_APPROVAL</strong> hingga diverifikasi dan diterbitkan nomor oleh Kantor Pusat.`;
         }
       }
+
+      // Pastikan dropdown wilayah sinkron dengan sesi cabang pengguna
+      setWilayahDropdown(userSession.wilayah);
     }
 
     function updateFilterDokumenByRole() {
@@ -1792,7 +1850,16 @@
         }
       }
       if (!tokenToUse) {
-        tokenToUse = sessionStorage.getItem('kjpp_token_internal') || "";
+        const rawInternal = sessionStorage.getItem('kjpp_token_internal') || "";
+        if (rawInternal) {
+          try {
+            const parsed = JSON.parse(rawInternal);
+            if (parsed && parsed.token) tokenToUse = parsed.token;
+            else tokenToUse = rawInternal;
+          } catch (_) {
+            tokenToUse = rawInternal;
+          }
+        }
       }
 
       if (tokenToUse) {
@@ -1820,6 +1887,10 @@
       }
       // Bila belum login, tampilkan modal token
       bukaModalToken();
+    }
+
+    function terapkanSesiKeUI() {
+      terapkanSesiUI();
     }
 
     function terapkanSesiUI() {
@@ -1871,7 +1942,7 @@
         }
       }
 
-      // 3. Konfigurasi Tampilan Tab 1 Berdasarkan Role
+      // 3. Konfigurasi Tampilan Tab 1 Berdasarkan Role & Set Dropdown Wilayah
       if (userSession.role === 'PENILAI' || userSession.role === 'REVIEWER') {
         if (noticeRole) {
           noticeRole.classList.remove('hidden');
@@ -1890,18 +1961,11 @@
           modeTitle.textContent = "Mode Akses: Kantor Pusat / Master Admin (Otorisasi Penuh)";
           modeDesc.innerHTML = "Staf Admin Pusat dapat menginput langsung dan menekan tombol <strong class='text-emerald-400'>'Simpan &amp; Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)'</strong>.";
           if (btnSubmit) btnSubmit.textContent = "Simpan & Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)";
-          if (selectWilayah) selectWilayah.disabled = false;
+          setWilayahDropdown(userSession.wilayah);
         } else {
           // ADMIN_CABANG atau MARKETING
           if (containerDualMode) containerDualMode.classList.remove('hidden');
-          if (selectWilayah) {
-            if (userSession.wilayahResmi !== 'Semua Wilayah') {
-              selectWilayah.value = userSession.wilayah;
-              selectWilayah.disabled = true;
-            } else {
-              selectWilayah.disabled = false;
-            }
-          }
+          setWilayahDropdown(userSession.wilayah);
           pilihModeAlur(currentModeAlur || 'CENTRAL_APPROVAL');
         }
       }
@@ -3859,8 +3923,8 @@
       renderTabelObjek();
     }
 
-    function resetFormulir() {
-      if (!confirm("Kosongkan seluruh isian formulir?")) return;
+    function resetFormulir(skipConfirm = false) {
+      if (!skipConfirm && !confirm("Kosongkan seluruh isian formulir?")) return;
       document.getElementById('form-penugasan').reset();
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('tanggal_surat').value = today;
@@ -3870,6 +3934,17 @@
       kalkulasiBiaya();
       objekRows = [];
       tambahBarisObjek();
+
+      // Kembalikan dropdown wilayah sesuai token cabang aktif (jangan ter-reset ke index 0)
+      setWilayahDropdown(userSession.wilayah);
+    }
+
+    function resetForm(skipConfirm) {
+      resetFormulir(skipConfirm);
+    }
+
+    function batalEdit(skipConfirm) {
+      resetFormulir(skipConfirm);
     }
 
     // ==========================================================

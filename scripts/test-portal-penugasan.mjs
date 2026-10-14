@@ -338,8 +338,18 @@ async function runTests() {
           const isDualModeVisible = container && !container.classList.contains('hidden');
           const badgeText = document.getElementById('session-label').innerText;
 
+          // Verifikasi nilai dropdown kantor_wilayah saat login awal
+          const wilValInitial = document.getElementById('kantor_wilayah').value;
+          const isWilDisabledInitial = document.getElementById('kantor_wilayah').disabled;
+
+          // Uji resetFormulir: nilai kantor_wilayah harus tetap 'Kantor Cabang Bandung'
+          resetFormulir(true);
+          const wilValAfterReset = document.getElementById('kantor_wilayah').value;
+          const isWilDisabledAfterReset = document.getElementById('kantor_wilayah').disabled;
+
           // Pilih mode PRIVATE_CABANG
           pilihModeAlur('PRIVATE_CABANG');
+          const wilValAfterDual = document.getElementById('kantor_wilayah').value;
           const isLpEditable = !document.getElementById('nomor_lp').readOnly;
           const isAdmEditable = !document.getElementById('nomor_adm').readOnly;
 
@@ -363,6 +373,11 @@ async function runTests() {
           return {
             isDualModeVisible,
             badgeText,
+            wilValInitial,
+            isWilDisabledInitial,
+            wilValAfterReset,
+            isWilDisabledAfterReset,
+            wilValAfterDual,
             isLpEditable,
             isAdmEditable,
             isSavedLocally,
@@ -379,6 +394,19 @@ async function runTests() {
 
     console.log('Hasil Test 3 (Mode Privasi Mandiri Cabang):', testDualMode.result.value);
     const dmRes = testDualMode.result.value;
+    if (dmRes.wilValInitial !== 'Kantor Cabang Bandung') {
+      throw new Error(`Dropdown kantor_wilayah gagal mencocokkan token: bernilai '${dmRes.wilValInitial}', seharusnya 'Kantor Cabang Bandung'`);
+    }
+    if (!dmRes.isWilDisabledInitial) {
+      throw new Error('Dropdown kantor_wilayah seharusnya terkunci (disabled) untuk Admin Cabang');
+    }
+    if (dmRes.wilValAfterReset !== 'Kantor Cabang Bandung') {
+      throw new Error(`Dropdown kantor_wilayah ter-reset ke '${dmRes.wilValAfterReset}' setelah resetFormulir()`);
+    }
+    if (dmRes.wilValAfterDual !== 'Kantor Cabang Bandung') {
+      throw new Error(`Dropdown kantor_wilayah berubah menjadi '${dmRes.wilValAfterDual}' setelah pilihModeAlur()`);
+    }
+    console.log(`✓ Dropdown kantor_wilayah terverifikasi presisi: '${dmRes.wilValInitial}' (terkunci & anti-reset)!`);
     if (!dmRes.isDualModeVisible) throw new Error('Container Dual-Mode Alur Cabang tidak tampil untuk Admin Cabang');
     if (!dmRes.isLpEditable || !dmRes.isAdmEditable) throw new Error('Kolom nomor SPK/JO harus terbuka (editable) pada mode PRIVATE_CABANG');
     if (!dmRes.isSavedLocally || !dmRes.savedItemIsPrivate || dmRes.savedItemStatus !== 'APPROVED') {
