@@ -19,7 +19,12 @@
 // -----------------------------------------------------------------------------------------
 // 1. KONFIGURASI GLOBAL & ENVIRONMENT SISTEM
 // -----------------------------------------------------------------------------------------
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec';
+
 const CONFIG = {
+  // Web App Endpoint URL Resmi Google Apps Script
+  WEB_APP_URL: GAS_WEB_APP_URL,
+
   // Nama 4 Sheet Utama di Google Spreadsheet DB_PENUGASAN_JO_NSR
   SHEET_DATA: 'Data_Penugasan',
   SHEET_COUNTER: 'Config_Counter',

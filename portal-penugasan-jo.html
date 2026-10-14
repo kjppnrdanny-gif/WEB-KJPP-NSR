@@ -891,7 +891,7 @@
     // ==========================================================
     // 2. KONFIGURASI INTEGRASI GOOGLE APPS SCRIPT & GOOGLE SPREADSHEET
     // ==========================================================
-    const GAS_WEB_APP_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQJg4XKaL4o9yium1YvUSE4sJvZ_iqUsN-aJrd9DLVoQGtlBkTwHuCMGd9ak6Zjx-tDHtwPZjUPpEWsYtDjMdtPeSy0MLu0dUYSJeB4aBr78NiuhhXWT4CE-nr6ke2nrwFxpFbcWzGe_WpsQ5XKwK44wI4F9NOmAmUZ3SEbDjZopQcXJGMYdSqGuUKuhW9kzBtI1cxglRLU8V-mNwAh8tFvjfuOj1b5d_ILRzSrbw2rZ7krHaM3cyeCKrL3o-aJ9Ro-PSdCISwtzIkgnb-DFktko2huIQ&lib=MSChYEfVvNPyCoceqVV-aP1ScKf4pGqo7";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
 
     // Counter Sinkronisasi Server DB_PENUGASAN_JO_NSR (Baseline Aktif: 415)
     let serverCounter = {
@@ -1266,7 +1266,24 @@
         Terbilang_Biaya: p.terbilang || angkaTerbilang(p.biaya_total || 0),
         Tgl_Approval_Pusat: p.status === 'APPROVED' ? (p.approved_at || new Date().toISOString()) : '-',
         Disetujui_Oleh: p.status === 'APPROVED' ? (p.disetujui_oleh || `Admin Pusat (${tokenActor})`) : '-',
-        Folder_Drive_URL: p.folder_drive_url || '-'
+        Folder_Drive_URL: p.folder_drive_url || '-',
+
+        // Kompatibilitas Nomenklatur Endpoint GAS (camelCase)
+        idPenugasan: p.id,
+        statusApproval: p.status,
+        kantorWilayah: p.kantor_wilayah,
+        modePengaju: modeActor,
+        noAdmJO: noAdmRaw,
+        noLingkupPenugasan: p.nomor_lp,
+        tglDibuat: p.tanggal_surat,
+        noSuratKlien: p.rujukan_surat_nomor || '-',
+        tglSuratKlien: p.rujukan_surat_tanggal || p.tanggal_surat,
+        masaBerlakuLP: p.masa_berlaku_lp || dMasa.toISOString().split('T')[0],
+        rekanPenilaiPublik: p.rekan_nama,
+        noIzinPublikRekan: p.rekan_izin || 'P-1.20.00581',
+        namaPemberiTugas: p.pemberi_tugas_nama,
+        namaDebiturUtama: p.debitur_nama,
+        totalBiayaAllIn: Number(p.biaya_total || 0)
       };
     }
 
@@ -1706,24 +1723,53 @@
     // 9. SUBMIT PENGADAAN & APPROVAL DUAL-TRACK DENGAN GAS SYNC
     // ==========================================================
     async function kirimDataKeGasServer(action, projectObj) {
-      if (!GAS_WEB_APP_URL) return;
+      if (!GAS_WEB_APP_URL) return null;
       const payload44 = mapProjectToSheetPayload(projectObj, userSession);
       try {
         const bodyData = {
           action: action,
           token: userSession.token || 'NSR-PST-2026',
           projectId: projectObj.id,
-          data: payload44
+          idPenugasan: projectObj.id,
+          data: payload44,
+          ...payload44
         };
-        await fetch(GAS_WEB_APP_URL, {
+        const response = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow',
           body: JSON.stringify(bodyData)
         });
-        console.log(`GAS [${action}] transmitted for:`, projectObj.id);
+        if (!response.ok) {
+          throw new Error(`HTTP Error ${response.status}`);
+        }
+        const resData = await response.json();
+        console.log(`GAS [${action}] transmitted for:`, projectObj.id, resData);
+
+        if (resData && (resData.status === 'success' || resData.success)) {
+          const noAdmBaru = resData.noAdmJO || resData.No_Adm_JO;
+          if (noAdmBaru) {
+            const numPadded = String(noAdmBaru).padStart(4, '0');
+            const dSurat = new Date(projectObj.tanggal_surat || new Date());
+            const romawi = getBulanRomawi(dSurat);
+            const thn = dSurat.getFullYear() || 2026;
+            projectObj.nomor_adm = `${numPadded}/JO/NSR/${romawi}/${thn}`;
+          }
+          const noLpBaru = resData.noLingkupPenugasan || resData.No_Lingkup_Penugasan;
+          if (noLpBaru) {
+            projectObj.nomor_lp = noLpBaru;
+          }
+          const statusBaru = resData.statusApproval || resData.Status_Approval;
+          if (statusBaru) {
+            projectObj.status = statusBaru;
+          }
+          simpanDatabaseLokal();
+          renderDashboardTabel();
+        }
+        return resData;
       } catch (err) {
         console.warn('Background GAS POST warning:', err);
+        return null;
       }
     }
 
@@ -3140,7 +3186,7 @@
       }
 
       try {
-        const res = await fetch(GAS_WEB_APP_URL, { method: 'GET' });
+        const res = await fetch(GAS_WEB_APP_URL, { method: 'GET', redirect: 'follow' });
         if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
         const data = await res.json();
 
