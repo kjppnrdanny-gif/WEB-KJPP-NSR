@@ -34,7 +34,7 @@
       max-width: 794px; /* Standar fisik 210mm A4 @ 96 DPI: 793.7px */
       min-height: 1123px; /* Standar fisik 297mm A4 @ 96 DPI: 1122.5px */
       margin: 0 auto 30px auto;
-      padding: 15mm 20mm 20mm 25mm; /* Standar Resmi: Atas 15mm, Kanan 20mm, Bawah 20mm, Kiri 25mm */
+      padding: 10mm 10mm 10mm 30mm; /* Standar Resmi: Atas 10mm, Kanan 10mm, Bawah 10mm, Kiri 30mm (3 cm jilid) */
       background: #ffffff;
       color: #0f172a;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -45,7 +45,7 @@
     /* Proporsi Kop Surat Resmi KJPP NSR Presisi Tinggi */
     .kop-surat-resmi {
       width: 100%;
-      margin: 0 0 15px 0;
+      margin: 0 0 12px 0;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -55,9 +55,34 @@
       max-width: 100% !important;
       height: auto !important;
       display: block !important;
-      margin: 0 0 15px 0 !important;
+      margin: 0 0 12px 0 !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
+    }
+
+    /* Arsitektur Tabel Header Cetak Berulang (Screen & Print) */
+    .doc-print-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+    .doc-print-table > thead {
+      display: table-header-group;
+    }
+    .doc-print-table > thead > tr > th {
+      padding: 0;
+      border: none;
+      font-weight: normal;
+      text-align: left;
+    }
+    .doc-print-table > tbody > tr > td {
+      padding: 0;
+      border: none;
+      vertical-align: top;
+    }
+    .doc-header-kop {
+      width: 100%;
+      margin-bottom: 12px;
     }
 
     /* ====================================================================
@@ -66,7 +91,10 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 15mm 20mm 20mm 20mm; /* Atas Kanan Bawah Kiri */
+        margin-top: 10mm;    /* Atas proporsional untuk batas kertas */
+        margin-bottom: 10mm; /* Bawah: 1 cm (10mm) */
+        margin-left: 30mm;   /* Kiri: 3 cm (30mm - standar jilid/arsip) */
+        margin-right: 10mm;  /* Kanan: 1 cm (10mm) */
       }
 
       body {
@@ -117,7 +145,48 @@
         break-after: page !important;
       }
 
-      .avoid-break {
+      /* Mencegah judul bab terpisah dari isinya di dasar halaman */
+      h1, h2, h3, h4, .section-title, .klausul-header, .doc-section-title {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+
+      /* Mencegah blok klausul atau baris tabel terbelah canggung */
+      .klausul-item, tr, .signature-block, .box-penilai, .avoid-break {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      /* Arsitektur Tabel Header Cetak Berulang */
+      .doc-print-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+
+      .doc-print-table > thead {
+        display: table-header-group !important;
+      }
+
+      .doc-print-table > tbody {
+        display: table-row-group !important;
+      }
+
+      .doc-print-table > tbody > tr {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+
+      .doc-print-table > tbody > tr > td {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+
+      .doc-header-kop {
+        width: 100% !important;
+        margin-bottom: 12px !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
@@ -128,7 +197,7 @@
         max-width: 100% !important;
         height: auto !important;
         display: block !important;
-        margin: 0 0 15px 0 !important;
+        margin: 0 0 12px 0 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
@@ -3780,12 +3849,12 @@
      */
     function renderKopSuratResmiNSR() {
       return `
-        <div class="kop-surat-resmi select-none" style="width: 100%; margin-bottom: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+        <div class="kop-surat-resmi select-none" style="width: 100%; margin-bottom: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
           <!-- 1. Grafis Kop Resmi Berwarna Resolusi Tinggi (Primary Banner) -->
           <img src="images/kop-surat-nsr.png" 
                alt="Kop Surat Resmi KJPP Nanang Rahayu Sigit Paryanto dan Rekan" 
-               class="kop-surat-resmi-img kop-img-resmi" 
-               style="width: 100% !important; max-width: 100% !important; height: auto !important; display: block !important; margin: 0 0 15px 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;" 
+               class="kop-surat-resmi-img kop-img-resmi w-full h-auto block" 
+               style="width: 100% !important; max-width: 100% !important; height: auto !important; display: block !important; margin: 0 0 12px 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;" 
                onerror="this.style.display='none'; var fb = this.nextElementSibling; if(fb) fb.style.display='block';">
 
           <!-- 2. Fallback Komposisi Vektor Tipografi HTML/CSS Berwarna Presisi -->
@@ -3906,464 +3975,482 @@
 
         const dok1 = `
           <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans ${selDok === 'ALL' ? 'page-break mb-12' : ''}">
-            ${renderKopSuratResmiNSR()}
-
-            <!-- Baris Nomor & Tanggal (2 Kolom Sejajar Presisi) -->
-            <div class="w-full flex justify-between items-start mb-3 text-[11px]">
-              <div class="flex-1 max-w-[65%]">
-                <table class="doc-table-clean">
-                  <tr>
-                    <td class="w-16 font-bold" style="min-width: 60px;">No.</td>
-                    <td class="w-3">:</td>
-                    <td class="font-mono font-bold">${p.nomor_lp}</td>
-                  </tr>
-                  <tr>
-                    <td class="w-16 font-bold" style="min-width: 60px;">Lamp.</td>
-                    <td class="w-3">:</td>
-                    <td>-</td>
-                  </tr>
-                  <tr>
-                    <td class="w-16 font-bold align-top" style="min-width: 60px;">Hal</td>
-                    <td class="w-3 align-top">:</td>
-                    <td class="font-bold align-top">Lingkup Penugasan atas Penilaian Aset An. ${p.debitur_nama}</td>
-                  </tr>
-                </table>
-              </div>
-              <div class="text-right font-medium whitespace-nowrap pt-0.5">
-                Jakarta, ${formatTanggalIndo(p.tanggal_surat)}
-              </div>
-            </div>
-
-            <!-- Tujuan Surat -->
-            <div class="mb-4 pl-1 text-[11px]">
-              <p>Kepada Yth,</p>
-              <p class="font-bold text-slate-900">${p.pemberi_tugas_nama}</p>
-              <p class="text-slate-700">${p.pemberi_tugas_alamat || '-'}</p>
-            </div>
-
-            <!-- Kalimat Pembuka -->
-            <p class="mb-2">Dengan hormat,</p>
-            <p class="text-justify mb-4">
-              Menunjuk surat dari <strong>${p.pemberi_tugas_nama}</strong> No. <strong>${p.rujukan_surat_nomor || p.no_surat_klien || '.......'}</strong> tanggal <strong>${p.rujukan_surat_tanggal || p.tgl_surat_klien ? formatTanggalIndo(p.rujukan_surat_tanggal || p.tgl_surat_klien) : '.............'}</strong> perihal rencana pekerjaan untuk penilaian asset (property) <strong>${p.debitur_nama}</strong>, dengan ini kami KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN menyampaikan hal-hal yang berkaitan dengan penilaian tersebut sebagai berikut :
-            </p>
-
-            <div class="space-y-4 text-justify">
-              <!-- 1. STATUS PENILAI -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">1. STATUS PENILAI</p>
-                <p class="text-justify mb-2">
-                  Pekerjaan penilaian dilaksanakan oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN yang telah mendapatkan pengukuhan dari Kementerian Keuangan Republik Indonesia No. 248/KM.1/2019 tanggal 9 Mei 2019 dengan nomor izin 2.19.0160. Adapun Penilai Publik yang ditugaskan adalah :
-                </p>
-                <table class="doc-table-clean pl-4 mb-3" style="width: auto;">
-                  <tr><td class="w-56 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold text-slate-900">${rekanObj.nama}</td></tr>
-                  <tr><td class="font-semibold">No. MAPPI</td><td>:</td><td>${rekanObj.mappi}</td></tr>
-                  <tr><td class="font-semibold">Klasifikasi Bidang Jasa</td><td>:</td><td>${rekanObj.klasifikasi || 'Penilai Properti'}</td></tr>
-                  <tr><td class="font-semibold">No. Izin Penilai Publik</td><td>:</td><td>${rekanObj.izin}</td></tr>
-                  <tr><td class="font-semibold">No. Register Penilai</td><td>:</td><td>${rekanObj.rmk || '-'}</td></tr>
-                  <tr><td class="font-semibold">No. Penilai Pertanahan</td><td>:</td><td>${rekanObj.bpn || '-'}</td></tr>
-                  <tr><td class="font-semibold">No. STTD OJK</td><td>:</td><td>${rekanObj.ojk || '-'}</td></tr>
-                  <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${rekanObj.jabatan} KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</td></tr>
-                </table>
-                <p class="text-justify mb-2">
-                  KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN memiliki 5 (lima) orang Rekan termasuk Pemimpin Rekan yang semuanya merupakan Penilai Publik yang telah memiliki izin dari Menteri Keuangan, 2 diantaranya telah memiliki STTD Profesi Penunjang Pasar Modal dari Otoritas Jasa Keuangan (OJK) dan 1 orang Penilai Publik mempunyai STTD Industri Keuangan Non Bank (IKNB) dari Otoritas Jasa Keuangan (OJK) serta 2 diantaranya mempunyai Lisensi Penilai Pertanahan dari Kementerian ATR/BPN.
-                </p>
-                <p class="text-justify mb-2">
-                  KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN memiliki kompetensi dan kualifikasi sebagai Penilai Properti dan Penilai Properti Sederhana dengan tenaga ahli dibidang Personal Properti (Mesin dan Peralatan, Alat Berat, Kendaraan, Kapal), Industri Perkebunan, Properti Komersial (Hotel, Mall, Gedung Perkantoran, dan lainnya).
-                </p>
-                <p class="text-justify mb-2">
-                  KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN akan melakukan penilaian secara objektif dan tidak memihak (Independen), tidak mempunyai benturan kepentingan dengan subjek dan/atau objek penilaian, sesuai Kode Etik Penilai Indonesia tahun 2018 yaitu Integritas, Objektivitas, Kompetensi, Kerahasiaan dan Perilaku Profesional.
-                </p>
-                <p class="text-justify">
-                  KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN melaksanakan penilaian dengan tenaga Penilai yang telah memenuhi persyaratan pendidikan professional yang ditentukan dan/atau diselenggarakan oleh Asosiasi Penilai yang diakui oleh pemerintah yaitu Masyarakat Profesi Penilai Indonesia (MAPPI).
-                </p>
-              </div>
-
-              <!-- 2. PEMBERI TUGAS -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">2. PEMBERI TUGAS</p>
-                <table class="doc-table-clean pl-4" style="width: auto;">
-                  <tr><td class="w-56 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pemberi_tugas_nama}</td></tr>
-                  <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pemberi_tugas_alamat || '-'}</td></tr>
-                  <tr><td class="font-semibold">PIC</td><td>:</td><td>${p.pemberi_tugas_pic || '-'}</td></tr>
-                  <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${p.pemberi_tugas_jabatan || '-'}</td></tr>
-                  <tr><td class="font-semibold">No. Telepon / Faksimile</td><td>:</td><td>${p.pemberi_tugas_telp || '-'}</td></tr>
-                  <tr><td class="font-semibold">Email</td><td>:</td><td>${p.pemberi_tugas_email || '-'}</td></tr>
-                  <tr><td class="font-semibold">Bidang Usaha</td><td>:</td><td>${p.pemberi_tugas_bidang || 'Perbankan / Keuangan'}</td></tr>
-                </table>
-              </div>
-
-              <!-- 3. PENGGUNA LAPORAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">3. PENGGUNA LAPORAN</p>
-                <div class="pl-4 space-y-3">
-                  <div>
-                    <p class="font-bold text-slate-800">a. Pengguna Laporan Utama :</p>
-                    <table class="doc-table-clean pl-4" style="width: auto;">
-                      <tr><td class="w-52 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pengguna_laporan_a || p.pemberi_tugas_nama}</td></tr>
-                      <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pemberi_tugas_alamat || '-'}</td></tr>
-                      <tr><td class="font-semibold">PIC</td><td>:</td><td>${p.pemberi_tugas_pic || '-'}</td></tr>
-                      <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${p.pemberi_tugas_jabatan || '-'}</td></tr>
-                      <tr><td class="font-semibold">No. Telepon / Faksimile</td><td>:</td><td>${p.pemberi_tugas_telp || '-'}</td></tr>
-                      <tr><td class="font-semibold">Email</td><td>:</td><td>${p.pemberi_tugas_email || '-'}</td></tr>
-                      <tr><td class="font-semibold">Bidang Usaha</td><td>:</td><td>${p.pemberi_tugas_bidang || 'Perbankan / Keuangan'}</td></tr>
-                    </table>
-                  </div>
-                  <div>
-                    <p class="font-bold text-slate-800">b. Pengguna Laporan Tambahan :</p>
-                    ${p.pengguna_laporan_b && p.pengguna_laporan_b !== '-' ? `
-                    <table class="doc-table-clean pl-4" style="width: auto;">
-                      <tr><td class="w-52 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pengguna_laporan_b}</td></tr>
-                      <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pengguna_b_alamat || '-'}</td></tr>
-                      <tr><td class="font-semibold">PIC</td><td>:</td><td>${p.pengguna_b_pic || '-'}</td></tr>
-                      <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${p.pengguna_b_jabatan || '-'}</td></tr>
-                      <tr><td class="font-semibold">No. Telepon / Faksimile</td><td>:</td><td>${p.pengguna_b_telp || '-'}</td></tr>
-                      <tr><td class="font-semibold">Email</td><td>:</td><td>${p.pengguna_b_email || '-'}</td></tr>
-                      <tr><td class="font-semibold">Bidang Usaha</td><td>:</td><td>${p.pengguna_b_bidang || '-'}</td></tr>
-                    </table>
-                    ` : `
-                    <p class="pl-4 text-slate-600">- (Tidak ada pihak pengguna laporan tambahan)</p>
-                    `}
-                  </div>
-                </div>
-              </div>
-
-              <!-- 4. OBJEK PENILAIAN DAN KEPEMILIKAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">4. OBJEK PENILAIAN DAN KEPEMILIKAN</p>
-                <p class="mb-2">Objek yang akan dinilai adalah berupa aset tetap yaitu :</p>
-                <table class="doc-table my-2">
-                  <thead>
-                    <tr>
-                      <th class="w-8">No</th>
-                      <th>Nama Debitur</th>
-                      <th>Jenis Objek</th>
-                      <th class="w-28">Luas Tanah (m²)</th>
-                      <th class="w-28">Luas Bangunan (m²)</th>
-                      <th>Kepemilikan Tunggal</th>
-                      <th>Lokasi</th>
-                    </tr>
-                  </thead>
-                  <tbody>${tabelObjekHTML}</tbody>
-                </table>
-                <div class="text-[10px] text-slate-600 mt-2 space-y-0.5 italic">
-                  <p><strong>Keterangan :</strong></p>
-                  <p>Luas tanah dan bangunan yang digunakan sebagai dasar penilaian adalah tanah berdasarkan sertifikat tanah atau bukti kepemilikan tanah lainnya. Bangunan berdasarkan hasil pengukuran pada saat inspeksi.</p>
-                  <p>Bukti kepemilikan tanah akan disampaikan setelah penawaran disetujui.</p>
-                </div>
-              </div>
-
-              <!-- 5. JENIS MATA UANG YANG DIGUNAKAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">5. JENIS MATA UANG YANG DIGUNAKAN</p>
-                <p class="text-justify">Hasil penilaian atas objek dinyatakan dalam mata uang <strong>${p.mata_uang || 'Rupiah'}</strong>.</p>
-              </div>
-
-              <!-- 6. MAKSUD DAN TUJUAN PENILAIAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">6. MAKSUD DAN TUJUAN PENILAIAN</p>
-                <p class="text-justify mb-2">
-                  Penilaian ini dilaksanakan dengan maksud memberikan opini/pendapat mengenai Nilai Pasar dan Indikasi Nilai Likuidasi atas objek penilaian untuk tujuan <strong>${p.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit'}</strong> pada <strong>${p.pemberi_tugas_nama}</strong>.
-                </p>
-                <p class="text-justify">
-                  Laporan hasil penilaian tidak untuk digunakan diluar konteks atau tujuan yang dimaksudkan. Penilai tidak bertanggung jawab apabila Laporan Penilaian digunakan selain dari tujuan yang telah disebutkan diatas.
-                </p>
-              </div>
-
-              <!-- 7. DASAR NILAI -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">7. DASAR NILAI</p>
-                <p class="text-justify mb-2">
-                  Dasar Nilai yang digunakan sesuai maksud dan tujuan diatas adalah <strong>${p.dasar_nilai || 'Nilai Pasar'}</strong>.
-                </p>
-                <p class="text-justify mb-2">
-                  Nilai Pasar didefinisikan sebagai estimasi sejumlah uang yang dapat diperoleh atau dibayar untuk penukaran suatu aset atau liabilitas pada tanggal penilaian, antara pembeli yang berminat membeli dengan penjual yang berminat menjual, dalam suatu transaksi bebas ikatan, yang pemasarannya dilakukan secara layak, dimana kedua pihak masing-masing bertindak atas dasar pemahaman yang dimilikinya, kehati-hatian dan tanpa paksaan (SPI 101 butir 3.1, 2018).
-                </p>
-                <p class="text-justify">
-                  Beberapa pemberi pinjaman membutuhkan penilaian dengan asumsi likuidasi atau menentukan batas waktu penjualan hipotesis dari properti. Karena harga dalam periode pemasaran akan tergantung dari kondisi saat penjualan terjadi. Asumsi Dasar Nilai dinyatakan sebagai Indikasi Nilai Likuidasi dan hanya berlaku pada tanggal penilaian dan mungkin tidak berlaku pada saat terjadinya kredit macet atau gagal bayar pembiayaan di masa yang akan datang, karena kondisi pasar dan keadaan penjualan dapat berbeda (SPI 202 butir 5.1.e), 2018).
-                </p>
-              </div>
-
-              <!-- 8. TANGGAL PENILAIAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">8. TANGGAL PENILAIAN</p>
-                <p class="text-justify">
-                  Tanggal penilaian yaitu tanggal pada saat nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya inspeksi lapangan${p.tanggal_penilaian ? ` (${formatTanggalIndo(p.tanggal_penilaian)})` : ''}.
-                </p>
-              </div>
-
-              <!-- 9. TINGKAT KEDALAMAN INVESTIGASI -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">9. TINGKAT KEDALAMAN INVESTIGASI</p>
-                <ul class="list-disc pl-5 space-y-1 text-justify">
-                  <li>Data dan informasi, menyangkut fisik dan legal atas objek penilaian diperoleh dari pemberi tugas.</li>
-                  <li>Inspeksi dapat dilakukan tanpa ada pembatasan akses ke lokasi objek penilaian.</li>
-                  <li>Proses pengumpulan dan analisis data dilakukan secara lengkap pada objek penilaian yang didampingi oleh Pemberi Tugas atau pihak yang ditunjuk oleh Pemberi Tugas. Apabila pada aset tertentu dijumpai keterbatasan untuk dijangkau maupun diidentifikasi secara keseluruhan, kami menggunakan pendataan secara sampling. Jumlah sampling harus memenuhi pertimbangan terbaik Penilai dan disepakati dengan Pemberi Tugas.</li>
-                  <li>Investigasi terhadap objek penilaian dilakukan terbatas pada kondisi fisik terlihat dan tingkat kesesuaian antara data fisik dan fisik terlihat. Terhadap bidang tanah tidak dilakukan pengukuran. Pengukuran dilakukan jika antara data fisik dan fisik terlihat tidak ada kesesuaian.</li>
-                  <li>Apabila pelaksanaan inspeksi lapangan tidak dapat dilakukan karena keberadaan objek penilaian tidak diketahui, maka penugasan dimaksud tidak dapat diteruskan atau batal.</li>
-                  <li>Hasil inspeksi yang dilakukan Penilai dilengkapi dengan Berita Acara Inspeksi yang ditandatangani Pemberi Tugas / pemilik objek / pihak yang ditunjuk oleh Pemberi Tugas dan Penilai.</li>
-                  <li>Penilai tidak mempertimbangkan dan melakukan penyelidikan akan adanya pencemaran dan resiko lingkungan pada properti yang dinilai baik aktual maupun potensial.</li>
-                  <li>Segala sesuatu yang membatasi pekerjaan dan atau diluar dari pada hal diatas maka lingkup penugasan ini akan disesuaikan.</li>
-                </ul>
-              </div>
-
-              <!-- 10. SIFAT DAN SUMBER INFORMASI YANG DAPAT DIANDALKAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">10. SIFAT DAN SUMBER INFORMASI YANG DAPAT DIANDALKAN</p>
-                <p class="text-justify mb-2">Data dan informasi yang dianggap handal tanpa memerlukan verifikasi dan tidak terbatas yang disebutkan sebagai berikut :</p>
-                <ul class="list-disc pl-5 space-y-1 text-justify">
-                  <li>Data umum dari lembaga resmi pemerintah atau swasta yang mempublikasikan data informasi terkait dengan objek penilaian seperti Bank Indonesia, Badan Pusat Statistik (BPS) dan lembaga resmi lainnya.</li>
-                  <li>Lembaga Independent, Biaya Teknis Bangunan (BTB) dari Masyarakat Profesi Penilai Indonesia (MAPPI).</li>
-                  <li>Data khusus meliputi data objek penilaian yang diberikan secara langsung oleh Pemberi Tugas selama proses penilaian.</li>
-                  <li>Data pemerintah dan penawaran meliputi informasi atas transaksi dan penawaran suatu aset yang diperoleh langsung dari masyarakat sekitar, pejabat pemerintah setempat, media cetak, media elektronik dan papan pengumuman yang layak.</li>
-                </ul>
-              </div>
-
-              <!-- 11. ASUMSI DAN ASUMSI KHUSUS -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">11. ASUMSI DAN ASUMSI KHUSUS</p>
-                <p class="text-justify mb-2">Dalam penilaian ini kami menggunakan asumsi umum dan bila diperlukan akan menggunakan asumsi khusus. Asumsi yang digunakan adalah sebagai berikut:</p>
-                <ul class="list-disc pl-5 space-y-1 text-justify">
-                  <li>Penilaian ini didasarkan pada asumsi bahwa properti dibangun sesuai dengan peraturan yang berlaku, serta telah memiliki atau dalam proses memiliki ijin lokasi dan perijinan lain yang dikeluarkan oleh instansi berwenang.</li>
-                  <li>Penilaian ini didasarkan atas asumsi bahwa pemilik akan menjual properti tersebut tanpa adanya penundaan keuntungan selama waktu penjualan, lease back, management arrangement atau setiap perjanjian yang serupa yang menyebabkan peningkatan nilai dari properti tersebut.</li>
-                  <li>Bahwa objek penilaian yang dinilai tidak mempunyai masalah hukum dan hak kepemilikannya adalah sah, bebas dari sengketa dan dapat dialihkan haknya.</li>
-                  <li>Semua informasi yang berkaitan dengan penilaian ini, tetapi tidak termasuk kesimpulan pendapat tentang nilai, kami terima dari pemberi tugas termasuk hal-hal yang menyangkut kepemilikan tanah dan luas tanahnya serta hal-hal yang relevan lainnya. Kami menganggap bahwa informasi dan data yang kami terima sepanjang menyangkut data keterangan mengenai objek penilaian adalah benar.</li>
-                  <li>Selain itu kami memperoleh data dari sumber-sumber lainnya yang telah dipublikasikan. Semua informasi yang kami peroleh dari sumber seperti yang dinyatakan dalam laporan diasumsikan adalah benar oleh karena itu kami tidak melakukan verifikasi. Bila ternyata anggapan tersebut tidak sesuai dengan hal sesungguhnya, maka itu di luar tanggung jawab kami.</li>
-                  <li>Nilai Pasar yang dimaksud mencerminkan nilai yang sesungguhnya tanpa memperhitungkan adanya kewajiban atas pajak atau biaya-biaya yang terkait dengan transaksi penjualan tersebut. Properti yang dinilai berdasarkan asumsi bebas dari segala hipotik, persengketaan dan premi serta biaya lain yang belum diselesaikan.</li>
-                  <li>Dalam hal penelitian dan penyelidikan yang ada hubungannya dengan kebenaran legalitas hak milik serta utang piutang yang mengakibatkan kerugian atas harta tetap yang dinilai, bukan merupakan ruang lingkup pekerjaan penilai, pekerjaan tersebut merupakan pekerjaan Konsultan Hukum, dan oleh sebab itu dalam penilaian ini kami berasumsi bahwa harta kekayaan yang dinilai tersebut telah bebas dari segala tuntutan hukum.</li>
-                  <li>Penilaian ini berlaku terbatas pada tanggal efektif penilaian, yaitu tanggal dimana perkiraan nilai tersebut berlaku. Kami menganggap bahwa sejak tanggal dimulai hingga akhir inspeksi tidak terdapat perubahan yang mempengaruhi secara signifikan.</li>
-                  <li>Bila terjadi perubahan atas salah satu atau kombinasi dari asumsi asumsi yang digunakan, akan sangat mempengaruhi hasil penilaian ini, karena itu kami tidak dapat menjamin realisasi nilai-nilai tersebut.</li>
-                  <li>Asumsi khusus akan digunakan karena kondisi khusus, tidak biasa, atau luar biasa. Asumsi khusus akan kami ungkapkan dalam laporan penilaian, apabila diperlukan.</li>
-                </ul>
-              </div>
-
-              <!-- 12. PERSYARATAN ATAS PERSETUJUAN UNTUK PUBLIKASI -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">12. PERSYARATAN ATAS PERSETUJUAN UNTUK PUBLIKASI</p>
-                <p class="text-justify">
-                  Laporan hasil penilaian yang telah diterbitkan oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN, merupakan laporan untuk kepentingan sebagaimana yang dimaksud dalam Lingkup Penugasan ini bukan untuk dipublikasikan. Bilamana akan dipublikasikan baik keseluruhan maupun sebagian dari isi laporan penilaian harus mendapatkan persetujuan dari KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN.
-                </p>
-              </div>
-
-              <!-- 13. KONFIRMASI BAHWA PENILAIAN DILAKUKAN BERDASARKAN SPI -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">13. KONFIRMASI BAHWA PENILAIAN DILAKUKAN BERDASARKAN SPI</p>
-                <p class="text-justify">Pekerjaan penilaian ini dilakukan berdasarkan Standar Penilaian Indonesia (SPI) Edisi VII - 2018.</p>
-              </div>
-
-              <!-- 14. LAPORAN PENILAIAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">14. LAPORAN PENILAIAN</p>
-                <p class="text-justify mb-2">
-                  Laporan penilaian yang akan disampaikan berupa <strong>${p.jenis_laporan === 'RTL' ? 'Laporan Ringkas (Short Report)' : 'Laporan Terinci (Long Report)'}</strong> yang disusun dengan menggunakan Bahasa Indonesia. Jumlah laporan yang akan diserahkan sebanyak 2 (dua) rangkap buku. Jangka waktu pelaksanaan pekerjaan <strong>${p.sla_total || 5} (${terbilangHari(p.sla_total || 5)})</strong> hari kerja termasuk inspeksi dan data diterima lengkap. Tanggal penilaian akan disesuaikan dengan tanggal pada saat inspeksi lapangan atas aset. Dengan rencana jadwal pelaksanaan pekerjaan sebagai berikut:
-                </p>
-                <table class="doc-table-clean pl-4 mb-2" style="width: auto;">
-                  <tr>
-                    <td class="w-80">Peninjauan dan pemeriksaan fisik aset</td>
-                    <td class="w-3">:</td>
-                    <td><strong>${p.sla_inspeksi || 1}</strong> hari kerja</td>
-                  </tr>
-                  <tr>
-                    <td>Analisa dan penilaian / Resume / Draft</td>
-                    <td>:</td>
-                    <td><strong>${p.sla_analisa || 2}</strong> hari kerja</td>
-                  </tr>
-                  <tr>
-                    <td>Penyusunan laporan final</td>
-                    <td>:</td>
-                    <td><strong>${p.sla_final || 2}</strong> hari kerja</td>
-                  </tr>
-                  <tr class="font-bold border-t border-slate-300">
-                    <td>Jumlah</td>
-                    <td>:</td>
-                    <td>${p.sla_total || 5} hari kerja</td>
-                  </tr>
-                </table>
-              </div>
-
-              <!-- 15. BATASAN ATAU PENGECUALIAN ATAS TANGGUNG JAWAB KEPADA PIHAK SELAIN PEMBERI TUGAS -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">15. BATASAN ATAU PENGECUALIAN ATAS TANGGUNG JAWAB KEPADA PIHAK SELAIN PEMBERI TUGAS</p>
-                <p class="text-justify">
-                  Penilai hanya bertanggung jawab memberikan laporan dan informasi kepada Pemberi Tugas dan/atau pihak terkait lainnya sebagaimana yang diatur dalam Lingkup Penugasan ini. Penilai tidak memiliki tanggung jawab kepada pihak ketiga, selama tidak bertentangan dengan peraturan dan hukum berlaku.
-                </p>
-              </div>
-
-              <!-- 16. PERSYARATAN ADANYA PERNYATAAN TERTULIS BERUPA SURAT REPRESENTASI DARI PEMBERI TUGAS MENGENAI KEBENARAN DAN SIFAT INFORMASI YANG DIBERIKAN OLEH PEMBERI TUGAS -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">16. PERSYARATAN ADANYA PERNYATAAN TERTULIS BERUPA SURAT REPRESENTASI DARI PEMBERI TUGAS MENGENAI KEBENARAN DAN SIFAT INFORMASI YANG DIBERIKAN OLEH PEMBERI TUGAS</p>
-                <p class="text-justify mb-2">
-                  Informasi dan data yang diperoleh oleh Penilai dari Pemberi Tugas dan/atau pihak yang terkait lainnya sebagaimana yang diatur oleh SPI 103 akan dilengkapi dengan surat pernyataan bermaterai mengenai kebenaran dan sifat informasi yang diberikan (surat representasi).
-                </p>
-                <p class="text-justify mb-2">
-                  Apabila sampai dengan diterbitkannya laporan penilaian, pemberi tugas atau pemilik aset belum menyampaikan atau penilai belum menerima surat representasi tersebut, maka pemberi tugas atau pemilik aset tetap bertanggung jawab atas kebenaran dan sifat informasi yang diberikan.
-                </p>
-                <p class="text-justify">
-                  Penilai Publik sudah melakukan konfirmasi kepada Pemberi Tugas, bahwa aset atau liabilitas yang menjadi objek penilaian tidak sedang atau telah dinilai oleh Penilai Publik lainnya untuk maksud, tujuan, pengguna laporan dan tanggal penilaian yang sama atau berdekatan (dalam jangka waktu tidak lebih dari dua bulan) (KEPI 5.8.c).4).
-                </p>
-              </div>
-
-              <!-- 17. NON DISCLOSURE AGREEMENT -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">17. NON DISCLOSURE AGREEMENT</p>
-                <p class="text-justify mb-2">
-                  KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN wajib menjaga kerahasiaan data dan informasi rahasia yang diperoleh terkait dengan Pemberi Tugas. Yang tidak termasuk data dan informasi yang harus dijaga kerahasiaannya oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN adalah :
-                </p>
-                <ul class="list-disc pl-5 space-y-1 text-justify">
-                  <li>Data dan informasi yang sudah menjadi milik publik.</li>
-                  <li>Data dan informasi yang diminta oleh dan berdasarkan perintah dari lembaga peradilan atau oleh suatu instansi / lembaga pemerintahan, atau yang diwajibkan oleh perundang-undangan yang berlaku.</li>
-                  <li>Data dan informasi yang sudah diketahui lebih dulu oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN sebelum diberitahukan oleh Pemberi Tugas.</li>
-                  <li>Data dan informasi yang diketahui oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN dari sumber lain selain Pemberi Tugas, selama KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN tidak mengetahui bahwa sumber informasi dan data tersebut memiliki kewajiban untuk menjaga kerahasiaan informasi dan data tersebut.</li>
-                </ul>
-              </div>
-
-              <!-- 18. DATA-DATA YANG DIPERLUKAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">18. DATA-DATA YANG DIPERLUKAN</p>
-                <p class="text-justify mb-2">Data yang diperlukan dalam pelaksanaan pekerjaan ini adalah sebagai berikut :</p>
-                <ul class="list-disc pl-5 space-y-1 text-justify">
-                  <li>Copy Dokumen Kepemilikan Tanah (Sertifikat/Girik/Akta Jual Beli) lengkap dengan gambar situasi</li>
-                  <li>Copy IMB dan NJOP PBB tahun terakhir</li>
-                  <li>Copy Denah dan Layout Bangunan</li>
-                  <li>Surat Representasi mengenai kebenaran dan sifat informasi yang diberikan Pemberi Tugas (format terlampir)</li>
-                  <li>Copy NPWP Pemberi Tugas</li>
-                  <li>Dokumen-dokumen lain yang relevan</li>
-                  <li>Contact Person pendamping di lapangan</li>
-                </ul>
-              </div>
-
-              <!-- 19. HAK DAN KEWAJIBAN PARA PIHAK -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">19. HAK DAN KEWAJIBAN PARA PIHAK</p>
-                <div class="space-y-3">
-                  <div>
-                    <p class="font-bold text-slate-800">Hak dan Kewajiban Penilai</p>
-                    <div class="pl-4 mt-1">
-                      <p class="font-semibold text-slate-700 italic">Hak Penilai :</p>
-                      <ul class="list-disc pl-5 space-y-0.5 text-justify">
-                        <li>Memperoleh data yang diperlukan sesuai permintaan data yang telah disampaikan kepada Pemberi Tugas.</li>
-                        <li>Memperoleh akses untuk melakukan wawancara dan memperoleh data dari tenaga ahli yang ditunjuk oleh Pemberi Tugas atau Objek Penilaian apabila diperlukan.</li>
-                        <li>Memperoleh pembayaran dalam rangka pelaksanaan penugasan sesuai ketentuan point nomor 22.</li>
-                        <li>Memperoleh keterangan dari Pemberi Tugas, apabila karena satu dan lain hal Pemberi Tugas memutuskan untuk tidak melanjutkan pelaksanaan penugasan berdasarkan kesepakatan ini.</li>
-                      </ul>
-                      <p class="font-semibold text-slate-700 italic mt-2">Kewajiban Penilai :</p>
-                      <ul class="list-disc pl-5 space-y-0.5 text-justify">
-                        <li>Melaksanakan penugasan sesuai standar pelaksanaan pekerjaan yang telah ditetapkan.</li>
-                        <li>Memberikan informasi mengenai kemajuan pelaksanaan penugasan sesuai permintaan Pemberi Tugas.</li>
-                        <li>Memberikan resume nilai paling lambat 2 (dua) hari kerja, sebelum finalisasi laporan.</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div>
-                    <p class="font-bold text-slate-800">Hak dan Kewajiban Pemberi Tugas</p>
-                    <div class="pl-4 mt-1">
-                      <p class="font-semibold text-slate-700 italic">Hak Pemberi Tugas :</p>
-                      <ul class="list-disc pl-5 space-y-0.5 text-justify">
-                        <li>Memperoleh penjelasan mengenai pelaksanaan penugasan penilaian.</li>
-                        <li>Memperoleh revisi nilai paling lambat 2 (dua) hari kerja, sebelum finalisasi laporan.</li>
-                        <li>Memperoleh laporan final.</li>
-                        <li>Memeriksa sekaligus menandatangani Berita Acara dan Surat Tugas Survey yang dibuat untuk pertemuan dan atau berkomunikasi dalam rangka membahas penugasan dan memberikan koreksi serta persetujuan terhadap isinya.</li>
-                      </ul>
-                      <p class="font-semibold text-slate-700 italic mt-2">Kewajiban Pemberi Tugas :</p>
-                      <ul class="list-disc pl-5 space-y-0.5 text-justify">
-                        <li>Memberikan data dan informasi terkait objek penilaian beserta surat representasi/pernyataan yang diperlukan oleh penilai paling lambat 2 (dua) hari kerja setelah permintaan data disampaikan.</li>
-                        <li>Memberikan ijin kepada Penilai untuk melakukan inspeksi yang diperlukan sesuai jadwal yang telah disepakati bersama.</li>
-                        <li>Memenuhi pembayaran dalam rangka pelaksanaan penugasan sesuai yang disepakati.</li>
-                        <li>Memberikan akses bagi penilai untuk melakukan wawancara dan memperoleh data dari tenaga ahli yang telah ditunjuk oleh Pemberi Tugas atau Objek Penilaian apabila diperlukan.</li>
-                        <li>Memberikan keterangan yang diperlukan oleh Penilai Pengganti yang ditunjuk oleh Pemberi Tugas, apabila karena satu dan lain hal Pemberi Tugas memutuskan untuk tidak melanjutkan pelaksanaan penugasan berdasarkan kesepakatan ini. Atas pemutusan pelaksanaan penugasan ini Pemberi Tugas bersedia untuk memenuhi kewajiban pembayaran sesuai kesepakatan ini.</li>
-                        <li>Menunjuk wakil untuk memberikan keterangan yang diperlukan oleh Penilai.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 20. FORCE MAJEURE -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">20. FORCE MAJEURE</p>
-                <ol style="list-style-type: lower-alpha;" class="pl-5 space-y-1 text-justify">
-                  <li>Masing-masing pihak dibebaskan dari tanggung jawab atas keterlambatan atau kegagalan dalam memenuhi kewajiban yang tercantum dalam Perjanjian ini, yang disebabkan atau diakibatkan oleh kejadian diluar kekuasaan masing-masing pihak yang digolongkan sebagai Force Majeure.</li>
-                  <li>Peristiwa yang dapat digolongkan Force Majeure adalah adanya bencana alam seperti gempa bumi, taufan, banjir atau hujan terus menerus, wabah penyakit, adanya perang, peledakan, sabotase, revolusi, pemberontakan, huru hara, adanya tindakan pemerintahan dalam bidang ekonomi dan moneter yang secara nyata berpengaruh terhadap pelaksanaan Perjanjian ini.</li>
-                  <li>Apabila terjadi Force Majeure maka pihak yang lebih dahulu mengetahui wajib memberitahukan kepada pihak lainnya selambat-lambatnya dalam waktu 14 (empat belas) hari setelah terjadinya Force Majeure.</li>
-                  <li>Keadaan Kahar / Force Majeure sebagaimana dimaksud pada poin b perjanjian ini tidak menghapuskan atau mengakhiri perjanjian ini. Setelah keadaan kahar / Force Majeure berakhir dan kondisinya masih memungkinkan kegiatan dapat dilaksanakan, maka para pihak akan melanjutkan pelaksanaan perjanjian ini sesuai dengan ketentuan-ketentuan yang diatur dalam perjanjian ini.</li>
-                </ol>
-              </div>
-
-              <!-- 21. BIAYA JASA PENILAIAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">21. BIAYA JASA PENILAIAN</p>
-                <p class="text-justify mb-2">
-                  Dalam menentukan besarnya biaya atas jasa penilaian, kami tidak mengkaitkannya dengan besarnya nilai objek yang tercakup dalam penilaian, tetapi berdasarkan pada perhitungan jumlah orang kerja serta lamanya waktu kerja dari masing-masing personil yang melaksanakan pekerjaan. Berdasarkan hal tersebut, kami menentukan biaya jasa penilaian sebesar :
-                </p>
-                <table class="doc-table-clean pl-4 mb-2" style="width: auto;">
-                  <tr><td class="w-44 font-semibold">Biaya Penilaian</td><td class="w-3">:</td><td><strong>Rp ${feeDppText}</strong></td></tr>
-                  <tr><td class="font-semibold">PPN 11 %</td><td>:</td><td><strong>Rp ${feePpnText}</strong></td></tr>
-                  <tr class="font-bold border-t border-slate-300"><td>Total Biaya</td><td>:</td><td>Rp ${feeTotalText}</td></tr>
-                </table>
-                <p class="pl-4 italic">(${terbilangText})</p>
-              </div>
-
-              <!-- 22. CARA PEMBAYARAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">22. CARA PEMBAYARAN</p>
-                <div class="p-2 border border-slate-300 rounded bg-slate-50 space-y-1 text-justify">
-                  <p><strong>Termin Pembayaran :</strong> 100 % dari total biaya tersebut dibayarkan pada saat penyerahan Laporan Penilaian.</p>
-                  <p>Apabila pihak Pemberi Tugas memutuskan pekerjaan sepihak, maka biaya yang sudah terealisasikan tidak dapat ditarik kembali dan pembayaran yang harus direalisasikan sesuai termin, tetap harus dilakukan.</p>
-                  <p>Permintaan salinan buku tambahan dengan tanda tangan dan stempel asli akan dikenakan biaya tambahan, dengan ketentuan tidak ada perubahan terhadap maksud dan tujuan serta pengguna Laporan Penilaian.</p>
-                  ${p.rekening_resmi ? `<p class="pt-1 font-semibold text-slate-800">Pembayaran dapat ditransfer melalui: ${getTeksRekeningResmi(p.rekening_resmi)}</p>` : ''}
-                </div>
-              </div>
-
-              <!-- 23. MASA BERLAKU LINGKUP PENUGASAN DAN BERAKHIRNYA PERJANJIAN -->
-              <div>
-                <p class="font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">23. MASA BERLAKU LINGKUP PENUGASAN DAN BERAKHIRNYA PERJANJIAN</p>
-                <p class="text-justify mb-2">
-                  Lingkup Penugasan ini berlaku sampai dengan tanggal <strong>${formatTanggalIndo(p.masa_berlaku || p.tanggal_surat)}</strong> dan sekaligus sebagai Surat Perjanjian Kerjasama (SPK) jika sudah ditandatangani dan dibubuhkan stempel perusahaan. Setelah adanya tandatangan persetujuan maka lingkup penugasan ini sekaligus sebagai kesepakatan kerjasama.
-                </p>
-                <p class="text-justify">
-                  Perjanjian ini berakhir apabila Laporan Final sudah diserahkan kepada Pemberi Tugas dan pembayaran sudah dilakukan oleh Pemberi Tugas atau Para Pihak sepakat untuk mengakhiri perjanjian walaupun laporan final belum diserahkan.
-                </p>
-              </div>
-            </div>
-
-            <!-- PENUTUP -->
-            <p class="text-justify my-6">Demikianlah kami sampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih.</p>
-
-            <!-- TABEL TANDA TANGAN 2 KOLOM -->
-            <div class="avoid-break mt-6">
-              <table class="w-full text-center text-xs">
+            <table class="doc-print-table w-full border-collapse">
+              <thead>
                 <tr>
-                  <!-- Kolom Kiri: KJPP NSR -->
-                  <td class="w-1/2 align-top text-left pr-4">
-                    <p class="font-bold">Hormat kami,</p>
-                    <p class="font-bold text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
-                    <p class="text-[10px] text-slate-600 mb-20 italic">Licensed Public Appraisers &amp; Consultants</p>
-                    <p class="font-bold underline text-sm">${rekanObj.nama}</p>
-                    <p class="font-bold text-[10.5px] text-slate-800">${rekanObj.jabatan}</p>
-                    <table class="text-[10px] text-slate-700 mt-1">
-                      <tr><td class="w-44">Nomor MAPPI</td><td>: ${rekanObj.mappi}</td></tr>
-                      <tr><td>Nomor Izin Penilai Publik</td><td>: ${rekanObj.izin}</td></tr>
-                      <tr><td>Nomor Register Penilai</td><td>: ${rekanObj.rmk || '-'}</td></tr>
-                      <tr><td>Nomor Penilai Pertanahan</td><td>: ${rekanObj.bpn || '-'}</td></tr>
-                      <tr><td>Nomor STTD OJK</td><td>: ${rekanObj.ojk || '-'}</td></tr>
-                    </table>
-                  </td>
+                  <th class="p-0 border-none font-normal text-left">
+                    <!-- Kop Surat Resmi Berulang di Setiap Awal Halaman -->
+                    <div class="doc-header-kop mb-3">
+                      ${renderKopSuratResmiNSR()}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-0 border-none align-top">
+                    <div class="doc-content-body">
+                      <!-- Baris Nomor & Tanggal (2 Kolom Sejajar Presisi) -->
+                      <div class="w-full flex justify-between items-start mb-3 text-[11px]">
+                        <div class="flex-1 max-w-[65%]">
+                          <table class="doc-table-clean">
+                            <tr>
+                              <td class="w-16 font-bold" style="min-width: 60px;">No.</td>
+                              <td class="w-3">:</td>
+                              <td class="font-mono font-bold">${p.nomor_lp}</td>
+                            </tr>
+                            <tr>
+                              <td class="w-16 font-bold" style="min-width: 60px;">Lamp.</td>
+                              <td class="w-3">:</td>
+                              <td>-</td>
+                            </tr>
+                            <tr>
+                              <td class="w-16 font-bold align-top" style="min-width: 60px;">Hal</td>
+                              <td class="w-3 align-top">:</td>
+                              <td class="font-bold align-top">Lingkup Penugasan atas Penilaian Aset An. ${p.debitur_nama}</td>
+                            </tr>
+                          </table>
+                        </div>
+                        <div class="text-right font-medium whitespace-nowrap pt-0.5">
+                          Jakarta, ${formatTanggalIndo(p.tanggal_surat)}
+                        </div>
+                      </div>
 
-                  <!-- Kolom Kanan: Pemberi Tugas -->
-                  <td class="w-1/2 align-top text-left pl-4">
-                    <p class="font-bold">Menyetujui,</p>
-                    <p class="text-slate-700">Tanggal …………………………………. 2026</p>
-                    <p class="font-bold text-slate-900">${p.pemberi_tugas_nama}</p>
-                    <p class="text-[10px] text-slate-500 mb-20">Meterai Rp 10.000,- &amp; Cap Perusahaan</p>
-                    <p class="font-bold underline text-sm">${p.pemberi_tugas_pic || '.................................................................'}</p>
-                    <p class="font-bold text-[10.5px] text-slate-800">${p.pemberi_tugas_jabatan || 'Pemberi Tugas'}</p>
-                    <table class="text-[10px] text-slate-700 mt-1">
-                      <tr><td class="w-32">No. NPWP</td><td>: ${p.pemberi_tugas_npwp || '................................'}</td></tr>
-                      <tr><td class="align-top">Alamat sesuai NPWP</td><td class="align-top">: ${p.pemberi_tugas_alamat || '................................'}</td></tr>
-                    </table>
+                      <!-- Tujuan Surat -->
+                      <div class="mb-4 pl-1 text-[11px]">
+                        <p>Kepada Yth,</p>
+                        <p class="font-bold text-slate-900">${p.pemberi_tugas_nama}</p>
+                        <p class="text-slate-700">${p.pemberi_tugas_alamat || '-'}</p>
+                      </div>
+
+                      <!-- Kalimat Pembuka -->
+                      <p class="mb-2">Dengan hormat,</p>
+                      <p class="text-justify mb-4">
+                        Menunjuk surat dari <strong>${p.pemberi_tugas_nama}</strong> No. <strong>${p.rujukan_surat_nomor || p.no_surat_klien || '.......'}</strong> tanggal <strong>${p.rujukan_surat_tanggal || p.tgl_surat_klien ? formatTanggalIndo(p.rujukan_surat_tanggal || p.tgl_surat_klien) : '.............'}</strong> perihal rencana pekerjaan untuk penilaian asset (property) <strong>${p.debitur_nama}</strong>, dengan ini kami KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN menyampaikan hal-hal yang berkaitan dengan penilaian tersebut sebagai berikut :
+                      </p>
+
+                      <div class="space-y-4 text-justify">
+                        <!-- 1. STATUS PENILAI -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">1. STATUS PENILAI</p>
+                          <p class="text-justify mb-2">
+                            Pekerjaan penilaian dilaksanakan oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN yang telah mendapatkan pengukuhan dari Kementerian Keuangan Republik Indonesia No. 248/KM.1/2019 tanggal 9 Mei 2019 dengan nomor izin 2.19.0160. Adapun Penilai Publik yang ditugaskan adalah :
+                          </p>
+                          <table class="doc-table-clean pl-4 mb-3" style="width: auto;">
+                            <tr><td class="w-56 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold text-slate-900">${rekanObj.nama}</td></tr>
+                            <tr><td class="font-semibold">No. MAPPI</td><td>:</td><td>${rekanObj.mappi}</td></tr>
+                            <tr><td class="font-semibold">Klasifikasi Bidang Jasa</td><td>:</td><td>${rekanObj.klasifikasi || 'Penilai Properti'}</td></tr>
+                            <tr><td class="font-semibold">No. Izin Penilai Publik</td><td>:</td><td>${rekanObj.izin}</td></tr>
+                            <tr><td class="font-semibold">No. Register Penilai</td><td>:</td><td>${rekanObj.rmk || '-'}</td></tr>
+                            <tr><td class="font-semibold">No. Penilai Pertanahan</td><td>:</td><td>${rekanObj.bpn || '-'}</td></tr>
+                            <tr><td class="font-semibold">No. STTD OJK</td><td>:</td><td>${rekanObj.ojk || '-'}</td></tr>
+                            <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${rekanObj.jabatan} KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</td></tr>
+                          </table>
+                          <p class="text-justify mb-2">
+                            KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN memiliki 5 (lima) orang Rekan termasuk Pemimpin Rekan yang semuanya merupakan Penilai Publik yang telah memiliki izin dari Menteri Keuangan, 2 diantaranya telah memiliki STTD Profesi Penunjang Pasar Modal dari Otoritas Jasa Keuangan (OJK) dan 1 orang Penilai Publik mempunyai STTD Industri Keuangan Non Bank (IKNB) dari Otoritas Jasa Keuangan (OJK) serta 2 diantaranya mempunyai Lisensi Penilai Pertanahan dari Kementerian ATR/BPN.
+                          </p>
+                          <p class="text-justify mb-2">
+                            KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN memiliki kompetensi dan kualifikasi sebagai Penilai Properti dan Penilai Properti Sederhana dengan tenaga ahli dibidang Personal Properti (Mesin dan Peralatan, Alat Berat, Kendaraan, Kapal), Industri Perkebunan, Properti Komersial (Hotel, Mall, Gedung Perkantoran, dan lainnya).
+                          </p>
+                          <p class="text-justify mb-2">
+                            KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN akan melakukan penilaian secara objektif dan tidak memihak (Independen), tidak mempunyai benturan kepentingan dengan subjek dan/atau objek penilaian, sesuai Kode Etik Penilai Indonesia tahun 2018 yaitu Integritas, Objektivitas, Kompetensi, Kerahasiaan dan Perilaku Profesional.
+                          </p>
+                          <p class="text-justify">
+                            KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN melaksanakan penilaian dengan tenaga Penilai yang telah memenuhi persyaratan pendidikan professional yang ditentukan dan/atau diselenggarakan oleh Asosiasi Penilai yang diakui oleh pemerintah yaitu Masyarakat Profesi Penilai Indonesia (MAPPI).
+                          </p>
+                        </div>
+
+                        <!-- 2. PEMBERI TUGAS -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">2. PEMBERI TUGAS</p>
+                          <table class="doc-table-clean pl-4" style="width: auto;">
+                            <tr><td class="w-56 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pemberi_tugas_nama}</td></tr>
+                            <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pemberi_tugas_alamat || '-'}</td></tr>
+                            <tr><td class="font-semibold">PIC</td><td>:</td><td>${p.pemberi_tugas_pic || '-'}</td></tr>
+                            <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${p.pemberi_tugas_jabatan || '-'}</td></tr>
+                            <tr><td class="font-semibold">No. Telepon / Faksimile</td><td>:</td><td>${p.pemberi_tugas_telp || '-'}</td></tr>
+                            <tr><td class="font-semibold">Email</td><td>:</td><td>${p.pemberi_tugas_email || '-'}</td></tr>
+                            <tr><td class="font-semibold">Bidang Usaha</td><td>:</td><td>${p.pemberi_tugas_bidang || 'Perbankan / Keuangan'}</td></tr>
+                          </table>
+                        </div>
+
+                        <!-- 3. PENGGUNA LAPORAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">3. PENGGUNA LAPORAN</p>
+                          <div class="pl-4 space-y-3">
+                            <div>
+                              <p class="font-bold text-slate-800">a. Pengguna Laporan Utama :</p>
+                              <table class="doc-table-clean pl-4" style="width: auto;">
+                                <tr><td class="w-52 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pengguna_laporan_a || p.pemberi_tugas_nama}</td></tr>
+                                <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pemberi_tugas_alamat || '-'}</td></tr>
+                                <tr><td class="font-semibold">PIC</td><td>:</td><td>${p.pemberi_tugas_pic || '-'}</td></tr>
+                                <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${p.pemberi_tugas_jabatan || '-'}</td></tr>
+                                <tr><td class="font-semibold">No. Telepon / Faksimile</td><td>:</td><td>${p.pemberi_tugas_telp || '-'}</td></tr>
+                                <tr><td class="font-semibold">Email</td><td>:</td><td>${p.pemberi_tugas_email || '-'}</td></tr>
+                                <tr><td class="font-semibold">Bidang Usaha</td><td>:</td><td>${p.pemberi_tugas_bidang || 'Perbankan / Keuangan'}</td></tr>
+                              </table>
+                            </div>
+                            <div>
+                              <p class="font-bold text-slate-800">b. Pengguna Laporan Tambahan :</p>
+                              ${p.pengguna_laporan_b && p.pengguna_laporan_b !== '-' ? `
+                              <table class="doc-table-clean pl-4" style="width: auto;">
+                                <tr><td class="w-52 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pengguna_laporan_b}</td></tr>
+                                <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pengguna_b_alamat || '-'}</td></tr>
+                                <tr><td class="font-semibold">PIC</td><td>:</td><td>${p.pengguna_b_pic || '-'}</td></tr>
+                                <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${p.pengguna_b_jabatan || '-'}</td></tr>
+                                <tr><td class="font-semibold">No. Telepon / Faksimile</td><td>:</td><td>${p.pengguna_b_telp || '-'}</td></tr>
+                                <tr><td class="font-semibold">Email</td><td>:</td><td>${p.pengguna_b_email || '-'}</td></tr>
+                                <tr><td class="font-semibold">Bidang Usaha</td><td>:</td><td>${p.pengguna_b_bidang || '-'}</td></tr>
+                              </table>
+                              ` : `
+                              <p class="pl-4 text-slate-600">- (Tidak ada pihak pengguna laporan tambahan)</p>
+                              `}
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 4. OBJEK PENILAIAN DAN KEPEMILIKAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">4. OBJEK PENILAIAN DAN KEPEMILIKAN</p>
+                          <p class="mb-2">Objek yang akan dinilai adalah berupa aset tetap yaitu :</p>
+                          <table class="doc-table my-2">
+                            <thead>
+                              <tr>
+                                <th class="w-8">No</th>
+                                <th>Nama Debitur</th>
+                                <th>Jenis Objek</th>
+                                <th class="w-28">Luas Tanah (m²)</th>
+                                <th class="w-28">Luas Bangunan (m²)</th>
+                                <th>Kepemilikan Tunggal</th>
+                                <th>Lokasi</th>
+                              </tr>
+                            </thead>
+                            <tbody>${tabelObjekHTML}</tbody>
+                          </table>
+                          <div class="text-[10px] text-slate-600 mt-2 space-y-0.5 italic">
+                            <p><strong>Keterangan :</strong></p>
+                            <p>Luas tanah dan bangunan yang digunakan sebagai dasar penilaian adalah tanah berdasarkan sertifikat tanah atau bukti kepemilikan tanah lainnya. Bangunan berdasarkan hasil pengukuran pada saat inspeksi.</p>
+                            <p>Bukti kepemilikan tanah akan disampaikan setelah penawaran disetujui.</p>
+                          </div>
+                        </div>
+
+                        <!-- 5. JENIS MATA UANG YANG DIGUNAKAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">5. JENIS MATA UANG YANG DIGUNAKAN</p>
+                          <p class="text-justify">Hasil penilaian atas objek dinyatakan dalam mata uang <strong>${p.mata_uang || 'Rupiah'}</strong>.</p>
+                        </div>
+
+                        <!-- 6. MAKSUD DAN TUJUAN PENILAIAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">6. MAKSUD DAN TUJUAN PENILAIAN</p>
+                          <p class="text-justify mb-2">
+                            Penilaian ini dilaksanakan dengan maksud memberikan opini/pendapat mengenai Nilai Pasar dan Indikasi Nilai Likuidasi atas objek penilaian untuk tujuan <strong>${p.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit'}</strong> pada <strong>${p.pemberi_tugas_nama}</strong>.
+                          </p>
+                          <p class="text-justify">
+                            Laporan hasil penilaian tidak untuk digunakan diluar konteks atau tujuan yang dimaksudkan. Penilai tidak bertanggung jawab apabila Laporan Penilaian digunakan selain dari tujuan yang telah disebutkan diatas.
+                          </p>
+                        </div>
+
+                        <!-- 7. DASAR NILAI -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">7. DASAR NILAI</p>
+                          <p class="text-justify mb-2">
+                            Dasar Nilai yang digunakan sesuai maksud dan tujuan diatas adalah <strong>${p.dasar_nilai || 'Nilai Pasar'}</strong>.
+                          </p>
+                          <p class="text-justify mb-2">
+                            Nilai Pasar didefinisikan sebagai estimasi sejumlah uang yang dapat diperoleh atau dibayar untuk penukaran suatu aset atau liabilitas pada tanggal penilaian, antara pembeli yang berminat membeli dengan penjual yang berminat menjual, dalam suatu transaksi bebas ikatan, yang pemasarannya dilakukan secara layak, dimana kedua pihak masing-masing bertindak atas dasar pemahaman yang dimilikinya, kehati-hatian dan tanpa paksaan (SPI 101 butir 3.1, 2018).
+                          </p>
+                          <p class="text-justify">
+                            Beberapa pemberi pinjaman membutuhkan penilaian dengan asumsi likuidasi atau menentukan batas waktu penjualan hipotesis dari properti. Karena harga dalam periode pemasaran akan tergantung dari kondisi saat penjualan terjadi. Asumsi Dasar Nilai dinyatakan sebagai Indikasi Nilai Likuidasi dan hanya berlaku pada tanggal penilaian dan mungkin tidak berlaku pada saat terjadinya kredit macet atau gagal bayar pembiayaan di masa yang akan datang, karena kondisi pasar dan keadaan penjualan dapat berbeda (SPI 202 butir 5.1.e), 2018).
+                          </p>
+                        </div>
+
+                        <!-- 8. TANGGAL PENILAIAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">8. TANGGAL PENILAIAN</p>
+                          <p class="text-justify">
+                            Tanggal penilaian yaitu tanggal pada saat nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya inspeksi lapangan${p.tanggal_penilaian ? ` (${formatTanggalIndo(p.tanggal_penilaian)})` : ''}.
+                          </p>
+                        </div>
+
+                        <!-- 9. TINGKAT KEDALAMAN INVESTIGASI -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">9. TINGKAT KEDALAMAN INVESTIGASI</p>
+                          <ul class="list-disc pl-5 space-y-1 text-justify">
+                            <li>Data dan informasi, menyangkut fisik dan legal atas objek penilaian diperoleh dari pemberi tugas.</li>
+                            <li>Inspeksi dapat dilakukan tanpa ada pembatasan akses ke lokasi objek penilaian.</li>
+                            <li>Proses pengumpulan dan analisis data dilakukan secara lengkap pada objek penilaian yang didampingi oleh Pemberi Tugas atau pihak yang ditunjuk oleh Pemberi Tugas. Apabila pada aset tertentu dijumpai keterbatasan untuk dijangkau maupun diidentifikasi secara keseluruhan, kami menggunakan pendataan secara sampling. Jumlah sampling harus memenuhi pertimbangan terbaik Penilai dan disepakati dengan Pemberi Tugas.</li>
+                            <li>Investigasi terhadap objek penilaian dilakukan terbatas pada kondisi fisik terlihat dan tingkat kesesuaian antara data fisik dan fisik terlihat. Terhadap bidang tanah tidak dilakukan pengukuran. Pengukuran dilakukan jika antara data fisik dan fisik terlihat tidak ada kesesuaian.</li>
+                            <li>Apabila pelaksanaan inspeksi lapangan tidak dapat dilakukan karena keberadaan objek penilaian tidak diketahui, maka penugasan dimaksud tidak dapat diteruskan atau batal.</li>
+                            <li>Hasil inspeksi yang dilakukan Penilai dilengkapi dengan Berita Acara Inspeksi yang ditandatangani Pemberi Tugas / pemilik objek / pihak yang ditunjuk oleh Pemberi Tugas dan Penilai.</li>
+                            <li>Penilai tidak mempertimbangkan dan melakukan penyelidikan akan adanya pencemaran dan resiko lingkungan pada properti yang dinilai baik aktual maupun potensial.</li>
+                            <li>Segala sesuatu yang membatasi pekerjaan dan atau diluar dari pada hal diatas maka lingkup penugasan ini akan disesuaikan.</li>
+                          </ul>
+                        </div>
+
+                        <!-- 10. SIFAT DAN SUMBER INFORMASI YANG DAPAT DIANDALKAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">10. SIFAT DAN SUMBER INFORMASI YANG DAPAT DIANDALKAN</p>
+                          <p class="text-justify mb-2">Data dan informasi yang dianggap handal tanpa memerlukan verifikasi dan tidak terbatas yang disebutkan sebagai berikut :</p>
+                          <ul class="list-disc pl-5 space-y-1 text-justify">
+                            <li>Data umum dari lembaga resmi pemerintah atau swasta yang mempublikasikan data informasi terkait dengan objek penilaian seperti Bank Indonesia, Badan Pusat Statistik (BPS) dan lembaga resmi lainnya.</li>
+                            <li>Lembaga Independent, Biaya Teknis Bangunan (BTB) dari Masyarakat Profesi Penilai Indonesia (MAPPI).</li>
+                            <li>Data khusus meliputi data objek penilaian yang diberikan secara langsung oleh Pemberi Tugas selama proses penilaian.</li>
+                            <li>Data pemerintah dan penawaran meliputi informasi atas transaksi dan penawaran suatu aset yang diperoleh langsung dari masyarakat sekitar, pejabat pemerintah setempat, media cetak, media elektronik dan papan pengumuman yang layak.</li>
+                          </ul>
+                        </div>
+
+                        <!-- 11. ASUMSI DAN ASUMSI KHUSUS -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">11. ASUMSI DAN ASUMSI KHUSUS</p>
+                          <p class="text-justify mb-2">Dalam penilaian ini kami menggunakan asumsi umum dan bila diperlukan akan menggunakan asumsi khusus. Asumsi yang digunakan adalah sebagai berikut:</p>
+                          <ul class="list-disc pl-5 space-y-1 text-justify">
+                            <li>Penilaian ini didasarkan pada asumsi bahwa properti dibangun sesuai dengan peraturan yang berlaku, serta telah memiliki atau dalam proses memiliki ijin lokasi dan perijinan lain yang dikeluarkan oleh instansi berwenang.</li>
+                            <li>Penilaian ini didasarkan atas asumsi bahwa pemilik akan menjual properti tersebut tanpa adanya penundaan keuntungan selama waktu penjualan, lease back, management arrangement atau setiap perjanjian yang serupa yang menyebabkan peningkatan nilai dari properti tersebut.</li>
+                            <li>Bahwa objek penilaian yang dinilai tidak mempunyai masalah hukum dan hak kepemilikannya adalah sah, bebas dari sengketa dan dapat dialihkan haknya.</li>
+                            <li>Semua informasi yang berkaitan dengan penilaian ini, tetapi tidak termasuk kesimpulan pendapat tentang nilai, kami terima dari pemberi tugas termasuk hal-hal yang menyangkut kepemilikan tanah dan luas tanahnya serta hal-hal yang relevan lainnya. Kami menganggap bahwa informasi dan data yang kami terima sepanjang menyangkut data keterangan mengenai objek penilaian adalah benar.</li>
+                            <li>Selain itu kami memperoleh data dari sumber-sumber lainnya yang telah dipublikasikan. Semua informasi yang kami peroleh dari sumber seperti yang dinyatakan dalam laporan diasumsikan adalah benar oleh karena itu kami tidak melakukan verifikasi. Bila ternyata anggapan tersebut tidak sesuai dengan hal sesungguhnya, maka itu di luar tanggung jawab kami.</li>
+                            <li>Nilai Pasar yang dimaksud mencerminkan nilai yang sesungguhnya tanpa memperhitungkan adanya kewajiban atas pajak atau biaya-biaya yang terkait dengan transaksi penjualan tersebut. Properti yang dinilai berdasarkan asumsi bebas dari segala hipotik, persengketaan dan premi serta biaya lain yang belum diselesaikan.</li>
+                            <li>Dalam hal penelitian dan penyelidikan yang ada hubungannya dengan kebenaran legalitas hak milik serta utang piutang yang mengakibatkan kerugian atas harta tetap yang dinilai, bukan merupakan ruang lingkup pekerjaan penilai, pekerjaan tersebut merupakan pekerjaan Konsultan Hukum, dan oleh sebab itu dalam penilaian ini kami berasumsi bahwa harta kekayaan yang dinilai tersebut telah bebas dari segala tuntutan hukum.</li>
+                            <li>Penilaian ini berlaku terbatas pada tanggal efektif penilaian, yaitu tanggal dimana perkiraan nilai tersebut berlaku. Kami menganggap bahwa sejak tanggal dimulai hingga akhir inspeksi tidak terdapat perubahan yang mempengaruhi secara signifikan.</li>
+                            <li>Bila terjadi perubahan atas salah satu atau kombinasi dari asumsi asumsi yang digunakan, akan sangat mempengaruhi hasil penilaian ini, karena itu kami tidak dapat menjamin realisasi nilai-nilai tersebut.</li>
+                            <li>Asumsi khusus akan digunakan karena kondisi khusus, tidak biasa, atau luar biasa. Asumsi khusus akan kami ungkapkan dalam laporan penilaian, apabila diperlukan.</li>
+                          </ul>
+                        </div>
+
+                        <!-- 12. PERSYARATAN ATAS PERSETUJUAN UNTUK PUBLIKASI -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">12. PERSYARATAN ATAS PERSETUJUAN UNTUK PUBLIKASI</p>
+                          <p class="text-justify">
+                            Laporan hasil penilaian yang telah diterbitkan oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN, merupakan laporan untuk kepentingan sebagaimana yang dimaksud dalam Lingkup Penugasan ini bukan untuk dipublikasikan. Bilamana akan dipublikasikan baik keseluruhan maupun sebagian dari isi laporan penilaian harus mendapatkan persetujuan dari KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN.
+                          </p>
+                        </div>
+
+                        <!-- 13. KONFIRMASI BAHWA PENILAIAN DILAKUKAN BERDASARKAN SPI -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">13. KONFIRMASI BAHWA PENILAIAN DILAKUKAN BERDASARKAN SPI</p>
+                          <p class="text-justify">Pekerjaan penilaian ini dilakukan berdasarkan Standar Penilaian Indonesia (SPI) Edisi VII - 2018.</p>
+                        </div>
+
+                        <!-- 14. LAPORAN PENILAIAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">14. LAPORAN PENILAIAN</p>
+                          <p class="text-justify mb-2">
+                            Laporan penilaian yang akan disampaikan berupa <strong>${p.jenis_laporan === 'RTL' ? 'Laporan Ringkas (Short Report)' : 'Laporan Terinci (Long Report)'}</strong> yang disusun dengan menggunakan Bahasa Indonesia. Jumlah laporan yang akan diserahkan sebanyak 2 (dua) rangkap buku. Jangka waktu pelaksanaan pekerjaan <strong>${p.sla_total || 5} (${terbilangHari(p.sla_total || 5)})</strong> hari kerja termasuk inspeksi dan data diterima lengkap. Tanggal penilaian akan disesuaikan dengan tanggal pada saat inspeksi lapangan atas aset. Dengan rencana jadwal pelaksanaan pekerjaan sebagai berikut:
+                          </p>
+                          <table class="doc-table-clean pl-4 mb-2" style="width: auto;">
+                            <tr>
+                              <td class="w-80">Peninjauan dan pemeriksaan fisik aset</td>
+                              <td class="w-3">:</td>
+                              <td><strong>${p.sla_inspeksi || 1}</strong> hari kerja</td>
+                            </tr>
+                            <tr>
+                              <td>Analisa dan penilaian / Resume / Draft</td>
+                              <td>:</td>
+                              <td><strong>${p.sla_analisa || 2}</strong> hari kerja</td>
+                            </tr>
+                            <tr>
+                              <td>Penyusunan laporan final</td>
+                              <td>:</td>
+                              <td><strong>${p.sla_final || 2}</strong> hari kerja</td>
+                            </tr>
+                            <tr class="font-bold border-t border-slate-300">
+                              <td>Jumlah</td>
+                              <td>:</td>
+                              <td>${p.sla_total || 5} hari kerja</td>
+                            </tr>
+                          </table>
+                        </div>
+
+                        <!-- 15. BATASAN ATAU PENGECUALIAN ATAS TANGGUNG JAWAB KEPADA PIHAK SELAIN PEMBERI TUGAS -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">15. BATASAN ATAU PENGECUALIAN ATAS TANGGUNG JAWAB KEPADA PIHAK SELAIN PEMBERI TUGAS</p>
+                          <p class="text-justify">
+                            Penilai hanya bertanggung jawab memberikan laporan dan informasi kepada Pemberi Tugas dan/atau pihak terkait lainnya sebagaimana yang diatur dalam Lingkup Penugasan ini. Penilai tidak memiliki tanggung jawab kepada pihak ketiga, selama tidak bertentangan dengan peraturan dan hukum berlaku.
+                          </p>
+                        </div>
+
+                        <!-- 16. PERSYARATAN ADANYA PERNYATAAN TERTULIS BERUPA SURAT REPRESENTASI DARI PEMBERI TUGAS MENGENAI KEBENARAN DAN SIFAT INFORMASI YANG DIBERIKAN OLEH PEMBERI TUGAS -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">16. PERSYARATAN ADANYA PERNYATAAN TERTULIS BERUPA SURAT REPRESENTASI DARI PEMBERI TUGAS MENGENAI KEBENARAN DAN SIFAT INFORMASI YANG DIBERIKAN OLEH PEMBERI TUGAS</p>
+                          <p class="text-justify mb-2">
+                            Informasi dan data yang diperoleh oleh Penilai dari Pemberi Tugas dan/atau pihak yang terkait lainnya sebagaimana yang diatur oleh SPI 103 akan dilengkapi dengan surat pernyataan bermaterai mengenai kebenaran dan sifat informasi yang diberikan (surat representasi).
+                          </p>
+                          <p class="text-justify mb-2">
+                            Apabila sampai dengan diterbitkannya laporan penilaian, pemberi tugas atau pemilik aset belum menyampaikan atau penilai belum menerima surat representasi tersebut, maka pemberi tugas atau pemilik aset tetap bertanggung jawab atas kebenaran dan sifat informasi yang diberikan.
+                          </p>
+                          <p class="text-justify">
+                            Penilai Publik sudah melakukan konfirmasi kepada Pemberi Tugas, bahwa aset atau liabilitas yang menjadi objek penilaian tidak sedang atau telah dinilai oleh Penilai Publik lainnya untuk maksud, tujuan, pengguna laporan dan tanggal penilaian yang sama atau berdekatan (dalam jangka waktu tidak lebih dari dua bulan) (KEPI 5.8.c).4).
+                          </p>
+                        </div>
+
+                        <!-- 17. NON DISCLOSURE AGREEMENT -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">17. NON DISCLOSURE AGREEMENT</p>
+                          <p class="text-justify mb-2">
+                            KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN wajib menjaga kerahasiaan data dan informasi rahasia yang diperoleh terkait dengan Pemberi Tugas. Yang tidak termasuk data dan informasi yang harus dijaga kerahasiaannya oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN adalah :
+                          </p>
+                          <ul class="list-disc pl-5 space-y-1 text-justify">
+                            <li>Data dan informasi yang sudah menjadi milik publik.</li>
+                            <li>Data dan informasi yang diminta oleh dan berdasarkan perintah dari lembaga peradilan atau oleh suatu instansi / lembaga pemerintahan, atau yang diwajibkan oleh perundang-undangan yang berlaku.</li>
+                            <li>Data dan informasi yang sudah diketahui lebih dulu oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN sebelum diberitahukan oleh Pemberi Tugas.</li>
+                            <li>Data dan informasi yang diketahui oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN dari sumber lain selain Pemberi Tugas, selama KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN tidak mengetahui bahwa sumber informasi dan data tersebut memiliki kewajiban untuk menjaga kerahasiaan informasi dan data tersebut.</li>
+                          </ul>
+                        </div>
+
+                        <!-- 18. DATA-DATA YANG DIPERLUKAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">18. DATA-DATA YANG DIPERLUKAN</p>
+                          <p class="text-justify mb-2">Data yang diperlukan dalam pelaksanaan pekerjaan ini adalah sebagai berikut :</p>
+                          <ul class="list-disc pl-5 space-y-1 text-justify">
+                            <li>Copy Dokumen Kepemilikan Tanah (Sertifikat/Girik/Akta Jual Beli) lengkap dengan gambar situasi</li>
+                            <li>Copy IMB dan NJOP PBB tahun terakhir</li>
+                            <li>Copy Denah dan Layout Bangunan</li>
+                            <li>Surat Representasi mengenai kebenaran dan sifat informasi yang diberikan Pemberi Tugas (format terlampir)</li>
+                            <li>Copy NPWP Pemberi Tugas</li>
+                            <li>Dokumen-dokumen lain yang relevan</li>
+                            <li>Contact Person pendamping di lapangan</li>
+                          </ul>
+                        </div>
+
+                        <!-- 19. HAK DAN KEWAJIBAN PARA PIHAK -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">19. HAK DAN KEWAJIBAN PARA PIHAK</p>
+                          <div class="space-y-3">
+                            <div>
+                              <p class="font-bold text-slate-800">Hak dan Kewajiban Penilai</p>
+                              <div class="pl-4 mt-1">
+                                <p class="font-semibold text-slate-700 italic">Hak Penilai :</p>
+                                <ul class="list-disc pl-5 space-y-0.5 text-justify">
+                                  <li>Memperoleh data yang diperlukan sesuai permintaan data yang telah disampaikan kepada Pemberi Tugas.</li>
+                                  <li>Memperoleh akses untuk melakukan wawancara dan memperoleh data dari tenaga ahli yang ditunjuk oleh Pemberi Tugas atau Objek Penilaian apabila diperlukan.</li>
+                                  <li>Memperoleh pembayaran dalam rangka pelaksanaan penugasan sesuai ketentuan point nomor 22.</li>
+                                  <li>Memperoleh keterangan dari Pemberi Tugas, apabila karena satu dan lain hal Pemberi Tugas memutuskan untuk tidak melanjutkan pelaksanaan penugasan berdasarkan kesepakatan ini.</li>
+                                </ul>
+                                <p class="font-semibold text-slate-700 italic mt-2">Kewajiban Penilai :</p>
+                                <ul class="list-disc pl-5 space-y-0.5 text-justify">
+                                  <li>Melaksanakan penugasan sesuai standar pelaksanaan pekerjaan yang telah ditetapkan.</li>
+                                  <li>Memberikan informasi mengenai kemajuan pelaksanaan penugasan sesuai permintaan Pemberi Tugas.</li>
+                                  <li>Memberikan resume nilai paling lambat 2 (dua) hari kerja, sebelum finalisasi laporan.</li>
+                                </ul>
+                              </div>
+                            </div>
+                            <div>
+                              <p class="font-bold text-slate-800">Hak dan Kewajiban Pemberi Tugas</p>
+                              <div class="pl-4 mt-1">
+                                <p class="font-semibold text-slate-700 italic">Hak Pemberi Tugas :</p>
+                                <ul class="list-disc pl-5 space-y-0.5 text-justify">
+                                  <li>Memperoleh penjelasan mengenai pelaksanaan penugasan penilaian.</li>
+                                  <li>Memperoleh revisi nilai paling lambat 2 (dua) hari kerja, sebelum finalisasi laporan.</li>
+                                  <li>Memperoleh laporan final.</li>
+                                  <li>Memeriksa sekaligus menandatangani Berita Acara dan Surat Tugas Survey yang dibuat untuk pertemuan dan atau berkomunikasi dalam rangka membahas penugasan dan memberikan koreksi serta persetujuan terhadap isinya.</li>
+                                </ul>
+                                <p class="font-semibold text-slate-700 italic mt-2">Kewajiban Pemberi Tugas :</p>
+                                <ul class="list-disc pl-5 space-y-0.5 text-justify">
+                                  <li>Memberikan data dan informasi terkait objek penilaian beserta surat representasi/pernyataan yang diperlukan oleh penilai paling lambat 2 (dua) hari kerja setelah permintaan data disampaikan.</li>
+                                  <li>Memberikan ijin kepada Penilai untuk melakukan inspeksi yang diperlukan sesuai jadwal yang telah disepakati bersama.</li>
+                                  <li>Memenuhi pembayaran dalam rangka pelaksanaan penugasan sesuai yang disepakati.</li>
+                                  <li>Memberikan akses bagi penilai untuk melakukan wawancara dan memperoleh data dari tenaga ahli yang telah ditunjuk oleh Pemberi Tugas atau Objek Penilaian apabila diperlukan.</li>
+                                  <li>Memberikan keterangan yang diperlukan oleh Penilai Pengganti yang ditunjuk oleh Pemberi Tugas, apabila karena satu dan lain hal Pemberi Tugas memutuskan untuk tidak melanjutkan pelaksanaan penugasan berdasarkan kesepakatan ini. Atas pemutusan pelaksanaan penugasan ini Pemberi Tugas bersedia untuk memenuhi kewajiban pembayaran sesuai kesepakatan ini.</li>
+                                  <li>Menunjuk wakil untuk memberikan keterangan yang diperlukan oleh Penilai.</li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 20. FORCE MAJEURE -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">20. FORCE MAJEURE</p>
+                          <ol style="list-style-type: lower-alpha;" class="pl-5 space-y-1 text-justify">
+                            <li>Masing-masing pihak dibebaskan dari tanggung jawab atas keterlambatan atau kegagalan dalam memenuhi kewajiban yang tercantum dalam Perjanjian ini, yang disebabkan atau diakibatkan oleh kejadian diluar kekuasaan masing-masing pihak yang digolongkan sebagai Force Majeure.</li>
+                            <li>Peristiwa yang dapat digolongkan Force Majeure adalah adanya bencana alam seperti gempa bumi, taufan, banjir atau hujan terus menerus, wabah penyakit, adanya perang, peledakan, sabotase, revolusi, pemberontakan, huru hara, adanya tindakan pemerintahan dalam bidang ekonomi dan moneter yang secara nyata berpengaruh terhadap pelaksanaan Perjanjian ini.</li>
+                            <li>Apabila terjadi Force Majeure maka pihak yang lebih dahulu mengetahui wajib memberitahukan kepada pihak lainnya selambat-lambatnya dalam waktu 14 (empat belas) hari setelah terjadinya Force Majeure.</li>
+                            <li>Keadaan Kahar / Force Majeure sebagaimana dimaksud pada poin b perjanjian ini tidak menghapuskan atau mengakhiri perjanjian ini. Setelah keadaan kahar / Force Majeure berakhir dan kondisinya masih memungkinkan kegiatan dapat dilaksanakan, maka para pihak akan melanjutkan pelaksanaan perjanjian ini sesuai dengan ketentuan-ketentuan yang diatur dalam perjanjian ini.</li>
+                          </ol>
+                        </div>
+
+                        <!-- 21. BIAYA JASA PENILAIAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">21. BIAYA JASA PENILAIAN</p>
+                          <p class="text-justify mb-2">
+                            Dalam menentukan besarnya biaya atas jasa penilaian, kami tidak mengkaitkannya dengan besarnya nilai objek yang tercakup dalam penilaian, tetapi berdasarkan pada perhitungan jumlah orang kerja serta lamanya waktu kerja dari masing-masing personil yang melaksanakan pekerjaan. Berdasarkan hal tersebut, kami menentukan biaya jasa penilaian sebesar :
+                          </p>
+                          <table class="doc-table-clean pl-4 mb-2" style="width: auto;">
+                            <tr><td class="w-44 font-semibold">Biaya Penilaian</td><td class="w-3">:</td><td><strong>Rp ${feeDppText}</strong></td></tr>
+                            <tr><td class="font-semibold">PPN 11 %</td><td>:</td><td><strong>Rp ${feePpnText}</strong></td></tr>
+                            <tr class="font-bold border-t border-slate-300"><td>Total Biaya</td><td>:</td><td>Rp ${feeTotalText}</td></tr>
+                          </table>
+                          <p class="pl-4 italic">(${terbilangText})</p>
+                        </div>
+
+                        <!-- 22. CARA PEMBAYARAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">22. CARA PEMBAYARAN</p>
+                          <div class="p-2 border border-slate-300 rounded bg-slate-50 space-y-1 text-justify">
+                            <p><strong>Termin Pembayaran :</strong> 100 % dari total biaya tersebut dibayarkan pada saat penyerahan Laporan Penilaian.</p>
+                            <p>Apabila pihak Pemberi Tugas memutuskan pekerjaan sepihak, maka biaya yang sudah terealisasikan tidak dapat ditarik kembali dan pembayaran yang harus direalisasikan sesuai termin, tetap harus dilakukan.</p>
+                            <p>Permintaan salinan buku tambahan dengan tanda tangan dan stempel asli akan dikenakan biaya tambahan, dengan ketentuan tidak ada perubahan terhadap maksud dan tujuan serta pengguna Laporan Penilaian.</p>
+                            ${p.rekening_resmi ? `<p class="pt-1 font-semibold text-slate-800">Pembayaran dapat ditransfer melalui: ${getTeksRekeningResmi(p.rekening_resmi)}</p>` : ''}
+                          </div>
+                        </div>
+
+                        <!-- 23. MASA BERLAKU LINGKUP PENUGASAN DAN BERAKHIRNYA PERJANJIAN -->
+                        <div class="klausul-item avoid-break">
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">23. MASA BERLAKU LINGKUP PENUGASAN DAN BERAKHIRNYA PERJANJIAN</p>
+                          <p class="text-justify mb-2">
+                            Lingkup Penugasan ini berlaku sampai dengan tanggal <strong>${formatTanggalIndo(p.masa_berlaku || p.tanggal_surat)}</strong> dan sekaligus sebagai Surat Perjanjian Kerjasama (SPK) jika sudah ditandatangani dan dibubuhkan stempel perusahaan. Setelah adanya tandatangan persetujuan maka lingkup penugasan ini sekaligus sebagai kesepakatan kerjasama.
+                          </p>
+                          <p class="text-justify">
+                            Perjanjian ini berakhir apabila Laporan Final sudah diserahkan kepada Pemberi Tugas dan pembayaran sudah dilakukan oleh Pemberi Tugas atau Para Pihak sepakat untuk mengakhiri perjanjian walaupun laporan final belum diserahkan.
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- PENUTUP -->
+                      <p class="text-justify my-6">Demikianlah kami sampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih.</p>
+
+                      <!-- TABEL TANDA TANGAN 2 KOLOM -->
+                      <div class="avoid-break signature-block mt-6">
+                        <table class="w-full text-center text-xs">
+                          <tr>
+                            <!-- Kolom Kiri: KJPP NSR -->
+                            <td class="w-1/2 align-top text-left pr-4">
+                              <p class="font-bold">Hormat kami,</p>
+                              <p class="font-bold text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
+                              <p class="text-[10px] text-slate-600 mb-20 italic">Licensed Public Appraisers &amp; Consultants</p>
+                              <p class="font-bold underline text-sm">${rekanObj.nama}</p>
+                              <p class="font-bold text-[10.5px] text-slate-800">${rekanObj.jabatan}</p>
+                              <table class="text-[10px] text-slate-700 mt-1">
+                                <tr><td class="w-44">Nomor MAPPI</td><td>: ${rekanObj.mappi}</td></tr>
+                                <tr><td>Nomor Izin Penilai Publik</td><td>: ${rekanObj.izin}</td></tr>
+                                <tr><td>Nomor Register Penilai</td><td>: ${rekanObj.rmk || '-'}</td></tr>
+                                <tr><td>Nomor Penilai Pertanahan</td><td>: ${rekanObj.bpn || '-'}</td></tr>
+                                <tr><td>Nomor STTD OJK</td><td>: ${rekanObj.ojk || '-'}</td></tr>
+                              </table>
+                            </td>
+
+                            <!-- Kolom Kanan: Pemberi Tugas -->
+                            <td class="w-1/2 align-top text-left pl-4">
+                              <p class="font-bold">Menyetujui,</p>
+                              <p class="text-slate-700">Tanggal …………………………………. 2026</p>
+                              <p class="font-bold text-slate-900">${p.pemberi_tugas_nama}</p>
+                              <p class="text-[10px] text-slate-500 mb-20">Meterai Rp 10.000,- &amp; Cap Perusahaan</p>
+                              <p class="font-bold underline text-sm">${p.pemberi_tugas_pic || '.................................................................'}</p>
+                              <p class="font-bold text-[10.5px] text-slate-800">${p.pemberi_tugas_jabatan || 'Pemberi Tugas'}</p>
+                              <table class="text-[10px] text-slate-700 mt-1">
+                                <tr><td class="w-32">No. NPWP</td><td>: ${p.pemberi_tugas_npwp || '................................'}</td></tr>
+                                <tr><td class="align-top">Alamat sesuai NPWP</td><td class="align-top">: ${p.pemberi_tugas_alamat || '................................'}</td></tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
                   </td>
                 </tr>
-              </table>
-            </div>
+              </tbody>
+            </table>
           </div>
         `;
         htmlDocs.push(dok1);
@@ -4921,73 +5008,91 @@
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3D") {
         const dok3D = `
           <div class="doc-page sheet-a4 halaman-cetak text-[11.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
-            ${renderKopSuratResmiNSR()}
-
-            <div class="text-center mb-5">
-              <h2 class="font-bold text-sm uppercase underline tracking-wider">SURAT TUGAS</h2>
-              <p class="font-mono text-xs mt-0.5">No. ${noST}</p>
-            </div>
-
-            <p class="mb-4 text-justify">
-              Sehubungan dengan pekerjaan Penilaian Properti milik <strong>${namaPemilikAset} (Debitur: ${p.debitur_nama})</strong> sesuai dengan Lingkup Penugasan / Surat Perjanjian Kerjasama (SPK) No. <strong>${p.nomor_lp}</strong> tanggal <strong>${formatTanggalIndo(p.tanggal_surat)}</strong> antara KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN dengan <strong>${p.pemberi_tugas_nama}</strong> maka ditugaskan kepada saudara:
-            </p>
-
-            <table class="doc-table mb-4">
+            <table class="doc-print-table w-full border-collapse">
               <thead>
                 <tr>
-                  <th class="w-10 text-center">No</th>
-                  <th>Peran / Jabatan</th>
-                  <th>Nama Personil</th>
-                  <th>No. MAPPI</th>
-                  <th>Kontak / HP</th>
+                  <th class="p-0 border-none font-normal text-left">
+                    <!-- Kop Surat Resmi Berulang di Setiap Awal Halaman -->
+                    <div class="doc-header-kop mb-3">
+                      ${renderKopSuratResmiNSR()}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td class="text-center">1</td>
-                  <td class="font-bold">Penilai Lapangan</td>
-                  <td class="font-bold">${p.penilai_nama}</td>
-                  <td class="font-mono">${viewPenilaiMappi}</td>
-                  <td class="font-mono">${penilaiMeta.hp || '-'}</td>
-                </tr>
-                <tr>
-                  <td class="text-center">2</td>
-                  <td class="font-bold">Asisten Penilai / Surveyor</td>
-                  <td class="font-bold">${p.asisten_nama}</td>
-                  <td class="font-mono">${viewAsistenMappi}</td>
-                  <td class="font-mono">${asistenMeta.hp || '-'}</td>
-                </tr>
-                <tr>
-                  <td class="text-center">3</td>
-                  <td class="font-bold">Pendamping Lapangan Klien</td>
-                  <td>${p.pemberi_tugas_pic || p.debitur_cp || '-'}</td>
-                  <td class="font-mono">-</td>
-                  <td class="font-mono">${p.pemberi_tugas_kontak || '-'}</td>
+                  <td class="p-0 border-none align-top">
+                    <div class="doc-content-body">
+                      <div class="text-center mb-5">
+                        <h2 class="font-bold text-sm uppercase underline tracking-wider">SURAT TUGAS</h2>
+                        <p class="font-mono text-xs mt-0.5">No. ${noST}</p>
+                      </div>
+
+                      <p class="mb-4 text-justify">
+                        Sehubungan dengan pekerjaan Penilaian Properti milik <strong>${namaPemilikAset} (Debitur: ${p.debitur_nama})</strong> sesuai dengan Lingkup Penugasan / Surat Perjanjian Kerjasama (SPK) No. <strong>${p.nomor_lp}</strong> tanggal <strong>${formatTanggalIndo(p.tanggal_surat)}</strong> antara KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN dengan <strong>${p.pemberi_tugas_nama}</strong> maka ditugaskan kepada saudara:
+                      </p>
+
+                      <table class="doc-table mb-4">
+                        <thead>
+                          <tr>
+                            <th class="w-10 text-center">No</th>
+                            <th>Peran / Jabatan</th>
+                            <th>Nama Personil</th>
+                            <th>No. MAPPI</th>
+                            <th>Kontak / HP</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="text-center">1</td>
+                            <td class="font-bold">Penilai Lapangan</td>
+                            <td class="font-bold">${p.penilai_nama}</td>
+                            <td class="font-mono">${viewPenilaiMappi}</td>
+                            <td class="font-mono">${penilaiMeta.hp || '-'}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-center">2</td>
+                            <td class="font-bold">Asisten Penilai / Surveyor</td>
+                            <td class="font-bold">${p.asisten_nama}</td>
+                            <td class="font-mono">${viewAsistenMappi}</td>
+                            <td class="font-mono">${asistenMeta.hp || '-'}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-center">3</td>
+                            <td class="font-bold">Pendamping Lapangan Klien</td>
+                            <td>${p.pemberi_tugas_pic || p.debitur_cp || '-'}</td>
+                            <td class="font-mono">-</td>
+                            <td class="font-mono">${p.pemberi_tugas_kontak || '-'}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <p class="mb-2">Untuk melaksanakan kunjungan survey berupa <strong>${jenisObjekUtama}</strong> yang berlokasi di <strong>${alamatLengkapObjek}</strong>.</p>
+                      <p class="mb-4">
+                        Yang akan dilaksanakan pada :<br>
+                        &bull; Hari : <strong>${p.survey_hari}</strong><br>
+                        &bull; Tanggal : <strong>${formatTanggalIndo(p.survey_tanggal)}</strong>
+                      </p>
+
+                      <p class="text-justify mb-8">
+                        Demikian surat tugas ini diberikan agar digunakan sesuai dengan maksudnya dengan sebaik-baiknya.
+                      </p>
+
+                      <!-- Tanda Tangan Rekan -->
+                      <div class="avoid-break signature-block flex justify-end">
+                        <div class="w-80 text-center text-xs">
+                          <p class="font-bold mb-1">${kotaKantor}, ${formatTanggalIndo(p.tanggal_surat)}<br>KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
+                          <div class="h-20"></div>
+                          <p class="font-bold underline">${rekanObj.nama}</p>
+                          <p class="text-[10px]">Rekan Penilai Publik Penanggung Jawab</p>
+                          <p class="text-[9px] text-slate-600">No. Izin: ${rekanObj.izin} | RMK: ${rekanObj.rmk}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
-
-            <p class="mb-2">Untuk melaksanakan kunjungan survey berupa <strong>${jenisObjekUtama}</strong> yang berlokasi di <strong>${alamatLengkapObjek}</strong>.</p>
-            <p class="mb-4">
-              Yang akan dilaksanakan pada :<br>
-              &bull; Hari : <strong>${p.survey_hari}</strong><br>
-              &bull; Tanggal : <strong>${formatTanggalIndo(p.survey_tanggal)}</strong>
-            </p>
-
-            <p class="text-justify mb-8">
-              Demikian surat tugas ini diberikan agar digunakan sesuai dengan maksudnya dengan sebaik-baiknya.
-            </p>
-
-            <!-- Tanda Tangan Rekan -->
-            <div class="avoid-break flex justify-end">
-              <div class="w-80 text-center text-xs">
-                <p class="font-bold mb-1">${kotaKantor}, ${formatTanggalIndo(p.tanggal_surat)}<br>KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
-                <div class="h-20"></div>
-                <p class="font-bold underline">${rekanObj.nama}</p>
-                <p class="text-[10px]">Rekan Penilai Publik Penanggung Jawab</p>
-                <p class="text-[9px] text-slate-600">No. Izin: ${rekanObj.izin} | RMK: ${rekanObj.rmk}</p>
-              </div>
-            </div>
           </div>
         `;
         htmlDocs.push(dok3D);
@@ -5000,147 +5105,165 @@
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3E") {
         const dok3E = `
           <div class="doc-page sheet-a4 halaman-cetak text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
-            ${renderKopSuratResmiNSR()}
-
-            <div class="text-center mb-3">
-              <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">BERITA ACARA INSPEKSI LAPANGAN (BAP)</h2>
-              <p class="font-mono text-xs text-slate-700">No. ${noBAP}</p>
-            </div>
-
-            <p class="mb-2">Yang bertanda tangan dibawah ini :</p>
-            <table class="doc-table-clean mb-3 pl-2 text-[10.5px]">
-              <tr>
-                <td class="w-44 font-bold">Nama Surveyor/Penilai</td>
-                <td class="w-3">:</td>
-                <td><strong>${p.asisten_nama} / ${p.penilai_nama}</strong></td>
-              </tr>
-              <tr>
-                <td class="font-bold">No MAPPI</td>
-                <td>:</td>
-                <td class="font-mono">${viewAsistenMappi} / ${viewPenilaiMappi}</td>
-              </tr>
-              <tr>
-                <td class="font-bold">Perusahaan Appraisal</td>
-                <td>:</td>
-                <td class="font-bold">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</td>
-              </tr>
-              <tr>
-                <td class="font-bold">Alamat</td>
-                <td>:</td>
-                <td>Jl. Hankam No. 5 RT 006 RW 001 Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550</td>
-              </tr>
-              <tr>
-                <td class="font-bold">Telp./Fax</td>
-                <td>:</td>
-                <td>(021) 7884 9996 / (021) 7884 9997</td>
-              </tr>
-            </table>
-
-            <p class="mb-2">Telah melaksanakan inspeksi lapangan untuk melakukan penilaian atas aset/properti sebagai berikut :</p>
-            <table class="doc-table-clean mb-3 pl-2 text-[10.5px]">
-              <tr>
-                <td class="w-44 font-bold">Pemberi Tugas</td>
-                <td class="w-3">:</td>
-                <td class="font-bold">${p.pemberi_tugas_nama}</td>
-              </tr>
-              <tr>
-                <td class="font-bold">Sertipikat milik</td>
-                <td>:</td>
-                <td class="font-bold">${namaPemilikAset}</td>
-              </tr>
-              <tr>
-                <td class="font-bold">Alamat/Lokasi Objek</td>
-                <td>:</td>
-                <td>${alamatLengkapObjek}</td>
-              </tr>
-            </table>
-
-            <!-- Tabel 2 Kolom: Lingkup Pekerjaan & Dokumen Diterima Sesuai Excel BAP -->
-            <table class="w-full doc-table mb-3 text-[10px]">
+            <table class="doc-print-table w-full border-collapse">
               <thead>
                 <tr>
-                  <th class="w-1/2">Lingkup Pekerjaan</th>
-                  <th class="w-1/2">Dokumen yang Kami Terima Terdiri Dari:</th>
+                  <th class="p-0 border-none font-normal text-left">
+                    <!-- Kop Surat Resmi Berulang di Setiap Awal Halaman -->
+                    <div class="doc-header-kop mb-3">
+                      ${renderKopSuratResmiNSR()}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td class="align-top">
-                    <ul class="space-y-1">
-                      <li>[ ${p.ceklis_tanah !== false ? 'X' : ' '} ] Tanah</li>
-                      <li>[ ${p.ceklis_bangunan !== false ? 'X' : ' '} ] Bangunan-bangunan</li>
-                      <li>[ ${p.ceklis_ruko ? 'X' : ' '} ] Ruko / Apartemen</li>
-                      <li>[ ${p.ceklis_sarana !== false ? 'X' : ' '} ] Sarana pelengkap lainnya</li>
-                      <li>- Berupa : <strong>${jenisObjekUtama}</strong></li>
-                    </ul>
-                  </td>
-                  <td class="align-top">
-                    <ul class="space-y-1">
-                      <li>[ ${p.dok_sertifikat !== false ? 'X' : ' '} ] Fotokopi sertifikat tanah</li>
-                      <li>[ ${p.dok_imb !== false ? 'X' : ' '} ] Fotokopi IMB / PBG</li>
-                      <li>[ ${p.dok_pbb !== false ? 'X' : ' '} ] Fotokopi PBB</li>
-                      <li>[ ${p.dok_invoice ? 'X' : ' '} ] Invoice / Dokumen Mesin</li>
-                      <li>[ ${p.dok_denah ? 'X' : ' '} ] Gambar Denah / Situasi Aset</li>
-                    </ul>
+                  <td class="p-0 border-none align-top">
+                    <div class="doc-content-body">
+                      <div class="text-center mb-3">
+                        <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">BERITA ACARA INSPEKSI LAPANGAN (BAP)</h2>
+                        <p class="font-mono text-xs text-slate-700">No. ${noBAP}</p>
+                      </div>
+
+                      <p class="mb-2">Yang bertanda tangan dibawah ini :</p>
+                      <table class="doc-table-clean mb-3 pl-2 text-[10.5px]">
+                        <tr>
+                          <td class="w-44 font-bold">Nama Surveyor/Penilai</td>
+                          <td class="w-3">:</td>
+                          <td><strong>${p.asisten_nama} / ${p.penilai_nama}</strong></td>
+                        </tr>
+                        <tr>
+                          <td class="font-bold">No MAPPI</td>
+                          <td>:</td>
+                          <td class="font-mono">${viewAsistenMappi} / ${viewPenilaiMappi}</td>
+                        </tr>
+                        <tr>
+                          <td class="font-bold">Perusahaan Appraisal</td>
+                          <td>:</td>
+                          <td class="font-bold">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</td>
+                        </tr>
+                        <tr>
+                          <td class="font-bold">Alamat</td>
+                          <td>:</td>
+                          <td>Jl. Hankam No. 5 RT 006 RW 001 Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550</td>
+                        </tr>
+                        <tr>
+                          <td class="font-bold">Telp./Fax</td>
+                          <td>:</td>
+                          <td>(021) 7884 9996 / (021) 7884 9997</td>
+                        </tr>
+                      </table>
+
+                      <p class="mb-2">Telah melaksanakan inspeksi lapangan untuk melakukan penilaian atas aset/properti sebagai berikut :</p>
+                      <table class="doc-table-clean mb-3 pl-2 text-[10.5px]">
+                        <tr>
+                          <td class="w-44 font-bold">Pemberi Tugas</td>
+                          <td class="w-3">:</td>
+                          <td class="font-bold">${p.pemberi_tugas_nama}</td>
+                        </tr>
+                        <tr>
+                          <td class="font-bold">Sertipikat milik</td>
+                          <td>:</td>
+                          <td class="font-bold">${namaPemilikAset}</td>
+                        </tr>
+                        <tr>
+                          <td class="font-bold">Alamat/Lokasi Objek</td>
+                          <td>:</td>
+                          <td>${alamatLengkapObjek}</td>
+                        </tr>
+                      </table>
+
+                      <!-- Tabel 2 Kolom: Lingkup Pekerjaan & Dokumen Diterima Sesuai Excel BAP -->
+                      <table class="w-full doc-table mb-3 text-[10px]">
+                        <thead>
+                          <tr>
+                            <th class="w-1/2">Lingkup Pekerjaan</th>
+                            <th class="w-1/2">Dokumen yang Kami Terima Terdiri Dari:</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="align-top">
+                              <ul class="space-y-1">
+                                <li>[ ${p.ceklis_tanah !== false ? 'X' : ' '} ] Tanah</li>
+                                <li>[ ${p.ceklis_bangunan !== false ? 'X' : ' '} ] Bangunan-bangunan</li>
+                                <li>[ ${p.ceklis_ruko ? 'X' : ' '} ] Ruko / Apartemen</li>
+                                <li>[ ${p.ceklis_sarana !== false ? 'X' : ' '} ] Sarana pelengkap lainnya</li>
+                                <li>- Berupa : <strong>${jenisObjekUtama}</strong></li>
+                              </ul>
+                            </td>
+                            <td class="align-top">
+                              <ul class="space-y-1">
+                                <li>[ ${p.dok_sertifikat !== false ? 'X' : ' '} ] Fotokopi sertifikat tanah</li>
+                                <li>[ ${p.dok_imb !== false ? 'X' : ' '} ] Fotokopi IMB / PBG</li>
+                                <li>[ ${p.dok_pbb !== false ? 'X' : ' '} ] Fotokopi PBB</li>
+                                <li>[ ${p.dok_invoice ? 'X' : ' '} ] Invoice / Dokumen Mesin</li>
+                                <li>[ ${p.dok_denah ? 'X' : ' '} ] Gambar Denah / Situasi Aset</li>
+                              </ul>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <table class="doc-table-clean mb-2 pl-2 text-[10.5px]">
+                        <tr>
+                          <td class="w-44 font-bold">Nama yang dijumpai</td>
+                          <td class="w-3">:</td>
+                          <td><strong>${p.debitur_cp || p.pemberi_tugas_pic || '-'}</strong></td>
+                        </tr>
+                        <tr>
+                          <td class="font-bold">Hub. dgn klien/pemilik</td>
+                          <td>:</td>
+                          <td>${hubunganPemilik}</td>
+                        </tr>
+                      </table>
+
+                      <div class="border border-slate-700 rounded p-2 mb-2 bg-slate-50 text-[10px]">
+                        <strong class="block mb-0.5">Catatan :</strong>
+                        <ol class="list-decimal pl-4 space-y-0.5 text-slate-800">
+                          <li>Batas-batas fisik objek telah ditunjukkan dan dicocokkan bersama pendamping di lokasi.</li>
+                          <li>Akses jalan lingkungan memadai dan dapat dilalui kendaraan roda empat.</li>
+                          <li>Sarana utilitas (listrik PLN, jaringan air bersih, dan telekomunikasi) tersedia dengan baik.</li>
+                          <li>Objek penilaian berada dalam kondisi terawat dan digunakan sesuai peruntukannya.</li>
+                        </ol>
+                      </div>
+
+                      <p class="text-justify mb-1.5 text-[9.5px]">
+                        Peninjauan dan pemeriksaan properti tersebut dilakukan sesuai dan berpedoman kepada Standar Penilaian Indonesia (SPI), Kode Etik Penilai Indonesia (KEPI) dan peraturan lain yang lazim dan berlaku di Indonesia.
+                      </p>
+                      <p class="text-justify mb-4 text-[9.5px] italic text-slate-700">
+                        Dalam melaksanakan kunjungan lapangan ini kami pihak appraisal tidak memungut biaya apapun secara langsung kepada pemberi tugas dan/atau pengguna laporan pada saat ini atau yang akan datang kecuali biaya jasa appraisal yang telah ditentukan dan disepakati oleh pihak appraisal dan pemberi tugas.
+                      </p>
+
+                      <!-- Tanda Tangan 2 Pihak -->
+                      <div class="avoid-break signature-block">
+                        <div class="text-right text-xs mb-2 pr-4">
+                          <p>${kotaKantor}, ${formatTanggalIndo(p.survey_tanggal)}</p>
+                        </div>
+                        <table class="w-full text-center text-xs">
+                          <tr>
+                            <td class="w-1/2">
+                              <p class="font-bold mb-1">KJPP NANANG RAHAYU SIGIT PARYANTO &amp; REKAN</p>
+                              <p class="text-[10px] text-slate-500 mb-14">Licensed Public Appraisers &amp; Consultants</p>
+                              <p class="font-bold underline">${p.asisten_nama}</p>
+                              <p class="text-[10px]">Surveyor / Penilai Lapangan</p>
+                              <p class="text-[9px] text-slate-500 font-mono">No. MAPPI: ${viewAsistenMappi}</p>
+                            </td>
+                            <td class="w-1/2">
+                              <p class="font-bold mb-1">Pemberi Tugas / Pendamping</p>
+                              <p class="text-[10px] text-slate-500 mb-14">Perwakilan Lapangan</p>
+                              <p class="font-bold underline">${p.debitur_cp ? p.debitur_cp.split('(')[0].trim() : (p.pemberi_tugas_pic || '...................................')}</p>
+                              <p class="text-[10px]">Pendamping di Lokasi</p>
+                              <p class="text-[9px] text-slate-500">Pemberi Tugas / Debitur</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
-
-            <table class="doc-table-clean mb-2 pl-2 text-[10.5px]">
-              <tr>
-                <td class="w-44 font-bold">Nama yang dijumpai</td>
-                <td class="w-3">:</td>
-                <td><strong>${p.debitur_cp || p.pemberi_tugas_pic || '-'}</strong></td>
-              </tr>
-              <tr>
-                <td class="font-bold">Hub. dgn klien/pemilik</td>
-                <td>:</td>
-                <td>${hubunganPemilik}</td>
-              </tr>
-            </table>
-
-            <div class="border border-slate-700 rounded p-2 mb-2 bg-slate-50 text-[10px]">
-              <strong class="block mb-0.5">Catatan :</strong>
-              <ol class="list-decimal pl-4 space-y-0.5 text-slate-800">
-                <li>Batas-batas fisik objek telah ditunjukkan dan dicocokkan bersama pendamping di lokasi.</li>
-                <li>Akses jalan lingkungan memadai dan dapat dilalui kendaraan roda empat.</li>
-                <li>Sarana utilitas (listrik PLN, jaringan air bersih, dan telekomunikasi) tersedia dengan baik.</li>
-                <li>Objek penilaian berada dalam kondisi terawat dan digunakan sesuai peruntukannya.</li>
-              </ol>
-            </div>
-
-            <p class="text-justify mb-1.5 text-[9.5px]">
-              Peninjauan dan pemeriksaan properti tersebut dilakukan sesuai dan berpedoman kepada Standar Penilaian Indonesia (SPI), Kode Etik Penilai Indonesia (KEPI) dan peraturan lain yang lazim dan berlaku di Indonesia.
-            </p>
-            <p class="text-justify mb-4 text-[9.5px] italic text-slate-700">
-              Dalam melaksanakan kunjungan lapangan ini kami pihak appraisal tidak memungut biaya apapun secara langsung kepada pemberi tugas dan/atau pengguna laporan pada saat ini atau yang akan datang kecuali biaya jasa appraisal yang telah ditentukan dan disepakati oleh pihak appraisal dan pemberi tugas.
-            </p>
-
-            <!-- Tanda Tangan 2 Pihak -->
-            <div class="avoid-break">
-              <div class="text-right text-xs mb-2 pr-4">
-                <p>${kotaKantor}, ${formatTanggalIndo(p.survey_tanggal)}</p>
-              </div>
-              <table class="w-full text-center text-xs">
-                <tr>
-                  <td class="w-1/2">
-                    <p class="font-bold mb-1">KJPP NANANG RAHAYU SIGIT PARYANTO &amp; REKAN</p>
-                    <p class="text-[10px] text-slate-500 mb-14">Licensed Public Appraisers &amp; Consultants</p>
-                    <p class="font-bold underline">${p.asisten_nama}</p>
-                    <p class="text-[10px]">Surveyor / Penilai Lapangan</p>
-                    <p class="text-[9px] text-slate-500 font-mono">No. MAPPI: ${viewAsistenMappi}</p>
-                  </td>
-                  <td class="w-1/2">
-                    <p class="font-bold mb-1">Pemberi Tugas / Pendamping</p>
-                    <p class="text-[10px] text-slate-500 mb-14">Perwakilan Lapangan</p>
-                    <p class="font-bold underline">${p.debitur_cp ? p.debitur_cp.split('(')[0].trim() : (p.pemberi_tugas_pic || '...................................')}</p>
-                    <p class="text-[10px]">Pendamping di Lokasi</p>
-                    <p class="text-[9px] text-slate-500">Pemberi Tugas / Debitur</p>
-                  </td>
-                </tr>
-              </table>
-            </div>
           </div>
         `;
         htmlDocs.push(dok3E);
@@ -5153,152 +5276,170 @@
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3F") {
         const dok3F = `
           <div class="doc-page sheet-a4 halaman-cetak text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
-            ${renderKopSuratResmiNSR()}
-
-            <div class="text-center mb-3">
-              <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">EVALUASI TINGKAT INDEPENDENSI (ETI)</h2>
-              <p class="font-mono text-xs text-slate-700">No. ${noETI}</p>
-            </div>
-
-            <!-- Identitas Tim yang Dievaluasi Sesuai Excel ETI -->
-            <table class="doc-table mb-3 text-[10px]">
+            <table class="doc-print-table w-full border-collapse">
               <thead>
                 <tr>
-                  <th>Nama Personil</th>
-                  <th>Fungsi dalam Penugasan</th>
-                  <th>No. MAPPI</th>
-                  <th>No. Register Penilai (RMK)</th>
+                  <th class="p-0 border-none font-normal text-left">
+                    <!-- Kop Surat Resmi Berulang di Setiap Awal Halaman -->
+                    <div class="doc-header-kop mb-3">
+                      ${renderKopSuratResmiNSR()}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td class="font-bold">${p.reviewer_nama}</td>
-                  <td>Reviewer</td>
-                  <td class="font-mono">${viewReviewerMappi}</td>
-                  <td class="font-mono">${reviewerMeta.rmk || '-'}</td>
-                </tr>
-                <tr>
-                  <td class="font-bold">${p.penilai_nama}</td>
-                  <td>Penilai Lapangan</td>
-                  <td class="font-mono">${viewPenilaiMappi}</td>
-                  <td class="font-mono">${penilaiMeta.rmk || '-'}</td>
-                </tr>
-                <tr>
-                  <td class="font-bold">${p.asisten_nama}</td>
-                  <td>Asisten Penilai / Surveyor</td>
-                  <td class="font-mono">${viewAsistenMappi}</td>
-                  <td class="font-mono">-</td>
+                  <td class="p-0 border-none align-top">
+                    <div class="doc-content-body">
+                      <div class="text-center mb-3">
+                        <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">EVALUASI TINGKAT INDEPENDENSI (ETI)</h2>
+                        <p class="font-mono text-xs text-slate-700">No. ${noETI}</p>
+                      </div>
+
+                      <!-- Identitas Tim yang Dievaluasi Sesuai Excel ETI -->
+                      <table class="doc-table mb-3 text-[10px]">
+                        <thead>
+                          <tr>
+                            <th>Nama Personil</th>
+                            <th>Fungsi dalam Penugasan</th>
+                            <th>No. MAPPI</th>
+                            <th>No. Register Penilai (RMK)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="font-bold">${p.reviewer_nama}</td>
+                            <td>Reviewer</td>
+                            <td class="font-mono">${viewReviewerMappi}</td>
+                            <td class="font-mono">${reviewerMeta.rmk || '-'}</td>
+                          </tr>
+                          <tr>
+                            <td class="font-bold">${p.penilai_nama}</td>
+                            <td>Penilai Lapangan</td>
+                            <td class="font-mono">${viewPenilaiMappi}</td>
+                            <td class="font-mono">${penilaiMeta.rmk || '-'}</td>
+                          </tr>
+                          <tr>
+                            <td class="font-bold">${p.asisten_nama}</td>
+                            <td>Asisten Penilai / Surveyor</td>
+                            <td class="font-mono">${viewAsistenMappi}</td>
+                            <td class="font-mono">-</td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <table class="doc-table-clean mb-3 pl-2 text-[10.5px]">
+                        <tr>
+                          <td class="w-36 font-bold">Pemberi Tugas</td>
+                          <td class="w-3">:</td>
+                          <td class="font-bold">${p.pemberi_tugas_nama}</td>
+                        </tr>
+                        <tr>
+                          <td class="font-bold">Tujuan Penilaian</td>
+                          <td>:</td>
+                          <td>${p.tujuan_penilaian}</td>
+                        </tr>
+                      </table>
+
+                      <!-- Tabel Kuesioner Independensi (Poin a s.d. g) Sesuai Excel -->
+                      <table class="doc-table mb-3 text-[10px]">
+                        <thead>
+                          <tr>
+                            <th class="w-8 text-center">No.</th>
+                            <th>Uraian Evaluasi Kepatuhan Kode Etik Penilai Indonesia (KEPI) &amp; SPI</th>
+                            <th class="w-12 text-center">Ya</th>
+                            <th class="w-14 text-center">Tidak</th>
+                            <th>Keterangan</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="text-center font-bold">a.</td>
+                            <td>Memiliki Afiliasi bisnis dengan klien</td>
+                            <td class="text-center font-bold"></td>
+                            <td class="text-center font-bold text-blue-900">[ X ]</td>
+                            <td class="text-slate-600">Tidak ada afiliasi bisnis</td>
+                          </tr>
+                          <tr>
+                            <td class="text-center font-bold">b.</td>
+                            <td>Memiliki saham klien</td>
+                            <td class="text-center font-bold"></td>
+                            <td class="text-center font-bold text-blue-900">[ X ]</td>
+                            <td class="text-slate-600">Tidak memiliki saham</td>
+                          </tr>
+                          <tr>
+                            <td class="text-center font-bold">c.</td>
+                            <td>Memiliki perikatan pinjaman dengan klien</td>
+                            <td class="text-center font-bold"></td>
+                            <td class="text-center font-bold text-blue-900">[ X ]</td>
+                            <td class="text-slate-600">Tidak ada perikatan pinjaman</td>
+                          </tr>
+                          <tr>
+                            <td class="text-center font-bold">d.</td>
+                            <td>Pernah menjadi pengurus pada klien</td>
+                            <td class="text-center font-bold"></td>
+                            <td class="text-center font-bold text-blue-900">[ X ]</td>
+                            <td class="text-slate-600">Bukan pengurus klien</td>
+                          </tr>
+                          <tr>
+                            <td class="text-center font-bold">e.</td>
+                            <td>Memiliki ikatan saudara dengan klien</td>
+                            <td class="text-center font-bold"></td>
+                            <td class="text-center font-bold text-blue-900">[ X ]</td>
+                            <td class="text-slate-600">Tidak ada hubungan keluarga</td>
+                          </tr>
+                          <tr>
+                            <td class="text-center font-bold">f.</td>
+                            <td>Memiliki ikatan saudara dengan pemilik saham pada klien</td>
+                            <td class="text-center font-bold"></td>
+                            <td class="text-center font-bold text-blue-900">[ X ]</td>
+                            <td class="text-slate-600">Tidak ada ikatan saudara pemegang saham</td>
+                          </tr>
+                          <tr>
+                            <td class="text-center font-bold">g.</td>
+                            <td>Terdapat hal-hal yang berpotensi menjadi ancaman terhadap independensi</td>
+                            <td class="text-center font-bold"></td>
+                            <td class="text-center font-bold text-blue-900">[ X ]</td>
+                            <td class="text-slate-600">Bebas benturan kepentingan &amp; independen</td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <p class="text-[9.5px] mb-4 text-justify">
+                        Berdasarkan hasil kuesioner evaluasi di atas, seluruh personil yang dievaluasi dinyatakan independen, objektif, dan tidak memiliki benturan kepentingan terhadap penugasan penilaian properti ini.
+                      </p>
+
+                      <!-- Tanda Tangan Seluruh Tim (Yang Dievaluasi) -->
+                      <div class="avoid-break signature-block">
+                        <p class="font-bold text-xs mb-3">Yang dievaluasi,</p>
+                        <table class="w-full text-center text-xs">
+                          <tr>
+                            <td class="w-1/3">
+                              <p class="font-bold mb-14">Reviewer,</p>
+                              <p class="font-bold underline">${p.reviewer_nama}</p>
+                              <p class="text-[10px] font-mono">No. MAPPI: ${viewReviewerMappi}</p>
+                              <p class="text-[9px] text-slate-500 font-mono">No. Register: ${reviewerMeta.rmk || '-'}</p>
+                            </td>
+                            <td class="w-1/3">
+                              <p class="font-bold mb-14">Penilai Lapangan,</p>
+                              <p class="font-bold underline">${p.penilai_nama}</p>
+                              <p class="text-[10px] font-mono">No. MAPPI: ${viewPenilaiMappi}</p>
+                              <p class="text-[9px] text-slate-500 font-mono">No. Register: ${penilaiMeta.rmk || '-'}</p>
+                            </td>
+                            <td class="w-1/3">
+                              <p class="font-bold mb-14">Asisten Penilai,</p>
+                              <p class="font-bold underline">${p.asisten_nama}</p>
+                              <p class="text-[10px] font-mono">No. MAPPI: ${viewAsistenMappi}</p>
+                              <p class="text-[9px] text-slate-500">Pelaksana Lapangan</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
-
-            <table class="doc-table-clean mb-3 pl-2 text-[10.5px]">
-              <tr>
-                <td class="w-36 font-bold">Pemberi Tugas</td>
-                <td class="w-3">:</td>
-                <td class="font-bold">${p.pemberi_tugas_nama}</td>
-              </tr>
-              <tr>
-                <td class="font-bold">Tujuan Penilaian</td>
-                <td>:</td>
-                <td>${p.tujuan_penilaian}</td>
-              </tr>
-            </table>
-
-            <!-- Tabel Kuesioner Independensi (Poin a s.d. g) Sesuai Excel -->
-            <table class="doc-table mb-3 text-[10px]">
-              <thead>
-                <tr>
-                  <th class="w-8 text-center">No.</th>
-                  <th>Uraian Evaluasi Kepatuhan Kode Etik Penilai Indonesia (KEPI) &amp; SPI</th>
-                  <th class="w-12 text-center">Ya</th>
-                  <th class="w-14 text-center">Tidak</th>
-                  <th>Keterangan</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="text-center font-bold">a.</td>
-                  <td>Memiliki Afiliasi bisnis dengan klien</td>
-                  <td class="text-center font-bold"></td>
-                  <td class="text-center font-bold text-blue-900">[ X ]</td>
-                  <td class="text-slate-600">Tidak ada afiliasi bisnis</td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">b.</td>
-                  <td>Memiliki saham klien</td>
-                  <td class="text-center font-bold"></td>
-                  <td class="text-center font-bold text-blue-900">[ X ]</td>
-                  <td class="text-slate-600">Tidak memiliki saham</td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">c.</td>
-                  <td>Memiliki perikatan pinjaman dengan klien</td>
-                  <td class="text-center font-bold"></td>
-                  <td class="text-center font-bold text-blue-900">[ X ]</td>
-                  <td class="text-slate-600">Tidak ada perikatan pinjaman</td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">d.</td>
-                  <td>Pernah menjadi pengurus pada klien</td>
-                  <td class="text-center font-bold"></td>
-                  <td class="text-center font-bold text-blue-900">[ X ]</td>
-                  <td class="text-slate-600">Bukan pengurus klien</td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">e.</td>
-                  <td>Memiliki ikatan saudara dengan klien</td>
-                  <td class="text-center font-bold"></td>
-                  <td class="text-center font-bold text-blue-900">[ X ]</td>
-                  <td class="text-slate-600">Tidak ada hubungan keluarga</td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">f.</td>
-                  <td>Memiliki ikatan saudara dengan pemilik saham pada klien</td>
-                  <td class="text-center font-bold"></td>
-                  <td class="text-center font-bold text-blue-900">[ X ]</td>
-                  <td class="text-slate-600">Tidak ada ikatan saudara pemegang saham</td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">g.</td>
-                  <td>Terdapat hal-hal yang berpotensi menjadi ancaman terhadap independensi</td>
-                  <td class="text-center font-bold"></td>
-                  <td class="text-center font-bold text-blue-900">[ X ]</td>
-                  <td class="text-slate-600">Bebas benturan kepentingan &amp; independen</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <p class="text-[9.5px] mb-4 text-justify">
-              Berdasarkan hasil kuesioner evaluasi di atas, seluruh personil yang dievaluasi dinyatakan independen, objektif, dan tidak memiliki benturan kepentingan terhadap penugasan penilaian properti ini.
-            </p>
-
-            <!-- Tanda Tangan Seluruh Tim (Yang Dievaluasi) -->
-            <div class="avoid-break">
-              <p class="font-bold text-xs mb-3">Yang dievaluasi,</p>
-              <table class="w-full text-center text-xs">
-                <tr>
-                  <td class="w-1/3">
-                    <p class="font-bold mb-14">Reviewer,</p>
-                    <p class="font-bold underline">${p.reviewer_nama}</p>
-                    <p class="text-[10px] font-mono">No. MAPPI: ${viewReviewerMappi}</p>
-                    <p class="text-[9px] text-slate-500 font-mono">No. Register: ${reviewerMeta.rmk || '-'}</p>
-                  </td>
-                  <td class="w-1/3">
-                    <p class="font-bold mb-14">Penilai Lapangan,</p>
-                    <p class="font-bold underline">${p.penilai_nama}</p>
-                    <p class="text-[10px] font-mono">No. MAPPI: ${viewPenilaiMappi}</p>
-                    <p class="text-[9px] text-slate-500 font-mono">No. Register: ${penilaiMeta.rmk || '-'}</p>
-                  </td>
-                  <td class="w-1/3">
-                    <p class="font-bold mb-14">Asisten Penilai,</p>
-                    <p class="font-bold underline">${p.asisten_nama}</p>
-                    <p class="text-[10px] font-mono">No. MAPPI: ${viewAsistenMappi}</p>
-                    <p class="text-[9px] text-slate-500">Pelaksana Lapangan</p>
-                  </td>
-                </tr>
-              </table>
-            </div>
           </div>
         `;
         htmlDocs.push(dok3F);
@@ -5311,60 +5452,78 @@
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3G") {
         const dok3G = `
           <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans">
-            ${renderKopSuratResmiNSR()}
-
-            <div class="text-center mb-4">
-              <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">PERNYATAAN INDEPENDENSI (PI)</h2>
-              <p class="font-mono text-xs text-slate-700">No. ${noPI}</p>
-            </div>
-
-            <p class="mb-3 text-justify text-[11px]">
-              Sehubungan dengan pekerjaan Penilaian Properti milik <strong>${namaPemilikAset} (Debitur: ${p.debitur_nama})</strong> sesuai dengan Lingkup Penugasan / Surat Perjanjian Kerjasama (SPK) No. <strong>${p.nomor_lp}</strong> tanggal <strong>${formatTanggalIndo(p.tanggal_surat)}</strong> antara KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN dengan <strong>${p.pemberi_tugas_nama}</strong>:
-            </p>
-
-            <p class="mb-3 text-justify text-[11px]">
-              Bahwa berdasarkan hasil evaluasi tingkat independensi seluruh personil yang terlibat dalam penugasan penilaian dengan segala pengetahuan dan keyakinan tidak memiliki benturan kepentingan dengan klien/pemberi tugas.
-            </p>
-
-            <p class="mb-6 text-justify text-[11px]">
-              Kami menyatakan dengan segala pengetahuan dan keyakinan bahwa kami bersedia mentaati segala kebijakan dan prosedur KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN, termasuk juga Kode Etik Penilai Indonesia yang ditetapkan Masyarakat Profesi Penilai Indonesia mengenai Independensi.
-            </p>
-
-            <!-- Tanggal & 4 Blok Tanda Tangan Terstruktur Sesuai Excel -->
-            <div class="avoid-break">
-              <div class="text-right text-xs mb-3 pr-4">
-                <p>Jakarta, ${formatTanggalIndo(p.tanggal_surat)}</p>
-              </div>
-              <table class="w-full text-center text-xs">
+            <table class="doc-print-table w-full border-collapse">
+              <thead>
                 <tr>
-                  <td class="w-1/4 align-top">
-                    <p class="font-bold mb-14">Penilai Publik / Rekan,</p>
-                    <p class="font-bold underline text-[10.5px]">${rekanObj.nama}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${rekanObj.mappi}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. Izin: ${rekanObj.izin}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. Register: ${rekanObj.rmk}</p>
-                  </td>
-                  <td class="w-1/4 align-top">
-                    <p class="font-bold mb-14">Reviewer,</p>
-                    <p class="font-bold underline text-[10.5px]">${p.reviewer_nama}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${viewReviewerMappi}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. Register: ${reviewerMeta.rmk || '-'}</p>
-                  </td>
-                  <td class="w-1/4 align-top">
-                    <p class="font-bold mb-14">Penilai,</p>
-                    <p class="font-bold underline text-[10.5px]">${p.penilai_nama}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${viewPenilaiMappi}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. Register: ${penilaiMeta.rmk || '-'}</p>
-                  </td>
-                  <td class="w-1/4 align-top">
-                    <p class="font-bold mb-14">Asisten Penilai,</p>
-                    <p class="font-bold underline text-[10.5px]">${p.asisten_nama}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${viewAsistenMappi}</p>
-                    <p class="text-[9px] text-slate-600 font-mono">No. Register: -</p>
+                  <th class="p-0 border-none font-normal text-left">
+                    <!-- Kop Surat Resmi Berulang di Setiap Awal Halaman -->
+                    <div class="doc-header-kop mb-3">
+                      ${renderKopSuratResmiNSR()}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-0 border-none align-top">
+                    <div class="doc-content-body">
+                      <div class="text-center mb-4">
+                        <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">PERNYATAAN INDEPENDENSI (PI)</h2>
+                        <p class="font-mono text-xs text-slate-700">No. ${noPI}</p>
+                      </div>
+
+                      <p class="mb-3 text-justify text-[11px]">
+                        Sehubungan dengan pekerjaan Penilaian Properti milik <strong>${namaPemilikAset} (Debitur: ${p.debitur_nama})</strong> sesuai dengan Lingkup Penugasan / Surat Perjanjian Kerjasama (SPK) No. <strong>${p.nomor_lp}</strong> tanggal <strong>${formatTanggalIndo(p.tanggal_surat)}</strong> antara KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN dengan <strong>${p.pemberi_tugas_nama}</strong>:
+                      </p>
+
+                      <p class="mb-3 text-justify text-[11px]">
+                        Bahwa berdasarkan hasil evaluasi tingkat independensi seluruh personil yang terlibat dalam penugasan penilaian dengan segala pengetahuan dan keyakinan tidak memiliki benturan kepentingan dengan klien/pemberi tugas.
+                      </p>
+
+                      <p class="mb-6 text-justify text-[11px]">
+                        Kami menyatakan dengan segala pengetahuan dan keyakinan bahwa kami bersedia mentaati segala kebijakan dan prosedur KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN, termasuk juga Kode Etik Penilai Indonesia yang ditetapkan Masyarakat Profesi Penilai Indonesia mengenai Independensi.
+                      </p>
+
+                      <!-- Tanggal & 4 Blok Tanda Tangan Terstruktur Sesuai Excel -->
+                      <div class="avoid-break signature-block">
+                        <div class="text-right text-xs mb-3 pr-4">
+                          <p>Jakarta, ${formatTanggalIndo(p.tanggal_surat)}</p>
+                        </div>
+                        <table class="w-full text-center text-xs">
+                          <tr>
+                            <td class="w-1/4 align-top">
+                              <p class="font-bold mb-14">Penilai Publik / Rekan,</p>
+                              <p class="font-bold underline text-[10.5px]">${rekanObj.nama}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${rekanObj.mappi}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. Izin: ${rekanObj.izin}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. Register: ${rekanObj.rmk}</p>
+                            </td>
+                            <td class="w-1/4 align-top">
+                              <p class="font-bold mb-14">Reviewer,</p>
+                              <p class="font-bold underline text-[10.5px]">${p.reviewer_nama}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${viewReviewerMappi}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. Register: ${reviewerMeta.rmk || '-'}</p>
+                            </td>
+                            <td class="w-1/4 align-top">
+                              <p class="font-bold mb-14">Penilai,</p>
+                              <p class="font-bold underline text-[10.5px]">${p.penilai_nama}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${viewPenilaiMappi}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. Register: ${penilaiMeta.rmk || '-'}</p>
+                            </td>
+                            <td class="w-1/4 align-top">
+                              <p class="font-bold mb-14">Asisten Penilai,</p>
+                              <p class="font-bold underline text-[10.5px]">${p.asisten_nama}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${viewAsistenMappi}</p>
+                              <p class="text-[9px] text-slate-600 font-mono">No. Register: -</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
                   </td>
                 </tr>
-              </table>
-            </div>
+              </tbody>
+            </table>
           </div>
         `;
         htmlDocs.push(dok3G);
