@@ -13,7 +13,7 @@ console.log('2. Image path images/kop-surat-nsr.png exists:', hasKopSuratImg);
 const matches3D = html.includes('renderKopSuratResmiNSR()') && html.includes('SURAT TUGAS');
 console.log('3. Dokumen 3D (Surat Tugas) integrated:', matches3D);
 
-const matches3E = html.includes('BERITA ACARA PEMERIKSAAN / INSPEKSI LAPANGAN (BAP)');
+const matches3E = html.includes('BERITA ACARA INSPEKSI LAPANGAN (BAP)') || html.includes('BERITA ACARA PEMERIKSAAN / INSPEKSI LAPANGAN (BAP)');
 console.log('4. Dokumen 3E (BAP) integrated:', matches3E);
 
 const matches3F = html.includes('EVALUASI TINGKAT INDEPENDENSI (ETI)');

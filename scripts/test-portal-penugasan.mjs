@@ -832,12 +832,161 @@ async function runTests() {
     }
     console.log('✓ Reviewer berhasil melihat teks sensor "[Sesuai Kontrak / Khusus Admin]"!');
 
+    // ------------------------------------------------------------------
+    // TEST 6: Validasi Render Mesin Dokumen Cetak Dokumen 2 & 3 (3A s.d. 3G)
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 6: Uji Validasi Render Mesin Dokumen Cetak (Dokumen 2 & 3A s.d. 3G) ---');
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        (async () => {
+          sessionStorage.clear();
+          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          await verifikasiTokenLogin();
+          pindahTab('preview');
+          if (projectDatabase.length > 0) {
+            bukaPratinjauProyek(projectDatabase[0].id);
+          }
+        })()
+      `,
+      awaitPromise: true
+    });
+    await new Promise(r => setTimeout(r, 600));
+
+    const testDokumenRenderSuite = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const results = {};
+          const sel = document.getElementById('pilih_tampilan_dokumen');
+          const area = document.getElementById('preview-rendered-area');
+
+          // Uji Dokumen 2: Surat Representasi
+          sel.value = 'DOK2';
+          gantiTampilanDokumen();
+          results.dok2 = {
+            hasTitle: area.innerText.includes('Surat Representasi Kebenaran Informasi, Data & Dokumen'),
+            hasKepi: area.innerText.includes('KEPI 5.8.c).4'),
+            hasMaterai: area.innerText.includes('(materai Rp 10.000)')
+          };
+
+          // Uji Dokumen 3A: Isian UMUM
+          sel.value = 'DOK3A';
+          gantiTampilanDokumen();
+          results.dok3A = {
+            hasTitle: area.innerText.includes('3A. LEMBAR ISIAN UMUM (ADMINISTRASI PENUGASAN)'),
+            hasSeksiA: area.innerText.includes('A. DATA LAPORAN ADMIN'),
+            hasSeksiE: area.innerText.includes('E. DATA OBJEK PENILAIAN')
+          };
+
+          // Uji Dokumen 3B: Form Order JO
+          sel.value = 'DOK3B';
+          gantiTampilanDokumen();
+          results.dok3B = {
+            hasTitle: area.innerText.includes('FORM ORDER KJPP NSR TAHUN 2026'),
+            hasSurveyorTTD: area.innerText.includes('( Surveyor )'),
+            hasDivTeknikTTD: area.innerText.includes('( Divisi Teknik )')
+          };
+
+          // Uji Dokumen 3C: Kartu Proyek
+          sel.value = 'DOK3C';
+          gantiTampilanDokumen();
+          results.dok3C = {
+            hasTitle: area.innerText.includes('KARTU PROYEK'),
+            hasBlok1: area.innerText.includes('1. Check List Dokumen (Surveyor / Penilai)'),
+            hasBlok4: area.innerText.includes('4. Cek List Pimpinan KJPP / Rekan Penilai Publik')
+          };
+
+          // Uji Dokumen 3D: Surat Tugas (Kop Resmi)
+          sel.value = 'DOK3D';
+          gantiTampilanDokumen();
+          results.dok3D = {
+            hasTitle: area.innerText.includes('SURAT TUGAS'),
+            hasKop: area.innerHTML.includes('kop-surat-resmi'),
+            hasRekan: area.innerText.includes('Rekan Penilai Publik Penanggung Jawab')
+          };
+
+          // Uji Dokumen 3E: BAP (Kop Resmi)
+          sel.value = 'DOK3E';
+          gantiTampilanDokumen();
+          results.dok3E = {
+            hasTitle: area.innerText.includes('BERITA ACARA INSPEKSI LAPANGAN (BAP)'),
+            hasKop: area.innerHTML.includes('kop-surat-resmi'),
+            hasPekerjaan: area.innerText.includes('Lingkup Pekerjaan')
+          };
+
+          // Uji Dokumen 3F: ETI (Kop Resmi)
+          sel.value = 'DOK3F';
+          gantiTampilanDokumen();
+          results.dok3F = {
+            hasTitle: area.innerText.includes('EVALUASI TINGKAT INDEPENDENSI (ETI)'),
+            hasKop: area.innerHTML.includes('kop-surat-resmi'),
+            hasEvaluasi: area.innerText.includes('Yang dievaluasi')
+          };
+
+          // Uji Dokumen 3G: PI (Kop Resmi)
+          sel.value = 'DOK3G';
+          gantiTampilanDokumen();
+          results.dok3G = {
+            hasTitle: area.innerText.includes('PERNYATAAN INDEPENDENSI (PI)'),
+            hasKop: area.innerHTML.includes('kop-surat-resmi'),
+            hasPernyataan: area.innerText.includes('Kode Etik Penilai Indonesia yang ditetapkan Masyarakat Profesi Penilai Indonesia')
+          };
+
+          // Uji Bundel DOK3 (7 Dokumen Internal)
+          sel.value = 'DOK3';
+          gantiTampilanDokumen();
+          results.dok3Count = area.querySelectorAll('.doc-page').length;
+
+          // Uji Bundel ALL (9 Dokumen Lengkap)
+          sel.value = 'ALL';
+          gantiTampilanDokumen();
+          results.allCount = area.querySelectorAll('.doc-page').length;
+
+          return results;
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 6 (Validasi Dokumen Cetak 2 & 3A-3G):', testDokumenRenderSuite.result.value);
+    const r6 = testDokumenRenderSuite.result.value;
+    if (!r6.dok2.hasTitle || !r6.dok2.hasKepi || !r6.dok2.hasMaterai) {
+      throw new Error('Dokumen 2 (Surat Representasi Klien) gagal merender judul, KEPI 5.8.c.4, atau blok meterai!');
+    }
+    if (!r6.dok3A.hasTitle || !r6.dok3A.hasSeksiA || !r6.dok3A.hasSeksiE) {
+      throw new Error('Dokumen 3A (Isian UMUM) gagal merender judul atau seksi-seksi data administrasi!');
+    }
+    if (!r6.dok3B.hasTitle || !r6.dok3B.hasSurveyorTTD) {
+      throw new Error('Dokumen 3B (Form Order JO 2026) gagal merender tabel order atau kolom tanda tangan!');
+    }
+    if (!r6.dok3C.hasTitle || !r6.dok3C.hasBlok1 || !r6.dok3C.hasBlok4) {
+      throw new Error('Dokumen 3C (Kartu Proyek) gagal merender 4 blok kendali mutu berjenjang!');
+    }
+    if (!r6.dok3D.hasTitle || !r6.dok3D.hasKop || !r6.dok3D.hasRekan) {
+      throw new Error('Dokumen 3D (Surat Tugas) gagal merender kop surat resmi atau informasi penugasan rekan!');
+    }
+    if (!r6.dok3E.hasTitle || !r6.dok3E.hasKop || !r6.dok3E.hasPekerjaan) {
+      throw new Error('Dokumen 3E (BAP) gagal merender kop surat resmi atau rincian berita acara!');
+    }
+    if (!r6.dok3F.hasTitle || !r6.dok3F.hasKop || !r6.dok3F.hasEvaluasi) {
+      throw new Error('Dokumen 3F (ETI) gagal merender kop surat resmi atau evaluasi independensi personil!');
+    }
+    if (!r6.dok3G.hasTitle || !r6.dok3G.hasKop || !r6.dok3G.hasPernyataan) {
+      throw new Error('Dokumen 3G (PI) gagal merender kop surat resmi atau pernyataan independensi!');
+    }
+    if (r6.dok3Count !== 7) {
+      throw new Error(`Bundel JO (DOK3) harus merender tepat 7 lembar kerja internal, didapat: ${r6.dok3Count}`);
+    }
+    if (r6.allCount !== 9) {
+      throw new Error(`Bundel Lengkap (ALL) harus merender tepat 9 dokumen resmi, didapat: ${r6.allCount}`);
+    }
+    console.log('✓ Seluruh 8 Dokumen Cetak (Dok 2, 3A-3G) serta bundel DOK3 (7 lembar) dan ALL (9 lembar) terverifikasi presisi!');
+
     // Tangkap screenshot final
     const ssFinal = await cdp.send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_portal_jo_rbac_verified.png'), Buffer.from(ssFinal.data, 'base64'));
     console.log('✓ Screenshot final tersimpan: test_portal_jo_rbac_verified.png');
 
-    console.log('\n🎉 SELURUH 5 PENGUJIAN OTOMASI RBAC, KEAMANAN KWITANSI & DUAL-MODE LULUS 100%!');
+    console.log('\n🎉 SELURUH 6 PENGUJIAN OTOMASI RBAC, KEAMANAN KWITANSI, DUAL-MODE & CETAK DOKUMEN LULUS 100%!');
 
   } finally {
     if (cdp) await cdp.close();
