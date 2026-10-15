@@ -1146,12 +1146,174 @@ async function runTests() {
     }
     console.log('✓ Portal Penugasan: Dropdown Rekening Tab 1, Modal Approval Pusat & Klausul 22 SPK LULUS!');
 
+    // -------------------------------------------------------------------------
+    // TEST 8: Arsitektur Running Counter Transition (Cut-off Counter), Jenis Laporan APP/RTL,
+    // 2-Layer Anti-Double Guard & Sinkronisasi Master Personil DB_PENUGASAN_JO_NSR
+    // -------------------------------------------------------------------------
+    console.log('\n--- TEST 8: Uji Arsitektur Running Counter Transition, Anti-Double Guard & Master Personil ---');
+    
+    // Pastikan berada di portal-penugasan-jo.html dengan sesi Admin Pusat
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        (async () => {
+          sessionStorage.clear();
+          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          await verifikasiTokenLogin();
+          pindahTab('form');
+        })()
+      `,
+      awaitPromise: true
+    });
+    await new Promise(r => setTimeout(r, 600));
+
+    const testCounterAndMasterRes = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          try {
+            const results = {};
+
+            // 1. Verifikasi Master Personil (5 Rekan Berizin & 10 Tenaga Ahli)
+            results.rekanCount = DATABASE_REKAN.length;
+            results.personilCount = DATABASE_PERSONIL.length;
+            results.hasNanang = DATABASE_REKAN.some(r => r.nama.includes('Nanang Rahayu'));
+            results.hasDeni = DATABASE_REKAN.some(r => r.nama.includes('Deni Siswandi'));
+            results.hasHernita = DATABASE_REKAN.some(r => r.nama.includes('Hernita'));
+            results.hasAminSade = DATABASE_REKAN.some(r => r.nama.includes('Amin Sade'));
+            results.hasDharma = DATABASE_REKAN.some(r => r.nama.includes('Dharma Priyanto'));
+
+            results.hasTedi = DATABASE_PERSONIL.some(p => p.nama.includes('Tedi Setiadi'));
+            results.hasDanny = DATABASE_PERSONIL.some(p => p.nama.includes('Danny Taufik'));
+            results.hasAngga = DATABASE_PERSONIL.some(p => p.nama.includes('Angga Malid'));
+            results.hasArdi = DATABASE_PERSONIL.some(p => p.nama.includes('Ardi Nurmayadi'));
+            results.hasAndri = DATABASE_PERSONIL.some(p => p.nama.includes('Andri Kusmandana'));
+            results.hasWawan = DATABASE_PERSONIL.some(p => p.nama.includes('Wawan Kurniawan'));
+            results.hasYasir = DATABASE_PERSONIL.some(p => p.nama.includes('Yasir Rizal'));
+            results.hasFadri = DATABASE_PERSONIL.some(p => p.nama.includes('Fadri Nurdin'));
+            results.hasRully = DATABASE_PERSONIL.some(p => p.nama.includes('Syahrul Rully'));
+            results.hasUci = DATABASE_PERSONIL.some(p => p.nama.includes('Uci Sanusi'));
+
+            // 2. Simulasi Running Counter Cut-off (misal cut-off di 585)
+            serverCounter.LAST_NO_ADM_JO = 585;
+            serverCounter.LAST_NO_LP_SPK = 585;
+            updateNomorOtomatisPreview();
+
+            const helperLast = document.getElementById('helper-last-seq')?.textContent || '';
+            const helperNext = document.getElementById('helper-next-seq')?.textContent || '';
+            results.cutOffLastDisplay = helperLast;
+            results.cutOffNextDisplay = helperNext;
+            results.cutOffTransitionCorrect = helperLast.includes('0585') && helperNext.includes('0586');
+
+            // 3. Uji tombol "Gunakan Saran Nomor Berikutnya"
+            terapkanSaranNomorUrut();
+            const elLp = document.getElementById('no_lingkup_penugasan');
+            const elAdm = document.getElementById('no_adm_jo');
+            results.appliedLp = elLp ? elLp.value : '';
+            results.appliedAdm = elAdm ? elAdm.value : '';
+            results.isApplied0586 = results.appliedLp.startsWith('0586/NSR/PN-APP/') && results.appliedAdm.startsWith('0586/JO/NSR/');
+
+            // 4. Uji perubahan Jenis Laporan (APP -> RTL)
+            const elJenis = document.getElementById('jenis_laporan');
+            elJenis.value = 'RTL';
+            elJenis.dispatchEvent(new Event('change', { bubbles: true }));
+            results.appliedLpRTL = elLp ? elLp.value : '';
+            results.isApplied0586RTL = results.appliedLpRTL.startsWith('0586/NSR/PN-RTL/');
+
+            // Kembalikan ke APP
+            elJenis.value = 'APP';
+            elJenis.dispatchEvent(new Event('change', { bubbles: true }));
+
+            // 5. Uji Resiliensi Cut-off Counter (Memasukkan nomor lampau 580 TIDAK BOLEH menurunkan counter 585)
+            const dummyOldProject = {
+              id: 'NSR-2026-DUMMY-OLD',
+              nomor_lp: '0580/NSR/PN-APP/X/2026',
+              nomor_adm: '0580/JO/NSR/X/2026',
+              status: 'APPROVED',
+              debitur_nama: 'PT LAMPAU DUMMY'
+            };
+            projectDatabase.push(dummyOldProject);
+            updateNomorOtomatisPreview();
+            const helperAfterOld = document.getElementById('helper-next-seq')?.textContent || '';
+            results.resilientCounterPreserved = helperAfterOld.includes('0586'); // Tidak boleh turun ke 0581
+
+            // 6. Uji Real-time Anti-Double Guard untuk 0580
+            elLp.value = '0580/NSR/PN-APP/X/2026';
+            validasiDuplikatLive();
+            const warnEl = document.getElementById('warning-duplikat-nomor');
+            const btnSubmit = document.getElementById('btn-submit-form');
+            results.is0580Blocked = !warnEl.classList.contains('hidden') && btnSubmit.disabled;
+
+            // Hapus project dummy
+            projectDatabase = projectDatabase.filter(p => p.id !== 'NSR-2026-DUMMY-OLD');
+            validasiDuplikatLive();
+
+            // 7. Kembalikan ke nomor unik bersih (0586)
+            elLp.value = results.appliedLp;
+            validasiDuplikatLive();
+            results.isCleanUnblocked = warnEl.classList.contains('hidden') && !btnSubmit.disabled;
+
+            // 8. Verifikasi input tetap editable untuk Admin Pusat
+            results.isAdminEditable = (elLp && !elLp.readOnly) && (elAdm && !elAdm.readOnly);
+
+            return results;
+          } catch (err) {
+            return { error: err.message, stack: err.stack };
+          }
+        })()
+      `,
+      returnByValue: true
+    });
+
+    if (testCounterAndMasterRes.exceptionDetails) {
+      console.error('Exception details in Test 8:', testCounterAndMasterRes.exceptionDetails);
+    }
+    const r8 = testCounterAndMasterRes.result?.value || {};
+    console.log('Hasil Test 8 (Running Counter Transition & Master Personil):', r8);
+    if (r8.error) {
+      throw new Error('Test 8 Internal Error: ' + r8.error + '\n' + r8.stack);
+    }
+
+    if (r8.rekanCount !== 5) {
+      throw new Error(`Master Personil Rekan harus berjumlah 5 orang, didapat: ${r8.rekanCount}`);
+    }
+    if (!r8.hasNanang || !r8.hasDeni || !r8.hasHernita || !r8.hasAminSade || !r8.hasDharma) {
+      throw new Error('Daftar Rekan Penilai Publik tidak lengkap atau tidak sesuai Master_Personil');
+    }
+    if (r8.personilCount !== 10) {
+      throw new Error(`Master Personil Tenaga Ahli harus berjumlah 10 orang, didapat: ${r8.personilCount}`);
+    }
+    if (!r8.hasTedi || !r8.hasDanny || !r8.hasAngga || !r8.hasArdi || !r8.hasAndri || !r8.hasWawan || !r8.hasYasir || !r8.hasFadri || !r8.hasRully || !r8.hasUci) {
+      throw new Error('Daftar 10 Tenaga Ahli tidak lengkap atau tidak sesuai Master_Personil');
+    }
+    if (!r8.cutOffTransitionCorrect) {
+      throw new Error(`Transisi cut-off nomor berjalan gagal: Last [${r8.cutOffLastDisplay}], Next [${r8.cutOffNextDisplay}]`);
+    }
+    if (!r8.isApplied0586) {
+      throw new Error(`Tombol Gunakan Saran Nomor gagal memformat nomor 0586: LP=[${r8.appliedLp}], ADM=[${r8.appliedAdm}]`);
+    }
+    if (!r8.isApplied0586RTL) {
+      throw new Error(`Perubahan Jenis Laporan ke RTL gagal menghasilkan kode /NSR/PN-RTL/: [${r8.appliedLpRTL}]`);
+    }
+    if (!r8.resilientCounterPreserved) {
+      throw new Error('Resiliensi Cut-off Counter gagal: Nomor lampau (580) menurunkan saran nomor counter berjalan!');
+    }
+    if (!r8.is0580Blocked) {
+      throw new Error('Anti-Double Guard gagal memblokir submit ketika nomor yang sudah ada (0580) diinputkan!');
+    }
+    if (!r8.isCleanUnblocked) {
+      throw new Error('Anti-Double Guard gagal membuka tombol submit ketika nomor unik saran (0586) digunakan!');
+    }
+    if (!r8.isAdminEditable) {
+      throw new Error('Kolom input nomor SPK dan JO harus tetap dapat diedit secara manual oleh Admin Pusat');
+    }
+
+    console.log('✓ Master Personil (5 Rekan & 10 Tenaga Ahli), Dynamic Cut-off Counter (585->0586), APP/RTL, & Anti-Double Guard LULUS 100%!');
+
     // Tangkap screenshot final
     const ssFinal = await cdp.send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_portal_jo_rbac_verified.png'), Buffer.from(ssFinal.data, 'base64'));
     console.log('✓ Screenshot final tersimpan: test_portal_jo_rbac_verified.png');
 
-    console.log('\n🎉 SELURUH 7 PENGUJIAN OTOMASI RBAC, KEAMANAN KWITANSI, DUAL-MODE, CETAK DOKUMEN & 4 REKENING BANK RESMI LULUS 100%!');
+    console.log('\n🎉 SELURUH 8 PENGUJIAN OTOMASI RBAC, KEAMANAN KWITANSI, DUAL-MODE, CETAK DOKUMEN, 4 REKENING BANK & RUNNING COUNTER LULUS 100%!');
 
   } finally {
     if (cdp) await cdp.close();

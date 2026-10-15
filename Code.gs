@@ -165,6 +165,154 @@ const HEADERS_SURAT_UMUM = [
   'Status_Arsip'
 ];
 
+// =========================================================================================
+// MASTER PERSONIL RESMI SHEET Master_Personil (5 Rekan Berizin & 10 Tenaga Ahli)
+// =========================================================================================
+const MASTER_REKAN_DEFAULT = [
+  {
+    nama: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert)",
+    jabatan: "Pemimpin Rekan",
+    klasifikasi: "Penilai Properti",
+    mappi: "95-S-00594",
+    rmk: "RMK-2017.00201",
+    izin: "P-1.09.00218",
+    bpn: "PP1.0006.25",
+    ojk: "KEP-859/KS.13/2026"
+  },
+  {
+    nama: "Deni Siswandi, S.T., MAPPI (Cert.)",
+    jabatan: "Rekan",
+    klasifikasi: "Penilai Properti",
+    mappi: "06-S-02013",
+    rmk: "RMK-2017.01564",
+    izin: "P-1.20.00581",
+    bpn: "PPI.0041.24",
+    ojk: "KEP-1261/KS.13/2026"
+  },
+  {
+    nama: "Hernita, S.Si., MAPPI (Cert.)",
+    jabatan: "Rekan",
+    klasifikasi: "Penilai Properti",
+    mappi: "09-S-02262",
+    rmk: "RMK-2017.00437",
+    izin: "PS1.15.00046",
+    bpn: "-",
+    ojk: "KEP-1012/KS.13/2026"
+  },
+  {
+    nama: "Muhammad Amin Sade, SM., MAPPI (Cert.)",
+    jabatan: "Rekan",
+    klasifikasi: "Penilai Properti",
+    mappi: "09-S-02425",
+    rmk: "RMK-2017.00527",
+    izin: "PS1.16.00126",
+    bpn: "-",
+    ojk: "KEP-1278/KS.13/2026"
+  },
+  {
+    nama: "Dharma Priyanto Sih Budi Susilo, ST., MAPPI (Cert.)",
+    jabatan: "Rekan",
+    klasifikasi: "Penilai Properti",
+    mappi: "16-S-06984",
+    rmk: "RMK-2017.01801",
+    izin: "PS1.19.00249",
+    bpn: "PP2.0031.23",
+    ojk: "KEP-523/KS.13/2026"
+  }
+];
+
+const MASTER_TENAGA_AHLI_DEFAULT = [
+  { nama: "Tedi Setiadi, S.T.", mappi: "10-T-02490", rmk: "RMK-2017.01563", peran: "Reviewer / Penilai", hp: "0815-5566-7788" },
+  { nama: "Danny Taufik Hidayat, S.H.", mappi: "10-P-02594", rmk: "RMK-2021.04012", peran: "Reviewer / Penilai", hp: "0812-9876-5432" },
+  { nama: "Angga Malid Cahyadi", mappi: "12-P-03478", rmk: "RMK-2020.03466", peran: "Reviewer / Penilai", hp: "0813-1122-3344" },
+  { nama: "Ardi Nurmayadi, S.T.", mappi: "17-P-07605", rmk: "RMK-2020.03523", peran: "Reviewer / Penilai", hp: "0818-9900-1122" },
+  { nama: "Andri Kusmandana, S.Ak.", mappi: "12-P-03607", rmk: "RMK-2017.01889", peran: "Reviewer / Penilai", hp: "0817-2233-4455" },
+  { nama: "Wawan Kurniawan", mappi: "11-P-03096", rmk: "RMK-2020.03293", peran: "Reviewer / Penilai", hp: "0814-6677-8899" },
+  { nama: "Yasir Rizal, A.Md.", mappi: "17-P-08043", rmk: "-", peran: "Asisten Penilai", hp: "0853-8899-0011" },
+  { nama: "Fadri Nurdin", mappi: "14-A-05096", rmk: "-", peran: "Asisten Penilai", hp: "0852-7788-9900" },
+  { nama: "M. Syahrul Rully", mappi: "14-A-05100", rmk: "-", peran: "Asisten Penilai", hp: "0857-9900-1122" },
+  { nama: "Uci Sanusi", mappi: "14-A-05076", rmk: "-", peran: "Asisten Penilai", hp: "0859-1122-3344" }
+];
+
+/**
+ * Dual-Key Payload Mapping Helper
+ * Mengambil nilai dari key utama atau key sekunder (camelCase / snake_case / PascalCase) dengan fallback default
+ */
+function pick(k1, k2, def) {
+  if (k1 !== undefined && k1 !== null && k1 !== '') return k1;
+  if (k2 !== undefined && k2 !== null && k2 !== '') return k2;
+  return def !== undefined ? def : '';
+}
+
+/**
+ * Membaca Master Personil resmi dari sheet Master_Personil
+ */
+function bacaMasterPersonil(ss) {
+  let sheet = ss.getSheetByName(CONFIG.SHEET_PERSONIL);
+  if (!sheet) {
+    sheet = ss.insertSheet(CONFIG.SHEET_PERSONIL);
+    sheet.appendRow(['Kategori', 'Nama', 'Jabatan', 'Klasifikasi', 'MAPPI', 'Izin_Publik', 'RMK', 'BPN', 'OJK', 'Peran', 'HP']);
+    sheet.getRange(1, 1, 1, 11).setFontWeight('bold').setBackground('#1e293b').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+    
+    MASTER_REKAN_DEFAULT.forEach(r => {
+      sheet.appendRow(['REKAN', r.nama, r.jabatan, r.klasifikasi, r.mappi, r.izin, r.rmk, r.bpn, r.ojk, 'Penandatangan Laporan', '-']);
+    });
+    MASTER_TENAGA_AHLI_DEFAULT.forEach(p => {
+      sheet.appendRow(['TENAGA_AHLI', p.nama, '-', '-', p.mappi, '-', p.rmk, '-', '-', p.peran, p.hp]);
+    });
+    return {
+      rekan: MASTER_REKAN_DEFAULT,
+      personil: MASTER_TENAGA_AHLI_DEFAULT
+    };
+  }
+
+  const numRows = sheet.getLastRow();
+  if (numRows < 2) {
+    return {
+      rekan: MASTER_REKAN_DEFAULT,
+      personil: MASTER_TENAGA_AHLI_DEFAULT
+    };
+  }
+
+  const values = sheet.getRange(2, 1, numRows - 1, Math.max(11, sheet.getLastColumn())).getValues();
+  const rekanList = [];
+  const personilList = [];
+
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    const kat = String(row[0] || '').trim().toUpperCase();
+    const nama = String(row[1] || '').trim();
+    if (!nama) continue;
+
+    if (kat === 'REKAN') {
+      rekanList.push({
+        nama: nama,
+        jabatan: String(row[2] || 'Rekan'),
+        klasifikasi: String(row[3] || 'Penilai Properti'),
+        mappi: String(row[4] || '-'),
+        izin: String(row[5] || '-'),
+        rmk: String(row[6] || '-'),
+        bpn: String(row[7] || '-'),
+        ojk: String(row[8] || '-')
+      });
+    } else {
+      personilList.push({
+        nama: nama,
+        mappi: String(row[4] || '-'),
+        rmk: String(row[6] || '-'),
+        peran: String(row[9] || 'Reviewer / Penilai'),
+        hp: String(row[10] || '-')
+      });
+    }
+  }
+
+  return {
+    rekan: rekanList.length > 0 ? rekanList : MASTER_REKAN_DEFAULT,
+    personil: personilList.length > 0 ? personilList : MASTER_TENAGA_AHLI_DEFAULT
+  };
+}
+
 // -----------------------------------------------------------------------------------------
 // 2. ENTRY POINT HTTP GET: doGet(e) DENGAN CacheService & 44-KOLOM MAPPING
 // -----------------------------------------------------------------------------------------
@@ -240,6 +388,7 @@ function doGet(e) {
       success: true,
       counter: counterData,
       submissions: submissions,
+      masterPersonil: bacaMasterPersonil(ss),
       totalCount: submissions.length,
       timestamp: new Date().toISOString()
     };
@@ -270,9 +419,9 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   
   try {
-    // 1. Concurrency guard LockService hingga 20 detik sebelum transaksi data dieksekusi
+    // 1. Concurrency guard LockService hingga 30 detik sebelum transaksi data dieksekusi
     try {
-      lock.waitLock(20000);
+      lock.waitLock(30000);
     } catch (lockErr) {
       return respondJSON({
         status: 'error',
@@ -351,7 +500,17 @@ function doPost(e) {
           status: 'success',
           success: true,
           counter: bacaConfigCounter(ss),
-          submissions: bacaSemuaSubmissions(ss)
+          submissions: bacaSemuaSubmissions(ss),
+          masterPersonil: bacaMasterPersonil(ss)
+        };
+        break;
+
+      case 'GET_MASTER':
+      case 'MASTER_PERSONIL':
+        result = {
+          status: 'success',
+          success: true,
+          masterPersonil: bacaMasterPersonil(ss)
         };
         break;
 
@@ -674,19 +833,19 @@ function prosesPengajuanBaru(ss, data, auth) {
   const thn = dSurat.getFullYear();
 
   const isPusat = (auth.mode === 'PUSAT');
-  const jenisLap = (data.Jenis_Laporan || data.jenis_laporan || '').toUpperCase();
+  const jenisLap = (pick(data.Jenis_Laporan, data.jenis_laporan, 'APP')).toUpperCase();
   const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
 
-  let noAdm = data.No_Adm_JO || data.nomor_adm || 'Menunggu Input & Otorisasi Admin Pusat';
-  let noLp = data.No_Lingkup_Penugasan || data.nomor_lp || 'Menunggu Input & Otorisasi Admin Pusat';
+  let noAdm = pick(data.No_Adm_JO, data.nomor_adm, 'Menunggu Input & Otorisasi Admin Pusat');
+  let noLp = pick(data.No_Lingkup_Penugasan, data.nomor_lp, 'Menunggu Input & Otorisasi Admin Pusat');
   let status = isPusat ? 'APPROVED' : 'WAITING_APPROVAL';
 
   // Jika input langsung oleh Admin Pusat dan nomor belum dibuat, terbitkan nomor seketika
   if (isPusat && (!noAdm || String(noAdm).indexOf('Menunggu') !== -1)) {
-    const nextSeq = ambilDanKunciNomorUrut(ss, thn);
-    const seqPadded = nextSeq.toString().padStart(4, '0');
-    noAdm = nextSeq;
-    noLp = `${seqPadded}/NSR/${kodeLap}/${romawi}/${thn}`;
+    const shCounter = ss.getSheetByName(CONFIG.SHEET_COUNTER);
+    const counterObj = incrementAndGetCounter(shCounter, romawi, thn, jenisLap);
+    noAdm = counterObj.nextNoAdm;
+    noLp = counterObj.nextLp;
     status = 'APPROVED';
   }
 
@@ -698,13 +857,20 @@ function prosesPengajuanBaru(ss, data, auth) {
         status: 'error',
         success: false,
         code: 'DUPLICATE_NUMBER',
-        message: 'GAGAL MENYIMPAN (NOMOR DOUBLE): ' + duplikat.field + ' tersebut sudah terdaftar atas nama debitur ' + duplikat.debitur + '. Gunakan nomor lain!'
+        message: 'Nomor registrasi tersebut sudah terdaftar di sistem. Gunakan nomor urut lain.'
       };
     }
   }
 
+  // Auto-Advance Counter Menggunakan Math.max (Resilient Cut-off):
+  // Ekstrak nomor urut integer dari input manual
+  const manualNumberInt = parseInt(String(noLp || noAdm || "").split('/')[0].replace(/\D/g, ""), 10);
+  if (manualNumberInt && !isNaN(manualNumberInt) && manualNumberInt > 0) {
+    updateCounterMax(ss, manualNumberInt);
+  }
+
   const nextSeqStr = (typeof noAdm === 'number') ? noAdm.toString().padStart(4, '0') : now.getTime().toString().slice(-4);
-  const projectId = data.ID_Penugasan || data.id || `NSR-${thn}-${nextSeqStr}`;
+  const projectId = pick(data.ID_Penugasan, data.id, `NSR-${thn}-${nextSeqStr}`);
 
   // Rincian Objek JSON
   let objekJson = '[]';
@@ -717,70 +883,68 @@ function prosesPengajuanBaru(ss, data, auth) {
   // Rincian Hari Kerja "2|3|2|7"
   let rincianHari = data.Rincian_Hari_Kerja;
   if (!rincianHari) {
-    const i = data.sla_inspeksi || 1;
-    const a = data.sla_analisa || 2;
-    const f = data.sla_final || 2;
-    const t = data.sla_total || (i + a + f);
+    const i = pick(data.SLA_Inspeksi, data.sla_inspeksi, 1);
+    const a = pick(data.SLA_Analisa, data.sla_analisa, 2);
+    const f = pick(data.SLA_Final, data.sla_final, 2);
+    const t = pick(data.SLA_Total, data.sla_total, (i + a + f));
     rincianHari = `${i}|${a}|${f}|${t}`;
   }
 
-  // Mapping 53 kolom persis sesuai HEADERS_DATA_PENUGASAN
+  // Mapping 53 kolom persis sesuai HEADERS_DATA_PENUGASAN via pick() helper
   const rowMap = {
     'ID_Penugasan': projectId,
     'Timestamp_Input': now.toISOString(),
     'Status_Approval': status,
-    'Kantor_Wilayah': data.Kantor_Wilayah || data.kantor_wilayah || auth.wilayah,
+    'Kantor_Wilayah': pick(data.Kantor_Wilayah, data.kantor_wilayah, auth.wilayah),
     'Mode_Pengaju': auth.mode,
     'No_Adm_JO': noAdm,
     'No_Lingkup_Penugasan': noLp,
     'Jenis_Laporan': jenisLap || (kodeLap === 'PN-RTL' ? 'RTL' : 'APP'),
-    'Tgl_Dibuat': data.Tgl_Dibuat || data.tanggal_surat || now.toISOString().split('T')[0],
-    'No_Surat_Klien': data.No_Surat_Klien || data.rujukan_surat_nomor || '-',
-    'Tgl_Surat_Klien': data.Tgl_Surat_Klien || data.rujukan_surat_tanggal || data.Tgl_Dibuat || now.toISOString().split('T')[0],
-    'Masa_Berlaku_LP': data.Masa_Berlaku_LP || data.masa_berlaku_lp || hitungMasaBerlaku(data.Tgl_Dibuat || now),
-    'Rekan_Penilai_Publik': data.Rekan_Penilai_Publik || data.rekan_nama || 'Deni Siswandi, S.T, MAPPI (Cert.)',
-    'No_Izin_Publik_Rekan': data.No_Izin_Publik_Rekan || data.rekan_izin || 'P-1.20.00581',
-    'Reviewer': data.Reviewer || data.reviewer_nama || 'Angga Malid Cahyadi',
-    'Penilai': data.Penilai || data.penilai_nama || 'Tedi Setiadi',
-    'Asisten_Surveyor': data.Asisten_Surveyor || data.asisten_nama || 'Yasir Rizal',
-    'Surveyor_Pendamping_HP': data.Surveyor_Pendamping_HP || `${data.asisten_nama || 'Yasir Rizal'} / ${data.debitur_cp || '-'}`,
-    'Nama_Pemberi_Tugas': data.Nama_Pemberi_Tugas || data.pemberi_tugas_nama || '',
-    'Bidang_Usaha_Klien': data.Bidang_Usaha_Klien || data.bidang_usaha_klien || 'Perbankan',
-    'NPWP_Klien': data.NPWP_Klien || data.pemberi_tugas_npwp || '',
-    'PIC_Klien': data.PIC_Klien || data.pemberi_tugas_pic || '',
-    'Jabatan_PIC': data.Jabatan_PIC || data.pemberi_tugas_jabatan || '',
-    'Telp_PIC': data.Telp_PIC || data.pemberi_tugas_kontak || '',
-    'Email_PIC': data.Email_PIC || data.pemberi_tugas_email || '',
-    'Alamat_Pemberi_Tugas': data.Alamat_Pemberi_Tugas || data.pemberi_tugas_alamat || '',
-    'Pengguna_Laporan_A': data.Pengguna_Laporan_A || data.pengguna_laporan_a || data.Nama_Pemberi_Tugas || '',
-    'Pengguna_Laporan_B': data.Pengguna_Laporan_B || data.pengguna_laporan_b || '-',
-    'Nama_Debitur_Utama': (data.Nama_Debitur_Utama || data.debitur_nama || '').toUpperCase(),
-    'Nama_Pemilik_Sertipikat': data.Nama_Pemilik_Sertipikat || data.pemilik_sertipikat || data.Nama_Debitur_Utama || '',
-    'Hubungan_Pemilik_Sertipikat': data.Hubungan_Pemilik_Sertipikat || data.hubungan_pemilik || 'Milik Sendiri',
+    'Tgl_Dibuat': pick(data.Tgl_Dibuat, data.tanggal_surat, now.toISOString().split('T')[0]),
+    'No_Surat_Klien': pick(data.No_Surat_Klien, data.rujukan_surat_nomor, '-'),
+    'Tgl_Surat_Klien': pick(data.Tgl_Surat_Klien, data.rujukan_surat_tanggal, now.toISOString().split('T')[0]),
+    'Masa_Berlaku_LP': pick(data.Masa_Berlaku_LP, data.masa_berlaku_lp, hitungMasaBerlaku(pick(data.Tgl_Dibuat, data.tanggal_surat, now))),
+    'Rekan_Penilai_Publik': pick(data.Rekan_Penilai_Publik, data.rekan_nama, 'Deni Siswandi, S.T., MAPPI (Cert.)'),
+    'No_Izin_Publik_Rekan': pick(data.No_Izin_Publik_Rekan, data.rekan_izin, 'P-1.20.00581'),
+    'Reviewer': pick(data.Reviewer, data.reviewer_nama, 'Danny Taufik Hidayat, S.H.'),
+    'Penilai': pick(data.Penilai, data.penilai_nama, 'Tedi Setiadi, S.T.'),
+    'Asisten_Surveyor': pick(data.Asisten_Surveyor, data.asisten_nama, 'Fadri Nurdin'),
+    'Surveyor_Pendamping_HP': pick(data.Surveyor_Pendamping_HP, `${data.asisten_nama || 'Fadri Nurdin'} / ${data.debitur_cp || '-'}`, '-'),
+    'Nama_Pemberi_Tugas': pick(data.Nama_Pemberi_Tugas, data.pemberi_tugas_nama, ''),
+    'Bidang_Usaha_Klien': pick(data.Bidang_Usaha_Klien, data.bidang_usaha_klien, 'Perbankan'),
+    'NPWP_Klien': pick(data.NPWP_Klien, data.pemberi_tugas_npwp, ''),
+    'PIC_Klien': pick(data.PIC_Klien, data.pemberi_tugas_pic, ''),
+    'Jabatan_PIC': pick(data.Jabatan_PIC, data.pemberi_tugas_jabatan, ''),
+    'Telp_PIC': pick(data.Telp_PIC, data.pemberi_tugas_kontak, ''),
+    'Email_PIC': pick(data.Email_PIC, data.pemberi_tugas_email, ''),
+    'Alamat_Pemberi_Tugas': pick(data.Alamat_Pemberi_Tugas, data.pemberi_tugas_alamat, ''),
+    'Pengguna_Laporan_A': pick(data.Pengguna_Laporan_A, data.pengguna_laporan_a, pick(data.Nama_Pemberi_Tugas, data.pemberi_tugas_nama, '')),
+    'Pengguna_Laporan_B': pick(data.Pengguna_Laporan_B, data.pengguna_laporan_b, '-'),
+    'Nama_Debitur_Utama': String(pick(data.Nama_Debitur_Utama, data.debitur_nama, '')).toUpperCase(),
+    'Nama_Pemilik_Sertipikat': pick(data.Nama_Pemilik_Sertipikat, data.pemilik_sertipikat, pick(data.Nama_Debitur_Utama, data.debitur_nama, '')),
+    'Hubungan_Pemilik_Sertipikat': pick(data.Hubungan_Pemilik_Sertipikat, data.hubungan_pemilik, 'Milik Sendiri'),
     'Rincian_Objek_JSON': objekJson,
-    'Tujuan_Penilaian': data.Tujuan_Penilaian || data.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit',
-    'Dasar_Nilai': data.Dasar_Nilai || data.dasar_nilai || 'Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)',
-    'Pendekatan_Penilaian': data.Pendekatan_Penilaian || data.pendekatan_penilaian || 'Pendekatan Pasar dan Pendekatan Biaya',
-    'Mata_Uang': data.Mata_Uang || data.mata_uang || 'Rupiah (IDR)',
-    'Tgl_Penilaian': data.Tgl_Penilaian || data.tanggal_penilaian || data.Tgl_Dibuat || now.toISOString().split('T')[0],
-    'Tgl_Survey': data.Tgl_Survey || data.survey_tanggal || now.toISOString().split('T')[0],
-    'Survey_Hari': data.Survey_Hari || data.survey_hari || 'Kamis',
-    'SLA_Inspeksi': Number(data.SLA_Inspeksi || data.sla_inspeksi || 1),
-    'SLA_Analisa': Number(data.SLA_Analisa || data.sla_analisa || 2),
-    'SLA_Final': Number(data.SLA_Final || data.sla_final || 2),
-    'SLA_Total': Number(data.SLA_Total || data.sla_total || 5),
-    'Marketing_Sumber_Proyek': data.Marketing_Sumber_Proyek || data.marketing_nama || 'Divisi Marketing',
-    'Biaya_Net_DPP': Number(data.Biaya_Net_DPP || data.biaya_dpp || 0),
-    'PPN_11_Persen': Number(data.PPN_11_Persen || data.biaya_ppn || 0),
-    'Total_Biaya_All_In': Number(data.Total_Biaya_All_In || data.biaya_total || 0),
-    'Terbilang_Biaya': data.Terbilang_Biaya || data.terbilang || angkaTerbilang(data.Total_Biaya_All_In || data.biaya_total || 0),
-    'Cara_Pembayaran': data.Cara_Pembayaran || data.cara_pembayaran || 'Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.',
-    'Rekening_Resmi': data.Rekening_Resmi || data.rekening_resmi || 'Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan',
+    'Tujuan_Penilaian': pick(data.Tujuan_Penilaian, data.tujuan_penilaian, 'Penjaminan Utang / Agunan Kredit'),
+    'Dasar_Nilai': pick(data.Dasar_Nilai, data.dasar_nilai, 'Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)'),
+    'Pendekatan_Penilaian': pick(data.Pendekatan_Penilaian, data.pendekatan_penilaian, 'Pendekatan Pasar dan Pendekatan Biaya'),
+    'Mata_Uang': pick(data.Mata_Uang, data.mata_uang, 'Rupiah (IDR)'),
+    'Tgl_Penilaian': pick(data.Tgl_Penilaian, data.tanggal_penilaian, pick(data.Tgl_Dibuat, data.tanggal_surat, now.toISOString().split('T')[0])),
+    'Tgl_Survey': pick(data.Tgl_Survey, data.survey_tanggal, now.toISOString().split('T')[0]),
+    'Survey_Hari': pick(data.Survey_Hari, data.survey_hari, 'Kamis'),
+    'SLA_Inspeksi': Number(pick(data.SLA_Inspeksi, data.sla_inspeksi, 1)),
+    'SLA_Analisa': Number(pick(data.SLA_Analisa, data.sla_analisa, 2)),
+    'SLA_Final': Number(pick(data.SLA_Final, data.sla_final, 2)),
+    'SLA_Total': Number(pick(data.SLA_Total, data.sla_total, 5)),
+    'Marketing_Sumber_Proyek': pick(data.Marketing_Sumber_Proyek, data.marketing_nama, 'Divisi Marketing'),
+    'Biaya_Net_DPP': Number(pick(data.Biaya_Net_DPP, data.biaya_dpp, 0)),
+    'PPN_11_Persen': Number(pick(data.PPN_11_Persen, data.biaya_ppn, 0)),
+    'Total_Biaya_All_In': Number(pick(data.Total_Biaya_All_In, data.biaya_total, 0)),
+    'Terbilang_Biaya': pick(data.Terbilang_Biaya, data.terbilang, angkaTerbilang(pick(data.Total_Biaya_All_In, data.biaya_total, 0))),
+    'Cara_Pembayaran': pick(data.Cara_Pembayaran, data.cara_pembayaran, 'Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.'),
+    'Rekening_Resmi': pick(data.Rekening_Resmi, data.rekening_resmi, 'Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN'),
     'Tgl_Approval_Pusat': isPusat ? now.toISOString() : '-',
     'Disetujui_Oleh': isPusat ? `Admin Pusat (${auth.token})` : '-',
-    'Folder_Drive_URL': data.Folder_Drive_URL || data.folder_drive_url || '-',
-    // Legacy fallback
-    'Rincian_Hari_Kerja': rincianHari
+    'Folder_Drive_URL': pick(data.Folder_Drive_URL, data.folder_drive_url, '-')
   };
 
   const rowValues = HEADERS_DATA_PENUGASAN.map(h => rowMap[h] !== undefined ? rowMap[h] : '');
@@ -852,8 +1016,14 @@ function prosesApprovalPusat(ss, projectId, incomingData, auth) {
       status: 'error',
       success: false,
       code: 'DUPLICATE_NUMBER',
-      message: 'GAGAL MENYIMPAN (NOMOR DOUBLE): Nomor Lingkup Penugasan / JO tersebut sudah terdaftar atas nama debitur ' + duplikat.debitur + '. Gunakan nomor lain!'
+      message: 'Nomor registrasi tersebut sudah terdaftar di sistem. Gunakan nomor urut lain.'
     };
+  }
+
+  // Auto-advance counter jika nomor manual lebih besar
+  const manualNumberInt = parseInt(String(noLp || noAdm || "").split('/')[0].replace(/\D/g, ""), 10);
+  if (manualNumberInt && !isNaN(manualNumberInt) && manualNumberInt > 0) {
+    updateCounterMax(ss, manualNumberInt);
   }
 
   const nowIso = new Date().toISOString();
@@ -925,12 +1095,12 @@ function prosesUpdateData(ss, projectId, updateData, auth) {
         status: 'error',
         success: false,
         code: 'DUPLICATE_NUMBER',
-        message: 'GAGAL MENYIMPAN (NOMOR DOUBLE): Nomor Lingkup Penugasan / JO tersebut sudah terdaftar atas nama debitur ' + duplikat.debitur + '. Gunakan nomor lain!'
+        message: 'Nomor registrasi tersebut sudah terdaftar di sistem. Gunakan nomor urut lain.'
       };
     }
-    const usedSeq = extractSeq(newAdm) || extractSeq(newLp);
-    if (usedSeq > 0) {
-      updateCounterMax(ss, usedSeq);
+    const manualUpdateInt = parseInt(String(newLp || newAdm || "").split('/')[0].replace(/\D/g, ""), 10);
+    if (manualUpdateInt && !isNaN(manualUpdateInt) && manualUpdateInt > 0) {
+      updateCounterMax(ss, manualUpdateInt);
     }
   }
 
@@ -953,9 +1123,59 @@ function prosesUpdateData(ss, projectId, updateData, auth) {
 }
 
 /**
+ * Mengambil dan menginkremen counter secara atomik dari sheet Config_Counter
+ * Menghasilkan format LP dan format Adm JO yang siap digunakan
+ */
+function incrementAndGetCounter(shCounter, romawi, tahun, jenisLaporan) {
+  if (!shCounter) return { nextAdm: 416, nextSeq: 416, nextLp: `0416/NSR/PN-APP/${romawi}/${tahun}`, nextNoAdm: `0416/JO/NSR/${romawi}/${tahun}` };
+
+  const data = shCounter.getDataRange().getValues();
+  let rowAdm = -1;
+  let rowLp = -1;
+  let currentCounter = 415;
+
+  for (let i = 0; i < data.length; i++) {
+    const k = String(data[i][0]).trim();
+    if (k === 'LAST_NO_ADM_JO') {
+      rowAdm = i + 1;
+      currentCounter = Math.max(currentCounter, parseInt(data[i][1], 10) || 415);
+    } else if (k === 'LAST_NO_LP_SPK') {
+      rowLp = i + 1;
+      currentCounter = Math.max(currentCounter, parseInt(data[i][1], 10) || 415);
+    }
+  }
+
+  const nextAdm = currentCounter + 1;
+
+  if (rowAdm !== -1) {
+    shCounter.getRange(rowAdm, 2).setValue(nextAdm);
+  } else {
+    shCounter.appendRow(['LAST_NO_ADM_JO', nextAdm]);
+  }
+
+  if (rowLp !== -1) {
+    shCounter.getRange(rowLp, 2).setValue(nextAdm);
+  } else {
+    shCounter.appendRow(['LAST_NO_LP_SPK', nextAdm]);
+  }
+
+  const kodeLap = (String(jenisLaporan || '').toUpperCase() === 'RTL') ? 'RTL' : 'APP';
+  const seqPadded = String(nextAdm).padStart(4, "0");
+  const nextLp = `${seqPadded}/NSR/PN-${kodeLap}/${romawi}/${tahun}`;
+  const nextNoAdm = `${seqPadded}/JO/NSR/${romawi}/${tahun}`;
+
+  return {
+    nextAdm: nextAdm,
+    nextSeq: nextAdm,
+    nextLp: nextLp,
+    nextNoAdm: nextNoAdm
+  };
+}
+
+/**
  * Mengambil dan menginkremen nomor urut tahunan secara atomik dari Config_Counter
  */
-function ambilDanKunciNomorUrut(ss, tahun) {
+function ambilDanKunciNomorUrut(ss, tahun, jenisLaporan, romawi) {
   let sheetCounter = ss.getSheetByName(CONFIG.SHEET_COUNTER);
   if (!sheetCounter) {
     sheetCounter = ss.insertSheet(CONFIG.SHEET_COUNTER);
@@ -967,38 +1187,12 @@ function ambilDanKunciNomorUrut(ss, tahun) {
     sheetCounter.appendRow(['FORMAT_BAP_INSPEKSI', 'AKTIF']);
     sheetCounter.appendRow(['FORMAT_ETI', 'AKTIF']);
     sheetCounter.appendRow(['FORMAT_PI', 'AKTIF']);
+    sheetCounter.setFrozenRows(1);
   }
 
-  const data = sheetCounter.getDataRange().getValues();
-  let rowAdm = -1;
-  let rowLp = -1;
-  let currentCounter = 415;
-
-  for (let i = 0; i < data.length; i++) {
-    const k = String(data[i][0]).trim();
-    if (k === 'LAST_NO_ADM_JO') {
-      rowAdm = i + 1;
-      currentCounter = parseInt(data[i][1], 10) || 415;
-    } else if (k === 'LAST_NO_LP_SPK') {
-      rowLp = i + 1;
-    }
-  }
-
-  const nextCounter = currentCounter + 1;
-
-  if (rowAdm !== -1) {
-    sheetCounter.getRange(rowAdm, 2).setValue(nextCounter);
-  } else {
-    sheetCounter.appendRow(['LAST_NO_ADM_JO', nextCounter]);
-  }
-
-  if (rowLp !== -1) {
-    sheetCounter.getRange(rowLp, 2).setValue(nextCounter);
-  } else {
-    sheetCounter.appendRow(['LAST_NO_LP_SPK', nextCounter]);
-  }
-
-  return nextCounter;
+  const r = romawi || getBulanRomawi(new Date());
+  const res = incrementAndGetCounter(sheetCounter, r, tahun || 2026, jenisLaporan || 'APP');
+  return res.nextSeq;
 }
 
 /**
