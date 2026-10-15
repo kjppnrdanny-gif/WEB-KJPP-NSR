@@ -1754,7 +1754,7 @@ async function runTests() {
       `
     });
     await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-nolap.html` });
-    await waitForCondition(cdp, 'typeof window.isSuperOrAdminPusat === "function"');
+    await waitForCondition(cdp, 'typeof sesiAktif !== "undefined" && sesiAktif && sesiAktif.cabang === "Bandung" && document.getElementById("panel-aplikasi-utama") && !document.getElementById("panel-aplikasi-utama").classList.contains("hidden")');
     await new Promise(r => setTimeout(r, 600));
 
     const ssoCabangRes = await cdp.send('Runtime.evaluate', {
