@@ -1102,6 +1102,65 @@ async function runTests() {
           gantiTampilanDokumen();
           results.allCountMulti5 = area.querySelectorAll('.doc-page').length;
 
+          // 4. Verifikasi Interaksi "Lain-lain (Ketik Bebas)" & Custom Text Input
+          handleJenisObjekChange(objekRows[0].id, 'Lain-lain (Ketik Bebas)');
+          const inpCustom1 = document.querySelector('.input-custom-jenis-objek');
+          const cfgKetikBebas = getObjekColumnConfig('Lain-lain (Ketik Bebas)');
+          
+          const hasInpCustom = Boolean(inpCustom1);
+          const hasPlaceholderKetikBebas = (
+            cfgKetikBebas.col3.placeholder.includes('Kuantitas / Satuan') &&
+            cfgKetikBebas.col4.placeholder.includes('Kondisi Fisik') &&
+            cfgKetikBebas.col5.placeholder.includes('Bukti Hak')
+          );
+
+          // Ketik nilai custom ke input
+          updateObjekCustomJenis(objekRows[0].id, 'Jetty Pelabuhan Khusus');
+          const displayWithVal = getObjekNamaDisplay(objekRows[0]);
+
+          // Tes fallback jika kosong
+          updateObjekCustomJenis(objekRows[0].id, '');
+          const displayFallback = getObjekNamaDisplay(objekRows[0]);
+
+          // Set kembali nilai dan cek aliran dokumen
+          updateObjekCustomJenis(objekRows[0].id, 'Dermaga & Jetty Batubara');
+          const pCustomDoc = JSON.parse(JSON.stringify(projectDatabase[0]));
+          pCustomDoc.objek_list = [JSON.parse(JSON.stringify(objekRows[0]))];
+          activeProjectData = pCustomDoc;
+          
+          sel.value = 'DOK1';
+          gantiTampilanDokumen();
+          const hasCustomInSPK = area.innerText.includes('Dermaga & Jetty Batubara');
+
+          sel.value = 'DOK3B';
+          gantiTampilanDokumen();
+          const hasCustomInJO = area.innerText.includes('Dermaga & Jetty Batubara');
+
+          sel.value = 'DOK3D';
+          gantiTampilanDokumen();
+          const hasCustomInST = area.innerText.includes('Dermaga & Jetty Batubara');
+
+          sel.value = 'DOK3E';
+          gantiTampilanDokumen();
+          const hasCustomInBAP = area.innerText.includes('Dermaga & Jetty Batubara');
+
+          // Kembalikan dropdown ke properti standar: pastikan input custom otomatis hilang
+          handleJenisObjekChange(objekRows[0].id, 'Tanah & Bangunan Rumah Tinggal');
+          const inpCustomAfterRevert = document.querySelector('.input-custom-jenis-objek');
+          const isRemovedAfterRevert = (inpCustomAfterRevert === null);
+
+          results.ketikBebasVerified = {
+            hasInpCustom,
+            hasPlaceholderKetikBebas,
+            displayWithVal: displayWithVal === 'Jetty Pelabuhan Khusus',
+            displayFallback: displayFallback === 'Lain-lain',
+            hasCustomInSPK,
+            hasCustomInJO,
+            hasCustomInST,
+            hasCustomInBAP,
+            isRemovedAfterRevert
+          };
+
           // Kembalikan ke proyek awal
           activeProjectData = projectDatabase[0];
 
@@ -1128,6 +1187,11 @@ async function runTests() {
     if (r6B.allCountMulti5 !== 10) {
       throw new Error(`Bundel Lengkap (ALL) untuk 5 objek harus merender tepat 10 halaman (9 dokumen + 1 lampiran), didapat: ${r6B.allCountMulti5}`);
     }
+    const kb = r6B.ketikBebasVerified;
+    if (!kb || !kb.hasInpCustom || !kb.hasPlaceholderKetikBebas || !kb.displayWithVal || !kb.displayFallback || !kb.hasCustomInSPK || !kb.hasCustomInJO || !kb.hasCustomInST || !kb.hasCustomInBAP || !kb.isRemovedAfterRevert) {
+      throw new Error(`Fitur Ketik Bebas gagal divalidasi: ${JSON.stringify(kb)}`);
+    }
+    console.log('✓ Fitur Interaksi "Lain-lain (Ketik Bebas)", Conditional Input, & Aliran Cetak Terverifikasi Sempurna!');
 
     // Tangkap bukti visual rendering pratinjau Tab 3 & ekspor PDF 5 objek multi-aset
     const shotTab3 = await cdp.send('Page.captureScreenshot', { format: 'png' });
