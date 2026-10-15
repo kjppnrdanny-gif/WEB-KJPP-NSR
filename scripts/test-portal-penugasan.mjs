@@ -983,6 +983,171 @@ async function runTests() {
     console.log('✓ Seluruh 8 Dokumen Cetak (Dok 2, 3A-3G) serta bundel DOK3 (7 lembar) dan ALL (9 lembar) terverifikasi presisi!');
 
     // -------------------------------------------------------------------------
+    // TEST 6B: Uji Form Dinamis Multi-Aset & Otomasi Lampiran SPK (1 Objek vs 5 Objek)
+    // -------------------------------------------------------------------------
+    console.log('\n--- TEST 6B: Uji Form Dinamis Multi-Aset & Otomasi Lampiran SPK (1 Objek vs 5 Objek) ---');
+    const testMultiObjekSuite = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const results = {};
+
+          // 1. Verifikasi getObjekColumnConfig adaptif per kategori
+          const cfgProperti = getObjekColumnConfig('Tanah & Bangunan Rumah Tinggal');
+          const cfgKendaraan = getObjekColumnConfig('Kendaraan Bermotor (Mobil / Truk / Bus / Armada Operasional)');
+          const cfgAlatBerat = getObjekColumnConfig('Alat Berat / Heavy Equipment (Excavator / Dozer / Crane / Forklift / Genset Tambang)');
+          const cfgMesin = getObjekColumnConfig('Mesin & Peralatan Pabrik / Industri');
+          const cfgKebun = getObjekColumnConfig('Tanaman Perkebunan (Kelapa Sawit / Karet / Kopi / Kakao / Tebu, dll.)');
+          const cfgHewan = getObjekColumnConfig('Peternakan / Biologis Hewan (Sapi / Unggas / Kambing / Perikanan / Tambak)');
+          const cfgLain = getObjekColumnConfig('Inventaris Kantor, Fixture & Furniture');
+
+          results.categoriesVerified = (
+            cfgProperti.category === 'properti' && cfgProperti.col3.label === 'LT (m²)' &&
+            cfgKendaraan.category === 'kendaraan' && cfgKendaraan.col3.label === 'Merk / Tipe' && cfgKendaraan.col4.label === 'No. Polisi & Warna' &&
+            cfgAlatBerat.category === 'alat_berat' && cfgAlatBerat.col3.label === 'Tahun & Model' &&
+            cfgMesin.category === 'mesin' && cfgMesin.col4.label === 'Kapasitas / Spesifikasi Teknis' &&
+            cfgKebun.category === 'perkebunan' && cfgKebun.col3.label === 'Luas Tertanam (Ha)' &&
+            cfgHewan.category === 'kehutanan_hewan' && cfgHewan.col3.label === 'Populasi / Jumlah (Btg/Ekor)' &&
+            cfgLain.category === 'lain_lain' && cfgLain.col3.label === 'Kuantitas & Satuan'
+          );
+
+          // 2. Verifikasi Kondisi A: 1 Objek (Tanpa Lampiran, rincian langsung di Klausul 4)
+          const p1Obj = JSON.parse(JSON.stringify(projectDatabase[0]));
+          p1Obj.objek_list = [
+            {
+              jenis: "Tanah & Bangunan Rumah Tinggal",
+              col3: "300",
+              col4: "200",
+              col5: "SHM No. 1234/Ragunan",
+              lt: "300",
+              lb: "200",
+              status: "SHM No. 1234/Ragunan",
+              lokasi: "Jl. Hankam No. 5, Ragunan"
+            }
+          ];
+          activeProjectData = p1Obj;
+          const sel = document.getElementById('pilih_tampilan_dokumen');
+          const area = document.getElementById('preview-rendered-area');
+
+          sel.value = 'DOK1';
+          gantiTampilanDokumen();
+          results.singleObjek = {
+            docCount: area.querySelectorAll('.doc-page').length,
+            hasKlausul4Table: area.innerText.includes('OBJEK PENILAIAN DAN KEPEMILIKAN') && area.innerHTML.includes('doc-table'),
+            hasNoLampiranText: !area.innerText.includes('Lampiran 1 (Daftar Objek Penilaian dan Kepemilikan)'),
+            lampHeaderStrip: area.innerText.includes('Lamp.')
+          };
+
+          // 3. Verifikasi Kondisi B: 5 Objek (Multi-Kategori: Properti, Kendaraan, Mesin, Alat Berat, Kebun)
+          const p5Obj = JSON.parse(JSON.stringify(projectDatabase[0]));
+          p5Obj.id = "NSR-2026-MULTI-5";
+          p5Obj.nomor_lp = "0587/NSR/PN-APP/X/2026";
+          p5Obj.objek_list = [
+            {
+              jenis: "Tanah & Bangunan Gudang / Pabrik",
+              col3: "5000",
+              col4: "3500",
+              col5: "SHGB No. 11/Kawasan Industri",
+              lt: "5000",
+              lb: "3500",
+              status: "SHGB No. 11/Kawasan Industri",
+              lokasi: "Kawasan Industri MM2100, Cikarang"
+            },
+            {
+              jenis: "Kendaraan Bermotor (Mobil / Truk / Bus / Armada Operasional)",
+              col3: "Hino Dutro 130 HD",
+              col4: "B 9901 XYZ / Putih",
+              col5: "BPKB No. L-8899123 / Rangka: MH1...",
+              lokasi: "Pool Cikarang"
+            },
+            {
+              jenis: "Mesin & Peralatan Pabrik / Industri",
+              col3: "CNC Milling Machine 5-Axis",
+              col4: "380V / 15 KW High Precision",
+              col5: "Faktur No. FK-7721 / SN: CNC-88990",
+              lokasi: "Gedung Produksi 1"
+            },
+            {
+              jenis: "Alat Berat / Heavy Equipment (Excavator / Dozer / Crane / Forklift / Genset Tambang)",
+              col3: "Komatsu PC200-8 (2022)",
+              col4: "20 Ton / 2.800 Hours Meter",
+              col5: "SN: KMTC-20099 / Invoice No. INV-990",
+              lokasi: "Yard Logistik"
+            },
+            {
+              jenis: "Tanaman Perkebunan (Kelapa Sawit / Karet / Kopi / Kakao / Tebu, dll.)",
+              col3: "150 Ha",
+              col4: "TM-4 (Tahun Tanam 2022)",
+              col5: "HGU No. 44/Kab. Sawit",
+              lokasi: "Kebun Kelapa Sawit Blok B"
+            }
+          ];
+          activeProjectData = p5Obj;
+
+          // Pratinjau DOK1 untuk 5 Objek
+          sel.value = 'DOK1';
+          gantiTampilanDokumen();
+          const docPagesDOK1 = area.querySelectorAll('.doc-page');
+          results.multi5ObjekDOK1 = {
+            docCount: docPagesDOK1.length,
+            hasLegalClause: area.innerText.includes('Lampiran 1 (Daftar Objek Penilaian dan Kepemilikan) yang merupakan satu kesatuan'),
+            hasLampiran1Header: area.innerText.includes('LAMPIRAN 1: DAFTAR OBJEK PENILAIAN DAN KEPEMILIKAN'),
+            hasKopOnLampiran: area.innerHTML.includes('kop-surat-resmi'),
+            has5RowsInLampiran: area.querySelectorAll('table.doc-table tbody tr').length >= 5,
+            hasSignatureBlock: area.innerText.includes('Penyedia Jasa (KJPP)') && area.innerText.includes('Pemberi Tugas'),
+            hasLampiranHeader1Berkas: area.innerText.includes('1 (Satu) Berkas')
+          };
+
+          // Pratinjau ALL untuk 5 Objek (9 dokumen standar + 1 halaman Lampiran 1 = 10 halaman)
+          sel.value = 'ALL';
+          gantiTampilanDokumen();
+          results.allCountMulti5 = area.querySelectorAll('.doc-page').length;
+
+          // Kembalikan ke proyek awal
+          activeProjectData = projectDatabase[0];
+
+          return results;
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 6B (Form Dinamis & Lampiran SPK):', testMultiObjekSuite.result.value);
+    const r6B = testMultiObjekSuite.result.value;
+    if (!r6B.categoriesVerified) {
+      throw new Error('Konfigurasi kolom adaptif getObjekColumnConfig gagal memverifikasi kategori properti, kendaraan, alat berat, mesin, kebun, hewan, atau inventaris!');
+    }
+    if (r6B.singleObjek.docCount !== 1 || !r6B.singleObjek.hasKlausul4Table || !r6B.singleObjek.hasNoLampiranText) {
+      throw new Error('Kondisi A (1 Objek) gagal: Rincian harus berada di dalam batang tubuh Klausul 4 tanpa halaman lampiran!');
+    }
+    if (r6B.multi5ObjekDOK1.docCount !== 2 || !r6B.multi5ObjekDOK1.hasLegalClause || !r6B.multi5ObjekDOK1.hasLampiran1Header) {
+      throw new Error('Kondisi B (5 Objek) gagal: Klausul 4 harus diringkas ke klausul hukum baku dan merender halaman terpisah Lampiran 1!');
+    }
+    if (!r6B.multi5ObjekDOK1.hasKopOnLampiran || !r6B.multi5ObjekDOK1.hasSignatureBlock) {
+      throw new Error('Halaman Lampiran 1 wajib memuat Kop Surat Resmi berulang dan blok tanda tangan para pihak!');
+    }
+    if (r6B.allCountMulti5 !== 10) {
+      throw new Error(`Bundel Lengkap (ALL) untuk 5 objek harus merender tepat 10 halaman (9 dokumen + 1 lampiran), didapat: ${r6B.allCountMulti5}`);
+    }
+
+    // Tangkap bukti visual rendering pratinjau Tab 3 & ekspor PDF 5 objek multi-aset
+    const shotTab3 = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_spk_multi_aset_5objek.png'), Buffer.from(shotTab3.data, 'base64'));
+
+    const pdf5Objek = await cdp.send('Page.printToPDF', {
+      paperWidth: 8.27,
+      paperHeight: 11.69,
+      marginTop: 0.3937,
+      marginBottom: 0.3937,
+      marginLeft: 1.1811,
+      marginRight: 0.3937,
+      printBackground: true
+    });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_spk_5_objek_lampiran.pdf'), Buffer.from(pdf5Objek.data, 'base64'));
+    console.log('✓ Bukti visual tersimpan: test_spk_multi_aset_5objek.png & test_spk_5_objek_lampiran.pdf');
+
+    console.log('✓ Form Dinamis Multi-Aset & Otomasi Lampiran SPK (1 Objek vs 5 Objek) LULUS 100%!');
+
+    // -------------------------------------------------------------------------
     // TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis
     // -------------------------------------------------------------------------
     console.log('\n--- TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis ---');

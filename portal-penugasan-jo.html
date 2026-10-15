@@ -587,10 +587,10 @@
               <thead class="bg-slate-950 text-slate-300 font-bold border-b border-slate-800">
                 <tr>
                   <th class="p-2.5 w-10 text-center">No</th>
-                  <th class="p-2.5 min-w-[140px]">Jenis Objek</th>
-                  <th class="p-2.5 w-24">LT (m²)</th>
-                  <th class="p-2.5 w-24">LB (m²)</th>
-                  <th class="p-2.5 min-w-[180px]">Status Kepemilikan &amp; No. Dokumen</th>
+                  <th class="p-2.5 min-w-[200px]">Jenis Objek</th>
+                  <th class="p-2.5 min-w-[140px]">Kolom 3 (LT / Merk / Model / Qty)</th>
+                  <th class="p-2.5 min-w-[150px]">Kolom 4 (LB / No. Pol / Kapasitas / Kondisi)</th>
+                  <th class="p-2.5 min-w-[210px]">Kolom 5 (Status / Dokumen / BPKB / Serial No)</th>
                   <th class="p-2.5 min-w-[220px]">Alamat &amp; Lokasi Objek</th>
                   <th class="p-2.5 w-12 text-center">Aksi</th>
                 </tr>
@@ -962,6 +962,7 @@
             <select id="pilih_tampilan_dokumen" onchange="gantiTampilanDokumen()" class="h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-bold text-xs focus:outline-none">
               <option value="ALL">Semua 9 Dokumen (Bundel Lengkap A4)</option>
               <option value="DOK1">Dokumen 1: Lingkup Penugasan (SPK 23 Klausul)</option>
+              <option value="LAMP1">Lampiran 1: Daftar Objek Penilaian (Khusus Multi-Objek)</option>
               <option value="DOK2">Dokumen 2: Surat Representasi Klien (KEPI 5.8.c.4)</option>
               <option value="DOK3">Bundel JO Lengkap (7 Lembar Kerja Internal)</option>
               <option value="DOK3A">3A. Isian UMUM</option>
@@ -2165,6 +2166,10 @@
         Nama_Pemilik_Sertipikat: p.pemilik_sertipikat || p.debitur_nama,
         Hubungan_Pemilik_Sertipikat: p.hubungan_pemilik || 'Milik Sendiri',
         Rincian_Objek_JSON: JSON.stringify(p.objek_list || []),
+        Objek_Penilaian_JSON: JSON.stringify(p.objek_list || []),
+        Alamat_Lokasi_Objek: (p.objek_list && p.objek_list.length > 0)
+          ? p.objek_list.map((o, idx) => `${idx + 1}. [${o.jenis}] ${o.lokasi || '-'}`).join('; ')
+          : (p.objek_lokasi || '-'),
         Tujuan_Penilaian: p.tujuan_penilaian,
         Dasar_Nilai: p.dasar_nilai,
         Pendekatan_Penilaian: p.pendekatan_penilaian,
@@ -2631,6 +2636,7 @@
         selDok.innerHTML = `
           <option value="ALL">Semua 9 Dokumen Resmi</option>
           <option value="DOK1" selected>Dokumen 1: Lingkup Penugasan (SPK 23 Klausul) [Marketing Focus]</option>
+          <option value="LAMP1">Lampiran 1: Daftar Objek Penilaian (Khusus Multi-Objek)</option>
           <option value="DOK2">Dokumen 2: Surat Representasi Klien (KEPI 5.8.c.4) [Marketing Focus]</option>
           <option value="DOK3A">3A. Isian UMUM [Marketing Focus]</option>
           <option value="DOK3B">3B. Form Order (JO 2026) [Marketing Focus]</option>
@@ -2645,6 +2651,7 @@
         selDok.innerHTML = `
           <option value="ALL">Semua 9 Dokumen (Bundel Lengkap A4)</option>
           <option value="DOK1">Dokumen 1: Lingkup Penugasan (SPK 23 Klausul)</option>
+          <option value="LAMP1">Lampiran 1: Daftar Objek Penilaian (Khusus Multi-Objek)</option>
           <option value="DOK2">Dokumen 2: Surat Representasi Klien (KEPI 5.8.c.4)</option>
           <option value="DOK3">Bundel JO Lengkap (7 Lembar Kerja Internal)</option>
           <option value="DOK3A">3A. Isian UMUM</option>
@@ -2984,21 +2991,188 @@
     }
 
     // ==========================================================
-    // 7. TABEL DINAMIS OBJEK PENILAIAN
+    // 7. TABEL DINAMIS OBJEK PENILAIAN (MULTI-KATEGORI ASET)
     // ==========================================================
+    const DAFTAR_KATEGORI_OBJEK = [
+      {
+        group: "Real Properti",
+        items: [
+          "Tanah Kosong",
+          "Tanah & Bangunan Rumah Tinggal",
+          "Tanah & Bangunan Ruko / Rukan",
+          "Tanah & Bangunan Gudang / Pabrik",
+          "Tanah & Bangunan Komersial (Hotel / Gedung Kantor / Rumah Sakit / SPBU)",
+          "Unit Apartemen / Strata Title"
+        ]
+      },
+      {
+        group: "Mesin, Peralatan & Alat Berat",
+        items: [
+          "Mesin & Peralatan Pabrik / Industri",
+          "Kendaraan Bermotor (Mobil / Truk / Bus / Armada Operasional)",
+          "Alat Berat / Heavy Equipment (Excavator / Dozer / Crane / Forklift / Genset Tambang)"
+        ]
+      },
+      {
+        group: "Aset Biologis & Agrikultur",
+        items: [
+          "Tanaman Perkebunan (Kelapa Sawit / Karet / Kopi / Kakao / Tebu, dll.)",
+          "Tanaman Kehutanan (Hutan Tanaman Industri / Sengon / Jati / Akasia)",
+          "Peternakan / Biologis Hewan (Sapi / Unggas / Kambing / Perikanan / Tambak)"
+        ]
+      },
+      {
+        group: "Aset Lain-lain",
+        items: [
+          "Inventaris Kantor, Fixture & Furniture",
+          "Aset Khusus / Infrastruktur / Utilitas",
+          "Lain-lain (Ketik Bebas)"
+        ]
+      }
+    ];
+
+    function getObjekColumnConfig(jenis = '') {
+      const j = String(jenis || '').toLowerCase();
+      
+      if (j.includes('kendaraan')) {
+        return {
+          category: 'kendaraan',
+          col3: { label: 'Merk / Tipe', placeholder: 'Contoh: Toyota Avanza 1.5 G / Hino Ranger', type: 'text' },
+          col4: { label: 'No. Polisi & Warna', placeholder: 'Contoh: B 1234 XYZ / Hitam Metalik', type: 'text' },
+          col5: { label: 'No. BPKB & No. Rangka/Mesin', placeholder: 'Contoh: BPKB No. M-12345 / MH1...', type: 'text' }
+        };
+      }
+      if (j.includes('alat berat') || j.includes('heavy equipment')) {
+        return {
+          category: 'alat_berat',
+          col3: { label: 'Tahun & Model', placeholder: 'Contoh: Komatsu PC200-8 (Tahun 2021)', type: 'text' },
+          col4: { label: 'Kapasitas / Jam Operasi (HM)', placeholder: 'Contoh: 20 Ton / 4.500 Hours Meter', type: 'text' },
+          col5: { label: 'Serial No. / Bukti Pembelian', placeholder: 'Contoh: SN: KMTC200-8899 / Invoice No. ...', type: 'text' }
+        };
+      }
+      if (j.includes('mesin') || j.includes('peralatan')) {
+        return {
+          category: 'mesin',
+          col3: { label: 'Merk / Tipe', placeholder: 'Contoh: Heidelberg Speedmaster SM-74', type: 'text' },
+          col4: { label: 'Kapasitas / Spesifikasi Teknis', placeholder: 'Contoh: 15.000 Sheet/Hour, 4 Warna, 380V', type: 'text' },
+          col5: { label: 'Faktur / Serial Number', placeholder: 'Contoh: Faktur No. FK-889 / SN: HDB-9921', type: 'text' }
+        };
+      }
+      if (j.includes('perkebunan')) {
+        return {
+          category: 'perkebunan',
+          col3: { label: 'Luas Tertanam (Ha)', placeholder: 'Contoh: 250 Ha', type: 'text' },
+          col4: { label: 'Fase / Umur (TBM/TM)', placeholder: 'Contoh: TM-5 (Tahun Tanam 2021)', type: 'text' },
+          col5: { label: 'No. HGU / Izin Usaha Perkebunan', placeholder: 'Contoh: HGU No. 12/Kab / IUP No. ...', type: 'text' }
+        };
+      }
+      if (j.includes('kehutanan') || j.includes('hewan') || j.includes('peternakan') || j.includes('biologis')) {
+        return {
+          category: 'kehutanan_hewan',
+          col3: { label: 'Populasi / Jumlah (Btg/Ekor)', placeholder: 'Contoh: 1.200 Batang / 500 Ekor Sapi', type: 'text' },
+          col4: { label: 'Umur / Bobot Rata-rata', placeholder: 'Contoh: Umur 6 Thn / Bobot 450 Kg/ekor', type: 'text' },
+          col5: { label: 'Dokumen Legalitas / Asal Usul', placeholder: 'Contoh: SK Izin Konsesi / Sertifikat Veteriner', type: 'text' }
+        };
+      }
+      if (j.includes('inventaris') || j.includes('khusus') || j.includes('lain')) {
+        return {
+          category: 'lain_lain',
+          col3: { label: 'Kuantitas & Satuan', placeholder: 'Contoh: 1 Lot / 25 Unit', type: 'text' },
+          col4: { label: 'Kondisi Fisik / Spesifikasi', placeholder: 'Contoh: Baik (85%) / Kayu Jati & Logam', type: 'text' },
+          col5: { label: 'No. Inventaris / Invoice', placeholder: 'Contoh: INV-2026-NSR-001 / Kwitansi No. ...', type: 'text' }
+        };
+      }
+
+      // Default: Real Properti (Tanah Kosong, Rumah, Ruko, Gudang, Komersial, Apartemen)
+      return {
+        category: 'properti',
+        col3: { label: 'LT (m²)', placeholder: 'LT m²', type: 'number' },
+        col4: { label: 'LB (m²)', placeholder: 'LB m²', type: 'number' },
+        col5: { label: 'Status & No. Dokumen (SHM/HGB, dll.)', placeholder: 'Contoh: SHM No. 1234/Ragunan a.n. Debitur', type: 'text' }
+      };
+    }
+
+    function formatObjekSpesifikasi(o) {
+      if (!o) return '-';
+      const cfg = getObjekColumnConfig(o.jenis);
+      const val3 = (o.col3 !== undefined && o.col3 !== '') ? o.col3 : (o.lt || '');
+      const val4 = (o.col4 !== undefined && o.col4 !== '') ? o.col4 : (o.lb || '');
+
+      if (cfg.category === 'properti') {
+        const parts = [];
+        if (val3 && val3 !== '-') parts.push(`LT: ${val3} m²`);
+        if (val4 && val4 !== '-') parts.push(`LB: ${val4} m²`);
+        return parts.length > 0 ? parts.join(' | ') : '-';
+      } else if (cfg.category === 'kendaraan') {
+        const parts = [];
+        if (val3) parts.push(val3);
+        if (val4) parts.push(`No. Pol & Warna: ${val4}`);
+        return parts.length > 0 ? parts.join(' | ') : '-';
+      } else if (cfg.category === 'alat_berat') {
+        const parts = [];
+        if (val3) parts.push(`Model/Thn: ${val3}`);
+        if (val4) parts.push(`Kapasitas/HM: ${val4}`);
+        return parts.length > 0 ? parts.join(' | ') : '-';
+      } else if (cfg.category === 'mesin') {
+        const parts = [];
+        if (val3) parts.push(`Tipe: ${val3}`);
+        if (val4) parts.push(`Spek: ${val4}`);
+        return parts.length > 0 ? parts.join(' | ') : '-';
+      } else if (cfg.category === 'perkebunan') {
+        const parts = [];
+        if (val3) parts.push(`Luas: ${val3} Ha`);
+        if (val4) parts.push(`Fase: ${val4}`);
+        return parts.length > 0 ? parts.join(' | ') : '-';
+      } else if (cfg.category === 'kehutanan_hewan') {
+        const parts = [];
+        if (val3) parts.push(`Jumlah: ${val3}`);
+        if (val4) parts.push(`Kondisi: ${val4}`);
+        return parts.length > 0 ? parts.join(' | ') : '-';
+      } else {
+        const parts = [];
+        if (val3) parts.push(`Qty: ${val3}`);
+        if (val4) parts.push(`Kondisi: ${val4}`);
+        return parts.length > 0 ? parts.join(' | ') : '-';
+      }
+    }
+
+    function formatObjekLegalitas(o, p = {}) {
+      if (!o) return '-';
+      const val5 = (o.col5 !== undefined && o.col5 !== '') ? o.col5 : (o.status || '');
+      if (val5 && val5 !== '-') return val5;
+      if (p.pemilik_sertipikat) return p.pemilik_sertipikat;
+      if (p.debitur_nama) return `Milik ${p.debitur_nama}`;
+      return '-';
+    }
+
     let objekRows = [];
 
     function tambahBarisObjek(data = null) {
       const rowId = 'objek-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
       const defaultData = data || {
         jenis: "Tanah & Bangunan Rumah Tinggal",
+        col3: "300",
+        col4: "200",
+        col5: "SHM No. ... a.n. Debitur",
         lt: "300",
         lb: "200",
         status: "SHM No. ... a.n. Debitur",
-        lokasi: "Jl. ..."
+        lokasi: "Jl. Hankam No. 5, Ragunan, Pasar Minggu, Jakarta Selatan"
       };
 
-      objekRows.push({ id: rowId, ...defaultData });
+      const newRow = {
+        id: rowId,
+        ...defaultData,
+        col3: defaultData.col3 || defaultData.lt || "",
+        col4: defaultData.col4 || defaultData.lb || "",
+        col5: defaultData.col5 || defaultData.status || "",
+        lt: defaultData.lt || defaultData.col3 || "",
+        lb: defaultData.lb || defaultData.col4 || "",
+        status: defaultData.status || defaultData.col5 || "",
+        lokasi: defaultData.lokasi || ""
+      };
+
+      objekRows.push(newRow);
       renderTabelObjek();
     }
 
@@ -3011,48 +3185,91 @@
       renderTabelObjek();
     }
 
-    function renderTabelObjek() {
-      const tbody = document.getElementById('tbody-objek');
-      tbody.innerHTML = objekRows.map((row, idx) => `
-        <tr class="hover:bg-slate-800/40 transition">
-          <td class="p-2.5 text-center text-slate-400 font-mono font-bold">${idx + 1}</td>
-          <td class="p-2">
-            <select onchange="updateObjekData('${row.id}', 'jenis', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs">
-              <option value="Tanah &amp; Bangunan Rumah Tinggal" ${row.jenis.includes("Rumah") ? "selected" : ""}>Tanah &amp; Bangunan Rumah Tinggal</option>
-              <option value="Tanah Kosong" ${row.jenis === "Tanah Kosong" ? "selected" : ""}>Tanah Kosong</option>
-              <option value="Ruko / Rukan" ${row.jenis.includes("Ruko") ? "selected" : ""}>Ruko / Rukan</option>
-              <option value="Gedung Perkantoran / Komersial" ${row.jenis.includes("Kantor") ? "selected" : ""}>Gedung Perkantoran / Komersial</option>
-              <option value="Pabrik &amp; Gudang Industri" ${row.jenis.includes("Pabrik") ? "selected" : ""}>Pabrik &amp; Gudang Industri</option>
-              <option value="Hotel / Resort / Apartemen" ${row.jenis.includes("Hotel") ? "selected" : ""}>Hotel / Resort / Apartemen</option>
-              <option value="SPBU / Tempat Usaha Khusus" ${row.jenis.includes("SPBU") ? "selected" : ""}>SPBU / Usaha Khusus</option>
-              <option value="Mesin &amp; Peralatan Industri" ${row.jenis.includes("Mesin") ? "selected" : ""}>Mesin &amp; Peralatan Industri</option>
-              <option value="Perkebunan &amp; Aset Biologis (PSAK 241)" ${row.jenis.includes("Perkebunan") ? "selected" : ""}>Perkebunan &amp; Aset Biologis</option>
-            </select>
-          </td>
-          <td class="p-2">
-            <input type="number" value="${row.lt || ''}" placeholder="LT m²" oninput="updateObjekData('${row.id}', 'lt', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs text-right font-mono">
-          </td>
-          <td class="p-2">
-            <input type="number" value="${row.lb || ''}" placeholder="LB m²" oninput="updateObjekData('${row.id}', 'lb', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs text-right font-mono">
-          </td>
-          <td class="p-2">
-            <input type="text" value="${row.status || ''}" placeholder="Contoh: SHM No. 1234/Ragunan a.n. Bpk ..." oninput="updateObjekData('${row.id}', 'status', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs">
-          </td>
-          <td class="p-2">
-            <input type="text" value="${row.lokasi || ''}" placeholder="Jl. Hankam No. 5, Ragunan, Pasar Minggu, Jaksel" oninput="updateObjekData('${row.id}', 'lokasi', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs">
-          </td>
-          <td class="p-2 text-center">
-            <button type="button" onclick="hapusBarisObjek('${row.id}')" class="p-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition" title="Hapus baris">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
     function updateObjekData(rowId, field, val) {
       const r = objekRows.find(item => item.id === rowId);
-      if (r) r[field] = val;
+      if (!r) return;
+      r[field] = val;
+      if (field === 'col3') {
+        r.lt = val;
+      } else if (field === 'col4') {
+        r.lb = val;
+      } else if (field === 'col5') {
+        r.status = val;
+      } else if (field === 'lt') {
+        r.col3 = val;
+      } else if (field === 'lb') {
+        r.col4 = val;
+      } else if (field === 'status') {
+        r.col5 = val;
+      }
+    }
+
+    function handleJenisObjekChange(rowId, jenisVal) {
+      const r = objekRows.find(item => item.id === rowId);
+      if (!r) return;
+      r.jenis = jenisVal;
+      renderTabelObjek();
+    }
+
+    function renderTabelObjek() {
+      const tbody = document.getElementById('tbody-objek');
+      if (!tbody) return;
+
+      tbody.innerHTML = objekRows.map((row, idx) => {
+        const cfg = getObjekColumnConfig(row.jenis);
+        const val3 = (row.col3 !== undefined) ? row.col3 : (row.lt || '');
+        const val4 = (row.col4 !== undefined) ? row.col4 : (row.lb || '');
+        const val5 = (row.col5 !== undefined) ? row.col5 : (row.status || '');
+        const valLokasi = row.lokasi || '';
+
+        const optgroupsHtml = DAFTAR_KATEGORI_OBJEK.map(group => `
+          <optgroup label="${group.group}">
+            ${group.items.map(opt => {
+              const isSelected = (row.jenis === opt) || 
+                (row.jenis && row.jenis.includes('Rumah') && opt.includes('Rumah')) ||
+                (row.jenis && row.jenis.includes('Gudang') && opt.includes('Gudang')) ||
+                (row.jenis && row.jenis.includes('Pabrik') && opt.includes('Gudang')) ||
+                (row.jenis && row.jenis.includes('Ruko') && opt.includes('Ruko')) ||
+                (row.jenis && row.jenis.includes('Perkebunan') && opt.includes('Perkebunan')) ||
+                (row.jenis && row.jenis.includes('Mesin') && opt.includes('Mesin'));
+              return `<option value="${opt}" ${isSelected ? 'selected' : ''}>${opt}</option>`;
+            }).join('')}
+          </optgroup>
+        `).join('');
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="p-2.5 text-center text-slate-400 font-mono font-bold align-top pt-4">${idx + 1}</td>
+            <td class="p-2 align-top">
+              <span class="block text-[10px] text-amber-400 font-semibold mb-0.5">Kategori / Jenis Objek</span>
+              <select onchange="handleJenisObjekChange('${row.id}', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:border-amber-400 focus:outline-none">
+                ${optgroupsHtml}
+              </select>
+            </td>
+            <td class="p-2 align-top">
+              <span class="block text-[10px] text-amber-400 font-semibold mb-0.5 truncate" title="${cfg.col3.label}">${cfg.col3.label}</span>
+              <input type="${cfg.col3.type}" value="${val3}" placeholder="${cfg.col3.placeholder}" oninput="updateObjekData('${row.id}', 'col3', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:border-amber-400 focus:outline-none font-mono ${cfg.col3.type === 'number' ? 'text-right' : ''}">
+            </td>
+            <td class="p-2 align-top">
+              <span class="block text-[10px] text-amber-400 font-semibold mb-0.5 truncate" title="${cfg.col4.label}">${cfg.col4.label}</span>
+              <input type="${cfg.col4.type}" value="${val4}" placeholder="${cfg.col4.placeholder}" oninput="updateObjekData('${row.id}', 'col4', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:border-amber-400 focus:outline-none font-mono ${cfg.col4.type === 'number' ? 'text-right' : ''}">
+            </td>
+            <td class="p-2 align-top">
+              <span class="block text-[10px] text-amber-400 font-semibold mb-0.5 truncate" title="${cfg.col5.label}">${cfg.col5.label}</span>
+              <input type="text" value="${val5}" placeholder="${cfg.col5.placeholder}" oninput="updateObjekData('${row.id}', 'col5', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:border-amber-400 focus:outline-none">
+            </td>
+            <td class="p-2 align-top">
+              <span class="block text-[10px] text-slate-400 font-medium mb-0.5">Alamat Lengkap</span>
+              <input type="text" value="${valLokasi}" placeholder="Alamat lengkap lokasi / Kota" oninput="updateObjekData('${row.id}', 'lokasi', this.value)" class="w-full h-8 px-2 rounded bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:border-amber-400 focus:outline-none">
+            </td>
+            <td class="p-2 text-center align-top pt-4">
+              <button type="button" onclick="hapusBarisObjek('${row.id}')" class="p-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition" title="Hapus baris">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     // ==========================================================
@@ -3554,6 +3771,8 @@
         rekening_kode: document.getElementById('rekening_resmi') ? document.getElementById('rekening_resmi').value : 'MANDIRI',
         rekening_resmi: getTeksRekeningResmi(document.getElementById('rekening_resmi')?.value),
         objek_list: JSON.parse(JSON.stringify(objekRows)),
+        objek_penilaian_json: JSON.stringify(objekRows),
+        alamat_lokasi_objek: objekRows.map((o, idx) => `${idx + 1}. [${o.jenis}] ${o.lokasi || '-'}`).join('; '),
         approved_at: (projectStatus === 'APPROVED') ? new Date().toISOString() : '-',
         disetujui_oleh: (projectStatus === 'APPROVED') ? (isPusat ? `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})` : `Admin Cabang (${userSession.token || 'CABANG'})`) : '-',
         folder_drive_url: '-',
@@ -3952,29 +4171,22 @@
       // ----------------------------------------------------
       // DOKUMEN 1: LINGKUP PENUGASAN (SPK 23 KLAUSUL RESMI)
       // ----------------------------------------------------
-      if (selDok === "ALL" || selDok === "DOK1") {
+      if (selDok === "ALL" || selDok === "DOK1" || selDok === "LAMP1") {
         const listObjek = (p.objek_list && p.objek_list.length > 0) ? p.objek_list : [{
           jenis: p.objek_nama || 'Tanah dan Bangunan',
+          col3: p.luas_tanah || '-',
+          col4: p.luas_bangunan || '-',
+          col5: p.pemilik_sertipikat || 'Milik Sendiri',
           lt: p.luas_tanah || '-',
           lb: p.luas_bangunan || '-',
           status: p.pemilik_sertipikat || 'Milik Sendiri',
           lokasi: p.objek_lokasi || '-'
         }];
 
-        const tabelObjekHTML = listObjek.map((o, idx) => `
-          <tr>
-            <td class="text-center">${idx + 1}</td>
-            <td class="font-bold text-blue-900">${p.debitur_nama}</td>
-            <td><strong>${o.jenis || '-'}</strong></td>
-            <td class="text-right font-mono">${o.lt ? o.lt + ' m²' : '-'}</td>
-            <td class="text-right font-mono">${o.lb ? o.lb + ' m²' : '-'}</td>
-            <td>${p.pemilik_sertipikat || o.status || 'Milik Sendiri'}</td>
-            <td>${o.lokasi || p.objek_lokasi || '-'}</td>
-          </tr>
-        `).join('');
+        const isMultiObjekLampiran = listObjek.length > 3;
 
         const dok1 = `
-          <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans ${selDok === 'ALL' ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK1') ? 'page-break mb-12' : ''}">
             <table class="doc-print-table w-full border-collapse">
               <thead>
                 <tr>
@@ -4002,7 +4214,7 @@
                             <tr>
                               <td class="w-16 font-bold" style="min-width: 60px;">Lamp.</td>
                               <td class="w-3">:</td>
-                              <td>-</td>
+                              <td>${isMultiObjekLampiran ? '1 (Satu) Berkas' : '-'}</td>
                             </tr>
                             <tr>
                               <td class="w-16 font-bold align-top" style="min-width: 60px;">Hal</td>
@@ -4112,26 +4324,52 @@
                         <!-- 4. OBJEK PENILAIAN DAN KEPEMILIKAN -->
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">4. OBJEK PENILAIAN DAN KEPEMILIKAN</p>
-                          <p class="mb-2">Objek yang akan dinilai adalah berupa aset tetap yaitu :</p>
-                          <table class="doc-table my-2">
-                            <thead>
-                              <tr>
-                                <th class="w-8">No</th>
-                                <th>Nama Debitur</th>
-                                <th>Jenis Objek</th>
-                                <th class="w-28">Luas Tanah (m²)</th>
-                                <th class="w-28">Luas Bangunan (m²)</th>
-                                <th>Kepemilikan Tunggal</th>
-                                <th>Lokasi</th>
-                              </tr>
-                            </thead>
-                            <tbody>${tabelObjekHTML}</tbody>
-                          </table>
-                          <div class="text-[10px] text-slate-600 mt-2 space-y-0.5 italic">
-                            <p><strong>Keterangan :</strong></p>
-                            <p>Luas tanah dan bangunan yang digunakan sebagai dasar penilaian adalah tanah berdasarkan sertifikat tanah atau bukti kepemilikan tanah lainnya. Bangunan berdasarkan hasil pengukuran pada saat inspeksi.</p>
-                            <p>Bukti kepemilikan tanah akan disampaikan setelah penawaran disetujui.</p>
-                          </div>
+                          ${!isMultiObjekLampiran ? `
+                            <p class="mb-2">Objek yang akan dinilai adalah berupa aset tetap yaitu :</p>
+                            <table class="doc-table my-2 text-[10px]">
+                              <thead>
+                                <tr>
+                                  <th class="w-8 text-center">No</th>
+                                  <th>Nama Debitur</th>
+                                  <th>Jenis Objek</th>
+                                  <th>Spesifikasi / Identitas Aset</th>
+                                  <th>Bukti Legalitas / Dokumen</th>
+                                  <th>Lokasi Objek</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                ${listObjek.map((o, idx) => `
+                                  <tr>
+                                    <td class="text-center font-bold">${idx + 1}</td>
+                                    <td class="font-bold text-blue-900">${p.debitur_nama}</td>
+                                    <td><strong>${o.jenis || '-'}</strong></td>
+                                    <td>${formatObjekSpesifikasi(o)}</td>
+                                    <td>${formatObjekLegalitas(o, p)}</td>
+                                    <td>${o.lokasi || p.objek_lokasi || '-'}</td>
+                                  </tr>
+                                `).join('')}
+                              </tbody>
+                            </table>
+                            <div class="text-[10px] text-slate-600 mt-2 space-y-0.5 italic">
+                              <p><strong>Keterangan :</strong></p>
+                              <p>Luas tanah, luas bangunan, batas fisik, spesifikasi teknis, atau identitas aset yang digunakan sebagai dasar penilaian adalah berdasarkan bukti kepemilikan / dokumen legalitas yang sah serta hasil verifikasi dan pengukuran pada saat inspeksi lapangan.</p>
+                              <p>Bukti kepemilikan dan dokumen teknis telah / akan disampaikan Pemberi Tugas setelah penawaran disetujui.</p>
+                            </div>
+                          ` : `
+                            <p class="text-justify mb-2">
+                              Objek yang dinilai merupakan portofolio aset (${listObjek.length} objek penilaian) milik / atas nama <strong>${p.debitur_nama}</strong>.
+                            </p>
+                            <div class="p-3 my-2 border border-slate-300 bg-slate-50 rounded text-slate-800 text-justify">
+                              <p class="font-semibold text-slate-900 mb-1">Pengalihan Rincian ke Lampiran Resmi :</p>
+                              <p>
+                                Rincian daftar objek penilaian, bukti legalitas kepemilikan, lokasi, dan spesifikasi teknis aset selengkapnya tercantum dalam <strong>Lampiran 1 (Daftar Objek Penilaian dan Kepemilikan)</strong> yang merupakan satu kesatuan dan bagian yang tidak terpisahkan dari Lingkup Penugasan ini.
+                              </p>
+                            </div>
+                            <div class="text-[10px] text-slate-600 mt-2 space-y-0.5 italic">
+                              <p><strong>Keterangan :</strong></p>
+                              <p>Seluruh ketentuan, batasan tanggung jawab, maksud dan tujuan penilaian pada Lingkup Penugasan ini berlaku mengikat terhadap seluruh objek yang tercantum dalam Lampiran 1.</p>
+                            </div>
+                          `}
                         </div>
 
                         <!-- 5. JENIS MATA UANG YANG DIGUNAKAN -->
@@ -4453,7 +4691,110 @@
             </table>
           </div>
         `;
-        htmlDocs.push(dok1);
+
+        const dokLampiran1 = `
+          <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK1' || selDok === 'LAMP1') ? 'page-break mb-12' : ''}">
+            <table class="doc-print-table w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="p-0 border-none font-normal text-left">
+                    <!-- Kop Surat Resmi Berulang di Setiap Awal Halaman -->
+                    <div class="doc-header-kop mb-3">
+                      ${renderKopSuratResmiNSR()}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-0 border-none align-top">
+                    <div class="doc-content-body">
+                      <!-- Header Lampiran 1 -->
+                      <div class="text-center mb-5 border-b-2 border-slate-900 pb-3">
+                        <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">
+                          LAMPIRAN 1: DAFTAR OBJEK PENILAIAN DAN KEPEMILIKAN
+                        </h2>
+                        <p class="font-mono text-xs text-slate-700 mt-1">
+                          Menjadi Bagian yang Tidak Terpisahkan dari Lingkup Penugasan No. <span class="font-bold text-slate-900">${p.nomor_lp}</span>
+                        </p>
+                        <p class="text-[10.5px] text-slate-600 mt-0.5">
+                          Debitur: <strong class="text-blue-900">${p.debitur_nama}</strong> &bull; Pemberi Tugas: <strong>${p.pemberi_tugas_nama}</strong>
+                        </p>
+                      </div>
+
+                      <!-- Tabel Lampiran Terstruktur Kolom: No | Jenis Objek | Spesifikasi / Identitas Aset | Legalitas / No. Dokumen | Lokasi Objek -->
+                      <table class="doc-table w-full my-3 text-[10px]">
+                        <thead>
+                          <tr class="bg-slate-100">
+                            <th class="w-8 text-center">No</th>
+                            <th class="w-40">Jenis Objek</th>
+                            <th>Spesifikasi / Identitas Aset</th>
+                            <th class="w-48">Legalitas / No. Dokumen</th>
+                            <th>Lokasi Objek</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${listObjek.map((o, idx) => `
+                            <tr>
+                              <td class="text-center font-bold">${idx + 1}</td>
+                              <td class="font-bold text-blue-950">${o.jenis || '-'}</td>
+                              <td>${formatObjekSpesifikasi(o)}</td>
+                              <td>${formatObjekLegalitas(o, p)}</td>
+                              <td>${o.lokasi || p.objek_lokasi || '-'}</td>
+                            </tr>
+                          `).join('')}
+                        </tbody>
+                      </table>
+
+                      <div class="text-[10px] text-slate-600 mt-2 mb-6 italic">
+                        <p>Catatan : Rincian data teknis, luas, spesifikasi, dan legalitas kepemilikan di atas dihimpun berdasarkan dokumen fotokopi yang diserahkan pihak Pemberi Tugas / Debitur serta pencocokan fisik saat inspeksi lapangan.</p>
+                      </div>
+
+                      <!-- Blok Tanda Tangan Para Pihak (Pemberi Tugas dan Penyedia Jasa KJPP NSR) -->
+                      <div class="avoid-break signature-block mt-8">
+                        <div class="text-right text-xs mb-3 pr-2">
+                          <p>Jakarta, ${formatTanggalIndo(p.tanggal_surat)}</p>
+                        </div>
+                        <table class="w-full text-center text-xs">
+                          <tr>
+                            <!-- Kolom Kiri: KJPP NSR -->
+                            <td class="w-1/2 align-top text-left pr-4">
+                              <p class="font-bold">Penyedia Jasa (KJPP),</p>
+                              <p class="font-bold text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
+                              <p class="text-[10px] text-slate-600 mb-20 italic">Licensed Public Appraisers &amp; Consultants</p>
+                              <p class="font-bold underline text-sm">${rekanObj.nama}</p>
+                              <p class="font-bold text-[10.5px] text-slate-800">${rekanObj.jabatan}</p>
+                              <p class="text-[10px] text-slate-600 mt-1 font-mono">Izin Penilai Publik: ${rekanObj.izin}</p>
+                            </td>
+
+                            <!-- Kolom Kanan: Pemberi Tugas -->
+                            <td class="w-1/2 align-top text-left pl-4">
+                              <p class="font-bold">Pemberi Tugas,</p>
+                              <p class="font-bold text-slate-900">${p.pemberi_tugas_nama}</p>
+                              <p class="text-[10px] text-slate-500 mb-20">Meterai / Cap Perusahaan</p>
+                              <p class="font-bold underline text-sm">${p.pemberi_tugas_pic || '.................................................................'}</p>
+                              <p class="font-bold text-[10.5px] text-slate-800">${p.pemberi_tugas_jabatan || 'Pemberi Tugas'}</p>
+                              <p class="text-[10px] text-slate-600 mt-1 font-mono">NPWP: ${p.pemberi_tugas_npwp || '-'}</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        if (selDok === "ALL" || selDok === "DOK1") {
+          htmlDocs.push(dok1);
+          if (isMultiObjekLampiran) {
+            htmlDocs.push(dokLampiran1);
+          }
+        } else if (selDok === "LAMP1") {
+          htmlDocs.push(dokLampiran1);
+        }
       }
 
       // ----------------------------------------------------
@@ -4730,10 +5071,10 @@
                 <thead>
                   <tr>
                     <th class="w-8 text-center">No</th>
-                    <th>Jenis Objek</th>
+                    <th class="w-40">Jenis Objek</th>
+                    <th>Spesifikasi / Identitas Teknis</th>
+                    <th class="w-48">Status &amp; No. Dokumen</th>
                     <th>Alamat / Lokasi Lengkap</th>
-                    <th class="w-24 text-right">Luas Tanah</th>
-                    <th class="w-24 text-right">Luas Bangunan</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -4741,9 +5082,9 @@
                     <tr>
                       <td class="text-center font-bold">${idx + 1}</td>
                       <td class="font-bold">${o.jenis || '-'}</td>
+                      <td>${formatObjekSpesifikasi(o)}</td>
+                      <td>${formatObjekLegalitas(o, p)}</td>
                       <td>${o.lokasi || p.objek_lokasi || '-'}</td>
-                      <td class="text-right font-mono">${o.lt ? o.lt + ' m²' : '-'}</td>
-                      <td class="text-right font-mono">${o.lb ? o.lb + ' m²' : '-'}</td>
                     </tr>
                   `).join('')}
                 </tbody>
@@ -4788,8 +5129,26 @@
                 <td class="font-mono">${p.pemberi_tugas_pic || p.debitur_cp || '-'} (${p.pemberi_tugas_kontak || '-'})</td>
               </tr>
               <tr>
-                <td class="font-bold bg-slate-50">Alamat Proyek yang dinilai</td>
-                <td>${alamatLengkapObjek}</td>
+                <td class="font-bold bg-slate-50">Objek &amp; Alamat Proyek</td>
+                <td>
+                  ${listObjekLengkap.length === 1 ? `
+                    <div>
+                      <strong>[${listObjekLengkap[0].jenis}]</strong> ${listObjekLengkap[0].lokasi || alamatLengkapObjek}
+                      <div class="text-[10px] text-slate-600 mt-0.5">
+                        &bull; Spek: <strong>${formatObjekSpesifikasi(listObjekLengkap[0])}</strong> &bull; Legalitas: <strong>${formatObjekLegalitas(listObjekLengkap[0], p)}</strong>
+                      </div>
+                    </div>
+                  ` : `
+                    <ol class="list-decimal pl-4 space-y-1">
+                      ${listObjekLengkap.map(o => `
+                        <li>
+                          <strong>[${o.jenis}]</strong> ${o.lokasi || '-'}
+                          <span class="block text-[10px] text-slate-600">Spek: ${formatObjekSpesifikasi(o)} | Dok: ${formatObjekLegalitas(o, p)}</span>
+                        </li>
+                      `).join('')}
+                    </ol>
+                  `}
+                </td>
               </tr>
               <tr>
                 <td class="font-bold bg-slate-50">Tujuan Penilaian</td>
@@ -5067,7 +5426,40 @@
                         </tbody>
                       </table>
 
-                      <p class="mb-2">Untuk melaksanakan kunjungan survey berupa <strong>${jenisObjekUtama}</strong> yang berlokasi di <strong>${alamatLengkapObjek}</strong>.</p>
+                      <div class="mb-3">
+                        <p class="mb-1.5">Untuk melaksanakan kunjungan survey atas objek penilaian sebagai berikut :</p>
+                        ${listObjekLengkap.length === 1 ? `
+                          <table class="doc-table-clean pl-4 text-[11px] mb-2" style="width: auto;">
+                            <tr><td class="w-40 font-semibold">&bull; Jenis Objek</td><td class="w-3">:</td><td><strong>${listObjekLengkap[0].jenis}</strong></td></tr>
+                            <tr><td class="font-semibold">&bull; Identitas / Spek</td><td>:</td><td>${formatObjekSpesifikasi(listObjekLengkap[0])}</td></tr>
+                            <tr><td class="font-semibold">&bull; Bukti Legalitas</td><td>:</td><td>${formatObjekLegalitas(listObjekLengkap[0], p)}</td></tr>
+                            <tr><td class="font-semibold">&bull; Lokasi Objek</td><td>:</td><td><strong>${listObjekLengkap[0].lokasi || alamatLengkapObjek}</strong></td></tr>
+                          </table>
+                        ` : `
+                          <table class="doc-table w-full my-2 text-[10px]">
+                            <thead>
+                              <tr>
+                                <th class="w-8 text-center">No</th>
+                                <th>Jenis Objek</th>
+                                <th>Spesifikasi Aset</th>
+                                <th>Bukti Legalitas</th>
+                                <th>Lokasi Objek</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              ${listObjekLengkap.map((o, idx) => `
+                                <tr>
+                                  <td class="text-center font-bold">${idx + 1}</td>
+                                  <td class="font-bold">${o.jenis}</td>
+                                  <td>${formatObjekSpesifikasi(o)}</td>
+                                  <td>${formatObjekLegalitas(o, p)}</td>
+                                  <td>${o.lokasi || '-'}</td>
+                                </tr>
+                              `).join('')}
+                            </tbody>
+                          </table>
+                        `}
+                      </div>
                       <p class="mb-4">
                         Yang akan dilaksanakan pada :<br>
                         &bull; Hari : <strong>${p.survey_hari}</strong><br>
@@ -5162,14 +5554,25 @@
                           <td class="font-bold">${p.pemberi_tugas_nama}</td>
                         </tr>
                         <tr>
-                          <td class="font-bold">Sertipikat milik</td>
+                          <td class="font-bold">Pemilik / Sertipikat</td>
                           <td>:</td>
                           <td class="font-bold">${namaPemilikAset}</td>
                         </tr>
                         <tr>
-                          <td class="font-bold">Alamat/Lokasi Objek</td>
-                          <td>:</td>
-                          <td>${alamatLengkapObjek}</td>
+                          <td class="font-bold align-top">Objek &amp; Lokasi</td>
+                          <td class="align-top">:</td>
+                          <td>
+                            ${listObjekLengkap.length === 1 ? `
+                              <strong>${listObjekLengkap[0].jenis}</strong> (${formatObjekSpesifikasi(listObjekLengkap[0])})<br>
+                              <span>${listObjekLengkap[0].lokasi || alamatLengkapObjek}</span>
+                            ` : `
+                              <ul class="list-disc pl-4 space-y-0.5">
+                                ${listObjekLengkap.map(o => `
+                                  <li><strong>${o.jenis}</strong> (${formatObjekSpesifikasi(o)}) &bull; ${o.lokasi || '-'}</li>
+                                `).join('')}
+                              </ul>
+                            `}
+                          </td>
                         </tr>
                       </table>
 
@@ -5189,15 +5592,16 @@
                                 <li>[ ${p.ceklis_bangunan !== false ? 'X' : ' '} ] Bangunan-bangunan</li>
                                 <li>[ ${p.ceklis_ruko ? 'X' : ' '} ] Ruko / Apartemen</li>
                                 <li>[ ${p.ceklis_sarana !== false ? 'X' : ' '} ] Sarana pelengkap lainnya</li>
-                                <li>- Berupa : <strong>${jenisObjekUtama}</strong></li>
+                                <li>[ ${p.ceklis_mesin || listObjekLengkap.some(o => o.jenis && (o.jenis.includes('Mesin') || o.jenis.includes('Kendaraan') || o.jenis.includes('Alat Berat') || o.jenis.includes('Biologis'))) ? 'X' : ' '} ] Mesin / Kendaraan / Non-Properti</li>
+                                <li>- Berupa : <strong>${listObjekLengkap.map(o => o.jenis).join(', ')}</strong></li>
                               </ul>
                             </td>
                             <td class="align-top">
                               <ul class="space-y-1">
-                                <li>[ ${p.dok_sertifikat !== false ? 'X' : ' '} ] Fotokopi sertifikat tanah</li>
-                                <li>[ ${p.dok_imb !== false ? 'X' : ' '} ] Fotokopi IMB / PBG</li>
-                                <li>[ ${p.dok_pbb !== false ? 'X' : ' '} ] Fotokopi PBB</li>
-                                <li>[ ${p.dok_invoice ? 'X' : ' '} ] Invoice / Dokumen Mesin</li>
+                                <li>[ ${p.dok_sertifikat !== false ? 'X' : ' '} ] Fotokopi sertifikat tanah / BPKB / Faktur</li>
+                                <li>[ ${p.dok_imb !== false ? 'X' : ' '} ] Fotokopi IMB / PBG / Dokumen Teknis</li>
+                                <li>[ ${p.dok_pbb !== false ? 'X' : ' '} ] Fotokopi PBB / Pajak Kendaraan / STNK</li>
+                                <li>[ ${p.dok_invoice || listObjekLengkap.some(o => o.jenis && (o.jenis.includes('Mesin') || o.jenis.includes('Kendaraan') || o.jenis.includes('Alat Berat'))) ? 'X' : ' '} ] Invoice / Purchase Order / Serial No</li>
                                 <li>[ ${p.dok_denah ? 'X' : ' '} ] Gambar Denah / Situasi Aset</li>
                               </ul>
                             </td>
@@ -5719,7 +6123,10 @@
       objekRows = [
         {
           id: 'obj-sample-1',
-          jenis: "Pabrik & Gudang Industri",
+          jenis: "Tanah & Bangunan Gudang / Pabrik",
+          col3: "2500",
+          col4: "1800",
+          col5: "SHGB No. 891/Kawasan Industri a.n. PT Nusantara Logistik Prima",
           lt: "2500",
           lb: "1800",
           status: "SHGB No. 891/Kawasan Industri a.n. PT Nusantara Logistik Prima",
