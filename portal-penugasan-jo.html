@@ -6184,19 +6184,19 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3C") {
         const dok3C = `
-          <div class="doc-page sheet-a4 sheet-internal doc-page-internal halaman-cetak text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
-            <div class="flex justify-between items-start border-b-2 border-slate-900 pb-2 mb-3">
+          <div class="doc-page sheet-a4 sheet-internal doc-page-internal halaman-cetak text-[10px] leading-snug text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}" style="page-break-inside: avoid; break-inside: avoid;">
+            <div class="flex justify-between items-start border-b-2 border-slate-900 pb-1.5 mb-2.5">
               <div>
-                <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">KARTU PROYEK</h2>
-                <p class="font-mono text-[10px] text-slate-700">No. Adm JO: <strong>${p.nomor_adm}</strong></p>
+                <h2 class="font-black text-sm uppercase tracking-wider text-slate-900 leading-tight">KARTU PROYEK</h2>
+                <p class="font-mono text-[9.5px] text-slate-700">No. Adm JO: <strong>${p.nomor_adm}</strong></p>
               </div>
-              <div class="text-right text-[11px]">
+              <div class="text-right text-[10.5px]">
                 <p>Jakarta, ${formatTanggalIndo(p.tanggal_surat)}</p>
               </div>
             </div>
 
             <!-- Header Informasi Properti Sesuai Template JO.xlsx -->
-            <table class="doc-table mb-3 text-[10px]">
+            <table class="doc-table mb-2.5 text-[9.5px]">
               <tr>
                 <td class="w-32 font-bold bg-slate-50">Jenis Properti</td>
                 <td class="w-64 font-bold">${getObjekNamaDisplay(listObjekLengkap[0])}</td>
@@ -6230,102 +6230,114 @@
             </table>
 
             <!-- 4 Tingkat Kendali Mutu & Paraf Berjenjang Sesuai Excel -->
-            <div class="space-y-2.5">
+            <div class="space-y-2">
               
               <!-- Blok 1: Surveyor / Penilai -->
-              <div class="border border-slate-800 rounded p-2.5">
-                <div class="flex justify-between font-bold border-b border-slate-400 pb-1 mb-1.5 text-[11px]">
+              <div class="border border-slate-800 rounded p-2">
+                <div class="flex justify-between font-bold border-b border-slate-400 pb-1 mb-1.5 text-[10.5px]">
                   <span>1. Check List Dokumen (Surveyor / Penilai)</span>
-                  <span class="text-[10px] text-slate-500 font-normal">Tahap Verifikasi Dokumen &amp; Inspeksi Lapangan</span>
+                  <span class="text-[9.5px] text-slate-500 font-normal">Tahap Verifikasi Dokumen &amp; Inspeksi Lapangan</span>
                 </div>
-                <div class="grid grid-cols-2 gap-x-4 text-[10px] mb-2 text-slate-800">
-                  <div>[ &radic; ] Kelengkapan Dokumen (Sertifikat, PBB, IMB/PBG)</div>
-                  <div>[ &radic; ] Berita Acara Inspeksi Lapangan (BAP)</div>
-                  <div>[ &radic; ] Lingkup Penugasan (SPK)</div>
-                  <div>[ &radic; ] Form Isian Proyek &amp; Data Teknis Fisik</div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[9.5px] mb-1.5 text-slate-800">
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Kelengkapan Dokumen (Sertifikat, PBB, IMB/PBG)</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Berita Acara Inspeksi Lapangan (BAP)</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Lingkup Penugasan (SPK)</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Form Isian Proyek &amp; Data Teknis Fisik</span></div>
                 </div>
-                <table class="w-full text-[10px] border-t border-slate-300 pt-1">
+                <table class="w-full text-[9.5px] border-t border-slate-300 pt-1 border-collapse">
                   <tr>
-                    <td class="w-1/3">Nilai Pasar : Rp ....................................</td>
-                    <td class="w-1/3">Nilai Likuidasi : Rp ....................................</td>
-                    <td class="w-24">Tanggal : ............</td>
-                    <td class="text-right font-bold">Paraf Surveyor/Penilai : [ _________ ]</td>
+                    <td class="w-[31%] py-0.5">Nilai Pasar : <span class="font-normal">Rp ....................................</span></td>
+                    <td class="w-[31%] py-0.5">Nilai Likuidasi : <span class="font-normal">Rp ....................................</span></td>
+                    <td class="w-[18%] py-0.5">Tanggal : <span class="font-normal">............</span></td>
+                    <td class="w-[20%] text-right py-0.5 whitespace-nowrap">
+                      <span class="font-bold mr-1.5">Paraf :</span>
+                      <span class="inline-block w-16 h-5.5 border border-slate-700 rounded-[2px] align-middle bg-white"></span>
+                    </td>
                   </tr>
                 </table>
               </div>
 
               <!-- Blok 2: Reviewer / Koordinator Teknik -->
-              <div class="border border-slate-800 rounded p-2.5">
-                <div class="flex justify-between font-bold border-b border-slate-400 pb-1 mb-1.5 text-[11px]">
+              <div class="border border-slate-800 rounded p-2">
+                <div class="flex justify-between font-bold border-b border-slate-400 pb-1 mb-1.5 text-[10.5px]">
                   <span>2. Check List Reviewer (Koordinator Teknik / Reviewer)</span>
-                  <span class="text-[10px] text-slate-500 font-normal">Tahap Pemeriksaan Teknis &amp; Metodologi SPI</span>
+                  <span class="text-[9.5px] text-slate-500 font-normal">Tahap Pemeriksaan Teknis &amp; Metodologi SPI</span>
                 </div>
-                <div class="grid grid-cols-2 gap-x-4 text-[10px] mb-2 text-slate-800">
-                  <div>[ &radic; ] Cek Sertifikat (Jenis, Luas, Nama, Tgl)</div>
-                  <div>[ &radic; ] Cek Luasan Bangunan &amp; Gambar Denah</div>
-                  <div>[ &radic; ] Cek Tata Kota (RDTR / Rencana Jalan)</div>
-                  <div>[ &radic; ] Kelengkapan IMB / PBG</div>
-                  <div>[ &radic; ] Cek Database &amp; Data Pembanding Pasar</div>
-                  <div>[ &radic; ] Kertas Kerja Lapangan &amp; Foto-Foto</div>
-                  <div>[ &radic; ] Ploting Tanah &amp; Batas Koordinat GPS</div>
-                  <div>[ &radic; ] BTB Bangunan &amp; Perhitungan Penyusutan</div>
-                  <div>[ &radic; ] Analisa Tanah (Penyesuaian Pasar)</div>
-                  <div>[ &radic; ] Analisa Sarana dan Prasarana / Utilitas</div>
-                  <div>[ &radic; ] Nilai Tanah (Indikasi Nilai Pasar)</div>
-                  <div>[ &radic; ] Nilai Bangunan dan Sarana Prasarana</div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[9.5px] mb-1.5 text-slate-800">
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Sertifikat (Jenis, Luas, Nama, Tgl)</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Luasan Bangunan &amp; Gambar Denah</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Tata Kota (RDTR / Rencana Jalan)</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Kelengkapan IMB / PBG</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Database &amp; Data Pembanding Pasar</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Kertas Kerja Lapangan &amp; Foto-Foto</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Ploting Tanah &amp; Batas Koordinat GPS</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>BTB Bangunan &amp; Perhitungan Penyusutan</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Analisa Tanah (Penyesuaian Pasar)</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Analisa Sarana dan Prasarana / Utilitas</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Nilai Tanah (Indikasi Nilai Pasar)</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Nilai Bangunan dan Sarana Prasarana</span></div>
                 </div>
-                <table class="w-full text-[10px] border-t border-slate-300 pt-1">
+                <table class="w-full text-[9.5px] border-t border-slate-300 pt-1 border-collapse">
                   <tr>
-                    <td class="w-1/3">Nilai Pasar : Rp ....................................</td>
-                    <td class="w-1/3">Nilai Likuidasi : Rp ....................................</td>
-                    <td class="w-24">Tanggal : ............</td>
-                    <td class="text-right font-bold">Paraf Reviewer : [ _________ ]</td>
+                    <td class="w-[31%] py-0.5">Nilai Pasar : <span class="font-normal">Rp ....................................</span></td>
+                    <td class="w-[31%] py-0.5">Nilai Likuidasi : <span class="font-normal">Rp ....................................</span></td>
+                    <td class="w-[18%] py-0.5">Tanggal : <span class="font-normal">............</span></td>
+                    <td class="w-[20%] text-right py-0.5 whitespace-nowrap">
+                      <span class="font-bold mr-1.5">Paraf :</span>
+                      <span class="inline-block w-16 h-5.5 border border-slate-700 rounded-[2px] align-middle bg-white"></span>
+                    </td>
                   </tr>
                 </table>
               </div>
 
               <!-- Blok 3: Manager Teknik -->
-              <div class="border border-slate-800 rounded p-2.5">
-                <div class="flex justify-between font-bold border-b border-slate-400 pb-1 mb-1.5 text-[11px]">
+              <div class="border border-slate-800 rounded p-2">
+                <div class="flex justify-between font-bold border-b border-slate-400 pb-1 mb-1.5 text-[10.5px]">
                   <span>3. Cek List Manager Teknik</span>
-                  <span class="text-[10px] text-slate-500 font-normal">Tahap Validasi Format &amp; Kepatuhan SPM</span>
+                  <span class="text-[9.5px] text-slate-500 font-normal">Tahap Validasi Format &amp; Kepatuhan SPM</span>
                 </div>
-                <div class="grid grid-cols-2 gap-x-4 text-[10px] mb-2 text-slate-800">
-                  <div>[ &radic; ] Cek Kelengkapan Data (Surat Tugas, BAP, dll)</div>
-                  <div>[ &radic; ] Cek Analisa Kertas Kerja</div>
-                  <div>[ &radic; ] Pendekatan &amp; Metodologi Penilaian Sesuai SPI</div>
-                  <div>[ &radic; ] Nilai Pendahuluan Sebelum Draft</div>
-                  <div>[ &radic; ] Konsistensi Kertas Kerja dan Draft</div>
-                  <div>[ &radic; ] Cek Softcopy Laporan</div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[9.5px] mb-1.5 text-slate-800">
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Kelengkapan Data (Surat Tugas, BAP, dll)</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Analisa Kertas Kerja</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Pendekatan &amp; Metodologi Penilaian Sesuai SPI</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Nilai Pendahuluan Sebelum Draft</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Konsistensi Kertas Kerja dan Draft</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Softcopy Laporan</span></div>
                 </div>
-                <table class="w-full text-[10px] border-t border-slate-300 pt-1">
+                <table class="w-full text-[9.5px] border-t border-slate-300 pt-1 border-collapse">
                   <tr>
-                    <td class="w-1/3">Nilai Pasar : Rp ....................................</td>
-                    <td class="w-1/3">Nilai Likuidasi : Rp ....................................</td>
-                    <td class="w-24">Tanggal : ............</td>
-                    <td class="text-right font-bold">Paraf Manager Teknik : [ _________ ]</td>
+                    <td class="w-[31%] py-0.5">Nilai Pasar : <span class="font-normal">Rp ....................................</span></td>
+                    <td class="w-[31%] py-0.5">Nilai Likuidasi : <span class="font-normal">Rp ....................................</span></td>
+                    <td class="w-[18%] py-0.5">Tanggal : <span class="font-normal">............</span></td>
+                    <td class="w-[20%] text-right py-0.5 whitespace-nowrap">
+                      <span class="font-bold mr-1.5">Paraf :</span>
+                      <span class="inline-block w-16 h-5.5 border border-slate-700 rounded-[2px] align-middle bg-white"></span>
+                    </td>
                   </tr>
                 </table>
               </div>
 
               <!-- Blok 4: Pimpinan KJPP / Rekan -->
-              <div class="border border-slate-800 rounded p-2.5 bg-slate-50">
-                <div class="flex justify-between font-bold border-b border-slate-400 pb-1 mb-1.5 text-[11px]">
+              <div class="border border-slate-800 rounded p-2 bg-slate-50">
+                <div class="flex justify-between font-bold border-b border-slate-400 pb-1 mb-1.5 text-[10.5px]">
                   <span>4. Cek List Pimpinan KJPP / Rekan Penilai Publik</span>
-                  <span class="text-[10px] text-slate-500 font-normal">Final Clearance &amp; Otorisasi Nomor Laporan (NoLap)</span>
+                  <span class="text-[9.5px] text-slate-500 font-normal">Final Clearance &amp; Otorisasi Nomor Laporan (NoLap)</span>
                 </div>
-                <div class="grid grid-cols-2 gap-x-4 text-[10px] mb-2 text-slate-800">
-                  <div>[ &radic; ] Cek Prosedur Penilaian &amp; Kepatuhan KEPI</div>
-                  <div>[ &radic; ] Nilai Pendahuluan &amp; Kesimpulan Akhir</div>
-                  <div>[ &radic; ] Cek Analisa Penilaian &amp; Rekonsiliasi Nilai</div>
-                  <div>[ &radic; ] Cek Catatan-Catatan, Asumsi &amp; Pembatas</div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[9.5px] mb-1.5 text-slate-800">
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Prosedur Penilaian &amp; Kepatuhan KEPI</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Nilai Pendahuluan &amp; Kesimpulan Akhir</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Analisa Penilaian &amp; Rekonsiliasi Nilai</span></div>
+                  <div class="flex items-center"><span class="inline-block w-3.5 h-3.5 border border-slate-700 mr-2 rounded-[2px] shrink-0 bg-white"></span><span>Cek Catatan-Catatan, Asumsi &amp; Pembatas</span></div>
                 </div>
-                <table class="w-full text-[10px] border-t border-slate-300 pt-1">
+                <table class="w-full text-[9.5px] border-t border-slate-300 pt-1 border-collapse">
                   <tr>
-                    <td class="w-1/3">Nilai Pasar : Rp ....................................</td>
-                    <td class="w-1/3">Nilai Likuidasi : Rp ....................................</td>
-                    <td class="w-24">Tanggal : ............</td>
-                    <td class="text-right font-bold">Paraf Pimpinan / Rekan : [ _________ ]</td>
+                    <td class="w-[31%] py-0.5">Nilai Pasar : <span class="font-normal">Rp ....................................</span></td>
+                    <td class="w-[31%] py-0.5">Nilai Likuidasi : <span class="font-normal">Rp ....................................</span></td>
+                    <td class="w-[18%] py-0.5">Tanggal : <span class="font-normal">............</span></td>
+                    <td class="w-[20%] text-right py-0.5 whitespace-nowrap">
+                      <span class="font-bold mr-1.5">Paraf :</span>
+                      <span class="inline-block w-16 h-5.5 border border-slate-700 rounded-[2px] align-middle bg-white"></span>
+                    </td>
                   </tr>
                 </table>
               </div>
