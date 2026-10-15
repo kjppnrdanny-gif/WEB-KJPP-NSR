@@ -672,7 +672,8 @@
             <span>Maksud, Tujuan, Dasar Nilai &amp; Tanggal Penilaian</span>
           </h3>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs items-start">
+          <!-- Baris 1: Metodologi & Standar Penilaian (3 Kolom) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs items-start mb-4">
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Maksud &amp; Tujuan Penilaian <span class="text-rose-400">*</span></label>
               <select id="maksud_tujuan_penilaian" name="tujuan_penilaian" required onchange="handleTujuanChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400 font-semibold">
@@ -711,7 +712,10 @@
               <label class="block font-semibold text-slate-300 mb-1">Pendekatan Penilaian</label>
               <input type="text" id="pendekatan_penilaian" value="Pendekatan Biaya (Cost) &amp; Pendekatan Data Pasar (Market)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
             </div>
+          </div>
 
+          <!-- Baris 2: Administrasi, Tanggal, Sumber Proyek & PIC Marketing (4 Kolom Proporsional) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs items-start">
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Mata Uang Pelaporan</label>
               <input type="text" id="mata_uang" value="Rupiah (IDR)" readonly class="w-full h-10 px-3 rounded-lg bg-slate-950/80 border border-slate-700 text-slate-300 focus:outline-none">
@@ -723,11 +727,21 @@
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Sumber Proyek &amp; Marketing</label>
-              <div class="grid grid-cols-2 gap-2">
-                <input type="text" id="sumber_proyek" placeholder="Kanca / Direct" class="w-full h-10 px-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none">
-                <input type="text" id="marketing_nama" placeholder="PIC Marketing" class="w-full h-10 px-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none">
+              <div class="flex items-center justify-between mb-1">
+                <label class="block font-semibold text-slate-300">Sumber Proyek <span class="text-rose-400">*</span></label>
+                <span class="text-[10px] text-amber-400 font-mono" title="Asal kanal perolehan pekerjaan penilaian">Asal Kanal</span>
               </div>
+              <input type="text" id="sumber_proyek" required placeholder="misal: Kanca BRI / Direct Klien / BTN / Referral" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400">
+              <p class="text-[10px] text-slate-400 mt-1">Asal kanal perolehan pekerjaan penilaian.</p>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block font-semibold text-slate-300">PIC Marketing KJPP (Divisi BD) <span class="text-rose-400">*</span></label>
+                <span class="text-[10px] text-sky-400 font-mono" title="Personil internal KJPP NSR yang bertindak sebagai PIC pemasaran/penawaran">Staf Internal</span>
+              </div>
+              <input type="text" id="pic_marketing" required placeholder="Nama Staf Marketing / BD Internal KJPP NSR" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400">
+              <p class="text-[10px] text-slate-400 mt-1">Personil internal KJPP NSR yang bertindak sebagai PIC pemasaran/penawaran.</p>
             </div>
           </div>
         </div>
@@ -1941,7 +1955,8 @@
         pendekatan_penilaian: "Pendekatan Pasar dan Pendekatan Biaya",
         mata_uang: "Rupiah (IDR)",
         tanggal_penilaian: "2026-10-14",
-        sumber_proyek: "Divisi BD & Marketing",
+        sumber_proyek: "Direct Klien - Divisi BD",
+        pic_marketing: "Divisi BD & Marketing",
         marketing_nama: "Divisi BD & Marketing",
         rekan_nama: "Deni Siswandi, S.T., MAPPI (Cert.)",
         rekan_izin: "P-1.20.00581",
@@ -2021,6 +2036,7 @@
         mata_uang: "Rupiah (IDR)",
         tanggal_penilaian: "2026-10-14",
         sumber_proyek: "KCU Wilayah Bandung",
+        pic_marketing: "Ardi Nurmayadi, S.T.",
         marketing_nama: "Ardi Nurmayadi, S.T.",
         rekan_nama: "Deni Siswandi, S.T., MAPPI (Cert.)",
         rekan_izin: "P-1.20.00581",
@@ -2177,8 +2193,9 @@
         dok_denah: true,
         dok_invoice: false,
         dok_list: false,
-        sumber_proyek: r.Marketing_Sumber_Proyek || '',
-        marketing_nama: r.Marketing_Sumber_Proyek || '',
+        sumber_proyek: r.Sumber_Proyek || r.sumber_proyek || r.Marketing_Sumber_Proyek || '',
+        pic_marketing: r.PIC_Marketing || r.pic_marketing || r.Marketing_Sumber_Proyek || '',
+        marketing_nama: r.PIC_Marketing || r.pic_marketing || r.marketing_nama || r.Marketing_Sumber_Proyek || '',
         biaya_dpp: Number(r.Biaya_Net_DPP || 0),
         biaya_ppn: Number(r.PPN_11_Persen || 0),
         biaya_total: totalBiaya,
@@ -2256,7 +2273,9 @@
         SLA_Analisa: parseInt(p.sla_analisa, 10) || 2,
         SLA_Final: parseInt(p.sla_final, 10) || 2,
         SLA_Total: parseInt(p.sla_total, 10) || 5,
-        Marketing_Sumber_Proyek: p.marketing_nama || p.sumber_proyek || 'Divisi Marketing',
+        Marketing_Sumber_Proyek: p.pic_marketing || p.marketing_nama || p.sumber_proyek || 'Divisi Marketing',
+        Sumber_Proyek: p.sumber_proyek || '-',
+        PIC_Marketing: p.pic_marketing || p.marketing_nama || '-',
         Biaya_Net_DPP: Number(p.biaya_dpp || 0),
         PPN_11_Persen: Number(p.biaya_ppn || 0),
         Total_Biaya_All_In: Number(p.biaya_total || 0),
@@ -4295,8 +4314,9 @@
         pendekatan_penilaian: document.getElementById('pendekatan_penilaian').value,
         mata_uang: document.getElementById('mata_uang').value,
         tanggal_penilaian: document.getElementById('tanggal_penilaian').value,
-        sumber_proyek: document.getElementById('sumber_proyek').value.trim() || 'Divisi Marketing',
-        marketing_nama: document.getElementById('marketing_nama').value.trim() || document.getElementById('sumber_proyek').value.trim() || 'Divisi Marketing',
+        sumber_proyek: (document.getElementById('sumber_proyek')?.value || '').trim() || 'Direct Klien',
+        pic_marketing: (document.getElementById('pic_marketing')?.value || document.getElementById('marketing_nama')?.value || '').trim() || 'Divisi BD & Marketing',
+        marketing_nama: (document.getElementById('pic_marketing')?.value || document.getElementById('marketing_nama')?.value || '').trim() || 'Divisi BD & Marketing',
         rekan_nama: document.getElementById('rekan_nama').value,
         rekan_izin: rekanSelected.izin || 'P-1.20.00581',
         reviewer_nama: document.getElementById('reviewer_nama').value,
@@ -5566,7 +5586,7 @@
                 </tr>
                 <tr>
                   <td class="font-bold bg-slate-50">Marketing</td>
-                  <td>${p.marketing_nama || '-'}</td>
+                  <td>${p.pic_marketing || p.marketing_nama || '-'}</td>
                 </tr>
                 <tr>
                   <td class="font-bold bg-slate-50">Biaya Jasa Penilaian ( All In)</td>
@@ -5760,7 +5780,7 @@
               </tr>
               <tr>
                 <td class="font-bold bg-slate-50">Marketing</td>
-                <td>${p.marketing_nama || p.sumber_proyek || '-'}</td>
+                <td>${p.pic_marketing || p.marketing_nama || '-'}</td>
               </tr>
               <tr>
                 <td class="font-bold bg-slate-50">Survey Tanggal</td>
@@ -5786,19 +5806,22 @@
                 <table class="w-full text-center text-xs">
                   <tr>
                     <td class="w-1/3">
-                      <p class="font-bold mb-14">( Surveyor )</p>
+                      <div class="h-14"></div>
                       <p class="font-bold underline">${p.asisten_nama}</p>
-                      <p class="text-[10px] text-slate-500">Pelaksana Lapangan</p>
+                      <p class="font-bold text-[10px] text-slate-700">( Surveyor )</p>
+                      <p class="text-[9px] text-slate-500">Pelaksana Lapangan</p>
                     </td>
                     <td class="w-1/3">
-                      <p class="font-bold mb-14">( Divisi Teknik )</p>
+                      <div class="h-14"></div>
                       <p class="font-bold underline">${p.reviewer_nama}</p>
-                      <p class="text-[10px] text-slate-500">Quality Control / Reviewer</p>
+                      <p class="font-bold text-[10px] text-slate-700">( Divisi Teknik )</p>
+                      <p class="text-[9px] text-slate-500">Quality Control / Reviewer</p>
                     </td>
                     <td class="w-1/3">
-                      <p class="font-bold mb-14">( Divisi BD &amp; Marketing )</p>
-                      <p class="font-bold underline">${p.marketing_nama || 'Marketing KJPP NSR'}</p>
-                      <p class="text-[10px] text-slate-500">Business Development</p>
+                      <div class="h-14"></div>
+                      <p class="font-bold underline">${p.pic_marketing || p.marketing_nama || 'Marketing KJPP NSR'}</p>
+                      <p class="font-bold text-[10px] text-slate-700">( Divisi BD &amp; Marketing )</p>
+                      <p class="text-[9px] text-slate-500">Business Development</p>
                     </td>
                   </tr>
                 </table>
@@ -6746,6 +6769,12 @@
       }
       if (document.getElementById('kategori_template_spk')) {
         document.getElementById('kategori_template_spk').value = 'REAL_PROPERTY';
+      }
+      if (document.getElementById('sumber_proyek')) {
+        document.getElementById('sumber_proyek').value = 'Direct Klien - Divisi BD';
+      }
+      if (document.getElementById('pic_marketing')) {
+        document.getElementById('pic_marketing').value = 'Divisi BD & Marketing';
       }
 
       objekRows = [
