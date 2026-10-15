@@ -2174,8 +2174,22 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       if (!rawToken || typeof rawToken !== 'string') return null;
       const t = rawToken.trim().toUpperCase();
 
-      // 1. ADMIN_PUSAT (ALLOWED)
-      if (t === 'NSR-PST-2026' || t === 'NSR2026' || t === 'NSR8899') {
+      // 1. SUPER ADMIN: NSR8899 (ALLOWED)
+      if (t === 'NSR8899') {
+        return {
+          token: t,
+          role: 'SUPER_ADMIN',
+          roleLabel: 'Super Admin',
+          displayRole: 'Super Admin / Master Otoritas',
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          canAccessKwitansi: true
+        };
+      }
+
+      // 2. ADMIN PUSAT: NSR-PST-2026 & NSR2026 (ALLOWED)
+      if (t === 'NSR-PST-2026' || t === 'NSR2026') {
         return {
           token: t,
           role: 'ADMIN_PUSAT',
@@ -2188,13 +2202,12 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         };
       }
 
-      // 2. ADMIN_CABANG (ALLOWED)
+      // 3. ADMIN CABANG (HANYA 4 CABANG RESMI: Bandung, Padang, Makassar, Palembang - ALLOWED)
       const cabangMap = {
         'NSR-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
         'NSR-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
         'NSR-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'NSR-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
-        'NSR-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+        'NSR-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
       };
       if (cabangMap[t]) {
         return {
@@ -2209,71 +2222,44 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         };
       }
 
-      // 3. MARKETING (DENIED)
-      const mktBranchMap = {
-        'MKT-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
-        'MKT-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
-        'MKT-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
-        'MKT-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'MKT-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
-        'MKT-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
-      };
-      if (t === 'NSR-MKT-2026' || mktBranchMap[t]) {
-        const isBranch = !!mktBranchMap[t];
-        return {
-          token: t,
-          role: 'MARKETING',
-          roleLabel: 'Marketing',
-          displayRole: 'Divisi Business Development & Marketing',
-          mode: isBranch ? 'CABANG' : 'PUSAT',
-          wilayah: isBranch ? mktBranchMap[t].wilayah : 'Semua Wilayah',
-          wilayahCode: isBranch ? mktBranchMap[t].code : 'ALL',
-          canAccessKwitansi: false
-        };
-      }
-
-      // 4. REVIEWER (DENIED)
-      const revBranchMap = {
-        'REV-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
-        'REV-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
-        'REV-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
-        'REV-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'REV-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
-        'REV-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
-      };
-      if (t === 'NSR-REV-2026' || revBranchMap[t]) {
-        const isBranch = !!revBranchMap[t];
+      // 4. REVIEWER: NSR-REV-2026 (DENIED)
+      if (t === 'NSR-REV-2026') {
         return {
           token: t,
           role: 'REVIEWER',
           roleLabel: 'Reviewer',
           displayRole: 'Reviewer KKP / Quality Control',
-          mode: isBranch ? 'CABANG' : 'PUSAT',
-          wilayah: isBranch ? revBranchMap[t].wilayah : 'Semua Wilayah',
-          wilayahCode: isBranch ? revBranchMap[t].code : 'ALL',
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
           canAccessKwitansi: false
         };
       }
 
-      // 5. PENILAI (DENIED)
-      const pnlBranchMap = {
-        'PNL-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
-        'PNL-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
-        'PNL-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
-        'PNL-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'PNL-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
-        'PNL-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
-      };
-      if (t === 'NSR-PNL-2026' || pnlBranchMap[t]) {
-        const isBranch = !!pnlBranchMap[t];
+      // 5. PENILAI / SURVEYOR: NSR-VAL-2026 & Alias NSR-PNL-2026 (DENIED)
+      if (t === 'NSR-VAL-2026' || t === 'NSR-PNL-2026') {
         return {
           token: t,
           role: 'PENILAI',
           roleLabel: 'Penilai',
           displayRole: 'Penilai Lapangan / Surveyor',
-          mode: isBranch ? 'CABANG' : 'PUSAT',
-          wilayah: isBranch ? pnlBranchMap[t].wilayah : 'Semua Wilayah',
-          wilayahCode: isBranch ? pnlBranchMap[t].code : 'ALL',
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          canAccessKwitansi: false
+        };
+      }
+
+      // 6. MARKETING: NSR-MKT-2026 (DENIED)
+      if (t === 'NSR-MKT-2026') {
+        return {
+          token: t,
+          role: 'MARKETING',
+          roleLabel: 'Marketing',
+          displayRole: 'Divisi Business Development & Marketing',
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
           canAccessKwitansi: false
         };
       }
@@ -2284,25 +2270,25 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
     // 16. Pemeriksaan Sesi Server-Side & Token Terpadu
     async function periksaSesiKwitansi() {
       // Periksa sesi lokal terlebih dahulu (dari portal utama / sessionStorage)
-      const stored = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('kjpp_session_jo');
-      if (stored) {
+      const rawStored = sessionStorage.getItem('NSR_AUTH_TOKEN') || sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('kjpp_session_jo');
+      if (rawStored) {
         try {
-          const sess = JSON.parse(stored);
-          const t = sess.token;
+          let t = rawStored;
+          if (rawStored.startsWith('{')) {
+            const parsed = JSON.parse(rawStored);
+            t = parsed.token || "";
+          }
           const auth = resolveUnifiedToken(t);
           if (auth) {
             if (!auth.canAccessKwitansi) {
-              tampilkanLoginState();
-              const errEl = document.getElementById('pesan-auth-kwitansi');
-              if (errEl) {
-                errEl.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai <strong>${auth.roleLabel}</strong>.`;
-                errEl.classList.remove('hidden');
-              }
+              alert(`Akses Ditolak: Modul Permintaan Kwitansi & Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${auth.roleLabel}.`);
+              window.location.href = 'portal-penugasan-jo.html';
               return;
             } else {
+              sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
               const simUser = {
-                sub: auth.role === 'ADMIN_PUSAT' ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
-                role: auth.role === 'ADMIN_PUSAT' ? 'KEUANGAN' : 'CABANG',
+                sub: (auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER_ADMIN') ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
+                role: (auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER_ADMIN') ? 'KEUANGAN' : 'CABANG',
                 branch: auth.wilayahCode,
                 displayName: auth.wilayah,
                 token: auth.token
@@ -2380,6 +2366,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
             displayName: auth.wilayah,
             token: auth.token
           };
+          sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
           sessionStorage.setItem('kjpp_token_internal', JSON.stringify({
             branch: auth.wilayah,
             token: auth.token,

@@ -5564,8 +5564,27 @@
       if (!rawToken || typeof rawToken !== 'string') return null;
       const t = rawToken.trim().toUpperCase();
 
-      // 1. ADMIN_PUSAT (Otorisasi Penuh Kantor Pusat & Master Admin)
-      if (t === 'NSR-PST-2026' || t === 'NSR2026' || t === 'NSR8899') {
+      // 1. SUPER ADMIN: NSR8899 (Otorisasi Penuh Master Admin)
+      if (t === 'NSR8899') {
+        return {
+          token: t,
+          role: 'SUPER_ADMIN',
+          roleLabel: 'Super Admin',
+          displayRole: 'Super Admin / Master Otoritas',
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          lockWilayah: false,
+          canAccessKwitansi: true,
+          canApprovePusat: true,
+          canApproveCabang: true,
+          canInputForm: true,
+          seeFee: true
+        };
+      }
+
+      // 2. ADMIN PUSAT: NSR-PST-2026 & NSR2026 (Otorisasi Penuh Kantor Pusat)
+      if (t === 'NSR-PST-2026' || t === 'NSR2026') {
         return {
           token: t,
           role: 'ADMIN_PUSAT',
@@ -5583,13 +5602,12 @@
         };
       }
 
-      // 2. ADMIN_CABANG (Otorisasi Admin Kantor Cabang)
+      // 3. ADMIN CABANG (Hanya 4 Cabang Resmi: Bandung, Padang, Makassar, Palembang)
       const cabangMap = {
         'NSR-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
         'NSR-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
         'NSR-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'NSR-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
-        'NSR-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+        'NSR-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
       };
       if (cabangMap[t]) {
         return {
@@ -5609,58 +5627,17 @@
         };
       }
 
-      // 3. MARKETING (Divisi Business Development & Marketing)
-      const mktBranchMap = {
-        'MKT-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
-        'MKT-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
-        'MKT-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
-        'MKT-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'MKT-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
-        'MKT-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
-      };
-      if (t === 'NSR-MKT-2026' || mktBranchMap[t]) {
-        const isBranch = !!mktBranchMap[t];
-        const targetWil = isBranch ? mktBranchMap[t].wilayah : 'Semua Wilayah';
-        const code = isBranch ? mktBranchMap[t].code : 'ALL';
-        return {
-          token: t,
-          role: 'MARKETING',
-          roleLabel: 'Marketing',
-          displayRole: 'Divisi Business Development & Marketing',
-          mode: (isBranch && code !== 'PST') ? 'CABANG' : 'PUSAT',
-          wilayah: targetWil,
-          wilayahCode: code,
-          lockWilayah: isBranch,
-          canAccessKwitansi: false,
-          canApprovePusat: false,
-          canApproveCabang: false,
-          canInputForm: true,
-          seeFee: true
-        };
-      }
-
-      // 4. REVIEWER (Tim Quality Control / Reviewer KKP)
-      const revBranchMap = {
-        'REV-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
-        'REV-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
-        'REV-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
-        'REV-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'REV-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
-        'REV-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
-      };
-      if (t === 'NSR-REV-2026' || revBranchMap[t]) {
-        const isBranch = !!revBranchMap[t];
-        const targetWil = isBranch ? revBranchMap[t].wilayah : 'Semua Wilayah';
-        const code = isBranch ? revBranchMap[t].code : 'ALL';
+      // 4. REVIEWER: NSR-REV-2026 (Fee Censored, Kwitansi Denied)
+      if (t === 'NSR-REV-2026') {
         return {
           token: t,
           role: 'REVIEWER',
           roleLabel: 'Reviewer',
           displayRole: 'Reviewer KKP / Quality Control',
-          mode: (isBranch && code !== 'PST') ? 'CABANG' : 'PUSAT',
-          wilayah: targetWil,
-          wilayahCode: code,
-          lockWilayah: isBranch,
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          lockWilayah: false,
           canAccessKwitansi: false,
           canApprovePusat: false,
           canApproveCabang: false,
@@ -5670,32 +5647,41 @@
         };
       }
 
-      // 5. PENILAI (Penilai Lapangan / Asisten Penilai / Surveyor)
-      const pnlBranchMap = {
-        'PNL-PST-2026': { wilayah: 'Kantor Pusat Jakarta', code: 'PST' },
-        'PNL-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
-        'PNL-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
-        'PNL-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'PNL-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' },
-        'PNL-PLM-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
-      };
-      if (t === 'NSR-PNL-2026' || pnlBranchMap[t]) {
-        const isBranch = !!pnlBranchMap[t];
-        const targetWil = isBranch ? pnlBranchMap[t].wilayah : 'Semua Wilayah';
-        const code = isBranch ? pnlBranchMap[t].code : 'ALL';
+      // 5. PENILAI / SURVEYOR: NSR-VAL-2026 & Alias NSR-PNL-2026 (Fee Censored, Kwitansi Denied)
+      if (t === 'NSR-VAL-2026' || t === 'NSR-PNL-2026') {
         return {
           token: t,
           role: 'PENILAI',
           roleLabel: 'Penilai',
           displayRole: 'Penilai Lapangan / Surveyor',
-          mode: (isBranch && code !== 'PST') ? 'CABANG' : 'PUSAT',
-          wilayah: targetWil,
-          wilayahCode: code,
-          lockWilayah: isBranch,
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          lockWilayah: false,
           canAccessKwitansi: false,
           canApprovePusat: false,
           canApproveCabang: false,
           canInputForm: false,
+          seeFee: false,
+          feeMaskText: '[Sesuai SPK / Khusus Admin]'
+        };
+      }
+
+      // 6. MARKETING: NSR-MKT-2026 (Fee Censored, Kwitansi Denied)
+      if (t === 'NSR-MKT-2026') {
+        return {
+          token: t,
+          role: 'MARKETING',
+          roleLabel: 'Marketing',
+          displayRole: 'Divisi Business Development & Marketing',
+          mode: 'PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          lockWilayah: false,
+          canAccessKwitansi: false,
+          canApprovePusat: false,
+          canApproveCabang: false,
+          canInputForm: true,
           seeFee: false,
           feeMaskText: '[Sesuai SPK / Khusus Admin]'
         };
@@ -5867,6 +5853,7 @@
         seeFee: auth.seeFee,
         expiresAt: Date.now() + (8 * 3600 * 1000)
       };
+      sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
       sessionStorage.setItem('kjpp_token_internal', JSON.stringify(sessionObj));
       sessionStorage.setItem('kjpp_session_jo', JSON.stringify({
         isLoggedIn: true,

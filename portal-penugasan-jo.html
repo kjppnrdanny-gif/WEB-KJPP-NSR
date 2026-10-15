@@ -34,7 +34,7 @@
       max-width: 794px; /* Standar fisik 210mm A4 @ 96 DPI: 793.7px */
       min-height: 1123px; /* Standar fisik 297mm A4 @ 96 DPI: 1122.5px */
       margin: 0 auto 30px auto;
-      padding: 15mm 20mm 20mm 20mm; /* Atas: 15mm, Kanan: 20mm, Bawah: 20mm, Kiri: 20mm */
+      padding: 15mm 20mm 20mm 25mm; /* Standar Resmi: Atas 15mm, Kanan 20mm, Bawah 20mm, Kiri 25mm */
       background: #ffffff;
       color: #0f172a;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -220,7 +220,7 @@
         </button>
 
         <!-- Link Navigasi Cepat Portal Lain -->
-        <a href="portal-nolap.html" class="hidden md:inline-flex px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+        <a href="portal-nolap.html" id="nav-link-nolap" onclick="bukaPortalNoLap(event)" class="hidden md:inline-flex px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700" title="Buka Portal Nomor Laporan (SSO Aktif)">
           NoLap
         </a>
         <a href="portal-kwitansi.html" id="nav-link-kwitansi" class="hidden md:inline-flex px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
@@ -2213,44 +2213,28 @@
     // Token tidak disimpan sebagai plain-text di source code publik demi keamanan KEPI/SPI.
     // Verifikasi dilakukan melalui hash pencocokan SHA-256 kriptografis.
     const HASHED_TOKENS = {
-      // ROLE 1: ADMIN PUSAT (Otorisasi Penuh & Master Admin)
-      '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
-      'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
-      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': { role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
+      // 1. SUPER ADMIN: NSR8899 (Pusat Jakarta, Kwitansi Aktif, Fee Unmasked)
+      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': { role: 'SUPER_ADMIN', roleLabel: 'Super Admin', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', wilayahCode: 'PST', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
 
-      // ROLE 2: ADMIN CABANG (Otorisasi Admin Kantor Cabang)
-      'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
-      '45b948d3c75010dcf2b4963c1275e2f0c982df88658616b3d0edaae59e9cd62c': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
-      '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
-      '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
-      'c20c16d688a686f8cd5ac12f4949b8dac6b4937d513f92a00514ee6122368ed2': { role: 'ADMIN_CABANG', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      // 2. ADMIN PUSAT: NSR-PST-2026 & NSR2026 (Pusat Jakarta, Kwitansi Aktif, Fee Unmasked)
+      '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': { role: 'ADMIN_PUSAT', roleLabel: 'Admin Pusat', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', wilayahCode: 'PST', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
+      'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91': { role: 'ADMIN_PUSAT', roleLabel: 'Admin Pusat', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', wilayahCode: 'PST', canAccessKwitansi: true, seeFee: true, canApprove: true, canSubmit: true },
 
-      // ROLE 3: MARKETING (Divisi BD & Marketing - Fee Visible, Kwitansi Denied)
-      '336c1d03b83f9a89f3f1fc33cc42192345b435f6e72f8e72ad43aaaaae6310fe': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      '270fe5ca5867234522a2f6c3cd0a5d04d2106d4a0043ea91ed7a7718b10c7b7f': { role: 'MARKETING', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      '2badf5995baadbb1bff47b5c52a1a383c07c48394a137783e5f41b4dc5f82d92': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      'ba7f0ea4de12aae13336ea1e17bbb0e88eddf20bffad8fd61da0da5f746be0e6': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      '9edd426c179c8e3ad85f40f98b75bd0a4e118b1ed1ea22a599de87269a0b7dfa': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      '32aedd582562d95bd6e3dba0d2184b6aa2fc6ef77a5923c949944e407e97e015': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
-      'f005ee593515b7896f33058be0de86fc5ab5c00e6eab7184dbaa686fb6b2372c': { role: 'MARKETING', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: true, canApprove: false, canSubmit: true },
+      // 3. ADMIN CABANG (Hanya 4 Cabang Resmi: Bandung, Padang, Makassar, Palembang - Kwitansi Aktif, Fee Unmasked)
+      'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818': { role: 'ADMIN_CABANG', roleLabel: 'Admin Cabang', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', wilayahCode: 'BDG', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      '45b948d3c75010dcf2b4963c1275e2f0c982df88658616b3d0edaae59e9cd62c': { role: 'ADMIN_CABANG', roleLabel: 'Admin Cabang', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', wilayahCode: 'PDG', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e': { role: 'ADMIN_CABANG', roleLabel: 'Admin Cabang', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', wilayahCode: 'MKS', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
+      '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b': { role: 'ADMIN_CABANG', roleLabel: 'Admin Cabang', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', wilayahCode: 'PLB', canAccessKwitansi: true, seeFee: true, canApprove: false, canSubmit: true },
 
-      // ROLE 4: REVIEWER (QC Mutu KKP - Fee Censored, Kwitansi Denied)
-      'da9ed250de0559c0e8cf6631bbd6e93375eec43c4d114d0f4f1ae17a4f5dd3a9': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      '798aa514d77c4ea8ff3114e4435c1221eaf97956d1abede3963cb88773796edd': { role: 'REVIEWER', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      '306093fa6fe1fd6c956eb67a5ee38bfe77fa47a70158898b48f37744cacc4b09': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      '2c51fd091605e3df28b3a1c739a38e8c7eb5bb9db6fda840f6524d55bf0a661b': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      '0fc4d2805534c931a60925a8b7316c41caf28b54fb4570d52cca1a31d3e5f4a2': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'd8edb5d0c9ecef210c12bcb67b7b1bb905a2cfa609728abbad6c112ecc8bfa2c': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      '1f1c5ab8127a397e5805759cc595804dd57d8bf9679793be43eeb894b6fd39c2': { role: 'REVIEWER', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      // 4. REVIEWER (Non-Admin): NSR-REV-2026 (Kwitansi Diblokir, Fee Masked)
+      'da9ed250de0559c0e8cf6631bbd6e93375eec43c4d114d0f4f1ae17a4f5dd3a9': { role: 'REVIEWER', roleLabel: 'Reviewer', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', wilayahCode: 'PST', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
 
-      // ROLE 5: PENILAI (Penilai Lapangan / Asisten / Surveyor - Fee Censored, Kwitansi Denied)
-      '14b4b51a13a2c3f62cb68bc65a229c6622ceee7528b9aa41f4964491d9e88e22': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Semua Wilayah', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'df1829d85ba31d46af05407c1eb9525ba4f7aa94c11d8cf3a3c8966fea696a6f': { role: 'PENILAI', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'd4f7d5ff4ff8697e38554e694c8ef0a2c54a8495a1fe42e67db5fafd479d6360': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Bandung', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      '59f6a676810b40cd48a230af1b3b839489e3049c8b72d34991d02ec65bc8f0b7': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Padang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      'a682f5a2796b6ee0d36cdea5c4df032cc46e2a0d629f1f3045e6a7887f96308b': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Makassar', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      '655c027b206affea8e8cfbedd5c12310ba2841a9b6ef734f2feaf00b09c496ca': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
-      '34d0451731810bf9a2d29a0920303c3a84d92a565c24a5ce072e8a7078d1372a': { role: 'PENILAI', mode: 'CABANG', wilayah: 'Kantor Cabang Palembang', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false }
+      // 5. PENILAI / SURVEYOR (Non-Admin): NSR-VAL-2026 & Alias NSR-PNL-2026 (Kwitansi Diblokir, Fee Masked)
+      '5801bb3891c492e6497bd5c0eb4d583606d07eed0058c05f8d4238c114b9f3e1': { role: 'PENILAI', roleLabel: 'Penilai', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', wilayahCode: 'PST', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+      '14b4b51a13a2c3f62cb68bc65a229c6622ceee7528b9aa41f4964491d9e88e22': { role: 'PENILAI', roleLabel: 'Penilai', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', wilayahCode: 'PST', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: false },
+
+      // 6. MARKETING (Non-Admin): NSR-MKT-2026 (Kwitansi Diblokir, Fee Masked)
+      '336c1d03b83f9a89f3f1fc33cc42192345b435f6e72f8e72ad43aaaaae6310fe': { role: 'MARKETING', roleLabel: 'Marketing', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta', wilayahCode: 'PST', canAccessKwitansi: false, seeFee: false, canApprove: false, canSubmit: true }
     };
 
     async function hashTokenSHA256(rawToken) {
@@ -2417,7 +2401,7 @@
       if (role === 'REVIEWER') {
         return '[Sesuai Kontrak / Khusus Admin]';
       }
-      if (role === 'PENILAI') {
+      if (role === 'PENILAI' || role === 'MARKETING') {
         return '[Sesuai SPK / Khusus Admin]';
       }
       return formatRupiah(amount);
@@ -2427,7 +2411,7 @@
       if (role === 'REVIEWER') {
         return '[Sesuai Kontrak / Khusus Admin]';
       }
-      if (role === 'PENILAI') {
+      if (role === 'PENILAI' || role === 'MARKETING') {
         return '[Sesuai SPK / Khusus Admin]';
       }
       return terbilangStr || '';
@@ -2605,6 +2589,17 @@
       }
     }
 
+    function bukaPortalNoLap(event) {
+      if (event) event.preventDefault();
+      const token = (userSession && userSession.token) ? userSession.token : (sessionStorage.getItem('NSR_AUTH_TOKEN') || sessionStorage.getItem('kjpp_token_internal') || '');
+      if (token) {
+        sessionStorage.setItem('NSR_AUTH_TOKEN', token);
+        window.location.href = `portal-nolap.html?token=${encodeURIComponent(token)}`;
+      } else {
+        window.location.href = 'portal-nolap.html';
+      }
+    }
+
     function bukaModalToken() {
       document.getElementById('modal-token-auth').classList.remove('hidden');
       document.getElementById('pesan_error_token').classList.add('hidden');
@@ -2643,6 +2638,7 @@
         loginAt: new Date().toISOString()
       };
 
+      sessionStorage.setItem('NSR_AUTH_TOKEN', userSession.token);
       sessionStorage.setItem('kjpp_session_jo', JSON.stringify(userSession));
       sessionStorage.setItem('kjpp_token_internal', rawInput);
       pesan.classList.add('hidden');
@@ -2651,14 +2647,16 @@
     }
 
     async function periksaSesiLogin() {
-      let tokenToUse = "";
-      const stored = sessionStorage.getItem('kjpp_session_jo');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.token) tokenToUse = parsed.token;
-        } catch (e) {
-          console.error("Gagal parse session:", e);
+      let tokenToUse = sessionStorage.getItem('NSR_AUTH_TOKEN') || "";
+      if (!tokenToUse) {
+        const stored = sessionStorage.getItem('kjpp_session_jo');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.token) tokenToUse = parsed.token;
+          } catch (e) {
+            console.error("Gagal parse session:", e);
+          }
         }
       }
       if (!tokenToUse) {
@@ -2690,6 +2688,7 @@
             canSubmit: info.canSubmit,
             loginAt: new Date().toISOString()
           };
+          sessionStorage.setItem('NSR_AUTH_TOKEN', userSession.token);
           sessionStorage.setItem('kjpp_session_jo', JSON.stringify(userSession));
           sessionStorage.setItem('kjpp_token_internal', userSession.token);
           tutupModalToken();
@@ -2720,6 +2719,7 @@
       const navLinkKwitansi = document.getElementById('nav-link-kwitansi');
 
       const roleDisplayMap = {
+        'SUPER_ADMIN': 'SUPER ADMIN',
         'ADMIN_PUSAT': 'ADMIN PUSAT',
         'ADMIN_CABANG': 'ADMIN CABANG',
         'MARKETING': 'MARKETING',
@@ -2728,29 +2728,30 @@
       };
 
       const roleTitle = roleDisplayMap[userSession.role] || userSession.role;
-      const kwStatusText = userSession.canAccessKwitansi ? 'Akses Kwitansi: Aktif' : 'Akses Kwitansi: Nonaktif';
+      const kwStatusText = userSession.canAccessKwitansi ? 'Akses Kwitansi: Aktif' : 'Akses Kwitansi: Dibatasi (Khusus Admin)';
       const kwColorClass = userSession.canAccessKwitansi ? 'text-emerald-400 font-bold' : 'text-slate-400';
       const wilShort = userSession.wilayah.replace('Kantor ', '');
 
       // 1. Update Header Role Badge
-      badgeDot.className = userSession.role === 'ADMIN_PUSAT' 
+      badgeDot.className = (userSession.role === 'ADMIN_PUSAT' || userSession.role === 'SUPER_ADMIN') 
         ? "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" 
         : (userSession.role === 'ADMIN_CABANG' ? "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" : "w-2.5 h-2.5 rounded-full bg-sky-400");
       badgeLabel.innerHTML = `ROLE: <strong class="text-white">${roleTitle}</strong> &bull; ${wilShort} &bull; <span class="${kwColorClass}">${kwStatusText}</span>`;
 
-      // 2. Proteksi Navigasi Cepat Kwitansi di Header
+      // 2. Proteksi & Sembunyikan Navigasi Cepat Kwitansi di Header jika Non-Admin
       if (navLinkKwitansi) {
         if (userSession.canAccessKwitansi) {
+          navLinkKwitansi.classList.remove('hidden');
           navLinkKwitansi.onclick = null;
           navLinkKwitansi.classList.remove('opacity-50', 'cursor-not-allowed');
           navLinkKwitansi.title = 'Buka Portal Permintaan Kwitansi';
         } else {
+          navLinkKwitansi.classList.add('hidden');
           navLinkKwitansi.onclick = (e) => {
             e.preventDefault();
             alert(`Akses Ditolak: Modul Permintaan Kwitansi & Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${roleTitle}.`);
           };
-          navLinkKwitansi.classList.add('opacity-50');
-          navLinkKwitansi.title = `Akses Kwitansi Nonaktif untuk ${roleTitle}`;
+          navLinkKwitansi.title = `Akses Kwitansi Dibatasi untuk ${roleTitle}`;
         }
       }
 
@@ -2768,7 +2769,7 @@
         if (formPenugasan) formPenugasan.classList.remove('hidden');
         if (formModeBanner) formModeBanner.classList.remove('hidden');
 
-        if (userSession.role === 'ADMIN_PUSAT') {
+        if (userSession.role === 'ADMIN_PUSAT' || userSession.role === 'SUPER_ADMIN') {
           if (containerDualMode) containerDualMode.classList.add('hidden');
           modeTitle.textContent = "Mode Akses: Kantor Pusat / Master Admin (Otorisasi Penuh)";
           modeDesc.innerHTML = "Staf Admin Pusat dapat menginput langsung dan menekan tombol <strong class='text-emerald-400'>'Simpan &amp; Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)'</strong>.";
@@ -3540,7 +3541,7 @@
     }
 
     function approveProyekPusat(projectId) {
-      if (userSession.mode !== "PUSAT" && userSession.role !== "ADMIN_PUSAT") {
+      if (userSession.mode !== "PUSAT" && userSession.role !== "ADMIN_PUSAT" && userSession.role !== "SUPER_ADMIN") {
         alert("Otorisasi ditolak. Hanya akun ber-Token Pusat yang berhak menerbitkan nomor resmi.");
         return;
       }
@@ -3703,7 +3704,7 @@
         }
 
         const displayFee = getMaskedFeeDisplay(p.biaya_total, userSession.role);
-        const isFeeMasked = (userSession.role === 'REVIEWER' || userSession.role === 'PENILAI');
+        const isFeeMasked = (userSession.role === 'REVIEWER' || userSession.role === 'PENILAI' || userSession.role === 'MARKETING');
 
         return `
           <tr class="hover:bg-slate-800/40 transition">
@@ -3732,7 +3733,7 @@
             </td>
             <td class="py-3 px-4 text-right">
               <div class="inline-flex items-center gap-1.5">
-                ${!isApproved && !p.is_private && userSession.role === "ADMIN_PUSAT" ? `
+                ${!isApproved && !p.is_private && (userSession.role === "ADMIN_PUSAT" || userSession.role === "SUPER_ADMIN") ? `
                   <button type="button" onclick="approveProyekPusat('${p.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition shadow" title="Approve & Terbitkan Nomor Resmi">
                     Approve
                   </button>
@@ -3742,7 +3743,7 @@
                   Cetak 9 Dokumen
                 </button>
 
-                ${userSession.role === 'ADMIN_PUSAT' || userSession.role === 'ADMIN_CABANG' ? `
+                ${userSession.role === 'ADMIN_PUSAT' || userSession.role === 'SUPER_ADMIN' || userSession.role === 'ADMIN_CABANG' ? `
                   <button type="button" onclick="hapusProyek('${p.id}')" class="p-1 rounded-lg bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 transition" title="Hapus">
                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </button>
@@ -4545,7 +4546,7 @@
                 </tr>
                 <tr>
                   <td class="font-bold bg-slate-50">Biaya Jasa Penilaian ( All In)</td>
-                  <td class="font-mono font-bold ${userSession.role === 'REVIEWER' || userSession.role === 'PENILAI' ? 'text-slate-600 font-semibold' : 'text-emerald-800'}">${feeTotalText}</td>
+                  <td class="font-mono font-bold ${userSession.role === 'REVIEWER' || userSession.role === 'PENILAI' || userSession.role === 'MARKETING' ? 'text-slate-600 font-semibold' : 'text-emerald-800'}">${feeTotalText}</td>
                 </tr>
               </table>
             </div>
@@ -4709,7 +4710,7 @@
               </tr>
               <tr>
                 <td class="font-bold bg-slate-50">Fee</td>
-                <td class="font-mono font-bold ${userSession.role === 'REVIEWER' || userSession.role === 'PENILAI' ? 'text-slate-600 font-semibold' : 'text-emerald-800'}">${feeTotalText}</td>
+                <td class="font-mono font-bold ${userSession.role === 'REVIEWER' || userSession.role === 'PENILAI' || userSession.role === 'MARKETING' ? 'text-slate-600 font-semibold' : 'text-emerald-800'}">${feeTotalText}</td>
               </tr>
               <tr>
                 <td class="font-bold bg-slate-50">Contact Person Bank</td>

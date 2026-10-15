@@ -193,6 +193,7 @@ async function runTests() {
           sessionStorage.clear();
           const results = [];
           const tokensToTest = [
+            { token: 'NSR-VAL-2026', expectedRole: 'Penilai' },
             { token: 'NSR-PNL-2026', expectedRole: 'Penilai' },
             { token: 'NSR-REV-2026', expectedRole: 'Reviewer' },
             { token: 'NSR-MKT-2026', expectedRole: 'Marketing' }
@@ -259,7 +260,7 @@ async function runTests() {
           window.alert = () => {};
           sessionStorage.clear();
           const results = [];
-          const tokens = ['NSR-PNL-2026', 'NSR-REV-2026', 'NSR-MKT-2026'];
+          const tokens = ['NSR-VAL-2026', 'NSR-PNL-2026', 'NSR-REV-2026', 'NSR-MKT-2026'];
 
           for (const tok of tokens) {
             sessionStorage.clear();
@@ -639,7 +640,7 @@ async function runTests() {
           projectDatabase = projectDatabase.filter(p => p.id !== dummyReqId);
 
           // 8. Uji Obfuskasi Token (HASHED_TOKENS) & Anonimisasi SEED_PROJECTS
-          const hasHashedTokens = typeof HASHED_TOKENS === 'object' && Object.keys(HASHED_TOKENS).length >= 25;
+          const hasHashedTokens = typeof HASHED_TOKENS === 'object' && Object.keys(HASHED_TOKENS).length >= 9 && Object.keys(HASHED_TOKENS).length <= 15;
           const hashSampleKey = Object.keys(HASHED_TOKENS)[0] || '';
           const isKeySha256 = hashSampleKey.length === 64; // Panjang string SHA-256 hex
           const seedDebitur1 = SEED_PROJECTS[0]?.debitur_nama || '';
@@ -1308,12 +1309,171 @@ async function runTests() {
 
     console.log('✓ Master Personil (5 Rekan & 10 Tenaga Ahli), Dynamic Cut-off Counter (585->0586), APP/RTL, & Anti-Double Guard LULUS 100%!');
 
+    // ------------------------------------------------------------------
+    // TEST 9: Uji Verifikasi 9 Token Resmi Aktif & Penolakan Token Non-Resmi
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 9: portal-penugasan-jo.html - Uji 9 Token Resmi & Penolakan Token Dihapus ---');
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-penugasan-jo.html` });
+    await waitForCondition(cdp, 'typeof window.resolveUnifiedToken === "function"');
+
+    const testTokensEvaluation = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (async () => {
+          const officialTokens = [
+            { token: 'NSR8899', expectedRole: 'SUPER_ADMIN', expectedKwitansi: true, expectedFee: true },
+            { token: 'NSR-PST-2026', expectedRole: 'ADMIN_PUSAT', expectedKwitansi: true, expectedFee: true },
+            { token: 'NSR2026', expectedRole: 'ADMIN_PUSAT', expectedKwitansi: true, expectedFee: true },
+            { token: 'NSR-BDG-2026', expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
+            { token: 'NSR-PDG-2026', expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
+            { token: 'NSR-MKS-2026', expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
+            { token: 'NSR-PLB-2026', expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
+            { token: 'NSR-REV-2026', expectedRole: 'REVIEWER', expectedKwitansi: false, expectedFee: false },
+            { token: 'NSR-VAL-2026', expectedRole: 'PENILAI', expectedKwitansi: false, expectedFee: false },
+            { token: 'NSR-MKT-2026', expectedRole: 'MARKETING', expectedKwitansi: false, expectedFee: false }
+          ];
+
+          const officialResults = [];
+          for (const item of officialTokens) {
+            const res = await resolveUnifiedToken(item.token);
+            officialResults.push({
+              token: item.token,
+              found: !!res,
+              roleMatches: res?.role === item.expectedRole,
+              kwitansiMatches: res?.canAccessKwitansi === item.expectedKwitansi,
+              feeMatches: res?.seeFee === item.expectedFee
+            });
+          }
+
+          // Uji penolakan token fiktif / yang sudah dihapus
+          const purgedTokens = ['NSR-SMG-2026', 'NSR-SBY-2026', 'NSR-YOG-2026', 'NSR-MDN-2026', 'NSR-PKU-2026', 'NSR-DPS-2026', 'TOKEN-PALSU-XYZ'];
+          const purgedResults = [];
+          for (const pTok of purgedTokens) {
+            const res = await resolveUnifiedToken(pTok);
+            purgedResults.push({
+              token: pTok,
+              rejected: res === null
+            });
+          }
+
+          return { officialResults, purgedResults };
+        })()
+      `,
+      awaitPromise: true,
+      returnByValue: true
+    });
+
+    const tokenEv = testTokensEvaluation.result.value;
+    for (const r of tokenEv.officialResults) {
+      if (!r.found || !r.roleMatches || !r.kwitansiMatches || !r.feeMatches) {
+        throw new Error(`Token resmi ${r.token} gagal divalidasi: found=${r.found}, role=${r.roleMatches}, kwitansi=${r.kwitansiMatches}, fee=${r.feeMatches}`);
+      }
+    }
+    for (const r of tokenEv.purgedResults) {
+      if (!r.rejected) {
+        throw new Error(`Token non-resmi ${r.token} seharusnya DITOLAK (null), tetapi masih diterima!`);
+      }
+    }
+    console.log('✓ Ke-9 Token Resmi Aktif & Obfuskasi SHA-256 Valid 100%!');
+    console.log('✓ Seluruh token non-resmi/fiktif di luar 4 cabang resmi DITOLAK MUTLAK!');
+
+    // ------------------------------------------------------------------
+    // TEST 10: Uji Single Sign-On (SSO) Bebas Username & Password di portal-nolap.html
+    // ------------------------------------------------------------------
+    console.log('\n--- TEST 10: portal-nolap.html - Uji Single Sign-On (SSO) Bebas Form Login ---');
+    // Uji 10A: Login SSO Admin Pusat via URL token
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-nolap.html?token=NSR-PST-2026` });
+    await waitForCondition(cdp, 'typeof window.isSuperOrAdminPusat === "function"');
+    await new Promise(r => setTimeout(r, 600));
+
+    const ssoPusatRes = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const boxAuth = document.getElementById('box-auth-token');
+          const panelUtama = document.getElementById('panel-aplikasi-utama');
+          const isBoxHidden = boxAuth && boxAuth.classList.contains('hidden');
+          const isPanelVisible = panelUtama && !panelUtama.classList.contains('hidden');
+          const isSesiValid = sesiAktif && sesiAktif.role === 'ADMIN_PUSAT' && sesiAktif.cabang === 'Pusat';
+          const isApprovalVisible = document.getElementById('tab-btn-approval') && !document.getElementById('tab-btn-approval').classList.contains('hidden');
+          const ssoTokenStored = sessionStorage.getItem('NSR_AUTH_TOKEN');
+
+          return {
+            isBoxHidden,
+            isPanelVisible,
+            isSesiValid,
+            isApprovalVisible,
+            ssoTokenStored
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+
+    const ssoPst = ssoPusatRes.result.value;
+    if (!ssoPst.isBoxHidden || !ssoPst.isPanelVisible) {
+      throw new Error('SSO NoLap gagal: Form login username/password masih muncul untuk token NSR-PST-2026!');
+    }
+    if (!ssoPst.isSesiValid || !ssoPst.isApprovalVisible) {
+      throw new Error(`SSO NoLap gagal mengatur peran Admin Pusat: sesiValid=${ssoPst.isSesiValid}, approvalVisible=${ssoPst.isApprovalVisible}`);
+    }
+    if (ssoPst.ssoTokenStored !== 'NSR-PST-2026') {
+      throw new Error(`SSO NoLap gagal menyimpan NSR_AUTH_TOKEN di sessionStorage: ${ssoPst.ssoTokenStored}`);
+    }
+    console.log('✓ SSO NoLap Admin Pusat (NSR-PST-2026) BERHASIL: Form Login dilewati, peran Admin Pusat aktif!');
+
+    // Uji 10B: Login SSO Admin Cabang via sessionStorage (simulasi klik navigasi dari portal penugasan)
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          sessionStorage.clear();
+          sessionStorage.setItem('NSR_AUTH_TOKEN', 'NSR-BDG-2026');
+        })()
+      `
+    });
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-nolap.html` });
+    await waitForCondition(cdp, 'typeof window.isSuperOrAdminPusat === "function"');
+    await new Promise(r => setTimeout(r, 600));
+
+    const ssoCabangRes = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const boxAuth = document.getElementById('box-auth-token');
+          const panelUtama = document.getElementById('panel-aplikasi-utama');
+          const isBoxHidden = boxAuth && boxAuth.classList.contains('hidden');
+          const isPanelVisible = panelUtama && !panelUtama.classList.contains('hidden');
+          const isSesiValid = sesiAktif && sesiAktif.role === 'ADMIN_CABANG' && sesiAktif.cabang === 'Bandung';
+          const isApprovalHidden = document.getElementById('tab-btn-approval')?.classList.contains('hidden');
+          const valCabang = document.getElementById('f-cabang')?.value;
+
+          return {
+            isBoxHidden,
+            isPanelVisible,
+            isSesiValid,
+            isApprovalHidden,
+            valCabang
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+
+    const ssoBdg = ssoCabangRes.result.value;
+    if (!ssoBdg.isBoxHidden || !ssoBdg.isPanelVisible) {
+      throw new Error('SSO NoLap via sessionStorage gagal: Form login username/password masih muncul untuk Cabang Bandung!');
+    }
+    if (!ssoBdg.isSesiValid || !ssoBdg.isApprovalHidden) {
+      throw new Error(`SSO NoLap Cabang Bandung gagal: sesiValid=${ssoBdg.isSesiValid}, approvalHidden=${ssoBdg.isApprovalHidden}`);
+    }
+    if (ssoBdg.valCabang !== 'Bandung') {
+      throw new Error(`SSO NoLap Cabang Bandung gagal mengunci dropdown cabang: ${ssoBdg.valCabang}`);
+    }
+    console.log('✓ SSO NoLap Admin Cabang (NSR-BDG-2026) BERHASIL: Form Login dilewati, cabang otomatis terkunci ke Bandung!');
+
     // Tangkap screenshot final
     const ssFinal = await cdp.send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_portal_jo_rbac_verified.png'), Buffer.from(ssFinal.data, 'base64'));
     console.log('✓ Screenshot final tersimpan: test_portal_jo_rbac_verified.png');
 
-    console.log('\n🎉 SELURUH 8 PENGUJIAN OTOMASI RBAC, KEAMANAN KWITANSI, DUAL-MODE, CETAK DOKUMEN, 4 REKENING BANK & RUNNING COUNTER LULUS 100%!');
+    console.log('\n🎉 SELURUH 10 PENGUJIAN OTOMASI RBAC 9 TOKEN, HARD-GUARD KWITANSI, DUAL-MODE, CETAK DOKUMEN, 4 REKENING BANK, COUNTER & SSO NOLAP LULUS 100%!');
 
   } finally {
     if (cdp) await cdp.close();

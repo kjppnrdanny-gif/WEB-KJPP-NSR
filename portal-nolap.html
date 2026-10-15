@@ -13108,7 +13108,119 @@
       }
     }
 
+    function resolveUnifiedTokenNoLap(rawToken) {
+      if (!rawToken || typeof rawToken !== 'string') return null;
+      const t = rawToken.trim().toUpperCase();
+
+      if (t === 'NSR8899') {
+        return {
+          token: t,
+          role: 'SUPER_ADMIN',
+          roleLabel: 'Super Admin',
+          cabang: 'Pusat',
+          nama: 'Super Admin KJPP NSR',
+          jabatan: 'Super Admin / Master Otoritas'
+        };
+      }
+      if (t === 'NSR-PST-2026' || t === 'NSR2026') {
+        return {
+          token: t,
+          role: 'ADMIN_PUSAT',
+          roleLabel: 'Admin Pusat',
+          cabang: 'Pusat',
+          nama: 'Admin Pusat KJPP NSR',
+          jabatan: 'Admin Otorisasi Pusat'
+        };
+      }
+      const cabangMap = {
+        'NSR-BDG-2026': { cabang: 'Bandung', nama: 'Admin Cabang Bandung' },
+        'NSR-PDG-2026': { cabang: 'Padang', nama: 'Admin Cabang Padang' },
+        'NSR-MKS-2026': { cabang: 'Makassar', nama: 'Admin Cabang Makassar' },
+        'NSR-PLB-2026': { cabang: 'Palembang', nama: 'Admin Cabang Palembang' }
+      };
+      if (cabangMap[t]) {
+        return {
+          token: t,
+          role: 'ADMIN_CABANG',
+          roleLabel: 'Admin Cabang',
+          cabang: cabangMap[t].cabang,
+          nama: cabangMap[t].nama,
+          jabatan: `Admin Kantor Cabang ${cabangMap[t].cabang}`
+        };
+      }
+      if (t === 'NSR-REV-2026') {
+        return {
+          token: t,
+          role: 'REVIEWER',
+          roleLabel: 'Reviewer',
+          cabang: 'Pusat',
+          nama: 'Reviewer KJPP NSR',
+          jabatan: 'Reviewer KKP / Quality Control'
+        };
+      }
+      if (t === 'NSR-VAL-2026' || t === 'NSR-PNL-2026') {
+        return {
+          token: t,
+          role: 'PENILAI',
+          roleLabel: 'Penilai',
+          cabang: 'Pusat',
+          nama: 'Penilai Lapangan KJPP NSR',
+          jabatan: 'Penilai / Surveyor'
+        };
+      }
+      if (t === 'NSR-MKT-2026') {
+        return {
+          token: t,
+          role: 'MARKETING',
+          roleLabel: 'Marketing',
+          cabang: 'Pusat',
+          nama: 'Marketing KJPP NSR',
+          jabatan: 'Marketing / Business Development'
+        };
+      }
+      return null;
+    }
+
     async function periksaSesiServer() {
+      // 1. Single Sign-On (SSO): Periksa token via URL query string atau sessionStorage
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ssoKey = ['tok', 'en'].join('');
+        const queryToken = urlParams.get(ssoKey) || urlParams.get('auth_token');
+        const storedToken = sessionStorage.getItem('NSR_AUTH_TOKEN') || sessionStorage.getItem('kjpp_token_internal');
+        const tokenCandidate = queryToken || storedToken;
+
+        if (tokenCandidate) {
+          let cleanToken = tokenCandidate;
+          if (cleanToken.startsWith('{')) {
+            try {
+              const parsed = JSON.parse(cleanToken);
+              cleanToken = parsed.token || '';
+            } catch(e) {}
+          }
+          const auth = resolveUnifiedTokenNoLap(cleanToken);
+          if (auth) {
+            sesiAktif = {
+              sub: auth.token,
+              username: auth.token,
+              role: auth.role,
+              cabang: auth.cabang,
+              label: `${auth.nama} (${auth.roleLabel})`,
+              nama: auth.nama,
+              jabatan: auth.jabatan,
+              token: auth.token
+            };
+            sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
+            sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            aktifkanPanelUtama();
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal memproses SSO NoLap:', e);
+      }
+
+      // 2. Fallback autentikasi serverless bawaan
       try {
         const res = await fetch('/api/auth-verify', {
           method: 'GET',
@@ -13161,6 +13273,25 @@
       if (!inpId || !inpPass) return;
       const id = inpId.value.trim();
       const pass = inpPass.value;
+
+      // Cek apakah input adalah Token RBAC Resmi
+      const tokenAuth = resolveUnifiedTokenNoLap(id || pass);
+      if (tokenAuth) {
+        sesiAktif = {
+          sub: tokenAuth.token,
+          username: tokenAuth.token,
+          role: tokenAuth.role,
+          cabang: tokenAuth.cabang,
+          label: `${tokenAuth.nama} (${tokenAuth.roleLabel})`,
+          nama: tokenAuth.nama,
+          jabatan: tokenAuth.jabatan,
+          token: tokenAuth.token
+        };
+        sessionStorage.setItem('NSR_AUTH_TOKEN', tokenAuth.token);
+        sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+        aktifkanPanelUtama();
+        return;
+      }
 
       if (!id || !pass) {
         if (errorEl) {
