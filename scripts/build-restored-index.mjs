@@ -382,7 +382,7 @@ const indexHtmlContent = `<!DOCTYPE html>
         <div class="p-3.5 sm:p-4 rounded-xl bg-slate-900/80 border border-slate-800 backdrop-blur card-shimmer">
           <span class="text-lg sm:text-2xl font-black text-amber-400 font-mono block">OJK RI</span>
           <span class="text-xs font-bold text-white block mt-1">Terdaftar Profesi Penunjang</span>
-          <span class="text-[11px] text-slate-400 block mt-0.5">Pasar Modal, Perbankan &amp; Industri IKNB</span>
+          <span class="text-[11px] text-slate-400 block mt-0.5">Sektor PMDK &amp; Non-PMDK</span>
         </div>
 
       </div>
@@ -1734,7 +1734,7 @@ const indexHtmlContent = `<!DOCTYPE html>
           <div class="text-[11px] space-y-1 text-slate-300">
             <p>&bull; Klasifikasi Izin Penilai Properti (P)</p>
             <p>&bull; Lisensi Penilai ATR / BPN</p>
-            <p>&bull; STTD OJK Pasar Modal &amp; IKNB</p>
+            <p>&bull; STTD OJK Sektor PMDK &amp; Non-PMDK</p>
             <p>&bull; Anggota MAPPI No. 19070160</p>
           </div>
         </div>
