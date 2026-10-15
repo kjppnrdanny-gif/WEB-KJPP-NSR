@@ -1371,6 +1371,132 @@ async function runTests() {
     console.log('✓ Seluruh 5 Template Klausul Dinamis SPK (SPI 103) & Auto-Sync Terverifikasi Sempurna 100%!');
 
     // -------------------------------------------------------------------------
+    // TEST 6D: Uji Maksud & Tujuan Penilaian dan Dasar Nilai SPI VII 2018
+    // -------------------------------------------------------------------------
+    console.log('\n--- TEST 6D: Uji Maksud & Tujuan Penilaian dan Dasar Nilai SPI VII 2018 ---');
+    const testScopeSuite = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const results = {};
+
+          const selTujuan = document.getElementById('maksud_tujuan_penilaian') || document.getElementById('tujuan_penilaian');
+          const inpCustomTujuan = document.getElementById('maksud_tujuan_custom');
+          const selDasar = document.getElementById('dasar_nilai');
+          const inpCustomDasar = document.getElementById('dasar_nilai_custom');
+
+          // 1. Verifikasi opsi Tujuan Penilaian & opsi LAINNYA
+          const tujuanOptions = Array.from(selTujuan.options).map(o => o.value);
+          results.hasTujuanDropdown = Boolean(selTujuan);
+          results.hasLainnyaTujuan = tujuanOptions.includes('LAINNYA');
+          results.inpTujuanDefaultHidden = inpCustomTujuan.classList.contains('hidden');
+
+          // Toggle LAINNYA pada Tujuan
+          selTujuan.value = 'LAINNYA';
+          handleTujuanChange();
+          results.inpTujuanVisibleOnLainnya = !inpCustomTujuan.classList.contains('hidden') && inpCustomTujuan.required;
+
+          // Toggle kembali ke standar
+          selTujuan.value = 'Penjaminan Hutang / Agunan Kredit';
+          handleTujuanChange();
+          results.inpTujuanHiddenOnRevert = inpCustomTujuan.classList.contains('hidden') && !inpCustomTujuan.required && inpCustomTujuan.value === '';
+
+          // 2. Verifikasi 12 Opsi Dasar Nilai SPI VII 2018 + LAINNYA
+          const dasarOptions = Array.from(selDasar.options).map(o => o.value);
+          results.hasDasarDropdown = Boolean(selDasar);
+          results.dasarOptionCount = dasarOptions.length;
+          results.hasSpi101 = dasarOptions.includes('Nilai Pasar / Market Value (SPI 101)');
+          results.hasSpi204 = dasarOptions.includes('Nilai Penggantian Wajar / NPW (SPI 204)');
+          results.hasSpi102Use = dasarOptions.includes('Nilai Dalam Penggunaan / Value in Use (SPI 102)');
+          results.hasSpi102Inv = dasarOptions.includes('Nilai Investasi / Investment Value (SPI 102)');
+          results.hasSpi102Asuransi = dasarOptions.includes('Nilai Asuransi / Insurable Value (SPI 102)');
+          results.hasSpi102Likuidasi = dasarOptions.includes('Nilai Likuidasi / Jual Paksa (SPI 102 & SPI 202)');
+          results.hasSpi102Khusus = dasarOptions.includes('Nilai Khusus / Special Value (SPI 102)');
+          results.hasSpi102Sinergis = dasarOptions.includes('Nilai Sinergis / Synergistic Value (SPI 102)');
+          results.hasSpi102Fair = dasarOptions.includes('Nilai Wajar / Fair Value - SAK (SPI 102)');
+          results.hasSpi102Rent = dasarOptions.includes('Nilai Sewa Pasar / Market Rent (SPI 102)');
+          results.hasSpi102Drc = dasarOptions.includes('Biaya Penggantian Terdepresiasi / DRC (SPI 102)');
+          results.hasLainnyaDasar = dasarOptions.includes('LAINNYA');
+          results.inpDasarDefaultHidden = inpCustomDasar.classList.contains('hidden');
+
+          // Toggle LAINNYA pada Dasar Nilai
+          selDasar.value = 'LAINNYA';
+          handleDasarNilaiChange();
+          results.inpDasarVisibleOnLainnya = !inpCustomDasar.classList.contains('hidden') && inpCustomDasar.required;
+
+          // Toggle kembali ke standar
+          selDasar.value = 'Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)';
+          handleDasarNilaiChange();
+          results.inpDasarHiddenOnRevert = inpCustomDasar.classList.contains('hidden') && !inpCustomDasar.required && inpCustomDasar.value === '';
+
+          // 3. Verifikasi Aliran Data ke Dokumen Cetak
+          const customTujuanStr = "Pemisahan Usaha (Spin-off) & Restrukturisasi Korporasi";
+          const customDasarStr = "Nilai Likuidasi Terprakira dalam Penjualan Terbatas";
+
+          const pCustomScope = JSON.parse(JSON.stringify(projectDatabase[0]));
+          pCustomScope.tujuan_penilaian = customTujuanStr;
+          pCustomScope.dasar_nilai = customDasarStr;
+          activeProjectData = pCustomScope;
+
+          const sel = document.getElementById('pilih_tampilan_dokumen');
+          const area = document.getElementById('preview-rendered-area');
+
+          // Dokumen 1 (SPK Klausul 6 & 7)
+          sel.value = 'DOK1';
+          gantiTampilanDokumen();
+          results.hasCustomInSPK = area.innerText.includes(customTujuanStr) && area.innerText.includes(customDasarStr);
+
+          // Dokumen 3A (Isian UMUM)
+          sel.value = 'DOK3A';
+          gantiTampilanDokumen();
+          results.hasCustomInIsianUmum = area.innerText.includes(customTujuanStr) && area.innerText.includes(customDasarStr);
+
+          // Dokumen 3B (Form Order JO)
+          sel.value = 'DOK3B';
+          gantiTampilanDokumen();
+          results.hasCustomInJO = area.innerText.includes(customTujuanStr);
+
+          // Dokumen 3C (Kartu Proyek)
+          sel.value = 'DOK3C';
+          gantiTampilanDokumen();
+          results.hasCustomInKartuProyek = area.innerText.includes(customTujuanStr) && area.innerText.includes(customDasarStr);
+
+          // Dokumen 3F (ETI)
+          sel.value = 'DOK3F';
+          gantiTampilanDokumen();
+          results.hasCustomInETI = area.innerText.includes(customTujuanStr);
+
+          // Dokumen 3G (PI)
+          sel.value = 'DOK3G';
+          gantiTampilanDokumen();
+          results.hasCustomInPI = area.innerText.includes(customTujuanStr) && area.innerText.includes(customDasarStr);
+
+          // Kembalikan ke proyek awal
+          activeProjectData = projectDatabase[0];
+          gantiTampilanDokumen();
+
+          return results;
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 6D (Maksud Tujuan & Dasar Nilai SPI VII 2018):', testScopeSuite.result.value);
+    const r6D = testScopeSuite.result.value;
+    if (!r6D.hasTujuanDropdown || !r6D.hasLainnyaTujuan || !r6D.inpTujuanDefaultHidden || !r6D.inpTujuanVisibleOnLainnya || !r6D.inpTujuanHiddenOnRevert) {
+      throw new Error('Fitur Maksud & Tujuan Penilaian gagal memvalidasi opsi LAINNYA atau conditional input!');
+    }
+    if (!r6D.hasDasarDropdown || r6D.dasarOptionCount < 13 || !r6D.hasSpi101 || !r6D.hasSpi204 || !r6D.hasSpi102Use || !r6D.hasSpi102Inv || !r6D.hasSpi102Asuransi || !r6D.hasSpi102Likuidasi || !r6D.hasSpi102Khusus || !r6D.hasSpi102Sinergis || !r6D.hasSpi102Fair || !r6D.hasSpi102Rent || !r6D.hasSpi102Drc || !r6D.hasLainnyaDasar) {
+      throw new Error('Dropdown Dasar Nilai gagal memvalidasi ke-12 nomenklatur baku SPI VII 2018 atau opsi LAINNYA!');
+    }
+    if (!r6D.inpDasarDefaultHidden || !r6D.inpDasarVisibleOnLainnya || !r6D.inpDasarHiddenOnRevert) {
+      throw new Error('Conditional input #dasar_nilai_custom gagal beralih tampil/sembunyi secara presisi!');
+    }
+    if (!r6D.hasCustomInSPK || !r6D.hasCustomInIsianUmum || !r6D.hasCustomInJO || !r6D.hasCustomInKartuProyek || !r6D.hasCustomInETI || !r6D.hasCustomInPI) {
+      throw new Error('Nilai custom Maksud Tujuan dan Dasar Nilai gagal mengalir ke seluruh dokumen cetak!');
+    }
+    console.log('✓ Seluruh Fitur Maksud & Tujuan serta Dasar Nilai SPI VII 2018 & Aliran Dokumen Terverifikasi 100%!');
+
+    // -------------------------------------------------------------------------
     // TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis
     // -------------------------------------------------------------------------
     console.log('\n--- TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis ---');

@@ -622,27 +622,39 @@
             <span>Maksud, Tujuan, Dasar Nilai &amp; Tanggal Penilaian</span>
           </h3>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs items-start">
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Maksud &amp; Tujuan Penilaian <span class="text-rose-400">*</span></label>
-              <select id="tujuan_penilaian" required onchange="handleTujuanChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400 font-semibold">
+              <select id="maksud_tujuan_penilaian" name="tujuan_penilaian" required onchange="handleTujuanChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400 font-semibold">
                 <option value="Penjaminan Hutang / Agunan Kredit">Penjaminan Hutang / Agunan Kredit</option>
                 <option value="Jual Beli / Transaksi Wajar">Jual Beli / Transaksi Wajar</option>
                 <option value="Laporan Keuangan &amp; Revaluasi Aset Tetap (PSAK)">Laporan Keuangan &amp; Revaluasi Aset Tetap (PSAK)</option>
                 <option value="Pengadaan Tanah bagi Kepentingan Umum (SPI 204)">Pengadaan Tanah bagi Kepentingan Umum (SPI 204)</option>
                 <option value="Lelang Eksekusi Hak Tanggungan">Lelang Eksekusi Hak Tanggungan</option>
                 <option value="Studi Kelayakan Proyek (Feasibility Study)">Studi Kelayakan Proyek (Feasibility Study)</option>
+                <option value="LAINNYA">Lainnya / Input Bebas (Custom)...</option>
               </select>
+              <input type="text" id="maksud_tujuan_custom" class="hidden mt-1.5 w-full rounded-lg border border-amber-500/60 bg-slate-900/90 px-3 py-1.5 text-xs text-amber-200 placeholder-slate-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400" placeholder="Ketik maksud &amp; tujuan penilaian spesifik di sini...">
             </div>
 
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Dasar Nilai <span class="text-rose-400">*</span></label>
-              <select id="dasar_nilai" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
+              <select id="dasar_nilai" required onchange="handleDasarNilaiChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
                 <option value="Nilai Pasar (SPI 101) &amp; Indikasi Nilai Likuidasi (SPI 202)">Nilai Pasar (SPI 101) &amp; Indikasi Nilai Likuidasi (SPI 202)</option>
-                <option value="Nilai Penggantian Wajar (SPI 204)">Nilai Penggantian Wajar (SPI 204)</option>
-                <option value="Nilai Wajar (Fair Value / PSAK)">Nilai Wajar (Fair Value / PSAK)</option>
-                <option value="Nilai Likuidasi (SPI 202)">Nilai Likuidasi (SPI 202)</option>
+                <option value="Nilai Pasar / Market Value (SPI 101)">Nilai Pasar / Market Value (SPI 101)</option>
+                <option value="Nilai Penggantian Wajar / NPW (SPI 204)">Nilai Penggantian Wajar / NPW (SPI 204)</option>
+                <option value="Nilai Dalam Penggunaan / Value in Use (SPI 102)">Nilai Dalam Penggunaan / Value in Use (SPI 102)</option>
+                <option value="Nilai Investasi / Investment Value (SPI 102)">Nilai Investasi / Investment Value (SPI 102)</option>
+                <option value="Nilai Asuransi / Insurable Value (SPI 102)">Nilai Asuransi / Insurable Value (SPI 102)</option>
+                <option value="Nilai Likuidasi / Jual Paksa (SPI 102 &amp; SPI 202)">Nilai Likuidasi / Jual Paksa (SPI 102 &amp; SPI 202)</option>
+                <option value="Nilai Khusus / Special Value (SPI 102)">Nilai Khusus / Special Value (SPI 102)</option>
+                <option value="Nilai Sinergis / Synergistic Value (SPI 102)">Nilai Sinergis / Synergistic Value (SPI 102)</option>
+                <option value="Nilai Wajar / Fair Value - SAK (SPI 102)">Nilai Wajar / Fair Value - SAK (SPI 102)</option>
+                <option value="Nilai Sewa Pasar / Market Rent (SPI 102)">Nilai Sewa Pasar / Market Rent (SPI 102)</option>
+                <option value="Biaya Penggantian Terdepresiasi / DRC (SPI 102)">Biaya Penggantian Terdepresiasi / DRC (SPI 102)</option>
+                <option value="LAINNYA">Lainnya / Input Bebas (Custom)...</option>
               </select>
+              <input type="text" id="dasar_nilai_custom" class="hidden mt-1.5 w-full rounded-lg border border-amber-500/60 bg-slate-900/90 px-3 py-1.5 text-xs text-amber-200 placeholder-slate-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400" placeholder="Ketik dasar nilai spesifik di sini (misal: Nilai Sisa / Nilai Pasar untuk Penggunaan yang Ada)...">
             </div>
 
             <div>
@@ -3758,17 +3770,79 @@
     }
 
     function handleTujuanChange() {
-      const tujuan = document.getElementById('tujuan_penilaian').value;
-      const dasar = document.getElementById('dasar_nilai');
-      if (tujuan.includes("SPI 204")) {
-        dasar.value = "Nilai Penggantian Wajar (SPI 204)";
-      } else if (tujuan.includes("PSAK")) {
-        dasar.value = "Nilai Wajar (Fair Value / PSAK)";
-      } else if (tujuan.includes("Lelang")) {
-        dasar.value = "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)";
+      const elTujuan = document.getElementById('maksud_tujuan_penilaian') || document.getElementById('tujuan_penilaian');
+      if (!elTujuan) return;
+      const tujuan = elTujuan.value;
+      const inpCustomTujuan = document.getElementById('maksud_tujuan_custom');
+      
+      if (tujuan === 'LAINNYA') {
+        if (inpCustomTujuan) {
+          inpCustomTujuan.classList.remove('hidden');
+          inpCustomTujuan.required = true;
+          inpCustomTujuan.focus();
+        }
       } else {
-        dasar.value = "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)";
+        if (inpCustomTujuan) {
+          inpCustomTujuan.classList.add('hidden');
+          inpCustomTujuan.required = false;
+          inpCustomTujuan.value = '';
+        }
       }
+
+      const dasar = document.getElementById('dasar_nilai');
+      if (dasar) {
+        if (tujuan.includes("SPI 204") || tujuan.includes("Pengadaan")) {
+          dasar.value = "Nilai Penggantian Wajar / NPW (SPI 204)";
+        } else if (tujuan.includes("PSAK") || tujuan.includes("Laporan Keuangan")) {
+          dasar.value = "Nilai Wajar / Fair Value - SAK (SPI 102)";
+        } else if (tujuan.includes("Lelang")) {
+          dasar.value = "Nilai Likuidasi / Jual Paksa (SPI 102 & SPI 202)";
+        } else if (tujuan === 'LAINNYA') {
+          // Tetap gunakan opsi dasar nilai saat ini
+        } else {
+          dasar.value = "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)";
+        }
+        handleDasarNilaiChange();
+      }
+    }
+
+    function handleDasarNilaiChange() {
+      const selDasar = document.getElementById('dasar_nilai');
+      const inpCustomDasar = document.getElementById('dasar_nilai_custom');
+      if (!selDasar) return;
+      if (selDasar.value === 'LAINNYA') {
+        if (inpCustomDasar) {
+          inpCustomDasar.classList.remove('hidden');
+          inpCustomDasar.required = true;
+          inpCustomDasar.focus();
+        }
+      } else {
+        if (inpCustomDasar) {
+          inpCustomDasar.classList.add('hidden');
+          inpCustomDasar.required = false;
+          inpCustomDasar.value = '';
+        }
+      }
+    }
+
+    function getResolvedTujuanPenilaian() {
+      const sel = document.getElementById('maksud_tujuan_penilaian') || document.getElementById('tujuan_penilaian');
+      if (!sel) return 'Penjaminan Hutang / Agunan Kredit';
+      if (sel.value === 'LAINNYA') {
+        const custom = document.getElementById('maksud_tujuan_custom')?.value?.trim();
+        return custom || 'Lainnya';
+      }
+      return sel.value || 'Penjaminan Hutang / Agunan Kredit';
+    }
+
+    function getResolvedDasarNilai() {
+      const sel = document.getElementById('dasar_nilai');
+      if (!sel) return 'Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)';
+      if (sel.value === 'LAINNYA') {
+        const custom = document.getElementById('dasar_nilai_custom')?.value?.trim();
+        return custom || 'Nilai Khusus / Lainnya';
+      }
+      return sel.value || 'Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)';
     }
 
     function handleWilayahChange() {
@@ -4166,8 +4240,8 @@
         pemilik_sertipikat: document.getElementById('debitur_nama').value.trim().toUpperCase(),
         hubungan_pemilik: "Milik Sendiri",
         kategori_template_spk: document.getElementById('kategori_template_spk')?.value || 'REAL_PROPERTY',
-        tujuan_penilaian: document.getElementById('tujuan_penilaian').value,
-        dasar_nilai: document.getElementById('dasar_nilai').value,
+        tujuan_penilaian: getResolvedTujuanPenilaian(),
+        dasar_nilai: getResolvedDasarNilai(),
         pendekatan_penilaian: document.getElementById('pendekatan_penilaian').value,
         mata_uang: document.getElementById('mata_uang').value,
         tanggal_penilaian: document.getElementById('tanggal_penilaian').value,
@@ -5691,6 +5765,12 @@
                 <td class="font-bold bg-slate-50">Lingkup Penugasan (SPK)</td>
                 <td class="font-mono font-bold">${p.nomor_lp} (Tgl: ${formatTanggalIndo(p.tanggal_surat)})</td>
               </tr>
+              <tr>
+                <td class="font-bold bg-slate-50">Tujuan Penilaian</td>
+                <td>${p.tujuan_penilaian || '-'}</td>
+                <td class="font-bold bg-slate-50">Dasar Nilai</td>
+                <td>${p.dasar_nilai || '-'}</td>
+              </tr>
             </table>
 
             <!-- 4 Tingkat Kendali Mutu & Paraf Berjenjang Sesuai Excel -->
@@ -6310,7 +6390,7 @@
                       </div>
 
                       <p class="mb-3 text-justify text-[11px]">
-                        Sehubungan dengan pekerjaan Penilaian Properti milik <strong>${namaPemilikAset} (Debitur: ${p.debitur_nama})</strong> sesuai dengan Lingkup Penugasan / Surat Perjanjian Kerjasama (SPK) No. <strong>${p.nomor_lp}</strong> tanggal <strong>${formatTanggalIndo(p.tanggal_surat)}</strong> antara KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN dengan <strong>${p.pemberi_tugas_nama}</strong>:
+                        Sehubungan dengan pekerjaan Penilaian Properti milik <strong>${namaPemilikAset} (Debitur: ${p.debitur_nama})</strong> untuk tujuan <strong>${p.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit'}</strong> dengan dasar nilai <strong>${p.dasar_nilai || 'Nilai Pasar'}</strong> sesuai dengan Lingkup Penugasan / Surat Perjanjian Kerjasama (SPK) No. <strong>${p.nomor_lp}</strong> tanggal <strong>${formatTanggalIndo(p.tanggal_surat)}</strong> antara KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN dengan <strong>${p.pemberi_tugas_nama}</strong>:
                       </p>
 
                       <p class="mb-3 text-justify text-[11px]">
@@ -6542,7 +6622,13 @@
       document.getElementById('debitur_nama').value = "PT NUSANTARA LOGISTIK PRIMA";
       document.getElementById('debitur_cp').value = "Bpk. Rahmat Hidayat (0812-7788-9900)";
 
-      document.getElementById('tujuan_penilaian').value = "Penjaminan Hutang / Agunan Kredit";
+      const elTujuan = document.getElementById('maksud_tujuan_penilaian') || document.getElementById('tujuan_penilaian');
+      if (elTujuan) elTujuan.value = "Penjaminan Hutang / Agunan Kredit";
+      const elDasar = document.getElementById('dasar_nilai');
+      if (elDasar) elDasar.value = "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)";
+      handleTujuanChange();
+      handleDasarNilaiChange();
+
       document.getElementById('rujukan_surat_nomor').value = "CBC.JKT/0842/SPK/X/2026";
       document.getElementById('rujukan_surat_tanggal').value = "2026-10-12";
 
@@ -6586,6 +6672,14 @@
       kalkulasiBiaya();
       objekRows = [];
       tambahBarisObjek();
+
+      // Reset Tujuan & Dasar Nilai
+      const elTujuan = document.getElementById('maksud_tujuan_penilaian') || document.getElementById('tujuan_penilaian');
+      if (elTujuan) elTujuan.value = "Penjaminan Hutang / Agunan Kredit";
+      const elDasar = document.getElementById('dasar_nilai');
+      if (elDasar) elDasar.value = "Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)";
+      handleTujuanChange();
+      handleDasarNilaiChange();
 
       // Reset jenis_laporan ke APP
       const elJenis = document.getElementById('jenis_laporan');
