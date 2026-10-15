@@ -1148,6 +1148,165 @@ async function runTests() {
     console.log('✓ Form Dinamis Multi-Aset & Otomasi Lampiran SPK (1 Objek vs 5 Objek) LULUS 100%!');
 
     // -------------------------------------------------------------------------
+    // TEST 6C: Uji Template Klausul Dinamis SPK SPI 103 (5 Kategori & Auto-Sync)
+    // -------------------------------------------------------------------------
+    console.log('\n--- TEST 6C: Uji Template Klausul Dinamis SPK SPI 103 (5 Kategori & Auto-Sync) ---');
+    const testKategoriSPKSuite = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const results = {};
+
+          // 1. Verifikasi Dropdown Tab 1 & Auto-Sync
+          pindahTab('form');
+          const selTemplate = document.getElementById('kategori_template_spk');
+          const badgeAuto = document.getElementById('badge-template-auto');
+          results.hasDropdown = !!selTemplate;
+          results.optionCount = selTemplate ? selTemplate.options.length : 0;
+          results.defaultVal = selTemplate ? selTemplate.value : '';
+
+          // Uji Auto-Sync: Ganti baris pertama jadi Kendaraan
+          resetFormulir(true);
+          const firstRow = objekRows[0];
+          handleJenisObjekChange(firstRow.id, 'Kendaraan Bermotor (Mobil / Truk / Bus / Armada Operasional)');
+          results.autoSyncVehicle = selTemplate.value === 'VEHICLE';
+
+          // Ganti baris pertama jadi Mesin Pabrik
+          handleJenisObjekChange(firstRow.id, 'Mesin & Peralatan Pabrik / Industri');
+          results.autoSyncMachinery = selTemplate.value === 'PLANT_MACHINERY';
+
+          // Ganti baris pertama jadi Kebun
+          handleJenisObjekChange(firstRow.id, 'Tanaman Perkebunan (Kelapa Sawit / Karet / Kopi / Kakao / Tebu, dll.)');
+          results.autoSyncBiological = selTemplate.value === 'BIOLOGICAL_ASSET';
+
+          // Ganti kembali jadi Properti
+          handleJenisObjekChange(firstRow.id, 'Tanah & Bangunan Rumah Tinggal');
+          results.autoSyncProperty = selTemplate.value === 'REAL_PROPERTY';
+
+          // Tambah baris kedua dengan jenis Kendaraan -> Auto-Sync jadi MULTI_ASSET
+          tambahBarisObjek({
+            jenis: 'Kendaraan Bermotor (Mobil / Truk / Bus / Armada Operasional)',
+            col3: 'Toyota Hilux 4x4',
+            col4: 'B 1234 ABC',
+            col5: 'BPKB No. 12345'
+          });
+          results.autoSyncMulti = selTemplate.value === 'MULTI_ASSET';
+
+          // 2. Verifikasi Render 5 Template Klausul di Tab 3
+          pindahTab('preview');
+          const selDok = document.getElementById('pilih_tampilan_dokumen');
+          const area = document.getElementById('preview-rendered-area');
+          selDok.value = 'DOK1';
+
+          // Helper tes DOK1 untuk kategori tertentu
+          function testTemplateCategory(catKey) {
+            const dummy = JSON.parse(JSON.stringify(projectDatabase[0]));
+            dummy.kategori_template_spk = catKey;
+            dummy.objek_list = [
+              {
+                jenis: catKey === 'VEHICLE' ? 'Kendaraan Bermotor (Mobil / Truk / Bus / Armada Operasional)' :
+                       catKey === 'PLANT_MACHINERY' ? 'Mesin & Peralatan Pabrik / Industri' :
+                       catKey === 'BIOLOGICAL_ASSET' ? 'Tanaman Perkebunan (Kelapa Sawit / Karet / Kopi / Kakao / Tebu, dll.)' :
+                       'Tanah & Bangunan Rumah Tinggal',
+                col3: '100',
+                col4: '80',
+                col5: 'Dokumen Sah',
+                lokasi: 'Lokasi Uji'
+              }
+            ];
+            activeProjectData = dummy;
+            gantiTampilanDokumen();
+            const text = area.innerText;
+
+            return {
+              hasKlausul8Header: text.includes('8. PENDEKATAN DAN METODOLOGI PENILAIAN'),
+              hasKlausul11Header: text.includes('11. ASUMSI DAN BATASAN PENUGASAN'),
+              hasKlausul13Header: text.includes('13. DOKUMEN DAN INFORMASI DARI PEMBERI TUGAS'),
+              hasKlausul18Header: text.includes('18. KELENGKAPAN DOKUMEN DAN DATA PENDUKUNG'),
+              text: text
+            };
+          }
+
+          // A. REAL_PROPERTY
+          const tReal = testTemplateCategory('REAL_PROPERTY');
+          results.realProperty = {
+            headersOk: tReal.hasKlausul8Header && tReal.hasKlausul11Header && tReal.hasKlausul13Header && tReal.hasKlausul18Header,
+            k8Valid: tReal.text.includes('Pendekatan Pasar') && tReal.text.includes('Pendekatan Biaya') && tReal.text.includes('Depreciated Replacement Cost'),
+            k11Valid: tReal.text.includes('RTRW') && tReal.text.includes('soil test') && tReal.text.includes('fondasi bawah tanah tertutup'),
+            k13Valid: tReal.text.includes('Sertipikat Hak Milik') && tReal.text.includes('IMB') && tReal.text.includes('PBB')
+          };
+
+          // B. PLANT_MACHINERY
+          const tMach = testTemplateCategory('PLANT_MACHINERY');
+          results.plantMachinery = {
+            headersOk: tMach.hasKlausul8Header && tMach.hasKlausul11Header && tMach.hasKlausul13Header,
+            k8Valid: tMach.text.includes('Reproduction Cost New') && tMach.text.includes('RCN') && tMach.text.includes('keusangan fungsional'),
+            k11Valid: tMach.text.includes('non-dismantling') && tMach.text.includes('running condition') && tMach.text.includes('latent defects'),
+            k13Valid: tMach.text.includes('Faktur / Invoice Pembelian') && tMach.text.includes('Pemberitahuan Impor Barang') && tMach.text.includes('Fixed Asset Register')
+          };
+
+          // C. VEHICLE
+          const tVeh = testTemplateCategory('VEHICLE');
+          results.vehicle = {
+            headersOk: tVeh.hasKlausul8Header && tVeh.hasKlausul11Header && tVeh.hasKlausul13Header,
+            k8Valid: tVeh.text.includes('Market Approach') && tVeh.text.includes('armada kendaraan') && tVeh.text.includes('odometer'),
+            k11Valid: tVeh.text.includes('Vehicle Identification Number') && tVeh.text.includes('VIN') && tVeh.text.includes('nomor rangka'),
+            k13Valid: tVeh.text.includes('Bukti Pemilikan Kendaraan Bermotor') && tVeh.text.includes('BPKB') && tVeh.text.includes('STNK')
+          };
+
+          // D. BIOLOGICAL_ASSET
+          const tBio = testTemplateCategory('BIOLOGICAL_ASSET');
+          results.biologicalAsset = {
+            headersOk: tBio.hasKlausul8Header && tBio.hasKlausul11Header && tBio.hasKlausul13Header,
+            k8Valid: tBio.text.includes('Pendekatan Biaya Akumulasi') && tBio.text.includes('TBM') && tBio.text.includes('Discounted Cash Flow'),
+            k11Valid: tBio.text.toLowerCase().includes('sampling') && tBio.text.toLowerCase().includes('petak ukur') && tBio.text.toLowerCase().includes('agroklimat'),
+            k13Valid: tBio.text.includes('Hak Guna Usaha') && tBio.text.includes('HGU') && tBio.text.includes('Peta Blok')
+          };
+
+          // E. MULTI_ASSET
+          const tMulti = testTemplateCategory('MULTI_ASSET');
+          results.multiAsset = {
+            headersOk: tMulti.hasKlausul8Header && tMulti.hasKlausul11Header && tMulti.hasKlausul13Header,
+            k8Valid: tMulti.text.includes('multi-asset') && tMulti.text.includes('Aset Real Properti') && tMulti.text.includes('Mesin & Peralatan'),
+            k11Valid: tMulti.text.includes('Aset Properti') && tMulti.text.includes('Aset Mesin') && tMulti.text.includes('Aset Kendaraan'),
+            k13Valid: tMulti.text.includes('Dokumen Properti') && tMulti.text.includes('Dokumen Mesin') && tMulti.text.includes('Dokumen Kendaraan')
+          };
+
+          // Kembalikan ke proyek awal
+          activeProjectData = projectDatabase[0];
+          gantiTampilanDokumen();
+
+          return results;
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 6C (Template Klausul Dinamis SPK SPI 103):', testKategoriSPKSuite.result.value);
+    const r6C = testKategoriSPKSuite.result.value;
+    if (!r6C.hasDropdown || r6C.optionCount !== 5 || r6C.defaultVal !== 'REAL_PROPERTY') {
+      throw new Error('Dropdown #kategori_template_spk wajib ada dengan 5 opsi dan default REAL_PROPERTY!');
+    }
+    if (!r6C.autoSyncVehicle || !r6C.autoSyncMachinery || !r6C.autoSyncBiological || !r6C.autoSyncProperty || !r6C.autoSyncMulti) {
+      throw new Error('Sistem Auto-Sync Rekomendasi Kategori Template SPK gagal merespons perubahan baris objek penilaian!');
+    }
+    if (!r6C.realProperty.headersOk || !r6C.realProperty.k8Valid || !r6C.realProperty.k11Valid || !r6C.realProperty.k13Valid) {
+      throw new Error('Template REAL_PROPERTY gagal merender klausul 8 (Pasar & DRC), 11 (RTRW & non-uji struktur), atau 13 (SHM & IMB)!');
+    }
+    if (!r6C.plantMachinery.headersOk || !r6C.plantMachinery.k8Valid || !r6C.plantMachinery.k11Valid || !r6C.plantMachinery.k13Valid) {
+      throw new Error('Template PLANT_MACHINERY gagal merender klausul 8 (RCN terdepresiasi & HM), 11 (non-dismantling & latent defects), atau 13 (Invoice, PIB & Asset Register)!');
+    }
+    if (!r6C.vehicle.headersOk || !r6C.vehicle.k8Valid || !r6C.vehicle.k11Valid || !r6C.vehicle.k13Valid) {
+      throw new Error('Template VEHICLE gagal merender klausul 8 (Market & odometer), 11 (VIN / nomor rangka), atau 13 (BPKB & STNK)!');
+    }
+    if (!r6C.biologicalAsset.headersOk || !r6C.biologicalAsset.k8Valid || !r6C.biologicalAsset.k11Valid || !r6C.biologicalAsset.k13Valid) {
+      throw new Error('Template BIOLOGICAL_ASSET gagal merender klausul 8 (Biaya Akumulasi TBM & DCF TM), 11 (Sampling afdeling & agroklimat), atau 13 (HGU & Peta Blok)!');
+    }
+    if (!r6C.multiAsset.headersOk || !r6C.multiAsset.k8Valid || !r6C.multiAsset.k11Valid || !r6C.multiAsset.k13Valid) {
+      throw new Error('Template MULTI_ASSET gagal merender klausul terpadu gabungan seluruh kelas aset!');
+    }
+    console.log('✓ Seluruh 5 Template Klausul Dinamis SPK (SPI 103) & Auto-Sync Terverifikasi Sempurna 100%!');
+
+    // -------------------------------------------------------------------------
     // TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis
     // -------------------------------------------------------------------------
     console.log('\n--- TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis ---');

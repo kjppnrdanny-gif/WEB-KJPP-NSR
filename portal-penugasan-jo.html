@@ -570,7 +570,7 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs mb-4">
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Nama Debitur / Calon Debitur (UPPERCASE) <span class="text-rose-400">*</span></label>
               <input type="text" id="debitur_nama" required placeholder="Contoh: H. AHMAD FAUZI / PT CITRA JAYA ABADI" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-bold focus:outline-none focus:border-amber-400 uppercase">
@@ -578,6 +578,19 @@
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Contact Person / Pendamping Lapangan Debitur</label>
               <input type="text" id="debitur_cp" placeholder="Bpk. Hendra (0813-8888-9999)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                <span>Kategori Template Klausul SPK (SPI 103) <span class="text-rose-400">*</span></span>
+                <span id="badge-template-auto" class="text-[10px] text-amber-400 font-mono hidden">Auto-Sync</span>
+              </label>
+              <select id="kategori_template_spk" onchange="handleManualTemplateChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-amber-500/50 text-amber-300 font-semibold focus:outline-none focus:border-amber-400">
+                <option value="REAL_PROPERTY" selected>REAL_PROPERTY (Tanah &amp; Bangunan / Residensial / Komersial)</option>
+                <option value="PLANT_MACHINERY">PLANT_MACHINERY (Mesin, Peralatan &amp; Alat Berat)</option>
+                <option value="VEHICLE">VEHICLE (Kendaraan Bermotor &amp; Armada Transportasi)</option>
+                <option value="BIOLOGICAL_ASSET">BIOLOGICAL_ASSET (Aset Biologis: Perkebunan, Kehutanan, Peternakan)</option>
+                <option value="MULTI_ASSET">MULTI_ASSET (Kombinasi Campuran)</option>
+              </select>
             </div>
           </div>
 
@@ -3145,6 +3158,338 @@
       return '-';
     }
 
+    // ==========================================================
+    // TEMPLATE KLAUSUL DINAMIS SPK BERBASIS SPI 103
+    // ==========================================================
+    let isTemplateManuallyOverridden = false;
+
+    function handleManualTemplateChange() {
+      isTemplateManuallyOverridden = true;
+      const badge = document.getElementById('badge-template-auto');
+      if (badge) badge.classList.add('hidden');
+      const val = document.getElementById('kategori_template_spk')?.value;
+      sinkronkanPendekatanInput(val);
+    }
+
+    function sinkronkanPendekatanInput(kategori) {
+      const el = document.getElementById('pendekatan_penilaian');
+      if (!el) return;
+      if (kategori === 'PLANT_MACHINERY') {
+        el.value = "Pendekatan Biaya (Cost - RCN Terdepresiasi) & Pendekatan Pasar (Market)";
+      } else if (kategori === 'VEHICLE') {
+        el.value = "Pendekatan Pasar (Market - Data Transaksi Pembanding)";
+      } else if (kategori === 'BIOLOGICAL_ASSET') {
+        el.value = "Pendekatan Biaya Akumulasi (TBM) & Pendekatan Pendapatan (DCF TM)";
+      } else if (kategori === 'MULTI_ASSET') {
+        el.value = "Pendekatan Pasar, Pendekatan Biaya & Pendekatan Pendapatan Multisektoral";
+      } else {
+        el.value = "Pendekatan Biaya (Cost) & Pendekatan Data Pasar (Market)";
+      }
+    }
+
+    function deteksiKategoriTemplateSPK(list = []) {
+      if (!list || list.length === 0) return 'REAL_PROPERTY';
+      const categories = new Set();
+      list.forEach(o => {
+        const cfg = getObjekColumnConfig(o.jenis || '');
+        if (cfg.category === 'properti') categories.add('REAL_PROPERTY');
+        else if (cfg.category === 'kendaraan') categories.add('VEHICLE');
+        else if (cfg.category === 'mesin' || cfg.category === 'alat_berat') categories.add('PLANT_MACHINERY');
+        else if (cfg.category === 'perkebunan' || cfg.category === 'kehutanan_hewan') categories.add('BIOLOGICAL_ASSET');
+        else categories.add('REAL_PROPERTY');
+      });
+
+      if (categories.size > 1) {
+        return 'MULTI_ASSET';
+      }
+      return Array.from(categories)[0] || 'REAL_PROPERTY';
+    }
+
+    function updateRekomendasiTemplate(force = false) {
+      if (isTemplateManuallyOverridden && !force) return;
+      const el = document.getElementById('kategori_template_spk');
+      if (!el) return;
+      const recommended = deteksiKategoriTemplateSPK(objekRows);
+      el.value = recommended;
+      sinkronkanPendekatanInput(recommended);
+      const badge = document.getElementById('badge-template-auto');
+      if (badge) {
+        badge.textContent = `Auto: ${recommended}`;
+        badge.classList.remove('hidden');
+      }
+    }
+
+    function getLabelKategoriObjek(kategori) {
+      if (kategori === 'PLANT_MACHINERY') return 'mesin, peralatan industri, dan/atau alat berat';
+      if (kategori === 'VEHICLE') return 'armada kendaraan bermotor / transportasi';
+      if (kategori === 'BIOLOGICAL_ASSET') return 'aset biologis dan agrikultur';
+      if (kategori === 'MULTI_ASSET') return 'portofolio multi-aset campuran';
+      return 'aset tetap (properti tanah dan bangunan)';
+    }
+
+    function getKlausul8Pendekatan(kategori, p = {}) {
+      const tglPenilaianText = p.tanggal_penilaian ? ` (${formatTanggalIndo(p.tanggal_penilaian)})` : '';
+      
+      if (kategori === 'PLANT_MACHINERY') {
+        return `
+          <p class="text-justify mb-2">
+            Dalam pelaksanaan penilaian atas mesin, peralatan, dan/atau alat berat, metodologi dan pendekatan penilaian yang diterapkan sesuai Standar Penilaian Indonesia (SPI 103 butir 5.1 &amp; SPI 310) adalah :
+          </p>
+          <ol style="list-style-type: lower-alpha;" class="pl-5 space-y-1.5 text-justify mb-2">
+            <li>
+              <strong>Pendekatan Biaya (Cost Approach / DRC) :</strong> Merupakan pendekatan utama untuk mengestimasi nilai dengan menghitung Biaya Penggantian Baru (<em>Reproduction Cost New / RCN</em>) unit mesin/alat berat berdasarkan harga perolehan pasar terkini (daftar harga pabrikan, invoice agen resmi, atau data perolehan terverifikasi) dikurangi penyusutan akumulasi fisik (<em>physical deterioration</em>), keusangan fungsional (<em>functional obsolescence</em>), serta keusangan ekonomis (<em>economic obsolescence</em>).
+            </li>
+            <li>
+              <strong>Pendekatan Pasar (Market Approach) :</strong> Diterapkan sebagai pembanding terhadap unit mesin dan alat berat sejenis yang memiliki pasar sekunder aktif, dengan penyesuaian (<em>adjustment</em>) terhadap spesifikasi teknis, merek, tipe, kapasitas operasi, tahun perolehan/pembuatan, serta catatan jam operasi (<em>hour meter / HM</em>).
+            </li>
+          </ol>
+          <p class="text-justify">
+            <strong>Tanggal Penilaian :</strong> Yaitu tanggal pada saat opini nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya inspeksi dan verifikasi fisik lapangan atas objek mesin/alat berat${tglPenilaianText}.
+          </p>
+        `;
+      }
+
+      if (kategori === 'VEHICLE') {
+        return `
+          <p class="text-justify mb-2">
+            Metodologi dan pendekatan penilaian yang diterapkan atas armada kendaraan bermotor berpedoman pada Standar Penilaian Indonesia (SPI 103 butir 5.1 &amp; SPI 310) yaitu :
+          </p>
+          <ol style="list-style-type: lower-alpha;" class="pl-5 space-y-1.5 text-justify mb-2">
+            <li>
+              <strong>Pendekatan Pasar (Market Approach) :</strong> Merupakan pendekatan utama dan paling relevan dengan menganalisis data transaksi riil serta penawaran unit armada kendaraan bermotor sejenis di bursa pasar kendaraan komersial/umum, dengan penyesuaian (<em>adjustment</em>) atas merek, varian tipe, tahun pembuatan/perakitan, jarak tempuh (<em>odometer</em>), kondisi fisik riil (eksterior, interior, sasis dan mesin), riwayat perawatan, serta kelengkapan dokumen administrasi (BPKB &amp; STNK).
+            </li>
+            <li>
+              <strong>Pendekatan Biaya (Cost Approach) :</strong> Diterapkan sebagai kontrol pendukung untuk kendaraan dengan karoseri khusus, modifikasi utilitas tertentu, atau armada khusus yang minim data transaksi pembanding langsung di pasar terbuka.
+            </li>
+          </ol>
+          <p class="text-justify">
+            <strong>Tanggal Penilaian :</strong> Yaitu tanggal pada saat opini nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya pemeriksaan fisik dan identifikasi unit kendaraan${tglPenilaianText}.
+          </p>
+        `;
+      }
+
+      if (kategori === 'BIOLOGICAL_ASSET') {
+        return `
+          <p class="text-justify mb-2">
+            Metodologi dan pendekatan penilaian atas aset biologis dan agrikultur dilaksanakan berpedoman pada Standar Penilaian Indonesia (SPI 103 &amp; SPI 340) serta kaidah PSAK 241 (Aset Biologis) yaitu :
+          </p>
+          <ol style="list-style-type: lower-alpha;" class="pl-5 space-y-1.5 text-justify mb-2">
+            <li>
+              <strong>Pendekatan Biaya Akumulasi (Accumulated Cost Approach) :</strong> Diterapkan khusus untuk Tanaman Belum Menghasilkan (TBM) dengan memperhitungkan seluruh akumulasi biaya investasi riil pembukaan lahan (<em>land clearing</em>), pengadaan bibit varietas unggul bersertifikat, penanaman, pemupukan, dan pemeliharaan intensif hingga mencapai umur tanaman menghasilkan.
+            </li>
+            <li>
+              <strong>Pendekatan Pendapatan (Income Approach - DCF) :</strong> Diterapkan untuk Tanaman Menghasilkan (TM) dengan memproyeksikan estimasi arus kas operasional bersih selama sisa umur ekonomis produktif tanaman menggunakan metode <em>Discounted Cash Flow</em> (DCF), berdasarkan asumsi kapasitas produksi tonase panen, harga komoditas acuan pasar, estimasi biaya pokok produksi kebun (COGS), serta tingkat diskonto yang mencerminkan profil risiko industri perkebunan.
+            </li>
+            <li>
+              <strong>Pendekatan Pasar (Market Approach) :</strong> Diterapkan untuk mengestimasi Nilai Pasar dasar tanah areal perkebunan/kehutanan berdasarkan data perbandingan transaksi/penawaran lahan sebanding di wilayah agroklimat sekitar.
+            </li>
+          </ol>
+          <p class="text-justify">
+            <strong>Tanggal Penilaian :</strong> Yaitu tanggal pada saat opini nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya survei dan sensus sampling vegetasi lapangan${tglPenilaianText}.
+          </p>
+        `;
+      }
+
+      if (kategori === 'MULTI_ASSET') {
+        return `
+          <p class="text-justify mb-2">
+            Mengingat penugasan mencakup portofolio campuran beragam kelas aset (multi-asset), pendekatan dan metodologi penilaian yang diterapkan berpedoman pada Standar Penilaian Indonesia (SPI 103, SPI 300, SPI 310, dan SPI 340) secara proporsional sesuai karakteristik klasifikasi masing-masing objek :
+          </p>
+          <ol style="list-style-type: lower-alpha;" class="pl-5 space-y-1.5 text-justify mb-2">
+            <li>
+              <strong>Aset Real Properti (Tanah &amp; Bangunan) :</strong> Menggunakan Pendekatan Pasar untuk tanah dan Pendekatan Biaya (<em>Depreciated Replacement Cost / DRC</em>) untuk bangunan fisik dan sarana pelengkap, serta Pendekatan Pendapatan bila objek bersifat komersial.
+            </li>
+            <li>
+              <strong>Mesin &amp; Peralatan Pabrik / Alat Berat :</strong> Menggunakan Pendekatan Biaya (RCN terdepresiasi atas keusangan fisik, fungsional, ekonomis) serta Pendekatan Pasar terkalibrasi kapasitas dan jam operasi (HM).
+            </li>
+            <li>
+              <strong>Armada Kendaraan Bermotor :</strong> Menggunakan Pendekatan Pasar utama berdasarkan data transaksi pembanding bursa kendaraan dan kondisi fisik riil unit.
+            </li>
+            <li>
+              <strong>Aset Biologis / Perkebunan :</strong> Menggunakan Pendekatan Biaya Akumulasi untuk TBM dan Pendekatan Pendapatan (DCF sisa umur produktif) untuk Tanaman Menghasilkan (TM).
+            </li>
+          </ol>
+          <p class="text-justify">
+            <strong>Tanggal Penilaian :</strong> Yaitu tanggal pada saat nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya inspeksi fisik lapangan terpadu${tglPenilaianText}.
+          </p>
+        `;
+      }
+
+      // Default: REAL_PROPERTY
+      return `
+        <p class="text-justify mb-2">
+          Metodologi dan pendekatan penilaian yang digunakan dalam mengestimasi Nilai Pasar objek properti sesuai Standar Penilaian Indonesia (SPI 103 butir 5.1 &amp; SPI 106) adalah sebagai berikut :
+        </p>
+        <ol style="list-style-type: lower-alpha;" class="pl-5 space-y-1.5 text-justify mb-2">
+          <li>
+            <strong>Pendekatan Pasar (Market Approach / Perbandingan Data Pasar) :</strong> Digunakan untuk mengestimasi nilai tanah dan/atau unit properti dengan cara menganalisis data transaksi atau penawaran properti pembanding yang sejenis dan sebanding di lokasi sekitar, dengan melakukan penyesuaian (<em>adjustment</em>) terhadap faktor lokasi, legalitas, luas, bentuk tanah, peruntukan zonasi, serta waktu transaksi.
+          </li>
+          <li>
+            <strong>Pendekatan Biaya (Cost Approach / Depreciated Replacement Cost) :</strong> Digunakan untuk mengestimasi nilai bangunan dan prasarana tapak dengan menghitung Biaya Penggantian Baru (<em>Reproduction Cost New / RCN</em>) berdasarkan harga material dan upah terkini dikurangi akumulasi penyusutan fisik, keusangan fungsional, serta keusangan ekonomis, yang kemudian ditambahkan pada Nilai Pasar tanah.
+          </li>
+          <li>
+            <strong>Pendekatan Pendapatan (Income Approach) :</strong> Diterapkan melalui Metode Kapitalisasi Langsung atau Diskonto Arus Kas (<em>Discounted Cash Flow / DCF</em>) apabila objek penilaian merupakan properti komersial yang menghasilkan arus pendapatan berkala (<em>income-producing property</em>).
+          </li>
+        </ol>
+        <p class="text-justify">
+          <strong>Tanggal Penilaian :</strong> Yaitu tanggal pada saat opini nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya inspeksi lapangan${tglPenilaianText}.
+        </p>
+      `;
+    }
+
+    function getKlausul11Asumsi(kategori) {
+      if (kategori === 'PLANT_MACHINERY') {
+        return `
+          <p class="text-justify mb-2">Dalam penilaian mesin, peralatan industri, dan alat berat ini, kami menggunakan asumsi umum dan batasan penugasan profesional sebagai berikut :</p>
+          <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li><strong>Batasan Inspeksi Non-Dismantling :</strong> Pemeriksaan teknis atas unit mesin dan alat berat dilakukan secara visual kasat mata pada komponen luar tanpa membongkar mesin (<em>non-dismantling inspection</em>). Penilai tidak melakukan pengujian laboratorium terhadap kelelahan logam (<em>metal fatigue</em>) atau pembongkaran transmisi mesin dalam.</li>
+            <li><strong>Asumsi Siap Beroperasi (Running Condition) &amp; Latent Defects :</strong> Penilaian mengasumsikan bahwa unit mesin dan peralatan berada dalam kondisi siap beroperasi secara normal (<em>good running condition</em>) sesuai spesifikasi teknis pabrikan. Penilai dibebaskan dari tanggung jawab atas kerusakan mekanikal/kelistrikan tersembunyi (<em>latent defects</em>) yang tidak teridentifikasi pada pemeriksaan visual tanpa pengujian instrumentasi khusus.</li>
+            <li><strong>Legalitas Kepemilikan Mesin :</strong> Bahwa unit mesin dan alat berat merupakan kepemilikan yang sah, bebas dari sengketa kepemilikan fidusia, serta didukung bukti faktur/PIB/dokumen perolehan yang sah.</li>
+            <li><strong>Kesesuaian Sumber Data :</strong> Seluruh data log pemeliharaan, jam kerja operasi (HM), dan riwayat perbaikan yang diperoleh dari Pemberi Tugas diasumsikan benar dan akurat tanpa verifikasi independen ke pihak pabrikan luar negeri.</li>
+            <li><strong>Batas Keberlakuan Nilai :</strong> Penilaian berlaku terbatas pada tanggal efektif inspeksi lapangan dan mengasumsikan tidak terdapat kerusakan katastropik atau modifikasi teknis signifikan setelah tanggal tersebut.</li>
+          </ul>
+        `;
+      }
+
+      if (kategori === 'VEHICLE') {
+        return `
+          <p class="text-justify mb-2">Dalam penilaian armada kendaraan bermotor ini, kami menetapkan asumsi pokok dan batasan penugasan sebagai berikut :</p>
+          <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li><strong>Batasan Verifikasi Nomor Rangka &amp; Mesin :</strong> Verifikasi nomor rangka (<em>Vehicle Identification Number / VIN</em>) dan nomor mesin dilakukan secara visual kasat mata pada posisi cetakan fisik yang terjangkau dan dicocokkan dengan dokumen BPKB/STNK, tanpa pengujian metalurgi laboratorium atau uji keaslian ketokan (lab forensik kriminalitas).</li>
+            <li><strong>Kelaikan Jalan (Roadworthiness) :</strong> Penilaian didasarkan pada observasi fisik eksterior, interior, suara mesin stasioner, dan kelengkapan dokumen uji berkala (KIR). Penilai tidak melakukan uji emisi gas buang, pembongkaran sistem pengereman, atau uji tabrak (<em>crash test</em>).</li>
+            <li><strong>Status Legalitas Bebas Blokir :</strong> Diasumsikan bahwa armada kendaraan tidak sedang dalam status blokir tilang elektronik/pidana, tidak dalam sengketa penipuan/penggelapan, serta bebas dari beban klaim asuransi total loss.</li>
+            <li><strong>Akurasi Odometer :</strong> Jarak tempuh pada odometer dicatat sebagaimana terbaca pada saat inspeksi dengan asumsi tidak terjadi manipulasi teknis (<em>tampering</em>) oleh pihak manapun.</li>
+          </ul>
+        `;
+      }
+
+      if (kategori === 'BIOLOGICAL_ASSET') {
+        return `
+          <p class="text-justify mb-2">Dalam penilaian aset biologis perkebunan, kehutanan, dan peternakan ini, berlaku asumsi dan batasan penugasan sebagai berikut :</p>
+          <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li><strong>Metode Sampling Petak Ukur Afdeling :</strong> Penilaian sensus kerapatan tegakan pohon, diameter tajuk, dan kondisi visual tanaman dilakukan dengan metode percontohan (<em>sampling survey representative</em>) pada petak ukur/afdeling terwakili yang disepakati, bukan sensus 100% pohon per pohon di seluruh luas konsesi/HGU.</li>
+            <li><strong>Asumsi Agroklimat Normal Tanpa Bencana Ekstrem :</strong> Proyeksi arus kas produksi didasarkan pada asumsi kondisi iklim, curah hujan normal, dan agroklimat standar, serta tidak memperhitungkan risiko kahar ekstrem berupa anomali cuaca El Nino/La Nina berkepanjangan, kebakaran hutan/lahan masif, maupun serangan epidemi hama/penyakit tanaman luar biasa (<em>outbreak</em>) di luar kendali manajemen kebun yang wajar.</li>
+            <li><strong>Legalitas Hak Guna Usaha (HGU) &amp; Konsesi :</strong> Asumsi bahwa izin perkebunan (IUP/HGU/IUPHHK) telah memenuhi seluruh regulasi kehutanan, perizinan lingkungan hidup (AMDAL), dan bebas dari klaim tumpang tindih tanah ulayat/adat.</li>
+            <li><strong>Data Produksi Historis :</strong> Data tonase panen historis dan biaya pemeliharaan yang diserahkan manajemen kebun diasumsikan mencerminkan operasional kebun yang sebenarnya.</li>
+          </ul>
+        `;
+      }
+
+      if (kategori === 'MULTI_ASSET') {
+        return `
+          <p class="text-justify mb-2">Dalam penilaian portofolio campuran beragam kelas aset (multi-asset) ini, diberlakukan batasan profesional dan asumsi terpadu sebagai berikut :</p>
+          <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li><strong>Aset Properti :</strong> Penilai tidak melakukan pengujian struktur fondasi tanah tertutup (<em>soil test</em>), pengujian beton bertulang, dan mengasumsikan properti mematuhi zonasi peruntukan tata ruang kota (RTRW/RDTR).</li>
+            <li><strong>Aset Mesin &amp; Peralatan :</strong> Pemeriksaan teknis bersifat kasat mata tanpa pembongkaran mesin (<em>non-dismantling</em>), diasumsikan beroperasi normal (<em>running condition</em>), dan Penilai tidak bertanggung jawab atas cacat tersembunyi (<em>latent defects</em>).</li>
+            <li><strong>Aset Kendaraan :</strong> Verifikasi nomor rangka/mesin dilakukan secara visual kasat mata berdasarkan kesesuaian fisik dan dokumen BPKB/STNK tanpa uji metalurgi lab.</li>
+            <li><strong>Aset Biologis :</strong> Penilaian vegetasi dilakukan berdasarkan metode sampling petak ukur representatif dengan asumsi kondisi agroklimat dan curah hujan normal.</li>
+            <li><strong>Keabsahan Yuridis Menyeluruh :</strong> Seluruh objek diasumsikan memiliki hak kepemilikan sah, bebas sengketa hukum, dan bebas dari sita jaminan yang menghalangi penilaian.</li>
+          </ul>
+        `;
+      }
+
+      // Default: REAL_PROPERTY
+      return `
+        <p class="text-justify mb-2">Dalam penilaian ini kami menggunakan asumsi umum dan batasan penugasan profesional sebagai berikut :</p>
+        <ul class="list-disc pl-5 space-y-1 text-justify">
+          <li><strong>Kepatuhan Zonasi &amp; Perizinan Tata Ruang :</strong> Penilaian ini didasarkan pada asumsi bahwa properti dibangun dan dimanfaatkan sesuai dengan peraturan peruntukan tata ruang kota yang berlaku (RTRW/RDTR), serta telah memiliki atau dalam proses perizinan yang sah dari instansi berwenang.</li>
+          <li><strong>Batasan Uji Struktur Tanah &amp; Bangunan :</strong> Penilai tidak melakukan pengujian mekanika tanah (<em>soil test</em>), pengujian stabilitas fondasi bawah tanah tertutup, serta pemeriksaan integritas struktural di balik dinding atau beton bertulang. Penilai mengasumsikan tapak tanah stabil dan struktur fisik bangunan kokoh berdasarkan observasi visual luar.</li>
+          <li><strong>Bebas Sengketa Hukum :</strong> Bahwa objek penilaian yang dinilai tidak mempunyai masalah hukum dan hak kepemilikannya adalah sah, bebas dari sengketa, perkara perdata/pidana, serta dapat dialihkan haknya secara bebas ikatan.</li>
+          <li><strong>Keabsahan Informasi &amp; Dokumen :</strong> Semua informasi dan salinan sertipikat yang berkaitan dengan penilaian ini kami terima dari Pemberi Tugas dan diasumsikan sah serta benar adanya. Kami tidak melakukan audit investigatif forensik atas keaslian fisik warkah sertipikat tanah di Kantor Pertanahan (BPN).</li>
+          <li><strong>Bebas Pencemaran Lingkungan :</strong> Penilai tidak melakukan penyelidikan atas keberadaan limbah B3, polusi kimia bawah tanah, atau risiko pencemaran lingkungan tersembunyi pada properti yang dinilai.</li>
+          <li><strong>Ketiadaan Realisasi Jaminan :</strong> Nilai Pasar yang disimpulkan mencerminkan estimasi nilai objektif pada tanggal penilaian tanpa memperhitungkan beban pajak transaksi, komisi perantara, maupun biaya lelang paksa.</li>
+        </ul>
+      `;
+    }
+
+    function getKlausul13Dokumen(kategori) {
+      if (kategori === 'PLANT_MACHINERY') {
+        return `
+          <p class="text-justify mb-2">
+            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Dokumen dan data teknis yang wajib diserahkan oleh Pemberi Tugas / Pemilik Aset meliputi :
+          </p>
+          <ul class="list-disc pl-5 space-y-1 text-justify">
+            <li>Salinan Faktur / Invoice Pembelian, Kwitansi, atau Kontrak Pengadaan Mesin &amp; Peralatan Pabrik.</li>
+            <li>Salinan Pemberitahuan Impor Barang (PIB) dan Bukti Pembayaran Bea Masuk/Cukai (khusus unit mesin/alat berat impor).</li>
+            <li>Daftar Rincian Aset Tetap (<em>Fixed Asset Register</em>) memuat nomor seri pabrikan, merek, model, kapasitas kerja, dan tahun perolehan.</li>
+            <li>Buku Manual Operasional, Buku Log Perawatan (<em>Maintenance &amp; Overhaul Log Book</em>), serta sertifikat kalibrasi instrumen terkini.</li>
+            <li>Sertifikat Laik Operasi (SILO) dari Dinas Tenaga Kerja / instansi teknis pembina terkait (untuk crane, boiler, bejana tekan, forklift).</li>
+            <li>Surat Representasi tertulis bermaterai mengenai kebenaran informasi dan ketiadaan sengketa hak kepemilikan mesin.</li>
+            <li>Salinan NPWP &amp; Identitas Badan Usaha Pemilik Mesin.</li>
+            <li>Pendamping teknis (PIC Engineer/Operator) di lokasi pabrik pada saat inspeksi lapangan.</li>
+          </ul>
+        `;
+      }
+
+      if (kategori === 'VEHICLE') {
+        return `
+          <p class="text-justify mb-2">
+            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Dokumen legalitas dan data armada yang wajib diserahkan oleh Pemberi Tugas meliputi :
+          </p>
+          <ul class="list-disc pl-5 space-y-1 text-justify">
+            <li>Salinan Bukti Pemilikan Kendaraan Bermotor (BPKB) lengkap seluruh halaman.</li>
+            <li>Salinan Surat Tanda Nomor Kendaraan (STNK) dan Bukti Pajak Kendaraan Bermotor (PKB/SKKP) yang masih berlaku.</li>
+            <li>Salinan Faktur Pembelian Kendaraan Bermotor / Sertifikat Registrasi Uji Tipe (SRUT).</li>
+            <li>Salinan Buku Uji Berkala (Buku KIR) yang masih aktif (khusus truk, bus, pickup, dan kendaraan operasional niaga).</li>
+            <li>Daftar Inventaris Armada (<em>Fleet List</em>) beserta lokasi penempatan pool/unit operasional.</li>
+            <li>Surat Representasi tertulis bermaterai mengenai keabsahan dokumen kepemilikan serta kecocokan nomor rangka dan nomor mesin.</li>
+            <li>Salinan NPWP Pemberi Tugas / Pemilik Kendaraan.</li>
+            <li>Contact Person penanggung jawab pool / pengemudi pendamping pada saat cek fisik unit.</li>
+          </ul>
+        `;
+      }
+
+      if (kategori === 'BIOLOGICAL_ASSET') {
+        return `
+          <p class="text-justify mb-2">
+            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Dokumen yuridis dan data operasional agrikultur yang wajib diserahkan meliputi :
+          </p>
+          <ul class="list-disc pl-5 space-y-1 text-justify">
+            <li>Salinan Sertipikat Hak Guna Usaha (HGU), Surat Keputusan Pelepasan Kawasan Hutan, atau Izin Usaha Perkebunan (IUP / IUPHHK).</li>
+            <li>Peta Tata Guna Lahan, Peta Blok/Afdeling Kebun, dan Peta Kontur/Topografi skala memadai.</li>
+            <li>Laporan Sensus Tegakan / Tanaman (<em>Stand Table</em>) memuat data luas tertanam (Ha), tahun tanam, kerapatan pohon/hektar (SPH), varietas klon bibit, dan klasifikasi TBM/TM.</li>
+            <li>Data Historis Realisasi Produksi Panen (Ton TBS / Lateks / Kayu / Hasil Ternak) minimal 3 (tiga) tahun kalender terakhir.</li>
+            <li>Realisasi Biaya Operasional Kebun (<em>Plantation Production Cost</em>) per hektar per tahun.</li>
+            <li>Surat Representasi tertulis bermaterai mengenai kebenaran data luas areal dan integritas data produksi.</li>
+            <li>Salinan Izin Lingkungan (AMDAL / UKL-UPL) dan NPWP Perusahaan Perkebunan.</li>
+            <li>Pemandu lapangan (Kepala Kebun / Askep / Asisten Afdeling) yang menguasai batas petak ukur saat survei.</li>
+          </ul>
+        `;
+      }
+
+      if (kategori === 'MULTI_ASSET') {
+        return `
+          <p class="text-justify mb-2">
+            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Mengingat objek mencakup portofolio gabungan (multi-asset), dokumen yang wajib diserahkan meliputi :
+          </p>
+          <ul class="list-disc pl-5 space-y-1 text-justify">
+            <li><strong>Dokumen Properti :</strong> Salinan Sertipikat Tanah (SHM/SHGB/SHP), IMB/PBG &amp; SLF, denah arsitektur bangunan, serta SPPT PBB tahun terakhir.</li>
+            <li><strong>Dokumen Mesin &amp; Peralatan :</strong> Salinan Faktur/Invoice pembelian, PIB bea cukai mesin impor, Daftar Aset Tetap (<em>Fixed Asset Register</em>), dan buku manual/perawatan.</li>
+            <li><strong>Dokumen Kendaraan Bermotor :</strong> Salinan BPKB, STNK aktif, faktur kendaraan, dan buku uji KIR (bila kendaraan niaga).</li>
+            <li><strong>Dokumen Biologis / Perkebunan :</strong> Salinan sertipikat HGU/IUP, peta blok afdeling kebun, serta rekapitulasi data sensus tanaman (bila ada aset kebun).</li>
+            <li>Surat Representasi tertulis bermaterai mengenai keabsahan dan kebenaran seluruh dokumen portofolio aset.</li>
+            <li>Salinan NPWP Pemberi Tugas / Debitur dan personil pendamping lapangan per masing-masing divisi aset.</li>
+          </ul>
+        `;
+      }
+
+      // Default: REAL_PROPERTY
+      return `
+        <p class="text-justify mb-2">
+          Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Dokumen kepemilikan yuridis dan data teknis properti yang wajib diserahkan oleh Pemberi Tugas meliputi :
+        </p>
+        <ul class="list-disc pl-5 space-y-1 text-justify">
+          <li>Salinan Dokumen Bukti Kepemilikan Hak Atas Tanah (Sertipikat Hak Milik / HGB / Hak Pakai / Akta Jual Beli / Girik) lengkap dengan Gambar Situasi / Surat Ukur.</li>
+          <li>Salinan Izin Mendirikan Bangunan (IMB) atau Persetujuan Bangunan Gedung (PBG) beserta lampiran teknis dan Sertifikat Laik Fungsi (SLF) bila ada.</li>
+          <li>Salinan Surat Pemberitahuan Pajak Terhutang (SPPT) PBB dan Bukti Pembayaran PBB tahun terakhir.</li>
+          <li>Salinan Gambar Denah Arsitektur, Layout Tata Ruang Bangunan, dan Site Plan kawasan properti.</li>
+          <li>Surat Representasi tertulis bermaterai mengenai kebenaran dan integritas informasi yang diberikan oleh Pemberi Tugas (format terlampir).</li>
+          <li>Salinan NPWP &amp; Bukti Identitas Diri Pemberi Tugas / Calon Debitur Pemilik Properti.</li>
+          <li>Contact Person pendamping lapangan yang ditunjuk resmi untuk mendampingi inspeksi fisik.</li>
+        </ul>
+      `;
+    }
+
     let objekRows = [];
 
     function tambahBarisObjek(data = null) {
@@ -3174,6 +3519,7 @@
 
       objekRows.push(newRow);
       renderTabelObjek();
+      updateRekomendasiTemplate();
     }
 
     function hapusBarisObjek(rowId) {
@@ -3183,6 +3529,7 @@
       }
       objekRows = objekRows.filter(r => r.id !== rowId);
       renderTabelObjek();
+      updateRekomendasiTemplate();
     }
 
     function updateObjekData(rowId, field, val) {
@@ -3208,6 +3555,33 @@
       const r = objekRows.find(item => item.id === rowId);
       if (!r) return;
       r.jenis = jenisVal;
+      
+      // Sinkronisasi otomatis rekomendasi kategori template SPK saat baris pertama diganti
+      if (objekRows.length > 0 && objekRows[0].id === rowId) {
+        const cfg = getObjekColumnConfig(jenisVal);
+        let target = 'REAL_PROPERTY';
+        if (cfg.category === 'kendaraan') target = 'VEHICLE';
+        else if (cfg.category === 'mesin' || cfg.category === 'alat_berat') target = 'PLANT_MACHINERY';
+        else if (cfg.category === 'perkebunan' || cfg.category === 'kehutanan_hewan') target = 'BIOLOGICAL_ASSET';
+        
+        if (objekRows.length > 1) {
+          target = deteksiKategoriTemplateSPK(objekRows);
+        }
+        
+        const elTpl = document.getElementById('kategori_template_spk');
+        if (elTpl) {
+          elTpl.value = target;
+          sinkronkanPendekatanInput(target);
+          const badge = document.getElementById('badge-template-auto');
+          if (badge) {
+            badge.textContent = `Auto: ${target}`;
+            badge.classList.remove('hidden');
+          }
+        }
+      } else {
+        updateRekomendasiTemplate();
+      }
+
       renderTabelObjek();
     }
 
@@ -3732,6 +4106,7 @@
         debitur_cp: document.getElementById('debitur_cp').value.trim() || document.getElementById('debitur_nama').value.trim(),
         pemilik_sertipikat: document.getElementById('debitur_nama').value.trim().toUpperCase(),
         hubungan_pemilik: "Milik Sendiri",
+        kategori_template_spk: document.getElementById('kategori_template_spk')?.value || 'REAL_PROPERTY',
         tujuan_penilaian: document.getElementById('tujuan_penilaian').value,
         dasar_nilai: document.getElementById('dasar_nilai').value,
         pendekatan_penilaian: document.getElementById('pendekatan_penilaian').value,
@@ -4184,6 +4559,7 @@
         }];
 
         const isMultiObjekLampiran = listObjek.length > 3;
+        const kategoriTemplate = p.kategori_template_spk || deteksiKategoriTemplateSPK(listObjek) || 'REAL_PROPERTY';
 
         const dok1 = `
           <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK1') ? 'page-break mb-12' : ''}">
@@ -4325,7 +4701,7 @@
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">4. OBJEK PENILAIAN DAN KEPEMILIKAN</p>
                           ${!isMultiObjekLampiran ? `
-                            <p class="mb-2">Objek yang akan dinilai adalah berupa aset tetap yaitu :</p>
+                            <p class="mb-2">Objek yang akan dinilai adalah berupa ${getLabelKategoriObjek(kategoriTemplate)} yaitu :</p>
                             <table class="doc-table my-2 text-[10px]">
                               <thead>
                                 <tr>
@@ -4357,12 +4733,12 @@
                             </div>
                           ` : `
                             <p class="text-justify mb-2">
-                              Objek yang dinilai merupakan portofolio aset (${listObjek.length} objek penilaian) milik / atas nama <strong>${p.debitur_nama}</strong>.
+                              Objek yang dinilai merupakan portofolio ${getLabelKategoriObjek(kategoriTemplate)} (${listObjek.length} objek penilaian) milik / atas nama <strong>${p.debitur_nama}</strong>.
                             </p>
                             <div class="p-3 my-2 border border-slate-300 bg-slate-50 rounded text-slate-800 text-justify">
                               <p class="font-semibold text-slate-900 mb-1">Pengalihan Rincian ke Lampiran Resmi :</p>
                               <p>
-                                Rincian daftar objek penilaian, bukti legalitas kepemilikan, lokasi, dan spesifikasi teknis aset selengkapnya tercantum dalam <strong>Lampiran 1 (Daftar Objek Penilaian dan Kepemilikan)</strong> yang merupakan satu kesatuan dan bagian yang tidak terpisahkan dari Lingkup Penugasan ini.
+                                Mengingat jumlah objek penilaian yang dinilai berjumlah lebih dari 3 (tiga) unit/bidang aset, maka rincian lengkap mengenai jenis objek, identitas teknis, status kepemilikan yuridis, serta lokasi persebaran objek penilaian secara mengikat dicantumkan pada <strong>Lampiran 1 (Daftar Objek Penilaian dan Kepemilikan)</strong> yang merupakan satu kesatuan dan bagian yang tidak terpisahkan dari Lingkup Penugasan ini.
                               </p>
                             </div>
                             <div class="text-[10px] text-slate-600 mt-2 space-y-0.5 italic">
@@ -4403,12 +4779,10 @@
                           </p>
                         </div>
 
-                        <!-- 8. TANGGAL PENILAIAN -->
+                        <!-- 8. PENDEKATAN DAN METODOLOGI PENILAIAN -->
                         <div class="klausul-item avoid-break">
-                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">8. TANGGAL PENILAIAN</p>
-                          <p class="text-justify">
-                            Tanggal penilaian yaitu tanggal pada saat nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya inspeksi lapangan${p.tanggal_penilaian ? ` (${formatTanggalIndo(p.tanggal_penilaian)})` : ''}.
-                          </p>
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">8. PENDEKATAN DAN METODOLOGI PENILAIAN</p>
+                          ${getKlausul8Pendekatan(kategoriTemplate, p)}
                         </div>
 
                         <!-- 9. TINGKAT KEDALAMAN INVESTIGASI -->
@@ -4438,22 +4812,10 @@
                           </ul>
                         </div>
 
-                        <!-- 11. ASUMSI DAN ASUMSI KHUSUS -->
+                        <!-- 11. ASUMSI DAN BATASAN PENUGASAN -->
                         <div class="klausul-item avoid-break">
-                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">11. ASUMSI DAN ASUMSI KHUSUS</p>
-                          <p class="text-justify mb-2">Dalam penilaian ini kami menggunakan asumsi umum dan bila diperlukan akan menggunakan asumsi khusus. Asumsi yang digunakan adalah sebagai berikut:</p>
-                          <ul class="list-disc pl-5 space-y-1 text-justify">
-                            <li>Penilaian ini didasarkan pada asumsi bahwa properti dibangun sesuai dengan peraturan yang berlaku, serta telah memiliki atau dalam proses memiliki ijin lokasi dan perijinan lain yang dikeluarkan oleh instansi berwenang.</li>
-                            <li>Penilaian ini didasarkan atas asumsi bahwa pemilik akan menjual properti tersebut tanpa adanya penundaan keuntungan selama waktu penjualan, lease back, management arrangement atau setiap perjanjian yang serupa yang menyebabkan peningkatan nilai dari properti tersebut.</li>
-                            <li>Bahwa objek penilaian yang dinilai tidak mempunyai masalah hukum dan hak kepemilikannya adalah sah, bebas dari sengketa dan dapat dialihkan haknya.</li>
-                            <li>Semua informasi yang berkaitan dengan penilaian ini, tetapi tidak termasuk kesimpulan pendapat tentang nilai, kami terima dari pemberi tugas termasuk hal-hal yang menyangkut kepemilikan tanah dan luas tanahnya serta hal-hal yang relevan lainnya. Kami menganggap bahwa informasi dan data yang kami terima sepanjang menyangkut data keterangan mengenai objek penilaian adalah benar.</li>
-                            <li>Selain itu kami memperoleh data dari sumber-sumber lainnya yang telah dipublikasikan. Semua informasi yang kami peroleh dari sumber seperti yang dinyatakan dalam laporan diasumsikan adalah benar oleh karena itu kami tidak melakukan verifikasi. Bila ternyata anggapan tersebut tidak sesuai dengan hal sesungguhnya, maka itu di luar tanggung jawab kami.</li>
-                            <li>Nilai Pasar yang dimaksud mencerminkan nilai yang sesungguhnya tanpa memperhitungkan adanya kewajiban atas pajak atau biaya-biaya yang terkait dengan transaksi penjualan tersebut. Properti yang dinilai berdasarkan asumsi bebas dari segala hipotik, persengketaan dan premi serta biaya lain yang belum diselesaikan.</li>
-                            <li>Dalam hal penelitian dan penyelidikan yang ada hubungannya dengan kebenaran legalitas hak milik serta utang piutang yang mengakibatkan kerugian atas harta tetap yang dinilai, bukan merupakan ruang lingkup pekerjaan penilai, pekerjaan tersebut merupakan pekerjaan Konsultan Hukum, dan oleh sebab itu dalam penilaian ini kami berasumsi bahwa harta kekayaan yang dinilai tersebut telah bebas dari segala tuntutan hukum.</li>
-                            <li>Penilaian ini berlaku terbatas pada tanggal efektif penilaian, yaitu tanggal dimana perkiraan nilai tersebut berlaku. Kami menganggap bahwa sejak tanggal dimulai hingga akhir inspeksi tidak terdapat perubahan yang mempengaruhi secara signifikan.</li>
-                            <li>Bila terjadi perubahan atas salah satu atau kombinasi dari asumsi asumsi yang digunakan, akan sangat mempengaruhi hasil penilaian ini, karena itu kami tidak dapat menjamin realisasi nilai-nilai tersebut.</li>
-                            <li>Asumsi khusus akan digunakan karena kondisi khusus, tidak biasa, atau luar biasa. Asumsi khusus akan kami ungkapkan dalam laporan penilaian, apabila diperlukan.</li>
-                          </ul>
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">11. ASUMSI DAN BATASAN PENUGASAN</p>
+                          ${getKlausul11Asumsi(kategoriTemplate)}
                         </div>
 
                         <!-- 12. PERSYARATAN ATAS PERSETUJUAN UNTUK PUBLIKASI -->
@@ -4464,10 +4826,10 @@
                           </p>
                         </div>
 
-                        <!-- 13. KONFIRMASI BAHWA PENILAIAN DILAKUKAN BERDASARKAN SPI -->
+                        <!-- 13. DOKUMEN DAN INFORMASI DARI PEMBERI TUGAS -->
                         <div class="klausul-item avoid-break">
-                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">13. KONFIRMASI BAHWA PENILAIAN DILAKUKAN BERDASARKAN SPI</p>
-                          <p class="text-justify">Pekerjaan penilaian ini dilakukan berdasarkan Standar Penilaian Indonesia (SPI) Edisi VII - 2018.</p>
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">13. DOKUMEN DAN INFORMASI DARI PEMBERI TUGAS</p>
+                          ${getKlausul13Dokumen(kategoriTemplate)}
                         </div>
 
                         <!-- 14. LAPORAN PENILAIAN -->
@@ -4536,19 +4898,12 @@
                           </ul>
                         </div>
 
-                        <!-- 18. DATA-DATA YANG DIPERLUKAN -->
+                        <!-- 18. KELENGKAPAN DOKUMEN DAN DATA PENDUKUNG -->
                         <div class="klausul-item avoid-break">
-                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">18. DATA-DATA YANG DIPERLUKAN</p>
-                          <p class="text-justify mb-2">Data yang diperlukan dalam pelaksanaan pekerjaan ini adalah sebagai berikut :</p>
-                          <ul class="list-disc pl-5 space-y-1 text-justify">
-                            <li>Copy Dokumen Kepemilikan Tanah (Sertifikat/Girik/Akta Jual Beli) lengkap dengan gambar situasi</li>
-                            <li>Copy IMB dan NJOP PBB tahun terakhir</li>
-                            <li>Copy Denah dan Layout Bangunan</li>
-                            <li>Surat Representasi mengenai kebenaran dan sifat informasi yang diberikan Pemberi Tugas (format terlampir)</li>
-                            <li>Copy NPWP Pemberi Tugas</li>
-                            <li>Dokumen-dokumen lain yang relevan</li>
-                            <li>Contact Person pendamping di lapangan</li>
-                          </ul>
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">18. KELENGKAPAN DOKUMEN DAN DATA PENDUKUNG</p>
+                          <p class="text-justify mb-2">
+                            Pemberi Tugas wajib menyerahkan seluruh data dan dokumen sebagaimana diuraikan pada butir checklist Klausul 13 di atas paling lambat 2 (dua) hari kerja terhitung sejak Lingkup Penugasan ini disepakati dan ditandatangani. Apabila data belum lengkap atau terdapat perbedaan signifikan antara data tertulis dengan kondisi fisik di lapangan, maka jadwal penyelesaian laporan (SLA) akan disesuaikan secara proporsional.
+                          </p>
                         </div>
 
                         <!-- 19. HAK DAN KEWAJIBAN PARA PIHAK -->
@@ -6119,6 +6474,9 @@
       if (document.getElementById('rekening_resmi')) {
         document.getElementById('rekening_resmi').value = 'MANDIRI';
       }
+      if (document.getElementById('kategori_template_spk')) {
+        document.getElementById('kategori_template_spk').value = 'REAL_PROPERTY';
+      }
 
       objekRows = [
         {
@@ -6154,6 +6512,14 @@
       // Reset jenis_laporan ke APP
       const elJenis = document.getElementById('jenis_laporan');
       if (elJenis) elJenis.value = 'APP';
+
+      // Reset template SPK
+      isTemplateManuallyOverridden = false;
+      const elTpl = document.getElementById('kategori_template_spk');
+      if (elTpl) elTpl.value = 'REAL_PROPERTY';
+      const badgeTpl = document.getElementById('badge-template-auto');
+      if (badgeTpl) badgeTpl.classList.add('hidden');
+      sinkronkanPendekatanInput('REAL_PROPERTY');
 
       // Bersihkan flag edit manual agar nomor preview otomatis dihitung ulang
       const elLp = getElLp();
