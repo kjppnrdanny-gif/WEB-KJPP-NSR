@@ -902,8 +902,9 @@
                 <label class="flex items-center gap-1.5"><input type="checkbox" id="dok_imb" checked class="rounded border-slate-700 text-amber-400"> Fotokopi IMB / PBG</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" id="dok_pbb" checked class="rounded border-slate-700 text-amber-400"> Bukti PBB Terakhir</label>
                 <label class="flex items-center gap-1.5"><input type="checkbox" id="dok_denah" checked class="rounded border-slate-700 text-amber-400"> Gambar Denah / Lokasi</label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" id="dok_invoice" class="rounded border-slate-700 text-amber-400"> Invoice / PO Mesin</label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" id="dok_list" class="rounded border-slate-700 text-amber-400"> Daftar Inventaris</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="dok_invoice" class="rounded border-slate-700 text-amber-400"> Faktur / Invoice / PO</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="dok_list" class="rounded border-slate-700 text-amber-400"> List/Daftar Mesin (FAR)</label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" id="dok_bpkb" class="rounded border-slate-700 text-amber-400"> Salinan BPKB / STNK</label>
               </div>
             </div>
           </div>
@@ -3314,8 +3315,81 @@
       }
     }
 
+    function detectAssetComposition(objekList = []) {
+      const result = {
+        hasRealProperty: false,
+        hasPersonalProperty: false,
+        hasVehicle: false,
+        hasMachinery: false,
+        hasHeavyEquipment: false,
+        hasInventory: false,
+        isPurePersonalProperty: false,
+        isMixedAsset: false
+      };
+
+      if (!objekList || !Array.isArray(objekList) || objekList.length === 0) {
+        result.hasRealProperty = true;
+        return result;
+      }
+
+      objekList.forEach(o => {
+        if (!o) return;
+        const j = String(o.jenis || '').toLowerCase();
+        const custom = String(o.customJenis || '').toLowerCase();
+        const comb = `${j} ${custom}`;
+
+        const cfg = getObjekColumnConfig(o.jenis || '');
+
+        // Real property: Tanah, Bangunan, Ruko, Rumah, Kantor, Gudang, Apartemen, Kios, Villa, Gedung
+        const realKeywords = ['tanah', 'bangunan', 'ruko', 'rukan', 'rumah', 'kantor', 'gudang', 'apartemen', 'pabrik', 'kios', 'villa', 'hotel', 'gedung'];
+        const isReal = (cfg.category === 'properti') || realKeywords.some(kw => comb.includes(kw));
+
+        // Personal property: Mesin, Peralatan, Kendaraan, Alat Berat, Inventaris, Pabrikasi, mekanikal/elektrikal
+        const personalKeywords = [
+          'mesin', 'kendaraan', 'alat berat', 'heavy equipment', 'inventaris', 'pabrikasi',
+          'peralatan', 'mekanikal', 'elektrikal', 'motor', 'mobil', 'truk', 'truck',
+          'trailer', 'forklift', 'genset', 'generator', 'boiler', 'crane', 'conveyor',
+          'line produksi', 'suku cadang', 'spare part', 'sarana pabrik'
+        ];
+        const isPersonal = (cfg.category === 'kendaraan' || cfg.category === 'mesin' || cfg.category === 'alat_berat') ||
+                           personalKeywords.some(kw => comb.includes(kw));
+
+        if (isReal) result.hasRealProperty = true;
+        if (isPersonal) result.hasPersonalProperty = true;
+
+        if (cfg.category === 'kendaraan' || comb.includes('kendaraan') || comb.includes('mobil') || comb.includes('motor') || comb.includes('truk') || comb.includes('truck')) {
+          result.hasVehicle = true;
+        }
+        if (cfg.category === 'mesin' || comb.includes('mesin') || comb.includes('pabrikasi') || comb.includes('mekanikal') || comb.includes('elektrikal') || comb.includes('peralatan')) {
+          result.hasMachinery = true;
+        }
+        if (cfg.category === 'alat_berat' || comb.includes('alat berat') || comb.includes('heavy equipment')) {
+          result.hasHeavyEquipment = true;
+        }
+        if (comb.includes('inventaris') || comb.includes('perlengkapan') || comb.includes('suku cadang')) {
+          result.hasInventory = true;
+        }
+      });
+
+      if (!result.hasRealProperty && !result.hasPersonalProperty) {
+        result.hasRealProperty = true;
+      }
+
+      result.isPurePersonalProperty = result.hasPersonalProperty && !result.hasRealProperty;
+      result.isMixedAsset = result.hasRealProperty && result.hasPersonalProperty;
+
+      return result;
+    }
+
     function deteksiKategoriTemplateSPK(list = []) {
       if (!list || list.length === 0) return 'REAL_PROPERTY';
+      const comp = detectAssetComposition(list);
+      if (comp.isMixedAsset) return 'MULTI_ASSET';
+      if (comp.isPurePersonalProperty) {
+        if (comp.hasMachinery || comp.hasHeavyEquipment || comp.hasInventory) return 'PLANT_MACHINERY';
+        if (comp.hasVehicle) return 'VEHICLE';
+      }
+
       const categories = new Set();
       list.forEach(o => {
         const cfg = getObjekColumnConfig(o.jenis || '');
@@ -3323,6 +3397,7 @@
         else if (cfg.category === 'kendaraan') categories.add('VEHICLE');
         else if (cfg.category === 'mesin' || cfg.category === 'alat_berat') categories.add('PLANT_MACHINERY');
         else if (cfg.category === 'perkebunan' || cfg.category === 'kehutanan_hewan') categories.add('BIOLOGICAL_ASSET');
+        else if (comp.hasPersonalProperty) categories.add('PLANT_MACHINERY');
         else categories.add('REAL_PROPERTY');
       });
 
@@ -3332,7 +3407,58 @@
       return Array.from(categories)[0] || 'REAL_PROPERTY';
     }
 
+    function sinkronkanCeklisBAP(comp) {
+      if (!comp) return;
+      const elCeklisTanah = document.getElementById('ceklis_tanah');
+      const elCeklisBangunan = document.getElementById('ceklis_bangunan');
+      const elCeklisMesin = document.getElementById('ceklis_mesin');
+      const elCeklisKendaraan = document.getElementById('ceklis_kendaraan');
+      const elDokSertifikat = document.getElementById('dok_sertifikat');
+      const elDokImb = document.getElementById('dok_imb');
+      const elDokPbb = document.getElementById('dok_pbb');
+      const elDokInvoice = document.getElementById('dok_invoice');
+      const elDokList = document.getElementById('dok_list');
+      const elDokBpkb = document.getElementById('dok_bpkb');
+
+      if (comp.hasPersonalProperty) {
+        if (elCeklisMesin) elCeklisMesin.checked = comp.hasMachinery || comp.hasHeavyEquipment || comp.hasInventory || !comp.hasVehicle;
+        if (elCeklisKendaraan) elCeklisKendaraan.checked = comp.hasVehicle;
+        if (elDokInvoice) elDokInvoice.checked = true;
+        if (elDokList) elDokList.checked = true;
+        if (elDokBpkb) elDokBpkb.checked = comp.hasVehicle || comp.hasHeavyEquipment;
+
+        if (comp.isPurePersonalProperty) {
+          if (elCeklisTanah) elCeklisTanah.checked = false;
+          if (elCeklisBangunan) elCeklisBangunan.checked = false;
+          if (elDokSertifikat) elDokSertifikat.checked = false;
+          if (elDokImb) elDokImb.checked = false;
+          if (elDokPbb) elDokPbb.checked = false;
+        } else {
+          if (elCeklisTanah) elCeklisTanah.checked = true;
+          if (elCeklisBangunan) elCeklisBangunan.checked = true;
+          if (elDokSertifikat) elDokSertifikat.checked = true;
+          if (elDokImb) elDokImb.checked = true;
+          if (elDokPbb) elDokPbb.checked = true;
+        }
+      } else {
+        // Pure Real Property
+        if (elCeklisTanah) elCeklisTanah.checked = true;
+        if (elCeklisBangunan) elCeklisBangunan.checked = true;
+        if (elDokSertifikat) elDokSertifikat.checked = true;
+        if (elDokImb) elDokImb.checked = true;
+        if (elDokPbb) elDokPbb.checked = true;
+        if (elCeklisMesin) elCeklisMesin.checked = false;
+        if (elCeklisKendaraan) elCeklisKendaraan.checked = false;
+        if (elDokInvoice) elDokInvoice.checked = false;
+        if (elDokList) elDokList.checked = false;
+        if (elDokBpkb) elDokBpkb.checked = false;
+      }
+    }
+
     function updateRekomendasiTemplate(force = false) {
+      const comp = detectAssetComposition(objekRows);
+      sinkronkanCeklisBAP(comp);
+
       if (isTemplateManuallyOverridden && !force) return;
       const el = document.getElementById('kategori_template_spk');
       if (!el) return;
@@ -3344,6 +3470,156 @@
         badge.textContent = `Auto: ${recommended}`;
         badge.classList.remove('hidden');
       }
+    }
+
+    function extractMerkTipe(o) {
+      if (!o) return '-';
+      const val3 = (o.col3 !== undefined && o.col3 !== '') ? o.col3 : (o.lt || '');
+      if (val3 && val3 !== '-') return val3;
+      return getObjekNamaDisplay(o);
+    }
+
+    function extractNoSeri(o) {
+      if (!o) return '-';
+      const val5 = (o.col5 !== undefined && o.col5 !== '') ? o.col5 : (o.status || '');
+      if (val5 && val5 !== '-') return val5;
+      return '-';
+    }
+
+    function extractTahun(o) {
+      if (!o) return '-';
+      const fullText = `${o.col3 || ''} ${o.col4 || ''} ${o.col5 || ''} ${o.jenis || ''} ${o.customJenis || ''}`;
+      const m = fullText.match(/\b(19\d{2}|20\d{2})\b/);
+      return m ? m[1] : '-';
+    }
+
+    function extractKapasitas(o) {
+      if (!o) return '-';
+      const val4 = (o.col4 !== undefined && o.col4 !== '') ? o.col4 : (o.lb || '');
+      if (val4 && val4 !== '-') return val4;
+      return '-';
+    }
+
+    function extractKondisi(o) {
+      if (!o) return 'Terpasang / Beroperasi Normal';
+      const fullText = `${o.col4 || ''} ${o.col5 || ''}`.toLowerCase();
+      if (fullText.includes('rusak berat')) return 'Rusak Berat';
+      if (fullText.includes('rusak')) return 'Rusak Ringan';
+      if (fullText.includes('rekondisi')) return 'Rekondisi';
+      if (fullText.includes('idle')) return 'Idle / Tidak Beroperasi';
+      if (fullText.includes('baru')) return 'Baru (100%)';
+      return 'Terpasang / Beroperasi Normal';
+    }
+
+    function renderBAPIdentitasObjek(listObjek = [], assetComp = {}, alamatDefault = '') {
+      if (!listObjek || listObjek.length === 0) {
+        return `
+          <table class="doc-table-clean mb-2 pl-2 text-[10px]">
+            <tr>
+              <td class="w-44 font-bold align-top py-0.5">Objek &amp; Lokasi</td>
+              <td class="align-top py-0.5">:</td>
+              <td class="py-0.5">- &bull; ${alamatDefault}</td>
+            </tr>
+          </table>
+        `;
+      }
+
+      // If purely Real Property
+      if (!assetComp.hasPersonalProperty) {
+        return `
+          <table class="doc-table-clean mb-2 pl-2 text-[10px]">
+            <tr>
+              <td class="w-44 font-bold align-top py-0.5">Objek &amp; Lokasi</td>
+              <td class="align-top py-0.5">:</td>
+              <td class="py-0.5">
+                ${listObjek.length === 1 ? `
+                  <strong>${getObjekNamaDisplay(listObjek[0])}</strong> (${formatObjekSpesifikasi(listObjek[0])})<br>
+                  <span>${listObjek[0].lokasi || alamatDefault}</span>
+                ` : `
+                  <ul class="list-disc pl-4 space-y-0.5">
+                    ${listObjek.map(o => `
+                      <li><strong>${getObjekNamaDisplay(o)}</strong> (${formatObjekSpesifikasi(o)}) &bull; ${o.lokasi || '-'}</li>
+                    `).join('')}
+                  </ul>
+                `}
+              </td>
+            </tr>
+          </table>
+        `;
+      }
+
+      // Personal Property or Multi-Asset
+      const realItems = listObjek.filter(o => {
+        const cfg = getObjekColumnConfig(o.jenis || '');
+        return cfg.category === 'properti';
+      });
+
+      const personalItems = listObjek.filter(o => {
+        const cfg = getObjekColumnConfig(o.jenis || '');
+        return cfg.category !== 'properti';
+      });
+
+      const itemsToTable = personalItems.length > 0 ? personalItems : listObjek;
+
+      return `
+        ${realItems.length > 0 ? `
+          <table class="doc-table-clean mb-2 pl-2 text-[10px]">
+            <tr>
+              <td class="w-44 font-bold align-top py-0.5">Objek Real Properti</td>
+              <td class="align-top py-0.5">:</td>
+              <td class="py-0.5">
+                <ul class="list-disc pl-4 space-y-0.5">
+                  ${realItems.map(o => `
+                    <li><strong>${getObjekNamaDisplay(o)}</strong> (${formatObjekSpesifikasi(o)}) &bull; Dok: ${o.col5 || o.status || '-'} &bull; ${o.lokasi || alamatDefault}</li>
+                  `).join('')}
+                </ul>
+              </td>
+            </tr>
+          </table>
+        ` : `
+          <table class="doc-table-clean mb-1 pl-2 text-[10px]">
+            <tr>
+              <td class="w-44 font-bold align-top py-0.5">Lokasi Pemeriksaan</td>
+              <td class="align-top py-0.5">:</td>
+              <td class="py-0.5"><span>${alamatDefault}</span></td>
+            </tr>
+          </table>
+        `}
+
+        <!-- Tabel Identitas Spesifik Objek Personal (Mesin / Kendaraan / Inventaris) Sesuai SPI 301/305 -->
+        <div class="my-2 avoid-break">
+          <div class="font-bold text-[10px] text-slate-900 mb-1 flex items-center justify-between">
+            <span>Identitas Teknis Objek (Mesin / Peralatan / Kendaraan / Inventaris) :</span>
+            <span class="text-[8.5px] font-mono text-slate-600 bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded">SPI 301 / SPI 305 Non-Intrusive</span>
+          </div>
+          <table class="w-full doc-table text-[9px] mb-2">
+            <thead>
+              <tr class="bg-slate-100 font-bold text-center">
+                <th class="py-1 px-1.5 w-6">No</th>
+                <th class="py-1 px-1.5 text-left">Nama / Deskripsi Unit</th>
+                <th class="py-1 px-1.5 text-left">Merk / Tipe</th>
+                <th class="py-1 px-1.5 text-left">No. Seri / No. Rangka</th>
+                <th class="py-1 px-1.5 text-center w-12">Tahun</th>
+                <th class="py-1 px-1.5 text-left">Kapasitas / Satuan</th>
+                <th class="py-1 px-1.5 text-center w-24">Kondisi Fisik</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsToTable.map((o, idx) => `
+                <tr>
+                  <td class="text-center py-1 px-1.5 font-bold">${idx + 1}</td>
+                  <td class="font-semibold py-1 px-1.5">${getObjekNamaDisplay(o)}</td>
+                  <td class="py-1 px-1.5">${extractMerkTipe(o)}</td>
+                  <td class="py-1 px-1.5 font-mono text-[8.5px]">${extractNoSeri(o)}</td>
+                  <td class="text-center py-1 px-1.5 font-mono">${extractTahun(o)}</td>
+                  <td class="py-1 px-1.5">${extractKapasitas(o)}</td>
+                  <td class="text-center py-1 px-1.5">${extractKondisi(o)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
     }
 
     function getLabelKategoriObjek(kategori) {
@@ -3464,11 +3740,56 @@
       `;
     }
 
-    function getKlausul11Asumsi(kategori) {
+    function getKlausul9Investigasi(kategori, assetComp = {}) {
+      const hasPersonal = assetComp.hasPersonalProperty || kategori === 'PLANT_MACHINERY' || kategori === 'VEHICLE';
+      const hasReal = assetComp.hasRealProperty !== false && kategori !== 'PLANT_MACHINERY' && kategori !== 'VEHICLE';
+
+      if (!hasPersonal) {
+        // Standar Real Properti (Tanah & Bangunan)
+        return `
+          <ul class="list-disc pl-5 space-y-1 text-justify">
+            <li>Data dan informasi, menyangkut fisik dan legal atas objek penilaian diperoleh dari pemberi tugas.</li>
+            <li>Inspeksi dapat dilakukan tanpa ada pembatasan akses ke lokasi objek penilaian.</li>
+            <li>Proses pengumpulan dan analisis data dilakukan secara lengkap pada objek penilaian yang didampingi oleh Pemberi Tugas atau pihak yang ditunjuk oleh Pemberi Tugas. Apabila pada aset tertentu dijumpai keterbatasan untuk dijangkau maupun diidentifikasi secara keseluruhan, kami menggunakan pendataan secara sampling. Jumlah sampling harus memenuhi pertimbangan terbaik Penilai dan disepakati dengan Pemberi Tugas.</li>
+            <li>Investigasi terhadap objek penilaian dilakukan terbatas pada kondisi fisik terlihat dan tingkat kesesuaian antara data fisik dan fisik terlihat. Terhadap bidang tanah tidak dilakukan pengukuran. Pengukuran dilakukan jika antara data fisik dan fisik terlihat tidak ada kesesuaian.</li>
+            <li>Apabila pelaksanaan inspeksi lapangan tidak dapat dilakukan karena keberadaan objek penilaian tidak diketahui, maka penugasan dimaksud tidak dapat diteruskan atau batal.</li>
+            <li>Hasil inspeksi yang dilakukan Penilai dilengkapi dengan Berita Acara Inspeksi yang ditandatangani Pemberi Tugas / pemilik objek / pihak yang ditunjuk oleh Pemberi Tugas dan Penilai.</li>
+            <li>Penilai tidak mempertimbangkan dan melakukan penyelidikan akan adanya pencemaran dan resiko lingkungan pada properti yang dinilai baik aktual maupun potensial.</li>
+            <li>Segala sesuatu yang membatasi pekerjaan dan atau diluar dari pada hal diatas maka lingkup penugasan ini akan disesuaikan.</li>
+          </ul>
+        `;
+      }
+
+      // Klausul Cerdas Investigasi Multi-Aset / Personal Properti (Mesin, Kendaraan, Alat Berat, Inventaris)
+      return `
+        <ul class="list-disc pl-5 space-y-1.5 text-justify">
+          <li>Data dan informasi menyangkut fisik dan legalitas kepemilikan atas objek penilaian diperoleh dari Pemberi Tugas.</li>
+          <li>Inspeksi lapangan dapat dilaksanakan tanpa pembatasan akses ke lokasi objek penilaian dan didampingi personil teknis yang ditunjuk resmi oleh Pemberi Tugas.</li>
+          ${hasReal ? `
+            <li><strong>Pemeriksaan Fisik Properti Tapak :</strong> Terhadap objek real properti (tanah dan bangunan), investigasi dilakukan terbatas pada kondisi fisik kasat mata dan tingkat kesesuaian antara data fisik dan fisik terlihat. Terhadap bidang tanah tidak dilakukan pengukuran kadastral ulang kecuali terdapat ketidaksesuaian material.</li>
+          ` : ''}
+          <li><strong>Pemeriksaan Visual Eksternal (Non-Intrusive) :</strong> Inspeksi lapangan atas mesin dan peralatan dilakukan secara visual dari luar terhadap kondisi fisik, keutuhan unit, dan verifikasi pelat nama (<em>nameplate</em>) meliputi: Merk, Model/Tipe, Nomor Seri (<em>Serial Number</em>), Tahun Pembuatan, dan Kapasitas Operasional.</li>
+          <li><strong>Batasan Uji Operasional &amp; Penolakan Pembongkaran (No Dismantling) :</strong> Penilai tidak melakukan pembongkaran mesin (<em>dismantling</em>), pengujian destruktif, atau pengujian laboratorium atas material komponen mesin. Penilai tidak memberikan sertifikasi keselamatan kerja (K3) atau kelaikan teknis mesin.</li>
+          <li><strong>Metode Sampling Inventaris / Suku Cadang :</strong> Terhadap inventaris perlengkapan kantor, peralatan pendukung, atau suku cadang dalam jumlah massal, penilai berhak menggunakan metode uji petik (<em>sampling method</em>) berdasarkan tingkat materialitas nilai.</li>
+          <li><strong>Pemeriksaan Status Operasi :</strong> Inspeksi dilakukan pada saat jam kerja operasional reguler dalam kondisi mesin diam (<em>idle</em>) atau berjalan normal tanpa membebani risiko proses produksi pabrik.</li>
+          <li>Apabila pelaksanaan inspeksi lapangan tidak dapat dilakukan karena keberadaan objek penilaian tidak diketahui atau akses tidak diberikan, maka penugasan dimaksud tidak dapat diteruskan atau batal demi hukum.</li>
+          <li>Hasil inspeksi yang dilakukan Penilai dilengkapi dengan Berita Acara Inspeksi Lapangan (BAP) yang ditandatangani Pemberi Tugas / perwakilan di lokasi dan Penilai.</li>
+          ${hasReal ? `
+            <li>Penilai tidak mempertimbangkan dan melakukan penyelidikan akan adanya pencemaran limbah B3 dan risiko lingkungan pada properti yang dinilai baik aktual maupun potensial.</li>
+          ` : ''}
+          <li>Segala sesuatu yang membatasi pekerjaan dan atau di luar dari ketentuan di atas maka lingkup penugasan ini akan disesuaikan secara tertulis.</li>
+        </ul>
+      `;
+    }
+
+    function getKlausul11Asumsi(kategori, assetComp = {}) {
+      const hasPersonal = assetComp.hasPersonalProperty || kategori === 'PLANT_MACHINERY' || kategori === 'VEHICLE';
+
       if (kategori === 'PLANT_MACHINERY') {
         return `
           <p class="text-justify mb-2">Dalam penilaian mesin, peralatan industri, dan alat berat ini, kami menggunakan asumsi umum dan batasan penugasan profesional sebagai berikut :</p>
           <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li><strong>Asumsi Pembatas Khusus Aset Personal :</strong> Seluruh mesin dan peralatan diasumsikan terpasang dengan pondasi dan instalasi utilitas yang benar, beroperasi secara aman sesuai spesifikasi pabrikan, serta komponen internal yang tidak tampak berada dalam kondisi kerja yang sebanding dengan penampakan luarnya.</li>
             <li><strong>Batasan Inspeksi Non-Dismantling :</strong> Pemeriksaan teknis atas unit mesin dan alat berat dilakukan secara visual kasat mata pada komponen luar tanpa membongkar mesin (<em>non-dismantling inspection</em>). Penilai tidak melakukan pengujian laboratorium terhadap kelelahan logam (<em>metal fatigue</em>) atau pembongkaran transmisi mesin dalam.</li>
             <li><strong>Asumsi Siap Beroperasi (Running Condition) &amp; Latent Defects :</strong> Penilaian mengasumsikan bahwa unit mesin dan peralatan berada dalam kondisi siap beroperasi secara normal (<em>good running condition</em>) sesuai spesifikasi teknis pabrikan. Penilai dibebaskan dari tanggung jawab atas kerusakan mekanikal/kelistrikan tersembunyi (<em>latent defects</em>) yang tidak teridentifikasi pada pemeriksaan visual tanpa pengujian instrumentasi khusus.</li>
             <li><strong>Legalitas Kepemilikan Mesin :</strong> Bahwa unit mesin dan alat berat merupakan kepemilikan yang sah, bebas dari sengketa kepemilikan fidusia, serta didukung bukti faktur/PIB/dokumen perolehan yang sah.</li>
@@ -3482,6 +3803,7 @@
         return `
           <p class="text-justify mb-2">Dalam penilaian armada kendaraan bermotor ini, kami menetapkan asumsi pokok dan batasan penugasan sebagai berikut :</p>
           <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li><strong>Asumsi Pembatas Khusus Aset Personal :</strong> Seluruh unit armada kendaraan diasumsikan terawat dengan baik, beroperasi secara aman sesuai spesifikasi pabrikan, serta komponen mekanikal mesin internal yang tidak kasat mata berada dalam kondisi kerja yang sebanding dengan penampakan luarnya.</li>
             <li><strong>Batasan Verifikasi Nomor Rangka &amp; Mesin :</strong> Verifikasi nomor rangka (<em>Vehicle Identification Number / VIN</em>) dan nomor mesin dilakukan secara visual kasat mata pada posisi cetakan fisik yang terjangkau dan dicocokkan dengan dokumen BPKB/STNK, tanpa pengujian metalurgi laboratorium atau uji keaslian ketokan (lab forensik kriminalitas).</li>
             <li><strong>Kelaikan Jalan (Roadworthiness) :</strong> Penilaian didasarkan pada observasi fisik eksterior, interior, suara mesin stasioner, dan kelengkapan dokumen uji berkala (KIR). Penilai tidak melakukan uji emisi gas buang, pembongkaran sistem pengereman, atau uji tabrak (<em>crash test</em>).</li>
             <li><strong>Status Legalitas Bebas Blokir :</strong> Diasumsikan bahwa armada kendaraan tidak sedang dalam status blokir tilang elektronik/pidana, tidak dalam sengketa penipuan/penggelapan, serta bebas dari beban klaim asuransi total loss.</li>
@@ -3502,11 +3824,12 @@
         `;
       }
 
-      if (kategori === 'MULTI_ASSET') {
+      if (kategori === 'MULTI_ASSET' || hasPersonal) {
         return `
-          <p class="text-justify mb-2">Dalam penilaian portofolio campuran beragam kelas aset (multi-asset) ini, diberlakukan batasan profesional dan asumsi terpadu sebagai berikut :</p>
+          <p class="text-justify mb-2">Dalam penilaian portofolio campuran beragam kelas aset (multi-asset / properti &amp; personal properti) ini, diberlakukan batasan profesional dan asumsi terpadu sebagai berikut :</p>
           <ul class="list-disc pl-5 space-y-1.5 text-justify">
             <li><strong>Aset Properti :</strong> Penilai tidak melakukan pengujian struktur fondasi tanah tertutup (<em>soil test</em>), pengujian beton bertulang, dan mengasumsikan properti mematuhi zonasi peruntukan tata ruang kota (RTRW/RDTR).</li>
+            <li><strong>Asumsi Pembatas Khusus Aset Personal :</strong> Seluruh mesin dan peralatan diasumsikan terpasang dengan pondasi dan instalasi utilitas yang benar, beroperasi secara aman sesuai spesifikasi pabrikan, serta komponen internal yang tidak tampak berada dalam kondisi kerja yang sebanding dengan penampakan luarnya.</li>
             <li><strong>Aset Mesin &amp; Peralatan :</strong> Pemeriksaan teknis bersifat kasat mata tanpa pembongkaran mesin (<em>non-dismantling</em>), diasumsikan beroperasi normal (<em>running condition</em>), dan Penilai tidak bertanggung jawab atas cacat tersembunyi (<em>latent defects</em>).</li>
             <li><strong>Aset Kendaraan :</strong> Verifikasi nomor rangka/mesin dilakukan secara visual kasat mata berdasarkan kesesuaian fisik dan dokumen BPKB/STNK tanpa uji metalurgi lab.</li>
             <li><strong>Aset Biologis :</strong> Penilaian vegetasi dilakukan berdasarkan metode sampling petak ukur representatif dengan asumsi kondisi agroklimat dan curah hujan normal.</li>
@@ -3529,17 +3852,20 @@
       `;
     }
 
-    function getKlausul13Dokumen(kategori) {
-      if (kategori === 'PLANT_MACHINERY') {
+    function getKlausul13Dokumen(kategori, assetComp = {}) {
+      const hasPersonal = assetComp.hasPersonalProperty || kategori === 'PLANT_MACHINERY' || kategori === 'VEHICLE';
+
+      if (kategori === 'PLANT_MACHINERY' || (hasPersonal && !assetComp.hasRealProperty)) {
         return `
           <p class="text-justify mb-2">
-            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Dokumen dan data teknis yang wajib diserahkan oleh Pemberi Tugas / Pemilik Aset meliputi :
+            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Untuk objek berupa mesin, peralatan, kendaraan, dan/atau inventaris, Pemberi Tugas wajib menyediakan Dokumen Kepemilikan dan Teknis yang relevan, meliputi: Daftar Aktiva Tetap (Fixed Asset Register/FAR), Faktur Pembelian / Invoice / Kwitansi, Purchase Order (PO), Dokumen Pemberitahuan Impor Barang (PIB) jika ada, Buku Manual Pemeliharaan (Maintenance Logbook), serta BPKB, STNK, dan Uji KIR untuk kendaraan bermotor.
           </p>
           <ul class="list-disc pl-5 space-y-1 text-justify">
-            <li>Salinan Faktur / Invoice Pembelian, Kwitansi, atau Kontrak Pengadaan Mesin &amp; Peralatan Pabrik.</li>
+            <li>Daftar Rincian Aset Tetap (<em>Fixed Asset Register / FAR</em>) memuat nomor seri pabrikan, merek, model, kapasitas kerja, dan tahun perolehan.</li>
+            <li>Salinan Faktur / Invoice Pembelian, Kwitansi, Purchase Order (PO), atau Kontrak Pengadaan Mesin &amp; Peralatan.</li>
             <li>Salinan Pemberitahuan Impor Barang (PIB) dan Bukti Pembayaran Bea Masuk/Cukai (khusus unit mesin/alat berat impor).</li>
-            <li>Daftar Rincian Aset Tetap (<em>Fixed Asset Register</em>) memuat nomor seri pabrikan, merek, model, kapasitas kerja, dan tahun perolehan.</li>
             <li>Buku Manual Operasional, Buku Log Perawatan (<em>Maintenance &amp; Overhaul Log Book</em>), serta sertifikat kalibrasi instrumen terkini.</li>
+            <li>Salinan Bukti Pemilikan Kendaraan Bermotor (BPKB), STNK aktif, dan Buku Uji KIR (untuk armada kendaraan).</li>
             <li>Sertifikat Laik Operasi (SILO) dari Dinas Tenaga Kerja / instansi teknis pembina terkait (untuk crane, boiler, bejana tekan, forklift).</li>
             <li>Surat Representasi tertulis bermaterai mengenai kebenaran informasi dan ketiadaan sengketa hak kepemilikan mesin.</li>
             <li>Salinan NPWP &amp; Identitas Badan Usaha Pemilik Mesin.</li>
@@ -3551,7 +3877,7 @@
       if (kategori === 'VEHICLE') {
         return `
           <p class="text-justify mb-2">
-            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Dokumen legalitas dan data armada yang wajib diserahkan oleh Pemberi Tugas meliputi :
+            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Untuk objek berupa kendaraan bermotor dan armada transportasi, Pemberi Tugas wajib menyediakan Dokumen Kepemilikan dan Teknis yang relevan, meliputi: BPKB, STNK, Uji KIR, Faktur Pembelian, serta Daftar Inventaris Armada (Fleet List).
           </p>
           <ul class="list-disc pl-5 space-y-1 text-justify">
             <li>Salinan Bukti Pemilikan Kendaraan Bermotor (BPKB) lengkap seluruh halaman.</li>
@@ -3584,16 +3910,14 @@
         `;
       }
 
-      if (kategori === 'MULTI_ASSET') {
+      if (kategori === 'MULTI_ASSET' || hasPersonal) {
         return `
           <p class="text-justify mb-2">
-            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Mengingat objek mencakup portofolio gabungan (multi-asset), dokumen yang wajib diserahkan meliputi :
+            Pekerjaan penilaian ini berpedoman pada Standar Penilaian Indonesia (SPI Edisi VII - 2018). Mengingat objek mencakup portofolio gabungan (multi-asset / properti &amp; personal properti), dokumen yang wajib diserahkan meliputi :
           </p>
           <ul class="list-disc pl-5 space-y-1 text-justify">
             <li><strong>Dokumen Properti :</strong> Salinan Sertipikat Tanah (SHM/SHGB/SHP), IMB/PBG &amp; SLF, denah arsitektur bangunan, serta SPPT PBB tahun terakhir.</li>
-            <li><strong>Dokumen Mesin &amp; Peralatan :</strong> Salinan Faktur/Invoice pembelian, PIB bea cukai mesin impor, Daftar Aset Tetap (<em>Fixed Asset Register</em>), dan buku manual/perawatan.</li>
-            <li><strong>Dokumen Kendaraan Bermotor :</strong> Salinan BPKB, STNK aktif, faktur kendaraan, dan buku uji KIR (bila kendaraan niaga).</li>
-            <li><strong>Dokumen Biologis / Perkebunan :</strong> Salinan sertipikat HGU/IUP, peta blok afdeling kebun, serta rekapitulasi data sensus tanaman (bila ada aset kebun).</li>
+            <li><strong>Dokumen Acuan Mesin, Peralatan, Kendaraan &amp; Inventaris :</strong> Untuk objek berupa mesin, peralatan, kendaraan, dan/atau inventaris, Pemberi Tugas wajib menyediakan Dokumen Kepemilikan dan Teknis yang relevan, meliputi: Daftar Aktiva Tetap (Fixed Asset Register/FAR), Faktur Pembelian / Invoice / Kwitansi, Purchase Order (PO), Dokumen Pemberitahuan Impor Barang (PIB) jika ada, Buku Manual Pemeliharaan (Maintenance Logbook), serta BPKB, STNK, dan Uji KIR untuk kendaraan bermotor.</li>
             <li>Surat Representasi tertulis bermaterai mengenai keabsahan dan kebenaran seluruh dokumen portofolio aset.</li>
             <li>Salinan NPWP Pemberi Tugas / Debitur dan personil pendamping lapangan per masing-masing divisi aset.</li>
           </ul>
@@ -3665,6 +3989,7 @@
       const r = objekRows.find(item => item.id === rowId);
       if (!r) return;
       r.customJenis = val;
+      updateRekomendasiTemplate();
     }
 
     function updateObjekData(rowId, field, val) {
@@ -3694,33 +4019,7 @@
         r.customJenis = '';
       }
       
-      // Sinkronisasi otomatis rekomendasi kategori template SPK saat baris pertama diganti
-      if (objekRows.length > 0 && objekRows[0].id === rowId) {
-        const cfg = getObjekColumnConfig(jenisVal);
-        let target = 'REAL_PROPERTY';
-        if (cfg.category === 'kendaraan') target = 'VEHICLE';
-        else if (cfg.category === 'mesin' || cfg.category === 'alat_berat') target = 'PLANT_MACHINERY';
-        else if (cfg.category === 'perkebunan' || cfg.category === 'kehutanan_hewan') target = 'BIOLOGICAL_ASSET';
-        else if (cfg.category === 'lain_lain') target = 'MULTI_ASSET';
-        
-        if (objekRows.length > 1) {
-          target = deteksiKategoriTemplateSPK(objekRows);
-        }
-        
-        const elTpl = document.getElementById('kategori_template_spk');
-        if (elTpl) {
-          elTpl.value = target;
-          sinkronkanPendekatanInput(target);
-          const badge = document.getElementById('badge-template-auto');
-          if (badge) {
-            badge.textContent = `Auto: ${target}`;
-            badge.classList.remove('hidden');
-          }
-        }
-      } else {
-        updateRekomendasiTemplate();
-      }
-
+      updateRekomendasiTemplate();
       renderTabelObjek();
     }
 
@@ -4360,6 +4659,7 @@
         dok_denah: document.getElementById('dok_denah').checked,
         dok_invoice: document.getElementById('dok_invoice').checked,
         dok_list: document.getElementById('dok_list').checked,
+        dok_bpkb: document.getElementById('dok_bpkb') ? document.getElementById('dok_bpkb').checked : false,
         biaya_dpp: parseFloat(document.getElementById('biaya_dpp').value) || 0,
         biaya_ppn: parseFloat(document.getElementById('biaya_ppn').value) || 0,
         biaya_total: parseFloat(document.getElementById('biaya_total').value) || 0,
@@ -4854,6 +5154,7 @@
 
         const isMultiObjekLampiran = listObjek.length > 3;
         const kategoriTemplate = p.kategori_template_spk || deteksiKategoriTemplateSPK(listObjek) || 'REAL_PROPERTY';
+        const assetComp = detectAssetComposition(listObjek);
 
         const dok1 = `
           <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK1') ? 'page-break mb-12' : ''}">
@@ -5082,16 +5383,7 @@
                         <!-- 9. TINGKAT KEDALAMAN INVESTIGASI -->
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">9. TINGKAT KEDALAMAN INVESTIGASI</p>
-                          <ul class="list-disc pl-5 space-y-1 text-justify">
-                            <li>Data dan informasi, menyangkut fisik dan legal atas objek penilaian diperoleh dari pemberi tugas.</li>
-                            <li>Inspeksi dapat dilakukan tanpa ada pembatasan akses ke lokasi objek penilaian.</li>
-                            <li>Proses pengumpulan dan analisis data dilakukan secara lengkap pada objek penilaian yang didampingi oleh Pemberi Tugas atau pihak yang ditunjuk oleh Pemberi Tugas. Apabila pada aset tertentu dijumpai keterbatasan untuk dijangkau maupun diidentifikasi secara keseluruhan, kami menggunakan pendataan secara sampling. Jumlah sampling harus memenuhi pertimbangan terbaik Penilai dan disepakati dengan Pemberi Tugas.</li>
-                            <li>Investigasi terhadap objek penilaian dilakukan terbatas pada kondisi fisik terlihat dan tingkat kesesuaian antara data fisik dan fisik terlihat. Terhadap bidang tanah tidak dilakukan pengukuran. Pengukuran dilakukan jika antara data fisik dan fisik terlihat tidak ada kesesuaian.</li>
-                            <li>Apabila pelaksanaan inspeksi lapangan tidak dapat dilakukan karena keberadaan objek penilaian tidak diketahui, maka penugasan dimaksud tidak dapat diteruskan atau batal.</li>
-                            <li>Hasil inspeksi yang dilakukan Penilai dilengkapi dengan Berita Acara Inspeksi yang ditandatangani Pemberi Tugas / pemilik objek / pihak yang ditunjuk oleh Pemberi Tugas dan Penilai.</li>
-                            <li>Penilai tidak mempertimbangkan dan melakukan penyelidikan akan adanya pencemaran dan resiko lingkungan pada properti yang dinilai baik aktual maupun potensial.</li>
-                            <li>Segala sesuatu yang membatasi pekerjaan dan atau diluar dari pada hal diatas maka lingkup penugasan ini akan disesuaikan.</li>
-                          </ul>
+                          ${getKlausul9Investigasi(kategoriTemplate, assetComp)}
                         </div>
 
                         <!-- 10. SIFAT DAN SUMBER INFORMASI YANG DAPAT DIANDALKAN -->
@@ -5109,7 +5401,7 @@
                         <!-- 11. ASUMSI DAN BATASAN PENUGASAN -->
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">11. ASUMSI DAN BATASAN PENUGASAN</p>
-                          ${getKlausul11Asumsi(kategoriTemplate)}
+                          ${getKlausul11Asumsi(kategoriTemplate, assetComp)}
                         </div>
 
                         <!-- 12. PERSYARATAN ATAS PERSETUJUAN UNTUK PUBLIKASI -->
@@ -5123,7 +5415,7 @@
                         <!-- 13. DOKUMEN DAN INFORMASI DARI PEMBERI TUGAS -->
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">13. DOKUMEN DAN INFORMASI DARI PEMBERI TUGAS</p>
-                          ${getKlausul13Dokumen(kategoriTemplate)}
+                          ${getKlausul13Dokumen(kategoriTemplate, assetComp)}
                         </div>
 
                         <!-- 14. LAPORAN PENILAIAN -->
@@ -6177,6 +6469,7 @@
       // (Sheet BAP)
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3E") {
+        const assetCompBAP = detectAssetComposition(listObjekLengkap);
         const dok3E = `
           <div class="doc-page sheet-a4 halaman-cetak text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
             <table class="doc-print-table w-full border-collapse">
@@ -6229,40 +6522,26 @@
                       </table>
 
                       <p class="mb-1 text-[10px]">Telah melaksanakan inspeksi lapangan untuk melakukan penilaian atas aset/properti sebagai berikut :</p>
-                      <table class="doc-table-clean mb-2 pl-2 text-[10px]">
+                      <table class="doc-table-clean mb-1 pl-2 text-[10px]">
                         <tr>
                           <td class="w-44 font-bold py-0.5">Pemberi Tugas</td>
                           <td class="w-3 py-0.5">:</td>
                           <td class="font-bold py-0.5">${p.pemberi_tugas_nama}</td>
                         </tr>
                         <tr>
-                          <td class="font-bold py-0.5">Pemilik / Sertipikat</td>
+                          <td class="font-bold py-0.5">${assetCompBAP.isPurePersonalProperty ? 'Pemilik / Bukti Hak' : 'Pemilik / Sertipikat'}</td>
                           <td class="py-0.5">:</td>
                           <td class="font-bold py-0.5">${namaPemilikAset}</td>
                         </tr>
-                        <tr>
-                          <td class="font-bold align-top py-0.5">Objek &amp; Lokasi</td>
-                          <td class="align-top py-0.5">:</td>
-                          <td class="py-0.5">
-                            ${listObjekLengkap.length === 1 ? `
-                              <strong>${getObjekNamaDisplay(listObjekLengkap[0])}</strong> (${formatObjekSpesifikasi(listObjekLengkap[0])})<br>
-                              <span>${listObjekLengkap[0].lokasi || alamatLengkapObjek}</span>
-                            ` : `
-                              <ul class="list-disc pl-4 space-y-0.5">
-                                ${listObjekLengkap.map(o => `
-                                  <li><strong>${getObjekNamaDisplay(o)}</strong> (${formatObjekSpesifikasi(o)}) &bull; ${o.lokasi || '-'}</li>
-                                `).join('')}
-                              </ul>
-                            `}
-                          </td>
-                        </tr>
                       </table>
+
+                      ${renderBAPIdentitasObjek(listObjekLengkap, assetCompBAP, alamatLengkapObjek)}
 
                       <!-- Tabel 2 Kolom: Lingkup Pekerjaan & Dokumen Diterima Sesuai Excel BAP -->
                       <table class="w-full doc-table mb-2 text-[9.5px]">
                         <thead>
                           <tr>
-                            <th class="w-1/2 py-1">Lingkup Pekerjaan</th>
+                            <th class="w-1/2 py-1">Lingkup Pemeriksaan Lapangan</th>
                             <th class="w-1/2 py-1">Dokumen yang Kami Terima Terdiri Dari:</th>
                           </tr>
                         </thead>
@@ -6270,21 +6549,42 @@
                           <tr>
                             <td class="align-top py-1">
                               <ul class="space-y-0.5">
-                                <li>[ ${p.ceklis_tanah !== false ? 'X' : ' '} ] Tanah</li>
-                                <li>[ ${p.ceklis_bangunan !== false ? 'X' : ' '} ] Bangunan-bangunan</li>
-                                <li>[ ${p.ceklis_ruko ? 'X' : ' '} ] Ruko / Apartemen</li>
-                                <li>[ ${p.ceklis_sarana !== false ? 'X' : ' '} ] Sarana pelengkap lainnya</li>
-                                <li>[ ${p.ceklis_mesin || listObjekLengkap.some(o => o.jenis && (o.jenis.includes('Mesin') || o.jenis.includes('Kendaraan') || o.jenis.includes('Alat Berat') || o.jenis.includes('Biologis'))) ? 'X' : ' '} ] Mesin / Kendaraan / Non-Properti</li>
-                                <li>- Berupa : <strong>${listObjekLengkap.map(o => getObjekNamaDisplay(o)).join(', ')}</strong></li>
+                                ${assetCompBAP.hasRealProperty ? `
+                                  <li>[ ${p.ceklis_tanah !== false ? 'X' : ' '} ] Tanah Tapak</li>
+                                  <li>[ ${p.ceklis_bangunan !== false ? 'X' : ' '} ] Bangunan-bangunan</li>
+                                  <li>[ ${p.ceklis_ruko ? 'X' : ' '} ] Ruko / Apartemen</li>
+                                  <li>[ ${p.ceklis_sarana !== false ? 'X' : ' '} ] Sarana pelengkap lainnya</li>
+                                ` : ''}
+                                ${assetCompBAP.hasPersonalProperty ? `
+                                  <li>[ X ] Mesin &amp; Peralatan Pabrik / Instalasi</li>
+                                  ${assetCompBAP.hasVehicle ? `<li>[ X ] Armada Kendaraan Bermotor</li>` : ''}
+                                  ${assetCompBAP.hasHeavyEquipment ? `<li>[ X ] Alat Berat / Heavy Equipment</li>` : ''}
+                                  ${assetCompBAP.hasInventory ? `<li>[ X ] Inventaris &amp; Perlengkapan Massal</li>` : ''}
+                                  ${!assetCompBAP.hasVehicle && !assetCompBAP.hasHeavyEquipment && !assetCompBAP.hasInventory ? `<li>[ X ] Peralatan / Inventaris Penunjang</li>` : ''}
+                                ` : `
+                                  <li>[ ${p.ceklis_mesin ? 'X' : ' '} ] Mesin Industri</li>
+                                  <li>[ ${p.ceklis_kendaraan ? 'X' : ' '} ] Kendaraan Bermotor</li>
+                                `}
+                                <li>- Objek : <strong>${listObjekLengkap.map(o => getObjekNamaDisplay(o)).join(', ')}</strong></li>
                               </ul>
                             </td>
                             <td class="align-top py-1">
                               <ul class="space-y-0.5">
-                                <li>[ ${p.dok_sertifikat !== false ? 'X' : ' '} ] Fotokopi sertifikat tanah / BPKB / Faktur</li>
-                                <li>[ ${p.dok_imb !== false ? 'X' : ' '} ] Fotokopi IMB / PBG / Dokumen Teknis</li>
-                                <li>[ ${p.dok_pbb !== false ? 'X' : ' '} ] Fotokopi PBB / Pajak Kendaraan / STNK</li>
-                                <li>[ ${p.dok_invoice || listObjekLengkap.some(o => o.jenis && (o.jenis.includes('Mesin') || o.jenis.includes('Kendaraan') || o.jenis.includes('Alat Berat'))) ? 'X' : ' '} ] Invoice / Purchase Order / Serial No</li>
-                                <li>[ ${p.dok_denah ? 'X' : ' '} ] Gambar Denah / Situasi Aset</li>
+                                ${assetCompBAP.hasRealProperty ? `
+                                  <li>[ ${p.dok_sertifikat !== false ? 'X' : ' '} ] Fotokopi Sertifikat Tanah (SHM/HGB/HPL/Girik)</li>
+                                  <li>[ ${p.dok_imb !== false ? 'X' : ' '} ] Fotokopi IMB / PBG &amp; Dokumen Teknis</li>
+                                  <li>[ ${p.dok_pbb !== false ? 'X' : ' '} ] Bukti Pelunasan PBB Tahun Terakhir</li>
+                                  <li>[ ${p.dok_denah ? 'X' : ' '} ] Gambar Denah / Situasi Aset</li>
+                                ` : ''}
+                                ${assetCompBAP.hasPersonalProperty ? `
+                                  <li>[ X ] List/Daftar Mesin (Fixed Asset Register/FAR / Inventaris)</li>
+                                  <li>[ X ] Faktur / Invoice / Purchase Order (PO)</li>
+                                  <li>[ X ] Salinan BPKB/STNK (Kendaraan Bermotor / Alat Berat)</li>
+                                  ${!assetCompBAP.hasRealProperty ? `<li>[ ${p.dok_denah ? 'X' : ' '} ] Layout Denah Penempatan Mesin (Plant Layout)</li>` : ''}
+                                ` : `
+                                  <li>[ ${p.dok_invoice ? 'X' : ' '} ] Invoice / Purchase Order / Serial No</li>
+                                  <li>[ ${p.dok_list ? 'X' : ' '} ] Daftar Inventaris</li>
+                                `}
                               </ul>
                             </td>
                           </tr>
