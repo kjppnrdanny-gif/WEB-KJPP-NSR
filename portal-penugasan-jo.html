@@ -19,14 +19,75 @@
     body { font-family: 'Inter', sans-serif; }
     .font-serif-doc { font-family: 'Playfair Display', Georgia, serif; }
 
-    /* Pengaturan Cetak Presisi Dokumen Resmi A4 (Print Engine) */
+    /* ====================================================================
+       STANDARISASI WADAH KERTAS A4 & PRATINJAU DOKUMEN RESMI (SCREEN VIEW)
+       ==================================================================== */
+    .preview-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .sheet-a4, .halaman-cetak, .doc-page {
+      width: 100%;
+      max-width: 794px; /* Standar fisik 210mm A4 @ 96 DPI: 793.7px */
+      min-height: 1123px; /* Standar fisik 297mm A4 @ 96 DPI: 1122.5px */
+      margin: 0 auto 30px auto;
+      padding: 15mm 20mm 20mm 20mm; /* Atas: 15mm, Kanan: 20mm, Bawah: 20mm, Kiri: 20mm */
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    /* Proporsi Kop Surat Resmi KJPP NSR Presisi Tinggi */
+    .kop-surat-resmi {
+      width: 100%;
+      margin: 0 0 15px 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .kop-surat-resmi-img, .kop-img-resmi {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      display: block !important;
+      margin: 0 0 15px 0 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* ====================================================================
+       KONFIGURASI CSS CETAK RESMI A4 (@media print)
+       ==================================================================== */
     @media print {
+      @page {
+        size: A4 portrait;
+        margin: 15mm 20mm 20mm 20mm; /* Atas Kanan Bawah Kiri */
+      }
+
+      body {
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      /* Sembunyikan navigasi portal dan tombol aksi saat dicetak */
+      .no-print, header, nav, #top-navbar, button, .btn-action, #container-tab-buttons, #section-tab-form, #section-tab-dashboard {
+        display: none !important;
+      }
+
       body * {
         visibility: hidden !important;
       }
+
       #print-master-container, #print-master-container * {
         visibility: visible !important;
       }
+
       #print-master-container {
         display: block !important;
         position: absolute !important;
@@ -38,27 +99,39 @@
         background: #ffffff !important;
         color: #000000 !important;
       }
-      .no-print {
-        display: none !important;
+
+      /* Hilangkan bayangan dan border container pratinjau */
+      .preview-container, .sheet-a4, .halaman-cetak, .doc-page {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+        background: transparent !important;
       }
-      .page-break {
+
+      .page-break, .sheet-a4.page-break, .doc-page.page-break {
         page-break-after: always !important;
         break-after: page !important;
       }
+
       .avoid-break {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
-      @page {
-        size: A4 portrait;
-        margin: 10mm 14mm 10mm 14mm;
-      }
-    }
 
-    /* Optimasi Cetak & Tampilan Kop Surat Berwarna Resmi KJPP NSR */
-    .kop-surat-resmi, .kop-img-resmi {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
+      /* Pastikan gambar kop tajam dan tidak mengecil */
+      .kop-surat-resmi-img, .kop-img-resmi {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        display: block !important;
+        margin: 0 0 15px 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
     }
 
     /* Styling Tanda Tangan & Tabel Dokumen */
@@ -852,7 +925,7 @@
 
       <!-- Container Visual Lembar Kerja Pratinjau (Screen View) -->
       <div class="bg-slate-800/60 p-4 sm:p-8 rounded-2xl border border-slate-800 flex justify-center overflow-x-auto shadow-inner">
-        <div id="preview-rendered-area" class="bg-white text-slate-900 w-full max-w-[820px] min-h-[1100px] p-6 sm:p-12 shadow-2xl rounded-sm">
+        <div id="preview-rendered-area" class="preview-container w-full max-w-[820px] flex flex-col items-center">
           <!-- Dokumen akan dirender oleh fungsi renderSemuaDokumen() -->
         </div>
       </div>
@@ -3706,17 +3779,17 @@
      */
     function renderKopSuratResmiNSR() {
       return `
-        <div class="kop-surat-resmi mb-4 select-none" style="-webkit-print-color-adjust: exact; print-color-adjust: exact;">
+        <div class="kop-surat-resmi select-none" style="width: 100%; margin-bottom: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
           <!-- 1. Grafis Kop Resmi Berwarna Resolusi Tinggi (Primary Banner) -->
           <img src="images/kop-surat-nsr.png" 
                alt="Kop Surat Resmi KJPP Nanang Rahayu Sigit Paryanto dan Rekan" 
-               class="kop-img-resmi w-full h-auto block select-none mb-1" 
-               style="max-height: 98px; width: 100%; object-fit: contain; object-position: center;"
+               class="kop-surat-resmi-img kop-img-resmi" 
+               style="width: 100% !important; max-width: 100% !important; height: auto !important; display: block !important; margin: 0 0 15px 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;" 
                onerror="this.style.display='none'; var fb = this.nextElementSibling; if(fb) fb.style.display='block';">
 
           <!-- 2. Fallback Komposisi Vektor Tipografi HTML/CSS Berwarna Presisi -->
-          <div class="kop-fallback-vector" style="display: none; font-family: Arial, Helvetica, sans-serif;">
-            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; gap: 12px;">
+          <div class="kop-fallback-vector" style="display: none; font-family: Arial, Helvetica, sans-serif; width: 100%; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; gap: 12px; width: 100%;">
               <!-- Sisi Kiri: Logo grafis 3D NSR + Tipografi Resmi -->
               <div style="display: flex; align-items: center; gap: 12px;">
                 <img src="logo-nsr.png" alt="Logo NSR" style="height: 52px; width: auto; object-fit: contain;" onerror="this.style.display='none';">
@@ -3741,7 +3814,7 @@
               </div>
             </div>
             <!-- Garis Pembatas Bawah dengan Teks Kapital 7pt & Double Underline Biru (#003399 / #004080) -->
-            <div style="border-top: 1.5px solid #003399; margin-top: 4px; padding-top: 2px; border-bottom: 2.5px solid #003399; padding-bottom: 2px; text-align: center;">
+            <div style="border-top: 1.5px solid #003399; margin-top: 4px; padding-top: 2px; border-bottom: 2.5px solid #003399; padding-bottom: 2px; text-align: center; width: 100%;">
               <p style="font-size: 7pt; color: #003399; font-weight: 700; margin: 0; letter-spacing: 0.2px; line-height: 1; text-transform: uppercase;">
                 LICENSED PUBLIC APPRAISERS &amp; CONSULTANTS, PROPERTY VALUATION, FEASIBILITY STUDY, PROJECT MONITORING, ASSET MANAGEMENT SYSTEM, HIGHEST &amp; BEST USE, MARKET STUDIES
               </p>
@@ -3831,36 +3904,34 @@
         `).join('');
 
         const dok1 = `
-          <div class="doc-page text-[11px] leading-relaxed text-slate-900 font-sans ${selDok === 'ALL' ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans ${selDok === 'ALL' ? 'page-break mb-12' : ''}">
             ${renderKopSuratResmiNSR()}
 
-            <!-- Baris Nomor & Tanggal (2 Kolom Sejajar) -->
-            <table class="w-full mb-3 text-[11px]">
-              <tr>
-                <td class="align-top" style="width: 60%;">
-                  <table class="doc-table-clean">
-                    <tr>
-                      <td class="w-16 font-bold">No.</td>
-                      <td class="w-3">:</td>
-                      <td class="font-mono font-bold">${p.nomor_lp}</td>
-                    </tr>
-                    <tr>
-                      <td class="font-bold">Lamp.</td>
-                      <td>:</td>
-                      <td>-</td>
-                    </tr>
-                    <tr>
-                      <td class="font-bold align-top">Hal</td>
-                      <td class="align-top">:</td>
-                      <td class="font-bold align-top">Lingkup Penugasan atas Penilaian Aset An. ${p.debitur_nama}</td>
-                    </tr>
-                  </table>
-                </td>
-                <td class="align-top text-right font-medium" style="width: 40%;">
-                  Jakarta, ${formatTanggalIndo(p.tanggal_surat)}
-                </td>
-              </tr>
-            </table>
+            <!-- Baris Nomor & Tanggal (2 Kolom Sejajar Presisi) -->
+            <div class="w-full flex justify-between items-start mb-3 text-[11px]">
+              <div class="flex-1 max-w-[65%]">
+                <table class="doc-table-clean">
+                  <tr>
+                    <td class="w-16 font-bold" style="min-width: 60px;">No.</td>
+                    <td class="w-3">:</td>
+                    <td class="font-mono font-bold">${p.nomor_lp}</td>
+                  </tr>
+                  <tr>
+                    <td class="w-16 font-bold" style="min-width: 60px;">Lamp.</td>
+                    <td class="w-3">:</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td class="w-16 font-bold align-top" style="min-width: 60px;">Hal</td>
+                    <td class="w-3 align-top">:</td>
+                    <td class="font-bold align-top">Lingkup Penugasan atas Penilaian Aset An. ${p.debitur_nama}</td>
+                  </tr>
+                </table>
+              </div>
+              <div class="text-right font-medium whitespace-nowrap pt-0.5">
+                Jakarta, ${formatTanggalIndo(p.tanggal_surat)}
+              </div>
+            </div>
 
             <!-- Tujuan Surat -->
             <div class="mb-4 pl-1 text-[11px]">
@@ -4339,7 +4410,7 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK2") {
         const dok2 = `
-          <div class="doc-page text-[11.5px] leading-relaxed text-slate-900 font-sans ${selDok === 'ALL' ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[11.5px] leading-relaxed text-slate-900 font-sans ${selDok === 'ALL' ? 'page-break mb-12' : ''}">
             <div class="text-right text-[11px] mb-6">
               <p>${p.pemberi_tugas_kota || 'Jakarta'}, ${formatTanggalIndo(p.tanggal_surat)}</p>
             </div>
@@ -4404,7 +4475,7 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3A") {
         const dok3A = `
-          <div class="doc-page text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
             <div class="text-center border-b-2 border-slate-900 pb-2 mb-3">
               <h2 class="font-bold text-xs uppercase tracking-wider">3A. LEMBAR ISIAN UMUM (ADMINISTRASI PENUGASAN)</h2>
               <p class="font-mono text-[10px] text-slate-600">No. Adm JO: <strong>${p.nomor_adm}</strong> &bull; No. SPK: <strong>${p.nomor_lp}</strong></p>
@@ -4600,7 +4671,7 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3B") {
         const dok3B = `
-          <div class="doc-page text-[11px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
             <div class="flex justify-between items-start border-b-2 border-slate-900 pb-2 mb-4">
               <div>
                 <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">FORM ORDER KJPP NSR TAHUN 2026</h2>
@@ -4697,7 +4768,7 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3C") {
         const dok3C = `
-          <div class="doc-page text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
             <div class="flex justify-between items-start border-b-2 border-slate-900 pb-2 mb-3">
               <div>
                 <h2 class="font-black text-sm uppercase tracking-wider text-slate-900">KARTU PROYEK</h2>
@@ -4848,7 +4919,7 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3D") {
         const dok3D = `
-          <div class="doc-page text-[11.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[11.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
             ${renderKopSuratResmiNSR()}
 
             <div class="text-center mb-5">
@@ -4927,7 +4998,7 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3E") {
         const dok3E = `
-          <div class="doc-page text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
             ${renderKopSuratResmiNSR()}
 
             <div class="text-center mb-3">
@@ -5080,7 +5151,7 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3F") {
         const dok3F = `
-          <div class="doc-page text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
+          <div class="doc-page sheet-a4 halaman-cetak text-[10.5px] leading-relaxed text-slate-900 font-sans ${(selDok === 'ALL' || selDok === 'DOK3') ? 'page-break mb-12' : ''}">
             ${renderKopSuratResmiNSR()}
 
             <div class="text-center mb-3">
@@ -5238,7 +5309,7 @@
       // ----------------------------------------------------
       if (selDok === "ALL" || selDok === "DOK3" || selDok === "DOK3G") {
         const dok3G = `
-          <div class="doc-page text-[11px] leading-relaxed text-slate-900 font-sans">
+          <div class="doc-page sheet-a4 halaman-cetak text-[11px] leading-relaxed text-slate-900 font-sans">
             ${renderKopSuratResmiNSR()}
 
             <div class="text-center mb-4">
