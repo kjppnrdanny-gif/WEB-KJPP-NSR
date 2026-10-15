@@ -1499,6 +1499,19 @@
         return;
       }
 
+      const btnAppr = document.getElementById('btn-konfirmasi-approval');
+      const labelAppr = btnAppr ? btnAppr.querySelector('span') : null;
+      const origApprText = labelAppr ? labelAppr.textContent : 'Setujui & Terbitkan Nomor';
+
+      if (btnAppr && btnAppr.dataset.submitting === 'true') {
+        return;
+      }
+      if (btnAppr) {
+        btnAppr.dataset.submitting = 'true';
+        btnAppr.disabled = true;
+        if (labelAppr) labelAppr.textContent = 'Menerbitkan Nomor...';
+      }
+
       const finalLp = document.getElementById('appr-nomor-lp').value.trim();
       const finalAdm = document.getElementById('appr-nomor-adm').value.trim();
       const finalJenis = document.getElementById('appr-jenis-laporan').value;
@@ -1510,7 +1523,15 @@
       const currentMax = parseInt(document.getElementById('helper-last-seq')?.textContent?.replace(/\D/g, '') || '415', 10);
       if (inputSeq > currentMax + 20) {
         const proceed = confirm(`⚠️ Konfirmasi Lompatan Nomor Approval:\n\nNomor urut yang Anda terbitkan (${inputSeq}) melompat ${inputSeq - currentMax} angka di atas nomor terakhir (${currentMax}).\n\nApakah Anda yakin ingin menerbitkan nomor ini?`);
-        if (!proceed) return;
+        if (!proceed) {
+          if (btnAppr) {
+            delete btnAppr.dataset.submitting;
+            btnAppr.disabled = false;
+            if (labelAppr) labelAppr.textContent = origApprText;
+            validasiApprovalDuplikatLive();
+          }
+          return;
+        }
       }
 
       p.nomor_lp = finalLp;
@@ -1539,6 +1560,12 @@
       // Kirim approval ke GAS
       kirimDataKeGasServer('APPROVE_SUBMISSION', p);
 
+      if (btnAppr) {
+        delete btnAppr.dataset.submitting;
+        btnAppr.disabled = false;
+        if (labelAppr) labelAppr.textContent = origApprText;
+      }
+
       alert(`Nomor Resmi Berhasil Diterbitkan!\n\n• No. Lingkup Penugasan (SPK): ${p.nomor_lp}\n• No. Adm JO: ${p.nomor_adm}\n• Status: APPROVED`);
     }
 
@@ -1558,18 +1585,19 @@
       FORMAT_PI: "AKTIF"
     };
 
-    // 44 KOLOM RESMI SHEET Data_Penugasan
+    // 53 KOLOM RESMI SHEET Data_Penugasan
     const HEADERS_DATA_PENUGASAN = [
       'ID_Penugasan', 'Timestamp_Input', 'Status_Approval', 'Kantor_Wilayah', 'Mode_Pengaju',
-      'No_Adm_JO', 'No_Lingkup_Penugasan', 'Tgl_Dibuat', 'No_Surat_Klien', 'Tgl_Surat_Klien',
+      'No_Adm_JO', 'No_Lingkup_Penugasan', 'Jenis_Laporan', 'Tgl_Dibuat', 'No_Surat_Klien', 'Tgl_Surat_Klien',
       'Masa_Berlaku_LP', 'Rekan_Penilai_Publik', 'No_Izin_Publik_Rekan', 'Reviewer', 'Penilai',
       'Asisten_Surveyor', 'Surveyor_Pendamping_HP', 'Nama_Pemberi_Tugas', 'Bidang_Usaha_Klien',
       'NPWP_Klien', 'PIC_Klien', 'Jabatan_PIC', 'Telp_PIC', 'Email_PIC', 'Alamat_Pemberi_Tugas',
       'Pengguna_Laporan_A', 'Pengguna_Laporan_B', 'Nama_Debitur_Utama', 'Nama_Pemilik_Sertipikat',
       'Hubungan_Pemilik_Sertipikat', 'Rincian_Objek_JSON', 'Tujuan_Penilaian', 'Dasar_Nilai',
-      'Pendekatan_Penilaian', 'Tgl_Survey', 'Rincian_Hari_Kerja', 'Marketing_Sumber_Proyek',
+      'Pendekatan_Penilaian', 'Mata_Uang', 'Tgl_Penilaian', 'Tgl_Survey', 'Survey_Hari',
+      'SLA_Inspeksi', 'SLA_Analisa', 'SLA_Final', 'SLA_Total', 'Marketing_Sumber_Proyek',
       'Biaya_Net_DPP', 'PPN_11_Persen', 'Total_Biaya_All_In', 'Terbilang_Biaya',
-      'Tgl_Approval_Pusat', 'Disetujui_Oleh', 'Folder_Drive_URL'
+      'Cara_Pembayaran', 'Rekening_Resmi', 'Tgl_Approval_Pusat', 'Disetujui_Oleh', 'Folder_Drive_URL'
     ];
 
     // ==========================================================
@@ -1753,14 +1781,18 @@
     ];
 
     // ==========================================================
-    // 4. MAPPING BIDIRECTIONAL 44 KOLOM GOOGLE SPREADSHEET
+    // 4. MAPPING BIDIRECTIONAL 53 KOLOM GOOGLE SPREADSHEET
     // ==========================================================
     function mapSheetRowToProject(r) {
       if (!r) return null;
       
-      // SLA parse "2|3|2|7"
-      let slaIns = 1, slaAna = 2, slaFin = 2, slaTot = 5;
-      if (r.Rincian_Hari_Kerja) {
+      // SLA parse (either direct SLA columns or from Rincian_Hari_Kerja)
+      let slaIns = parseInt(r.SLA_Inspeksi, 10) || 1;
+      let slaAna = parseInt(r.SLA_Analisa, 10) || 2;
+      let slaFin = parseInt(r.SLA_Final, 10) || 2;
+      let slaTot = parseInt(r.SLA_Total, 10) || (slaIns + slaAna + slaFin);
+
+      if (r.Rincian_Hari_Kerja && (!r.SLA_Inspeksi || isNaN(parseInt(r.SLA_Inspeksi, 10)))) {
         const parts = String(r.Rincian_Hari_Kerja).split('|');
         if (parts.length >= 4) {
           slaIns = parseInt(parts[0], 10) || 1;
@@ -1806,12 +1838,19 @@
         status: r.Status_Approval || 'WAITING_APPROVAL',
         nomor_adm: noAdmDisplay,
         nomor_lp: r.No_Lingkup_Penugasan || 'Menunggu Otorisasi Pusat',
+        jenis_laporan: r.Jenis_Laporan || ((r.No_Lingkup_Penugasan && String(r.No_Lingkup_Penugasan).includes('PN-RTL')) ? 'RTL' : 'APP'),
         kantor_wilayah: r.Kantor_Wilayah || 'Kantor Pusat Jakarta',
         mode_pengaju: r.Mode_Pengaju || 'PUSAT',
         tanggal_surat: normDate(r.Tgl_Dibuat) || normDate(r.Timestamp_Input),
         rujukan_surat_nomor: r.No_Surat_Klien || '',
         rujukan_surat_tanggal: normDate(r.Tgl_Surat_Klien) || normDate(r.Tgl_Dibuat),
         masa_berlaku_lp: normDate(r.Masa_Berlaku_LP),
+        rekan_nama: r.Rekan_Penilai_Publik || 'Deni Siswandi, S.T, MAPPI (Cert.)',
+        rekan_izin: r.No_Izin_Publik_Rekan || 'P-1.20.00581',
+        reviewer_nama: r.Reviewer || 'Angga Malid Cahyadi',
+        penilai_nama: r.Penilai || 'Tedi Setiadi',
+        asisten_nama: r.Asisten_Surveyor || 'Yasir Rizal',
+        surveyor_pendamping: r.Surveyor_Pendamping_HP || '',
         pemberi_tugas_nama: r.Nama_Pemberi_Tugas || '',
         bidang_usaha_klien: r.Bidang_Usaha_Klien || 'Perbankan',
         pemberi_tugas_pic: r.PIC_Klien || '',
@@ -1829,18 +1868,10 @@
         tujuan_penilaian: r.Tujuan_Penilaian || 'Penjaminan Utang / Agunan Kredit',
         dasar_nilai: r.Dasar_Nilai || 'Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)',
         pendekatan_penilaian: r.Pendekatan_Penilaian || 'Pendekatan Pasar dan Pendekatan Biaya',
-        mata_uang: 'Rupiah (IDR)',
-        tanggal_penilaian: normDate(r.Tgl_Dibuat),
-        sumber_proyek: r.Marketing_Sumber_Proyek || '',
-        marketing_nama: r.Marketing_Sumber_Proyek || '',
-        rekan_nama: r.Rekan_Penilai_Publik || 'Deni Siswandi, S.T, MAPPI (Cert.)',
-        rekan_izin: r.No_Izin_Publik_Rekan || 'P-1.20.00581',
-        reviewer_nama: r.Reviewer || 'Angga Malid Cahyadi',
-        penilai_nama: r.Penilai || 'Tedi Setiadi',
-        asisten_nama: r.Asisten_Surveyor || 'Yasir Rizal',
-        surveyor_pendamping: r.Surveyor_Pendamping_HP || '',
-        survey_hari: getNamaHari(normDate(r.Tgl_Survey)),
+        mata_uang: r.Mata_Uang || 'Rupiah (IDR)',
+        tanggal_penilaian: normDate(r.Tgl_Penilaian || r.Tgl_Dibuat),
         survey_tanggal: normDate(r.Tgl_Survey),
+        survey_hari: r.Survey_Hari || getNamaHari(normDate(r.Tgl_Survey)),
         sla_inspeksi: slaIns,
         sla_analisa: slaAna,
         sla_final: slaFin,
@@ -1857,12 +1888,14 @@
         dok_denah: true,
         dok_invoice: false,
         dok_list: false,
+        sumber_proyek: r.Marketing_Sumber_Proyek || '',
+        marketing_nama: r.Marketing_Sumber_Proyek || '',
         biaya_dpp: Number(r.Biaya_Net_DPP || 0),
         biaya_ppn: Number(r.PPN_11_Persen || 0),
         biaya_total: totalBiaya,
         terbilang: r.Terbilang_Biaya || angkaTerbilang(totalBiaya),
-        cara_pembayaran: "Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.",
-        rekening_resmi: "Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan",
+        cara_pembayaran: r.Cara_Pembayaran || "Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.",
+        rekening_resmi: r.Rekening_Resmi || "Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan",
         objek_list: objekList,
         approved_at: normDate(r.Tgl_Approval_Pusat),
         disetujui_oleh: r.Disetujui_Oleh || '',
@@ -1893,6 +1926,7 @@
         Mode_Pengaju: modeActor,
         No_Adm_JO: noAdmRaw,
         No_Lingkup_Penugasan: p.nomor_lp,
+        Jenis_Laporan: p.jenis_laporan || ((p.nomor_lp && p.nomor_lp.includes('PN-RTL')) ? 'RTL' : 'APP'),
         Tgl_Dibuat: p.tanggal_surat,
         No_Surat_Klien: p.rujukan_surat_nomor || '-',
         Tgl_Surat_Klien: p.rujukan_surat_tanggal || p.tanggal_surat,
@@ -1920,24 +1954,34 @@
         Tujuan_Penilaian: p.tujuan_penilaian,
         Dasar_Nilai: p.dasar_nilai,
         Pendekatan_Penilaian: p.pendekatan_penilaian,
+        Mata_Uang: p.mata_uang || 'Rupiah (IDR)',
+        Tgl_Penilaian: p.tanggal_penilaian || p.tanggal_surat,
         Tgl_Survey: p.survey_tanggal || p.tanggal_surat,
-        Rincian_Hari_Kerja: rincianHari,
+        Survey_Hari: p.survey_hari || getNamaHari(p.survey_tanggal || p.tanggal_surat),
+        SLA_Inspeksi: parseInt(p.sla_inspeksi, 10) || 1,
+        SLA_Analisa: parseInt(p.sla_analisa, 10) || 2,
+        SLA_Final: parseInt(p.sla_final, 10) || 2,
+        SLA_Total: parseInt(p.sla_total, 10) || 5,
         Marketing_Sumber_Proyek: p.marketing_nama || p.sumber_proyek || 'Divisi Marketing',
         Biaya_Net_DPP: Number(p.biaya_dpp || 0),
         PPN_11_Persen: Number(p.biaya_ppn || 0),
         Total_Biaya_All_In: Number(p.biaya_total || 0),
         Terbilang_Biaya: p.terbilang || angkaTerbilang(p.biaya_total || 0),
+        Cara_Pembayaran: p.cara_pembayaran || 'Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.',
+        Rekening_Resmi: p.rekening_resmi || 'Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan',
         Tgl_Approval_Pusat: p.status === 'APPROVED' ? (p.approved_at || new Date().toISOString()) : '-',
         Disetujui_Oleh: p.status === 'APPROVED' ? (p.disetujui_oleh || `Admin Pusat (${tokenActor})`) : '-',
         Folder_Drive_URL: p.folder_drive_url || '-',
 
-        // Kompatibilitas Nomenklatur Endpoint GAS (camelCase)
+        // Kompatibilitas Nomenklatur Endpoint GAS (camelCase) & Legacy
+        Rincian_Hari_Kerja: rincianHari,
         idPenugasan: p.id,
         statusApproval: p.status,
         kantorWilayah: p.kantor_wilayah,
         modePengaju: modeActor,
         noAdmJO: noAdmRaw,
         noLingkupPenugasan: p.nomor_lp,
+        jenisLaporan: p.jenis_laporan,
         tglDibuat: p.tanggal_surat,
         noSuratKlien: p.rujukan_surat_nomor || '-',
         tglSuratKlien: p.rujukan_surat_tanggal || p.tanggal_surat,
@@ -3092,6 +3136,20 @@
         return;
       }
 
+      const btnSubmit = document.getElementById('btn-submit-form');
+      const labelSubmit = document.getElementById('label-btn-submit');
+      const origSubmitText = labelSubmit ? labelSubmit.textContent : 'Simpan & Proses Pengajuan';
+
+      // Proteksi Double-Submit: cegah penekanan ganda tombol saat submit
+      if (btnSubmit && btnSubmit.dataset.submitting === 'true') {
+        return;
+      }
+      if (btnSubmit) {
+        btnSubmit.dataset.submitting = 'true';
+        btnSubmit.disabled = true;
+        if (labelSubmit) labelSubmit.textContent = 'Menyimpan...';
+      }
+
       const tglStr = document.getElementById('tanggal_surat').value;
       const d = new Date(tglStr);
       const romawi = getBulanRomawi(d);
@@ -3140,7 +3198,15 @@
         const currentMax = parseInt(document.getElementById('helper-last-seq')?.textContent?.replace(/\D/g, '') || '415', 10);
         if (usedSeq > currentMax + 20) {
           const proceed = confirm(`⚠️ Konfirmasi Lompatan Nomor:\n\nNomor urut (${usedSeq}) melompat ${usedSeq - currentMax} angka di atas nomor terakhir (${currentMax}).\n\nLanjutkan penyimpanan dengan nomor ini?`);
-          if (!proceed) return;
+          if (!proceed) {
+            if (btnSubmit) {
+              delete btnSubmit.dataset.submitting;
+              btnSubmit.disabled = false;
+              if (labelSubmit) labelSubmit.textContent = origSubmitText;
+              validasiDuplikatLive();
+            }
+            return;
+          }
         }
 
         const usedNumPad = usedSeq.toString().padStart(4, '0');
@@ -3274,6 +3340,13 @@
         activeProjectData = newProject;
         renderDashboardTabel();
 
+        if (btnSubmit) {
+          delete btnSubmit.dataset.submitting;
+          btnSubmit.disabled = false;
+          if (labelSubmit) labelSubmit.textContent = origSubmitText;
+          validasiDuplikatLive();
+        }
+
         if (userSession.role === 'ADMIN_CABANG') {
           alert(`Sukses! Data penugasan disimpan secara PRIVAT MANDIRI CABANG (100% Zero-Cloud):\n\n• ID: ${projectId}\n• No. SPK: ${noLp}\n• No. Adm JO: ${noAdm}\n\nStatus: APPROVED (🔒 MANDIRI CABANG).\nDokumen Anda langsung siap dicetak tanpa menunggu server pusat.`);
           pindahTab('preview');
@@ -3291,6 +3364,13 @@
 
       // Kirim sinkronisasi otomatis ke Google Spreadsheet
       kirimDataKeGasServer('CREATE_SUBMISSION', newProject);
+
+      if (btnSubmit) {
+        delete btnSubmit.dataset.submitting;
+        btnSubmit.disabled = false;
+        if (labelSubmit) labelSubmit.textContent = origSubmitText;
+        validasiDuplikatLive();
+      }
 
       if (isApproved) {
         alert("Sukses! Data penugasan berhasil disimpan dan nomor resmi langsung diterbitkan:\n\n• ID Penugasan: " + projectId + "\n• No. SPK: " + noLp + "\n• No. Adm JO: " + noAdm);

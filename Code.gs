@@ -25,6 +25,9 @@ const CONFIG = {
   // Web App Endpoint URL Resmi Google Apps Script
   WEB_APP_URL: GAS_WEB_APP_URL,
 
+  // ID Master Spreadsheet DB_PENUGASAN_JO_NSR Resmi KJPP NSR
+  SPREADSHEET_ID: '1VJW4nrzc1884kxepxZ2p8zNUcHrCWEqodQQcjeXXg_g',
+
   // Nama Sheet di Google Spreadsheet DB_PENUGASAN_JO_NSR
   SHEET_DATA: 'Data_Penugasan',
   SHEET_COUNTER: 'Config_Counter',
@@ -88,7 +91,7 @@ const CONFIG = {
   DRIVE_ROOT_FOLDER_NAME: 'KJPP NSR - Arsip Digital Penugasan & JO'
 };
 
-// 44 KOLOM RESMI SHEET Data_Penugasan
+// 53 KOLOM RESMI SHEET Data_Penugasan
 const HEADERS_DATA_PENUGASAN = [
   'ID_Penugasan',
   'Timestamp_Input',
@@ -97,6 +100,7 @@ const HEADERS_DATA_PENUGASAN = [
   'Mode_Pengaju',
   'No_Adm_JO',
   'No_Lingkup_Penugasan',
+  'Jenis_Laporan',
   'Tgl_Dibuat',
   'No_Surat_Klien',
   'Tgl_Surat_Klien',
@@ -124,13 +128,21 @@ const HEADERS_DATA_PENUGASAN = [
   'Tujuan_Penilaian',
   'Dasar_Nilai',
   'Pendekatan_Penilaian',
+  'Mata_Uang',
+  'Tgl_Penilaian',
   'Tgl_Survey',
-  'Rincian_Hari_Kerja',
+  'Survey_Hari',
+  'SLA_Inspeksi',
+  'SLA_Analisa',
+  'SLA_Final',
+  'SLA_Total',
   'Marketing_Sumber_Proyek',
   'Biaya_Net_DPP',
   'PPN_11_Persen',
   'Total_Biaya_All_In',
   'Terbilang_Biaya',
+  'Cara_Pembayaran',
+  'Rekening_Resmi',
   'Tgl_Approval_Pusat',
   'Disetujui_Oleh',
   'Folder_Drive_URL'
@@ -162,7 +174,7 @@ function doGet(e) {
 
     // Routing khusus modul Buku Agenda Surat Umum (SU) via GET
     if (params.action === 'GET_SURAT_UMUM_LIST') {
-      const ss = SpreadsheetApp.getActiveSpreadsheet() || inisialisasiSpreadsheetBaru();
+      const ss = getMasterSpreadsheet();
       const targetYear = parseInt(params.target_year || params.targetYear, 10) || new Date().getFullYear() || 2026;
       const resSU = bacaDaftarSuratUmum(ss, targetYear);
       return respondJSON(resSU);
@@ -189,7 +201,7 @@ function doGet(e) {
       return respondJSON(cachedPayload);
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet() || inisialisasiSpreadsheetBaru();
+    const ss = getMasterSpreadsheet();
     
     // Jika forceRefresh aktif, sinkronkan counter ke data riil Data_Penugasan
     if (forceRefresh) {
@@ -209,7 +221,7 @@ function doGet(e) {
 
     if (sheetData && sheetData.getLastRow() > 1) {
       const numRows = sheetData.getLastRow() - 1;
-      const numCols = Math.min(sheetData.getLastColumn(), HEADERS_DATA_PENUGASAN.length);
+      const numCols = sheetData.getLastColumn();
       const rows = sheetData.getRange(2, 1, numRows, numCols).getValues();
       const headers = sheetData.getRange(1, 1, 1, numCols).getValues()[0];
 
@@ -258,9 +270,9 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   
   try {
-    // 1. Tunggu script lock hingga maksimal 15 detik sebelum membaca data dan mengecek duplikasi
+    // 1. Concurrency guard LockService hingga 20 detik sebelum transaksi data dieksekusi
     try {
-      lock.waitLock(15000);
+      lock.waitLock(20000);
     } catch (lockErr) {
       return respondJSON({
         status: 'error',
@@ -295,7 +307,7 @@ function doPost(e) {
       }, 401);
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet() || inisialisasiSpreadsheetBaru();
+    const ss = getMasterSpreadsheet();
     let result = {};
 
     // 4. Routing Action
@@ -456,26 +468,37 @@ function cekDuplikasiBackend(sheetData, noLp, noAdm, currentProjectId, targetYea
   const seqAdm = extractSeq(strAdm);
 
   const numRows = sheetData.getLastRow() - 1;
-  const numCols = Math.min(sheetData.getLastColumn(), 44);
+  const numCols = sheetData.getLastColumn();
+  const headers = sheetData.getRange(1, 1, 1, numCols).getValues()[0].map(h => String(h).trim());
+
+  const idxId = headers.indexOf('ID_Penugasan') !== -1 ? headers.indexOf('ID_Penugasan') : 0;
+  const idxStatus = headers.indexOf('Status_Approval') !== -1 ? headers.indexOf('Status_Approval') : 2;
+  const idxMode = headers.indexOf('Mode_Pengaju') !== -1 ? headers.indexOf('Mode_Pengaju') : 4;
+  const idxAdm = headers.indexOf('No_Adm_JO') !== -1 ? headers.indexOf('No_Adm_JO') : 5;
+  const idxLp = headers.indexOf('No_Lingkup_Penugasan') !== -1 ? headers.indexOf('No_Lingkup_Penugasan') : 6;
+  const idxDebitur = headers.indexOf('Nama_Debitur_Utama') !== -1 ? headers.indexOf('Nama_Debitur_Utama') : 28;
+  const idxTgl = headers.indexOf('Tgl_Dibuat') !== -1 ? headers.indexOf('Tgl_Dibuat') : 8;
+  const idxTs = headers.indexOf('Timestamp_Input') !== -1 ? headers.indexOf('Timestamp_Input') : 1;
+
   const data = sheetData.getRange(2, 1, numRows, numCols).getValues();
 
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
-    const rowId = String(row[0] || '').trim();
+    const rowId = String(row[idxId] || '').trim();
     if (currentProjectId && rowId === String(currentProjectId).trim()) {
       continue;
     }
 
-    const rowStatus = String(row[2] || '').trim().toUpperCase();
-    const rowMode = String(row[4] || '').trim().toUpperCase();
+    const rowStatus = String(row[idxStatus] || '').trim().toUpperCase();
+    const rowMode = String(row[idxMode] || '').trim().toUpperCase();
     if (rowStatus !== 'APPROVED' && rowMode !== 'PUSAT') {
       continue;
     }
 
-    const rowAdm = String(row[5] || '').trim().toUpperCase();
-    const rowLp = String(row[6] || '').trim().toUpperCase();
-    const rowDebitur = String(row[27] || row[17] || 'Debitur Terdaftar').trim();
-    const rowTgl = new Date(row[7] || row[1] || new Date());
+    const rowAdm = String(row[idxAdm] || '').trim().toUpperCase();
+    const rowLp = String(row[idxLp] || '').trim().toUpperCase();
+    const rowDebitur = String(row[idxDebitur] || 'Debitur Terdaftar').trim();
+    const rowTgl = new Date(row[idxTgl] || row[idxTs] || new Date());
     const rowYear = rowTgl.getFullYear() || 2026;
 
     if (targetYear && rowYear !== targetYear) {
@@ -537,24 +560,34 @@ function rekalkulasiCounterMax(ss, targetYear) {
 
   if (sheetData.getLastRow() >= 2) {
     const numRows = sheetData.getLastRow() - 1;
-    const numCols = Math.min(sheetData.getLastColumn(), 44);
+    const numCols = sheetData.getLastColumn();
+    const headers = sheetData.getRange(1, 1, 1, numCols).getValues()[0].map(h => String(h).trim());
+
+    const idxId = headers.indexOf('ID_Penugasan') !== -1 ? headers.indexOf('ID_Penugasan') : 0;
+    const idxStatus = headers.indexOf('Status_Approval') !== -1 ? headers.indexOf('Status_Approval') : 2;
+    const idxMode = headers.indexOf('Mode_Pengaju') !== -1 ? headers.indexOf('Mode_Pengaju') : 4;
+    const idxAdm = headers.indexOf('No_Adm_JO') !== -1 ? headers.indexOf('No_Adm_JO') : 5;
+    const idxLp = headers.indexOf('No_Lingkup_Penugasan') !== -1 ? headers.indexOf('No_Lingkup_Penugasan') : 6;
+    const idxTgl = headers.indexOf('Tgl_Dibuat') !== -1 ? headers.indexOf('Tgl_Dibuat') : 8;
+    const idxTs = headers.indexOf('Timestamp_Input') !== -1 ? headers.indexOf('Timestamp_Input') : 1;
+
     const data = sheetData.getRange(2, 1, numRows, numCols).getValues();
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      const rowStatus = String(row[2] || '').trim().toUpperCase();
-      const rowMode = String(row[4] || '').trim().toUpperCase();
+      const rowStatus = String(row[idxStatus] || '').trim().toUpperCase();
+      const rowMode = String(row[idxMode] || '').trim().toUpperCase();
       
       // Hanya hitung baris yang APPROVED atau penugasan langsung PUSAT
       if (rowStatus !== 'APPROVED' && rowMode !== 'PUSAT') continue;
 
-      const rowTgl = new Date(row[7] || row[1] || new Date());
+      const rowTgl = new Date(row[idxTgl] || row[idxTs] || new Date());
       const rowYear = rowTgl.getFullYear() || yr;
       if (rowYear !== yr) continue;
 
-      const seqAdm = extractSeq(row[5]); // Col 6: No_Adm_JO
-      const seqLp = extractSeq(row[6]);  // Col 7: No_Lingkup_Penugasan
-      const seqId = extractSeq(row[0]);  // Col 1: ID_Penugasan
+      const seqAdm = extractSeq(row[idxAdm]);
+      const seqLp = extractSeq(row[idxLp]);
+      const seqId = extractSeq(row[idxId]);
 
       if (seqAdm > trueMax && seqAdm < 50000) trueMax = seqAdm;
       if (seqLp > trueMax && seqLp < 50000) trueMax = seqLp;
@@ -691,7 +724,7 @@ function prosesPengajuanBaru(ss, data, auth) {
     rincianHari = `${i}|${a}|${f}|${t}`;
   }
 
-  // Mapping 44 kolom persis sesuai HEADERS_DATA_PENUGASAN
+  // Mapping 53 kolom persis sesuai HEADERS_DATA_PENUGASAN
   const rowMap = {
     'ID_Penugasan': projectId,
     'Timestamp_Input': now.toISOString(),
@@ -700,6 +733,7 @@ function prosesPengajuanBaru(ss, data, auth) {
     'Mode_Pengaju': auth.mode,
     'No_Adm_JO': noAdm,
     'No_Lingkup_Penugasan': noLp,
+    'Jenis_Laporan': jenisLap || (kodeLap === 'PN-RTL' ? 'RTL' : 'APP'),
     'Tgl_Dibuat': data.Tgl_Dibuat || data.tanggal_surat || now.toISOString().split('T')[0],
     'No_Surat_Klien': data.No_Surat_Klien || data.rujukan_surat_nomor || '-',
     'Tgl_Surat_Klien': data.Tgl_Surat_Klien || data.rujukan_surat_tanggal || data.Tgl_Dibuat || now.toISOString().split('T')[0],
@@ -727,16 +761,26 @@ function prosesPengajuanBaru(ss, data, auth) {
     'Tujuan_Penilaian': data.Tujuan_Penilaian || data.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit',
     'Dasar_Nilai': data.Dasar_Nilai || data.dasar_nilai || 'Nilai Pasar (SPI 101) & Indikasi Nilai Likuidasi (SPI 202)',
     'Pendekatan_Penilaian': data.Pendekatan_Penilaian || data.pendekatan_penilaian || 'Pendekatan Pasar dan Pendekatan Biaya',
+    'Mata_Uang': data.Mata_Uang || data.mata_uang || 'Rupiah (IDR)',
+    'Tgl_Penilaian': data.Tgl_Penilaian || data.tanggal_penilaian || data.Tgl_Dibuat || now.toISOString().split('T')[0],
     'Tgl_Survey': data.Tgl_Survey || data.survey_tanggal || now.toISOString().split('T')[0],
-    'Rincian_Hari_Kerja': rincianHari,
+    'Survey_Hari': data.Survey_Hari || data.survey_hari || 'Kamis',
+    'SLA_Inspeksi': Number(data.SLA_Inspeksi || data.sla_inspeksi || 1),
+    'SLA_Analisa': Number(data.SLA_Analisa || data.sla_analisa || 2),
+    'SLA_Final': Number(data.SLA_Final || data.sla_final || 2),
+    'SLA_Total': Number(data.SLA_Total || data.sla_total || 5),
     'Marketing_Sumber_Proyek': data.Marketing_Sumber_Proyek || data.marketing_nama || 'Divisi Marketing',
     'Biaya_Net_DPP': Number(data.Biaya_Net_DPP || data.biaya_dpp || 0),
     'PPN_11_Persen': Number(data.PPN_11_Persen || data.biaya_ppn || 0),
     'Total_Biaya_All_In': Number(data.Total_Biaya_All_In || data.biaya_total || 0),
     'Terbilang_Biaya': data.Terbilang_Biaya || data.terbilang || angkaTerbilang(data.Total_Biaya_All_In || data.biaya_total || 0),
+    'Cara_Pembayaran': data.Cara_Pembayaran || data.cara_pembayaran || 'Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.',
+    'Rekening_Resmi': data.Rekening_Resmi || data.rekening_resmi || 'Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan',
     'Tgl_Approval_Pusat': isPusat ? now.toISOString() : '-',
     'Disetujui_Oleh': isPusat ? `Admin Pusat (${auth.token})` : '-',
-    'Folder_Drive_URL': data.Folder_Drive_URL || data.folder_drive_url || '-'
+    'Folder_Drive_URL': data.Folder_Drive_URL || data.folder_drive_url || '-',
+    // Legacy fallback
+    'Rincian_Hari_Kerja': rincianHari
   };
 
   const rowValues = HEADERS_DATA_PENUGASAN.map(h => rowMap[h] !== undefined ? rowMap[h] : '');
@@ -814,17 +858,21 @@ function prosesApprovalPusat(ss, projectId, incomingData, auth) {
 
   const nowIso = new Date().toISOString();
 
-  // Update kolom di baris (1-indexed)
-  // Col 3: Status_Approval
-  // Col 6: No_Adm_JO
-  // Col 7: No_Lingkup_Penugasan
-  // Col 42: Tgl_Approval_Pusat
-  // Col 43: Disetujui_Oleh
-  sheetData.getRange(rowIndex, 3).setValue('APPROVED');
-  sheetData.getRange(rowIndex, 6).setValue(noAdm);
-  sheetData.getRange(rowIndex, 7).setValue(noLp);
-  sheetData.getRange(rowIndex, 42).setValue(nowIso);
-  sheetData.getRange(rowIndex, 43).setValue(`Admin Pusat (${auth.token})`);
+  // Update kolom di baris (1-indexed) secara dinamis sesuai header sheet
+  const headers = sheetData.getRange(1, 1, 1, sheetData.getLastColumn()).getValues()[0].map(h => String(h).trim());
+  const colStatus = headers.indexOf('Status_Approval') + 1;
+  const colAdm = headers.indexOf('No_Adm_JO') + 1;
+  const colLp = headers.indexOf('No_Lingkup_Penugasan') + 1;
+  const colJenis = headers.indexOf('Jenis_Laporan') + 1;
+  const colTglAppr = headers.indexOf('Tgl_Approval_Pusat') + 1;
+  const colDisetujui = headers.indexOf('Disetujui_Oleh') + 1;
+
+  if (colStatus > 0) sheetData.getRange(rowIndex, colStatus).setValue('APPROVED');
+  if (colAdm > 0) sheetData.getRange(rowIndex, colAdm).setValue(noAdm);
+  if (colLp > 0) sheetData.getRange(rowIndex, colLp).setValue(noLp);
+  if (colJenis > 0 && (jenisLap || kodeLap)) sheetData.getRange(rowIndex, colJenis).setValue(jenisLap || (kodeLap === 'PN-RTL' ? 'RTL' : 'APP'));
+  if (colTglAppr > 0) sheetData.getRange(rowIndex, colTglAppr).setValue(nowIso);
+  if (colDisetujui > 0) sheetData.getRange(rowIndex, colDisetujui).setValue(`Admin Pusat (${auth.token})`);
 
   // Perbarui counter jika nomor lebih besar
   const usedSeq = extractSeq(noAdm) || extractSeq(noLp);
@@ -988,12 +1036,14 @@ function bacaSemuaSubmissions(ss) {
   const sheetData = ss.getSheetByName(CONFIG.SHEET_DATA) || ss.getSheetByName('Database_Penugasan');
   if (!sheetData || sheetData.getLastRow() < 2) return [];
 
-  const rows = sheetData.getRange(2, 1, sheetData.getLastRow() - 1, HEADERS_DATA_PENUGASAN.length).getValues();
+  const numCols = sheetData.getLastColumn();
+  const headers = sheetData.getRange(1, 1, 1, numCols).getValues()[0].map(h => String(h).trim());
+  const rows = sheetData.getRange(2, 1, sheetData.getLastRow() - 1, numCols).getValues();
   const list = [];
   for (let i = 0; i < rows.length; i++) {
     const item = {};
-    for (let j = 0; j < HEADERS_DATA_PENUGASAN.length; j++) {
-      item[HEADERS_DATA_PENUGASAN[j]] = rows[i][j];
+    for (let j = 0; j < headers.length; j++) {
+      item[headers[j]] = rows[i][j];
     }
     list.push(item);
   }
@@ -1004,7 +1054,7 @@ function bacaSemuaSubmissions(ss) {
 // 5. OTOMASI EKSPOR DOKUMEN GOOGLE DRIVE (DOCS & PDF)
 // -----------------------------------------------------------------------------------------
 function prosesGenerateDokumenDrive(projectId, docTypes) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet() || inisialisasiSpreadsheetBaru();
+  const ss = getMasterSpreadsheet();
   const sheetDb = ss.getSheetByName(CONFIG.SHEET_DATA) || ss.getSheetByName('Database_Penugasan');
   const data = sheetDb.getDataRange().getValues();
   const headers = data[0];
@@ -1164,13 +1214,42 @@ function verifikasiAksesToken(token) {
   return { valid: false };
 }
 
+/**
+ * Standarisasi pengambilan instance Master Spreadsheet DB_PENUGASAN_JO_NSR
+ * Membuka langsung via CONFIG.SPREADSHEET_ID dengan fallback aman ke getActiveSpreadsheet()
+ */
+function getMasterSpreadsheet() {
+  if (CONFIG.SPREADSHEET_ID) {
+    try {
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      if (ss) return ss;
+    } catch (e) {
+      console.warn('Gagal membuka spreadsheet via openById(' + CONFIG.SPREADSHEET_ID + '):', e);
+    }
+  }
+  const activeSs = SpreadsheetApp.getActiveSpreadsheet();
+  if (activeSs) return activeSs;
+  return inisialisasiSpreadsheetBaru();
+}
+
 function inisialisasiSpreadsheetBaru() {
+  if (CONFIG.SPREADSHEET_ID) {
+    try {
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      if (ss) {
+        buatSheetDatabase(ss);
+        return ss;
+      }
+    } catch (e) {
+      console.warn('Fallback inisialisasiSpreadsheetBaru openById gagal:', e);
+    }
+  }
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   if (ss) {
     buatSheetDatabase(ss);
     return ss;
   }
-  throw new Error('Spreadsheet aktif tidak ditemukan. Pastikan script ini terikat (container-bound) atau memiliki akses Spreadsheet.');
+  throw new Error('Spreadsheet master tidak ditemukan. Pastikan script ini memiliki izin akses ke Spreadsheet ID: ' + CONFIG.SPREADSHEET_ID);
 }
 
 function buatSheetDatabase(ss) {
@@ -1178,10 +1257,35 @@ function buatSheetDatabase(ss) {
   if (!sheet) {
     sheet = ss.insertSheet(CONFIG.SHEET_DATA);
     sheet.appendRow(HEADERS_DATA_PENUGASAN);
-    sheet.getRange(1, 1, 1, HEADERS_DATA_PENUGASAN.length).setFontWeight('bold').setBackground('#1e293b').setFontColor('#ffffff');
+    sheet.getRange(1, 1, 1, HEADERS_DATA_PENUGASAN.length)
+      .setFontWeight('bold')
+      .setBackground('#1e293b')
+      .setFontColor('#ffffff');
     sheet.setFrozenRows(1);
+  } else {
+    // Sinkronisasi header row jika kolom kurang dari 53 kolom resmi
+    const curCols = sheet.getLastColumn();
+    if (curCols < HEADERS_DATA_PENUGASAN.length) {
+      sheet.getRange(1, 1, 1, HEADERS_DATA_PENUGASAN.length).setValues([HEADERS_DATA_PENUGASAN]);
+      sheet.getRange(1, 1, 1, HEADERS_DATA_PENUGASAN.length)
+        .setFontWeight('bold')
+        .setBackground('#1e293b')
+        .setFontColor('#ffffff');
+    }
   }
   return sheet;
+}
+
+/**
+ * Standarisasi Penulisan Formula Google Spreadsheet (Notasi Koma US)
+ * Memastikan setiap penulisan formula di sheet menggunakan notasi koma ',' (bukan ';')
+ * pada metode .setFormula(...) untuk mencegah error formula Google Sheets (#ERROR!).
+ */
+function applySheetFormula(range, formulaString) {
+  if (!range || !formulaString) return;
+  // Pastikan titik koma di luar tanda kutip string literal diubah menjadi koma
+  const sanitizedFormula = formulaString.replace(/;(?=(?:[^"]*"[^"]*")*[^"]*$)/g, ',');
+  range.setFormula(sanitizedFormula);
 }
 
 function catatLogAktivitas(ss, idProyek, tipeAksi, token, keterangan) {
