@@ -430,6 +430,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'nominalPpn'       => $nominalPpn,
             'totalBayar'       => $totalBayar,
             'terbilang'        => trim($payload['terbilang'] ?? ''),
+            'rekeningTujuan'   => $payload['rekeningTujuan'] ?? 'MANDIRI',
+            'rekeningResmi'    => $payload['rekeningResmi'] ?? 'Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)',
             'status'           => 'DRAFT',
             'isApproved'       => false,
             'isOverbilling'    => $isOverbilling,
@@ -524,6 +526,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $targetItem['approvedRole']     = $userRole;
         $targetItem['approvedAt']       = $serverTimestamp;
         $targetItem['catatanAdmin']     = $payload['catatanAdmin'] ?? 'Disahkan Bagian Keuangan Kantor Pusat.';
+        if (!empty($payload['rekeningTujuan'])) {
+            $targetItem['rekeningTujuan'] = $payload['rekeningTujuan'];
+        }
+        if (!empty($payload['rekeningResmi'])) {
+            $targetItem['rekeningResmi'] = $payload['rekeningResmi'];
+        }
 
         simpanDatabaseKwitansi($dataFile, $records);
 

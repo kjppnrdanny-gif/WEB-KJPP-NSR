@@ -360,6 +360,20 @@
             </div>
           </div>
 
+          <!-- Pilihan Rekening Bank Tujuan Transfer (Cabang / Pengaju) -->
+          <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+            <label class="block text-xs font-semibold text-slate-200">
+              Rekening Bank Tujuan Transfer KJPP NSR <span class="text-rose-400">*</span>
+            </label>
+            <select id="pilihan_rekening_tujuan" onchange="gantiRekeningTujuan('form')" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+              <option value="MANDIRI" selected>Bank Mandiri Cab. Jakarta Ampera Raya — 127-00-1014166-9 (Default)</option>
+              <option value="BJB">Bank BJB — 0124084891001</option>
+              <option value="BRI">Bank BRI — 042501000955306</option>
+              <option value="BTN">Bank BTN — 0019301300001254</option>
+            </select>
+            <p class="text-[10px] text-slate-400">Pilihan rekening bank operasional resmi KJPP NSR untuk penerimaan pembayaran transfer.</p>
+          </div>
+
           <!-- Tombol Submit Form Cabang -->
           <div class="pt-2">
             <button type="submit" id="btn-submit-pengajuan" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-amber-400/10 hover:shadow-amber-400/20 transition flex items-center justify-center gap-2">
@@ -534,6 +548,20 @@
               <label class="block text-[10px] text-slate-400 mb-0.5">Jabatan Resmi:</label>
               <input type="text" id="custom-jabatan-pejabat" placeholder="Contoh: Pemimpin Rekan / Bagian Keuangan" oninput="perbaruiPreviewKwitansi()" class="w-full h-8 px-2.5 rounded bg-slate-900 border border-slate-700 text-xs text-white">
             </div>
+          </div>
+
+          <!-- Pilihan Rekening Bank Tujuan Transfer (Otoritas Pusat) -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-200 mb-1">
+              Rekening Bank Tujuan Transfer <span class="text-rose-400">*</span>
+            </label>
+            <select id="pilihan_rekening_tujuan_pusat" onchange="gantiRekeningTujuan('pusat')" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+              <option value="MANDIRI" selected>Bank Mandiri Cab. Jakarta Ampera Raya — 127-00-1014166-9 (Default)</option>
+              <option value="BJB">Bank BJB — 0124084891001</option>
+              <option value="BRI">Bank BRI — 042501000955306</option>
+              <option value="BTN">Bank BTN — 0019301300001254</option>
+            </select>
+            <p class="text-[10px] text-slate-400 mt-1">Rekening bank operasional resmi yang dicetak pada lembar kwitansi pembayaran.</p>
           </div>
 
           <!-- ==============================================
@@ -862,12 +890,12 @@
         <!-- Keterangan Rekening Resmi Sesuai Permintaan -->
         <div class="text-[11px] text-slate-900 leading-snug">
           <p class="font-bold mb-1 text-slate-900">Mohon di Transfer :</p>
-          <p class="font-bold text-slate-950">
+          <p class="font-bold text-slate-950" id="print-rekening-bank-teks">
             Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9<br>
-            An. KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN
+            an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN
           </p>
-          <p class="text-[10px] font-semibold text-slate-700 italic mt-1.5">
-            Mohon Mencantumkan No. Invoice Pada Copy Transfer
+          <p class="text-[10px] font-semibold text-slate-700 italic mt-1.5" id="print-rekening-bank-catatan">
+            (Cantumkan No. Invoice Pada Copy Transfer)
           </p>
         </div>
 
@@ -983,6 +1011,84 @@
       }
     };
 
+    // -------------------------------------------------------------
+    // DAFTAR REKENING BANK OPERASIONAL RESMI KJPP NSR
+    // -------------------------------------------------------------
+    const DAFTAR_REKENING_NSR = {
+      MANDIRI: {
+        kode: "MANDIRI",
+        nama: "Bank Mandiri",
+        bank: "Bank Mandiri Cab. Jakarta Ampera Raya",
+        norek: "127-00-1014166-9",
+        an: "KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN",
+        teksCetak: "Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)"
+      },
+      BJB: {
+        kode: "BJB",
+        nama: "Bank BJB",
+        bank: "Bank BJB",
+        norek: "0124084891001",
+        an: "KJPP Nanang Rahayu Sigit Paryanto Dan Rekan",
+        teksCetak: "Bank BJB No. Rek. 0124084891001 an KJPP Nanang Rahayu Sigit Paryanto Dan Rekan (Cantumkan No. Invoice Pada Copy Transfer)"
+      },
+      BRI: {
+        kode: "BRI",
+        nama: "Bank BRI",
+        bank: "Bank BRI",
+        norek: "042501000955306",
+        an: "KJPP Nanang Rahayu Sigit Paryanto Dan Rekan",
+        teksCetak: "Bank BRI No. Rek. 042501000955306 an KJPP Nanang Rahayu Sigit Paryanto Dan Rekan (Cantumkan No. Invoice Pada Copy Transfer)"
+      },
+      BTN: {
+        kode: "BTN",
+        nama: "Bank BTN",
+        bank: "Bank BTN",
+        norek: "0019301300001254",
+        an: "KJPP Nanang Rahayu Sigit Paryanto Dan Rekan",
+        teksCetak: "Bank BTN No. Rek. 0019301300001254 an KJPP Nanang Rahayu Sigit Paryanto Dan Rekan (Cantumkan No. Invoice Pada Copy Transfer)"
+      }
+    };
+
+    function getKodeRekeningFromText(text) {
+      if (!text) return 'MANDIRI';
+      const upper = String(text).toUpperCase();
+      if (upper.includes('BJB')) return 'BJB';
+      if (upper.includes('BTN')) return 'BTN';
+      if (upper.includes('BRI') || upper.includes('RAKYAT INDONESIA')) return 'BRI';
+      if (upper.includes('MANDIRI')) return 'MANDIRI';
+      return 'MANDIRI';
+    }
+
+    function getTeksRekeningResmi(kodeOrText) {
+      if (!kodeOrText) return DAFTAR_REKENING_NSR.MANDIRI.teksCetak;
+      if (DAFTAR_REKENING_NSR[kodeOrText]) return DAFTAR_REKENING_NSR[kodeOrText].teksCetak;
+      const parsed = getKodeRekeningFromText(kodeOrText);
+      return DAFTAR_REKENING_NSR[parsed] ? DAFTAR_REKENING_NSR[parsed].teksCetak : kodeOrText;
+    }
+
+    function gantiRekeningTujuan(source) {
+      let val = 'MANDIRI';
+      if (source === 'form') {
+        val = document.getElementById('pilihan_rekening_tujuan')?.value || 'MANDIRI';
+        const elPusat = document.getElementById('pilihan_rekening_tujuan_pusat');
+        if (elPusat) elPusat.value = val;
+      } else if (source === 'pusat') {
+        val = document.getElementById('pilihan_rekening_tujuan_pusat')?.value || 'MANDIRI';
+        const elForm = document.getElementById('pilihan_rekening_tujuan');
+        if (elForm) elForm.value = val;
+      } else {
+        val = source || 'MANDIRI';
+        const elForm = document.getElementById('pilihan_rekening_tujuan');
+        if (elForm) elForm.value = val;
+        const elPusat = document.getElementById('pilihan_rekening_tujuan_pusat');
+        if (elPusat) elPusat.value = val;
+      }
+      dataKwitansiAktif.kodeRekening = val;
+      const rek = DAFTAR_REKENING_NSR[val] || DAFTAR_REKENING_NSR.MANDIRI;
+      dataKwitansiAktif.rekeningResmi = rek.teksCetak;
+      perbaruiPreviewKwitansi();
+    }
+
     // Database Draf Saat Ini di Memori
     let dataKwitansiAktif = {
       cabang: "Cabang Bandung",
@@ -998,6 +1104,8 @@
       noKwitansiResmi: "018/KW-NSR/X/2026",
       tempatTerbit: "Jakarta",
       tglSah: new Date().toISOString().split('T')[0],
+      kodeRekening: "MANDIRI",
+      rekeningResmi: DAFTAR_REKENING_NSR.MANDIRI.teksCetak,
       idPejabat: "1",
       namaPejabat: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)",
       jabatanPejabat: "Pemimpin Rekan",
@@ -1178,6 +1286,14 @@
       const lblTujuanCabang = document.getElementById('label-tujuan-cabang-pusat');
       if (lblTujuanCabang) lblTujuanCabang.innerText = cabang;
 
+      // Sinkronkan Data Rekening Bank Operasional Resmi
+      const rekKey = dataKwitansiAktif.kodeRekening || 'MANDIRI';
+      const rek = DAFTAR_REKENING_NSR[rekKey] || DAFTAR_REKENING_NSR.MANDIRI;
+      const elPrintRekTeks = document.getElementById('print-rekening-bank-teks');
+      if (elPrintRekTeks) {
+        elPrintRekTeks.innerHTML = `${rek.bank} No. Rek. ${rek.norek}<br>an ${rek.an}`;
+      }
+
       // Bedakan status DRAFT vs DISAHKAN pada lembar cetak PDF & preview
       const isApproved = (dataKwitansiAktif.isApproved === true || dataKwitansiAktif.status === 'DISAHKAN');
       const watermarkEl = document.getElementById('print-watermark-draft');
@@ -1221,7 +1337,7 @@
             <div><span class="text-slate-500">Untuk:</span> ${ket} (${termin})</div>
           </div>
           <div class="mt-2 pt-1 border-t border-slate-200 text-[8.5px] text-slate-700 leading-tight">
-            <span class="font-bold">Mohon di Transfer:</span> Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)
+            <span class="font-bold">Mohon di Transfer:</span> ${rek.teksCetak}
           </div>
           <div class="mt-2 pt-2 border-t border-slate-200 flex justify-between items-end text-[9px]">
             <div><span>Pengaju: ${cabang}</span></div>
@@ -1636,6 +1752,9 @@
       const item = daftarKwitansiGlobal.find(k => k.idKwitansi === id);
       if (!item) return;
 
+      const rekKodeItem = item.rekeningTujuan || item.rekening_kode || getKodeRekeningFromText(item.rekeningResmi || item.rekening_resmi) || 'MANDIRI';
+      const rekObjItem = DAFTAR_REKENING_NSR[rekKodeItem] || DAFTAR_REKENING_NSR.MANDIRI;
+
       dataKwitansiAktif = {
         ...dataKwitansiAktif,
         idKwitansi: item.idKwitansi,
@@ -1651,6 +1770,8 @@
         totalBayar: item.totalBayar || 0,
         terbilang: item.terbilang || dataKwitansiAktif.terbilang,
         status: item.status || 'DRAFT',
+        kodeRekening: rekKodeItem,
+        rekeningResmi: item.rekeningResmi || item.rekening_resmi || rekObjItem.teksCetak,
         isApproved: (item.status === 'DISAHKAN' || item.isApproved || false),
         noKwitansiResmi: item.noKwitansiResmi || (item.status === 'DISAHKAN' ? item.noKwitansiResmi : 'DRAFT (Belum Disahkan)'),
         namaPejabat: item.namaPejabat || dataKwitansiAktif.namaPejabat,
@@ -1665,6 +1786,8 @@
       if (document.getElementById('no-spk')) document.getElementById('no-spk').value = dataKwitansiAktif.noSpk;
       if (document.getElementById('nilai-kontrak-spk')) document.getElementById('nilai-kontrak-spk').value = dataKwitansiAktif.nilaiKontrakSpk;
       if (document.getElementById('cabang-pengaju')) document.getElementById('cabang-pengaju').value = dataKwitansiAktif.cabang;
+      if (document.getElementById('pilihan_rekening_tujuan')) document.getElementById('pilihan_rekening_tujuan').value = dataKwitansiAktif.kodeRekening;
+      if (document.getElementById('pilihan_rekening_tujuan_pusat')) document.getElementById('pilihan_rekening_tujuan_pusat').value = dataKwitansiAktif.kodeRekening;
       if (document.getElementById('no-kwitansi-resmi') && item.noKwitansiResmi && item.status === 'DISAHKAN') {
         document.getElementById('no-kwitansi-resmi').value = item.noKwitansiResmi;
       }
@@ -1769,7 +1892,9 @@
               tarifPpn,
               nominalPpn,
               totalBayar,
-              terbilang
+              terbilang,
+              rekeningTujuan: dataKwitansiAktif.kodeRekening || 'MANDIRI',
+              rekeningResmi: (DAFTAR_REKENING_NSR[dataKwitansiAktif.kodeRekening || 'MANDIRI'] || DAFTAR_REKENING_NSR.MANDIRI).teksCetak
             }
           })
         });
@@ -2452,7 +2577,9 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
               tempatSah: tempatSah,
               namaPejabat: dataKwitansiAktif.namaPejabat,
               jabatanPejabat: dataKwitansiAktif.jabatanPejabat,
-              subjabatanPejabat: dataKwitansiAktif.subjabatanPejabat
+              subjabatanPejabat: dataKwitansiAktif.subjabatanPejabat,
+              rekeningTujuan: dataKwitansiAktif.kodeRekening || 'MANDIRI',
+              rekeningResmi: (DAFTAR_REKENING_NSR[dataKwitansiAktif.kodeRekening || 'MANDIRI'] || DAFTAR_REKENING_NSR.MANDIRI).teksCetak
             }
           })
         });

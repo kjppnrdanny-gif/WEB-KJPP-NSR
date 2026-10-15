@@ -981,12 +981,177 @@ async function runTests() {
     }
     console.log('✓ Seluruh 8 Dokumen Cetak (Dok 2, 3A-3G) serta bundel DOK3 (7 lembar) dan ALL (9 lembar) terverifikasi presisi!');
 
+    // -------------------------------------------------------------------------
+    // TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis
+    // -------------------------------------------------------------------------
+    console.log('\n--- TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis ---');
+    
+    // 7A: Verifikasi pada portal-kwitansi.html
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-kwitansi.html` });
+    await new Promise(r => setTimeout(r, 800));
+    
+    // Login sebagai Admin Keuangan Pusat
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        (async () => {
+          document.getElementById('kwitansi-auth-username').value = 'admin.pusat';
+          document.getElementById('kwitansi-auth-password').value = 'NSR-PST-2026';
+          await loginKwitansiToken();
+        })()
+      `,
+      awaitPromise: true
+    });
+    await new Promise(r => setTimeout(r, 500));
+
+    const evalRes7A = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const selForm = document.getElementById('pilihan_rekening_tujuan');
+          const selPusat = document.getElementById('pilihan_rekening_tujuan_pusat');
+          const printRek = document.getElementById('print-rekening-bank-teks');
+          
+          const hasSelForm = !!selForm;
+          const hasSelPusat = !!selPusat;
+          const optionsForm = selForm ? Array.from(selForm.options).map(o => o.value) : [];
+          const optionsPusat = selPusat ? Array.from(selPusat.options).map(o => o.value) : [];
+          
+          // Test ganti ke BJB
+          gantiRekeningTujuan('BJB');
+          const textBJBA4 = printRek ? printRek.innerText : '';
+          const miniContainer = document.getElementById('preview-kwitansi-container')?.innerHTML || '';
+          const hasBJBInMini = miniContainer.includes('0124084891001') && miniContainer.includes('Bank BJB');
+          const hasBJBInA4 = textBJBA4.includes('0124084891001') && textBJBA4.includes('Bank BJB');
+
+          // Test ganti ke BRI
+          gantiRekeningTujuan('BRI');
+          const miniBRI = document.getElementById('preview-kwitansi-container')?.innerHTML || '';
+          const hasBRIInMini = miniBRI.includes('042501000955306') && miniBRI.includes('Bank BRI');
+
+          // Test ganti ke BTN
+          gantiRekeningTujuan('BTN');
+          const miniBTN = document.getElementById('preview-kwitansi-container')?.innerHTML || '';
+          const hasBTNInMini = miniBTN.includes('0019301300001254') && miniBTN.includes('Bank BTN');
+
+          // Kembalikan ke MANDIRI
+          gantiRekeningTujuan('MANDIRI');
+          const miniMandiri = document.getElementById('preview-kwitansi-container')?.innerHTML || '';
+          const hasMandiriInMini = miniMandiri.includes('127-00-1014166-9') && miniMandiri.includes('Bank Mandiri');
+
+          return {
+            hasSelForm,
+            hasSelPusat,
+            optionsForm,
+            optionsPusat,
+            hasBJBInA4,
+            hasBJBInMini,
+            hasBRIInMini,
+            hasBTNInMini,
+            hasMandiriInMini,
+            selFormSynced: selForm ? selForm.value === 'MANDIRI' : false,
+            selPusatSynced: selPusat ? selPusat.value === 'MANDIRI' : false
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+    const r7Kwitansi = evalRes7A.result?.value || {};
+    console.log('Hasil Test 7A (Portal Kwitansi Bank Selection):', r7Kwitansi);
+
+    if (!r7Kwitansi.hasSelForm || !r7Kwitansi.hasSelPusat) {
+      throw new Error('Dropdown pilihan_rekening_tujuan tidak ditemukan di formulir atau panel pusat portal kwitansi');
+    }
+    if (!r7Kwitansi.hasBJBInA4 || !r7Kwitansi.hasBJBInMini || !r7Kwitansi.hasBRIInMini || !r7Kwitansi.hasBTNInMini || !r7Kwitansi.hasMandiriInMini) {
+      throw new Error('Pratinjau kwitansi tidak memperbarui instruksi transfer 4 rekening bank secara dinamis');
+    }
+    console.log('✓ Portal Kwitansi: 4 Rekening Bank Resmi (Mandiri, BJB, BRI, BTN) & Pratinjau Cetak Dinamis LULUS!');
+
+    // 7B: Verifikasi pada portal-penugasan-jo.html
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-penugasan-jo.html` });
+    await waitForCondition(cdp, 'typeof window.verifikasiTokenLogin === "function"');
+
+    // Login sebagai Admin Pusat
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        (async () => {
+          window.alert = () => {};
+          window.confirm = () => true;
+          sessionStorage.clear();
+          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          await verifikasiTokenLogin();
+        })()
+      `,
+      awaitPromise: true
+    });
+    await new Promise(r => setTimeout(r, 600));
+
+    const evalRes7B = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          try {
+            // Tab 1 select rekening_resmi
+            const selTab1 = document.getElementById('rekening_resmi');
+            const hasSelTab1 = !!selTab1 && selTab1.tagName === 'SELECT';
+            const tab1Options = selTab1 ? Array.from(selTab1.options).map(o => o.value) : [];
+            const tab1Default = selTab1 ? selTab1.value : '';
+
+            // Modal Approval select pilihan_rekening_tujuan
+            const selAppr = document.getElementById('pilihan_rekening_tujuan');
+            const hasSelAppr = !!selAppr && selAppr.tagName === 'SELECT';
+            const apprOptions = selAppr ? Array.from(selAppr.options).map(o => o.value) : [];
+            const apprDefault = selAppr ? selAppr.value : '';
+
+            // SPK Klausul 22 Render Test
+            const baseProj = (typeof projectDatabase !== 'undefined' && projectDatabase.length > 0) 
+              ? projectDatabase[0] 
+              : ((typeof SEED_PROJECTS !== 'undefined' && SEED_PROJECTS.length > 0) ? SEED_PROJECTS[0] : {});
+            activeProjectData = {
+              ...baseProj,
+              rekening_kode: 'BJB',
+              rekening_resmi: DAFTAR_REKENING_NSR.BJB.teksCetak
+            };
+            if (document.getElementById('pilih_tampilan_dokumen')) {
+              document.getElementById('pilih_tampilan_dokumen').value = 'DOK1';
+            }
+            renderSemuaDokumen();
+            const renderedSPK = document.getElementById('preview-rendered-area')?.innerHTML || '';
+            const hasBJBInKlausul22 = renderedSPK.includes('Bank BJB') && renderedSPK.includes('0124084891001');
+
+            return {
+              hasSelTab1,
+              tab1Options,
+              tab1Default,
+              hasSelAppr,
+              apprOptions,
+              apprDefault,
+              hasBJBInKlausul22
+            };
+          } catch (err) {
+            return { error: err.message, stack: err.stack };
+          }
+        })()
+      `,
+      returnByValue: true
+    });
+    if (evalRes7B.exceptionDetails) {
+      console.error('Exception in 7B evaluation:', evalRes7B.exceptionDetails);
+    }
+    const r7Penugasan = evalRes7B.result?.value || {};
+    console.log('Hasil Test 7B (Portal Penugasan Bank Selection & Approval):', r7Penugasan);
+
+    if (!r7Penugasan.hasSelTab1 || !r7Penugasan.hasSelAppr) {
+      throw new Error('Dropdown rekening bank resmi tidak ditemukan di Tab 1 atau Modal Approval portal penugasan');
+    }
+    if (!r7Penugasan.hasBJBInKlausul22) {
+      throw new Error('Klausul 22 SPK tidak merender teks transfer bank yang dipilih secara dinamis');
+    }
+    console.log('✓ Portal Penugasan: Dropdown Rekening Tab 1, Modal Approval Pusat & Klausul 22 SPK LULUS!');
+
     // Tangkap screenshot final
     const ssFinal = await cdp.send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_portal_jo_rbac_verified.png'), Buffer.from(ssFinal.data, 'base64'));
     console.log('✓ Screenshot final tersimpan: test_portal_jo_rbac_verified.png');
 
-    console.log('\n🎉 SELURUH 6 PENGUJIAN OTOMASI RBAC, KEAMANAN KWITANSI, DUAL-MODE & CETAK DOKUMEN LULUS 100%!');
+    console.log('\n🎉 SELURUH 7 PENGUJIAN OTOMASI RBAC, KEAMANAN KWITANSI, DUAL-MODE, CETAK DOKUMEN & 4 REKENING BANK RESMI LULUS 100%!');
 
   } finally {
     if (cdp) await cdp.close();

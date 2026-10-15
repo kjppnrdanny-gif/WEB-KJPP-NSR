@@ -706,7 +706,12 @@
             </div>
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Rekening Resmi Pembayaran KJPP NSR</label>
-              <input type="text" id="rekening_resmi" value="Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
+              <select id="rekening_resmi" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
+                <option value="MANDIRI" selected>Bank Mandiri Cab. Jakarta Ampera Raya — 127-00-1014166-9 (Default)</option>
+                <option value="BJB">Bank BJB — 0124084891001</option>
+                <option value="BRI">Bank BRI — 042501000955306</option>
+                <option value="BTN">Bank BTN — 0019301300001254</option>
+              </select>
             </div>
           </div>
         </div>
@@ -956,6 +961,17 @@
           <input type="text" id="appr-nomor-adm" required oninput="validasiApprovalDuplikatLive()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-sky-300 font-mono font-bold focus:outline-none focus:border-amber-400">
         </div>
 
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Rekening Bank Tujuan Transfer (SPK / Invoice) <span class="text-rose-400">*</span></label>
+          <select id="pilihan_rekening_tujuan" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
+            <option value="MANDIRI" selected>Bank Mandiri Cab. Jakarta Ampera Raya — 127-00-1014166-9 (Default)</option>
+            <option value="BJB">Bank BJB — 0124084891001</option>
+            <option value="BRI">Bank BRI — 042501000955306</option>
+            <option value="BTN">Bank BTN — 0019301300001254</option>
+          </select>
+          <p class="text-[11px] text-slate-400 mt-1">Dicantumkan pada instruksi transfer penagihan (Kwitansi / Invoice / SPK).</p>
+        </div>
+
         <!-- Warning Duplikat Approval -->
         <div id="appr-warning-duplikat" class="hidden p-2.5 rounded-lg bg-rose-950/80 border border-rose-500 text-rose-200 text-xs font-semibold leading-relaxed">
           ⚠️ Nomor sudah terpakai (Double)! Tidak dapat melakukan Approval dengan nomor ini.
@@ -1059,7 +1075,62 @@
     ];
 
     // ==========================================================
-    // 1B. DUKUNGAN ID GANDA & HELPER KONTROL NOMOR ADMINISTRASI
+    // 1B. DAFTAR REKENING BANK OPERASIONAL RESMI KJPP NSR
+    // ==========================================================
+    const DAFTAR_REKENING_NSR = {
+      MANDIRI: {
+        kode: "MANDIRI",
+        nama: "Bank Mandiri",
+        bank: "Bank Mandiri Cab. Jakarta Ampera Raya",
+        norek: "127-00-1014166-9",
+        an: "KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN",
+        teksCetak: "Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)"
+      },
+      BJB: {
+        kode: "BJB",
+        nama: "Bank BJB",
+        bank: "Bank BJB",
+        norek: "0124084891001",
+        an: "KJPP Nanang Rahayu Sigit Paryanto Dan Rekan",
+        teksCetak: "Bank BJB No. Rek. 0124084891001 an KJPP Nanang Rahayu Sigit Paryanto Dan Rekan (Cantumkan No. Invoice Pada Copy Transfer)"
+      },
+      BRI: {
+        kode: "BRI",
+        nama: "Bank BRI",
+        bank: "Bank BRI",
+        norek: "042501000955306",
+        an: "KJPP Nanang Rahayu Sigit Paryanto Dan Rekan",
+        teksCetak: "Bank BRI No. Rek. 042501000955306 an KJPP Nanang Rahayu Sigit Paryanto Dan Rekan (Cantumkan No. Invoice Pada Copy Transfer)"
+      },
+      BTN: {
+        kode: "BTN",
+        nama: "Bank BTN",
+        bank: "Bank BTN",
+        norek: "0019301300001254",
+        an: "KJPP Nanang Rahayu Sigit Paryanto Dan Rekan",
+        teksCetak: "Bank BTN No. Rek. 0019301300001254 an KJPP Nanang Rahayu Sigit Paryanto Dan Rekan (Cantumkan No. Invoice Pada Copy Transfer)"
+      }
+    };
+
+    function getKodeRekeningFromText(text) {
+      if (!text) return 'MANDIRI';
+      const upper = String(text).toUpperCase();
+      if (upper.includes('BJB')) return 'BJB';
+      if (upper.includes('BTN')) return 'BTN';
+      if (upper.includes('BRI') || upper.includes('RAKYAT INDONESIA')) return 'BRI';
+      if (upper.includes('MANDIRI')) return 'MANDIRI';
+      return 'MANDIRI';
+    }
+
+    function getTeksRekeningResmi(kodeOrText) {
+      if (!kodeOrText) return DAFTAR_REKENING_NSR.MANDIRI.teksCetak;
+      if (DAFTAR_REKENING_NSR[kodeOrText]) return DAFTAR_REKENING_NSR[kodeOrText].teksCetak;
+      const parsed = getKodeRekeningFromText(kodeOrText);
+      return DAFTAR_REKENING_NSR[parsed] ? DAFTAR_REKENING_NSR[parsed].teksCetak : kodeOrText;
+    }
+
+    // ==========================================================
+    // 1C. DUKUNGAN ID GANDA & HELPER KONTROL NOMOR ADMINISTRASI
     // (#no_lingkup_penugasan & #no_adm_jo / #nomor_lp & #nomor_adm)
     // ==========================================================
     function getElLp() {
@@ -1543,6 +1614,12 @@
       p.nomor_lp = finalLp;
       p.nomor_adm = finalAdm;
       p.jenis_laporan = finalJenis;
+
+      const finalRekKode = document.getElementById('pilihan_rekening_tujuan')?.value || 'MANDIRI';
+      const rekObj = DAFTAR_REKENING_NSR[finalRekKode] || DAFTAR_REKENING_NSR.MANDIRI;
+      p.rekening_kode = finalRekKode;
+      p.rekening_resmi = rekObj.teksCetak;
+
       p.status = "APPROVED";
       p.approved_at = new Date().toISOString();
       p.disetujui_oleh = `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})`;
@@ -1691,7 +1768,8 @@
         biaya_total: 16650000,
         terbilang: "Enam Belas Juta Enam Ratus Lima Puluh Ribu Rupiah",
         cara_pembayaran: "Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.",
-        rekening_resmi: "Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan",
+        rekening_kode: "MANDIRI",
+        rekening_resmi: DAFTAR_REKENING_NSR.MANDIRI.teksCetak,
         objek_list: [
           {
             debitur: "PT SIMULASI DEBITUR PRIMA (CONTOH)",
@@ -1769,7 +1847,8 @@
         biaya_total: 13875000,
         terbilang: "Tiga Belas Juta Delapan Ratus Tujuh Puluh Lima Ribu Rupiah",
         cara_pembayaran: "Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.",
-        rekening_resmi: "Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan",
+        rekening_kode: "MANDIRI",
+        rekening_resmi: DAFTAR_REKENING_NSR.MANDIRI.teksCetak,
         objek_list: [
           {
             jenis: "Ruko / Rukan 3 Lantai",
@@ -1901,7 +1980,8 @@
         biaya_total: totalBiaya,
         terbilang: r.Terbilang_Biaya || angkaTerbilang(totalBiaya),
         cara_pembayaran: r.Cara_Pembayaran || "Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.",
-        rekening_resmi: r.Rekening_Resmi || "Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan",
+        rekening_kode: getKodeRekeningFromText(r.Rekening_Resmi),
+        rekening_resmi: getTeksRekeningResmi(r.Rekening_Resmi),
         objek_list: objekList,
         approved_at: normDate(r.Tgl_Approval_Pusat),
         disetujui_oleh: r.Disetujui_Oleh || '',
@@ -1974,7 +2054,7 @@
         Total_Biaya_All_In: Number(p.biaya_total || 0),
         Terbilang_Biaya: p.terbilang || angkaTerbilang(p.biaya_total || 0),
         Cara_Pembayaran: p.cara_pembayaran || 'Pembayaran dilakukan 100% setelah Lingkup Penugasan (SPK) ditandatangani para pihak.',
-        Rekening_Resmi: p.rekening_resmi || 'Bank Rakyat Indonesia (BRI) a.n. KJPP Nanang Rahayu Sigit Paryanto & Rekan',
+        Rekening_Resmi: getTeksRekeningResmi(p.rekening_resmi || p.rekening_kode),
         Tgl_Approval_Pusat: p.status === 'APPROVED' ? (p.approved_at || new Date().toISOString()) : '-',
         Disetujui_Oleh: p.status === 'APPROVED' ? (p.disetujui_oleh || `Admin Pusat (${tokenActor})`) : '-',
         Folder_Drive_URL: p.folder_drive_url || '-',
@@ -3330,7 +3410,8 @@
         biaya_total: parseFloat(document.getElementById('biaya_total').value) || 0,
         terbilang: document.getElementById('view_terbilang').textContent.trim(),
         cara_pembayaran: document.getElementById('cara_pembayaran').value.trim(),
-        rekening_resmi: document.getElementById('rekening_resmi').value.trim(),
+        rekening_kode: document.getElementById('rekening_resmi') ? document.getElementById('rekening_resmi').value : 'MANDIRI',
+        rekening_resmi: getTeksRekeningResmi(document.getElementById('rekening_resmi')?.value),
         objek_list: JSON.parse(JSON.stringify(objekRows)),
         approved_at: (projectStatus === 'APPROVED') ? new Date().toISOString() : '-',
         disetujui_oleh: (projectStatus === 'APPROVED') ? (isPusat ? `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})` : `Admin Cabang (${userSession.token || 'CABANG'})`) : '-',
@@ -3449,6 +3530,12 @@
         const elApprAdm = document.getElementById('appr-nomor-adm');
         if (elApprLp) elApprLp.value = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
         if (elApprAdm) elApprAdm.value = `${nextNum}/JO/NSR/${romawi}/${thn}`;
+
+        const elRekTujuan = document.getElementById('pilihan_rekening_tujuan');
+        if (elRekTujuan) {
+          const rekKode = p.rekening_kode || getKodeRekeningFromText(p.rekening_resmi) || 'MANDIRI';
+          elRekTujuan.value = rekKode;
+        }
 
         modal.classList.remove('hidden');
         validasiApprovalDuplikatLive();
@@ -4152,7 +4239,7 @@
                   <p><strong>Termin Pembayaran :</strong> 100 % dari total biaya tersebut dibayarkan pada saat penyerahan Laporan Penilaian.</p>
                   <p>Apabila pihak Pemberi Tugas memutuskan pekerjaan sepihak, maka biaya yang sudah terealisasikan tidak dapat ditarik kembali dan pembayaran yang harus direalisasikan sesuai termin, tetap harus dilakukan.</p>
                   <p>Permintaan salinan buku tambahan dengan tanda tangan dan stempel asli akan dikenakan biaya tambahan, dengan ketentuan tidak ada perubahan terhadap maksud dan tujuan serta pengguna Laporan Penilaian.</p>
-                  ${p.rekening_resmi ? `<p class="pt-1 font-semibold text-slate-800">Pembayaran dapat ditransfer melalui: ${p.rekening_resmi}</p>` : ''}
+                  ${p.rekening_resmi ? `<p class="pt-1 font-semibold text-slate-800">Pembayaran dapat ditransfer melalui: ${getTeksRekeningResmi(p.rekening_resmi)}</p>` : ''}
                 </div>
               </div>
 
@@ -5382,6 +5469,10 @@
       document.getElementById('biaya_dpp').value = "20000000";
       kalkulasiBiaya();
 
+      if (document.getElementById('rekening_resmi')) {
+        document.getElementById('rekening_resmi').value = 'MANDIRI';
+      }
+
       objekRows = [
         {
           id: 'obj-sample-1',
@@ -5403,6 +5494,9 @@
       document.getElementById('tanggal_penilaian').value = today;
       document.getElementById('survey_tanggal').value = today;
       document.getElementById('survey_hari').value = getNamaHari(today);
+      if (document.getElementById('rekening_resmi')) {
+        document.getElementById('rekening_resmi').value = 'MANDIRI';
+      }
       kalkulasiBiaya();
       objekRows = [];
       tambahBarisObjek();

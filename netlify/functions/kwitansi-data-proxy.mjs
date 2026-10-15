@@ -280,6 +280,8 @@ export default async (req) => {
         nominalPpn: nominalPpn,
         totalBayar: totalBayar,
         terbilang: payload.terbilang || "",
+        rekeningTujuan: payload.rekeningTujuan || "MANDIRI",
+        rekeningResmi: payload.rekeningResmi || "Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)",
         status: "DIAJUKAN",
         isApproved: false,
         noKwitansiResmi: "",
@@ -369,6 +371,8 @@ export default async (req) => {
       if (jabatanPejabat) targetItem.jabatanPejabat = jabatanPejabat;
       if (subjabatanPejabat) targetItem.subjabatanPejabat = subjabatanPejabat;
       if (catatanKeuangan) targetItem.catatanKeuangan = catatanKeuangan;
+      if (payload.rekeningTujuan) targetItem.rekeningTujuan = payload.rekeningTujuan;
+      if (payload.rekeningResmi) targetItem.rekeningResmi = payload.rekeningResmi;
 
       await _saveKwitansiDatabase(activeData);
 
