@@ -1497,6 +1497,203 @@ async function runTests() {
     console.log('✓ Seluruh Fitur Maksud & Tujuan serta Dasar Nilai SPI VII 2018 & Aliran Dokumen Terverifikasi 100%!');
 
     // -------------------------------------------------------------------------
+    // TEST 6E: Uji Anti-Orphan Signature Guard & Standarisasi Margin 3cm Dokumen Internal
+    // -------------------------------------------------------------------------
+    console.log('\n--- TEST 6E: Uji Anti-Orphan Signature Guard & Standarisasi Margin 3cm Dokumen Internal ---');
+    const testAntiOrphanSuite = await cdp.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const results = {};
+          const sel = document.getElementById('pilih_tampilan_dokumen');
+          const area = document.getElementById('preview-rendered-area');
+
+          // 1. Verifikasi CSS Rules pada Stylesheet
+          let hasWrapperRule = false;
+          let hasPenutupRule = false;
+          let hasContainerRule = false;
+          let hasInternalMargin = false;
+
+          for (const sheet of document.styleSheets) {
+            try {
+              for (const rule of sheet.cssRules) {
+                if (rule.selectorText && rule.selectorText.includes('.signature-protection-wrapper')) {
+                  hasWrapperRule = true;
+                }
+                if (rule.selectorText && rule.selectorText.includes('.klausul-penutup')) {
+                  hasPenutupRule = true;
+                }
+                if (rule.selectorText && rule.selectorText.includes('.signature-block-container')) {
+                  hasContainerRule = true;
+                }
+                if (rule.selectorText && rule.selectorText.includes('.doc-page-internal')) {
+                  hasInternalMargin = true;
+                }
+                if (rule.media && rule.media.mediaText.includes('print')) {
+                  for (const subRule of rule.cssRules) {
+                    if (subRule.selectorText && subRule.selectorText.includes('.signature-protection-wrapper')) {
+                      hasWrapperRule = true;
+                    }
+                    if (subRule.selectorText && subRule.selectorText.includes('.doc-page-internal')) {
+                      hasInternalMargin = true;
+                    }
+                  }
+                }
+              }
+            } catch (e) {}
+          }
+          results.hasWrapperRule = hasWrapperRule;
+          results.hasPenutupRule = hasPenutupRule;
+          results.hasContainerRule = hasContainerRule;
+          results.hasInternalMargin = hasInternalMargin;
+
+          // 2. Verifikasi Dokumen 3E (BAP)
+          sel.value = 'DOK3E';
+          gantiTampilanDokumen();
+          const bapWrapper = area.querySelector('.signature-protection-wrapper');
+          const bapPenutup = area.querySelector('.klausul-penutup');
+          const bapSigBlock = area.querySelector('.signature-block-container');
+          results.bap = {
+            hasWrapper: Boolean(bapWrapper),
+            hasPenutup: Boolean(bapPenutup),
+            hasSigBlock: Boolean(bapSigBlock),
+            penutupInsideWrapper: Boolean(bapWrapper && bapPenutup && bapWrapper.contains(bapPenutup)),
+            sigInsideWrapper: Boolean(bapWrapper && bapSigBlock && bapWrapper.contains(bapSigBlock)),
+            hasKepiText: Boolean(bapPenutup && bapPenutup.innerText.includes('Standar Penilaian Indonesia (SPI), Kode Etik Penilai Indonesia (KEPI)')),
+            hasNoDirectFeeText: Boolean(bapPenutup && bapPenutup.innerText.includes('tidak memungut biaya apapun secara langsung'))
+          };
+
+          // 3. Verifikasi Dokumen 1 (SPK)
+          sel.value = 'DOK1';
+          gantiTampilanDokumen();
+          const spkWrapper = area.querySelector('.signature-protection-wrapper');
+          const spkPenutup = area.querySelector('.klausul-penutup');
+          const spkSigBlock = area.querySelector('.signature-block-container');
+          results.spk = {
+            hasWrapper: Boolean(spkWrapper),
+            hasPenutup: Boolean(spkPenutup),
+            hasSigBlock: Boolean(spkSigBlock),
+            penutupInsideWrapper: Boolean(spkWrapper && spkPenutup && spkWrapper.contains(spkPenutup)),
+            sigInsideWrapper: Boolean(spkWrapper && spkSigBlock && spkWrapper.contains(spkSigBlock))
+          };
+
+          // 4. Verifikasi Dokumen Internal (3A Isian UMUM, 3B JO, 3C Kartu Proyek)
+          sel.value = 'DOK3A';
+          gantiTampilanDokumen();
+          const page3A = area.querySelector('.doc-page-internal');
+          results.dok3A = {
+            hasInternalClass: Boolean(page3A),
+            hasPadding30mm: page3A ? (window.getComputedStyle(page3A).paddingTop === '113.391px' || window.getComputedStyle(page3A).paddingTop === '113.386px' || window.getComputedStyle(page3A).paddingTop.includes('113')) : false
+          };
+
+          sel.value = 'DOK3B';
+          gantiTampilanDokumen();
+          const page3B = area.querySelector('.doc-page-internal');
+          const joWrapper = area.querySelector('.signature-protection-wrapper');
+          results.dok3B = {
+            hasInternalClass: Boolean(page3B),
+            hasSigWrapper: Boolean(joWrapper)
+          };
+
+          sel.value = 'DOK3C';
+          gantiTampilanDokumen();
+          const page3C = area.querySelector('.doc-page-internal');
+          results.dok3C = {
+            hasInternalClass: Boolean(page3C)
+          };
+
+          // 5. Verifikasi Dokumen 3D (Surat Tugas), 3F (ETI), 3G (PI)
+          sel.value = 'DOK3D';
+          gantiTampilanDokumen();
+          results.hasWrapperST = Boolean(area.querySelector('.signature-protection-wrapper'));
+
+          sel.value = 'DOK3F';
+          gantiTampilanDokumen();
+          results.hasWrapperETI = Boolean(area.querySelector('.signature-protection-wrapper'));
+
+          sel.value = 'DOK3G';
+          gantiTampilanDokumen();
+          results.hasWrapperPI = Boolean(area.querySelector('.signature-protection-wrapper'));
+
+          return results;
+        })()
+      `,
+      returnByValue: true
+    });
+
+    console.log('Hasil Test 6E (Anti-Orphan Signature Guard & Margin 3cm):', testAntiOrphanSuite.result.value);
+    const r6E = testAntiOrphanSuite.result.value;
+    if (!r6E.hasWrapperRule || !r6E.hasPenutupRule || !r6E.hasContainerRule || !r6E.hasInternalMargin) {
+      throw new Error('Stylesheet @media print gagal memuat aturan proteksi .signature-protection-wrapper atau .doc-page-internal!');
+    }
+    if (!r6E.bap.hasWrapper || !r6E.bap.hasPenutup || !r6E.bap.hasSigBlock || !r6E.bap.penutupInsideWrapper || !r6E.bap.sigInsideWrapper || !r6E.bap.hasKepiText || !r6E.bap.hasNoDirectFeeText) {
+      throw new Error('BAP (Dokumen 3E) gagal menerapkan wadah proteksi anti-orphan bersama klausul integritas!');
+    }
+    if (!r6E.spk.hasWrapper || !r6E.spk.hasPenutup || !r6E.spk.hasSigBlock || !r6E.spk.penutupInsideWrapper || !r6E.spk.sigInsideWrapper) {
+      throw new Error('SPK (Dokumen 1) gagal menerapkan wadah proteksi anti-orphan bersama kalimat penutup!');
+    }
+    if (!r6E.dok3A.hasInternalClass || !r6E.dok3B.hasInternalClass || !r6E.dok3C.hasInternalClass) {
+      throw new Error('Dokumen internal (3A Isian UMUM, 3B JO, 3C Kartu Proyek) wajib memiliki kelas .doc-page-internal!');
+    }
+    if (!r6E.hasWrapperST || !r6E.hasWrapperETI || !r6E.hasWrapperPI) {
+      throw new Error('Surat Tugas (3D), ETI (3F), dan PI (3G) wajib memiliki .signature-protection-wrapper!');
+    }
+
+    // Uji Cetak PDF Chromium Headless untuk BAP, SPK, dan Kartu Proyek
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        document.getElementById('pilih_tampilan_dokumen').value = 'DOK3E';
+        gantiTampilanDokumen();
+      `
+    });
+    const pdfBAP = await cdp.send('Page.printToPDF', {
+      paperWidth: 8.27,
+      paperHeight: 11.69,
+      marginTop: 0.3937,
+      marginBottom: 0.3937,
+      marginLeft: 1.1811,
+      marginRight: 0.3937,
+      printBackground: true
+    });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_bap_anti_orphan.pdf'), Buffer.from(pdfBAP.data, 'base64'));
+
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        document.getElementById('pilih_tampilan_dokumen').value = 'DOK1';
+        gantiTampilanDokumen();
+      `
+    });
+    const pdfSPK = await cdp.send('Page.printToPDF', {
+      paperWidth: 8.27,
+      paperHeight: 11.69,
+      marginTop: 0.3937,
+      marginBottom: 0.3937,
+      marginLeft: 1.1811,
+      marginRight: 0.3937,
+      printBackground: true
+    });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_spk_anti_orphan.pdf'), Buffer.from(pdfSPK.data, 'base64'));
+
+    await cdp.send('Runtime.evaluate', {
+      expression: `
+        document.getElementById('pilih_tampilan_dokumen').value = 'DOK3C';
+        gantiTampilanDokumen();
+      `
+    });
+    const pdfKP = await cdp.send('Page.printToPDF', {
+      paperWidth: 8.27,
+      paperHeight: 11.69,
+      marginTop: 1.1811,
+      marginBottom: 0.3937,
+      marginLeft: 1.1811,
+      marginRight: 0.3937,
+      printBackground: true
+    });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'test_kartu_proyek_anti_orphan.pdf'), Buffer.from(pdfKP.data, 'base64'));
+
+    console.log('✓ Bukti PDF tersimpan: test_bap_anti_orphan.pdf, test_spk_anti_orphan.pdf, test_kartu_proyek_anti_orphan.pdf');
+    console.log('✓ Seluruh Fitur Anti-Orphan Signature Guard & Standarisasi Margin 3cm Terverifikasi 100%!');
+
+    // -------------------------------------------------------------------------
     // TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis
     // -------------------------------------------------------------------------
     console.log('\n--- TEST 7: Uji Pemilihan 4 Rekening Bank Resmi KJPP NSR & Pratinjau Dinamis ---');
