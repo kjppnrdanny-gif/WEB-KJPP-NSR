@@ -557,9 +557,25 @@
               <input type="text" id="f-pemilik-objek" required placeholder="Nama pemilik sesuai SHM/HGB..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
+            <div class="lg:col-span-4 pt-2 border-t border-slate-800">
+              <span class="text-amber-400 font-bold flex items-center gap-1.5 text-xs">
+                📁 Berkas &amp; Dokumen Penilaian (3 Tautan Terstruktur)
+              </span>
+            </div>
+
+            <div class="lg:col-span-4">
+              <label class="block font-semibold text-slate-300 mb-1">Link File Laporan Penilaian *</label>
+              <input type="url" id="input_link_laporan" required placeholder="https://drive.google.com/... (Link Google Drive / Cloud File Laporan Penilaian)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+            </div>
+
             <div class="lg:col-span-2">
-              <label class="block font-semibold text-slate-300 mb-1">Link Google Drive Berkas Penilaian (Kertas Kerja / BAI) *</label>
-              <input type="url" id="f-link-drive" required placeholder="https://drive.google.com/..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <label class="block font-semibold text-slate-300 mb-1">Link File Data Pembanding *</label>
+              <input type="url" id="input_link_pembanding" required placeholder="https://drive.google.com/... (Link Data Pembanding / Kertas Kerja)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+            </div>
+
+            <div class="lg:col-span-2">
+              <label class="block font-semibold text-slate-300 mb-1">Link File Berita Acara Inspeksi (BAI) *</label>
+              <input type="url" id="input_link_bai" required placeholder="https://drive.google.com/... (Link Berita Acara Inspeksi / Foto Lapangan)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
             <div class="lg:col-span-2">
@@ -13741,7 +13757,10 @@
       const luasTanah = document.getElementById('f-luas-tanah').value;
       const luasBangunan = document.getElementById('f-luas-bangunan').value;
       const pemilikObjek = document.getElementById('f-pemilik-objek').value.trim();
-      const linkDrive = document.getElementById('f-link-drive').value.trim();
+      const linkLaporan = (document.getElementById('input_link_laporan')?.value || document.getElementById('f-link-drive')?.value || '').trim();
+      const linkPembanding = (document.getElementById('input_link_pembanding')?.value || '').trim();
+      const linkBai = (document.getElementById('input_link_bai')?.value || '').trim();
+      const linkDrive = linkLaporan || linkBai || linkPembanding;
       const catatanPemohon = document.getElementById('f-catatan-pemohon').value.trim();
 
       // Hitung Kode NPWP
@@ -13792,6 +13811,13 @@
         luasTanah: luasTanah,
         luasBangunan: luasBangunan,
         pemilikObjek: pemilikObjek,
+        // Sinkronisasi Terstruktur Sheet PENGAJUAN (Kolom AY, AZ, BA):
+        "File Laporan Penilaian": linkLaporan,
+        "File Data Pembanding": linkPembanding,
+        "File Berita Acara Inspeksi": linkBai,
+        linkLaporan: linkLaporan,
+        linkPembanding: linkPembanding,
+        linkBai: linkBai,
         linkDrive: linkDrive,
         catatanPemohon: catatanPemohon,
         status: "DIAJUKAN",
@@ -13867,6 +13893,17 @@
         const actionToSend = (data && data.action) ? data.action : 'submitRequest';
         payload.append('action', actionToSend);
         const bodyToSend = (data && data.data) ? data.data : data;
+
+        // Pastikan key sesuai persis dengan header sheet PENGAJUAN (Kolom AY, AZ, BA):
+        if (bodyToSend && typeof bodyToSend === 'object') {
+          const valLap = document.getElementById('input_link_laporan')?.value.trim() || bodyToSend["File Laporan Penilaian"] || bodyToSend.linkLaporan || bodyToSend.linkDrive || '';
+          const valPem = document.getElementById('input_link_pembanding')?.value.trim() || bodyToSend["File Data Pembanding"] || bodyToSend.linkPembanding || '';
+          const valBai = document.getElementById('input_link_bai')?.value.trim() || bodyToSend["File Berita Acara Inspeksi"] || bodyToSend.linkBai || '';
+          bodyToSend["File Laporan Penilaian"] = valLap;
+          bodyToSend["File Data Pembanding"] = valPem;
+          bodyToSend["File Berita Acara Inspeksi"] = valBai;
+        }
+
         payload.append('payload', JSON.stringify(bodyToSend));
         fetch(ENDPOINT, {
           method: 'POST',
@@ -13986,7 +14023,9 @@
         `• *Lokasi:* ${data.lokasiObjek}%0A` +
         `• *Penilai:* ${data.penilai} (Izin: ${data.izinPenilai})%0A` +
         `• *Target Deadline:* ${data.deadline}%0A` +
-        `• *Link Berkas:* ${data.linkDrive}%0A%0A` +
+        `• *Laporan Penilaian:* ${data['File Laporan Penilaian'] || data.linkLaporan || data.linkDrive || '-'}%0A` +
+        `• *Data Pembanding:* ${data['File Data Pembanding'] || data.linkPembanding || '-'}%0A` +
+        `• *Berita Acara Inspeksi:* ${data['File Berita Acara Inspeksi'] || data.linkBai || '-'}%0A%0A` +
         `_Mohon Admin Pusat dapat memverifikasi & menerbitkan nomor laporan resmi. Terima kasih._`;
 
       const linkWaAdmin = `https://wa.me/6285110513157?text=${pesanWa}`;
@@ -14295,11 +14334,27 @@
           </div>
         ` : ''}
 
-        ${item.linkDrive ? `
-          <div>
-            <a href="${item.linkDrive}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500/30 font-bold text-xs hover:bg-blue-600/30 transition">
-              📄 Buka Folder Google Drive Berkas Pendukung ↗
-            </a>
+        ${(item['File Laporan Penilaian'] || item.linkLaporan || item.linkDrive) ? `
+          <div class="flex flex-wrap gap-2 pt-1">
+            ${(item['File Laporan Penilaian'] || item.linkLaporan) ? `
+              <a href="${item['File Laporan Penilaian'] || item.linkLaporan}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500/30 font-bold text-xs hover:bg-blue-600/30 transition">
+                📄 Laporan Penilaian ↗
+              </a>
+            ` : (item.linkDrive ? `
+              <a href="${item.linkDrive}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500/30 font-bold text-xs hover:bg-blue-600/30 transition">
+                📄 Berkas Laporan Drive ↗
+              </a>
+            ` : '')}
+            ${(item['File Data Pembanding'] || item.linkPembanding) ? `
+              <a href="${item['File Data Pembanding'] || item.linkPembanding}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 font-bold text-xs hover:bg-emerald-600/30 transition">
+                📊 Data Pembanding ↗
+              </a>
+            ` : ''}
+            ${(item['File Berita Acara Inspeksi'] || item.linkBai) ? `
+              <a href="${item['File Berita Acara Inspeksi'] || item.linkBai}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600/20 text-amber-300 border border-amber-500/30 font-bold text-xs hover:bg-amber-600/30 transition">
+                📝 Berita Acara Inspeksi (BAI) ↗
+              </a>
+            ` : ''}
           </div>
         ` : ''}
       `;
