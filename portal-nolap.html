@@ -12868,8 +12868,26 @@
     // Autentikasi server-side aman via Netlify Serverless Function (/api/auth-verify & /api/auth-login)
     function isSuperOrAdminPusat() {
       if (!sesiAktif) return false;
-      return sesiAktif.role === 'ADMIN_PUSAT' || sesiAktif.role === 'ADMIN';
+      const sessionRole = String(sesiAktif.role || '').toUpperCase();
+      return ['SUPER_ADMIN', 'PUSAT', 'ADMIN_PUSAT', 'ADMIN'].includes(sessionRole);
     }
+
+    // Dukungan alias ID tombol tab (tab_btn_* <-> tab-btn-*) agar kompatibel penuh
+    (function inisialisasiAliasTab() {
+      const aliasMap = {
+        'tab_btn_approval': 'tab-btn-approval',
+        'tab_btn_register': 'tab-btn-riwayat',
+        'tab_btn_laporan': 'tab-btn-elsa'
+      };
+      const origGetById = Document.prototype.getElementById;
+      Document.prototype.getElementById = function(id) {
+        let el = origGetById.call(this, id);
+        if (!el && aliasMap[id]) {
+          el = origGetById.call(this, aliasMap[id]);
+        }
+        return el;
+      };
+    })();
 
     const MASTER_PENILAI = {
       "Deni Siswandi": "00581",
@@ -13377,14 +13395,17 @@
       infoRole.innerText = `Otoritas: ${sesiAktif.label}`;
 
       // Pembatasan Ketat: Tab 3 (Approval), Tab 4 (eLSa PPPK), Tab 5 (Riwayat Seluruh NoLap)
-      // HANYA untuk Admin Pusat Resmi!
+      // HANYA untuk Admin Pusat Resmi & Super Admin!
       // Pengajuan dari Cabang & Karyawan Internal Pusat HANYA dapat mengakses Tab 1 (Form) & Tab 2 (SPM).
-      const tabApproval = document.getElementById('tab-btn-approval');
-      const tabElsa = document.getElementById('tab-btn-elsa');
-      const tabRiwayat = document.getElementById('tab-btn-riwayat');
+      const tabApproval = document.getElementById('tab-btn-approval') || document.getElementById('tab_btn_approval');
+      const tabElsa = document.getElementById('tab-btn-elsa') || document.getElementById('tab_btn_laporan');
+      const tabRiwayat = document.getElementById('tab-btn-riwayat') || document.getElementById('tab_btn_register');
 
-      if (isSuperOrAdminPusat()) {
-        badgeAdmin.classList.remove('hidden');
+      const sessionRole = String(sesiAktif.role || '').toUpperCase();
+      const isPusatOrSuper = ['SUPER_ADMIN', 'PUSAT', 'ADMIN_PUSAT', 'ADMIN'].includes(sessionRole) || isSuperOrAdminPusat();
+
+      if (isPusatOrSuper) {
+        badgeAdmin?.classList.remove('hidden');
         if (tabApproval) {
           tabApproval.classList.remove('hidden');
           tabApproval.classList.add('flex');
@@ -13397,8 +13418,12 @@
           tabRiwayat.classList.remove('hidden');
           tabRiwayat.classList.add('flex');
         }
+        // Buka kunci tombol alias tab_btn_* jika dipanggil langsung
+        document.getElementById('tab_btn_approval')?.classList.remove('hidden');
+        document.getElementById('tab_btn_register')?.classList.remove('hidden');
+        document.getElementById('tab_btn_laporan')?.classList.remove('hidden');
       } else {
-        badgeAdmin.classList.add('hidden');
+        badgeAdmin?.classList.add('hidden');
         if (tabApproval) {
           tabApproval.classList.add('hidden');
           tabApproval.classList.remove('flex');
@@ -13411,6 +13436,9 @@
           tabRiwayat.classList.add('hidden');
           tabRiwayat.classList.remove('flex');
         }
+        document.getElementById('tab_btn_approval')?.classList.add('hidden');
+        document.getElementById('tab_btn_register')?.classList.add('hidden');
+        document.getElementById('tab_btn_laporan')?.classList.add('hidden');
         // Jika akun cabang atau staf internal, pastikan tetap berada di form pengajuan
         gantiTabModul('pengajuan');
       }
@@ -13459,6 +13487,9 @@
       document.getElementById('tab-btn-elsa')?.classList.remove('flex');
       document.getElementById('tab-btn-riwayat')?.classList.add('hidden');
       document.getElementById('tab-btn-riwayat')?.classList.remove('flex');
+      document.getElementById('tab_btn_approval')?.classList.add('hidden');
+      document.getElementById('tab_btn_register')?.classList.add('hidden');
+      document.getElementById('tab_btn_laporan')?.classList.add('hidden');
       document.getElementById('badge-admin-pusat')?.classList.add('hidden');
     }
 
@@ -16111,7 +16142,7 @@ function tetapkanApprovalSpmUmum(statusBaru) {
     if (revInput) {
       if (sesiAktif) {
         const nama = sesiAktif.nama || (sesiAktif.label ? sesiAktif.label.replace(/\s*\(.*?\)\s*/, '') : 'Deni Siswandi');
-        const jabatan = sesiAktif.jabatan || (sesiAktif.role === 'ADMIN_PUSAT' ? 'Kepala Divisi SPM & Rekan Penilai' : sesiAktif.role);
+        const jabatan = sesiAktif.jabatan || (isSuperOrAdminPusat() ? 'Kepala Divisi SPM & Rekan Penilai' : sesiAktif.role);
         revInput.value = `${nama} (${jabatan})`;
       } else {
         revInput.value = 'Tim Kendali Mutu KJPP NSR';
@@ -17237,7 +17268,7 @@ function tetapkanApprovalSpmRuislagh(statusBaru) {
     if (revInput) {
       if (sesiAktif) {
         const nama = sesiAktif.nama || (sesiAktif.label ? sesiAktif.label.replace(/\\s*\\(.*?\\)\\s*/, '') : 'Deni Siswandi');
-        const jabatan = sesiAktif.jabatan || (sesiAktif.role === 'ADMIN_PUSAT' ? 'Kepala Divisi SPM & Rekan Penilai' : sesiAktif.role);
+        const jabatan = sesiAktif.jabatan || (isSuperOrAdminPusat() ? 'Kepala Divisi SPM & Rekan Penilai' : sesiAktif.role);
         revInput.value = `${nama} (${jabatan})`;
       } else {
         revInput.value = 'Tim Kendali Mutu KJPP NSR';
@@ -17611,6 +17642,11 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
        13. KONTROL PERGANTIAN TAB MODUL
        ========================================================================= */
     function gantiTabModul(tabKey) {
+      // Normalisasi alias tabKey jika dipanggil dengan variasi nama
+      if (tabKey === 'form') tabKey = 'pengajuan';
+      if (tabKey === 'register') tabKey = 'riwayat';
+      if (tabKey === 'laporan') tabKey = 'elsa';
+
       // Proteksi Akses Ketat: Tab 3 (Approval), Tab 4 (eLSa), Tab 5 (Riwayat) HANYA untuk Admin Master Akses & Admin Pusat
       if (['approval', 'elsa', 'riwayat'].includes(tabKey) && !isSuperOrAdminPusat()) {
         alert('🔒 Akses Dibatasi: Modul ' + tabKey.toUpperCase() + ' hanya dapat diakses oleh Admin Master Akses dan Admin Kantor Pusat.');
@@ -17618,11 +17654,11 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       }
 
       // Sembunyikan semua panel
-      document.getElementById('panel-pengajuan').classList.add('hidden');
-      document.getElementById('panel-spm').classList.add('hidden');
-      document.getElementById('panel-approval').classList.add('hidden');
-      document.getElementById('panel-elsa').classList.add('hidden');
-      document.getElementById('panel-riwayat').classList.add('hidden');
+      document.getElementById('panel-pengajuan')?.classList.add('hidden');
+      document.getElementById('panel-spm')?.classList.add('hidden');
+      document.getElementById('panel-approval')?.classList.add('hidden');
+      document.getElementById('panel-elsa')?.classList.add('hidden');
+      document.getElementById('panel-riwayat')?.classList.add('hidden');
 
       // Reset tombol
       const allBtns = ['pengajuan', 'spm', 'approval', 'elsa', 'riwayat'];
@@ -17637,7 +17673,11 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       // Aktifkan tab terpilih
       const activePanel = document.getElementById(`panel-${tabKey}`);
       const activeBtn = document.getElementById(`tab-btn-${tabKey}`);
-      if (activePanel) activePanel.classList.remove('hidden');
+      if (activePanel) {
+        activePanel.classList.remove('hidden');
+        activePanel.style.removeProperty('display');
+        activePanel.removeAttribute('disabled');
+      }
       if (activeBtn) {
         activeBtn.classList.add('border-amber-400', 'text-amber-400');
         activeBtn.classList.remove('border-transparent', 'text-slate-400');
