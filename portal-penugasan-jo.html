@@ -5128,6 +5128,9 @@
               margin-left: 30mm !important;
               margin-right: 10mm !important;
             }
+            .no-print {
+              display: none !important;
+            }
           }
         `;
       } else {
@@ -5792,15 +5795,10 @@
         const dok2 = `
           <div class="doc-page sheet-a4 doc-page-representasi halaman-cetak text-[11.5px] leading-relaxed text-slate-900 font-sans ${selDok === 'ALL' ? 'page-break mb-12' : ''}">
             
-            <!-- Placeholder Visual Kop Surat Klien (Hanya Tampil di Layar / Screen Preview) -->
-            <div class="no-print border-2 border-dashed border-amber-500/40 bg-amber-500/5 rounded-xl p-3.5 text-center mb-6">
-              <div class="flex items-center justify-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wider">
-                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                <span>Area Kop Surat Pemberi Tugas / Klien (Standar Margin Atas 4 cm / 40 mm)</span>
-              </div>
-              <p class="text-[11px] text-slate-500 mt-1">
-                Klien dapat mencetak lembar ini pada kertas berkop resmi atau mengunduh draf Word (.doc) untuk menyisipkan kop surat secara digital.
-              </p>
+            <!-- Placeholder Visual Kop Surat Klien (Hanya Tampil di Layar / Screen Preview - 4 cm) -->
+            <div class="no-print h-[40mm] min-h-[40mm] border-2 border-dashed border-slate-400 bg-slate-50/70 rounded-xl p-3 flex flex-col items-center justify-center text-center mb-6">
+              <span class="font-bold text-xs tracking-wider text-slate-700 uppercase">[ RUANG KOP SURAT RESMI KLIEN / PEMBERI TUGAS (4 CM) ]</span>
+              <p class="text-[10px] text-slate-500 mt-1">Area kosong setinggi 40 mm khusus lembar pertama untuk tempat kop surat resmi klien / pemberi tugas.</p>
             </div>
 
             <div class="text-right text-[11px] mb-6">
@@ -6976,6 +6974,7 @@
     // 11B. EKSPOR DOKUMEN SURAT REPRESENTASI KE FORMAT WORD (.DOC)
     // Standar MSO Compliant: A4, Margin Top 40mm, Left 30mm, Right 10mm, Bottom 10mm
     // ==========================================================
+    window.exportSuratRepresentasiToWord = exportSuratRepresentasiToWord;
     function exportSuratRepresentasiToWord() {
       let p = activeProjectData;
       if (!p) {
