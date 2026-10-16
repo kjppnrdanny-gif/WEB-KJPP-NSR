@@ -676,6 +676,62 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Sub-Seksi Pengaturan Investigasi & Asumsi Khusus (SPI 103) -->
+          <div class="mt-5 pt-4 border-t border-slate-800/80">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <span>Lingkup Investigasi &amp; Asumsi Khusus (SPI 103)</span>
+              </h4>
+              <span class="text-[10px] text-slate-400 font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800">SPI 103 butir 5.h &amp; 5.l</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <!-- 1. Dropdown Kedalaman Investigasi -->
+              <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                    <span>Tingkat Kedalaman Investigasi <span class="text-rose-400">*</span></span>
+                    <span class="text-[10px] text-slate-400 font-mono">SPI 103 butir 5.h</span>
+                  </label>
+                  <select id="tingkat_kedalaman_investigasi" onchange="handleInvestigasiChange()" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
+                    <option value="PENUH" selected>Inspeksi Fisik Penuh Luar-Dalam (Standar Baku 8 Poin SPI)</option>
+                    <option value="TERBATAS">Inspeksi Visual Luar / Terbatas (Drive-by / Pembatasan Akses)</option>
+                    <option value="DESKTOP">Tanpa Inspeksi Lapangan (Desktop Valuation / Kajian Dokumen)</option>
+                    <option value="CUSTOM">Kustom / Klausul Investigasi Khusus...</option>
+                  </select>
+                </div>
+                <!-- Textarea Klausul Investigasi Custom (ditampilkan jika non-PENUH) -->
+                <div id="wrap_klausul_investigasi_custom" class="hidden mt-3">
+                  <label class="block font-semibold text-amber-300 text-[11px] mb-1">
+                    Klausul Batasan / Investigasi Khusus <span class="text-slate-400 font-normal">(Muncul pada Klausul 9 SPK)</span>:
+                  </label>
+                  <textarea id="klausul_investigasi_custom" rows="2" class="w-full rounded-lg border border-amber-500/60 bg-slate-900 px-3 py-2 text-xs text-amber-100 placeholder-slate-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400" placeholder="Ketik klausul batasan akses, kondisi inspeksi terbatas, atau landasan desktop valuation di sini..."></textarea>
+                </div>
+              </div>
+
+              <!-- 2. Opsi Asumsi Khusus -->
+              <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between">
+                <div>
+                  <label class="flex items-center gap-2 cursor-pointer font-semibold text-slate-200 select-none">
+                    <input type="checkbox" id="chk_asumsi_khusus" onchange="handleAsumsiKhususChange()" class="w-4 h-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-400 focus:ring-offset-slate-950">
+                    <span>Penugasan Menggunakan Asumsi Khusus <span class="text-amber-400 font-mono text-[10px]">(SPI 103 butir 5.l)</span></span>
+                  </label>
+                  <p class="text-[11px] text-slate-400 mt-1 pl-6 leading-relaxed">
+                    Centang jika penilaian bergantung pada kondisi hipotetis, pemecahan sertipikat dalam proses, renovasi dianggap 100%, dll.
+                  </p>
+                </div>
+                <!-- Textarea Asumsi Khusus (ditampilkan jika checkbox aktif) -->
+                <div id="wrap_asumsi_khusus_text" class="hidden mt-3">
+                  <label class="block font-semibold text-amber-300 text-[11px] mb-1">
+                    Uraian Asumsi Khusus (Special Assumption) <span class="text-slate-400 font-normal">(Muncul pada Klausul 11 SPK)</span>:
+                  </label>
+                  <textarea id="asumsi_khusus_text" rows="2" class="w-full rounded-lg border border-amber-500/60 bg-slate-900 px-3 py-2 text-xs text-amber-100 placeholder-slate-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400" placeholder="Misal: Penilaian didasarkan pada Asumsi Khusus bahwa sertipikat induk telah berhasil dipecah menjadi unit-unit individual sesuai site plan yang disetujui BPN..."></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 4. MAKSUD, TUJUAN, DASAR NILAI & METODOLOGI -->
@@ -2998,6 +3054,99 @@
       renderDashboardTabel();
     }
 
+    function bangunDraftDariForm() {
+      const debNama = (document.getElementById('debitur_nama')?.value || '').trim().toUpperCase() || 'DRAF PENUGASAN';
+      const tglStr = document.getElementById('tanggal_surat')?.value || new Date().toISOString().split('T')[0];
+      const totalSla = parseInt(document.getElementById('sla_inspeksi')?.value || 1, 10) +
+                       parseInt(document.getElementById('sla_analisa')?.value || 2, 10) +
+                       parseInt(document.getElementById('sla_final')?.value || 2, 10);
+      const dMasa = new Date(new Date(tglStr).getTime() + 30 * 24 * 60 * 60 * 1000);
+      const rekanVal = document.getElementById('rekan_nama')?.value;
+      const rekanSelected = DATABASE_REKAN.find(r => r.nama === rekanVal) || DATABASE_REKAN[0] || {};
+
+      let noAdm = (getElAdm()?.value || '').trim();
+      let noLp = (getElLp()?.value || '').trim();
+      if (!noAdm || noAdm.includes('Menunggu')) noAdm = '0001/JO/NSR/X/2026 (DRAF)';
+      if (!noLp || noLp.includes('Menunggu')) noLp = '0001/NSR/LAP-APP/X/2026 (DRAF)';
+
+      return {
+        id: 'DRAFT-LIVE-PREVIEW',
+        isDraftPreview: true,
+        status: 'WAITING_APPROVAL',
+        nomor_adm: noAdm,
+        nomor_lp: noLp,
+        jenis_laporan: document.getElementById('jenis_laporan')?.value || 'APP',
+        kantor_wilayah: document.getElementById('kantor_wilayah')?.value || (userSession && userSession.wilayah) || 'Kantor Pusat Jakarta',
+        mode_pengaju: userSession ? userSession.mode : 'PUSAT',
+        is_private: false,
+        mode_alur: 'CENTRAL_APPROVAL',
+        tanggal_surat: tglStr,
+        rujukan_surat_nomor: document.getElementById('rujukan_surat_nomor')?.value || '-',
+        rujukan_surat_tanggal: document.getElementById('rujukan_surat_tanggal')?.value || tglStr,
+        masa_berlaku_lp: dMasa.toISOString().split('T')[0],
+        pemberi_tugas_nama: (document.getElementById('pemberi_tugas_nama')?.value || '').trim() || 'PT BANK MANDIRI (PERSERO) TBK',
+        bidang_usaha_klien: 'Perbankan / Finansial',
+        pemberi_tugas_pic: (document.getElementById('pemberi_tugas_pic')?.value || '').trim() || '-',
+        pemberi_tugas_jabatan: (document.getElementById('pemberi_tugas_jabatan')?.value || '').trim() || '-',
+        pemberi_tugas_kontak: (document.getElementById('pemberi_tugas_kontak')?.value || '').trim() || '-',
+        pemberi_tugas_email: (document.getElementById('pemberi_tugas_email')?.value || '').trim() || '-',
+        pemberi_tugas_alamat: (document.getElementById('pemberi_tugas_alamat')?.value || '').trim() || 'Jakarta',
+        pemberi_tugas_npwp: (document.getElementById('pemberi_tugas_npwp')?.value || '').trim() || '-',
+        pengguna_laporan_a: (document.getElementById('pengguna_laporan_a')?.value || '').trim() || (document.getElementById('pemberi_tugas_nama')?.value || '').trim() || '-',
+        pengguna_laporan_b: (document.getElementById('pengguna_laporan_b')?.value || '').trim() || '-',
+        debitur_nama: debNama,
+        debitur_cp: (document.getElementById('debitur_cp')?.value || '').trim() || debNama,
+        pemilik_sertipikat: debNama,
+        hubungan_pemilik: 'Milik Sendiri',
+        kategori_template_spk: document.getElementById('kategori_template_spk')?.value || 'REAL_PROPERTY',
+        tingkat_kedalaman_investigasi: document.getElementById('tingkat_kedalaman_investigasi')?.value || 'PENUH',
+        klausul_investigasi_custom: (document.getElementById('klausul_investigasi_custom')?.value || '').trim(),
+        chk_asumsi_khusus: document.getElementById('chk_asumsi_khusus') ? document.getElementById('chk_asumsi_khusus').checked : false,
+        asumsi_khusus_text: (document.getElementById('asumsi_khusus_text')?.value || '').trim(),
+        tujuan_penilaian: getResolvedTujuanPenilaian(),
+        dasar_nilai: getResolvedDasarNilai(),
+        pendekatan_penilaian: document.getElementById('pendekatan_penilaian')?.value || 'Pendekatan Biaya (Cost) & Pendekatan Data Pasar (Market)',
+        mata_uang: document.getElementById('mata_uang')?.value || 'IDR',
+        tanggal_penilaian: document.getElementById('tanggal_penilaian')?.value || tglStr,
+        sumber_proyek: (document.getElementById('sumber_proyek')?.value || '').trim() || 'Direct Klien',
+        pic_marketing: (document.getElementById('pic_marketing')?.value || document.getElementById('marketing_nama')?.value || '').trim() || 'Divisi BD & Marketing',
+        marketing_nama: (document.getElementById('pic_marketing')?.value || document.getElementById('marketing_nama')?.value || '').trim() || 'Divisi BD & Marketing',
+        rekan_nama: document.getElementById('rekan_nama')?.value || rekanSelected.nama || '',
+        rekan_izin: rekanSelected.izin || 'P-1.20.00581',
+        reviewer_nama: document.getElementById('reviewer_nama')?.value || '',
+        penilai_nama: document.getElementById('penilai_nama')?.value || '',
+        asisten_nama: document.getElementById('asisten_nama')?.value || '',
+        surveyor_pendamping: `${document.getElementById('asisten_nama')?.value || ''} / ${(document.getElementById('debitur_cp')?.value || '').trim() || '-'}`,
+        survey_hari: document.getElementById('survey_hari')?.value || getNamaHari(tglStr),
+        survey_tanggal: document.getElementById('survey_tanggal')?.value || tglStr,
+        sla_inspeksi: parseInt(document.getElementById('sla_inspeksi')?.value || 1, 10),
+        sla_analisa: parseInt(document.getElementById('sla_analisa')?.value || 2, 10),
+        sla_final: parseInt(document.getElementById('sla_final')?.value || 2, 10),
+        sla_total: totalSla,
+        biaya_dpp: parseFloat(document.getElementById('biaya_dpp')?.value) || 0,
+        biaya_ppn: parseFloat(document.getElementById('biaya_ppn')?.value) || 0,
+        biaya_total: parseFloat(document.getElementById('biaya_total')?.value) || 0,
+        terbilang: document.getElementById('view_terbilang')?.textContent.trim() || 'Nol Rupiah',
+        cara_pembayaran: (document.getElementById('cara_pembayaran')?.value || '').trim(),
+        rekening_kode: document.getElementById('rekening_resmi')?.value || 'MANDIRI',
+        rekening_resmi: getTeksRekeningResmi(document.getElementById('rekening_resmi')?.value),
+        objek_list: (objekRows && objekRows.length > 0) ? objekRows.map(o => {
+          const itemCopy = { ...o };
+          const isBebas = isKetikBebas(itemCopy.jenis);
+          const resolvedJenis = isBebas 
+            ? ((itemCopy.customJenis && String(itemCopy.customJenis).trim()) ? String(itemCopy.customJenis).trim() : 'Lain-lain')
+            : (itemCopy.jenis || '-');
+          itemCopy.jenis = resolvedJenis;
+          itemCopy.jenisObjek = resolvedJenis;
+          itemCopy.customJenis = itemCopy.customJenis || '';
+          return itemCopy;
+        }) : [{
+          jenis: 'Tanah dan Bangunan',
+          col3: '-', col4: '-', col5: 'Milik Sendiri', lt: '-', lb: '-', status: 'Milik Sendiri', lokasi: '-'
+        }]
+      };
+    }
+
     // ==========================================================
     // 5. NAVIGASI TAB UTAMA
     // ==========================================================
@@ -3025,7 +3174,9 @@
       } else if (tabName === 'preview') {
         tabPrev.classList.remove('hidden');
         btnPrev.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
-        if (!activeProjectData && projectDatabase.length > 0) {
+        if (!activeProjectData || activeProjectData.isDraftPreview) {
+          activeProjectData = bangunDraftDariForm();
+        } else if (!activeProjectData && projectDatabase.length > 0) {
           activeProjectData = projectDatabase[0];
         }
         renderSemuaDokumen();
@@ -3315,6 +3466,45 @@
       }
     }
 
+    function handleInvestigasiChange() {
+      const el = document.getElementById('tingkat_kedalaman_investigasi');
+      const wrap = document.getElementById('wrap_klausul_investigasi_custom');
+      const txt = document.getElementById('klausul_investigasi_custom');
+      if (!el || !wrap) return;
+
+      const val = el.value;
+      if (val === 'PENUH') {
+        wrap.classList.add('hidden');
+      } else {
+        wrap.classList.remove('hidden');
+        if (txt && !txt.value.trim()) {
+          if (val === 'TERBATAS') {
+            txt.value = 'Investigasi dilakukan secara terbatas dari luar batas pagar/akses publik (drive-by inspection) tanpa akses masuk ke area internal objek penilaian, atas kesepakatan tertulis dengan Pemberi Tugas.';
+          } else if (val === 'DESKTOP') {
+            txt.value = 'Penugasan ini dilaksanakan atas dasar Penilaian Tanpa Inspeksi Lapangan (Desktop Valuation / Kajian Dokumen) berdasarkan instruksi dan persetujuan tertulis Pemberi Tugas. Penilai tidak melakukan peninjauan fisik langsung ke lokasi objek.';
+          } else if (val === 'CUSTOM') {
+            txt.value = 'Ketentuan investigasi khusus dilaksanakan sesuai instruksi dan kesepakatan tertulis antara Penilai dan Pemberi Tugas.';
+          }
+        }
+      }
+    }
+
+    function handleAsumsiKhususChange() {
+      const chk = document.getElementById('chk_asumsi_khusus');
+      const wrap = document.getElementById('wrap_asumsi_khusus_text');
+      const txt = document.getElementById('asumsi_khusus_text');
+      if (!chk || !wrap) return;
+
+      if (chk.checked) {
+        wrap.classList.remove('hidden');
+        if (txt && !txt.value.trim()) {
+          txt.value = 'Penilaian didasarkan pada Asumsi Khusus bahwa proses perizinan/pemecahan sertipikat/penyelesaian pembangunan telah terlaksana 100% pada tanggal penilaian sesuai dokumen perencanaan yang diserahkan Pemberi Tugas.';
+        }
+      } else {
+        wrap.classList.add('hidden');
+      }
+    }
+
     function detectAssetComposition(objekList = []) {
       const result = {
         hasRealProperty: false,
@@ -3335,21 +3525,31 @@
       objekList.forEach(o => {
         if (!o) return;
         const j = String(o.jenis || '').toLowerCase();
+        const jo = String(o.jenisObjek || '').toLowerCase();
         const custom = String(o.customJenis || '').toLowerCase();
-        const comb = `${j} ${custom}`;
+        const c3 = String(o.col3 || o.lt || '').toLowerCase();
+        const c4 = String(o.col4 || o.lb || '').toLowerCase();
+        const c5 = String(o.col5 || o.status || '').toLowerCase();
+        const lok = String(o.lokasi || '').toLowerCase();
+        const comb = `${j} ${jo} ${custom} ${c3} ${c4} ${c5} ${lok}`;
 
-        const cfg = getObjekColumnConfig(o.jenis || '');
+        const cfg = getObjekColumnConfig(o.jenis || o.jenisObjek || '');
 
-        // Real property: Tanah, Bangunan, Ruko, Rumah, Kantor, Gudang, Apartemen, Kios, Villa, Gedung
-        const realKeywords = ['tanah', 'bangunan', 'ruko', 'rukan', 'rumah', 'kantor', 'gudang', 'apartemen', 'pabrik', 'kios', 'villa', 'hotel', 'gedung'];
+        // Properti Riil: Tanah, Bangunan, Ruko, Rumah, Kantor, Gudang, Apartemen, Pabrik, Kios, Villa, Gedung, Kavling, Tapak
+        const realKeywords = [
+          'tanah', 'bangunan', 'ruko', 'rukan', 'rumah', 'kantor', 'gudang',
+          'apartemen', 'pabrik', 'kios', 'villa', 'hotel', 'gedung', 'kavling',
+          'kondominium', 'tapak', 'residensial', 'komersial'
+        ];
         const isReal = (cfg.category === 'properti') || realKeywords.some(kw => comb.includes(kw));
 
-        // Personal property: Mesin, Peralatan, Kendaraan, Alat Berat, Inventaris, Pabrikasi, mekanikal/elektrikal
+        // Personal Properti: Mesin, Peralatan Pabrik, Kendaraan, Alat Berat, Inventaris, dsb.
         const personalKeywords = [
           'mesin', 'kendaraan', 'alat berat', 'heavy equipment', 'inventaris', 'pabrikasi',
-          'peralatan', 'mekanikal', 'elektrikal', 'motor', 'mobil', 'truk', 'truck',
+          'peralatan', 'peralatan pabrik', 'mekanikal', 'elektrikal', 'motor', 'mobil', 'truk', 'truck',
           'trailer', 'forklift', 'genset', 'generator', 'boiler', 'crane', 'conveyor',
-          'line produksi', 'suku cadang', 'spare part', 'sarana pabrik'
+          'line produksi', 'suku cadang', 'spare part', 'sarana pabrik', 'aktiva tetap', 'bejana tekan',
+          'tangki', 'instalasi pipa', 'armada'
         ];
         const isPersonal = (cfg.category === 'kendaraan' || cfg.category === 'mesin' || cfg.category === 'alat_berat') ||
                            personalKeywords.some(kw => comb.includes(kw));
@@ -3357,16 +3557,16 @@
         if (isReal) result.hasRealProperty = true;
         if (isPersonal) result.hasPersonalProperty = true;
 
-        if (cfg.category === 'kendaraan' || comb.includes('kendaraan') || comb.includes('mobil') || comb.includes('motor') || comb.includes('truk') || comb.includes('truck')) {
+        if (cfg.category === 'kendaraan' || comb.includes('kendaraan') || comb.includes('mobil') || comb.includes('motor') || comb.includes('truk') || comb.includes('truck') || comb.includes('armada')) {
           result.hasVehicle = true;
         }
-        if (cfg.category === 'mesin' || comb.includes('mesin') || comb.includes('pabrikasi') || comb.includes('mekanikal') || comb.includes('elektrikal') || comb.includes('peralatan')) {
+        if (cfg.category === 'mesin' || comb.includes('mesin') || comb.includes('pabrikasi') || comb.includes('mekanikal') || comb.includes('elektrikal') || comb.includes('peralatan') || comb.includes('generator') || comb.includes('boiler') || comb.includes('crane')) {
           result.hasMachinery = true;
         }
-        if (cfg.category === 'alat_berat' || comb.includes('alat berat') || comb.includes('heavy equipment')) {
+        if (cfg.category === 'alat_berat' || comb.includes('alat berat') || comb.includes('heavy equipment') || comb.includes('forklift') || comb.includes('excavator') || comb.includes('wheel loader') || comb.includes('bulldozer')) {
           result.hasHeavyEquipment = true;
         }
-        if (comb.includes('inventaris') || comb.includes('perlengkapan') || comb.includes('suku cadang')) {
+        if (comb.includes('inventaris') || comb.includes('perlengkapan') || comb.includes('suku cadang') || comb.includes('perabot') || comb.includes('fixture')) {
           result.hasInventory = true;
         }
       });
@@ -3740,12 +3940,81 @@
       `;
     }
 
-    function getKlausul9Investigasi(kategori, assetComp = {}) {
+    function getKlausul9Investigasi(kategori, assetComp = {}, p = {}) {
       const hasPersonal = assetComp.hasPersonalProperty || kategori === 'PLANT_MACHINERY' || kategori === 'VEHICLE';
       const hasReal = assetComp.hasRealProperty !== false && kategori !== 'PLANT_MACHINERY' && kategori !== 'VEHICLE';
+      const tingkatInv = p.tingkat_kedalaman_investigasi || 'PENUH';
+      const customKlausul = (p.klausul_investigasi_custom || '').trim();
 
+      // Kasus 1: Desktop Valuation (Tanpa Inspeksi Lapangan)
+      if (tingkatInv === 'DESKTOP') {
+        return `
+          <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li class="bg-amber-50/90 p-1.5 rounded border-l-2 border-amber-600">
+              <strong>Klausul Penilaian Tanpa Inspeksi Lapangan (Desktop Valuation / Kajian Dokumen - SPI 103 butir 5.h) :</strong> ${customKlausul || 'Penugasan ini dilaksanakan atas dasar Penilaian Tanpa Inspeksi Lapangan (Desktop Valuation / Kajian Dokumen) berdasarkan instruksi dan persetujuan tertulis dari Pemberi Tugas. Penilai tidak melakukan peninjauan fisik langsung ke lokasi objek penilaian.'}
+            </li>
+            <li>Seluruh kesimpulan nilai diturunkan semata-mata dari analisis data sekunder, dokumen legalitas yuridis, denah/layout, citra satelit terkini, serta informasi/foto yang diserahkan oleh Pemberi Tugas tanpa verifikasi fisik langsung di lokasi.</li>
+            <li>Data dan informasi menyangkut fisik dan legalitas atas objek penilaian sepenuhnya bersumber dari Pemberi Tugas dan diasumsikan sah, akurat, serta dapat diandalkan.</li>
+            <li>Penilai dibebaskan dari segala tanggung jawab hukum dan kerugian yang timbul akibat perbedaan material antara kondisi fisik aktual di lapangan dengan data atau dokumen sekunder yang disediakan.</li>
+            ${hasPersonal ? `
+              <li><strong>Batasan Teknis Aset Personal :</strong> Terhadap mesin, peralatan, kendaraan, dan/atau inventaris, penilaian didasarkan sepenuhnya pada Daftar Aktiva Tetap (FAR), faktur pembelian, dan spesifikasi tertulis tanpa uji operasional, tanpa pembongkaran mesin (<em>no dismantling</em>), dan tanpa verifikasi fisik pelat nama (<em>nameplate</em>).</li>
+            ` : ''}
+            <li>Pekerjaan penilaian ini tidak menghasilkan Berita Acara Inspeksi Fisik Lapangan dan digantikan dengan Berita Acara Kajian Dokumen (Desktop Review Summary).</li>
+            <li>Penilai tidak melakukan penyelidikan atas adanya pencemaran lingkungan, limbah B3, atau sengketa fisik tapak di lokasi objek penilaian.</li>
+            <li>Segala sesuatu yang membatasi pekerjaan dan atau di luar dari ketentuan desktop valuation di atas maka lingkup penugasan ini akan disesuaikan secara tertulis.</li>
+          </ul>
+        `;
+      }
+
+      // Kasus 2: Inspeksi Terbatas / Drive-by
+      if (tingkatInv === 'TERBATAS') {
+        return `
+          <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li>Data dan informasi menyangkut fisik dan legalitas atas objek penilaian diperoleh dari Pemberi Tugas.</li>
+            <li class="bg-amber-50/90 p-1.5 rounded border-l-2 border-amber-600">
+              <strong>Batasan Investigasi Lapangan (Inspeksi Visual Luar / Terbatas - Drive-by - SPI 103 butir 5.h) :</strong> ${customKlausul || 'Sesuai kesepakatan tertulis dengan Pemberi Tugas, investigasi lapangan dibatasi hanya pada inspeksi visual luar (drive-by inspection) dari batas akses publik/pagar terluar tanpa akses masuk ke area internal objek penilaian. Opini nilai didasarkan pada observasi kasat mata dari batas akses yang diizinkan dan asumsi bahwa kondisi bagian dalam/komponen internal selaras dengan kondisi penampakan luarnya.'}
+            </li>
+            <li>Inspeksi visual luar dilakukan dengan pendampingan perwakilan yang ditunjuk resmi oleh Pemberi Tugas.</li>
+            ${hasReal ? `
+              <li><strong>Investigasi Properti Tapak :</strong> Terhadap objek real properti (tanah dan bangunan), investigasi dilakukan terbatas pada kondisi fisik terlihat dari luar dan tingkat kesesuaian antara data fisik dan fisik terlihat. Terhadap bidang tanah tidak dilakukan pengukuran kadastral ulang.</li>
+            ` : ''}
+            ${hasPersonal ? `
+              <li><strong>Pemeriksaan Visual Eksternal Terbatas :</strong> Inspeksi atas mesin, peralatan, dan armada kendaraan dilakukan secara visual dari batas luar yang dapat diakses tanpa pembongkaran mesin (<em>no dismantling</em>) dan tanpa pengujian operasi beban.</li>
+            ` : ''}
+            <li>Apabila pelaksanaan inspeksi terbatas tidak dapat dilakukan karena keberadaan objek tidak diketahui atau akses luar tertutup rapat, maka penugasan dimaksud tidak dapat diteruskan atau batal demi hukum.</li>
+            <li>Hasil inspeksi visual luar dilengkapi dengan Berita Acara Inspeksi (BAP) Terbatas yang ditandatangani perwakilan Pemberi Tugas dan Penilai.</li>
+            <li>Penilai tidak mempertimbangkan dan melakukan penyelidikan akan adanya pencemaran lingkungan atau risiko tersembunyi pada properti yang dinilai.</li>
+            <li>Segala sesuatu yang membatasi pekerjaan dan atau di luar dari ketentuan investigasi terbatas di atas maka lingkup penugasan ini akan disesuaikan secara tertulis.</li>
+          </ul>
+        `;
+      }
+
+      // Kasus 3: Kustom / Klausul Investigasi Khusus
+      if (tingkatInv === 'CUSTOM') {
+        return `
+          <ul class="list-disc pl-5 space-y-1.5 text-justify">
+            <li>Data dan informasi menyangkut fisik dan legal atas objek penilaian diperoleh dari Pemberi Tugas.</li>
+            <li class="bg-amber-50/90 p-1.5 rounded border-l-2 border-amber-600">
+              <strong>Klausul Investigasi Khusus (Kustom - SPI 103 butir 5.h) :</strong> ${customKlausul || 'Pelaksanaan investigasi dan pengumpulan data objek penilaian dilaksanakan sesuai klausul dan kesepakatan tertulis khusus antara Penilai dan Pemberi Tugas.'}
+            </li>
+            <li>Proses pengumpulan dan analisis data dilakukan pada objek penilaian dengan pendampingan pihak yang ditunjuk resmi oleh Pemberi Tugas.</li>
+            ${hasReal ? `
+              <li>Terhadap objek real properti, investigasi dilakukan terbatas pada kondisi fisik terlihat dan tingkat kesesuaian antara data fisik dan fisik terlihat tanpa pengukuran kadastral ulang.</li>
+            ` : ''}
+            ${hasPersonal ? `
+              <li><strong>Pemeriksaan Visual Eksternal (Non-Intrusive) :</strong> Inspeksi lapangan atas mesin dan peralatan dilakukan secara visual dari luar terhadap kondisi fisik, keutuhan unit, dan verifikasi pelat nama (<em>nameplate</em>: Merk, Model, Nomor Seri, Kapasitas) tanpa pembongkaran mesin (<em>no dismantling</em>) dan tanpa uji destruktif material.</li>
+              <li><strong>Metode Sampling Inventaris :</strong> Terhadap inventaris dalam jumlah massal, penilai berhak menggunakan metode uji petik (<em>sampling method</em>) berdasarkan materialitas nilai.</li>
+            ` : ''}
+            <li>Hasil inspeksi dilengkapi dengan Berita Acara Inspeksi yang ditandatangani Pemberi Tugas dan Penilai.</li>
+            <li>Penilai tidak mempertimbangkan dan melakukan penyelidikan akan adanya pencemaran lingkungan dan limbah B3 pada objek yang dinilai.</li>
+            <li>Segala sesuatu yang membatasi pekerjaan dan atau di luar dari ketentuan khusus di atas maka lingkup penugasan ini akan disesuaikan secara tertulis.</li>
+          </ul>
+        `;
+      }
+
+      // Kasus 4: Tingkat Kedalaman PENUH (Default Standar Baku 8 Poin SPI)
       if (!hasPersonal) {
-        // Standar Real Properti (Tanah & Bangunan)
+        // Standar Real Properti Baku (Tanah & Bangunan)
         return `
           <ul class="list-disc pl-5 space-y-1 text-justify">
             <li>Data dan informasi, menyangkut fisik dan legal atas objek penilaian diperoleh dari pemberi tugas.</li>
@@ -3760,7 +4029,7 @@
         `;
       }
 
-      // Klausul Cerdas Investigasi Multi-Aset / Personal Properti (Mesin, Kendaraan, Alat Berat, Inventaris)
+      // Standar Multi-Aset / Personal Properti Lengkap (Mesin, Kendaraan, Alat Berat, Inventaris)
       return `
         <ul class="list-disc pl-5 space-y-1.5 text-justify">
           <li>Data dan informasi menyangkut fisik dan legalitas kepemilikan atas objek penilaian diperoleh dari Pemberi Tugas.</li>
@@ -3782,11 +4051,13 @@
       `;
     }
 
-    function getKlausul11Asumsi(kategori, assetComp = {}) {
+    function getKlausul11Asumsi(kategori, assetComp = {}, p = {}) {
       const hasPersonal = assetComp.hasPersonalProperty || kategori === 'PLANT_MACHINERY' || kategori === 'VEHICLE';
 
+      let baseContent = '';
+
       if (kategori === 'PLANT_MACHINERY') {
-        return `
+        baseContent = `
           <p class="text-justify mb-2">Dalam penilaian mesin, peralatan industri, dan alat berat ini, kami menggunakan asumsi umum dan batasan penugasan profesional sebagai berikut :</p>
           <ul class="list-disc pl-5 space-y-1.5 text-justify">
             <li><strong>Asumsi Pembatas Khusus Aset Personal :</strong> Seluruh mesin dan peralatan diasumsikan terpasang dengan pondasi dan instalasi utilitas yang benar, beroperasi secara aman sesuai spesifikasi pabrikan, serta komponen internal yang tidak tampak berada dalam kondisi kerja yang sebanding dengan penampakan luarnya.</li>
@@ -3797,10 +4068,8 @@
             <li><strong>Batas Keberlakuan Nilai :</strong> Penilaian berlaku terbatas pada tanggal efektif inspeksi lapangan dan mengasumsikan tidak terdapat kerusakan katastropik atau modifikasi teknis signifikan setelah tanggal tersebut.</li>
           </ul>
         `;
-      }
-
-      if (kategori === 'VEHICLE') {
-        return `
+      } else if (kategori === 'VEHICLE') {
+        baseContent = `
           <p class="text-justify mb-2">Dalam penilaian armada kendaraan bermotor ini, kami menetapkan asumsi pokok dan batasan penugasan sebagai berikut :</p>
           <ul class="list-disc pl-5 space-y-1.5 text-justify">
             <li><strong>Asumsi Pembatas Khusus Aset Personal :</strong> Seluruh unit armada kendaraan diasumsikan terawat dengan baik, beroperasi secara aman sesuai spesifikasi pabrikan, serta komponen mekanikal mesin internal yang tidak kasat mata berada dalam kondisi kerja yang sebanding dengan penampakan luarnya.</li>
@@ -3810,10 +4079,8 @@
             <li><strong>Akurasi Odometer :</strong> Jarak tempuh pada odometer dicatat sebagaimana terbaca pada saat inspeksi dengan asumsi tidak terjadi manipulasi teknis (<em>tampering</em>) oleh pihak manapun.</li>
           </ul>
         `;
-      }
-
-      if (kategori === 'BIOLOGICAL_ASSET') {
-        return `
+      } else if (kategori === 'BIOLOGICAL_ASSET') {
+        baseContent = `
           <p class="text-justify mb-2">Dalam penilaian aset biologis perkebunan, kehutanan, dan peternakan ini, berlaku asumsi dan batasan penugasan sebagai berikut :</p>
           <ul class="list-disc pl-5 space-y-1.5 text-justify">
             <li><strong>Metode Sampling Petak Ukur Afdeling :</strong> Penilaian sensus kerapatan tegakan pohon, diameter tajuk, dan kondisi visual tanaman dilakukan dengan metode percontohan (<em>sampling survey representative</em>) pada petak ukur/afdeling terwakili yang disepakati, bukan sensus 100% pohon per pohon di seluruh luas konsesi/HGU.</li>
@@ -3822,10 +4089,8 @@
             <li><strong>Data Produksi Historis :</strong> Data tonase panen historis dan biaya pemeliharaan yang diserahkan manajemen kebun diasumsikan mencerminkan operasional kebun yang sebenarnya.</li>
           </ul>
         `;
-      }
-
-      if (kategori === 'MULTI_ASSET' || hasPersonal) {
-        return `
+      } else if (kategori === 'MULTI_ASSET' || hasPersonal) {
+        baseContent = `
           <p class="text-justify mb-2">Dalam penilaian portofolio campuran beragam kelas aset (multi-asset / properti &amp; personal properti) ini, diberlakukan batasan profesional dan asumsi terpadu sebagai berikut :</p>
           <ul class="list-disc pl-5 space-y-1.5 text-justify">
             <li><strong>Aset Properti :</strong> Penilai tidak melakukan pengujian struktur fondasi tanah tertutup (<em>soil test</em>), pengujian beton bertulang, dan mengasumsikan properti mematuhi zonasi peruntukan tata ruang kota (RTRW/RDTR).</li>
@@ -3836,20 +4101,42 @@
             <li><strong>Keabsahan Yuridis Menyeluruh :</strong> Seluruh objek diasumsikan memiliki hak kepemilikan sah, bebas sengketa hukum, dan bebas dari sita jaminan yang menghalangi penilaian.</li>
           </ul>
         `;
+      } else {
+        // Default: REAL_PROPERTY
+        baseContent = `
+          <p class="text-justify mb-2">Dalam penilaian ini kami menggunakan asumsi umum dan batasan penugasan profesional sebagai berikut :</p>
+          <ul class="list-disc pl-5 space-y-1 text-justify">
+            <li><strong>Kepatuhan Zonasi &amp; Perizinan Tata Ruang :</strong> Penilaian ini didasarkan pada asumsi bahwa properti dibangun dan dimanfaatkan sesuai dengan peraturan peruntukan tata ruang kota yang berlaku (RTRW/RDTR), serta telah memiliki atau dalam proses perizinan yang sah dari instansi berwenang.</li>
+            <li><strong>Batasan Uji Struktur Tanah &amp; Bangunan :</strong> Penilai tidak melakukan pengujian mekanika tanah (<em>soil test</em>), pengujian stabilitas fondasi bawah tanah tertutup, serta pemeriksaan integritas struktural di balik dinding atau beton bertulang. Penilai mengasumsikan tapak tanah stabil dan struktur fisik bangunan kokoh berdasarkan observasi visual luar.</li>
+            <li><strong>Bebas Sengketa Hukum :</strong> Bahwa objek penilaian yang dinilai tidak mempunyai masalah hukum dan hak kepemilikannya adalah sah, bebas dari sengketa, perkara perdata/pidana, serta dapat dialihkan haknya secara bebas ikatan.</li>
+            <li><strong>Keabsahan Informasi &amp; Dokumen :</strong> Semua informasi dan salinan sertipikat yang berkaitan dengan penilaian ini kami terima dari Pemberi Tugas dan diasumsikan sah serta benar adanya. Kami tidak melakukan audit investigatif forensik atas keaslian fisik warkah sertipikat tanah di Kantor Pertanahan (BPN).</li>
+            <li><strong>Bebas Pencemaran Lingkungan :</strong> Penilai tidak melakukan penyelidikan atas keberadaan limbah B3, polusi kimia bawah tanah, atau risiko pencemaran lingkungan tersembunyi pada properti yang dinilai.</li>
+            <li><strong>Ketiadaan Realisasi Jaminan :</strong> Nilai Pasar yang disimpulkan mencerminkan estimasi nilai objektif pada tanggal penilaian tanpa memperhitungkan beban pajak transaksi, komisi perantara, maupun biaya lelang paksa.</li>
+          </ul>
+        `;
       }
 
-      // Default: REAL_PROPERTY
-      return `
-        <p class="text-justify mb-2">Dalam penilaian ini kami menggunakan asumsi umum dan batasan penugasan profesional sebagai berikut :</p>
-        <ul class="list-disc pl-5 space-y-1 text-justify">
-          <li><strong>Kepatuhan Zonasi &amp; Perizinan Tata Ruang :</strong> Penilaian ini didasarkan pada asumsi bahwa properti dibangun dan dimanfaatkan sesuai dengan peraturan peruntukan tata ruang kota yang berlaku (RTRW/RDTR), serta telah memiliki atau dalam proses perizinan yang sah dari instansi berwenang.</li>
-          <li><strong>Batasan Uji Struktur Tanah &amp; Bangunan :</strong> Penilai tidak melakukan pengujian mekanika tanah (<em>soil test</em>), pengujian stabilitas fondasi bawah tanah tertutup, serta pemeriksaan integritas struktural di balik dinding atau beton bertulang. Penilai mengasumsikan tapak tanah stabil dan struktur fisik bangunan kokoh berdasarkan observasi visual luar.</li>
-          <li><strong>Bebas Sengketa Hukum :</strong> Bahwa objek penilaian yang dinilai tidak mempunyai masalah hukum dan hak kepemilikannya adalah sah, bebas dari sengketa, perkara perdata/pidana, serta dapat dialihkan haknya secara bebas ikatan.</li>
-          <li><strong>Keabsahan Informasi &amp; Dokumen :</strong> Semua informasi dan salinan sertipikat yang berkaitan dengan penilaian ini kami terima dari Pemberi Tugas dan diasumsikan sah serta benar adanya. Kami tidak melakukan audit investigatif forensik atas keaslian fisik warkah sertipikat tanah di Kantor Pertanahan (BPN).</li>
-          <li><strong>Bebas Pencemaran Lingkungan :</strong> Penilai tidak melakukan penyelidikan atas keberadaan limbah B3, polusi kimia bawah tanah, atau risiko pencemaran lingkungan tersembunyi pada properti yang dinilai.</li>
-          <li><strong>Ketiadaan Realisasi Jaminan :</strong> Nilai Pasar yang disimpulkan mencerminkan estimasi nilai objektif pada tanggal penilaian tanpa memperhitungkan beban pajak transaksi, komisi perantara, maupun biaya lelang paksa.</li>
-        </ul>
-      `;
+      // Klausul Dinamis: Sub-klausul Asumsi Khusus (SPI 103 butir 5.l)
+      const hasAsumsiKhusus = (p.chk_asumsi_khusus === true || p.chk_asumsi_khusus === 'true' || p.chk_asumsi_khusus === 1) && (p.asumsi_khusus_text || '').trim();
+      if (hasAsumsiKhusus) {
+        const textAsumsiKhusus = (p.asumsi_khusus_text || '').trim();
+        baseContent += `
+          <div class="mt-3 p-3 bg-amber-50/90 border-l-4 border-amber-600 rounded-r text-slate-900 text-[10.5px]">
+            <p class="font-bold uppercase text-amber-900 mb-1 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 inline-block text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+              <span>Asumsi Khusus Penugasan (Special Assumption - SPI 103 butir 5.l) :</span>
+            </p>
+            <p class="text-justify font-medium text-slate-800">
+              ${textAsumsiKhusus}
+            </p>
+            <p class="text-[9.5px] text-amber-800 italic mt-1.5">
+              * Catatan Kepatuhan SPI 103: Opini Nilai Pasar yang disimpulkan bersyarat penuh pada keterwujudan Asumsi Khusus di atas. Apabila kondisi asumsi khusus tersebut tidak terwujud atau berbeda dari kenyataan, maka kesimpulan nilai menjadi tidak berlaku.
+            </p>
+          </div>
+        `;
+      }
+
+      return baseContent;
     }
 
     function getKlausul13Dokumen(kategori, assetComp = {}) {
@@ -4627,6 +4914,10 @@
         pemilik_sertipikat: document.getElementById('debitur_nama').value.trim().toUpperCase(),
         hubungan_pemilik: "Milik Sendiri",
         kategori_template_spk: document.getElementById('kategori_template_spk')?.value || 'REAL_PROPERTY',
+        tingkat_kedalaman_investigasi: document.getElementById('tingkat_kedalaman_investigasi')?.value || 'PENUH',
+        klausul_investigasi_custom: (document.getElementById('klausul_investigasi_custom')?.value || '').trim(),
+        chk_asumsi_khusus: document.getElementById('chk_asumsi_khusus') ? document.getElementById('chk_asumsi_khusus').checked : false,
+        asumsi_khusus_text: (document.getElementById('asumsi_khusus_text')?.value || '').trim(),
         tujuan_penilaian: getResolvedTujuanPenilaian(),
         dasar_nilai: getResolvedDasarNilai(),
         pendekatan_penilaian: document.getElementById('pendekatan_penilaian').value,
@@ -5386,7 +5677,7 @@
                         <!-- 9. TINGKAT KEDALAMAN INVESTIGASI -->
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">9. TINGKAT KEDALAMAN INVESTIGASI</p>
-                          ${getKlausul9Investigasi(kategoriTemplate, assetComp)}
+                          ${getKlausul9Investigasi(kategoriTemplate, assetComp, p)}
                         </div>
 
                         <!-- 10. SIFAT DAN SUMBER INFORMASI YANG DAPAT DIANDALKAN -->
@@ -5404,7 +5695,7 @@
                         <!-- 11. ASUMSI DAN BATASAN PENUGASAN -->
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">11. ASUMSI DAN BATASAN PENUGASAN</p>
-                          ${getKlausul11Asumsi(kategoriTemplate, assetComp)}
+                          ${getKlausul11Asumsi(kategoriTemplate, assetComp, p)}
                         </div>
 
                         <!-- 12. PERSYARATAN ATAS PERSETUJUAN UNTUK PUBLIKASI -->
@@ -5925,6 +6216,16 @@
                   <td class="font-bold bg-slate-50">Pendekatan Penilaian</td>
                   <td>${p.pendekatan_penilaian}</td>
                 </tr>
+                <tr>
+                  <td class="font-bold bg-slate-50">Tingkat Investigasi</td>
+                  <td>${p.tingkat_kedalaman_investigasi === 'TERBATAS' ? 'Inspeksi Visual Luar / Terbatas (Drive-by)' : p.tingkat_kedalaman_investigasi === 'DESKTOP' ? 'Desktop Valuation (Tanpa Inspeksi Lapangan)' : p.tingkat_kedalaman_investigasi === 'CUSTOM' ? 'Kustom / Khusus' : 'Inspeksi Fisik Penuh (Standar Baku 8 Poin SPI)'}</td>
+                </tr>
+                ${(p.chk_asumsi_khusus && p.asumsi_khusus_text) ? `
+                <tr>
+                  <td class="font-bold bg-amber-50 text-amber-900">Asumsi Khusus (SPI 103)</td>
+                  <td class="text-amber-900 font-medium">${p.asumsi_khusus_text}</td>
+                </tr>
+                ` : ''}
                 <tr>
                   <td class="font-bold bg-slate-50">Sumber Proyek</td>
                   <td>${p.sumber_proyek || '-'}</td>
@@ -7320,6 +7621,14 @@
       if (document.getElementById('kategori_template_spk')) {
         document.getElementById('kategori_template_spk').value = 'REAL_PROPERTY';
       }
+      if (document.getElementById('tingkat_kedalaman_investigasi')) {
+        document.getElementById('tingkat_kedalaman_investigasi').value = 'PENUH';
+        handleInvestigasiChange();
+      }
+      if (document.getElementById('chk_asumsi_khusus')) {
+        document.getElementById('chk_asumsi_khusus').checked = false;
+        handleAsumsiKhususChange();
+      }
       if (document.getElementById('sumber_proyek')) {
         document.getElementById('sumber_proyek').value = 'Direct Klien - Divisi BD';
       }
@@ -7357,6 +7666,22 @@
       kalkulasiBiaya();
       objekRows = [];
       tambahBarisObjek();
+
+      // Reset Tingkat Investigasi & Asumsi Khusus
+      if (document.getElementById('tingkat_kedalaman_investigasi')) {
+        document.getElementById('tingkat_kedalaman_investigasi').value = 'PENUH';
+        handleInvestigasiChange();
+      }
+      if (document.getElementById('chk_asumsi_khusus')) {
+        document.getElementById('chk_asumsi_khusus').checked = false;
+        handleAsumsiKhususChange();
+      }
+      if (document.getElementById('klausul_investigasi_custom')) {
+        document.getElementById('klausul_investigasi_custom').value = '';
+      }
+      if (document.getElementById('asumsi_khusus_text')) {
+        document.getElementById('asumsi_khusus_text').value = '';
+      }
 
       // Reset Tujuan & Dasar Nilai
       const elTujuan = document.getElementById('maksud_tujuan_penilaian') || document.getElementById('tujuan_penilaian');
