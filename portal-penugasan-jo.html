@@ -462,22 +462,22 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <!-- ALUR 1: Pengajuan Verifikasi ke Kantor Pusat -->
           <label id="label-mode-central" onclick="pilihModeAlur('CENTRAL_APPROVAL')" class="flex items-start gap-3 p-3.5 rounded-xl border-2 border-amber-400 bg-amber-950/30 cursor-pointer transition shadow">
-            <input type="radio" name="radio_mode_alur" id="radio-mode-central" value="CENTRAL_APPROVAL" checked class="mt-1 text-amber-400 focus:ring-0">
+            <input type="radio" name="radio_mode_alur" id="alur_kerja_pusat" value="CENTRAL" checked class="mt-1 text-amber-400 focus:ring-0">
             <div>
-              <span class="block text-xs font-black text-amber-300">ALUR 1: Pengajuan Verifikasi ke Kantor Pusat (Central Approval)</span>
-              <span class="block text-[11px] text-slate-300 mt-1 leading-snug">Kolom nomor dikunci otomatis. Data dikirim ke Google Sheet Pusat dengan status <strong class="text-amber-400">WAITING_APPROVAL</strong> untuk diverifikasi &amp; diterbitkan nomor resmi oleh Admin Pusat.</span>
+              <span id="title-mode-central" class="block text-xs font-black text-amber-300">ALUR 1: Pengajuan Verifikasi ke Kantor Pusat (Central Approval)</span>
+              <span id="sub-mode-central" class="block text-[11px] text-slate-300 mt-1 leading-snug">Kolom nomor dikunci otomatis. Data dikirim ke Google Sheet Pusat dengan status <strong class="text-amber-400">WAITING_APPROVAL</strong> untuk diverifikasi &amp; diterbitkan nomor resmi oleh Admin Pusat.</span>
             </div>
           </label>
 
-          <!-- ALUR 2: Lingkup Mandiri Cabang (100% Privasi Cabang / Zero-Cloud) -->
+          <!-- ALUR 2: Penerbitan Mandiri Cabang (Kewenangan Rekan Pemimpin Cabang) -->
           <label id="label-mode-private" onclick="pilihModeAlur('PRIVATE_CABANG')" class="flex items-start gap-3 p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 hover:border-slate-600 cursor-pointer transition opacity-80">
-            <input type="radio" name="radio_mode_alur" id="radio-mode-private" value="PRIVATE_CABANG" class="mt-1 text-emerald-400 focus:ring-0">
+            <input type="radio" name="radio_mode_alur" id="alur_kerja_mandiri" value="MANDIRI" class="mt-1 text-emerald-400 focus:ring-0">
             <div>
-              <span class="block text-xs font-black text-emerald-300 flex items-center gap-1.5">
-                <span>ALUR 2: Lingkup Mandiri Cabang (Privat 100% Zero-Cloud)</span>
-                <span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Lokal</span>
+              <span id="title-mode-private" class="block text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                <span>ALUR 2: Penerbitan Mandiri Cabang (Kewenangan Rekan Pemimpin Cabang)</span>
+                <span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Mandiri</span>
               </span>
-              <span class="block text-[11px] text-slate-300 mt-1 leading-snug">Data tersimpan <strong class="text-emerald-300">khusus di komputer cabang Anda</strong> (Zero-Cloud, tidak dikirim ke Google Sheet Pusat). Nomor SPK &amp; JO bebas diisi manual / counter cabang. Siap langsung dicetak instan.</span>
+              <span id="sub-mode-private" class="block text-[11px] text-slate-300 mt-1 leading-snug">Nomor SPK &amp; JO terbit instan dari buku register cabang, tersinkronisasi ke database cabang.</span>
             </div>
           </label>
         </div>
@@ -2838,15 +2838,18 @@
 
     // Pemilih Alur Kerja (Dual-Mode Alur Cabang)
     function pilihModeAlur(mode) {
+      if (mode === 'mandiri' || mode === 'MANDIRI') mode = 'PRIVATE_CABANG';
+      if (mode === 'pusat' || mode === 'CENTRAL') mode = 'CENTRAL_APPROVAL';
       currentModeAlur = mode;
-      const radioCentral = document.getElementById('radio-mode-central');
-      const radioPrivate = document.getElementById('radio-mode-private');
+      const radioCentral = document.getElementById('alur_kerja_pusat') || document.querySelector('input[value="CENTRAL"]') || document.getElementById('radio-mode-central');
+      const radioPrivate = document.getElementById('alur_kerja_mandiri') || document.querySelector('input[value="MANDIRI"]') || document.getElementById('radio-mode-private');
       const labelCentral = document.getElementById('label-mode-central');
       const labelPrivate = document.getElementById('label-mode-private');
       const noLpInput = getElLp();
       const noAdmInput = getElAdm();
       const btnSubmit = document.getElementById('label-btn-submit');
       const modeDesc = document.getElementById('mode-desc');
+      const modeTitle = document.getElementById('mode-title');
 
       if (mode === 'PRIVATE_CABANG') {
         if (radioPrivate) radioPrivate.checked = true;
@@ -2900,11 +2903,28 @@
 
         if (btnSubmit) {
           btnSubmit.textContent = userSession.role === 'ADMIN_CABANG' 
-            ? "Simpan & Cetak Instan (Privat Mandiri Cabang)"
+            ? "Simpan & Cetak Instan (Mandiri Cabang)"
             : "Simpan Draft Mandiri Cabang (Verifikasi Admin Cabang)";
         }
+        if (modeTitle) {
+          modeTitle.textContent = `Mode Akses: Mandiri Cabang (${userSession.wilayah || 'Kantor Cabang'})`;
+        }
         if (modeDesc) {
-          modeDesc.innerHTML = `<span class="text-emerald-400 font-bold">MODE MANDIRI CABANG (100% PRIVAT):</span> Data disimpan secara lokal di browser cabang tanpa dikirim ke server pusat. Dokumen siap dicetak instan.`;
+          modeDesc.innerHTML = `<span class="text-emerald-400 font-bold">ALUR 2: PENERBITAN MANDIRI CABANG (KEWENANGAN REKAN PEMIMPIN CABANG):</span> Nomor SPK &amp; JO terbit instan dari buku register cabang, tersinkronisasi ke database cabang.`;
+        }
+
+        // Kunci Penandatangan ke Rekan Pemimpin Cabang Aktif
+        const selRekan = document.getElementById('rekan_nama');
+        if (selRekan) {
+          const isCabang = userSession && (userSession.mode === 'CABANG' || userSession.role === 'ADMIN_CABANG');
+          const wil = (userSession && userSession.wilayah) || '';
+          if (isCabang) {
+            const partner = getRekanByWilayah(wil);
+            selRekan.innerHTML = `<option value="${partner.nama}">${partner.nama} (${partner.jabatan}) - Terkunci Cabang</option>`;
+            selRekan.value = partner.nama;
+            selRekan.disabled = true;
+            vlookupRekan();
+          }
         }
       } else {
         // CENTRAL_APPROVAL
@@ -2939,13 +2959,99 @@
         if (btnSubmit) {
           btnSubmit.textContent = "Ajukan Verifikasi & Approval ke Kantor Pusat";
         }
+        if (modeTitle) {
+          modeTitle.textContent = "Mode Akses: Verifikasi & Otorisasi Kantor Pusat";
+        }
         if (modeDesc) {
-          modeDesc.innerHTML = `Pengajuan dari cabang akan berstatus <strong class='text-amber-400'>WAITING_APPROVAL</strong> hingga diverifikasi dan diterbitkan nomor oleh Kantor Pusat.`;
+          modeDesc.innerHTML = `<span class="text-amber-400 font-bold">ALUR 1: VERIFIKASI &amp; PERSETUJUAN KANTOR PUSAT:</span> Pengajuan baru dari cabang akan masuk ke antrean verifikasi Kantor Pusat dengan status <strong class='text-amber-400 font-bold'>WAITING_APPROVAL</strong> hingga diverifikasi dan diterbitkan nomor oleh Kantor Pusat.`;
+        }
+
+        // Buka pilihan rekan untuk verifikasi pusat
+        const selRekan = document.getElementById('rekan_nama');
+        if (selRekan) {
+          selRekan.disabled = false;
+          selRekan.innerHTML = DATABASE_REKAN.map(r => `<option value="${r.nama}">${r.nama} (${r.jabatan})</option>`).join('');
+          const nanang = DATABASE_REKAN.find(r => r.nama.includes("Nanang Rahayu"))?.nama || DATABASE_REKAN[0].nama;
+          selRekan.value = nanang;
+          vlookupRekan();
         }
       }
 
       // Pastikan dropdown wilayah sinkron dengan sesi cabang pengguna
       setWilayahDropdown(userSession.wilayah);
+    }
+
+    function inisialisasiModeAksesDariUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isCabang = userSession && (userSession.mode === 'CABANG' || userSession.role === 'ADMIN_CABANG' || userSession.role === 'MARKETING');
+      const defaultMode = isCabang ? 'mandiri' : 'pusat';
+      const modeAkses = urlParams.get('mode') || defaultMode;
+
+      if (modeAkses === 'mandiri') {
+        // 1. Pilih Radio Alur 2 (Mandiri Cabang)
+        const radioAlur2 = document.getElementById('alur_kerja_mandiri') || document.querySelector('input[value="MANDIRI"]') || document.getElementById('radio-mode-private');
+        if (radioAlur2) {
+          radioAlur2.checked = true;
+          radioAlur2.dispatchEvent(new Event('change'));
+        }
+        pilihModeAlur('PRIVATE_CABANG');
+
+        // 2. Perbarui Teks & Banner Alur
+        const titleAlur2 = document.getElementById('title-mode-private');
+        const subAlur2 = document.getElementById('sub-mode-private');
+        if (titleAlur2) {
+          titleAlur2.innerHTML = `<span>ALUR 2: Penerbitan Mandiri Cabang (Kewenangan Rekan Pemimpin Cabang)</span> <span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Mandiri</span>`;
+        }
+        if (subAlur2) {
+          subAlur2.textContent = "Nomor SPK & JO terbit instan dari buku register cabang, tersinkronisasi ke database cabang.";
+        }
+
+        // 3. Kunci Penandatangan ke Rekan Pemimpin Cabang Aktif
+        const selRekan = document.getElementById('rekan_nama');
+        if (selRekan) {
+          const wil = (userSession && userSession.wilayah) || '';
+          const partner = getRekanByWilayah(wil);
+          selRekan.innerHTML = `<option value="${partner.nama}">${partner.nama} (${partner.jabatan}) - Terkunci Cabang</option>`;
+          selRekan.value = partner.nama;
+          selRekan.disabled = true;
+          vlookupRekan();
+        }
+      } else if (modeAkses === 'pusat') {
+        // 1. Pilih Radio Alur 1 (Verifikasi Pusat)
+        const radioAlur1 = document.getElementById('alur_kerja_pusat') || document.querySelector('input[value="CENTRAL"]') || document.getElementById('radio-mode-central');
+        if (radioAlur1) {
+          radioAlur1.checked = true;
+          radioAlur1.dispatchEvent(new Event('change'));
+        }
+        pilihModeAlur('CENTRAL_APPROVAL');
+
+        // 2. Tampilkan Banner WAITING_APPROVAL Pusat
+        const modeTitle = document.getElementById('mode-title');
+        const modeDesc = document.getElementById('mode-desc');
+        if (modeTitle) {
+          modeTitle.textContent = "Mode Akses: Verifikasi & Otorisasi Kantor Pusat";
+        }
+        if (modeDesc) {
+          modeDesc.innerHTML = `<span class="text-amber-400 font-bold">ALUR 1: VERIFIKASI &amp; PERSETUJUAN KANTOR PUSAT:</span> Pengajuan baru dari cabang akan masuk ke antrean verifikasi Kantor Pusat dengan status <strong class="text-amber-400 font-bold">WAITING_APPROVAL</strong>.`;
+        }
+      }
+    }
+
+    function pasangListenerModeAlurRadio() {
+      const radioCentral = document.getElementById('alur_kerja_pusat') || document.querySelector('input[value="CENTRAL"]') || document.getElementById('radio-mode-central');
+      const radioPrivate = document.getElementById('alur_kerja_mandiri') || document.querySelector('input[value="MANDIRI"]') || document.getElementById('radio-mode-private');
+      if (radioCentral && !radioCentral._hasAlurListener) {
+        radioCentral.addEventListener('change', () => {
+          if (radioCentral.checked) pilihModeAlur('CENTRAL_APPROVAL');
+        });
+        radioCentral._hasAlurListener = true;
+      }
+      if (radioPrivate && !radioPrivate._hasAlurListener) {
+        radioPrivate.addEventListener('change', () => {
+          if (radioPrivate.checked) pilihModeAlur('PRIVATE_CABANG');
+        });
+        radioPrivate._hasAlurListener = true;
+      }
     }
 
     function updateFilterDokumenByRole() {
@@ -3227,12 +3333,13 @@
           if (elRekTujuan) {
             elRekTujuan.value = defaultBank;
           }
-          pilihModeAlur(currentModeAlur || 'CENTRAL_APPROVAL');
+          inisialisasiModeAksesDariUrl();
         }
       }
 
       // 4. Pasang Listener Edit Manual Nomor & Update Filter Dokumen di Tab 3
       pasangListenerManualNomor();
+      pasangListenerModeAlurRadio();
       updateFilterDokumenByRole();
 
       // 5. Update Preview Nomor & Render Dashboard
@@ -8222,6 +8329,7 @@
       muatDatabaseLokal();
       inisialisasiDropdownPersonil();
       pasangListenerManualNomor();
+      pasangListenerModeAlurRadio();
       
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('tanggal_surat').value = today;
@@ -8234,6 +8342,7 @@
       hitungTotalSLA();
 
       periksaSesiLogin();
+      inisialisasiModeAksesDariUrl();
 
       // Sinkronisasi data live dari Google Spreadsheet di latar belakang
       sinkronisasiDataServer(true);

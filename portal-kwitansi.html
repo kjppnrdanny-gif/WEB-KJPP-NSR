@@ -2599,6 +2599,17 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       }
 
       perbaruiPreviewKwitansi();
+
+      // Sinkronisasi query param mode (?mode=pusat vs ?mode=mandiri)
+      try {
+        const urlParamsKw = new URLSearchParams(window.location.search);
+        const modeKw = urlParamsKw.get('mode');
+        if (modeKw === 'pusat') {
+          gantiTab('pusat');
+        } else if (modeKw === 'mandiri') {
+          gantiTab('cabang');
+        }
+      } catch (e) {}
     }
 
     // 20. Navigasi Antar Tab dengan Proteksi RBAC

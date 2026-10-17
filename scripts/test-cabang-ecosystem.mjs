@@ -85,8 +85,12 @@ try {
   assert(indexHtml.includes('function kirimPermohonanSopWA('), 'Fungsi kirimPermohonanSopWA(e) terdefinisi');
   assert(indexHtml.includes('6285110513157'), 'Nomor WhatsApp Admin Pusat 6285110513157 terpasang sebagai gateway permohonan berkas');
 
-  // Pastikan fungsi updateDynamicSmartCards ada dan menangani Surat Umum & SOP
+  // Pastikan fungsi updateDynamicSmartCards ada dan menangani Surat Umum & SOP serta mode mandiri vs pusat
   assert(indexHtml.includes('function updateDynamicSmartCards(auth)'), 'Fungsi updateDynamicSmartCards(auth) terpasang di runtime JS');
+  assert(indexHtml.includes("linkJO.href = 'portal-penugasan-jo.html?mode=mandiri'"), 'Tombol Utama JO Cabang mengarah ke mode=mandiri');
+  assert(indexHtml.includes("sublinkA.href = 'portal-penugasan-jo.html?mode=pusat'"), 'Tautan Sekunder JO Cabang mengarah ke mode=pusat');
+  assert(indexHtml.includes("linkKw.href = 'portal-kwitansi.html?mode=mandiri'"), 'Tombol Utama Kwitansi Cabang mengarah ke mode=mandiri');
+  assert(indexHtml.includes("sublinkA.href = 'portal-kwitansi.html?mode=pusat'"), 'Tautan Sekunder Kwitansi Cabang mengarah ke mode=pusat');
   assert(indexHtml.includes("kartuSU.style.display = 'none'"), 'Kartu Surat Umum disembunyikan saat sesi Cabang aktif');
   assert(indexHtml.includes("kartuSU.style.display = ''"), 'Kartu Surat Umum ditampilkan saat sesi Pusat aktif');
   assert(indexHtml.includes('🔒 Minta Akses &nearr;'), 'Label tombol SOP diubah menjadi 🔒 Minta Akses saat sesi Cabang');
@@ -102,6 +106,14 @@ try {
   assert(joHtml.includes('getRekanByWilayah'), 'Helper getRekanByWilayah terpasang');
   assert(joHtml.includes('getBankDefaultByWilayah'), 'Helper getBankDefaultByWilayah terpasang');
   assert(joHtml.includes('getNamaKjppLengkap'), 'Helper getNamaKjppLengkap terpasang');
+
+  // Dual-mode radio IDs & state handling
+  assert(joHtml.includes('id="alur_kerja_mandiri"'), 'Radio Alur 2 memiliki id="alur_kerja_mandiri"');
+  assert(joHtml.includes('id="alur_kerja_pusat"'), 'Radio Alur 1 memiliki id="alur_kerja_pusat"');
+  assert(joHtml.includes('function inisialisasiModeAksesDariUrl()'), 'Fungsi inisialisasiModeAksesDariUrl() terpasang');
+  assert(joHtml.includes('ALUR 2: Penerbitan Mandiri Cabang (Kewenangan Rekan Pemimpin Cabang)'), 'Label Alur 2 diperbarui: ALUR 2: Penerbitan Mandiri Cabang (Kewenangan Rekan Pemimpin Cabang)');
+  assert(joHtml.includes('Nomor SPK &amp; JO terbit instan dari buku register cabang, tersinkronisasi ke database cabang.') || joHtml.includes('Nomor SPK & JO terbit instan dari buku register cabang, tersinkronisasi ke database cabang.'), 'Sub-text Alur 2 diperbarui sinkron dengan buku register cabang');
+  assert(joHtml.includes('WAITING_APPROVAL'), 'Banner WAITING_APPROVAL Pusat terpasang');
 
   // Rekan terkunci sesuai cabang
   assert(joHtml.includes('00581') && joHtml.includes('Deni Siswandi'), 'Bandung terkunci ke Deni Siswandi (00581)');
