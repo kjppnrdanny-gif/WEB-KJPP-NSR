@@ -24,7 +24,8 @@ const CONFIG_NOLAP = {
   SHEET_PENGAJUAN: 'PENGAJUAN',
   SHEET_AUDIT: 'AUDIT_LOG',
   SHEET_USER: 'MASTER_USER',
-  SHEET_TOKEN: 'MASTER_TOKEN'
+  SHEET_TOKEN: 'MASTER_TOKEN',
+  MASTER_ADMIN_SPREADSHEET_ID: '1Aob9oFvOObV7Nz0bt3DDsTrWCoFKd233FFYkdBCSFTg'
 };
 
 /**
@@ -65,6 +66,8 @@ function doPost(e) {
     // Router Tindakan
     if (action === 'submitRequest') {
       return handleSubmitPengajuanNoLap(payload);
+    } else if (action === 'finalizeBookingReport') {
+      return handleFinalizeBookingReport(payload);
     } else if (action === 'saveSmartMitigasiTanah' || action === 'saveSmartMitigasiUmum' || action === 'saveSmartMitigasiRuislagh' || action === 'saveMitigasi') {
       return handleSaveMitigasiRisiko(action, payload);
     } else {
@@ -120,10 +123,16 @@ function handleSubmitPengajuanNoLap(data) {
   if (colIndexPembanding <= 0) colIndexPembanding = 52; // Kolom AZ
   if (colIndexBai <= 0) colIndexBai = 53;               // Kolom BA
 
-  // Format Catatan Pemohon & Parameter Yuridis Pengadaan Tanah
+  // Format Catatan Pemohon & Parameter Yuridis Pengadaan Tanah & Booking NoLap
+  const isBooking = data.modePengajuan === 'BOOKING' || Boolean(data.isBooking);
+  const targetFinalisasi = data.targetFinalisasi || data.targetTanggalFinalisasi || '';
+
   let catatanPemohon = (data.catatanPemohon || '').toString().trim();
   if (data.catatanYuridisTanah && !catatanPemohon.includes(data.catatanYuridisTanah)) {
     catatanPemohon = (catatanPemohon ? (catatanPemohon + ' | ') : '') + data.catatanYuridisTanah;
+  }
+  if (isBooking && targetFinalisasi && !catatanPemohon.includes('TARGET FINALISASI')) {
+    catatanPemohon = (catatanPemohon ? (catatanPemohon + ' | ') : '') + `[BOOKING NOLAP - TARGET FINALISASI: ${targetFinalisasi}]`;
   }
 
   // Format Pengguna Laporan Terstruktur (SPI 103)
@@ -169,10 +178,10 @@ function handleSubmitPengajuanNoLap(data) {
   row[19] = data.noPermintaan || '';                        // 20 (T): No Permintaan
 
   // Kolom 21 - 34 (Status Operasional & ELSA)
-  row[20] = data.status || 'DIAJUKAN';                      // 21 (U): Status
+  row[20] = isBooking ? 'BOOKING DIAJUKAN' : (data.status || 'DIAJUKAN');                      // 21 (U): Status
   row[21] = data.nomorLaporan || '';                        // 22 (V): Nomor Laporan
   row[22] = data.tglTerbit || '';                           // 23 (W): Tanggal Terbit
-  row[23] = data.statusElsa || 'BELUM INPUT';               // 24 (X): Status ELSA
+  row[23] = isBooking ? 'MENUNGGU BERKAS FINAL' : (data.statusElsa || 'BELUM INPUT');         // 24 (X): Status ELSA
   row[24] = data.idElsa || '';                              // 25 (Y): Nomor/ID ELSA
   row[25] = data.qrCodeElsa || '';                          // 26 (Z): QR Code ELSA
   row[26] = data.linkQrElsa || data.linkElsa || '';         // 27 (AA): Link QR ELSA
@@ -305,6 +314,187 @@ function sendEmailNotificationNoLap(data, rowIndex, fileLaporan, filePembanding,
     Logger.log('Notifikasi email berhasil dikirim ke ' + recipient);
   } catch (err) {
     Logger.log('Gagal mengirim notifikasi email: ' + err.toString());
+  }
+}
+
+/**
+ * Handler Khusus untuk Finalisasi Berkas Booking Nomor Laporan
+ * Mengupdate Kolom AS (45 - Kesimpulan Nilai), W (23 - Tanggal Terbit/Laporan),
+ * Kolom AY, AZ, BA (51, 52, 53 - 3 File Berkas),
+ * Mengubah Status ke 'FINAL - SIAP ELSA' dan Status ELSA ke 'BELUM INPUT'
+ */
+function handleFinalizeBookingReport(data) {
+  const ss = SpreadsheetApp.openById(CONFIG_NOLAP.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG_NOLAP.SHEET_PENGAJUAN);
+  if (!sheet) {
+    throw new Error('Sheet "' + CONFIG_NOLAP.SHEET_PENGAJUAN + '" tidak ditemukan pada database.');
+  }
+
+  const noReq = (data.noPermintaan || '').toString().trim();
+  const noLap = (data.nomorLaporan || '').toString().trim();
+  const noSpk = (data.noSpk || '').toString().trim();
+
+  if (!noReq && !noLap && !noSpk) {
+    return jsonResponse({ success: false, error: 'Nomor Permintaan, Nomor Laporan, atau Nomor SPK wajib disertakan untuk finalisasi booking.' });
+  }
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    return jsonResponse({ success: false, error: 'Database pengajuan kosong.' });
+  }
+
+  const lastCol = Math.max(sheet.getLastColumn(), 53);
+  const headerRange = sheet.getRange(1, 1, 1, lastCol);
+  const headers = headerRange.getValues()[0];
+
+  let colIndexLaporan = headers.indexOf('File Laporan Penilaian') + 1;
+  let colIndexPembanding = headers.indexOf('File Data Pembanding') + 1;
+  let colIndexBai = headers.indexOf('File Berita Acara Inspeksi') + 1;
+
+  if (colIndexLaporan <= 0) colIndexLaporan = 51;
+  if (colIndexPembanding <= 0) colIndexPembanding = 52;
+  if (colIndexBai <= 0) colIndexBai = 53;
+
+  const dataRange = sheet.getRange(2, 1, lastRow - 1, lastCol);
+  const values = dataRange.getValues();
+
+  let targetRowIndex = -1;
+  let targetRowData = null;
+
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    const rowNoReq = (row[19] || '').toString().trim(); // Kolom 20 (T)
+    const rowNoLap = (row[21] || '').toString().trim(); // Kolom 22 (V)
+    const rowNoSpk = (row[36] || '').toString().trim(); // Kolom 37 (AK)
+
+    if ((noReq && rowNoReq === noReq) ||
+        (noLap && rowNoLap === noLap) ||
+        (noSpk && rowNoSpk === noSpk)) {
+      targetRowIndex = i + 2; // 1-indexed (header is row 1)
+      targetRowData = row;
+      break;
+    }
+  }
+
+  if (targetRowIndex === -1) {
+    return jsonResponse({ success: false, error: 'Data pengajuan dengan identitas (' + (noReq || noLap || noSpk) + ') tidak ditemukan di sheet PENGAJUAN.' });
+  }
+
+  const fileLaporan = (data['File Laporan Penilaian'] || data.linkLaporan || data.linkDrive || '').toString().trim();
+  const filePembanding = (data['File Data Pembanding'] || data.linkPembanding || '').toString().trim();
+  const fileBai = (data['File Berita Acara Inspeksi'] || data.linkBai || '').toString().trim();
+  const kesimpulanNilai = data.kesimpulanNilai || data.nilaiKesimpulan || '';
+  const tglLaporan = data.tglLaporan || data.tglTerbit || Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd");
+
+  const now = new Date();
+  const timestampStr = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+
+  // Update Status Operasional (Kolom 21 U -> 'FINAL - SIAP ELSA')
+  sheet.getRange(targetRowIndex, 21).setValue('FINAL - SIAP ELSA');
+
+  // Update Status ELSA (Kolom 24 X -> 'BELUM INPUT')
+  sheet.getRange(targetRowIndex, 24).setValue('BELUM INPUT');
+
+  // Update Tanggal Terbit / Laporan (Kolom 23 W) jika ada
+  if (tglLaporan) {
+    sheet.getRange(targetRowIndex, 23).setValue(tglLaporan);
+  }
+
+  // Update Kesimpulan Nilai (Kolom 45 AS)
+  if (kesimpulanNilai) {
+    sheet.getRange(targetRowIndex, 45).setValue(kesimpulanNilai);
+  }
+
+  // Update 3 File Berkas Terstruktur (Kolom AY, AZ, BA)
+  sheet.getRange(targetRowIndex, colIndexLaporan).setValue(fileLaporan);
+  sheet.getRange(targetRowIndex, colIndexPembanding).setValue(filePembanding);
+  sheet.getRange(targetRowIndex, colIndexBai).setValue(fileBai);
+
+  // Append catatan log finalisasi di Catatan Pemohon (Kolom 32 AF)
+  const oldCatatan = (sheet.getRange(targetRowIndex, 32).getValue() || '').toString();
+  const logFinal = `[FINALISASI BERKAS SELESAI PADA: ${timestampStr}]`;
+  if (!oldCatatan.includes('FINALISASI BERKAS SELESAI')) {
+    const updatedCatatan = oldCatatan ? (oldCatatan + ' | ' + logFinal) : logFinal;
+    sheet.getRange(targetRowIndex, 32).setValue(updatedCatatan);
+  }
+
+  // Kirim notifikasi email finalisasi booking ke admin@kjppnanangrahayu.com
+  sendEmailNotificationFinalizeBooking(targetRowData, targetRowIndex, fileLaporan, filePembanding, fileBai, kesimpulanNilai, tglLaporan);
+
+  return jsonResponse({
+    success: true,
+    message: 'Berkas booking NoLap berhasil difinalisasi dan status diperbarui menjadi FINAL - SIAP ELSA.',
+    rowIndex: targetRowIndex,
+    noPermintaan: targetRowData[19] || noReq,
+    nomorLaporan: targetRowData[21] || noLap,
+    status: 'FINAL - SIAP ELSA',
+    statusElsa: 'BELUM INPUT'
+  });
+}
+
+/**
+ * Pengiriman Notifikasi Email HTML Finalisasi Berkas Booking ke admin@kjppnanangrahayu.com
+ */
+function sendEmailNotificationFinalizeBooking(targetRowData, rowIndex, fileLaporan, filePembanding, fileBai, kesimpulanNilai, tglLaporan) {
+  try {
+    const recipient = 'admin@kjppnanangrahayu.com';
+    const noReq = targetRowData[19] || '-';
+    const noLap = targetRowData[21] || 'DIBOOKING';
+    const namaKlien = targetRowData[6] || 'Klien';
+    const cabang = targetRowData[1] || 'Pusat';
+    const subject = `[FINALISASI BERKAS BOOKING] ${noReq} / ${noLap} - ${namaKlien} (${cabang})`;
+
+    const waTextMbaSiti = encodeURIComponent(`Halo Mba Siti, konfirmasi Finalisasi Berkas Booking NoLap:\n• No Permintaan: ${noReq}\n• No Laporan: ${noLap}\n• Klien: ${namaKlien}\n• Cabang: ${cabang}\n• Status: FINAL - SIAP ELSA (eLSa dibuka)\nMohon diverifikasi di sheet PENGAJUAN baris ke-${rowIndex}. Terima kasih.`);
+    const waUrlMbaSiti = `https://wa.me/628871336710?text=${waTextMbaSiti}`;
+
+    const waTextAdmin = encodeURIComponent(`Halo Admin Resmi KJPP NSR, konfirmasi Finalisasi Berkas Booking NoLap:\n• No Permintaan: ${noReq}\n• No Laporan: ${noLap}\n• Klien: ${namaKlien}\n• Status: FINAL - SIAP ELSA\nMohon lakukan input eLSa PPPK. Terima kasih.`);
+    const waUrlAdmin = `https://wa.me/6285110513157?text=${waTextAdmin}`;
+
+    const htmlBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+        <div style="background-color: #0f172a; color: #f8fafc; padding: 20px; text-align: center;">
+          <h2 style="margin: 0; color: #38bdf8; font-size: 19px; letter-spacing: 0.5px;">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
+          <p style="margin: 6px 0 0; font-size: 13px; color: #94a3b8;">Notifikasi Finalisasi Berkas Booking Nomor Laporan (NoLap)</p>
+        </div>
+        <div style="padding: 22px;">
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; margin-bottom: 16px; color: #166534; font-size: 13px;">
+            ✅ <strong>Berkas Final Berhasil Diunggah!</strong> Status NoLap telah dinaikkan menjadi <strong>FINAL - SIAP ELSA</strong> dan status eLSa telah dibuka ke <strong>BELUM INPUT</strong>.
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 16px 0;">
+            <tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; width: 34%; border: 1px solid #e2e8f0;">No. Permintaan / No. Laporan</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0; color: #0284c7; font-weight: bold;">${noReq} &bull; ${noLap}</td></tr>
+            <tr><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Cabang / Klien</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${cabang} &bull; <strong>${namaKlien}</strong></td></tr>
+            <tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Kesimpulan Nilai Final</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: bold; color: #0f172a;">Rp ${kesimpulanNilai || '-'}</td></tr>
+            <tr><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Tanggal Laporan Final</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${tglLaporan || '-'}</td></tr>
+            <tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">3 Berkas Final (Drive)</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-size: 12px;">
+              • File Laporan: ${fileLaporan ? ('<a href="' + fileLaporan + '" target="_blank" style="color: #0284c7; font-weight: bold;">Buka Laporan Final</a>') : '-'}<br>
+              • Data Pembanding: ${filePembanding ? ('<a href="' + filePembanding + '" target="_blank" style="color: #0284c7; font-weight: bold;">Buka Pembanding</a>') : '-'}<br>
+              • Berita Acara Inspeksi: ${fileBai ? ('<a href="' + fileBai + '" target="_blank" style="color: #0284c7; font-weight: bold;">Buka BAI</a>') : '-'}
+            </td></tr>
+          </table>
+
+          <div style="margin-top: 22px; padding: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center;">
+            <p style="margin: 0 0 10px; font-size: 13px; font-weight: bold; color: #1e293b;">Tindakan Verifikasi WhatsApp:</p>
+            <div style="margin: 6px 0;">
+              <a href="${waUrlMbaSiti}" target="_blank" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 9px 16px; border-radius: 6px; font-size: 12.5px; font-weight: bold; margin: 4px;">
+                💬 Konfirmasi ke Mba Siti (08871336710)
+              </a>
+              <a href="${waUrlAdmin}" target="_blank" style="display: inline-block; background-color: #0284c7; color: #ffffff; text-decoration: none; padding: 9px 16px; border-radius: 6px; font-size: 12.5px; font-weight: bold; margin: 4px;">
+                💬 Konfirmasi ke Admin Resmi (085110513157)
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    MailApp.sendEmail({
+      to: recipient,
+      subject: subject,
+      htmlBody: htmlBody
+    });
+    Logger.log('Notifikasi email finalisasi booking berhasil dikirim ke ' + recipient);
+  } catch (err) {
+    Logger.log('Gagal mengirim email finalisasi: ' + err.toString());
   }
 }
 

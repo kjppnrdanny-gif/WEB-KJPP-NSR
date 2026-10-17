@@ -298,6 +298,10 @@
               <button type="button" onclick="setTermin('50% (Termin II / Pelunasan)')" class="py-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-300 border border-slate-700 transition">50% Pelunasan</button>
               <button type="button" onclick="setTermin('30% Uang Muka (DP)')" class="py-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-amber-300 border border-slate-700 transition">30% DP</button>
             </div>
+            <!-- Tombol Opsi Termin BAST (Pemerintah / BUMN) -->
+            <button type="button" onclick="setTerminKhususBast()" class="w-full mb-2 py-1.5 px-3 rounded-lg bg-blue-950/70 hover:bg-blue-900 text-[11px] font-bold text-sky-300 border border-sky-500/40 hover:border-sky-400 transition flex items-center justify-center gap-1.5 shadow-sm">
+              <span>🏛️ Termin 100% Pascaterbit / BAST (Proyek Pemerintah / BUMN)</span>
+            </button>
             <input type="text" id="banyaknya-termin" required placeholder="Contoh: 50% (Pembayaran Termin I)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
           </div>
 
@@ -1224,6 +1228,18 @@
       if (inp) {
         inp.value = teks;
         dataKwitansiAktif.banyaknya = teks;
+        dataKwitansiAktif.statusFinansial = 'PENDING';
+        perbaruiPreviewKwitansi();
+      }
+    }
+
+    function setTerminKhususBast() {
+      const teks = '100% Pascaterbit / BAST (Proyek Pemerintah / BUMN)';
+      const inp = document.getElementById('banyaknya-termin');
+      if (inp) {
+        inp.value = teks;
+        dataKwitansiAktif.banyaknya = teks;
+        dataKwitansiAktif.statusFinansial = 'PIUTANG KONTRAK SAH (BAST)';
         perbaruiPreviewKwitansi();
       }
     }
@@ -1888,6 +1904,7 @@
               noSpk,
               nilaiKontrakSpk,
               banyaknya,
+              statusFinansial: dataKwitansiAktif.statusFinansial || (banyaknya.includes('BAST') ? 'PIUTANG KONTRAK SAH (BAST)' : 'PENDING'),
               dpp: hargaDasar,
               tarifPpn,
               nominalPpn,

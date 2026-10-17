@@ -191,6 +191,17 @@
         <button id="tab-btn-riwayat" onclick="gantiTabModul('riwayat')" class="hidden py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 items-center gap-2 transition">
           <span>📋 5. Riwayat Seluruh NoLap</span>
         </button>
+
+        <button id="tab-btn-monitoring" onclick="bukaTabMonitoringEksekutif()" class="py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-sky-400 hover:text-sky-300 flex items-center gap-2 transition">
+          <span>📊 6. Dasbor Pengawasan Terpadu</span>
+          <span class="px-1.5 py-0.5 rounded text-[9.5px] font-black bg-sky-500/20 text-sky-300 border border-sky-400/40 tracking-wider">PIN NSR8899</span>
+        </button>
+
+        <div class="ml-auto flex items-center my-auto py-1">
+          <button type="button" onclick="bukaModalFinalisasiBooking()" class="py-1.5 px-3 rounded-xl bg-gradient-to-r from-blue-600/30 to-indigo-600/30 hover:from-blue-600/50 hover:to-indigo-600/50 text-sky-300 border border-sky-400/50 text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+            <span>⚡ Finalisasi Berkas Booking</span>
+          </button>
+        </div>
       </div>
 
       <!-- ========================================================
@@ -262,6 +273,59 @@
         <!-- FORM ISIAN PENGAJUAN -->
         <form id="form-pengajuan-nolap" onsubmit="ajukanPermohonanNoLap(event)" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
           <input type="hidden" id="f-idempotency-key" value="">
+          <!-- PILIHAN MODE PENGAJUAN: REGULER VS BOOKING NOLAP -->
+          <div class="p-4 rounded-2xl bg-slate-950/90 border-2 border-amber-400/40 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span class="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                  <span>⚡ Mode Pengajuan Nomor Laporan</span>
+                </span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Pilih alur pengajuan reguler dengan berkas lengkap atau alur booking nomor untuk proyek Pemerintah/BUMN.</p>
+              </div>
+              <span id="badge-mode-aktif" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-slate-950 shrink-0">
+                Mode: REGULER (Berkas Lengkap)
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              <label class="cursor-pointer">
+                <input type="radio" name="mode_pengajuan_nolap" id="mode-reguler" value="REGULER" checked onchange="toggleModePengajuan()" class="peer sr-only">
+                <div class="p-3 rounded-xl border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400/20 peer-checked:text-amber-200 peer-checked:border-amber-400 flex items-center gap-2.5 shadow-sm">
+                  <span class="text-base">📄</span>
+                  <div>
+                    <div class="font-bold text-xs">Pengajuan Reguler (Berkas Final Lengkap)</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Seluruh 3 tautan berkas (Laporan, Pembanding, BAI) wajib diunggah.</p>
+                  </div>
+                </div>
+              </label>
+
+              <label class="cursor-pointer">
+                <input type="radio" name="mode_pengajuan_nolap" id="mode-booking" value="BOOKING" onchange="toggleModePengajuan()" class="peer sr-only">
+                <div class="p-3 rounded-xl border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-blue-500/20 peer-checked:text-sky-200 peer-checked:border-sky-400 flex items-center gap-2.5 shadow-sm">
+                  <span class="text-base">🏛️</span>
+                  <div>
+                    <div class="font-bold text-xs">Pengajuan Booking Nomor Laporan (Pemerintah/BUMN)</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Termin 100% BAST / Berkas menyusul. Nomor dibooking, eLSa terkunci.</p>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Banner Informasi Mode Booking (Dinamis) -->
+            <div id="banner-booking-info" class="hidden p-3 rounded-xl bg-blue-950/60 border border-sky-500/40 text-xs text-sky-200 space-y-1.5">
+              <div class="flex items-center gap-2 font-bold text-sky-300">
+                <span>ℹ️ Ketentuan Alur Booking Nomor Laporan:</span>
+              </div>
+              <p class="text-[11px] leading-relaxed text-slate-300">
+                Booking diperuntukkan bagi proyek <strong>Pemerintah / BUMN</strong> dengan termin akhir 100% setelah BAST. Nomor Laporan akan diterbitkan oleh Admin Pusat, namun <strong>status eLSa dikunci (MENUNGGU BERKAS FINAL)</strong> hingga berkas final diunggah melalui formulir finalisasi.
+              </p>
+              <div class="pt-1">
+                <label class="block font-semibold text-sky-200 mb-1 text-xs">Target Tanggal Finalisasi Berkas *</label>
+                <input type="date" id="input_target_finalisasi" class="w-full sm:w-64 h-9 px-3 rounded-lg bg-slate-900 border border-sky-400 text-white text-xs focus:outline-none focus:border-amber-400">
+              </div>
+            </div>
+          </div>
+
           
           <div class="border-b border-slate-800 pb-4">
             <h3 class="text-base font-extrabold text-white flex items-center gap-2">
@@ -750,23 +814,28 @@
             </div>
 
             <div class="lg:col-span-4 pt-2 border-t border-slate-800">
-              <span class="text-amber-400 font-bold flex items-center gap-1.5 text-xs">
-                📁 Berkas &amp; Dokumen Penilaian (3 Tautan Terstruktur)
-              </span>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span class="text-amber-400 font-bold flex items-center gap-1.5 text-xs">
+                  📁 Berkas &amp; Dokumen Penilaian (3 Tautan Terstruktur)
+                </span>
+                <span id="hint-berkas-booking" class="hidden text-[10.5px] font-bold text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-500/40">
+                  ℹ️ Mode Booking Aktif: Berkas bersifat opsional (dapat dilengkapi saat finalisasi)
+                </span>
+              </div>
             </div>
 
             <div class="lg:col-span-4">
-              <label class="block font-semibold text-slate-300 mb-1">Link File Laporan Penilaian *</label>
+              <label id="label-link-laporan" class="block font-semibold text-slate-300 mb-1">Link File Laporan Penilaian <span id="req-star-laporan" class="text-rose-400">*</span></label>
               <input type="url" id="input_link_laporan" required placeholder="https://drive.google.com/... (Link Google Drive / Cloud File Laporan Penilaian)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
             <div class="lg:col-span-2">
-              <label class="block font-semibold text-slate-300 mb-1">Link File Data Pembanding *</label>
+              <label id="label-link-pembanding" class="block font-semibold text-slate-300 mb-1">Link File Data Pembanding <span id="req-star-pembanding" class="text-rose-400">*</span></label>
               <input type="url" id="input_link_pembanding" required placeholder="https://drive.google.com/... (Link Data Pembanding / Kertas Kerja)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
             <div class="lg:col-span-2">
-              <label class="block font-semibold text-slate-300 mb-1">Link File Berita Acara Inspeksi (BAI) *</label>
+              <label id="label-link-bai" class="block font-semibold text-slate-300 mb-1">Link File Berita Acara Inspeksi (BAI) <span id="req-star-bai" class="text-rose-400">*</span></label>
               <input type="url" id="input_link_bai" required placeholder="https://drive.google.com/... (Link Berita Acara Inspeksi / Foto Lapangan)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
@@ -12928,6 +12997,129 @@
 
       </div>
 
+      <!-- ========================================================
+           TAB 6: DASBOR PENGAWASAN TERPADU LINTAS PORTAL (EXECUTIVE MONITORING)
+           ======================================================== -->
+      <div id="panel-monitoring" class="hidden space-y-6">
+        <!-- Header Dasbor -->
+        <div class="bg-gradient-to-r from-slate-900 via-blue-950/80 to-slate-900 border-2 border-sky-400/40 rounded-2xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-3 h-3 rounded-full bg-sky-400 animate-pulse"></span>
+                <span class="text-xs font-mono font-bold text-sky-400 uppercase tracking-widest">Single Pane of Glass Operasional</span>
+              </div>
+              <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                <span>Dasbor Pengawasan Terpadu Lintas Portal</span>
+              </h2>
+              <p class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Pusat pengawasan eksekutif dengan poros relasi tunggal: <strong>Nomor SPK / Job ID</strong>. Menyelaraskan status legal penugasan, status pembayaran kwitansi, penerbitan NoLap 3 berkas, dan kepatuhan eLSa-PK Kemenkeu.
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <button type="button" onclick="renderDasborMonitoring()" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs font-bold border border-slate-700 flex items-center gap-1.5 transition">
+                <span>🔄 Segarkan Data</span>
+              </button>
+              <button type="button" onclick="bukaModalFinalisasiBooking()" class="py-2 px-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-lg flex items-center gap-1.5 transition">
+                <span>⚡ Finalisasi Berkas Booking</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Matriks Ringkasan Eksekutif (KPI Cards) -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-5 pt-4 border-t border-slate-800">
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-center">
+              <span class="text-[10px] text-slate-400 block font-semibold uppercase">Total Penugasan (SPK)</span>
+              <strong id="kpi-total-spk" class="text-base sm:text-lg font-black text-white font-mono">0</strong>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 text-center">
+              <span class="text-[10px] text-emerald-400 block font-semibold uppercase">NoLap Terbit &amp; Lunas</span>
+              <strong id="kpi-nolap-lunas" class="text-base sm:text-lg font-black text-emerald-400 font-mono">0</strong>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-blue-500/30 text-center">
+              <span class="text-[10px] text-sky-400 block font-semibold uppercase">Booking Aktif (Gov/BUMN)</span>
+              <strong id="kpi-booking-aktif" class="text-base sm:text-lg font-black text-sky-400 font-mono">0</strong>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-rose-500/30 text-center">
+              <span class="text-[10px] text-rose-400 block font-semibold uppercase">🔴 Red Alert (Piutang)</span>
+              <strong id="kpi-red-alerts" class="text-base sm:text-lg font-black text-rose-400 font-mono">0</strong>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-amber-500/30 text-center">
+              <span class="text-[10px] text-amber-400 block font-semibold uppercase">🟡 Yellow Alert (&gt;14H)</span>
+              <strong id="kpi-yellow-alerts" class="text-base sm:text-lg font-black text-amber-400 font-mono">0</strong>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-sky-500/30 text-center">
+              <span class="text-[10px] text-cyan-300 block font-semibold uppercase">🔵 Blue Info (BAST Sah)</span>
+              <strong id="kpi-blue-info" class="text-base sm:text-lg font-black text-cyan-300 font-mono">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Pencarian Matriks -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Filter Kantor Cabang</label>
+              <select id="filter-mon-cabang" onchange="filterMatriksMonitoring()" class="w-full h-9 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400 text-xs">
+                <option value="SEMUA">Semua Cabang</option>
+                <option value="Pusat">Kantor Pusat Jakarta</option>
+                <option value="Bandung">Cabang Bandung</option>
+                <option value="Padang">Cabang Padang</option>
+                <option value="Makassar">Cabang Makassar</option>
+                <option value="Palembang">Cabang Palembang</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Filter Status Finansial</label>
+              <select id="filter-mon-finansial" onchange="filterMatriksMonitoring()" class="w-full h-9 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400 text-xs">
+                <option value="SEMUA">Semua Status Finansial</option>
+                <option value="LUNAS">Lunas (100%)</option>
+                <option value="DP">Uang Muka (DP / Termin 1)</option>
+                <option value="PIUTANG KONTRAK SAH (BAST)">Piutang Kontrak Sah (BAST)</option>
+                <option value="BELUM BAYAR">Belum Ada Pembayaran</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Filter Indikator Risiko</label>
+              <select id="filter-mon-risiko" onchange="filterMatriksMonitoring()" class="w-full h-9 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400 text-xs">
+                <option value="SEMUA">Semua Indikator</option>
+                <option value="RED">🔴 RED ALERT (Risiko Pembayaran)</option>
+                <option value="YELLOW">🟡 YELLOW ALERT (Booking &gt; 14 Hari)</option>
+                <option value="BLUE">🔵 BLUE INFO (Termin BAST Sah)</option>
+                <option value="GREEN">🟢 AMAN (Sesuai Prosedur)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Cari SPK / Klien / Objek</label>
+              <input type="text" id="filter-mon-search" oninput="filterMatriksMonitoring()" placeholder="Ketik nomor SPK / nama klien..." class="w-full h-9 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400 text-xs">
+            </div>
+          </div>
+
+          <!-- Tabel Matriks Relasi Terpadu -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-950 text-slate-300 font-semibold border-b border-slate-800 text-[11px] whitespace-nowrap">
+                  <th class="p-3">Poros Relasi (No. SPK / Req)</th>
+                  <th class="p-3">Klien &amp; Objek Penilaian</th>
+                  <th class="p-3">Cabang &amp; Tgl SPK</th>
+                  <th class="p-3 text-center">Status SPK</th>
+                  <th class="p-3 text-center">Status Finansial</th>
+                  <th class="p-3 text-center">Status NoLap &amp; 3 Berkas</th>
+                  <th class="p-3 text-center">Status eLSa-PK</th>
+                  <th class="p-3 text-center">Indikator Risiko</th>
+                  <th class="p-3 text-center">Aksi Cepat</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-body-monitoring" class="divide-y divide-slate-800 font-medium">
+                <!-- Terisi via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </main>
@@ -14283,7 +14475,16 @@
         idempotencyKey = perbaruiIdempotencyKey();
       }
 
+      const isBookingMode = document.getElementById('mode-booking')?.checked === true;
+      const targetFinalisasiVal = document.getElementById('input_target_finalisasi')?.value || '';
+      if (isBookingMode && targetFinalisasiVal) {
+        catatanPemohon = (catatanPemohon ? catatanPemohon + ' | ' : '') + '[BOOKING NOLAP - TARGET FINALISASI: ' + targetFinalisasiVal + ']';
+      }
+
       const dataBaru = {
+        isBooking: isBookingMode,
+        modePengajuan: isBookingMode ? 'BOOKING' : 'REGULER',
+        targetFinalisasi: targetFinalisasiVal,
         idempotencyKey: idempotencyKey,
         cabang: cabang,
         namaPemohon: pemohon,
@@ -14345,10 +14546,10 @@
         linkBai: linkBai,
         linkDrive: linkDrive,
         catatanPemohon: catatanPemohon,
-        status: "DIAJUKAN",
+        status: isBookingMode ? "BOOKING DIAJUKAN" : "DIAJUKAN",
         nomorLaporan: "",
         tglTerbit: "",
-        statusElsa: "BELUM INPUT",
+        statusElsa: isBookingMode ? "MENUNGGU BERKAS FINAL" : "BELUM INPUT",
         linkElsa: "",
         catatanAdmin: ""
       };
@@ -18278,6 +18479,10 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
        13. KONTROL PERGANTIAN TAB MODUL
        ========================================================================= */
     function gantiTabModul(tabKey) {
+      if (tabKey === 'monitoring') {
+        bukaTabMonitoringEksekutif();
+        return;
+      }
       // Normalisasi alias tabKey jika dipanggil dengan variasi nama
       if (tabKey === 'form') tabKey = 'pengajuan';
       if (tabKey === 'register') tabKey = 'riwayat';
@@ -18295,9 +18500,10 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       document.getElementById('panel-approval')?.classList.add('hidden');
       document.getElementById('panel-elsa')?.classList.add('hidden');
       document.getElementById('panel-riwayat')?.classList.add('hidden');
+      document.getElementById('panel-monitoring')?.classList.add('hidden');
 
       // Reset tombol
-      const allBtns = ['pengajuan', 'spm', 'approval', 'elsa', 'riwayat'];
+      const allBtns = ['pengajuan', 'spm', 'approval', 'elsa', 'riwayat', 'monitoring'];
       allBtns.forEach(k => {
         const b = document.getElementById(`tab-btn-${k}`);
         if (b) {
@@ -18384,7 +18590,22 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
                 tglTerbit: cleanCols[22] || '',
                 statusElsa: cleanCols[23] || 'BELUM INPUT',
                 linkElsa: cleanCols[26] || '',
-                catatanAdmin: cleanCols[32] || ''
+                catatanPemohon: cleanCols[31] || '',
+                catatanAdmin: cleanCols[32] || '',
+                noLingkup: cleanCols[34] || '',
+                noSpk: cleanCols[36] || '',
+                tglSpk: cleanCols[37] || '',
+                tglPenilaian: cleanCols[38] || '',
+                penggunaLaporan: cleanCols[39] || '',
+                kesimpulanNilai: cleanCols[44] || '',
+                biayaJasa: cleanCols[45] || '',
+                fileLaporan: cleanCols[50] || '',
+                filePembanding: cleanCols[51] || '',
+                fileBai: cleanCols[52] || '',
+                linkLaporan: cleanCols[50] || '',
+                linkPembanding: cleanCols[51] || '',
+                linkBai: cleanCols[52] || '',
+                linkDrive: cleanCols[50] || cleanCols[51] || cleanCols[52] || ''
               });
             }
           }
@@ -18423,8 +18644,570 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
     document.addEventListener('DOMContentLoaded', inisialisasiSistem);
   </script>
 
+  <!-- ==================== MODAL PIN SUPER ADMIN DASBOR PENGAWASAN ==================== -->
+  <div id="modal-pin-monitoring" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border-2 border-sky-400/60 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+      <div class="w-12 h-12 rounded-full bg-sky-500/20 text-sky-400 mx-auto flex items-center justify-center text-xl">
+        🔒
+      </div>
+      <div>
+        <h3 class="text-sm font-black text-white uppercase tracking-wider">Otorisasi Dasbor Eksekutif</h3>
+        <p class="text-xs text-slate-400 mt-1">Masukkan PIN Super Admin untuk membuka Dasbor Pengawasan Terpadu.</p>
+      </div>
+      <div>
+        <input type="password" id="input-pin-monitoring" maxlength="10" placeholder="PIN Otorisasi..." onkeydown="if(event.key==='Enter') verifikasiPinMonitoring()" class="w-full h-11 px-3 text-center tracking-widest text-lg font-mono font-black rounded-xl bg-slate-950 border-2 border-slate-700 text-sky-300 focus:outline-none focus:border-sky-400">
+        <p id="pesan-error-pin-mon" class="text-[11px] text-rose-400 mt-1.5 hidden font-semibold"></p>
+      </div>
+      <div class="flex items-center gap-2 pt-2">
+        <button type="button" onclick="tutupModalPinMonitoring()" class="w-1/2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">Batal</button>
+        <button type="button" onclick="verifikasiPinMonitoring()" class="w-1/2 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-black transition">Buka Dasbor &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL FINALISASI BERKAS BOOKING NOLAP ==================== -->
+  <div id="modal-finalisasi-booking" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border-2 border-blue-400/60 rounded-2xl max-w-xl w-full p-6 sm:p-7 space-y-4 shadow-2xl my-8">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-blue-400 animate-pulse"></span>
+          <h3 class="text-sm font-black text-white uppercase tracking-wider">Finalisasi Berkas Booking Nomor Laporan</h3>
+        </div>
+        <button type="button" onclick="tutupModalFinalisasiBooking()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold">✕</button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Gunakan formulir ini untuk melengkapi 3 berkas penilaian final (Laporan, Pembanding, BAI) pada tiket booking yang telah diterbitkan oleh Admin Pusat. Status akan dinaikkan menjadi <strong>FINAL - SIAP ELSA</strong> dan penguncian eLSa akan dibuka.
+      </p>
+
+      <form id="form-finalisasi-booking" onsubmit="submitFinalisasiBooking(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Pilih / Ketik Nomor Permintaan (Req), Nomor Laporan, atau Nomor SPK *</label>
+          <div class="relative">
+            <input type="text" id="final-lookup-id" required list="list-booking-tickets" placeholder="REQ-... / Nomor Laporan / Nomor SPK" onchange="autoFillBookingData(this.value)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono focus:outline-none focus:border-sky-400">
+            <datalist id="list-booking-tickets"></datalist>
+          </div>
+          <div id="info-booking-matched" class="mt-1.5 p-2 rounded bg-slate-950 border border-slate-800 text-[11px] text-slate-400 hidden">
+            <!-- Info tiket matched -->
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Kesimpulan Nilai Final (Rp) *</label>
+            <input type="number" id="final-kesimpulan-nilai" required placeholder="Contoh: 1500000000" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tanggal Laporan Final (Penandatanganan) *</label>
+            <input type="date" id="final-tgl-laporan" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Link File Laporan Penilaian Final (Google Drive) *</label>
+          <input type="url" id="final-link-laporan" required placeholder="https://drive.google.com/..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Link File Data Pembanding Final (Google Drive) *</label>
+          <input type="url" id="final-link-pembanding" required placeholder="https://drive.google.com/..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Link File Berita Acara Inspeksi (BAI) Final *</label>
+          <input type="url" id="final-link-bai" required placeholder="https://drive.google.com/..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-sky-400">
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+          <button type="button" onclick="tutupModalFinalisasiBooking()" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition">Batal</button>
+          <button type="submit" id="btn-submit-final-booking" class="py-2.5 px-5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold transition shadow-lg">
+            Kirim Finalisasi Berkas &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL VIEWER 3 BERKAS PENILAIAN ==================== -->
+  <div id="modal-viewer-berkas-3" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <h3 class="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+          <span>📁 Pratinjau 3 Berkas Penilaian Terstruktur</span>
+        </h3>
+        <button type="button" onclick="tutupModalViewerBerkas()" class="text-slate-400 hover:text-white font-bold">&times;</button>
+      </div>
+      <div class="text-xs text-slate-300 space-y-1">
+        <p>No. Permintaan / SPK: <strong id="viewer-berkas-spk" class="text-white font-mono">-</strong></p>
+        <p>Klien: <strong id="viewer-berkas-klien" class="text-amber-400">-</strong></p>
+      </div>
+      <div class="space-y-2 pt-1 text-xs">
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">📄</span>
+            <span class="font-semibold text-slate-200">File Laporan Penilaian</span>
+          </div>
+          <a id="viewer-link-laporan" href="#" target="_blank" class="px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 text-[11px] font-bold border border-sky-500/40 transition">Buka File &rarr;</a>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">📊</span>
+            <span class="font-semibold text-slate-200">File Data Pembanding</span>
+          </div>
+          <a id="viewer-link-pembanding" href="#" target="_blank" class="px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 text-[11px] font-bold border border-sky-500/40 transition">Buka File &rarr;</a>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">📋</span>
+            <span class="font-semibold text-slate-200">File Berita Acara Inspeksi (BAI)</span>
+          </div>
+          <a id="viewer-link-bai" href="#" target="_blank" class="px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 text-[11px] font-bold border border-sky-500/40 transition">Buka File &rarr;</a>
+        </div>
+      </div>
+      <div class="pt-2 border-t border-slate-800 text-right">
+        <button type="button" onclick="tutupModalViewerBerkas()" class="py-1.5 px-4 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modul Kepatuhan UU PDP & Disclaimer Profesi -->
-  <script src="lib/privacy-consent.js"></script>
+  <script src="lib/privacy-consent.js">
+    /* =========================================================================
+       15. EKOSISTEM TERPADU: BOOKING NOLAP, MONITORING EKSEKUTIF & BERKAS TERSTRUKTUR
+       ========================================================================= */
+    function toggleModePengajuan() {
+      const isBooking = document.getElementById('mode-booking')?.checked === true;
+      const badge = document.getElementById('badge-mode-aktif');
+      const banner = document.getElementById('banner-booking-info');
+      const inputTarget = document.getElementById('input_target_finalisasi');
+      const hintDrive = document.getElementById('hint-berkas-booking');
+      const starLap = document.getElementById('req-star-laporan');
+      const starPem = document.getElementById('req-star-pembanding');
+      const starBai = document.getElementById('req-star-bai');
+      const inLap = document.getElementById('input_link_laporan');
+      const inPem = document.getElementById('input_link_pembanding');
+      const inBai = document.getElementById('input_link_bai');
+
+      if (isBooking) {
+        if (badge) {
+          badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-500 text-white shrink-0";
+          badge.innerText = "Mode: BOOKING (Pemerintah/BUMN)";
+        }
+        if (banner) banner.classList.remove('hidden');
+        if (inputTarget) inputTarget.required = true;
+        if (hintDrive) hintDrive.classList.remove('hidden');
+        if (starLap) starLap.innerText = " (Opsional saat Booking)";
+        if (starPem) starPem.innerText = " (Opsional saat Booking)";
+        if (starBai) starBai.innerText = " (Opsional saat Booking)";
+        if (inLap) inLap.required = false;
+        if (inPem) inPem.required = false;
+        if (inBai) inBai.required = false;
+      } else {
+        if (badge) {
+          badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400 text-slate-950 shrink-0";
+          badge.innerText = "Mode: REGULER (Berkas Lengkap)";
+        }
+        if (banner) banner.classList.add('hidden');
+        if (inputTarget) {
+          inputTarget.required = false;
+          inputTarget.value = '';
+        }
+        if (hintDrive) hintDrive.classList.add('hidden');
+        if (starLap) starLap.innerText = " *";
+        if (starPem) starPem.innerText = " *";
+        if (starBai) starBai.innerText = " *";
+        if (inLap) inLap.required = true;
+        if (inPem) inPem.required = true;
+        if (inBai) inBai.required = true;
+      }
+    }
+
+    let sesiMonitoringSah = false;
+
+    function bukaTabMonitoringEksekutif() {
+      if (sesiMonitoringSah || (typeof isSuperOrAdminPusat === 'function' && isSuperOrAdminPusat())) {
+        bukaPanelMonitoring();
+      } else {
+        const modal = document.getElementById('modal-pin-monitoring');
+        if (modal) {
+          modal.classList.remove('hidden');
+          const inp = document.getElementById('input-pin-monitoring');
+          if (inp) {
+            inp.value = '';
+            setTimeout(() => inp.focus(), 100);
+          }
+          document.getElementById('pesan-error-pin-mon')?.classList.add('hidden');
+        }
+      }
+    }
+
+    function tutupModalPinMonitoring() {
+      document.getElementById('modal-pin-monitoring')?.classList.add('hidden');
+    }
+
+    function verifikasiPinMonitoring() {
+      const pin = (document.getElementById('input-pin-monitoring')?.value || '').trim();
+      const validPins = ['NSR8899', 'NSR-PST-2026', 'NSR2026', 'ADMINNSR'];
+      if (validPins.includes(pin)) {
+        sesiMonitoringSah = true;
+        tutupModalPinMonitoring();
+        bukaPanelMonitoring();
+      } else {
+        const err = document.getElementById('pesan-error-pin-mon');
+        if (err) {
+          err.innerText = 'PIN Super Admin tidak valid. Gunakan PIN: NSR8899';
+          err.classList.remove('hidden');
+        }
+      }
+    }
+
+    function bukaPanelMonitoring() {
+      ['pengajuan', 'spm', 'approval', 'elsa', 'riwayat'].forEach(k => {
+        document.getElementById('panel-' + k)?.classList.add('hidden');
+        const b = document.getElementById('tab-btn-' + k);
+        if (b) {
+          b.classList.remove('border-amber-400', 'text-amber-400');
+          b.classList.add('border-transparent', 'text-slate-400');
+        }
+      });
+
+      const panel = document.getElementById('panel-monitoring');
+      const btn = document.getElementById('tab-btn-monitoring');
+      if (panel) panel.classList.remove('hidden');
+      if (btn) {
+        btn.classList.add('border-sky-400', 'text-sky-300');
+        btn.classList.remove('border-transparent');
+      }
+
+      renderDasborMonitoring();
+    }
+
+    let bookingTicketsList = [];
+
+    function bukaModalFinalisasiBooking(prefillId = '') {
+      const modal = document.getElementById('modal-finalisasi-booking');
+      const listEl = document.getElementById('list-booking-tickets');
+      if (listEl) {
+        listEl.innerHTML = '';
+        bookingTicketsList = daftarPermohonan.filter(p => 
+          (p.status && p.status.includes('BOOKING')) || 
+          (p.statusElsa && p.statusElsa.includes('MENUNGGU BERKAS')) ||
+          (p.catatanPemohon && p.catatanPemohon.includes('BOOKING'))
+        );
+        bookingTicketsList.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.noPermintaan || t.nomorLaporan || t.noSpk;
+          opt.label = (t.namaKlien || 'Klien') + ' - ' + (t.nomorLaporan || t.noPermintaan) + ' (' + (t.status || 'BOOKING') + ')';
+          listEl.appendChild(opt);
+        });
+      }
+
+      const lookupInput = document.getElementById('final-lookup-id');
+      if (lookupInput && prefillId) {
+        lookupInput.value = prefillId;
+        autoFillBookingData(prefillId);
+      }
+
+      const tglLap = document.getElementById('final-tgl-laporan');
+      if (tglLap && !tglLap.value) {
+        tglLap.value = new Date().toISOString().split('T')[0];
+      }
+
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function tutupModalFinalisasiBooking() {
+      document.getElementById('modal-finalisasi-booking')?.classList.add('hidden');
+    }
+
+    function autoFillBookingData(val) {
+      const q = (val || '').trim().toLowerCase();
+      const infoBox = document.getElementById('info-booking-matched');
+      if (!q) {
+        if (infoBox) infoBox.classList.add('hidden');
+        return;
+      }
+
+      const matched = daftarPermohonan.find(p => 
+        (p.noPermintaan && p.noPermintaan.toLowerCase() === q) ||
+        (p.nomorLaporan && p.nomorLaporan.toLowerCase() === q) ||
+        (p.noSpk && p.noSpk.toLowerCase() === q) ||
+        (p.namaKlien && p.namaKlien.toLowerCase().includes(q))
+      );
+
+      if (matched && infoBox) {
+        infoBox.classList.remove('hidden');
+        infoBox.innerHTML = '<strong>Klien:</strong> ' + (matched.namaKlien || '-') + ' &bull; <strong>Cabang:</strong> ' + (matched.cabang || 'Pusat') + '<br><strong>Status:</strong> ' + (matched.status || 'BOOKING') + ' &bull; <strong>No. Laporan:</strong> ' + (matched.nomorLaporan || 'DIBOOKING');
+        if (matched.kesimpulanNilai) {
+          const valInput = document.getElementById('final-kesimpulan-nilai');
+          if (valInput && !valInput.value) valInput.value = matched.kesimpulanNilai;
+        }
+      } else if (infoBox) {
+        infoBox.classList.add('hidden');
+      }
+    }
+
+    async function submitFinalisasiBooking(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit-final-booking');
+      const origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerText = 'Mengirim Berkas Final...';
+
+      const lookupId = document.getElementById('final-lookup-id').value.trim();
+      const kesimpulanNilai = document.getElementById('final-kesimpulan-nilai').value.trim();
+      const tglLaporan = document.getElementById('final-tgl-laporan').value;
+      const linkLaporan = document.getElementById('final-link-laporan').value.trim();
+      const linkPembanding = document.getElementById('final-link-pembanding').value.trim();
+      const linkBai = document.getElementById('final-link-bai').value.trim();
+
+      const payload = {
+        noPermintaan: lookupId,
+        nomorLaporan: lookupId,
+        noSpk: lookupId,
+        kesimpulanNilai: kesimpulanNilai,
+        tglLaporan: tglLaporan,
+        fileLaporan: linkLaporan,
+        filePembanding: linkPembanding,
+        fileBai: linkBai,
+        "File Laporan Penilaian": linkLaporan,
+        "File Data Pembanding": linkPembanding,
+        "File Berita Acara Inspeksi": linkBai
+      };
+
+      try {
+        // 1. Kirim ke Serverless Proxy
+        await fetch('/api/nolap-data-proxy', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'finalizeBookingReport',
+            payload: payload
+          })
+        }).catch(() => null);
+
+        // 2. Kirim ke Google Apps Script Background
+        if (typeof kirimKeAppsScriptBackground === 'function') {
+          kirimKeAppsScriptBackground({
+            action: 'finalizeBookingReport',
+            data: payload
+          });
+        }
+
+        // 3. Update data lokal di memori
+        const targetItem = daftarPermohonan.find(p => 
+          p.noPermintaan === lookupId || 
+          p.nomorLaporan === lookupId || 
+          p.noSpk === lookupId
+        );
+
+        if (targetItem) {
+          targetItem.status = 'FINAL - SIAP ELSA';
+          targetItem.statusElsa = 'BELUM INPUT';
+          targetItem.kesimpulanNilai = kesimpulanNilai;
+          targetItem.tglTerbit = tglLaporan;
+          targetItem.fileLaporan = linkLaporan;
+          targetItem.filePembanding = linkPembanding;
+          targetItem.fileBai = linkBai;
+          targetItem.linkLaporan = linkLaporan;
+          targetItem.linkPembanding = linkPembanding;
+          targetItem.linkBai = linkBai;
+          targetItem.linkDrive = linkLaporan;
+          simpanDatabaseLokal();
+          muatUlangTabel();
+        }
+
+        alert('✅ Sukses! Berkas Final Booking NoLap berhasil diunggah.\n\nStatus NoLap diperbarui menjadi: FINAL - SIAP ELSA\nStatus eLSa PPPK: DIBUKA (BELUM INPUT)\n\nNotifikasi telah otomatis dikirimkan ke Admin Kantor Pusat.');
+        tutupModalFinalisasiBooking();
+        document.getElementById('form-finalisasi-booking').reset();
+        renderDasborMonitoring();
+
+      } catch (err) {
+        alert('Terjadi kendala pengiriman: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+      }
+    }
+
+    function renderDasborMonitoring() {
+      const tbody = document.getElementById('tabel-body-monitoring');
+      if (!tbody) return;
+
+      const data = daftarPermohonan || [];
+
+      let countTotal = data.length;
+      let countLunas = 0;
+      let countBooking = 0;
+      let countRed = 0;
+      let countYellow = 0;
+      let countBlue = 0;
+
+      const filterCabang = document.getElementById('filter-mon-cabang')?.value || 'SEMUA';
+      const filterFinansial = document.getElementById('filter-mon-finansial')?.value || 'SEMUA';
+      const filterRisiko = document.getElementById('filter-mon-risiko')?.value || 'SEMUA';
+      const searchQ = (document.getElementById('filter-mon-search')?.value || '').trim().toLowerCase();
+
+      tbody.innerHTML = '';
+      const rowsToRender = [];
+
+      data.forEach((item) => {
+        const spk = item.noSpk || item.noLingkup || item.noPermintaan || '-';
+        const klien = item.namaKlien || item.namaInstansi || 'Klien';
+        const objek = item.jenisObjek || '-';
+        const cabang = item.cabang || 'Pusat';
+        const statusNoLap = item.status || 'DIAJUKAN';
+        const statusElsa = item.statusElsa || 'BELUM INPUT';
+        const isGov = ['Pemerintah Pusat', 'Pemerintah Daerah', 'BUMN', 'BUMD'].includes(item.statusKlien) ||
+                      (item.catatanPemohon && item.catatanPemohon.toLowerCase().includes('pemerintah')) ||
+                      (item.tujuanPenilaian && item.tujuanPenilaian.includes('Pengadaan Tanah'));
+
+        let statusFin = item.statusFinansial || '';
+        if (!statusFin) {
+          if (item.catatanPemohon && item.catatanPemohon.includes('BAST')) {
+            statusFin = 'PIUTANG KONTRAK SAH (BAST)';
+          } else if (statusNoLap === 'NOMOR DITERBITKAN' && isGov) {
+            statusFin = 'PIUTANG KONTRAK SAH (BAST)';
+          } else if (statusNoLap === 'NOMOR DITERBITKAN') {
+            statusFin = 'LUNAS';
+          } else {
+            statusFin = 'BELUM BAYAR';
+          }
+        }
+
+        const tglItem = new Date(item.timestamp || item.tglSpk || Date.now());
+        const umurHari = Math.floor((Date.now() - tglItem.getTime()) / (1000 * 60 * 60 * 24));
+
+        let riskBadge = '';
+        let riskType = 'GREEN';
+
+        const isBooking = statusNoLap.includes('BOOKING') || (item.catatanPemohon && item.catatanPemohon.includes('BOOKING'));
+
+        if (isBooking) {
+          countBooking++;
+          if (umurHari > 14 && statusNoLap !== 'FINAL - SIAP ELSA') {
+            riskType = 'YELLOW';
+            countYellow++;
+            riskBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse">🟡 YELLOW ALERT: Booking &gt; 14 Hari</span>';
+          } else {
+            riskType = 'BLUE';
+            countBlue++;
+            riskBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-sky-300 border border-sky-400/40">🔵 BLUE INFO: Booking Aktif</span>';
+          }
+        } else if (statusFin === 'PIUTANG KONTRAK SAH (BAST)') {
+          riskType = 'BLUE';
+          countBlue++;
+          riskBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-cyan-300 border border-cyan-400/40">🔵 BLUE INFO: Kontrak Sah BAST</span>';
+          if (statusNoLap === 'NOMOR DITERBITKAN') countLunas++;
+        } else if (statusNoLap === 'NOMOR DITERBITKAN' && statusFin === 'BELUM BAYAR' && !isGov) {
+          riskType = 'RED';
+          countRed++;
+          riskBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/50">🔴 RED ALERT: NoLap Terbit Belum Bayar</span>';
+        } else if (statusFin === 'LUNAS') {
+          countLunas++;
+          riskType = 'GREEN';
+          riskBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">🟢 AMAN: Lunas</span>';
+        } else {
+          riskType = 'GREEN';
+          riskBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">🟢 Standar</span>';
+        }
+
+        if (filterCabang !== 'SEMUA' && !cabang.toLowerCase().includes(filterCabang.toLowerCase())) return;
+        if (filterFinansial !== 'SEMUA' && statusFin !== filterFinansial) return;
+        if (filterRisiko !== 'SEMUA' && riskType !== filterRisiko) return;
+        if (searchQ && !spk.toLowerCase().includes(searchQ) && !klien.toLowerCase().includes(searchQ) && !objek.toLowerCase().includes(searchQ)) return;
+
+        const fLap = item.fileLaporan || item.linkLaporan || item.linkDrive || '';
+        const fPem = item.filePembanding || item.linkPembanding || '';
+        const fBai = item.fileBai || item.linkBai || '';
+
+        const lapIcon = fLap ? '<a href="' + fLap + '" target="_blank" title="File Laporan Penilaian" class="text-sky-400 hover:text-sky-300 font-bold">📄</a>' : '<span class="text-slate-600" title="Belum diunggah">-</span>';
+        const pemIcon = fPem ? '<a href="' + fPem + '" target="_blank" title="File Data Pembanding" class="text-amber-400 hover:text-amber-300 font-bold">📊</a>' : '<span class="text-slate-600" title="Belum diunggah">-</span>';
+        const baiIcon = fBai ? '<a href="' + fBai + '" target="_blank" title="File Berita Acara Inspeksi" class="text-emerald-400 hover:text-emerald-300 font-bold">📋</a>' : '<span class="text-slate-600" title="Belum diunggah">-</span>';
+
+        const waCabangUrl = item.waPemohon ? 'https://wa.me/' + item.waPemohon.replace(/\D/g, '') + '?text=' + encodeURIComponent('Halo ' + (item.namaPemohon || 'Rekan Cabang') + ', konfirmasi tindak lanjut SPK ' + spk + ' (Klien: ' + klien + '). Status NoLap: ' + statusNoLap + '. Terima kasih.') : '#';
+
+        rowsToRender.push('<tr>' +
+          '<td class="p-3 font-mono font-bold text-sky-400"><div>' + spk + '</div><span class="text-[10px] text-slate-400 font-normal">' + (item.noPermintaan || '-') + '</span></td>' +
+          '<td class="p-3"><strong class="text-white block">' + klien + '</strong><span class="text-[11px] text-slate-400 block truncate max-w-xs">' + objek + '</span></td>' +
+          '<td class="p-3 text-[11px]"><span class="text-amber-300 font-semibold block">' + cabang + '</span><span class="text-slate-400">' + (item.tglSpk || item.timestamp || '-') + '</span></td>' +
+          '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">SPK Sah</span></td>' +
+          '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (statusFin.includes('BAST') ? 'bg-sky-500/20 text-sky-300 border border-sky-400/40' : (statusFin === 'LUNAS' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-slate-800 text-slate-400')) + '">' + statusFin + '</span></td>' +
+          '<td class="p-3 text-center"><div class="font-bold text-[11px] ' + (statusNoLap.includes('DITERBITKAN') ? 'text-emerald-400' : (statusNoLap.includes('BOOKING') ? 'text-sky-300' : 'text-amber-300')) + '">' + statusNoLap + '</div><div class="flex items-center justify-center gap-1.5 mt-1 text-xs">' + lapIcon + ' ' + pemIcon + ' ' + baiIcon + '</div></td>' +
+          '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (statusElsa === 'SELESAI' ? 'bg-emerald-500/20 text-emerald-400' : (statusElsa === 'MENUNGGU BERKAS FINAL' ? 'bg-blue-500/20 text-sky-300 border border-sky-400/40' : 'bg-amber-500/20 text-amber-300')) + '">' + statusElsa + '</span></td>' +
+          '<td class="p-3 text-center">' + riskBadge + '</td>' +
+          '<td class="p-3 text-center whitespace-nowrap"><div class="flex items-center justify-center gap-1">' +
+          '<button type="button" onclick="bukaModalViewerBerkas(\'' + item.noPermintaan + '\')" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 transition" title="Lihat 3 Berkas">🔍</button>' +
+          (isBooking ? '<button type="button" onclick="bukaModalFinalisasiBooking(\'' + item.noPermintaan + '\')" class="p-1.5 rounded bg-blue-600/30 hover:bg-blue-600/50 text-sky-300 border border-sky-400/40 transition" title="Finalisasi Berkas Booking">⚡</button>' : '') +
+          (item.waPemohon ? '<a href="' + waCabangUrl + '" target="_blank" class="p-1.5 rounded bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-400/40 transition" title="WhatsApp Cabang">💬</a>' : '') +
+          '</div></td>' +
+          '</tr>');
+      });
+
+      if (rowsToRender.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-500 italic">Tidak ada transaksi yang cocok dengan kriteria filter.</td></tr>';
+      } else {
+        tbody.innerHTML = rowsToRender.join('');
+      }
+
+      const elTot = document.getElementById('kpi-total-spk');
+      const elLun = document.getElementById('kpi-nolap-lunas');
+      const elBoo = document.getElementById('kpi-booking-aktif');
+      const elRed = document.getElementById('kpi-red-alerts');
+      const elYel = document.getElementById('kpi-yellow-alerts');
+      const elBlu = document.getElementById('kpi-blue-info');
+
+      if (elTot) elTot.innerText = countTotal;
+      if (elLun) elLun.innerText = countLunas;
+      if (elBoo) elBoo.innerText = countBooking;
+      if (elRed) elRed.innerText = countRed;
+      if (elYel) elYel.innerText = countYellow;
+      if (elBlu) elBlu.innerText = countBlue;
+    }
+
+    function filterMatriksMonitoring() {
+      renderDasborMonitoring();
+    }
+
+    function bukaModalViewerBerkas(noReq) {
+      const item = daftarPermohonan.find(p => p.noPermintaan === noReq);
+      if (!item) return;
+
+      const spkEl = document.getElementById('viewer-berkas-spk');
+      const klienEl = document.getElementById('viewer-berkas-klien');
+      if (spkEl) spkEl.innerText = item.noSpk || item.noPermintaan || '-';
+      if (klienEl) klienEl.innerText = item.namaKlien || '-';
+
+      const fLap = item.fileLaporan || item.linkLaporan || item.linkDrive || '#';
+      const fPem = item.filePembanding || item.linkPembanding || '#';
+      const fBai = item.fileBai || item.linkBai || '#';
+
+      const linkLap = document.getElementById('viewer-link-laporan');
+      const linkPem = document.getElementById('viewer-link-pembanding');
+      const linkBai = document.getElementById('viewer-link-bai');
+
+      if (linkLap) {
+        linkLap.href = fLap;
+        if (!fLap || fLap === '#') linkLap.classList.add('opacity-50', 'pointer-events-none'); else linkLap.classList.remove('opacity-50', 'pointer-events-none');
+      }
+      if (linkPem) {
+        linkPem.href = fPem;
+        if (!fPem || fPem === '#') linkPem.classList.add('opacity-50', 'pointer-events-none'); else linkPem.classList.remove('opacity-50', 'pointer-events-none');
+      }
+      if (linkBai) {
+        linkBai.href = fBai;
+        if (!fBai || fBai === '#') linkBai.classList.add('opacity-50', 'pointer-events-none'); else linkBai.classList.remove('opacity-50', 'pointer-events-none');
+      }
+
+      document.getElementById('modal-viewer-berkas-3')?.classList.remove('hidden');
+    }
+
+    function tutupModalViewerBerkas() {
+      document.getElementById('modal-viewer-berkas-3')?.classList.add('hidden');
+    }
+
+</script>
 
 </body>
 </html>

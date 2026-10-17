@@ -321,16 +321,17 @@ export default async (req) => {
       const cabangPengaju = userRole === ROLES.ADMIN_PUSAT ? (payload.cabang || "Pusat") : userBranch;
       const idReq = `REQ-DUMMY-${String(activeData.length + 1).padStart(3, "0")}`;
       
+      const isBooking = payload.modePengajuan === "BOOKING" || Boolean(payload.isBooking);
       const newRecord = {
         ...payload,
         noPermintaan: idReq,
         cabang: cabangPengaju,
         namaPemohon: user.displayName || user.sub,
         timestamp: new Date().toISOString().replace("T", " ").slice(0, 19),
-        status: "DIAJUKAN",
+        status: isBooking ? "BOOKING DIAJUKAN" : "DIAJUKAN",
         nomorLaporan: "",
         tglTerbit: "",
-        statusElsa: "BELUM INPUT"
+        statusElsa: isBooking ? "MENUNGGU BERKAS FINAL" : "BELUM INPUT"
       };
 
       activeData.unshift(newRecord);
@@ -343,7 +344,44 @@ export default async (req) => {
       });
     }
 
-    // B. TINDAKAN APPROVAL / PENETAPAN NOMOR RESMI (MUTLAK HANYA ADMIN_PUSAT!)
+    // B. TINDAKAN FINALISASI BERKAS BOOKING NOLAP
+    if (action === "finalizeBookingReport") {
+      const noReq = payload?.noPermintaan;
+      const noLap = payload?.nomorLaporan;
+      const noSpk = payload?.noSpk;
+
+      const target = activeData.find(item => 
+        (noReq && item.noPermintaan === noReq) ||
+        (noLap && item.nomorLaporan === noLap) ||
+        (noSpk && item.noSpk === noSpk)
+      );
+
+      if (!target) {
+        return jsonResponse({ error: "Data permohonan booking tidak ditemukan" }, 404);
+      }
+
+      target.status = "FINAL - SIAP ELSA";
+      target.statusElsa = "BELUM INPUT";
+      if (payload.kesimpulanNilai) target.kesimpulanNilai = payload.kesimpulanNilai;
+      if (payload.tglLaporan) target.tglTerbit = payload.tglLaporan;
+      if (payload.fileLaporan) target.fileLaporan = payload.fileLaporan;
+      if (payload.filePembanding) target.filePembanding = payload.filePembanding;
+      if (payload.fileBai) target.fileBai = payload.fileBai;
+      target.linkLaporan = payload.fileLaporan || target.linkLaporan;
+      target.linkPembanding = payload.filePembanding || target.linkPembanding;
+      target.linkBai = payload.fileBai || target.linkBai;
+      target.linkDrive = payload.fileLaporan || target.linkDrive;
+
+      await _saveNolapDatabase(activeData);
+
+      return jsonResponse({
+        success: true,
+        message: "Berkas booking berhasil difinalisasi dan status dinaikkan menjadi FINAL - SIAP ELSA.",
+        record: target
+      });
+    }
+
+    // C. TINDAKAN APPROVAL / PENETAPAN NOMOR RESMI (MUTLAK HANYA ADMIN_PUSAT!)
     if (action === "approveRequest") {
       if (userRole !== ROLES.ADMIN_PUSAT) {
         return jsonResponse(

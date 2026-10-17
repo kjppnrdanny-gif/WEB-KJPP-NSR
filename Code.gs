@@ -28,6 +28,9 @@ const CONFIG = {
   // ID Master Spreadsheet DB_PENUGASAN_JO_NSR Resmi KJPP NSR
   SPREADSHEET_ID: '1VJW4nrzc1884kxepxZ2p8zNUcHrCWEqodQQcjeXXg_g',
 
+  // ID Master Database Administrasi KJPP NSR
+  MASTER_ADMIN_SPREADSHEET_ID: '1Aob9oFvOObV7Nz0bt3DDsTrWCoFKd233FFYkdBCSFTg',
+
   // Nama Sheet di Google Spreadsheet DB_PENUGASAN_JO_NSR
   SHEET_DATA: 'Data_Penugasan',
   SHEET_COUNTER: 'Config_Counter',

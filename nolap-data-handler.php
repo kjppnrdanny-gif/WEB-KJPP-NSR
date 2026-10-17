@@ -741,10 +741,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'totalBayar'   => $totalBayar,
             'idempotencyKey'=> $idempotencyKey,
             'terbilang'    => $payload['terbilang'] ?? '',
-            'status'       => 'DIAJUKAN',
+            'status'       => (!empty($payload['isBooking']) || ($payload['modePengajuan'] ?? '') === 'BOOKING') ? 'BOOKING DIAJUKAN' : 'DIAJUKAN',
             'nomorLaporan' => '',
             'tglTerbit'    => '',
-            'statusElsa'   => 'BELUM INPUT'
+            'statusElsa'   => (!empty($payload['isBooking']) || ($payload['modePengajuan'] ?? '') === 'BOOKING') ? 'MENUNGGU BERKAS FINAL' : 'BELUM INPUT'
         ]);
 
         array_unshift($records, $newRecord);
@@ -755,6 +755,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'message'      => "Permohonan nomor laporan {$idReq} berhasil direkam di server terpusat cPanel.",
             'noPermintaan' => $idReq,
             'record'       => $newRecord
+        ]);
+        exit;
+    }
+
+    // =========================================================================
+    // B.2. TINDAKAN FINALISASI BERKAS BOOKING NOLAP
+    // =========================================================================
+    if ($action === 'finalizeBookingReport') {
+        $noReq = $payload['noPermintaan'] ?? '';
+        $noLap = $payload['nomorLaporan'] ?? '';
+        $noSpk = $payload['noSpk'] ?? '';
+
+        $targetIndex = -1;
+        foreach ($records as $idx => $item) {
+            if (($noReq && ($item['noPermintaan'] ?? '') === $noReq) ||
+                ($noLap && ($item['nomorLaporan'] ?? '') === $noLap) ||
+                ($noSpk && ($item['noSpk'] ?? '') === $noSpk)) {
+                $targetIndex = $idx;
+                break;
+            }
+        }
+
+        if ($targetIndex === -1) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Data permohonan booking tidak ditemukan']);
+            exit;
+        }
+
+        $records[$targetIndex]['status'] = 'FINAL - SIAP ELSA';
+        $records[$targetIndex]['statusElsa'] = 'BELUM INPUT';
+        if (!empty($payload['kesimpulanNilai'])) $records[$targetIndex]['kesimpulanNilai'] = $payload['kesimpulanNilai'];
+        if (!empty($payload['tglLaporan'])) $records[$targetIndex]['tglTerbit'] = $payload['tglLaporan'];
+        if (!empty($payload['fileLaporan'])) $records[$targetIndex]['fileLaporan'] = $payload['fileLaporan'];
+        if (!empty($payload['filePembanding'])) $records[$targetIndex]['filePembanding'] = $payload['filePembanding'];
+        if (!empty($payload['fileBai'])) $records[$targetIndex]['fileBai'] = $payload['fileBai'];
+        $records[$targetIndex]['linkLaporan'] = $payload['fileLaporan'] ?? ($records[$targetIndex]['linkLaporan'] ?? '');
+        $records[$targetIndex]['linkPembanding'] = $payload['filePembanding'] ?? ($records[$targetIndex]['linkPembanding'] ?? '');
+        $records[$targetIndex]['linkBai'] = $payload['fileBai'] ?? ($records[$targetIndex]['linkBai'] ?? '');
+        $records[$targetIndex]['linkDrive'] = $payload['fileLaporan'] ?? ($records[$targetIndex]['linkDrive'] ?? '');
+
+        simpanDatabaseNoLap($dataFile, $records);
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Berkas booking berhasil difinalisasi dan status dinaikkan menjadi FINAL - SIAP ELSA.",
+            'record'  => $records[$targetIndex]
         ]);
         exit;
     }
