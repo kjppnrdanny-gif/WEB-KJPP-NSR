@@ -466,6 +466,7 @@ function doPost(e) {
     switch (action) {
       case 'CREATE_SUBMISSION':
       case 'CREATE':
+      case 'submitRequest':
         if (authResult.role === 'PENILAI' || authResult.role === 'REVIEWER') {
           return respondJSON({
             status: 'error',
@@ -473,7 +474,10 @@ function doPost(e) {
             error: 'Otorisasi Ditolak: Akun Penilai dan Reviewer tidak memiliki hak akses pengajuan Job Order baru di server Pusat.'
           }, 403);
         }
-        result = prosesPengajuanBaru(ss, payload.data, authResult);
+        result = prosesPengajuanBaru(ss, payload.data || payload, authResult);
+        if (result && result.status === 'error' && result.code === 'DENI_SISWANDI_DAILY_BRANCH_LOCKED') {
+          return respondJSON(result, 400);
+        }
         break;
 
       case 'APPROVE_SUBMISSION':
@@ -831,6 +835,81 @@ function prosesPengajuanBaru(ss, data, auth) {
 
   const sheetData = ss.getSheetByName(CONFIG.SHEET_DATA) || ss.getSheetByName('Database_Penugasan') || buatSheetDatabase(ss);
   const now = new Date();
+
+  // =========================================================================
+  // ATURAN KHUSUS PENANDATANGAN DENI SISWANDI (SINGLE-BRANCH DAILY EXCLUSIVITY - P2PK)
+  // Regulasi Kepatuhan P2PK Kemenkeu: Mencegah multi-yurisdiksi cabang pada hari yang sama.
+  // =========================================================================
+  const penilaiReq = (pick(data.Rekan_Penilai_Publik, data.rekan_nama, data.penilai, '')).toString().toLowerCase();
+  if (penilaiReq.includes('deni siswandi')) {
+    const todayStr = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd");
+    const cabangReq = (pick(data.Kantor_Wilayah, data.kantor_wilayah, data.cabang, auth ? auth.wilayah : 'Pusat')).toString().trim();
+    const cleanCabangReq = cabangReq.replace(/kantor|cabang/gi, '').trim().toLowerCase();
+
+    const dataRows = sheetData.getDataRange().getValues();
+    const headersPenugasan = dataRows[0] || [];
+    let idxWilayah = headersPenugasan.indexOf('Kantor_Wilayah');
+    let idxRekan = headersPenugasan.indexOf('Rekan_Penilai_Publik');
+    let idxStatusApp = headersPenugasan.indexOf('Status_Approval');
+    let idxTs = headersPenugasan.indexOf('Timestamp_Input');
+
+    if (idxWilayah === -1) idxWilayah = 3;
+    if (idxRekan === -1) idxRekan = 12;
+    if (idxStatusApp === -1) idxStatusApp = 2;
+    if (idxTs === -1) idxTs = 1;
+
+    for (let i = 1; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const rowStatus = String(row[idxStatusApp] || '').toUpperCase();
+      if (rowStatus.includes('DITOLAK') || rowStatus.includes('REJECT') || rowStatus.includes('BATAL') || rowStatus.includes('VOID')) continue;
+
+      const rowRekan = String(row[idxRekan] || '').toLowerCase();
+      if (!rowRekan.includes('deni siswandi')) continue;
+
+      const rowTs = row[idxTs];
+      let rowDateStr = '';
+      if (rowTs instanceof Date) {
+        rowDateStr = Utilities.formatDate(rowTs, "Asia/Jakarta", "yyyy-MM-dd");
+      } else if (typeof rowTs === 'string' && rowTs.trim()) {
+        const parsedD = new Date(rowTs);
+        if (!isNaN(parsedD.getTime())) {
+          rowDateStr = Utilities.formatDate(parsedD, "Asia/Jakarta", "yyyy-MM-dd");
+        } else {
+          const parts = rowTs.trim().split(/[\s,]+/)[0];
+          if (parts.includes('-')) {
+            rowDateStr = parts;
+          } else if (parts.includes('/')) {
+            const segs = parts.split('/');
+            if (segs.length === 3) {
+              if (parseInt(segs[0], 10) > 12) {
+                rowDateStr = `${segs[2]}-${String(segs[1]).padStart(2, '0')}-${String(segs[0]).padStart(2, '0')}`;
+              } else if (parseInt(segs[1], 10) > 12) {
+                rowDateStr = `${segs[2]}-${String(segs[0]).padStart(2, '0')}-${String(segs[1]).padStart(2, '0')}`;
+              } else if (parseInt(segs[2], 10) > 1000) {
+                rowDateStr = `${segs[2]}-${String(segs[0]).padStart(2, '0')}-${String(segs[1]).padStart(2, '0')}`;
+              }
+            }
+          }
+        }
+      }
+
+      if (rowDateStr === todayStr) {
+        const rowWilayah = String(row[idxWilayah] || '').trim();
+        const cleanRowWilayah = rowWilayah.replace(/kantor|cabang/gi, '').trim().toLowerCase();
+        if (cleanRowWilayah && cleanCabangReq && cleanRowWilayah !== cleanCabangReq) {
+          return {
+            status: 'error',
+            success: false,
+            code: 'DENI_SISWANDI_DAILY_BRANCH_LOCKED',
+            cabangPengguna: rowWilayah,
+            error: `Mohon maaf, kewenangan tanda tangan Penilai Publik Deni Siswandi untuk hari ini (${todayStr}) telah digunakan oleh ${rowWilayah.toUpperCase()}. Sesuai regulasi kepatuhan P2PK, cabang lain tidak dapat mengajukan tanda tangan Deni Siswandi pada hari yang sama. Silakan alihkan penandatangan ke Nanang Rahayu atau ajukan untuk jadwal tanggal berikutnya.`,
+            message: `Mohon maaf, kewenangan tanda tangan Penilai Publik Deni Siswandi untuk hari ini (${todayStr}) telah digunakan oleh ${rowWilayah.toUpperCase()}. Sesuai regulasi kepatuhan P2PK, cabang lain tidak dapat mengajukan tanda tangan Deni Siswandi pada hari yang sama. Silakan alihkan penandatangan ke Nanang Rahayu atau ajukan untuk jadwal tanggal berikutnya.`
+          };
+        }
+      }
+    }
+  }
+
   const dSurat = new Date(data.Tgl_Dibuat || data.tanggal_surat || now);
   const romawi = getBulanRomawi(dSurat);
   const thn = dSurat.getFullYear();

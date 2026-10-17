@@ -114,6 +114,86 @@ function handleSubmitPengajuanNoLap(data) {
   const headerRange = sheet.getRange(1, 1, 1, lastCol);
   const headers = headerRange.getValues()[0];
 
+  // =========================================================================
+  // ATURAN KHUSUS PENANDATANGAN DENI SISWANDI (SINGLE-BRANCH DAILY EXCLUSIVITY)
+  // Regulasi Kepatuhan P2PK Kemenkeu: Mencegah multi-yurisdiksi cabang pada hari yang sama.
+  // =========================================================================
+  const payloadPenilai = (data.penilai || data.namaPenandatangan || data.Rekan_Penilai_Publik || '').toString();
+  const payloadCabang = (data.cabang || data.namaCabang || data.Kantor_Wilayah || 'Pusat').toString().trim();
+  const isDeniSiswandi = payloadPenilai.toLowerCase().includes('deni siswandi');
+
+  if (isDeniSiswandi) {
+    const todayStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd");
+    const dataRows = sheet.getDataRange().getValues(); // Sheet PENGAJUAN
+
+    // Dynamic Header Index Detection
+    let idxCabang = headers.findIndex(h => /cabang|kantor/i.test(String(h || '')));
+    let idxPenilai = headers.findIndex(h => /penilai|penandatangan|rekan/i.test(String(h || '')));
+    let idxStatus = headers.findIndex(h => /^status$/i.test(String(h || '')));
+    let idxTimestamp = headers.findIndex(h => /timestamp|waktu|tanggal/i.test(String(h || '')));
+
+    if (idxCabang === -1) idxCabang = 1;     // Kolom B / C
+    if (idxPenilai === -1) idxPenilai = 16;  // Kolom Q / R
+    if (idxStatus === -1) idxStatus = 20;    // Kolom U
+    if (idxTimestamp === -1) idxTimestamp = 0; // Kolom A
+
+    // Loop data pengajuan pada hari ini
+    for (let i = 1; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const rowTimestamp = row[idxTimestamp] !== undefined ? row[idxTimestamp] : row[0];
+      const rowCabang = String(row[idxCabang] || row[1] || row[2] || '').trim();
+      const rowPenilai = String(row[idxPenilai] || row[16] || row[17] || '').toLowerCase();
+      const rowStatus = String(row[idxStatus] || row[20] || '');
+
+      // Abaikan baris yang DITOLAK atau VOID / DIBATALKAN
+      if (rowStatus.toUpperCase().includes('DITOLAK') || rowStatus.toUpperCase().includes('VOID') || rowStatus.toUpperCase().includes('BATAL')) continue;
+
+      let rowDateStr = '';
+      if (rowTimestamp instanceof Date) {
+        rowDateStr = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
+      } else if (typeof rowTimestamp === 'string' && rowTimestamp.trim()) {
+        const parsedD = new Date(rowTimestamp);
+        if (!isNaN(parsedD.getTime())) {
+          rowDateStr = Utilities.formatDate(parsedD, "Asia/Jakarta", "yyyy-MM-dd");
+        } else {
+          const parts = rowTimestamp.trim().split(/[\s,]+/)[0];
+          if (parts.includes('-')) {
+            rowDateStr = parts;
+          } else if (parts.includes('/')) {
+            const segs = parts.split('/');
+            if (segs.length === 3) {
+              if (parseInt(segs[0], 10) > 12) {
+                rowDateStr = `${segs[2]}-${String(segs[1]).padStart(2, '0')}-${String(segs[0]).padStart(2, '0')}`;
+              } else if (parseInt(segs[1], 10) > 12) {
+                rowDateStr = `${segs[2]}-${String(segs[0]).padStart(2, '0')}-${String(segs[1]).padStart(2, '0')}`;
+              } else if (parseInt(segs[2], 10) > 1000) {
+                rowDateStr = `${segs[2]}-${String(segs[0]).padStart(2, '0')}-${String(segs[1]).padStart(2, '0')}`;
+              }
+            }
+          }
+        }
+      }
+
+      // Jika tanggalnya sama DAN penilainya Deni Siswandi
+      if (rowDateStr === todayStr && rowPenilai.includes('deni siswandi')) {
+        const cleanRowCabang = rowCabang.replace(/kantor|cabang/gi, '').trim().toLowerCase();
+        const cleanPayloadCabang = payloadCabang.replace(/kantor|cabang/gi, '').trim().toLowerCase();
+
+        // Jika diajukan oleh CABANG LAIN yang berbeda:
+        if (cleanRowCabang && cleanPayloadCabang && cleanRowCabang !== cleanPayloadCabang) {
+          return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            success: false,
+            code: 'DENI_SISWANDI_DAILY_BRANCH_LOCKED',
+            cabangPengguna: rowCabang,
+            error: `Mohon maaf, kewenangan tanda tangan Penilai Publik Deni Siswandi untuk hari ini (${todayStr}) telah digunakan oleh ${rowCabang.toUpperCase()}. Sesuai regulasi kepatuhan P2PK, cabang lain tidak dapat mengajukan tanda tangan Deni Siswandi pada hari yang sama. Silakan alihkan penandatangan ke Nanang Rahayu atau ajukan untuk jadwal tanggal berikutnya.`,
+            message: `Mohon maaf, kewenangan tanda tangan Penilai Publik Deni Siswandi untuk hari ini (${todayStr}) telah digunakan oleh ${rowCabang.toUpperCase()}. Sesuai regulasi kepatuhan P2PK, cabang lain tidak dapat mengajukan tanda tangan Deni Siswandi pada hari yang sama. Silakan alihkan penandatangan ke Nanang Rahayu atau ajukan untuk jadwal tanggal berikutnya.`
+          })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+    }
+  }
+
   // Cari index kolom (1-indexed) atau fallback ke nomor kolom standar (51, 52, 53)
   let colIndexLaporan = headers.indexOf('File Laporan Penilaian') + 1;
   let colIndexPembanding = headers.indexOf('File Data Pembanding') + 1;

@@ -375,7 +375,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Kewenangan Ttd *</label>
-              <select id="f-cabang" onchange="updateLivePreview()" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <select id="f-cabang" onchange="onCabangChange()" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
                 <option value="Pusat" data-kode="2.0160-00">Pusat (2.0160-00)</option>
                 <option value="Padang" data-kode="2.0160-02">Cabang Padang (2.0160-02)</option>
                 <option value="Makassar" data-kode="2.0160-03">Cabang Makassar (2.0160-03)</option>
@@ -406,13 +406,34 @@
 
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Penilai Penandatangan Laporan *</label>
-              <select id="f-penilai" onchange="updateLivePreview()" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <select id="f-penilai" onchange="onPenilaiChange()" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
                 <option value="Deni Siswandi" data-izin="00581">Deni Siswandi — Izin: 00581</option>
                 <option value="Nanang Rahayu" data-izin="0218">Ir. Nanang Rahayu — Izin: 0218</option>
                 <option value="Dharma Priyanto Sih Budi Susilo" data-izin="PS.0249">Dharma Priyanto S.B.S. — Izin: PS.0249</option>
                 <option value="Hernita" data-izin="PS.0046">Hernita — Izin: PS.0046</option>
                 <option value="Muhammad Amin Sade" data-izin="PS.0126">Muhammad Amin Sade — Izin: PS.0126</option>
               </select>
+            </div>
+
+            <!-- BANNER PERINGATAN EKSKLUSIVITAS PENILAI HARIAN (P2PK COMPLIANCE) -->
+            <div id="banner-lock-penilai" class="hidden col-span-1 sm:col-span-2 lg:col-span-3 p-3.5 bg-rose-950/80 border border-rose-500/60 rounded-xl text-rose-200 text-xs shadow-lg animate-in fade-in duration-200">
+              <div class="flex items-start gap-3">
+                <span class="text-xl">⚠️</span>
+                <div class="space-y-1.5 flex-1">
+                  <strong class="font-bold text-rose-100 block text-xs tracking-wide">KUOTA TANDA TANGAN HARIAN DENI SISWANDI TIDAK TERSEDIA</strong>
+                  <p id="teks-lock-penilai" class="text-rose-200 text-[11px] leading-relaxed"></p>
+                  <div class="bg-black/40 p-2.5 rounded-lg border border-rose-800/40 text-[11px] text-rose-300">
+                    <span class="font-semibold block text-white mb-1">Solusi Kepatuhan Regulasi P2PK:</span>
+                    <ol class="list-decimal ml-4 space-y-0.5 text-slate-300">
+                      <li>Ubah Rekan Penandatangan ke: <strong class="text-amber-300">Bpk. Ir. Nanang Rahayu (Pemimpin Rekan)</strong></li>
+                      <li>Atau jadwalkan penanggalan pengajuan untuk hari kalender berikutnya.</li>
+                    </ol>
+                    <button type="button" onclick="alihkanKeNanangRahayu()" class="mt-2.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-[11px] transition-colors shadow">
+                      ✓ Otomatis Alihkan ke Bpk. Nanang Rahayu
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -13182,6 +13203,46 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL EDUKATIF KUOTA TANDA TANGAN HARIAN DENI SISWANDI (P2PK) ==================== -->
+  <div id="modal-lock-penilai" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div class="bg-slate-900 border border-rose-500/60 rounded-2xl max-w-lg w-full p-6 text-white shadow-2xl relative animate-in fade-in zoom-in duration-200">
+      <div class="flex items-center gap-3 mb-4 text-rose-400">
+        <div class="w-12 h-12 rounded-xl bg-rose-950/80 border border-rose-500/40 flex items-center justify-center text-2xl flex-shrink-0">
+          ⚠️
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">KUOTA TANDA TANGAN HARIAN DENI SISWANDI TIDAK TERSEDIA</h3>
+          <p class="text-xs text-rose-300 font-mono">P2PK Single-Branch Exclusivity Rule</p>
+        </div>
+      </div>
+      
+      <div class="bg-rose-950/30 border border-rose-500/30 rounded-xl p-4 mb-4 text-xs text-slate-200 leading-relaxed space-y-2">
+        <p>Kewenangan tanda tangan Penilai Publik <strong>Deni Siswandi, S.T., MAPPI (Cert.)</strong> pada hari ini telah digunakan oleh <strong id="modal-lock-cabang-name" class="text-amber-300 uppercase">Cabang Lain</strong>.</p>
+        <p class="text-slate-300 text-[11px]">Sesuai regulasi kepatuhan P2PK Kemenkeu terkait integritas penugasan dan yurisdiksi harian penilai publik, penandatangan pada hari kalender yang sama hanya dapat melayani satu yurisdiksi entitas cabang.</p>
+      </div>
+
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs mb-5">
+        <span class="font-bold text-amber-400 block mb-2 flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Solusi:
+        </span>
+        <ol class="list-decimal ml-5 space-y-1.5 text-slate-300 text-[11px]">
+          <li>Ubah Rekan Penandatangan ke: <strong class="text-white">Bpk. Ir. Nanang Rahayu (Pemimpin Rekan)</strong></li>
+          <li>Atau jadwalkan penanggalan pengajuan untuk hari berikutnya.</li>
+        </ol>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2.5 justify-end">
+        <button type="button" onclick="alihkanKeNanangRahayu()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all">
+          <span>✓ Ubah Rekan Penandatangan ke: Bpk. Nanang Rahayu</span>
+        </button>
+        <button type="button" onclick="tutupModalLockPenilai()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL PENERBITAN NOLAP MANUAL (ADMIN PUSAT / MASTER AKSES) ==================== -->
   <div id="modal-terbitkan-nolap-manual" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto no-print">
     <div class="bg-slate-900 border-2 border-amber-400/50 rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl relative text-xs space-y-4 my-8">
@@ -13668,6 +13729,7 @@
 
       toggleKlasifikasiEntitas();
       updateLivePreview();
+      validasiKetersediaanPenilaiHarian(true);
       try { inisialisasiSmartSpmTanah(); } catch(e){}
       try { inisialisasiSmartSpmUmum(); } catch(e){}
       try { inisialisasiSmartSpmRuislagh(); } catch(e){}
@@ -14070,6 +14132,159 @@
         }
       });
       return maxUrut + 1;
+    }
+
+    /* =========================================================================
+       VALIDASI EKSKLUSIVITAS HARIAN PENANDATANGAN DENI SISWANDI (P2PK COMPLIANCE)
+       "Single-Branch Daily Exclusivity Rule": Satu hari hanya boleh 1 cabang.
+       ========================================================================= */
+    function ekstrakTanggalYmd(val) {
+      if (!val) return '';
+      if (val instanceof Date) {
+        if (isNaN(val.getTime())) return '';
+        return val.toISOString().split('T')[0];
+      }
+      const s = String(val).trim();
+      if (!s) return '';
+      const matchIso = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (matchIso) {
+        return `${matchIso[1]}-${matchIso[2].padStart(2, '0')}-${matchIso[3].padStart(2, '0')}`;
+      }
+      const matchSlash = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+      if (matchSlash) {
+        const a = parseInt(matchSlash[1], 10);
+        const b = parseInt(matchSlash[2], 10);
+        const yr = matchSlash[3];
+        if (a > 12) {
+          return `${yr}-${String(b).padStart(2, '0')}-${String(a).padStart(2, '0')}`;
+        } else if (b > 12) {
+          return `${yr}-${String(a).padStart(2, '0')}-${String(b).padStart(2, '0')}`;
+        } else {
+          return `${yr}-${String(a).padStart(2, '0')}-${String(b).padStart(2, '0')}`;
+        }
+      }
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        return d.toISOString().split('T')[0];
+      }
+      return '';
+    }
+
+    function getTanggalHariIniWIB() {
+      const now = new Date();
+      try {
+        return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+      } catch (e) {
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const wib = new Date(utc + (3600000 * 7));
+        const yyyy = wib.getFullYear();
+        const mm = String(wib.getMonth() + 1).padStart(2, '0');
+        const dd = String(wib.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      }
+    }
+
+    function validasiKetersediaanPenilaiHarian(silently = false) {
+      const elPenilai = document.getElementById('f-penilai');
+      const elCabang = document.getElementById('f-cabang');
+      const banner = document.getElementById('banner-lock-penilai');
+      const bannerText = document.getElementById('teks-lock-penilai');
+      const btnSubmit = document.getElementById('btn-submit-pengajuan') || document.querySelector('#form-pengajuan-nolap button[type="submit"]');
+
+      if (!elPenilai || !elCabang) return { allowed: true };
+
+      const penilaiVal = (elPenilai.value || '').toLowerCase();
+      const currentCabang = (elCabang.value || '').trim();
+      const cleanCurrentCabang = currentCabang.replace(/kantor|cabang/gi, '').trim().toLowerCase();
+
+      // Aturan khusus HANYA berlaku untuk Penilai Deni Siswandi
+      if (!penilaiVal.includes('deni siswandi')) {
+        if (banner) banner.classList.add('hidden');
+        if (btnSubmit) btnSubmit.disabled = false;
+        return { allowed: true };
+      }
+
+      const todayStr = getTanggalHariIniWIB();
+      const list = (typeof daftarPermohonan !== 'undefined' && Array.isArray(daftarPermohonan))
+        ? daftarPermohonan
+        : ((typeof semuaPermohonan !== 'undefined' && Array.isArray(semuaPermohonan)) ? semuaPermohonan : []);
+
+      let lockedByBranch = null;
+
+      for (const item of list) {
+        const status = String(item.status || '').toUpperCase();
+        if (status.includes('DITOLAK') || status.includes('VOID') || status.includes('BATAL')) continue;
+
+        const itemPenilai = String(item.penilai || item.namaPenandatangan || item.Rekan_Penilai_Publik || '').toLowerCase();
+        if (!itemPenilai.includes('deni siswandi')) continue;
+
+        const rawDate = item.timestamp || item.Timestamp || item.Timestamp_Input || item.tglLaporan || item.tglPenilaian;
+        const itemDateStr = ekstrakTanggalYmd(rawDate);
+
+        if (itemDateStr === todayStr) {
+          const itemCabang = String(item.cabang || item.namaCabang || item.Kantor_Wilayah || '').trim();
+          const cleanItemCabang = itemCabang.replace(/kantor|cabang/gi, '').trim().toLowerCase();
+
+          // Jika diajukan oleh cabang lain yang berbeda dari cabang formulir saat ini
+          if (cleanItemCabang && cleanCurrentCabang && cleanItemCabang !== cleanCurrentCabang) {
+            lockedByBranch = itemCabang;
+            break;
+          }
+        }
+      }
+
+      if (lockedByBranch) {
+        if (banner) {
+          banner.classList.remove('hidden');
+          if (bannerText) {
+            bannerText.innerHTML = `Kewenangan tanda tangan Penilai Publik Deni Siswandi pada hari ini (<strong>${todayStr}</strong>) telah digunakan oleh <strong>${lockedByBranch.toUpperCase()}</strong>. Sesuai regulasi kepatuhan P2PK Kemenkeu, penandatangan pada hari yang sama hanya dapat melayani satu yurisdiksi cabang.`;
+          }
+        }
+        if (btnSubmit) btnSubmit.disabled = true;
+
+        if (!silently) {
+          tampilkanModalLockPenilai(lockedByBranch);
+        }
+        return { allowed: false, cabangLain: lockedByBranch };
+      } else {
+        if (banner) banner.classList.add('hidden');
+        if (btnSubmit) btnSubmit.disabled = false;
+        return { allowed: true };
+      }
+    }
+
+    function onPenilaiChange() {
+      const res = validasiKetersediaanPenilaiHarian(false);
+      updateLivePreview();
+    }
+
+    function onCabangChange() {
+      validasiKetersediaanPenilaiHarian(false);
+      updateLivePreview();
+    }
+
+    function alihkanKeNanangRahayu() {
+      const elPenilai = document.getElementById('f-penilai');
+      if (elPenilai) {
+        elPenilai.value = 'Nanang Rahayu';
+      }
+      tutupModalLockPenilai();
+      validasiKetersediaanPenilaiHarian(true);
+      updateLivePreview();
+    }
+
+    function tutupModalLockPenilai() {
+      const modal = document.getElementById('modal-lock-penilai');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function tampilkanModalLockPenilai(cabangPengguna) {
+      const modal = document.getElementById('modal-lock-penilai');
+      const elCabangName = document.getElementById('modal-lock-cabang-name');
+      if (elCabangName) {
+        elCabangName.textContent = cabangPengguna ? cabangPengguna.toUpperCase() : 'CABANG LAIN';
+      }
+      if (modal) modal.classList.remove('hidden');
     }
 
     function updateLivePreview() {
@@ -14488,6 +14703,14 @@
       // Pastikan perhitungan finansial up to date
       hitungFinansialNoLap();
 
+      // Validasi Eksklusivitas Harian Deni Siswandi (Single-Branch Daily Rule - P2PK)
+      const validasiPenilai = validasiKetersediaanPenilaiHarian(false);
+      if (!validasiPenilai.allowed) {
+        btn.disabled = false;
+        btn.innerHTML = textOriginal;
+        return;
+      }
+
       // Ambil nilai dari form
       const cabang = document.getElementById('f-cabang').value;
       const pemohon = document.getElementById('f-pemohon').value.trim();
@@ -14684,6 +14907,10 @@
         const json = await res.json().catch(() => ({}));
 
         if (!res.ok || !json.success) {
+          if (json.code === 'DENI_SISWANDI_DAILY_BRANCH_LOCKED' || (json.error && json.error.includes('DENI_SISWANDI_DAILY_BRANCH_LOCKED'))) {
+            tampilkanModalLockPenilai(json.cabangPengguna || 'Cabang Lain');
+            alihkanKeNanangRahayu();
+          }
           throw new Error(json.error || `Gagal menyimpan permohonan ke server (HTTP ${res.status})`);
         }
 
@@ -18761,6 +18988,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
             simpanDatabaseLokal();
             muatUlangTabel();
             updateLivePreview();
+            validasiKetersediaanPenilaiHarian(true);
             if (typeof muatPilihanReqNoLap === 'function') muatPilihanReqNoLap();
             if (typeof muatPilihanReqNoLapUmum === 'function') muatPilihanReqNoLapUmum();
             if (typeof muatPilihanReqNoLapRuislagh === 'function') muatPilihanReqNoLapRuislagh();
