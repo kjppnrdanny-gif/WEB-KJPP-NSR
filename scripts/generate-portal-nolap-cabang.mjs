@@ -1,0 +1,1380 @@
+import fs from 'fs';
+import path from 'path';
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="id" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal NoLap Mandiri Cabang | KJPP Nanang Rahayu Sigit Paryanto dan Rekan</title>
+  <meta name="description" content="Modul Mandiri Kantor Cabang KJPP NSR untuk Registrasi Draf & Penerbitan Nomor Laporan Definitif Kewenangan Rekan Cabang.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-serif-title { font-family: 'Playfair Display', serif; }
+
+    /* Custom Emerald Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #022c22; }
+    ::-webkit-scrollbar-thumb { background: #065f46; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #047857; }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+      50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.8); }
+    }
+    .badge-glowing-cabang {
+      animation: pulse-glow 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <!-- ==================== HEADER RESMI KANTOR CABANG ==================== -->
+  <header class="bg-slate-900 border-b border-teal-800/60 sticky top-0 z-40 shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      
+      <!-- Brand & Identitas Cabang -->
+      <div class="flex items-center gap-3 sm:gap-4">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400 via-emerald-500 to-emerald-700 p-0.5 shadow-md shadow-emerald-500/20 group-hover:scale-105 transition shrink-0">
+            <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center p-1.5">
+              <img src="logo-nsr.png" alt="Logo KJPP NSR" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='https://i.ibb.co.com/t7P4T8B/LOGO-KJPP-NSR-2.png';">
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm sm:text-base font-extrabold text-white tracking-wide uppercase">KJPP NANANG RAHAYU SIGIT PARYANTO &amp; REKAN</span>
+              <span class="hidden md:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 badge-glowing-cabang">
+                ⚡ MODE MANDIRI KANTOR CABANG
+              </span>
+            </div>
+            <p id="sub-header-cabang" class="text-[11px] sm:text-xs text-teal-300 font-medium">Sistem Registrasi Draf &amp; Penerbitan NoLap Definitif Kewenangan Cabang</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Sesi & Navigasi -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div id="badge-sesi-header" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-950/70 border border-teal-700/60 text-xs text-teal-200">
+          <span id="dot-sesi" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="label-sesi-cabang" class="font-bold">Cabang: Terhubung</span>
+        </div>
+        <a href="portal-penugasan-jo.html" title="Buka Portal Penugasan & JO" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
+          <span>📝 JO Cabang</span>
+        </a>
+        <a href="portal-kwitansi.html" title="Buka Portal Kwitansi" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
+          <span>🧾 Kwitansi Cabang</span>
+        </a>
+        <a href="portal-nolap.html" title="Buka Portal Pusat" class="hidden md:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 text-xs font-bold transition items-center gap-1.5 border border-amber-500/30">
+          <span>🏛️ Layanan Pusat</span>
+        </a>
+        <button onclick="gantiTokenSesi()" title="Ganti Token / Keluar Sesi" class="px-3 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-rose-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 border border-rose-700/60 cursor-pointer">
+          <span>🔑 Ganti Token</span>
+        </button>
+        <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700">
+          <span>&larr; Web Utama</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== BANNER INFORMASI CABANG MANDIRI ==================== -->
+  <section class="bg-gradient-to-r from-teal-950 via-slate-900 to-emerald-950 border-b border-teal-900/60 py-2.5 px-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2 text-slate-300">
+        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px] uppercase border border-emerald-500/30">Kewenangan Penilai Publik Cabang</span>
+        <span id="banner-rekan-aktif" class="font-semibold text-teal-200">Penilai Penandatangan: Memuat Rekan Cabang...</span>
+      </div>
+      <div class="text-[11px] text-teal-300/90 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>P2PK &amp; SPI 103 Compliant &bull; Kode Wilayah Resmi Kemenkeu RI</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== KONTEN UTAMA ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- BOX OTENTIKASI SESI CABANG (JIKA TOKEN BELUM TERSEDIA) -->
+    <div id="box-auth-token" class="hidden bg-slate-900 border border-teal-800/80 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 shadow-2xl mb-8">
+      <div class="w-14 h-14 rounded-2xl bg-teal-400/10 text-teal-400 mx-auto flex items-center justify-center border border-teal-400/30 shadow-inner">
+        <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-white">Akses Portal NoLap Mandiri Cabang</h2>
+        <p class="text-xs text-slate-400 mt-1">Masukkan Token Otorisasi Cabang resmi KJPP NSR (Contoh: NSR-BDG-2026, NSR-PDG-2026, NSR-MKS-2026, NSR-PLB-2026).</p>
+      </div>
+      <form onsubmit="loginTokenCabang(event)" class="space-y-3 text-left">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Token Akses Cabang</label>
+          <input type="password" id="input-token-cabang" placeholder="NSR-XXX-2026" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 font-mono text-emerald-400 focus:outline-none focus:border-teal-400 text-xs tracking-wider" required>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg shadow-teal-500/20 cursor-pointer">
+          Buka Portal Cabang &rarr;
+        </button>
+        <p id="pesan-auth-error" class="text-xs text-rose-400 hidden font-semibold text-center"></p>
+      </form>
+    </div>
+
+    <!-- AREA APLIKASI UTAMA CABANG (TERBUKA SETELAH SESI TERVERIFIKASI) -->
+    <div id="panel-aplikasi-utama" class="space-y-6">
+
+      <!-- BAR STATUS & IDENTITAS REKAN CABANG -->
+      <div class="bg-gradient-to-r from-slate-900 via-teal-950/40 to-slate-900 border border-teal-800/60 rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-teal-500/20 text-teal-300 border border-teal-500/40 flex items-center justify-center font-bold text-base">
+            🏛️
+          </div>
+          <div>
+            <div class="font-extrabold text-white text-sm" id="info-kantor-wilayah">Kantor Cabang Bandung (Kode: 2.0160-04)</div>
+            <div class="text-[11px] text-teal-300 font-medium" id="info-rekan-penilai">Penilai Publik Berizin: Deni Siswandi, S.T., MAPPI (Cert.) &bull; Izin: 00581</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="sinkronkanDataCabangLive()" id="btn-sync-cabang" class="px-3 py-1.5 rounded-lg bg-teal-950 hover:bg-teal-900 text-teal-200 font-semibold transition border border-teal-700/60 flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>🔄 Sinkron Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STRUKTUR TAB SEDERHANA: STRICTLY 3 TAB -->
+      <div class="flex flex-wrap border-b border-teal-900/60 gap-1 sm:gap-2">
+        <button id="tab-btn-form" onclick="gantiTabCabang('form')" class="py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-teal-400 text-teal-300 flex items-center gap-2 transition cursor-pointer">
+          <span>📁 1. Form Registrasi NoLap Cabang</span>
+        </button>
+        <button id="tab-btn-riwayat" onclick="gantiTabCabang('riwayat')" class="py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition cursor-pointer">
+          <span>📋 2. Buku Register &amp; Riwayat Cabang <span id="badge-count-riwayat" class="px-1.5 py-0.2 rounded-full bg-teal-500/30 text-teal-300 font-black text-[10px]">0</span></span>
+        </button>
+        <button id="tab-btn-qc" onclick="gantiTabCabang('qc')" class="py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition cursor-pointer">
+          <span>🛡️ 3. Kendali Mutu &amp; SPM Reviewer Cabang</span>
+        </button>
+      </div>
+
+      <!-- ========================================================
+           TAB 1: FORM REGISTRASI NOLAP CABANG (DRAF & DEFINITIF)
+           ======================================================== -->
+      <div id="panel-tab-form" class="space-y-6">
+
+        <!-- AUTO-POPULATE BRIDGE: TARIK DATA DARI PENUGASAN (SPK / JO) -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-teal-950/40 to-slate-900 border border-teal-500/40 shadow-xl space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-teal-400/20 border border-teal-400/40 text-teal-300 flex items-center justify-center font-black text-sm">
+                ⚡
+              </div>
+              <div>
+                <h3 class="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
+                  <span>Jembatan Sinkronisasi SPK/JO Cabang (Auto-Populate Bridge)</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-400 text-slate-950">SPI 103 &amp; SPI 204</span>
+                </h3>
+                <p class="text-[11px] text-slate-400">Ketik No. SPK / No. Lingkup Penugasan Cabang untuk auto-populate Pemberi Tugas, Pengguna Laporan, Objek, dan Nilai.</p>
+              </div>
+            </div>
+            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 self-start sm:self-auto">
+              🔗 Bridge Cabang Aktif
+            </span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2 pt-1">
+            <div class="relative flex-1">
+              <input type="text" id="input_cari_spk_bridge" onkeydown="if(event.key==='Enter'){event.preventDefault();tarikDataDariPenugasan();}" placeholder="Ketik No. SPK Cabang (misal: 0045/NSR-BDG/PN-APP/X/2026 atau nama debitur)..." class="w-full h-11 pl-4 pr-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-teal-400 transition">
+            </div>
+            <button type="button" onclick="tarikDataDariPenugasan()" id="btn_tarik_spk_bridge" class="h-11 px-5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg hover:shadow-teal-500/20 transition cursor-pointer flex items-center justify-center gap-2 shrink-0">
+              <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <span>⚡ Tarik Data SPK/JO Cabang</span>
+            </button>
+          </div>
+
+          <div id="status_tarik_bridge" class="hidden text-xs rounded-xl p-3"></div>
+        </div>
+
+        <!-- LIVE GENERATOR PREVIEW CARD (7 SEGMEN KEMENKEU RESMI CABANG) -->
+        <div class="bg-gradient-to-br from-teal-950/80 via-slate-900 to-slate-900 border-2 border-teal-500/40 rounded-2xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+              <h3 class="text-sm font-extrabold text-teal-300 uppercase tracking-wider">Format Baku Penomoran Laporan Definitif Cabang (7 Segmen Kemenkeu)</h3>
+            </div>
+            <span class="text-[11px] text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700">KMK No. 2.19.0160 &bull; Cabang Berizin</span>
+          </div>
+
+          <!-- Live Output Box -->
+          <div class="bg-slate-950/90 border border-teal-500/40 rounded-xl p-4 sm:p-5 text-center my-3 shadow-inner">
+            <div class="text-[11px] text-teal-300 font-mono mb-1 font-semibold">PRATINJAU NOMOR LAPORAN CABANG:</div>
+            <div id="live-nomor-laporan" class="text-base sm:text-2xl font-black font-mono text-emerald-400 tracking-wider break-all select-all">
+              00045/2.0160-04/PI/07/00581/1/X/2026
+            </div>
+          </div>
+
+          <!-- 7 Segmen Kemenkeu Info -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-[11px] text-center pt-2">
+            <div class="p-2 rounded-lg bg-slate-950 border border-teal-500/40">
+              <span class="text-teal-400 block text-[10px] font-semibold">1. No. Urut</span>
+              <strong id="seg-urut" class="text-emerald-300 font-mono text-[10px]">00045</strong>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px]">2. Kode Cabang</span>
+              <strong id="seg-kantor" class="text-teal-300 font-mono">2.0160-04</strong>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px]">3. Jenis Jasa</span>
+              <strong id="seg-jasa" class="text-teal-300 font-mono">PI</strong>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px]">4. Industri</span>
+              <strong id="seg-industri" class="text-amber-300 font-mono">07</strong>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px]">5. Izin Rekan Cabang</span>
+              <strong id="seg-izin-rekan" class="text-teal-300 font-mono">00581</strong>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px]">6. Seri Laporan</span>
+              <strong id="seg-seri" class="text-slate-300 font-mono">1</strong>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px]">7. Waktu</span>
+              <strong id="seg-waktu" class="text-teal-300 font-mono">X/2026</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORMULIR INPUT CABANG -->
+        <form id="form-nolap-cabang" onsubmit="event.preventDefault();" class="space-y-6">
+
+          <!-- SEKSI 1: KEWENANGAN CABANG & PENILAI REKAN -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+            <h4 class="text-xs font-bold text-teal-300 uppercase tracking-wider flex items-center gap-2">
+              <span>🏛️ 1. KEWENANGAN WILAYAH &amp; PENILAI REKAN CABANG</span>
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Kantor Cabang Pengaju &bull; Terkunci <span class="text-rose-400">*</span></label>
+                <select id="kantor_wilayah" disabled class="w-full h-11 px-3 rounded-xl bg-slate-950/80 border border-slate-700 text-teal-300 text-xs font-bold focus:outline-none cursor-not-allowed opacity-90">
+                  <option value="Bandung" data-kode="2.0160-04">Kantor Cabang Bandung (2.0160-04)</option>
+                  <option value="Padang" data-kode="2.0160-02">Kantor Cabang Padang (2.0160-02)</option>
+                  <option value="Makassar" data-kode="2.0160-03">Kantor Cabang Makassar (2.0160-03)</option>
+                  <option value="Palembang" data-kode="2.0160-05">Kantor Cabang Palembang (2.0160-05)</option>
+                </select>
+                <p class="text-[10px] text-slate-400 mt-1">Sesuai Izin Cabang Kemenkeu RI &bull; Terkunci Permanen Sesuai Token Sesi.</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Penilai Rekan Penandatangan Cabang <span class="text-rose-400">*</span></label>
+                <select id="penilai_rekan" onchange="sinkronkanSegmenLive()" class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-emerald-400 text-xs font-bold focus:outline-none focus:border-teal-400">
+                  <!-- Opsi Rekan Cabang di-generate secara eksklusif (Nanang Rahayu excluded) -->
+                </select>
+                <p class="text-[10px] text-slate-400 mt-1">Terkunci pada Rekan Pimpinan Cabang yang berwenang menandatangani laporan.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEKSI 2: PEMBERI TUGAS (SPI 103 KLASIFIKASI ENTITAS) -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-800">
+              <h4 class="text-xs font-bold text-teal-300 uppercase tracking-wider">
+                🏢 2. IDENTITAS PEMBERI TUGAS (SPI 103)
+              </h4>
+              <div class="flex items-center gap-2">
+                <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-950 border border-teal-500/40 text-xs cursor-pointer">
+                  <input type="radio" name="entitas_pemberi_tugas" id="entitas_badan" value="Badan Usaha" checked onchange="toggleKlasifikasiEntitas()" class="text-teal-500 focus:ring-0">
+                  <span class="text-teal-200 font-bold">🏢 Badan Usaha / Bank / Korporasi</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs cursor-pointer">
+                  <input type="radio" name="entitas_pemberi_tugas" id="entitas_perorangan" value="Perorangan" onchange="toggleKlasifikasiEntitas()" class="text-teal-500 focus:ring-0">
+                  <span class="text-slate-300 font-semibold">👤 Perorangan / Pribadi</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label id="lbl_pemberi_tugas_nama" class="block text-xs font-semibold text-slate-300 mb-1">
+                  Nama Klien / Instansi / Pemberi Tugas <span class="text-rose-400">*</span>
+                </label>
+                <input type="text" id="pemberi_tugas_nama" placeholder="Contoh: PT Bank Mandiri (Persero) Tbk" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-teal-400" required>
+              </div>
+              <div>
+                <label id="lbl_pemberi_tugas_npwp" class="block text-xs font-semibold text-slate-300 mb-1">
+                  NPWP Badan Usaha <span class="text-rose-400">*</span>
+                </label>
+                <input type="text" id="pemberi_tugas_npwp" placeholder="01.234.567.8-000.000" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-mono focus:outline-none focus:border-teal-400">
+              </div>
+              <div id="col_pemberi_tugas_pic">
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Nama PIC Pemberi Tugas</label>
+                <input type="text" id="pemberi_tugas_pic" placeholder="Nama PIC Klien" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400">
+              </div>
+              <div id="col_pemberi_tugas_jabatan">
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Jabatan PIC</label>
+                <input type="text" id="pemberi_tugas_jabatan" placeholder="Contoh: Relationship Manager" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Alamat Pemberi Tugas</label>
+                <input type="text" id="pemberi_tugas_alamat" placeholder="Alamat lengkap instansi / domisili klien..." class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400">
+              </div>
+            </div>
+          </div>
+
+          <!-- SEKSI 3: PENGGUNA LAPORAN (SPI 103 KLAUSUL 3) -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-800">
+              <div>
+                <h4 class="text-xs font-bold text-teal-300 uppercase tracking-wider">3. PENGGUNA LAPORAN (SPI 103 KLAUSUL 3)</h4>
+                <p class="text-[11px] text-slate-400">Seluruh kolom bersifat teks bebas dan dapat disesuaikan per penugasan.</p>
+              </div>
+              <!-- 3 Tombol Helper Cepat -->
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" onclick="helperPengguna('sama')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-[10px] border border-teal-500/30 transition">
+                  🔘 Sama dengan Pemberi Tugas
+                </button>
+                <button type="button" onclick="helperPengguna('bank_debitur')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-[10px] border border-teal-500/30 transition">
+                  🔘 Bank &amp; Debitur
+                </button>
+                <button type="button" onclick="helperPengguna('bersihkan')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-300 font-bold text-[10px] border border-slate-700 transition">
+                  🔘 Bersihkan Isian
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">
+                  a. Nama Pengguna Laporan <span class="text-rose-400">*</span>
+                </label>
+                <input type="text" id="pengguna_laporan_a" placeholder="Nama Pengguna Laporan Utama" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-teal-400" required>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Alamat Pengguna Laporan</label>
+                <input type="text" id="pengguna_alamat_a" placeholder="Alamat Pengguna Laporan Utama" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">
+                  b. Nama Pengguna Laporan Tambahan / Debitur (Opsional)
+                </label>
+                <input type="text" id="pengguna_laporan_b" placeholder="Nama Debitur / Pihak Tambahan" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Alamat Pengguna Laporan Tambahan</label>
+                <input type="text" id="pengguna_alamat_b" placeholder="Alamat Debitur / Pengguna Tambahan" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400">
+              </div>
+            </div>
+          </div>
+
+          <!-- SEKSI 4: OBJEK PENILAIAN, TUJUAN & SEGMEN KEMENKEU -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+            <h4 class="text-xs font-bold text-teal-300 uppercase tracking-wider">
+              🏡 4. OBJEK PENILAIAN, TUJUAN &amp; SEGMEN KEMENKEU
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Debitur / Objek Penilaian <span class="text-rose-400">*</span></label>
+                <input type="text" id="debitur_nama" placeholder="Contoh: PT MAJU LOGISTIK (Gedung Kantor &amp; Tanah)" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-teal-400" required>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Alamat Objek / Lokasi <span class="text-rose-400">*</span></label>
+                <input type="text" id="objek_lokasi" placeholder="Kota / Kabupaten, Provinsi" class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400" required>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tujuan Penilaian <span class="text-rose-400">*</span></label>
+                <select id="tujuan_penilaian" onchange="sinkronkanSegmenLive()" class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-teal-400">
+                  <option value="Penjaminan Utang / Agunan Kredit" selected>Penjaminan Utang / Agunan Kredit</option>
+                  <option value="Jual Beli / Transaksi">Jual Beli / Transaksi</option>
+                  <option value="Laporan Keuangan (PSAK / IFRS)">Laporan Keuangan (PSAK 216 / IFRS)</option>
+                  <option value="Pengadaan Tanah Bagi Kepentingan Umum">Pengadaan Tanah (SPI 204)</option>
+                  <option value="Lelang / Eksekusi Hak Tanggungan">Lelang / Eksekusi Hak Tanggungan</option>
+                  <option value="Asuransi Properti">Asuransi Properti</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Jenis Jasa Penilaian (Segmen 3)</label>
+                <select id="jenis_jasa" onchange="sinkronkanSegmenLive()" class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-teal-400">
+                  <option value="PI" selected>PI - Penilaian Properti Komersial / Industri</option>
+                  <option value="PS">PS - Penilaian Properti Sederhana (Residensial / Ruko)</option>
+                  <option value="PP">PP - Penilaian Personal Properti (Mesin &amp; Alat Berat)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Sektor Industri (Segmen 4)</label>
+                <select id="sektor_industri" onchange="sinkronkanSegmenLive()" class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-teal-400">
+                  <option value="07" selected>07 - Perbankan &amp; Jasa Keuangan</option>
+                  <option value="01">01 - Pertanian, Kehutanan &amp; Perikanan</option>
+                  <option value="02">02 - Pertambangan &amp; Penggalian</option>
+                  <option value="03">03 - Industri Pengolahan &amp; Manufaktur</option>
+                  <option value="05">05 - Konstruksi &amp; Real Estate</option>
+                  <option value="06">06 - Perdagangan Besar &amp; Eceran</option>
+                  <option value="08">08 - Transportasi &amp; Pergudangan</option>
+                  <option value="14">14 - Jasa Lainnya / Instansi Pemerintah</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tanggal Laporan / Penilaian</label>
+                <input type="date" id="tanggal_laporan" onchange="sinkronkanSegmenLive()" class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-teal-400">
+              </div>
+            </div>
+          </div>
+
+          <!-- TOMBOL DUAL MODE PENERBITAN NOLAP CABANG -->
+          <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-950 via-teal-950 to-slate-950 border border-teal-500/50 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-teal-800/60">
+              <span class="text-xs font-black uppercase text-teal-300 tracking-wider">⚡ PILIHAN PENERBITAN NOMOR LAPORAN CABANG</span>
+              <span class="text-[10px] text-slate-400 font-mono">P2PK &amp; SPM Compliant</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Mode A: Nomor Draf Kerja Cabang (0 Detik) -->
+              <div class="p-4 rounded-xl bg-slate-900/90 border border-teal-700/50 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center gap-2 text-teal-300 font-extrabold text-xs">
+                    <span>⚡ MODE A: NOMOR KERJA DRAF CABANG</span>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] bg-teal-500/20 text-teal-300 font-mono">0 Detik</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-1">
+                    Diterbitkan seketika tanpa approval pusat untuk penyusunan buku draf laporan dan kendali reviewer internal.
+                  </p>
+                  <p class="text-[10px] font-mono text-teal-400 mt-1">Format: DRAFT-NSR/[KODE]/[TAHUN]/[BULAN]/[NO]</p>
+                </div>
+                <button type="button" onclick="terbitkanNomorDrafCabang()" class="w-full py-3 px-4 rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-extrabold text-xs tracking-wide transition shadow cursor-pointer flex items-center justify-center gap-2">
+                  <span>⚡ Terbitkan Nomor Draf Kerja Cabang (0 Detik)</span>
+                </button>
+              </div>
+
+              <!-- Mode B: Nomor Laporan Definitif Resmi Cabang -->
+              <div class="p-4 rounded-xl bg-gradient-to-br from-emerald-950/80 to-slate-900 border border-emerald-500/60 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center gap-2 text-emerald-300 font-extrabold text-xs">
+                    <span>📋 MODE B: NOMOR DEFINITIF RESMI CABANG</span>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-300 font-mono">Otorisasi PIN</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 mt-1">
+                    Penerbitan nomor laporan definitif resmi (7 Segmen Kemenkeu) dengan verifikasi PIN Admin Cabang &amp; integrasi pengawasan.
+                  </p>
+                  <p class="text-[10px] font-mono text-emerald-400 mt-1">Format: [NO]/2.0160-[CBG]/[JASA]/[IND]/[IZIN]/[SERI]/[WKT]</p>
+                </div>
+                <button type="button" onclick="bukaModalPinAdminCabang()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs tracking-wide shadow-lg shadow-emerald-900/30 transition cursor-pointer flex items-center justify-center gap-2">
+                  <span>📋 Terbitkan Nomor Laporan Definitif Cabang &rarr;</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+
+      <!-- ========================================================
+           TAB 2: BUKU REGISTER & RIWAYAT CABANG
+           ======================================================== -->
+      <div id="panel-tab-riwayat" class="hidden space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+            <div>
+              <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                <span>📋 Buku Register &amp; Riwayat Laporan Cabang</span>
+                <span id="badge-wilayah-tabel" class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40">Cabang Bandung</span>
+              </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">Arsip seluruh nomor laporan draf kerja dan definitif yang diterbitkan oleh cabang aktif.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" id="filter-riwayat-cabang" oninput="filterTabelRiwayatCabang()" placeholder="Cari nomor, klien, debitur..." class="h-9 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400">
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-950/80 text-teal-300 font-bold border-b border-slate-800">
+                  <th class="py-2.5 px-3">Tanggal</th>
+                  <th class="py-2.5 px-3">Nomor Laporan</th>
+                  <th class="py-2.5 px-3">Tipe</th>
+                  <th class="py-2.5 px-3">Pemberi Tugas</th>
+                  <th class="py-2.5 px-3">Debitur / Objek</th>
+                  <th class="py-2.5 px-3">Penilai Rekan</th>
+                  <th class="py-2.5 px-3 text-center">Status</th>
+                  <th class="py-2.5 px-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="body-tabel-riwayat-cabang" class="divide-y divide-slate-800/60 font-medium">
+                <tr>
+                  <td colspan="8" class="py-6 text-center text-slate-500 italic">Memuat buku register cabang...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           TAB 3: KENDALI MUTU & SPM REVIEWER CABANG
+           ======================================================== -->
+      <div id="panel-tab-qc" class="hidden space-y-4">
+        <!-- Gerbang Kunci PIN Reviewer -->
+        <div id="box-gerbang-qc" class="bg-slate-900 border border-teal-800/60 rounded-2xl p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 shadow-2xl">
+          <div class="w-12 h-12 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/40 mx-auto flex items-center justify-center font-bold text-lg">
+            🛡️
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Otorisasi Kendali Mutu Reviewer Cabang</h3>
+            <p class="text-xs text-slate-400 mt-1">Masukkan PIN Reviewer Cabang untuk mengakses lembar checklist kendali mutu (SPM) penugasan.</p>
+          </div>
+          <form onsubmit="verifikasiPinQcReviewer(event)" class="space-y-3">
+            <input type="password" id="input-pin-reviewer" placeholder="Masukkan PIN Reviewer Cabang..." class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 font-mono text-center text-teal-300 text-sm tracking-widest focus:outline-none focus:border-teal-400" required>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer">
+              Buka Lembar Reviewer &rarr;
+            </button>
+            <p id="pesan-error-qc" class="text-xs text-rose-400 hidden font-semibold"></p>
+          </form>
+        </div>
+
+        <!-- Panel Checklist QC (Muncul setelah PIN Reviewer Cocok) -->
+        <div id="box-konten-qc" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div>
+              <h3 class="text-sm font-extrabold text-teal-300 uppercase tracking-wider flex items-center gap-2">
+                <span>🛡️ Lembar Kendali Mutu (QC Checklist) Reviewer Cabang</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40">SPM Terverifikasi</span>
+              </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">Penelaahan kepatuhan KEPI, SPI 103, SPI 104, SPI 105, dan SPI 204 sebelum laporan ditandatangani.</p>
+            </div>
+            <button onclick="kunciUlangQcReviewer()" class="text-xs text-slate-400 hover:text-rose-400 underline">Kunci Lembar</button>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-teal-500/40 transition">
+              <input type="checkbox" id="qc_spi_103" checked class="mt-0.5 text-teal-500 focus:ring-0 rounded">
+              <div>
+                <span class="font-bold text-slate-200">Kepatuhan SPI 103 (Pemberi Tugas &amp; Pengguna Laporan)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Identitas Pemberi Tugas, NPWP/NIK KTP, dan klausul Pengguna Laporan a &amp; b telah teridentifikasi secara presisi.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-teal-500/40 transition">
+              <input type="checkbox" id="qc_spi_104" checked class="mt-0.5 text-teal-500 focus:ring-0 rounded">
+              <div>
+                <span class="font-bold text-slate-200">Kepatuhan SPI 104 (Pendekatan Penilaian &amp; Dasar Nilai)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Pendekatan penilaian (Pasar / Biaya / Pendapatan) diterapkan secara konsisten dengan maksud penugasan.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-teal-500/40 transition">
+              <input type="checkbox" id="qc_spi_105" checked class="mt-0.5 text-teal-500 focus:ring-0 rounded">
+              <div>
+                <span class="font-bold text-slate-200">Kepatuhan SPI 105 (Investigasi Lapangan &amp; Data Pembanding)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Inspeksi fisik telah dilaksanakan dan didukung minimal 3 data pembanding terkonfirmasi.</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-teal-500/40 transition">
+              <input type="checkbox" id="qc_spi_204" checked class="mt-0.5 text-teal-500 focus:ring-0 rounded">
+              <div>
+                <span class="font-bold text-slate-200">Kepatuhan SPI 204 (Pengadaan Tanah &amp; Dasar NPW - Jika Relevan)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Kesesuaian tanggal penilaian dengan tanggal penetapan lokasi serta verifikasi daftar nominatif (Danom).</p>
+              </div>
+            </label>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300">Catatan Reviewer Cabang:</label>
+            <textarea id="catatan_qc_reviewer" rows="3" placeholder="Tuliskan rekomendasi atau catatan perbaikan reviewer..." class="w-full p-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-teal-400">Seluruh dokumen pendukung, legalitas sertipikat, dan kalkulasi kertas kerja telah diverifikasi dan memenuhi standar Sistem Pengendalian Mutu (SPM) KJPP NSR.</textarea>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="button" onclick="simpanChecklistQc()" class="py-2.5 px-5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow cursor-pointer">
+              💾 Simpan Berita Acara Reviewer Cabang
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL VERIFIKASI PIN ADMIN CABANG ==================== -->
+  <div id="modal-pin-admin-cabang" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-teal-500/40 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h3 class="text-sm font-black text-white uppercase tracking-wider">Otorisasi PIN Admin Cabang</h3>
+        </div>
+        <button onclick="tutupModalPinAdminCabang()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Penerbitan Nomor Laporan Definitif Resmi Cabang (7 Segmen Kemenkeu) mewajibkan otorisasi Kepala Kantor / Admin Cabang.
+      </p>
+
+      <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1 text-xs">
+        <div class="flex justify-between text-slate-400">
+          <span>Cabang:</span>
+          <strong id="modal-pin-cabang-text" class="text-teal-300">Bandung</strong>
+        </div>
+        <div class="flex justify-between text-slate-400">
+          <span>Penilai Tanda Tangan:</span>
+          <strong id="modal-pin-penilai-text" class="text-emerald-300">Deni Siswandi, S.T.</strong>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-slate-200">
+          PIN Otorisasi Admin Cabang <span class="text-rose-400">*</span>
+        </label>
+        <input type="password" id="input-pin-admin-cabang" placeholder="Masukkan PIN Admin Cabang..." class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-teal-300 font-mono text-center tracking-widest text-sm focus:outline-none focus:border-teal-400" required>
+        <p id="pesan-error-pin-admin" class="hidden text-[11px] text-rose-400 font-semibold"></p>
+      </div>
+
+      <div class="pt-2 flex items-center justify-end gap-2">
+        <button type="button" onclick="tutupModalPinAdminCabang()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold transition">Batal</button>
+        <button type="button" onclick="verifikasiDanTerbitkanDefinitifCabang()" class="px-5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black transition shadow-lg flex items-center gap-1.5 cursor-pointer">
+          <span>Otorisasi &amp; Terbitkan Nomor Definitif</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT ENGINE CABANG MANDIRI ==================== -->
+  <script>
+    // Konfigurasi Database Cabang Resmi KJPP NSR
+    const CABANG_CONFIG = {
+      'Bandung': {
+        kodeKemenkeu: '2.0160-04',
+        kodeCabang: 'BDG',
+        namaCabang: 'Kantor Cabang Bandung',
+        kota: 'Bandung',
+        rekan: {
+          nama: 'Deni Siswandi, S.T., MAPPI (Cert.)',
+          izin: '00581',
+          izinLengkap: 'P-1.20.00581',
+          mappi: '06-S-02013',
+          rmk: 'RMK-2017.01564',
+          jabatan: 'Rekan / Pimpinan Cabang Bandung'
+        },
+        pinAdmin: 'BDG-ADM-11',
+        pinReviewer: 'BDG-REV-77',
+        pinFinance: 'BDG-FIN-55'
+      },
+      'Padang': {
+        kodeKemenkeu: '2.0160-02',
+        kodeCabang: 'PDG',
+        namaCabang: 'Kantor Cabang Padang',
+        kota: 'Padang',
+        rekan: {
+          nama: 'Hernita, S.Si., MAPPI (Cert.)',
+          izin: '00046',
+          izinLengkap: 'PS-1.15.00046',
+          mappi: '09-S-02262',
+          rmk: 'RMK-2017.00437',
+          jabatan: 'Rekan / Pimpinan Cabang Padang'
+        },
+        pinAdmin: 'PDG-ADM-22',
+        pinReviewer: 'PDG-REV-77',
+        pinFinance: 'PDG-FIN-55'
+      },
+      'Makassar': {
+        kodeKemenkeu: '2.0160-03',
+        kodeCabang: 'MKS',
+        namaCabang: 'Kantor Cabang Makassar',
+        kota: 'Makassar',
+        rekan: {
+          nama: 'Muhammad Amin Sade, SM., MAPPI (Cert.)',
+          izin: '00126',
+          izinLengkap: 'PS-1.16.00126',
+          mappi: '09-S-02425',
+          rmk: 'RMK-2017.00527',
+          jabatan: 'Rekan / Pimpinan Cabang Makassar'
+        },
+        pinAdmin: 'MKS-ADM-33',
+        pinReviewer: 'MKS-REV-77',
+        pinFinance: 'MKS-FIN-55'
+      },
+      'Palembang': {
+        kodeKemenkeu: '2.0160-05',
+        kodeCabang: 'PLB',
+        namaCabang: 'Kantor Cabang Palembang',
+        kota: 'Palembang',
+        rekan: {
+          nama: 'Dharma Priyanto Sih Budi Susilo, ST., MAPPI (Cert.)',
+          izin: '00249',
+          izinLengkap: 'PS-1.19.00249',
+          mappi: '16-S-06984',
+          rmk: 'RMK-2017.01801',
+          jabatan: 'Rekan / Pimpinan Cabang Palembang'
+        },
+        pinAdmin: 'PLB-ADM-44',
+        pinReviewer: 'PLB-REV-77',
+        pinFinance: 'PLB-FIN-55'
+      }
+    };
+
+    let cabangAktif = 'Bandung';
+    let databaseNoLapCabang = [];
+    let isQcUnlocked = false;
+
+    // Inisialisasi Sesi Cabang
+    function inisialisasiSesiCabang() {
+      let token = sessionStorage.getItem('NSR_AUTH_TOKEN');
+      if (!token) {
+        const stored = sessionStorage.getItem('kjpp_token_internal');
+        if (stored) {
+          try {
+            const obj = JSON.parse(stored);
+            if (obj && obj.token) token = obj.token;
+          } catch (e) {
+            token = stored;
+          }
+        }
+      }
+
+      // Deteksi cabang dari token otorisasi resmi
+      if (token) {
+        const t = token.toUpperCase().trim();
+        if (t.includes('PDG')) cabangAktif = 'Padang';
+        else if (t.includes('MKS')) cabangAktif = 'Makassar';
+        else if (t.includes('PLB')) cabangAktif = 'Palembang';
+        else if (t.includes('BDG')) cabangAktif = 'Bandung';
+      }
+
+      const selWilayah = document.getElementById('kantor_wilayah');
+      if (selWilayah) {
+        selWilayah.value = cabangAktif;
+        selWilayah.disabled = true;
+      }
+
+      perbaruiKewenanganCabang();
+      muatDatabaseLokalCabang();
+      renderTabelRiwayatCabang();
+    }
+
+    function perbaruiKewenanganCabang() {
+      const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
+
+      const selWilayah = document.getElementById('kantor_wilayah');
+      if (selWilayah) {
+        selWilayah.value = cabangAktif;
+        selWilayah.disabled = true;
+      }
+
+      // Header & Banner updates
+      const elSubHeader = document.getElementById('sub-header-cabang');
+      const elBannerRekan = document.getElementById('banner-rekan-aktif');
+      const elInfoWilayah = document.getElementById('info-kantor-wilayah');
+      const elInfoRekan = document.getElementById('info-rekan-penilai');
+      const elBadgeWilayah = document.getElementById('badge-wilayah-tabel');
+      const elModalCabang = document.getElementById('modal-pin-cabang-text');
+      const elModalPenilai = document.getElementById('modal-pin-penilai-text');
+
+      if (elSubHeader) elSubHeader.innerText = `Sistem Registrasi Draf & Penerbitan NoLap Definitif ${conf.namaCabang}`;
+      if (elBannerRekan) elBannerRekan.innerText = `Penilai Penandatangan: ${conf.rekan.nama} (${conf.rekan.jabatan})`;
+      if (elInfoWilayah) elInfoWilayah.innerText = `${conf.namaCabang} (Kode: ${conf.kodeKemenkeu})`;
+      if (elInfoRekan) elInfoRekan.innerText = `Penilai Publik Berizin: ${conf.rekan.nama} • Izin: ${conf.rekan.izin}`;
+      if (elBadgeWilayah) elBadgeWilayah.innerText = conf.namaCabang;
+      if (elModalCabang) elModalCabang.innerText = conf.namaCabang;
+      if (elModalPenilai) elModalPenilai.innerText = conf.rekan.nama;
+
+      // Populate Dropdown Rekan: STRICTLY ONLY BRANCH PARTNER (Nanang Rahayu excluded)
+      const selRekan = document.getElementById('penilai_rekan');
+      if (selRekan) {
+        selRekan.innerHTML = `<option value="${conf.rekan.nama}" data-izin="${conf.rekan.izin}" selected>${conf.rekan.nama} (${conf.rekan.jabatan}) - Izin: ${conf.rekan.izin}</option>`;
+        selRekan.disabled = true; // Terkunci permanen pada rekan cabang
+      }
+
+      sinkronkanSegmenLive();
+    }
+
+    function getBulanRomawi(d) {
+      const romawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+      return romawi[d.getMonth()] || 'X';
+    }
+
+    function sinkronkanSegmenLive() {
+      const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
+      const elTgl = document.getElementById('tanggal_laporan');
+      const d = elTgl && elTgl.value ? new Date(elTgl.value) : new Date();
+      const thn = d.getFullYear() || 2026;
+      const romawi = getBulanRomawi(d);
+
+      const jenisJasa = document.getElementById('jenis_jasa')?.value || 'PI';
+      const industri = document.getElementById('sektor_industri')?.value || '07';
+      const izinRekan = conf.rekan.izin;
+      const kodeKantor = conf.kodeKemenkeu;
+      const seqDefinitif = String(getSequenceTerakhirCabang() + 1).padStart(5, '0');
+
+      // Update Segmen Elements
+      const segUrut = document.getElementById('seg-urut');
+      const segKantor = document.getElementById('seg-kantor');
+      const segJasa = document.getElementById('seg-jasa');
+      const segInd = document.getElementById('seg-industri');
+      const segIzin = document.getElementById('seg-izin-rekan');
+      const segWaktu = document.getElementById('seg-waktu');
+      const liveNomor = document.getElementById('live-nomor-laporan');
+
+      if (segUrut) segUrut.innerText = seqDefinitif;
+      if (segKantor) segKantor.innerText = kodeKantor;
+      if (segJasa) segJasa.innerText = jenisJasa;
+      if (segInd) segInd.innerText = industri;
+      if (segIzin) segIzin.innerText = izinRekan;
+      if (segWaktu) segWaktu.innerText = `${romawi}/${thn}`;
+
+      const formatDefinitif = `${seqDefinitif}/${kodeKantor}/${jenisJasa}/${industri}/${izinRekan}/1/${romawi}/${thn}`;
+      if (liveNomor) liveNomor.innerText = formatDefinitif;
+    }
+
+    function getSequenceTerakhirCabang() {
+      const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
+      const filtered = databaseNoLapCabang.filter(item => item.cabang === cabangAktif && item.tipe === 'DEFINITIF');
+      return filtered.length > 0 ? (40 + filtered.length) : 44; // Baseline 00045
+    }
+
+    function toggleKlasifikasiEntitas() {
+      const isPerorangan = document.getElementById('entitas_perorangan')?.checked;
+      const lblNama = document.getElementById('lbl_pemberi_tugas_nama');
+      const lblNpwp = document.getElementById('lbl_pemberi_tugas_npwp');
+      const inpNpwp = document.getElementById('pemberi_tugas_npwp');
+      const colPic = document.getElementById('col_pemberi_tugas_pic');
+      const colJab = document.getElementById('col_pemberi_tugas_jabatan');
+
+      if (isPerorangan) {
+        if (lblNama) lblNama.innerHTML = 'Nama Lengkap Pemberi Tugas (sesuai KTP) <span class="text-rose-400">*</span>';
+        if (lblNpwp) lblNpwp.innerHTML = 'NIK KTP (16 Digit) / NPWP Pribadi';
+        if (inpNpwp) inpNpwp.placeholder = '16 Digit NIK KTP atau NPWP Pribadi';
+        if (colPic) colPic.classList.add('hidden');
+        if (colJab) colJab.classList.add('hidden');
+      } else {
+        if (lblNama) lblNama.innerHTML = 'Nama Klien / Instansi / Pemberi Tugas <span class="text-rose-400">*</span>';
+        if (lblNpwp) lblNpwp.innerHTML = 'NPWP Badan Usaha <span class="text-rose-400">*</span>';
+        if (inpNpwp) inpNpwp.placeholder = '01.234.567.8-000.000';
+        if (colPic) colPic.classList.remove('hidden');
+        if (colJab) colJab.classList.remove('hidden');
+      }
+    }
+
+    function helperPengguna(mode) {
+      const inpNamaKlien = document.getElementById('pemberi_tugas_nama')?.value || '';
+      const inpAlamatKlien = document.getElementById('pemberi_tugas_alamat')?.value || '';
+      const debNama = document.getElementById('debitur_nama')?.value || '';
+      const debAlamat = document.getElementById('objek_lokasi')?.value || '';
+
+      const elPenggunaA = document.getElementById('pengguna_laporan_a');
+      const elAlamatA = document.getElementById('pengguna_alamat_a');
+      const elPenggunaB = document.getElementById('pengguna_laporan_b');
+      const elAlamatB = document.getElementById('pengguna_alamat_b');
+
+      if (mode === 'sama') {
+        if (elPenggunaA) elPenggunaA.value = inpNamaKlien;
+        if (elAlamatA) elAlamatA.value = inpAlamatKlien;
+        if (elPenggunaB) elPenggunaB.value = '-';
+        if (elAlamatB) elAlamatB.value = '-';
+      } else if (mode === 'bank_debitur') {
+        if (elPenggunaA) elPenggunaA.value = inpNamaKlien || 'PT Bank Mandiri (Persero) Tbk';
+        if (elAlamatA) elAlamatA.value = inpAlamatKlien;
+        if (elPenggunaB) elPenggunaB.value = debNama ? `Debitur: ${debNama}` : 'Debitur Penugasan';
+        if (elAlamatB) elAlamatB.value = debAlamat;
+      } else if (mode === 'bersihkan') {
+        if (elPenggunaA) elPenggunaA.value = '';
+        if (elAlamatA) elAlamatA.value = '';
+        if (elPenggunaB) elPenggunaB.value = '';
+        if (elAlamatB) elAlamatB.value = '';
+      }
+    }
+
+    // MODE A: TERBITKAN NOMOR DRAF KERJA CABANG (0 DETIK / TANPA APPROVAL)
+    function terbitkanNomorDrafCabang() {
+      const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
+      const deb = (document.getElementById('debitur_nama')?.value || '').trim();
+      const klien = (document.getElementById('pemberi_tugas_nama')?.value || '').trim();
+
+      if (!deb || !klien) {
+        alert('Mohon lengkapi Pemberi Tugas dan Nama Debitur/Objek terlebih dahulu.');
+        return;
+      }
+
+      const d = new Date();
+      const thn = d.getFullYear();
+      const bln = String(d.getMonth() + 1).padStart(2, '0');
+      const countDraf = databaseNoLapCabang.filter(x => x.cabang === cabangAktif && x.tipe === 'DRAFT').length;
+      const seq = String(countDraf + 1).padStart(4, '0');
+      const noDraft = `DRAFT-NSR/${conf.kodeCabang}/${thn}/${bln}/${seq}`;
+
+      const record = {
+        id: `DRAFT-${Date.now()}`,
+        tanggal: d.toISOString().split('T')[0],
+        nomor: noDraft,
+        tipe: 'DRAFT',
+        kewenangan: 'CABANG_MANDIRI',
+        cabang: cabangAktif,
+        klien: klien,
+        debitur: deb,
+        penilai: conf.rekan.nama,
+        status: 'DRAFT_KERJA'
+      };
+
+      databaseNoLapCabang.unshift(record);
+      simpanDatabaseLokalCabang();
+      renderTabelRiwayatCabang();
+
+      alert(`Sukses! Nomor Draf Kerja Cabang Berhasil Diterbitkan (0 Detik):\n\nNomor: ${noDraft}\nCabang: ${conf.namaCabang}\nStatus: DRAFT KERJA (Buku Laporan Internal)\n\nNomor telah dicatat di Buku Register Cabang.`);
+      gantiTabCabang('riwayat');
+    }
+
+    // MODE B: MODAL PIN ADMIN CABANG & PENERBITAN DEFINITIF
+    function bukaModalPinAdminCabang() {
+      const deb = (document.getElementById('debitur_nama')?.value || '').trim();
+      const klien = (document.getElementById('pemberi_tugas_nama')?.value || '').trim();
+      if (!deb || !klien) {
+        alert('Mohon lengkapi isian formulir (Pemberi Tugas, Pengguna Laporan, dan Debitur) terlebih dahulu.');
+        return;
+      }
+
+      const modal = document.getElementById('modal-pin-admin-cabang');
+      const inp = document.getElementById('input-pin-admin-cabang');
+      const err = document.getElementById('pesan-error-pin-admin');
+      if (inp) inp.value = '';
+      if (err) err.classList.add('hidden');
+      if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => inp?.focus(), 150);
+      }
+    }
+
+    function tutupModalPinAdminCabang() {
+      const modal = document.getElementById('modal-pin-admin-cabang');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function verifikasiDanTerbitkanDefinitifCabang() {
+      const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
+      const inp = document.getElementById('input-pin-admin-cabang');
+      const err = document.getElementById('pesan-error-pin-admin');
+      const pin = inp ? inp.value.trim() : '';
+
+      if (pin !== conf.pinAdmin) {
+        if (err) {
+          err.innerText = `PIN Admin Cabang ${conf.kota} Salah! Hubungi Kepala Cabang untuk otorisasi.`;
+          err.classList.remove('hidden');
+        }
+        inp?.focus();
+        return;
+      }
+
+      // Aturan Khusus Deni Siswandi (Single-Branch Daily Exclusivity)
+      if (conf.rekan.nama.includes('Deni Siswandi') && cabangAktif !== 'Bandung') {
+        if (err) {
+          err.innerText = 'Pelanggaran P2PK: Penilai Publik Deni Siswandi memiliki batas wilayah kerja eksklusif Cabang Bandung.';
+          err.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // Generate Nomor Definitif 7 Segmen Kemenkeu
+      const d = new Date();
+      const thn = d.getFullYear();
+      const romawi = getBulanRomawi(d);
+      const jenisJasa = document.getElementById('jenis_jasa')?.value || 'PI';
+      const industri = document.getElementById('sektor_industri')?.value || '07';
+      const seq = String(getSequenceTerakhirCabang() + 1).padStart(5, '0');
+      const noDefinitif = `${seq}/${conf.kodeKemenkeu}/${jenisJasa}/${industri}/${conf.rekan.izin}/1/${romawi}/${thn}`;
+
+      const klien = document.getElementById('pemberi_tugas_nama')?.value || '-';
+      const deb = document.getElementById('debitur_nama')?.value || '-';
+
+      const record = {
+        id: `DEF-${Date.now()}`,
+        tanggal: d.toISOString().split('T')[0],
+        nomor: noDefinitif,
+        tipe: 'DEFINITIF',
+        kewenangan: 'CABANG_MANDIRI',
+        cabang: cabangAktif,
+        klien: klien,
+        debitur: deb,
+        penilai: conf.rekan.nama,
+        status: 'DEFINITIF_TERBIT'
+      };
+
+      databaseNoLapCabang.unshift(record);
+      simpanDatabaseLokalCabang();
+      renderTabelRiwayatCabang();
+      tutupModalPinAdminCabang();
+
+      alert(`SELAMAT! Nomor Laporan Definitif Resmi Cabang Berhasil Diterbitkan:\n\nNomor: ${noDefinitif}\nKewenangan: CABANG_MANDIRI (${conf.rekan.nama})\nCabang: ${conf.namaCabang}\n\nNomor definitif telah dicatat di Buku Register dan dikirim ke sistem monitoring terpadu.`);
+      gantiTabCabang('riwayat');
+    }
+
+    // TAB 3: REVIEWER QC
+    function verifikasiPinQcReviewer(e) {
+      if (e) e.preventDefault();
+      const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
+      const inp = document.getElementById('input-pin-reviewer');
+      const err = document.getElementById('pesan-error-qc');
+      const pin = inp ? inp.value.trim() : '';
+
+      if (pin !== conf.pinReviewer) {
+        if (err) {
+          err.innerText = `PIN Reviewer Cabang ${conf.kota} Salah!`;
+          err.classList.remove('hidden');
+        }
+        inp?.focus();
+        return;
+      }
+
+      isQcUnlocked = true;
+      document.getElementById('box-gerbang-qc')?.classList.add('hidden');
+      document.getElementById('box-konten-qc')?.classList.remove('hidden');
+    }
+
+    function kunciUlangQcReviewer() {
+      isQcUnlocked = false;
+      document.getElementById('box-konten-qc')?.classList.add('hidden');
+      document.getElementById('box-gerbang-qc')?.classList.remove('hidden');
+      const inp = document.getElementById('input-pin-reviewer');
+      if (inp) inp.value = '';
+    }
+
+    function simpanChecklistQc() {
+      alert('Berita Acara Kendali Mutu (SPM) Reviewer Cabang Berhasil Disimpan!');
+      gantiTabCabang('form');
+    }
+
+    // NAVIGASI TAB
+    function gantiTabCabang(tab) {
+      const pForm = document.getElementById('panel-tab-form');
+      const pRiw = document.getElementById('panel-tab-riwayat');
+      const pQc = document.getElementById('panel-tab-qc');
+
+      const bForm = document.getElementById('tab-btn-form');
+      const bRiw = document.getElementById('tab-btn-riwayat');
+      const bQc = document.getElementById('tab-btn-qc');
+
+      [pForm, pRiw, pQc].forEach(p => p?.classList.add('hidden'));
+      [bForm, bRiw, bQc].forEach(b => {
+        b.className = 'py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition cursor-pointer';
+      });
+
+      if (tab === 'form') {
+        pForm?.classList.remove('hidden');
+        bForm.className = 'py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-teal-400 text-teal-300 flex items-center gap-2 transition cursor-pointer';
+      } else if (tab === 'riwayat') {
+        pRiw?.classList.remove('hidden');
+        bRiw.className = 'py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-teal-400 text-teal-300 flex items-center gap-2 transition cursor-pointer';
+        renderTabelRiwayatCabang();
+      } else if (tab === 'qc') {
+        pQc?.classList.remove('hidden');
+        bQc.className = 'py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-teal-400 text-teal-300 flex items-center gap-2 transition cursor-pointer';
+        if (!isQcUnlocked) {
+          kunciUlangQcReviewer();
+        }
+      }
+    }
+
+    // DATABASE LOKAL CABANG & RENDERING TABEL
+    function muatDatabaseLokalCabang() {
+      try {
+        const stored = localStorage.getItem('NSR_NOLAP_CABANG_DB');
+        if (stored) {
+          databaseNoLapCabang = JSON.parse(stored);
+        } else {
+          databaseNoLapCabang = [
+            {
+              id: 'DEF-SEED-1',
+              tanggal: '2026-10-15',
+              nomor: '00044/2.0160-04/PI/07/00581/1/X/2026',
+              tipe: 'DEFINITIF',
+              kewenangan: 'CABANG_MANDIRI',
+              cabang: 'Bandung',
+              klien: 'PT BANK MANDIRI (PERSERO) TBK',
+              debitur: 'PT PARAHYANGAN JAYA TEKSTIL',
+              penilai: 'Deni Siswandi, S.T., MAPPI (Cert.)',
+              status: 'DEFINITIF_TERBIT'
+            }
+          ];
+        }
+      } catch (e) {
+        databaseNoLapCabang = [];
+      }
+    }
+
+    function simpanDatabaseLokalCabang() {
+      try {
+        localStorage.setItem('NSR_NOLAP_CABANG_DB', JSON.stringify(databaseNoLapCabang));
+      } catch (e) {}
+    }
+
+    function renderTabelRiwayatCabang() {
+      const tbody = document.getElementById('body-tabel-riwayat-cabang');
+      const badgeCount = document.getElementById('badge-count-riwayat');
+      if (!tbody) return;
+
+      const filtered = databaseNoLapCabang.filter(x => x.cabang === cabangAktif);
+      if (badgeCount) badgeCount.innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="py-6 text-center text-slate-500 italic">Belum ada nomor laporan yang diterbitkan untuk cabang ini.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(row => {
+        const isDef = row.tipe === 'DEFINITIF';
+        const badgeTipe = isDef 
+          ? '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">DEFINITIF</span>'
+          : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40">DRAF KERJA</span>';
+
+        return `
+          <tr class="hover:bg-slate-900/80 transition">
+            <td class="py-2.5 px-3 font-mono text-slate-400">${row.tanggal}</td>
+            <td class="py-2.5 px-3 font-mono font-bold text-teal-300 select-all">${row.nomor}</td>
+            <td class="py-2.5 px-3">${badgeTipe}</td>
+            <td class="py-2.5 px-3 font-semibold text-slate-200">${row.klien}</td>
+            <td class="py-2.5 px-3 text-slate-300">${row.debitur}</td>
+            <td class="py-2.5 px-3 text-emerald-400 font-semibold">${row.penilai}</td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="px-2 py-0.5 rounded text-[9.5px] font-bold uppercase ${isDef ? 'bg-emerald-950 text-emerald-300' : 'bg-slate-800 text-slate-400'}">
+                ${row.status}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-right">
+              <button type="button" onclick="salinNomor('${row.nomor}')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-teal-300 text-[10px] font-bold transition">
+                Salin
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function salinNomor(no) {
+      navigator.clipboard.writeText(no).then(() => {
+        alert('Nomor laporan berhasil disalin: ' + no);
+      });
+    }
+
+    function filterTabelRiwayatCabang() {
+      const q = (document.getElementById('filter-riwayat-cabang')?.value || '').toLowerCase();
+      const tbody = document.getElementById('body-tabel-riwayat-cabang');
+      if (!tbody) return;
+
+      const filtered = databaseNoLapCabang.filter(x => {
+        if (x.cabang !== cabangAktif) return false;
+        return x.nomor.toLowerCase().includes(q) ||
+               x.klien.toLowerCase().includes(q) ||
+               x.debitur.toLowerCase().includes(q);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="py-6 text-center text-slate-500 italic">Tidak ada data riwayat yang cocok dengan pencarian.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(row => {
+        const isDef = row.tipe === 'DEFINITIF';
+        const badgeTipe = isDef 
+          ? '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">DEFINITIF</span>'
+          : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40">DRAF KERJA</span>';
+
+        return `
+          <tr class="hover:bg-slate-900/80 transition">
+            <td class="py-2.5 px-3 font-mono text-slate-400">${row.tanggal}</td>
+            <td class="py-2.5 px-3 font-mono font-bold text-teal-300 select-all">${row.nomor}</td>
+            <td class="py-2.5 px-3">${badgeTipe}</td>
+            <td class="py-2.5 px-3 font-semibold text-slate-200">${row.klien}</td>
+            <td class="py-2.5 px-3 text-slate-300">${row.debitur}</td>
+            <td class="py-2.5 px-3 text-emerald-400 font-semibold">${row.penilai}</td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="px-2 py-0.5 rounded text-[9.5px] font-bold uppercase ${isDef ? 'bg-emerald-950 text-emerald-300' : 'bg-slate-800 text-slate-400'}">
+                ${row.status}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-right">
+              <button type="button" onclick="salinNomor('${row.nomor}')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-teal-300 text-[10px] font-bold transition">
+                Salin
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // AUTO-POPULATE BRIDGE DARI SPK / JO CABANG
+    const GAS_PENUGASAN_ENDPOINT = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
+
+    async function tarikDataDariPenugasan() {
+      const inputEl = document.getElementById('input_cari_spk_bridge');
+      const btnEl = document.getElementById('btn_tarik_spk_bridge');
+      const statusEl = document.getElementById('status_tarik_bridge');
+      if (!inputEl) return;
+
+      const qRaw = inputEl.value.trim();
+      if (!qRaw) {
+        if (statusEl) {
+          statusEl.className = 'p-3 rounded-xl bg-amber-950/80 border border-amber-500/50 text-amber-200 text-xs flex items-center gap-2';
+          statusEl.innerHTML = '<span>⚠️ Mohon ketikkan Nomor SPK Cabang atau nama debitur yang ingin ditarik.</span>';
+          statusEl.classList.remove('hidden');
+        }
+        inputEl.focus();
+        return;
+      }
+
+      const oriText = btnEl ? btnEl.innerHTML : '';
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<span>⚡ Menarik Data SPK...</span>';
+      }
+
+      try {
+        let combined = [];
+        try {
+          const local = localStorage.getItem('NSR_PENUGASAN_DB');
+          if (local) {
+            const p = JSON.parse(local);
+            if (Array.isArray(p)) combined = combined.concat(p);
+          }
+        } catch (e) {}
+
+        try {
+          const resp = await fetch(GAS_PENUGASAN_ENDPOINT, { method: 'GET', redirect: 'follow' });
+          if (resp.ok) {
+            const json = await resp.json();
+            if (json && json.submissions && Array.isArray(json.submissions)) {
+              combined = json.submissions.concat(combined);
+            }
+          }
+        } catch (e) {}
+
+        const qClean = qRaw.toLowerCase().replace(/[\\\\/\\-\\s]/g, '');
+        const match = combined.find(p => {
+          const lp = String(p.No_Lingkup_Penugasan || p.nomor_lp || '').toLowerCase();
+          const spk = String(p.No_Surat_Klien || p.rujukan_surat_nomor || '').toLowerCase();
+          const deb = String(p.Nama_Debitur_Utama || p.debitur_nama || '').toLowerCase();
+          const klien = String(p.Nama_Pemberi_Tugas || p.pemberi_tugas_nama || '').toLowerCase();
+
+          return lp.includes(qRaw.toLowerCase()) ||
+                 lp.replace(/[\\\\/\\-\\s]/g, '').includes(qClean) ||
+                 spk.includes(qRaw.toLowerCase()) ||
+                 spk.replace(/[\\\\/\\-\\s]/g, '').includes(qClean) ||
+                 deb.includes(qRaw.toLowerCase()) ||
+                 klien.includes(qRaw.toLowerCase());
+        });
+
+        if (!match) {
+          if (statusEl) {
+            statusEl.className = 'p-3 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs flex items-center justify-between gap-2';
+            statusEl.innerHTML = '<div><span>❌ Data SPK Cabang tidak ditemukan untuk kata kunci: <strong>' + qRaw + '</strong>.</span></div>' +
+              '<button type="button" onclick="this.parentElement.classList.add(\\'hidden\\')" class="text-rose-300 font-bold">&times;</button>';
+            statusEl.classList.remove('hidden');
+          }
+          return;
+        }
+
+        // Auto-fill fields
+        const namaKlien = match.Nama_Pemberi_Tugas || match.pemberi_tugas_nama || '';
+        const alamatKlien = match.Alamat_Pemberi_Tugas || match.pemberi_tugas_alamat || '';
+        const npwpKlien = match.NPWP_Klien || match.pemberi_tugas_npwp || '';
+        const debNama = match.Nama_Debitur_Utama || match.debitur_nama || '';
+        const debAlamat = match.Alamat_Objek_Ringkas || match.alamat_objek || match.objek_lokasi || alamatKlien;
+        const tujuan = match.Tujuan_Penilaian || match.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit';
+
+        if (document.getElementById('pemberi_tugas_nama')) document.getElementById('pemberi_tugas_nama').value = namaKlien;
+        if (document.getElementById('pemberi_tugas_alamat')) document.getElementById('pemberi_tugas_alamat').value = alamatKlien;
+        if (document.getElementById('pemberi_tugas_npwp')) document.getElementById('pemberi_tugas_npwp').value = npwpKlien;
+        if (document.getElementById('debitur_nama')) document.getElementById('debitur_nama').value = debNama;
+        if (document.getElementById('objek_lokasi')) document.getElementById('objek_lokasi').value = debAlamat;
+
+        const elTujuan = document.getElementById('tujuan_penilaian');
+        if (elTujuan) {
+          for (let opt of elTujuan.options) {
+            if (tujuan.toLowerCase().includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(tujuan.toLowerCase())) {
+              elTujuan.value = opt.value;
+              break;
+            }
+          }
+        }
+
+        // Helper pengguna otomatis
+        const elPenggunaA = document.getElementById('pengguna_laporan_a');
+        const elAlamatA = document.getElementById('pengguna_alamat_a');
+        const elPenggunaB = document.getElementById('pengguna_laporan_b');
+        const elAlamatB = document.getElementById('pengguna_alamat_b');
+
+        if (elPenggunaA) elPenggunaA.value = match.Pengguna_Laporan_A || match.pengguna_laporan_a || namaKlien;
+        if (elAlamatA) elAlamatA.value = alamatKlien;
+        if (elPenggunaB) elPenggunaB.value = match.Pengguna_Laporan_B || match.pengguna_laporan_b || (debNama ? `Debitur: ${debNama}` : '-');
+        if (elAlamatB) elAlamatB.value = debAlamat;
+
+        sinkronkanSegmenLive();
+
+        if (statusEl) {
+          statusEl.className = 'p-3.5 rounded-xl bg-teal-950/90 border border-teal-500/50 text-teal-200 text-xs flex items-center justify-between gap-3 shadow-lg';
+          statusEl.innerHTML = '<div class="flex items-center gap-2.5">' +
+            '<span class="text-base">✅</span>' +
+            '<div>' +
+              '<div class="font-bold text-white">Data SPK Berhasil Ditarik! (' + (match.No_Lingkup_Penugasan || match.nomor_lp || qRaw) + ')</div>' +
+              '<div class="text-[11px] text-teal-300 mt-0.5">Pemberi Tugas, Pengguna Laporan a &amp; b, dan Objek Penilaian telah disinkronkan.</div>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" onclick="this.parentElement.classList.add(\\'hidden\\')" class="px-2 py-1 rounded bg-teal-900/50 hover:bg-teal-800 text-teal-200 font-bold text-xs transition">Tutup</button>';
+          statusEl.classList.remove('hidden');
+        }
+
+      } catch (err) {
+        if (statusEl) {
+          statusEl.className = 'p-3 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs flex items-center justify-between gap-2';
+          statusEl.innerHTML = '<span>❌ Gagal menarik data: ' + err.message + '</span>';
+          statusEl.classList.remove('hidden');
+        }
+      } finally {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.innerHTML = oriText;
+        }
+      }
+    }
+
+    function sinkronkanDataCabangLive() {
+      const btn = document.getElementById('btn-sync-cabang');
+      if (btn) btn.innerHTML = '<span>🔄 Menyinkronkan...</span>';
+      setTimeout(() => {
+        muatDatabaseLokalCabang();
+        renderTabelRiwayatCabang();
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>🔄 Sinkron Data</span>';
+        alert('Sinkronisasi data buku register cabang berhasil!');
+      }, 600);
+    }
+
+    function gantiTokenSesi() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    // Inisialisasi saat DOM Selesai Dimuat
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const elTgl = document.getElementById('tanggal_laporan');
+      if (elTgl) elTgl.value = today;
+
+      inisialisasiSesiCabang();
+    });
+  </script>
+
+</body>
+</html>
+`;
+
+fs.writeFileSync(path.join(process.cwd(), 'portal-nolap-cabang.html'), htmlContent, 'utf8');
+console.log('Successfully generated portal-nolap-cabang.html');

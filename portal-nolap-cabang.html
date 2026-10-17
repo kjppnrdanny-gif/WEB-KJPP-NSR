@@ -75,6 +75,9 @@
         <a href="portal-nolap.html" title="Buka Portal Pusat" class="hidden md:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 text-xs font-bold transition items-center gap-1.5 border border-amber-500/30">
           <span>🏛️ Layanan Pusat</span>
         </a>
+        <button onclick="gantiTokenSesi()" title="Ganti Token / Keluar Sesi" class="px-3 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-rose-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 border border-rose-700/60 cursor-pointer">
+          <span>🔑 Ganti Token</span>
+        </button>
         <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700">
           <span>&larr; Web Utama</span>
         </a>
@@ -118,9 +121,6 @@
           <button onclick="sinkronkanDataCabangLive()" id="btn-sync-cabang" class="px-3 py-1.5 rounded-lg bg-teal-950 hover:bg-teal-900 text-teal-200 font-semibold transition border border-teal-700/60 flex items-center gap-1.5 shadow-sm cursor-pointer">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
             <span>🔄 Sinkron Data</span>
-          </button>
-          <button onclick="keluarSesiCabang()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 hover:text-rose-200 text-slate-300 font-semibold transition border border-slate-700 cursor-pointer">
-            Ganti Cabang
           </button>
         </div>
       </div>
@@ -239,13 +239,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-slate-300 mb-1">Kantor Cabang Pengaju &bull; Terkunci <span class="text-rose-400">*</span></label>
-                <select id="kantor_wilayah" onchange="perbaruiKewenanganCabang()" class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-teal-300 text-xs font-bold focus:outline-none focus:border-teal-400">
+                <select id="kantor_wilayah" disabled class="w-full h-11 px-3 rounded-xl bg-slate-950/80 border border-slate-700 text-teal-300 text-xs font-bold focus:outline-none cursor-not-allowed opacity-90">
                   <option value="Bandung" data-kode="2.0160-04">Kantor Cabang Bandung (2.0160-04)</option>
                   <option value="Padang" data-kode="2.0160-02">Kantor Cabang Padang (2.0160-02)</option>
                   <option value="Makassar" data-kode="2.0160-03">Kantor Cabang Makassar (2.0160-03)</option>
                   <option value="Palembang" data-kode="2.0160-05">Kantor Cabang Palembang (2.0160-05)</option>
                 </select>
-                <p class="text-[10px] text-slate-400 mt-1">Sesuai Izin Cabang Kemenkeu RI.</p>
+                <p class="text-[10px] text-slate-400 mt-1">Sesuai Izin Cabang Kemenkeu RI &bull; Terkunci Permanen Sesuai Token Sesi.</p>
               </div>
 
               <div>
@@ -718,7 +718,7 @@
         }
       }
 
-      // Deteksi cabang dari token
+      // Deteksi cabang dari token otorisasi resmi
       if (token) {
         const t = token.toUpperCase().trim();
         if (t.includes('PDG')) cabangAktif = 'Padang';
@@ -728,7 +728,10 @@
       }
 
       const selWilayah = document.getElementById('kantor_wilayah');
-      if (selWilayah) selWilayah.value = cabangAktif;
+      if (selWilayah) {
+        selWilayah.value = cabangAktif;
+        selWilayah.disabled = true;
+      }
 
       perbaruiKewenanganCabang();
       muatDatabaseLokalCabang();
@@ -736,10 +739,13 @@
     }
 
     function perbaruiKewenanganCabang() {
-      const selWilayah = document.getElementById('kantor_wilayah');
-      if (selWilayah) cabangAktif = selWilayah.value;
-
       const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
+
+      const selWilayah = document.getElementById('kantor_wilayah');
+      if (selWilayah) {
+        selWilayah.value = cabangAktif;
+        selWilayah.disabled = true;
+      }
 
       // Header & Banner updates
       const elSubHeader = document.getElementById('sub-header-cabang');
@@ -1373,21 +1379,9 @@
       }, 600);
     }
 
-    function keluarSesiCabang() {
-      const ganti = prompt('Masukkan Kode Cabang Tujuan (BDG, PDG, MKS, PLB):', 'BDG');
-      if (ganti) {
-        const up = ganti.toUpperCase().trim();
-        if (up.includes('PDG')) cabangAktif = 'Padang';
-        else if (up.includes('MKS')) cabangAktif = 'Makassar';
-        else if (up.includes('PLB')) cabangAktif = 'Palembang';
-        else cabangAktif = 'Bandung';
-
-        sessionStorage.setItem('NSR_AUTH_TOKEN', 'NSR-' + up + '-2026');
-        const selWilayah = document.getElementById('kantor_wilayah');
-        if (selWilayah) selWilayah.value = cabangAktif;
-        perbaruiKewenanganCabang();
-        renderTabelRiwayatCabang();
-      }
+    function gantiTokenSesi() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
     }
 
     // Inisialisasi saat DOM Selesai Dimuat

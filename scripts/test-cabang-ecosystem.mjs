@@ -175,6 +175,11 @@ try {
   assert(cbgHtml.includes('verifikasiDanTerbitkanDefinitifCabang'), 'Penerbitan Definitif 7 Segmen dengan PIN Admin terpasang');
   assert(cbgHtml.includes('verifikasiPinQcReviewer'), 'Otorisasi PIN Reviewer QC terpasang');
 
+  // Keamanan Yurisdiksi Cabang: Hapus Tombol Ganti Cabang & Kunci Token
+  assert(!cbgHtml.toLowerCase().includes('ganti cabang'), 'Tombol "Ganti Cabang" TIDAK LAGI DITEMUKAN di seluruh markup portal-nolap-cabang.html (Zero local branch switching)');
+  assert(!cbgHtml.includes('keluarSesiCabang'), 'Fungsi override keluarSesiCabang() telah dihapus dari portal-nolap-cabang.html');
+  assert(cbgHtml.includes('gantiTokenSesi'), 'Alur pergantian cabang terkunci melalui modal token utama (gantiTokenSesi)');
+
 
   // -----------------------------------------------------------------
   // 5. TEST SECURITY: ZERO PIN EXPOSURE IN HTML DOM
