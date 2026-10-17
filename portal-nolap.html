@@ -479,8 +479,8 @@
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Tujuan Penilaian *</label>
-              <select id="f-tujuan" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <label class="block font-semibold text-slate-300 mb-1">Maksud &amp; Tujuan Penilaian *</label>
+              <select id="input_tujuan_penilaian" name="f-tujuan" onchange="onTujuanPenilaianChange()" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
                 <option value="Penjaminan Utang">Penjaminan Utang (Agunan Bank)</option>
                 <option value="Jual-beli">Jual-Beli / Transaksi Pasar</option>
                 <option value="Lelang">Penjualan Melalui Lelang</option>
@@ -492,6 +492,106 @@
                 <option value="Pencatatan Internal">Pencatatan Internal / Manajemen</option>
                 <option value="Lainnya">Lainnya</option>
               </select>
+              <input type="hidden" id="f-tujuan" value="Penjaminan Utang">
+            </div>
+
+            <!-- KONTEN DINAMIS REGULASI PENGADAAN TANAH (PP No. 19/2021 & SPI 204) -->
+            <div id="container-pengadaan-tanah" class="hidden lg:col-span-3 p-4 sm:p-5 rounded-2xl bg-amber-950/20 border border-amber-400/40 space-y-4">
+              <div class="border-b border-amber-400/20 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 class="text-sm font-extrabold text-amber-300 flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs font-black">⚖️</span>
+                    <span>Kategori &amp; Mekanisme Pengadaan Tanah (PP No. 19/2021 &amp; SPI 204)</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-300 mt-1">
+                    Pilih skala penugasan untuk penyesuaian otomatis Dasar Nilai (NPW / Nilai Pasar) dan validasi dokumen yuridis.
+                  </p>
+                </div>
+                <span class="px-2.5 py-1 rounded bg-amber-400/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-400/40 shrink-0">
+                  SPI 204 / PP 19/2021
+                </span>
+              </div>
+
+              <!-- 3 Radio Card / Pills Kategori Skala Tanah -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                <label class="cursor-pointer">
+                  <input type="radio" name="kategori_skala_tanah" id="skala-besar" value="Skala Besar (> 5 Ha) — Mengikuti Regulasi Tahapan Penuh" checked onchange="onKategoriSkalaTanahChange()" class="peer sr-only">
+                  <div class="p-3 rounded-xl border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400/20 peer-checked:text-amber-200 peer-checked:border-amber-400 h-full flex flex-col justify-between shadow-sm">
+                    <div>
+                      <div class="font-bold text-xs flex items-center justify-between">
+                        <span>📐 Skala Besar (&gt; 5 Ha)</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black">Wajib Penlok</span>
+                      </div>
+                      <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Mengikuti Regulasi Tahapan Penuh (4 Tahapan: Perencanaan, Persiapan, Pelaksanaan, Penyerahan).</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-amber-300/90 font-medium font-mono">Dasar Nilai: NPW (Kunci Otomatis)</div>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer">
+                  <input type="radio" name="kategori_skala_tanah" id="skala-kecil-tahapan" value="Skala Kecil (≤ 5 Ha) — Mengikuti Tahapan Pengadaan Tanah" onchange="onKategoriSkalaTanahChange()" class="peer sr-only">
+                  <div class="p-3 rounded-xl border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400/20 peer-checked:text-amber-200 peer-checked:border-amber-400 h-full flex flex-col justify-between shadow-sm">
+                    <div>
+                      <div class="font-bold text-xs flex items-center justify-between">
+                        <span>📏 Skala Kecil (&le; 5 Ha)</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-400 text-slate-950 font-black">Dengan Tahapan</span>
+                      </div>
+                      <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Instansi memilih mekanisme bertahap dengan Penlok resmi dari Gubernur/Bupati/Walikota.</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-sky-300/90 font-medium font-mono">Dasar Nilai: Nilai Pasar (Bisa NPW)</div>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer">
+                  <input type="radio" name="kategori_skala_tanah" id="skala-kecil-tanpa-tahapan" value="Skala Kecil (≤ 5 Ha) — Tanpa Tahapan (Pembelian / Transaksi Langsung)" onchange="onKategoriSkalaTanahChange()" class="peer sr-only">
+                  <div class="p-3 rounded-xl border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400/20 peer-checked:text-amber-200 peer-checked:border-amber-400 h-full flex flex-col justify-between shadow-sm">
+                    <div>
+                      <div class="font-bold text-xs flex items-center justify-between">
+                        <span>🤝 Skala Kecil (&le; 5 Ha)</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400 text-slate-950 font-black">Tanpa Tahapan</span>
+                      </div>
+                      <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Pembelian langsung / transaksi pasar dengan pihak yang berhak tanpa penetapan lokasi.</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-emerald-300/90 font-medium font-mono">Dasar Nilai: Nilai Pasar (Kunci Otomatis)</div>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Blok Sub-Grid Dokumen Yuridis Pengadaan Tanah -->
+              <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
+                <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                  📁 Kelengkapan Dokumen Yuridis Pengadaan Tanah
+                </span>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                  <!-- Kolom A: Nomor Daftar Nominatif (Danom) -->
+                  <div>
+                    <label class="block font-semibold text-slate-200 mb-1">Nomor Daftar Nominatif (Danom) *</label>
+                    <input type="text" id="input_no_danom" placeholder="Contoh: 01/DANOM/BPN-2026..." class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <span class="text-[10px] text-slate-400 mt-0.5 block">Wajib untuk seluruh penugasan pengadaan tanah.</span>
+                  </div>
+
+                  <!-- Kolom B: Nomor SK Penetapan Lokasi (Penlok) -->
+                  <div id="wrap-no-penlok">
+                    <label class="block font-semibold text-slate-200 mb-1">Nomor SK Penetapan Lokasi (Penlok) *</label>
+                    <input type="text" id="input_no_penlok" placeholder="Contoh: SK Gub No. 590/Kep.123-Bappeda/2026..." class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                  </div>
+
+                  <!-- Kolom C: Tanggal Penetapan Lokasi (Penlok) -->
+                  <div id="wrap-tgl-penlok">
+                    <label class="block font-semibold text-slate-200 mb-1">Tanggal Penetapan Lokasi (Penlok) *</label>
+                    <input type="date" id="input_tgl_penlok" onchange="onTglPenlokChange()" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <span class="text-[10px] text-amber-300/80 mt-0.5 block">Auto-salin ke Tanggal Cut-off (Skala Besar).</span>
+                  </div>
+
+                  <!-- Kolom Kondisional: Kesesuaian RTRW / KKPR (Tata Ruang) -->
+                  <div id="wrap-kesesuaian-rtrw" class="hidden sm:col-span-2">
+                    <label class="block font-semibold text-slate-200 mb-1">Konfirmasi Kesesuaian RTRW / KKPR (Tata Ruang) *</label>
+                    <input type="text" id="input_kesesuaian_rtrw" placeholder="Contoh: Surat Rekomendasi Dinas Tata Ruang No. ... / Konfirmasi KKPR Terbit..." class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                    <span class="text-[10px] text-slate-400 mt-0.5 block">Wajib untuk Skala Kecil Tanpa Tahapan (Pasal 124 PP 19/2021).</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -530,19 +630,26 @@
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Tanggal Penilaian (Cut-off) *</label>
-              <input type="date" id="f-tgl-penilaian" required onchange="updateLivePreview()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <label id="label-tgl-penilaian" class="block font-semibold text-slate-300 mb-1">Tanggal Penilaian (Cut-off) *</label>
+              <input type="date" id="input_tgl_penilaian" required onchange="onTglPenilaianChange(); updateLivePreview();" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <input type="hidden" id="f-tgl-penilaian" value="">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Tanggal Laporan Penilaian (Penandatanganan) *</label>
+              <input type="date" id="input_tgl_laporan" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Dasar Nilai *</label>
-              <select id="f-dasar-nilai" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <select id="f-dasar-nilai" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400 transition">
                 <option value="Nilai Pasar">Nilai Pasar (Market Value)</option>
                 <option value="Nilai Likuidasi">Nilai Likuidasi</option>
                 <option value="Nilai Wajar">Nilai Wajar (Fair Value)</option>
-                <option value="NPW">Nilai Penggantian Wajar (NPW)</option>
+                <option value="NPW">Nilai Penggantian Wajar / NPW (SPI 204)</option>
                 <option value="Nilai Investasi">Nilai Investasi</option>
               </select>
+              <span id="hint-dasar-nilai" class="text-[10px] text-amber-300 mt-1 block hidden"></span>
             </div>
 
             <div>
@@ -675,7 +782,7 @@
               <span>🔒 Data tersimpan otomatis di database sistem &amp; terkirim ke Admin Pusat.</span>
             </div>
             <div class="flex items-center gap-3">
-              <button type="reset" onclick="setTimeout(() => { toggleKlasifikasiEntitas(); clearPenggunaLaporan(); perbaruiIdempotencyKey(); }, 20);" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+              <button type="reset" onclick="setTimeout(() => { toggleKlasifikasiEntitas(); clearPenggunaLaporan(); onTujuanPenilaianChange(); perbaruiIdempotencyKey(); }, 20);" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
                 Reset Isian
               </button>
               <button type="submit" id="btn-submit-pengajuan" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber-400/20">
@@ -13252,10 +13359,15 @@
       const hariIni = new Date().toISOString().split('T')[0];
       const elDeadline = document.getElementById('f-deadline');
       const elTglSpk = document.getElementById('f-tgl-spk');
-      const elTglPenilaian = document.getElementById('f-tgl-penilaian');
+      const elTglPenilaian = document.getElementById('input_tgl_penilaian') || document.getElementById('f-tgl-penilaian');
+      const hiddenTglPenilaian = document.getElementById('f-tgl-penilaian');
+      const elTglLaporan = document.getElementById('input_tgl_laporan');
       if (elDeadline) elDeadline.value = hariIni;
       if (elTglSpk) elTglSpk.value = hariIni;
       if (elTglPenilaian) elTglPenilaian.value = hariIni;
+      if (hiddenTglPenilaian) hiddenTglPenilaian.value = hariIni;
+      if (elTglLaporan) elTglLaporan.value = hariIni;
+      onTujuanPenilaianChange();
 
       // Periksa sesi autentikasi serverless via /api/auth-verify
       await periksaSesiServer();
@@ -13691,7 +13803,7 @@
       }
 
       // 7. Waktu Penerbitan (Bulan Romawi / Tahun 4 Digit)
-      const valTglPenilaian = document.getElementById('f-tgl-penilaian')?.value;
+      const valTglPenilaian = (document.getElementById('input_tgl_penilaian') || document.getElementById('f-tgl-penilaian'))?.value;
       const refDate = valTglPenilaian ? new Date(valTglPenilaian) : new Date();
       const bulanRomawi = BULAN_ROMAWI[refDate.getMonth()];
       const tahun = refDate.getFullYear();
@@ -13717,6 +13829,176 @@
     /* =========================================================================
        LOGIKA DINAMIS PEMBERI TUGAS & PENGGUNA LAPORAN (SPI 103)
        ========================================================================= */
+
+    /* =========================================================================
+       LOGIKA REGULASI TEKNIS PENGADAAN TANAH (PP No. 19/2021 & SPI 204)
+       ========================================================================= */
+    function onTujuanPenilaianChange() {
+      const elTujuan = document.getElementById('input_tujuan_penilaian') || document.getElementById('f-tujuan');
+      const valTujuan = elTujuan ? elTujuan.value : '';
+      const hiddenTujuan = document.getElementById('f-tujuan');
+      if (hiddenTujuan) hiddenTujuan.value = valTujuan;
+
+      const isPengadaanTanah = valTujuan.includes('Pengadaan Tanah');
+      const containerTanah = document.getElementById('container-pengadaan-tanah');
+
+      if (isPengadaanTanah) {
+        if (containerTanah) containerTanah.classList.remove('hidden');
+        onKategoriSkalaTanahChange();
+      } else {
+        if (containerTanah) containerTanah.classList.add('hidden');
+
+        // Reset status required pada elemen pengadaan tanah
+        const elDanom = document.getElementById('input_no_danom');
+        const elNoPenlok = document.getElementById('input_no_penlok');
+        const elTglPenlok = document.getElementById('input_tgl_penlok');
+        const elRtrw = document.getElementById('input_kesesuaian_rtrw');
+        if (elDanom) elDanom.required = false;
+        if (elNoPenlok) elNoPenlok.required = false;
+        if (elTglPenlok) elTglPenlok.required = false;
+        if (elRtrw) elRtrw.required = false;
+
+        // Pulihkan kontrol Dasar Nilai
+        const elDasarNilai = document.getElementById('f-dasar-nilai');
+        const hintDasarNilai = document.getElementById('hint-dasar-nilai');
+        if (elDasarNilai) {
+          elDasarNilai.style.pointerEvents = 'auto';
+          elDasarNilai.classList.remove('opacity-70', 'cursor-not-allowed', 'bg-slate-900');
+        }
+        if (hintDasarNilai) {
+          hintDasarNilai.classList.add('hidden');
+          hintDasarNilai.innerText = '';
+        }
+
+        // Kembalikan label Tanggal Penilaian
+        const lblTglPenilaian = document.getElementById('label-tgl-penilaian');
+        if (lblTglPenilaian) lblTglPenilaian.innerText = 'Tanggal Penilaian (Cut-off) *';
+      }
+      updateLivePreview();
+    }
+
+    function onKategoriSkalaTanahChange() {
+      const elSkala = document.querySelector('input[name="kategori_skala_tanah"]:checked');
+      const skalaVal = elSkala ? elSkala.value : '';
+
+      const elDasarNilai = document.getElementById('f-dasar-nilai');
+      const hintDasarNilai = document.getElementById('hint-dasar-nilai');
+      const lblTglPenilaian = document.getElementById('label-tgl-penilaian');
+
+      const wrapNoPenlok = document.getElementById('wrap-no-penlok');
+      const wrapTglPenlok = document.getElementById('wrap-tgl-penlok');
+      const wrapRtrw = document.getElementById('wrap-kesesuaian-rtrw');
+
+      const inputDanom = document.getElementById('input_no_danom');
+      const inputNoPenlok = document.getElementById('input_no_penlok');
+      const inputTglPenlok = document.getElementById('input_tgl_penlok');
+      const inputRtrw = document.getElementById('input_kesesuaian_rtrw');
+
+      // Seluruh kategori pengadaan tanah wajib Danom
+      if (inputDanom) inputDanom.required = true;
+
+      if (skalaVal.includes('Skala Besar')) {
+        // Skala Besar (> 5 Ha) - PP 19/2021 & SPI 204
+        if (elDasarNilai) {
+          elDasarNilai.value = 'NPW';
+          elDasarNilai.style.pointerEvents = 'none';
+          elDasarNilai.classList.add('opacity-70', 'cursor-not-allowed', 'bg-slate-900');
+        }
+        if (hintDasarNilai) {
+          hintDasarNilai.classList.remove('hidden');
+          hintDasarNilai.innerText = '🔒 Terkunci Wajib NPW (SPI 204) — Regulasi Pengadaan Tanah Skala Besar > 5 Ha.';
+        }
+        if (lblTglPenilaian) {
+          lblTglPenilaian.innerText = 'Tanggal Penilaian (Sesuai Tanggal Penlok) *';
+        }
+        // Auto-copy jika tanggal penlok sudah ada
+        if (inputTglPenlok && inputTglPenlok.value) {
+          const elTglPenilaian = document.getElementById('input_tgl_penilaian');
+          const hiddenTgl = document.getElementById('f-tgl-penilaian');
+          if (elTglPenilaian) elTglPenilaian.value = inputTglPenlok.value;
+          if (hiddenTgl) hiddenTgl.value = inputTglPenlok.value;
+        }
+
+        // Tampilkan Penlok, Sembunyikan RTRW
+        if (wrapNoPenlok) wrapNoPenlok.classList.remove('hidden');
+        if (wrapTglPenlok) wrapTglPenlok.classList.remove('hidden');
+        if (wrapRtrw) wrapRtrw.classList.add('hidden');
+        if (inputNoPenlok) inputNoPenlok.required = true;
+        if (inputTglPenlok) inputTglPenlok.required = true;
+        if (inputRtrw) inputRtrw.required = false;
+
+      } else if (skalaVal.includes('Mengikuti Tahapan')) {
+        // Skala Kecil (<= 5 Ha) Mengikuti Tahapan
+        if (elDasarNilai) {
+          if (elDasarNilai.value !== 'NPW') {
+            elDasarNilai.value = 'Nilai Pasar';
+          }
+          elDasarNilai.style.pointerEvents = 'auto';
+          elDasarNilai.classList.remove('opacity-70', 'cursor-not-allowed', 'bg-slate-900');
+        }
+        if (hintDasarNilai) {
+          hintDasarNilai.classList.remove('hidden');
+          hintDasarNilai.innerText = '💡 Standar: Nilai Pasar (Market Value). Dapat dialihkan ke NPW jika dipersyaratkan SPK Instansi.';
+        }
+        if (lblTglPenilaian) {
+          lblTglPenilaian.innerText = 'Tanggal Penilaian (Cut-off Survei Lapangan) *';
+        }
+
+        // Tampilkan Penlok, Sembunyikan RTRW
+        if (wrapNoPenlok) wrapNoPenlok.classList.remove('hidden');
+        if (wrapTglPenlok) wrapTglPenlok.classList.remove('hidden');
+        if (wrapRtrw) wrapRtrw.classList.add('hidden');
+        if (inputNoPenlok) inputNoPenlok.required = true;
+        if (inputTglPenlok) inputTglPenlok.required = true;
+        if (inputRtrw) inputRtrw.required = false;
+
+      } else {
+        // Skala Kecil (<= 5 Ha) Tanpa Tahapan (Pembelian Langsung) - Pasal 124 PP 19/2021
+        if (elDasarNilai) {
+          elDasarNilai.value = 'Nilai Pasar';
+          elDasarNilai.style.pointerEvents = 'none';
+          elDasarNilai.classList.add('opacity-70', 'cursor-not-allowed', 'bg-slate-900');
+        }
+        if (hintDasarNilai) {
+          hintDasarNilai.classList.remove('hidden');
+          hintDasarNilai.innerText = '🔒 Terkunci Wajib Nilai Pasar (Market Value) — Transaksi Langsung Pasal 124 PP 19/2021.';
+        }
+        if (lblTglPenilaian) {
+          lblTglPenilaian.innerText = 'Tanggal Penilaian (Cut-off Survei Lapangan) *';
+        }
+
+        // Sembunyikan Penlok, Tampilkan RTRW / KKPR
+        if (wrapNoPenlok) wrapNoPenlok.classList.add('hidden');
+        if (wrapTglPenlok) wrapTglPenlok.classList.add('hidden');
+        if (wrapRtrw) wrapRtrw.classList.remove('hidden');
+        if (inputNoPenlok) inputNoPenlok.required = false;
+        if (inputTglPenlok) inputTglPenlok.required = false;
+        if (inputRtrw) inputRtrw.required = true;
+      }
+      updateLivePreview();
+    }
+
+    function onTglPenlokChange() {
+      const elSkala = document.querySelector('input[name="kategori_skala_tanah"]:checked');
+      const skalaVal = elSkala ? elSkala.value : '';
+      const inputTglPenlok = document.getElementById('input_tgl_penlok');
+      if (skalaVal.includes('Skala Besar') && inputTglPenlok && inputTglPenlok.value) {
+        const elTglPenilaian = document.getElementById('input_tgl_penilaian');
+        const hiddenTgl = document.getElementById('f-tgl-penilaian');
+        if (elTglPenilaian) elTglPenilaian.value = inputTglPenlok.value;
+        if (hiddenTgl) hiddenTgl.value = inputTglPenlok.value;
+        updateLivePreview();
+      }
+    }
+
+    function onTglPenilaianChange() {
+      const elTglPenilaian = document.getElementById('input_tgl_penilaian');
+      const hiddenTgl = document.getElementById('f-tgl-penilaian');
+      if (elTglPenilaian && hiddenTgl) {
+        hiddenTgl.value = elTglPenilaian.value;
+      }
+    }
+
     function toggleKlasifikasiEntitas() {
       const isBadan = document.getElementById('entitas-badan')?.checked !== false;
       const labelKlien = document.getElementById('label-f-klien');
@@ -13937,7 +14219,29 @@
       const penggunaLaporan = finalPenggunaLaporan;
       const jasa = document.getElementById('f-jasa').value;
       const industri = document.getElementById('f-industri').value;
-      const tujuan = document.getElementById('f-tujuan').value;
+      // Ekstraksi Regulasi Pengadaan Tanah (PP 19/2021 & SPI 204):
+      const elTujuan = document.getElementById('input_tujuan_penilaian') || document.getElementById('f-tujuan');
+      const tujuan = elTujuan ? elTujuan.value : '';
+      const isPengadaanTanah = tujuan.includes('Pengadaan Tanah');
+      const skalaPengadaan = isPengadaanTanah ? (document.querySelector('input[name="kategori_skala_tanah"]:checked')?.value || '') : '';
+
+      const elTglPenilaian = document.getElementById('input_tgl_penilaian') || document.getElementById('f-tgl-penilaian');
+      const tglPenilaian = elTglPenilaian ? elTglPenilaian.value : '';
+      const elTglLaporan = document.getElementById('input_tgl_laporan');
+      const tglLaporan = elTglLaporan ? elTglLaporan.value : '';
+
+      const noDanom = isPengadaanTanah ? (document.getElementById('input_no_danom')?.value || '').trim() : '';
+      const noPenlok = isPengadaanTanah ? (document.getElementById('input_no_penlok')?.value || '').trim() : '';
+      const tglPenlok = isPengadaanTanah ? (document.getElementById('input_tgl_penlok')?.value || '') : '';
+      const rtrwKkpr = isPengadaanTanah ? (document.getElementById('input_kesesuaian_rtrw')?.value || '').trim() : '';
+
+      // Susun keterangan catatan yuridis pengadaan tanah
+      let catatanYuridisTanah = '';
+      if (isPengadaanTanah) {
+        catatanYuridisTanah = `[PENGADAAN TANAH: ${skalaPengadaan}] Danom: ${noDanom}`;
+        if (noPenlok) catatanYuridisTanah += ` | Penlok: ${noPenlok} (Tgl: ${tglPenlok})`;
+        if (rtrwKkpr) catatanYuridisTanah += ` | RTRW/KKPR: ${rtrwKkpr}`;
+      }
       const jenisObjek = document.getElementById('f-jenis-objek').value.trim();
       const lokasiObjek = document.getElementById('f-lokasi-objek').value.trim();
       const deadline = document.getElementById('f-deadline').value;
@@ -13945,7 +14249,6 @@
       const izinPenilai = MASTER_PENILAI[penilai] || "00581";
       const noSpk = document.getElementById('f-no-spk').value.trim();
       const tglSpk = document.getElementById('f-tgl-spk').value;
-      const tglPenilaian = document.getElementById('f-tgl-penilaian').value;
       const dasarNilai = document.getElementById('f-dasar-nilai').value;
       const pendekatan = document.getElementById('f-pendekatan').value;
       const bentukLaporan = document.getElementById('f-bentuk-laporan').value;
@@ -13965,7 +14268,10 @@
       const linkPembanding = (document.getElementById('input_link_pembanding')?.value || '').trim();
       const linkBai = (document.getElementById('input_link_bai')?.value || '').trim();
       const linkDrive = linkLaporan || linkBai || linkPembanding;
-      const catatanPemohon = document.getElementById('f-catatan-pemohon').value.trim();
+      let catatanPemohon = (document.getElementById('f-catatan-pemohon')?.value || '').trim();
+      if (catatanYuridisTanah) {
+        catatanPemohon = (catatanPemohon ? catatanPemohon + ' | ' : '') + catatanYuridisTanah;
+      }
 
       // Hitung Kode NPWP
       const cleanDigits = npwp.replace(/\D/g, '');
@@ -13991,6 +14297,14 @@
         klasifikasiJasa: jasa,
         kodeIndustri: industri,
         tujuanPenilaian: tujuan,
+        tglPenilaian: tglPenilaian,
+        tglLaporan: tglLaporan,
+        skalaPengadaanTanah: skalaPengadaan,
+        noDanom: noDanom,
+        noPenlok: noPenlok,
+        tglPenlok: tglPenlok,
+        kesesuaianRtrw: rtrwKkpr,
+        catatanYuridisTanah: catatanYuridisTanah,
         jenisObjek: jenisObjek,
         lokasiObjek: lokasiObjek,
         deadline: deadline,
@@ -14009,7 +14323,6 @@
         jabatanPicKlien: (document.getElementById('f-jabatan-klien')?.value || '').trim(),
         noSpk: noSpk,
         tglSpk: tglSpk,
-        tglPenilaian: tglPenilaian,
         dasarNilai: dasarNilai,
         pendekatan: pendekatan,
         bentukLaporan: bentukLaporan,
@@ -14233,6 +14546,9 @@
         `• *Kantor/Cabang:* ${data.cabang}%0A` +
         `• *Pemohon:* ${data.namaPemohon} (${data.waPemohon})%0A` +
         `• *Pemberi Tugas:* ${data.namaKlien}%0A• *Pengguna Laporan:* ${data.penggunaLaporan || data['Pengguna Laporan'] || '-'}%0A` +
+        `• *Tujuan Penilaian:* ${data.tujuanPenilaian || '-'}` + (data.skalaPengadaanTanah ? ` (${data.skalaPengadaanTanah})` : '') + `%0A` +
+        (data.catatanYuridisTanah ? `• *Regulasi Pengadaan:* ${data.catatanYuridisTanah}%0A` : '') +
+        `• *Tgl Cut-off:* ${data.tglPenilaian || '-'}; *Tgl Laporan:* ${data.tglLaporan || '-'}%0A` +
         `• *Objek:* ${data.jenisObjek}%0A` +
         `• *Lokasi:* ${data.lokasiObjek}%0A` +
         `• *Penilai:* ${data.penilai} (Izin: ${data.izinPenilai})%0A` +
@@ -14518,7 +14834,14 @@
           <div><span class="text-slate-400 block">Penilai Penandatangan:</span> ${item.penilai} (Izin: ${item.izinPenilai})</div>
           <div class="sm:col-span-2"><span class="text-slate-400 block">Objek & Lokasi:</span> ${item.jenisObjek} di ${item.lokasiObjek}</div>
           <div><span class="text-slate-400 block">Nomor & Tanggal SPK:</span> ${item.noSpk || '-'} (${item.tglSpk || '-'})</div>
-          <div><span class="text-slate-400 block">Tanggal Penilaian:</span> ${item.tglPenilaian || '-'}</div>
+          <div><span class="text-slate-400 block">Tanggal Penilaian (Cut-off):</span> ${item.tglPenilaian || '-'}</div>
+          <div><span class="text-slate-400 block">Tanggal Laporan (Penandatanganan):</span> ${item.tglLaporan || '-'}</div>
+          ${item.catatanYuridisTanah ? `
+            <div class="sm:col-span-2 p-2.5 rounded-lg bg-amber-950/30 border border-amber-400/30 text-[11px]">
+              <span class="text-amber-300 font-bold block mb-1">⚖️ Parameter Yuridis Pengadaan Tanah (PP 19/2021 &amp; SPI 204):</span>
+              <div class="text-slate-200">${item.catatanYuridisTanah}</div>
+            </div>
+          ` : ''}
           <div><span class="text-slate-400 block">Dasar Nilai:</span> ${item.dasarNilai || '-'}</div>
           <div><span class="text-slate-400 block">Target Deadline:</span> ${item.deadline || '-'}</div>
           ${(item.dpp || item.biayaJasa || item.totalBayar) ? `
