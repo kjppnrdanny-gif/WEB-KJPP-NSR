@@ -66,6 +66,10 @@ function doPost(e) {
     // Router Tindakan
     if (action === 'submitRequest') {
       return handleSubmitPengajuanNoLap(payload);
+    } else if (action === 'issueCabangDraftNoLap') {
+      return handleIssueCabangDraftNoLap(payload);
+    } else if (action === 'issueCabangDefinitiveNoLap') {
+      return handleIssueCabangDefinitiveNoLap(payload);
     } else if (action === 'finalizeBookingReport') {
       return handleFinalizeBookingReport(payload);
     } else if (action === 'saveSmartMitigasiTanah' || action === 'saveSmartMitigasiUmum' || action === 'saveSmartMitigasiRuislagh' || action === 'saveMitigasi') {
@@ -599,6 +603,234 @@ function handleSaveMitigasiRisiko(action, payload) {
     success: true,
     message: 'Data Mitigasi Risiko berhasil disinkronkan ke Google Sheets',
     noPermintaan: noReq
+  });
+}
+
+/**
+ * Handler Khusus Penerbitan Nomor Draf Kerja Mandiri Cabang
+ * Menghasilkan format DRAFT-NSR/[KODE_CABANG]/[TAHUN]/[BULAN]/[NO_URUT]
+ * Kewenangan: CABANG_MANDIRI (Tanpa PIN)
+ */
+function handleIssueCabangDraftNoLap(data) {
+  const ss = SpreadsheetApp.openById(CONFIG_NOLAP.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG_NOLAP.SHEET_PENGAJUAN);
+  if (!sheet) {
+    throw new Error('Sheet "' + CONFIG_NOLAP.SHEET_PENGAJUAN + '" tidak ditemukan.');
+  }
+
+  const cabang = (data.cabang || data.namaCabang || 'Bandung').toString().trim();
+  const KODE_CABANG_MAP = {
+    'Bandung': 'BDG', 'Padang': 'PDG', 'Makassar': 'MKS', 'Palembang': 'PLB',
+    'BDG': 'BDG', 'PDG': 'PDG', 'MKS': 'MKS', 'PLB': 'PLB'
+  };
+  const kodeCabang = KODE_CABANG_MAP[cabang] || 'BDG';
+
+  const now = new Date();
+  const thn = Utilities.formatDate(now, "Asia/Jakarta", "yyyy");
+  const bln = Utilities.formatDate(now, "Asia/Jakarta", "MM");
+  const timestampStr = Utilities.formatDate(now, "Asia/Jakarta", "M/d/yyyy HH:mm:ss");
+
+  // Hitung sequence draf cabang berjalan
+  const dataRows = sheet.getDataRange().getValues();
+  let countDraft = 0;
+  for (let i = 1; i < dataRows.length; i++) {
+    const rowNoLap = String(dataRows[i][21] || '').trim();
+    if (rowNoLap.startsWith('DRAFT-NSR/' + kodeCabang)) {
+      countDraft++;
+    }
+  }
+  const seqStr = String(countDraft + 1).padStart(4, '0');
+  const noDraft = 'DRAFT-NSR/' + kodeCabang + '/' + thn + '/' + bln + '/' + seqStr;
+
+  const lastCol = Math.max(sheet.getLastColumn(), 53);
+  const row = new Array(Math.max(lastCol, 53)).fill('');
+
+  row[0]  = timestampStr;
+  row[1]  = cabang;
+  row[2]  = data.namaPemohon || 'Admin Cabang ' + cabang;
+  row[6]  = data.namaKlien || data.pemberi_tugas_nama || '';
+  row[8]  = data.alamatKlien || data.pemberi_tugas_alamat || '';
+  row[13] = data.jenisObjek || data.debitur_nama || '';
+  row[14] = data.lokasiObjek || data.objek_lokasi || '';
+  row[16] = data.penilai || data.rekan || '';
+  row[18] = data.npwp || data.pemberi_tugas_npwp || '';
+  row[19] = data.noPermintaan || ('DRAFT-REQ-' + Date.now());
+  row[20] = 'DRAFT KERJA (CABANG MANDIRI)';
+  row[21] = noDraft;
+  row[31] = '[CABANG_MANDIRI] ' + (data.catatanPemohon || 'Draf Kerja Internal Cabang');
+  row[36] = data.noSpk || '';
+  row[39] = data.penggunaLaporan || '';
+
+  sheet.appendRow(row);
+  const nextRow = sheet.getLastRow();
+
+  return jsonResponse({
+    success: true,
+    status: 'success',
+    nomorDraft: noDraft,
+    kewenangan: 'CABANG_MANDIRI',
+    cabang: cabang,
+    rowIndex: nextRow,
+    message: 'Nomor Draf Kerja Cabang ' + noDraft + ' berhasil diterbitkan.'
+  });
+}
+
+/**
+ * Handler Khusus Penerbitan Nomor Laporan Definitif Mandiri Cabang
+ * Memverifikasi PIN Admin Cabang, Penegakan Rekan Cabang, dan Exclusivity Deni Siswandi
+ * Format: [NO_URUT]/2.0160-[KODE_CBG]/[KLASIFIKASI]/[BIDANG]/[IZIN_REKAN]/1/[BULAN_ROMAWI]/[TAHUN]
+ */
+function handleIssueCabangDefinitiveNoLap(data) {
+  const ss = SpreadsheetApp.openById(CONFIG_NOLAP.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG_NOLAP.SHEET_PENGAJUAN);
+  if (!sheet) {
+    throw new Error('Sheet "' + CONFIG_NOLAP.SHEET_PENGAJUAN + '" tidak ditemukan.');
+  }
+
+  const cabang = (data.cabang || data.namaCabang || 'Bandung').toString().trim();
+  const pinInput = (data.pinAdmin || data.pin || '').toString().trim();
+
+  // 1. Validasi PIN Admin Cabang (In-Memory Security)
+  const PIN_ADMIN_CABANG = {
+    'Bandung': 'BDG-ADM-11',
+    'Padang': 'PDG-ADM-22',
+    'Makassar': 'MKS-ADM-33',
+    'Palembang': 'PLB-ADM-44',
+    'BDG': 'BDG-ADM-11',
+    'PDG': 'PDG-ADM-22',
+    'MKS': 'MKS-ADM-33',
+    'PLB': 'PLB-ADM-44'
+  };
+
+  const expectedPin = PIN_ADMIN_CABANG[cabang];
+  if (!expectedPin || pinInput !== expectedPin) {
+    return jsonResponse({
+      success: false,
+      status: 'error',
+      code: 'INVALID_BRANCH_ADMIN_PIN',
+      error: 'Otorisasi Gagal: PIN Admin Cabang untuk ' + cabang + ' salah atau tidak valid.'
+    });
+  }
+
+  // 2. Konfigurasi Rekan Cabang & Exclusivity Guard
+  const CABANG_CONFIG_GAS = {
+    'Bandung': { kodeKemenkeu: '2.0160-04', kodeCabang: 'BDG', izin: '00581', rekan: 'Deni Siswandi, S.T., MAPPI (Cert.)' },
+    'Padang': { kodeKemenkeu: '2.0160-01', kodeCabang: 'PDG', izin: 'PS.0046', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
+    'Makassar': { kodeKemenkeu: '2.0160-03', kodeCabang: 'MKS', izin: 'PS.0126', rekan: 'M. Amin Sade, S.T., MAPPI (Cert.)' },
+    'Palembang': { kodeKemenkeu: '2.0160-02', kodeCabang: 'PLB', izin: 'PS.0249', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' }
+  };
+
+  const conf = CABANG_CONFIG_GAS[cabang] || CABANG_CONFIG_GAS['Bandung'];
+  const penilaiReq = (data.penilai || conf.rekan).toString();
+
+  // Nanang Rahayu strictly prohibited in Cabang Mandiri
+  if (penilaiReq.toLowerCase().includes('nanang rahayu')) {
+    return jsonResponse({
+      success: false,
+      status: 'error',
+      code: 'FORBIDDEN_PARTNER_SIGNER',
+      error: 'Pelanggaran Kewenangan: Ir. Nanang Rahayu hanya berwenang menandatangani laporan Kantor Pusat (Layanan Pusat).'
+    });
+  }
+
+  // Deni Siswandi Daily Single-Branch Exclusivity Rule
+  const now = new Date();
+  const todayStr = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd");
+  if (penilaiReq.toLowerCase().includes('deni siswandi')) {
+    if (cabang !== 'Bandung' && cabang !== 'BDG') {
+      return jsonResponse({
+        success: false,
+        status: 'error',
+        code: 'DENI_SISWANDI_DAILY_BRANCH_LOCKED',
+        error: 'Pelanggaran P2PK: Penilai Publik Deni Siswandi memiliki batas wilayah kerja eksklusif Cabang Bandung.'
+      });
+    }
+    // Check if Deni Siswandi was already used by another branch today
+    const dataRows = sheet.getDataRange().getValues();
+    for (let i = 1; i < dataRows.length; i++) {
+      const rowTimestamp = dataRows[i][0];
+      const rowCabang = String(dataRows[i][1] || '').trim();
+      const rowPenilai = String(dataRows[i][16] || '').toLowerCase();
+      const rowStatus = String(dataRows[i][20] || '');
+      if (rowStatus.toUpperCase().includes('DITOLAK') || rowStatus.toUpperCase().includes('BATAL')) continue;
+
+      let rowDateStr = '';
+      if (rowTimestamp instanceof Date) {
+        rowDateStr = Utilities.formatDate(rowTimestamp, "Asia/Jakarta", "yyyy-MM-dd");
+      }
+      if (rowDateStr === todayStr && rowPenilai.includes('deni siswandi')) {
+        const cleanRow = rowCabang.replace(/kantor|cabang/gi, '').trim().toLowerCase();
+        if (cleanRow && cleanRow !== 'bandung' && cleanRow !== 'bdg') {
+          return jsonResponse({
+            success: false,
+            status: 'error',
+            code: 'DENI_SISWANDI_DAILY_BRANCH_LOCKED',
+            error: 'Kewenangan Deni Siswandi untuk hari ini telah digunakan oleh ' + rowCabang + '.'
+          });
+        }
+      }
+    }
+  }
+
+  // 3. Hitung Sequence Definitif Cabang
+  const dataRows = sheet.getDataRange().getValues();
+  let maxSeq = 0;
+  for (let i = 1; i < dataRows.length; i++) {
+    const rowNoLap = String(dataRows[i][21] || '').trim();
+    if (rowNoLap.includes(conf.kodeKemenkeu)) {
+      const match = rowNoLap.match(/^(\d{5})\//);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxSeq) maxSeq = num;
+      }
+    }
+  }
+  const nextSeqStr = String(maxSeq + 1).padStart(5, '0');
+  const thn = Utilities.formatDate(now, "Asia/Jakarta", "yyyy");
+  const blnIndex = now.getMonth();
+  const romawiBln = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][blnIndex] || 'X';
+  const klasifikasi = (data.klasifikasi || data.jenisJasa || 'PI').toString().trim();
+  const sektor = (data.sektorIndustri || data.kodeIndustri || '07').toString().trim();
+
+  // 7 Segmen Format: 00045/2.0160-04/PI/07/00581/1/X/2026
+  const noDefinitif = `${nextSeqStr}/${conf.kodeKemenkeu}/${klasifikasi}/${sektor}/${conf.izin}/1/${romawiBln}/${thn}`;
+
+  // 4. Catat ke sheet PENGAJUAN
+  const lastCol = Math.max(sheet.getLastColumn(), 53);
+  const row = new Array(Math.max(lastCol, 53)).fill('');
+  const timestampStr = Utilities.formatDate(now, "Asia/Jakarta", "M/d/yyyy HH:mm:ss");
+
+  row[0]  = timestampStr;
+  row[1]  = cabang;
+  row[2]  = data.namaPemohon || 'Admin Cabang ' + cabang;
+  row[6]  = data.namaKlien || data.pemberi_tugas_nama || '';
+  row[8]  = data.alamatKlien || data.pemberi_tugas_alamat || '';
+  row[11] = klasifikasi;
+  row[13] = data.jenisObjek || data.debitur_nama || '';
+  row[14] = data.lokasiObjek || data.objek_lokasi || '';
+  row[16] = conf.rekan;
+  row[17] = sektor;
+  row[18] = data.npwp || data.pemberi_tugas_npwp || '';
+  row[19] = data.noPermintaan || ('DEF-REQ-' + Date.now());
+  row[20] = 'NOMOR DITERBITKAN';
+  row[21] = noDefinitif;
+  row[22] = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd");
+  row[31] = '[CABANG_MANDIRI] ' + (data.catatanPemohon || 'Penerbitan Definitif Mandiri Cabang');
+  row[36] = data.noSpk || '';
+  row[39] = data.penggunaLaporan || '';
+
+  sheet.appendRow(row);
+  const nextRow = sheet.getLastRow();
+
+  return jsonResponse({
+    success: true,
+    status: 'success',
+    nomorDefinitif: noDefinitif,
+    kewenangan: 'CABANG_MANDIRI',
+    penilai: conf.rekan,
+    cabang: cabang,
+    rowIndex: nextRow,
+    message: 'Nomor Laporan Definitif Cabang ' + noDefinitif + ' berhasil diterbitkan.'
   });
 }
 

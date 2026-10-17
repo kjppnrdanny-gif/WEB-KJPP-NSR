@@ -27,6 +27,7 @@ const ALLOWED_FILES = [
   "portal-kwitansi.html",
   "portal-absensi.html",
   "portal-penugasan-jo.html",
+  "portal-nolap-cabang.html",
   "portal-surat-umum.html",
   "kebijakan-privasi.html",
   "disclaimer.html",

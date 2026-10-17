@@ -412,10 +412,23 @@
             <p class="text-[10px] text-slate-400">Pilihan rekening bank operasional resmi KJPP NSR untuk penerimaan pembayaran transfer.</p>
           </div>
 
-          <!-- Tombol Submit Form Cabang -->
-          <div class="pt-2">
-            <button type="submit" id="btn-submit-pengajuan" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-amber-400/10 hover:shadow-amber-400/20 transition flex items-center justify-center gap-2">
-              <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <!-- TOMBOL DUAL MODE PENERBITAN KWITANSI CABANG -->
+          <div class="pt-2 space-y-2.5">
+            <!-- Mode A: Draf Tagihan DP / Proforma (Marketing, Tanpa PIN) -->
+            <button type="button" onclick="terbitkanDrafMarketing()" id="btn-terbit-draf-dp" class="w-full py-3 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs tracking-wide border border-amber-400/40 shadow transition flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4 text-amber-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>⚡ Terbitkan Draf Tagihan DP / Proforma (Tanpa PIN)</span>
+            </button>
+
+            <!-- Mode B: Kwitansi Resmi Kasir Cabang (Otorisasi PIN Finance) -->
+            <button type="button" onclick="bukaModalPinFinanceCabang()" id="btn-terbit-resmi-cabang" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-emerald-900/30 transition flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+              <span>🏛️ Terbitkan Kwitansi Resmi Cabang (Otorisasi PIN Finance)</span>
+            </button>
+
+            <!-- Kirim Pengajuan Draf ke Keuangan Pusat (Alur Tradisional) -->
+            <button type="submit" id="btn-submit-pengajuan" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-[11px] border border-slate-700 transition flex items-center justify-center gap-2">
+              <svg class="w-3.5 h-3.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               <span>Kirim Pengajuan Draf Tagihan ke Keuangan Pusat &rarr;</span>
             </button>
           </div>
@@ -815,6 +828,53 @@
     </div>
   </main>
 
+  <!-- MODAL OTORISASI PIN FINANCE CABANG -->
+  <div id="modal-pin-finance-cabang" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h3 class="text-sm font-black text-white uppercase tracking-wider">Otorisasi PIN Finance Cabang</h3>
+        </div>
+        <button onclick="tutupModalPinFinanceCabang()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Penerbitan nomor kwitansi resmi cabang definitif berstatus sah (LUNAS / PIUTANG KONTRAK SAH) mewajibkan otorisasi Keuangan Cabang.
+      </p>
+
+      <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
+        <span class="text-[10px] text-slate-400 uppercase font-semibold">Cabang Pengaju:</span>
+        <p id="label-cabang-modal-finance" class="text-xs font-bold text-amber-300">Cabang Bandung</p>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-slate-200">
+          Status Pembayaran Kwitansi <span class="text-rose-400">*</span>
+        </label>
+        <select id="pilihan-status-kwitansi-cabang" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-emerald-400">
+          <option value="LUNAS" selected>LUNAS (Bukti Bayar Sah)</option>
+          <option value="PIUTANG KONTRAK SAH (BAST)">PIUTANG KONTRAK SAH (BAST / Termin Pemerintah)</option>
+        </select>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-slate-200">
+          PIN Keuangan Cabang <span class="text-rose-400">*</span>
+        </label>
+        <input type="password" id="input-pin-finance-cabang" placeholder="Masukkan PIN Finance Cabang..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-emerald-400 font-mono text-center tracking-widest text-sm focus:outline-none focus:border-emerald-400">
+        <p id="pesan-error-pin-finance" class="hidden text-[11px] text-rose-400 font-semibold"></p>
+      </div>
+
+      <div class="pt-2 flex items-center justify-end gap-2">
+        <button type="button" onclick="tutupModalPinFinanceCabang()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold transition">Batal</button>
+        <button type="button" onclick="verifikasiDanTerbitkanKwitansiResmiCabang()" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition shadow-lg flex items-center gap-1.5 cursor-pointer">
+          <span>Otorisasi &amp; Terbitkan Kwitansi Resmi</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ========================================================
        AREA CETAK KWITANSI RESMI (PRINT AREA A4)
        Bagian ini yang akan dicetak murni ke PDF / Printer Fisik
@@ -828,11 +888,11 @@
 
     <!-- WATERMARK / BANNER DRAFT -->
     <div id="print-watermark-draft" class="mb-3 p-2 bg-amber-50 border-2 border-dashed border-amber-600 rounded-lg text-center hidden">
-      <p class="text-xs font-black tracking-widest text-amber-800 uppercase">
-        ⚠️ DRAFT PENGAJUAN TAGIHAN — BELUM DISAHKAN BAGIAN KEUANGAN KANTOR PUSAT
+      <p id="text-watermark-draft" class="text-xs font-black tracking-widest text-amber-800 uppercase">
+        ⚠️ DRAFT TAGIHAN - BUKAN BUKTI LUNAS
       </p>
       <p class="text-[9.5px] text-amber-700 mt-0.5">
-        Dokumen ini berstatus pengajuan draf administrasi dan belum memiliki keabsahan tanda tangan resmi.
+        Dokumen ini berstatus pengajuan draf administrasi dan belum memiliki keabsahan tanda tangan lunas.
       </p>
     </div>
 
@@ -2876,6 +2936,145 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           btnEl.disabled = false;
           btnEl.innerHTML = oriText;
         }
+      }
+    // ==========================================================
+    // DUAL-MODE PENERBITAN KWITANSI CABANG (MARKETING & FINANCE PIN)
+    // ==========================================================
+    const PIN_FINANCE_CABANG = {
+      'Bandung': 'BDG-FIN-55',
+      'Padang': 'PDG-FIN-55',
+      'Makassar': 'MKS-FIN-55',
+      'Palembang': 'PLB-FIN-55'
+    };
+
+    const KODE_CABANG_MAP = {
+      'Bandung': 'BDG',
+      'Padang': 'PDG',
+      'Makassar': 'MKS',
+      'Palembang': 'PLB',
+      'Kantor Pusat Jakarta': 'PST',
+      'Pusat': 'PST'
+    };
+
+    function getKodeCabangKwitansi(cabang) {
+      if (!cabang) return 'BDG';
+      for (const k in KODE_CABANG_MAP) {
+        if (cabang.toLowerCase().includes(k.toLowerCase())) return KODE_CABANG_MAP[k];
+      }
+      return 'BDG';
+    }
+
+    function terbitkanDrafMarketing() {
+      hitungKwitansi();
+      const cabang = document.getElementById('cabang-pengaju')?.value || dataKwitansiAktif.cabang || 'Bandung';
+      const kode = getKodeCabangKwitansi(cabang);
+      const d = new Date();
+      const thn = d.getFullYear();
+      const bln = String(d.getMonth() + 1).padStart(2, '0');
+      const seq = '0001';
+      const noDraft = `DRAFT-KW/${kode}/${thn}/${bln}/${seq}`;
+
+      dataKwitansiAktif.noKwitansiResmi = noDraft;
+      dataKwitansiAktif.status = 'DRAFT';
+      dataKwitansiAktif.isApproved = false;
+
+      const watermarkEl = document.getElementById('print-watermark-draft');
+      const textWatermark = document.getElementById('text-watermark-draft');
+      if (textWatermark) {
+        textWatermark.innerText = '⚠️ DRAFT TAGIHAN - BUKAN BUKTI LUNAS';
+      }
+      if (watermarkEl) watermarkEl.classList.remove('hidden');
+
+      const noResmiInput = document.getElementById('no-kwitansi-resmi');
+      if (noResmiInput) noResmiInput.value = noDraft;
+
+      perbaruiPreviewKwitansi();
+
+      alert(`Draf Tagihan DP / Proforma Berhasil Diterbitkan!\n\nNomor: ${noDraft}\nStatus: DRAFT TAGIHAN (Proforma)\nWatermark: DRAFT TAGIHAN - BUKAN BUKTI LUNAS\n\nPratinjau telah diperbarui dan siap dicetak/diunduh PDF.`);
+      
+      const printBtn = document.getElementById('btn-cetak-kwitansi');
+      if (printBtn) {
+        printBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function bukaModalPinFinanceCabang() {
+      hitungKwitansi();
+      const cabang = document.getElementById('cabang-pengaju')?.value || dataKwitansiAktif.cabang || 'Bandung';
+      const lblCabang = document.getElementById('label-cabang-modal-finance');
+      if (lblCabang) lblCabang.innerText = `Cabang ${cabang.replace(/^Kantor\s+/i, '')}`;
+
+      const inpPin = document.getElementById('input-pin-finance-cabang');
+      const errPin = document.getElementById('pesan-error-pin-finance');
+      if (inpPin) inpPin.value = '';
+      if (errPin) errPin.classList.add('hidden');
+
+      const modal = document.getElementById('modal-pin-finance-cabang');
+      if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => inpPin?.focus(), 150);
+      }
+    }
+
+    function tutupModalPinFinanceCabang() {
+      const modal = document.getElementById('modal-pin-finance-cabang');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function verifikasiDanTerbitkanKwitansiResmiCabang() {
+      const cabang = document.getElementById('cabang-pengaju')?.value || dataKwitansiAktif.cabang || 'Bandung';
+      const inpPin = document.getElementById('input-pin-finance-cabang');
+      const errPin = document.getElementById('pesan-error-pin-finance');
+      const statusSelect = document.getElementById('pilihan-status-kwitansi-cabang');
+      const pin = inpPin ? inpPin.value.trim() : '';
+
+      let cabangKey = 'Bandung';
+      for (const k in PIN_FINANCE_CABANG) {
+        if (cabang.toLowerCase().includes(k.toLowerCase())) {
+          cabangKey = k;
+          break;
+        }
+      }
+
+      const expectedPin = PIN_FINANCE_CABANG[cabangKey];
+      if (!pin || pin !== expectedPin) {
+        if (errPin) {
+          errPin.innerText = 'PIN Otorisasi Finance Cabang Salah! Silakan hubungi Finance Cabang terkait.';
+          errPin.classList.remove('hidden');
+        }
+        inpPin?.focus();
+        return;
+      }
+
+      if (errPin) errPin.classList.add('hidden');
+
+      const kode = getKodeCabangKwitansi(cabangKey);
+      const d = new Date();
+      const thn = d.getFullYear();
+      const bln = String(d.getMonth() + 1).padStart(2, '0');
+      const seq = String(Math.floor(Math.random() * 900) + 100).padStart(4, '0');
+      const noResmi = `KW-NSR-${kode}/${thn}/${bln}/${seq}`;
+      const statusTerpilih = statusSelect ? statusSelect.value : 'LUNAS';
+
+      dataKwitansiAktif.noKwitansiResmi = noResmi;
+      dataKwitansiAktif.status = 'DISAHKAN';
+      dataKwitansiAktif.isApproved = true;
+      dataKwitansiAktif.statusBayar = statusTerpilih;
+
+      const noResmiInput = document.getElementById('no-kwitansi-resmi');
+      if (noResmiInput) noResmiInput.value = noResmi;
+
+      const watermarkEl = document.getElementById('print-watermark-draft');
+      if (watermarkEl) watermarkEl.classList.add('hidden');
+
+      tutupModalPinFinanceCabang();
+      perbaruiPreviewKwitansi();
+
+      alert(`Kwitansi Resmi Cabang ${cabangKey} Berhasil Diterbitkan!\n\nNomor Resmi: ${noResmi}\nStatus: ${statusTerpilih}\nOtorisasi: Keuangan Cabang ${cabangKey}\n\nWatermark draf telah dihapus. Lembar kwitansi sah siap dicetak.`);
+      
+      const printBtn = document.getElementById('btn-cetak-kwitansi');
+      if (printBtn) {
+        printBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
 

@@ -3196,6 +3196,7 @@
           modeDesc.innerHTML = "Staf Admin Pusat dapat menginput langsung dan menekan tombol <strong class='text-emerald-400'>'Simpan &amp; Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)'</strong>.";
           if (btnSubmit) btnSubmit.textContent = "Simpan & Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)";
           setWilayahDropdown(userSession.wilayah);
+          inisialisasiDropdownPersonil();
 
           // Buka kunci input nomor untuk Admin Pusat (readOnly = false, disabled = false)
           const elLp = getElLp();
@@ -3216,6 +3217,16 @@
           // ADMIN_CABANG atau MARKETING
           if (containerDualMode) containerDualMode.classList.remove('hidden');
           setWilayahDropdown(userSession.wilayah);
+          inisialisasiDropdownPersonil();
+          const defaultBank = getBankDefaultByWilayah(userSession.wilayah);
+          const elRek = document.getElementById('rekening_resmi');
+          const elRekTujuan = document.getElementById('pilihan_rekening_tujuan');
+          if (elRek) {
+            elRek.value = defaultBank;
+          }
+          if (elRekTujuan) {
+            elRekTujuan.value = defaultBank;
+          }
           pilihModeAlur(currentModeAlur || 'CENTRAL_APPROVAL');
         }
       }
@@ -3358,6 +3369,33 @@
       }
     }
 
+    function getRekanByWilayah(wilayah) {
+      const w = (wilayah || '').toLowerCase();
+      if (w.includes('bandung')) return DATABASE_REKAN.find(r => r.nama.includes('Deni Siswandi')) || DATABASE_REKAN[1];
+      if (w.includes('padang')) return DATABASE_REKAN.find(r => r.nama.includes('Hernita')) || DATABASE_REKAN[2];
+      if (w.includes('makassar')) return DATABASE_REKAN.find(r => r.nama.includes('Amin Sade')) || DATABASE_REKAN[3];
+      if (w.includes('palembang') || w.includes('plb') || w.includes('plm')) return DATABASE_REKAN.find(r => r.nama.includes('Dharma Priyanto')) || DATABASE_REKAN[4];
+      return DATABASE_REKAN[0];
+    }
+
+    function getBankDefaultByWilayah(wilayah) {
+      const w = (wilayah || '').toLowerCase();
+      if (w.includes('bandung')) return 'BJB';
+      if (w.includes('padang')) return 'BRI';
+      if (w.includes('makassar')) return 'MANDIRI';
+      if (w.includes('palembang') || w.includes('plb') || w.includes('plm')) return 'BTN';
+      return 'MANDIRI';
+    }
+
+    function getNamaKjppLengkap(wilayah) {
+      const w = (wilayah || '').toLowerCase();
+      if (w.includes('bandung')) return 'KJPP Nanang Rahayu Sigit Paryanto & Rekan Cabang Bandung';
+      if (w.includes('padang')) return 'KJPP Nanang Rahayu Sigit Paryanto & Rekan Cabang Padang';
+      if (w.includes('makassar')) return 'KJPP Nanang Rahayu Sigit Paryanto & Rekan Cabang Makassar';
+      if (w.includes('palembang') || w.includes('plb') || w.includes('plm')) return 'KJPP Nanang Rahayu Sigit Paryanto & Rekan Cabang Palembang';
+      return 'KJPP Nanang Rahayu Sigit Paryanto & Rekan';
+    }
+
     // ==========================================================
     // 6. POPULATE DROPDOWN PERSONIL & AUTO-VLOOKUP
     // ==========================================================
@@ -3369,25 +3407,34 @@
 
       if (!selRekan || !selReviewer || !selPenilai || !selAsisten) return;
 
-      const curRekan = selRekan.value;
-      const curReviewer = selReviewer.value;
-      const curPenilai = selPenilai.value;
-      const curAsisten = selAsisten.value;
+      const isCabang = userSession && (userSession.mode === 'CABANG' || userSession.role === 'ADMIN_CABANG');
+      const wil = (userSession && userSession.wilayah) || '';
 
-      selRekan.innerHTML = DATABASE_REKAN.map(r => `<option value="${r.nama}">${r.nama} (${r.jabatan})</option>`).join('');
+      if (isCabang) {
+        const partner = getRekanByWilayah(wil);
+        selRekan.innerHTML = `<option value="${partner.nama}">${partner.nama} (${partner.jabatan}) - Terkunci Cabang</option>`;
+        selRekan.value = partner.nama;
+        selRekan.disabled = true;
+      } else {
+        selRekan.disabled = false;
+        selRekan.innerHTML = DATABASE_REKAN.map(r => `<option value="${r.nama}">${r.nama} (${r.jabatan})</option>`).join('');
+      }
       
       const optionsPersonil = DATABASE_PERSONIL.map(p => `<option value="${p.nama}">${p.nama} (${p.peran})</option>`).join('');
       selReviewer.innerHTML = optionsPersonil;
       selPenilai.innerHTML = optionsPersonil;
       selAsisten.innerHTML = optionsPersonil;
 
-      // Default selections yang realistis sesuai Master_Personil
-      const defaultRekan = DATABASE_REKAN.find(r => r.nama === curRekan || r.nama.includes("Deni Siswandi"))?.nama || DATABASE_REKAN[1].nama;
-      const defaultReviewer = DATABASE_PERSONIL.find(p => p.nama === curReviewer || p.nama.includes("Danny Taufik"))?.nama || DATABASE_PERSONIL[1].nama;
-      const defaultPenilai = DATABASE_PERSONIL.find(p => p.nama === curPenilai || p.nama.includes("Tedi Setiadi"))?.nama || DATABASE_PERSONIL[0].nama;
-      const defaultAsisten = DATABASE_PERSONIL.find(p => p.nama === curAsisten || p.nama.includes("Fadri Nurdin"))?.nama || DATABASE_PERSONIL[7].nama;
+      if (!isCabang) {
+        const curRekan = selRekan.value;
+        const defaultRekan = DATABASE_REKAN.find(r => r.nama === curRekan || r.nama.includes("Nanang Rahayu"))?.nama || DATABASE_REKAN[0].nama;
+        selRekan.value = defaultRekan;
+      }
 
-      selRekan.value = defaultRekan;
+      const defaultReviewer = DATABASE_PERSONIL.find(p => p.nama.includes("Danny Taufik"))?.nama || DATABASE_PERSONIL[1].nama;
+      const defaultPenilai = DATABASE_PERSONIL.find(p => p.nama.includes("Tedi Setiadi"))?.nama || DATABASE_PERSONIL[0].nama;
+      const defaultAsisten = DATABASE_PERSONIL.find(p => p.nama.includes("Fadri Nurdin"))?.nama || DATABASE_PERSONIL[7].nama;
+
       selReviewer.value = defaultReviewer;
       selPenilai.value = defaultPenilai;
       selAsisten.value = defaultAsisten;
@@ -5953,7 +6000,7 @@
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">1. STATUS PENILAI</p>
                           <p class="text-justify mb-2">
-                            Pekerjaan penilaian dilaksanakan oleh KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN yang telah mendapatkan pengukuhan dari Kementerian Keuangan Republik Indonesia No. 248/KM.1/2019 tanggal 9 Mei 2019 dengan nomor izin 2.19.0160. Adapun Penilai Publik yang ditugaskan adalah :
+                            Pekerjaan penilaian dilaksanakan oleh ${getNamaKjppLengkap(p.kantor_wilayah).toUpperCase()} yang telah mendapatkan pengukuhan dari Kementerian Keuangan Republik Indonesia No. 248/KM.1/2019 tanggal 9 Mei 2019 dengan nomor izin 2.19.0160. Adapun Penilai Publik yang ditugaskan adalah :
                           </p>
                           <table class="doc-table-clean pl-4 mb-3" style="width: auto;">
                             <tr><td class="w-56 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold text-slate-900">${rekanObj.nama}</td></tr>
@@ -5963,7 +6010,7 @@
                             <tr><td class="font-semibold">No. Register Penilai</td><td>:</td><td>${rekanObj.rmk || '-'}</td></tr>
                             <tr><td class="font-semibold">No. Penilai Pertanahan</td><td>:</td><td>${rekanObj.bpn || '-'}</td></tr>
                             <tr><td class="font-semibold">STTD OJK Sektor PMDK &amp; Non-PMDK</td><td>:</td><td>${rekanObj.ojk || '-'}</td></tr>
-                            <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${rekanObj.jabatan} KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</td></tr>
+                            <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${rekanObj.jabatan} ${getNamaKjppLengkap(p.kantor_wilayah).toUpperCase()}</td></tr>
                           </table>
                           <p class="text-justify mb-2">
                             KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN memiliki 5 (lima) orang Rekan termasuk Pemimpin Rekan yang semuanya merupakan Penilai Publik yang telah memiliki izin dari Menteri Keuangan, seluruhnya merupakan pemegang Surat Tanda Terdaftar (STTD) Penilai Publik OJK Sektor PMDK &amp; Non-PMDK serta diantaranya mempunyai Lisensi Penilai Pertanahan dari Kementerian ATR/BPN.

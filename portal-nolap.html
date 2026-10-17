@@ -19485,6 +19485,10 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
         const pemIcon = fPem ? '<a href="' + fPem + '" target="_blank" title="File Data Pembanding" class="text-amber-400 hover:text-amber-300 font-bold">📊</a>' : '<span class="text-slate-600" title="Belum diunggah">-</span>';
         const baiIcon = fBai ? '<a href="' + fBai + '" target="_blank" title="File Berita Acara Inspeksi" class="text-emerald-400 hover:text-emerald-300 font-bold">📋</a>' : '<span class="text-slate-600" title="Belum diunggah">-</span>';
 
+        const isCabangMandiri = item.kewenangan === 'CABANG_MANDIRI' || item.Kewenangan === 'CABANG_MANDIRI' || (item.catatanPemohon && item.catatanPemohon.includes('CABANG_MANDIRI'));
+        const namaRekanCabang = item.penilai || item.namaPenandatangan || item.Penilai || 'Rekan Cabang';
+        const badgeMandiriCabang = isCabangMandiri ? '<div class="mt-1"><span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">MANDIRI CABANG - ' + namaRekanCabang + '</span></div>' : '';
+
         const waCabangUrl = item.waPemohon ? 'https://wa.me/' + item.waPemohon.replace(/\D/g, '') + '?text=' + encodeURIComponent('Halo ' + (item.namaPemohon || 'Rekan Cabang') + ', konfirmasi tindak lanjut SPK ' + spk + ' (Klien: ' + klien + '). Status NoLap: ' + statusNoLap + '. Terima kasih.') : '#';
 
         rowsToRender.push('<tr>' +
@@ -19493,7 +19497,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           '<td class="p-3 text-[11px]"><span class="text-amber-300 font-semibold block">' + cabang + '</span><span class="text-slate-400">' + (item.tglSpk || item.timestamp || '-') + '</span></td>' +
           '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">SPK Sah</span></td>' +
           '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (statusFin.includes('BAST') ? 'bg-sky-500/20 text-sky-300 border border-sky-400/40' : (statusFin === 'LUNAS' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-slate-800 text-slate-400')) + '">' + statusFin + '</span></td>' +
-          '<td class="p-3 text-center"><div class="font-bold text-[11px] ' + (statusNoLap.includes('DITERBITKAN') ? 'text-emerald-400' : (statusNoLap.includes('BOOKING') ? 'text-sky-300' : 'text-amber-300')) + '">' + statusNoLap + '</div><div class="flex items-center justify-center gap-1.5 mt-1 text-xs">' + lapIcon + ' ' + pemIcon + ' ' + baiIcon + '</div></td>' +
+          '<td class="p-3 text-center"><div class="font-bold text-[11px] ' + (statusNoLap.includes('DITERBITKAN') ? 'text-emerald-400' : (statusNoLap.includes('BOOKING') ? 'text-sky-300' : 'text-amber-300')) + '">' + statusNoLap + '</div>' + badgeMandiriCabang + '<div class="flex items-center justify-center gap-1.5 mt-1 text-xs">' + lapIcon + ' ' + pemIcon + ' ' + baiIcon + '</div></td>' +
           '<td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ' + (statusElsa === 'SELESAI' ? 'bg-emerald-500/20 text-emerald-400' : (statusElsa === 'MENUNGGU BERKAS FINAL' ? 'bg-blue-500/20 text-sky-300 border border-sky-400/40' : 'bg-amber-500/20 text-amber-300')) + '">' + statusElsa + '</span></td>' +
           '<td class="p-3 text-center">' + riskBadge + '</td>' +
           '<td class="p-3 text-center whitespace-nowrap"><div class="flex items-center justify-center gap-1">' +

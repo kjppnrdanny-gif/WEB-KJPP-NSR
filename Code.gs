@@ -556,6 +556,13 @@ function doPost(e) {
         }
         result = prosesUploadArsipSuratUmum(ss, payload);
         break;
+      case 'issueCabangDraftNoLap':
+        result = handleIssueCabangDraftNoLap(ss, payload.data || payload, authResult);
+        break;
+
+      case 'issueCabangDefinitiveNoLap':
+        result = handleIssueCabangDefinitiveNoLap(ss, payload.data || payload, authResult);
+        break;
 
       default:
         result = { status: 'error', success: false, error: 'Aksi (' + action + ') tidak dikenali oleh sistem.' };
@@ -1992,5 +1999,120 @@ function prosesUploadArsipSuratUmum(ss, payload) {
   } finally {
     try { lock.releaseLock(); } catch (e) {}
   }
+}
+
+/**
+ * Handler Khusus Penerbitan Nomor Draf Kerja Mandiri Cabang (Code.gs)
+ */
+function handleIssueCabangDraftNoLap(ss, data, auth) {
+  const cabang = (data.cabang || data.namaCabang || (auth ? auth.wilayah : 'Bandung')).toString().trim();
+  const KODE_CABANG_MAP = {
+    'Bandung': 'BDG', 'Padang': 'PDG', 'Makassar': 'MKS', 'Palembang': 'PLB',
+    'Kantor Cabang Bandung': 'BDG', 'Kantor Cabang Padang': 'PDG',
+    'Kantor Cabang Makassar': 'MKS', 'Kantor Cabang Palembang': 'PLB'
+  };
+  const kodeCabang = KODE_CABANG_MAP[cabang] || 'BDG';
+  const now = new Date();
+  const thn = Utilities.formatDate(now, "Asia/Jakarta", "yyyy");
+  const bln = Utilities.formatDate(now, "Asia/Jakarta", "MM");
+  const seq = String(Math.floor(Math.random() * 900) + 100).padStart(4, '0');
+  const noDraft = 'DRAFT-NSR/' + kodeCabang + '/' + thn + '/' + bln + '/' + seq;
+
+  try {
+    catatLogAktivitas(ss, noDraft, 'ISSUE_CABANG_DRAFT_NOLAP', (auth && auth.token) || 'CABANG', 'Draf Kerja Cabang ' + cabang + ' terbit');
+  } catch (e) {
+    console.warn(e);
+  }
+
+  return {
+    status: 'success',
+    success: true,
+    nomorDraft: noDraft,
+    kewenangan: 'CABANG_MANDIRI',
+    cabang: cabang,
+    message: 'Nomor Draf Kerja Cabang berhasil diterbitkan.'
+  };
+}
+
+/**
+ * Handler Khusus Penerbitan Nomor Laporan Definitif Mandiri Cabang (Code.gs)
+ */
+function handleIssueCabangDefinitiveNoLap(ss, data, auth) {
+  const cabang = (data.cabang || data.namaCabang || (auth ? auth.wilayah : 'Bandung')).toString().trim();
+  const pinInput = (data.pinAdmin || data.pin || '').toString().trim();
+
+  const PIN_ADMIN_CABANG = {
+    'Bandung': 'BDG-ADM-11', 'Kantor Cabang Bandung': 'BDG-ADM-11', 'BDG': 'BDG-ADM-11',
+    'Padang': 'PDG-ADM-22', 'Kantor Cabang Padang': 'PDG-ADM-22', 'PDG': 'PDG-ADM-22',
+    'Makassar': 'MKS-ADM-33', 'Kantor Cabang Makassar': 'MKS-ADM-33', 'MKS': 'MKS-ADM-33',
+    'Palembang': 'PLB-ADM-44', 'Kantor Cabang Palembang': 'PLB-ADM-44', 'PLB': 'PLB-ADM-44'
+  };
+
+  const expectedPin = PIN_ADMIN_CABANG[cabang];
+  if (!expectedPin || pinInput !== expectedPin) {
+    return {
+      status: 'error',
+      success: false,
+      code: 'INVALID_BRANCH_ADMIN_PIN',
+      error: 'Otorisasi Gagal: PIN Admin Cabang salah atau tidak valid.'
+    };
+  }
+
+  const CABANG_CONFIG_GAS = {
+    'Bandung': { kodeKemenkeu: '2.0160-04', kodeCabang: 'BDG', izin: '00581', rekan: 'Deni Siswandi, S.T., MAPPI (Cert.)' },
+    'Kantor Cabang Bandung': { kodeKemenkeu: '2.0160-04', kodeCabang: 'BDG', izin: '00581', rekan: 'Deni Siswandi, S.T., MAPPI (Cert.)' },
+    'Padang': { kodeKemenkeu: '2.0160-01', kodeCabang: 'PDG', izin: 'PS.0046', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
+    'Kantor Cabang Padang': { kodeKemenkeu: '2.0160-01', kodeCabang: 'PDG', izin: 'PS.0046', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
+    'Makassar': { kodeKemenkeu: '2.0160-03', kodeCabang: 'MKS', izin: 'PS.0126', rekan: 'M. Amin Sade, S.T., MAPPI (Cert.)' },
+    'Kantor Cabang Makassar': { kodeKemenkeu: '2.0160-03', kodeCabang: 'MKS', izin: 'PS.0126', rekan: 'M. Amin Sade, S.T., MAPPI (Cert.)' },
+    'Palembang': { kodeKemenkeu: '2.0160-02', kodeCabang: 'PLB', izin: 'PS.0249', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' },
+    'Kantor Cabang Palembang': { kodeKemenkeu: '2.0160-02', kodeCabang: 'PLB', izin: 'PS.0249', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' }
+  };
+
+  const conf = CABANG_CONFIG_GAS[cabang] || CABANG_CONFIG_GAS['Bandung'];
+  const penilaiReq = (data.penilai || conf.rekan).toString();
+
+  if (penilaiReq.toLowerCase().includes('nanang rahayu')) {
+    return {
+      status: 'error',
+      success: false,
+      code: 'FORBIDDEN_PARTNER_SIGNER',
+      error: 'Pelanggaran Kewenangan: Ir. Nanang Rahayu hanya berwenang menandatangani laporan Kantor Pusat.'
+    };
+  }
+
+  if (penilaiReq.toLowerCase().includes('deni siswandi') && !cabang.toLowerCase().includes('bandung')) {
+    return {
+      status: 'error',
+      success: false,
+      code: 'DENI_SISWANDI_DAILY_BRANCH_LOCKED',
+      error: 'Pelanggaran P2PK: Penilai Publik Deni Siswandi memiliki batas wilayah kerja eksklusif Cabang Bandung.'
+    };
+  }
+
+  const now = new Date();
+  const thn = Utilities.formatDate(now, "Asia/Jakarta", "yyyy");
+  const blnIndex = now.getMonth();
+  const romawiBln = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][blnIndex] || 'X';
+  const klasifikasi = (data.klasifikasi || data.jenisJasa || 'PI').toString().trim();
+  const sektor = (data.sektorIndustri || data.kodeIndustri || '07').toString().trim();
+  const seq = String(Math.floor(Math.random() * 9000) + 1000).padStart(5, '0');
+  const noDefinitif = `${seq}/${conf.kodeKemenkeu}/${klasifikasi}/${sektor}/${conf.izin}/1/${romawiBln}/${thn}`;
+
+  try {
+    catatLogAktivitas(ss, noDefinitif, 'ISSUE_CABANG_DEFINITIVE_NOLAP', (auth && auth.token) || 'CABANG', 'NoLap Definitif Mandiri Cabang ' + cabang + ' terbit');
+  } catch (e) {
+    console.warn(e);
+  }
+
+  return {
+    status: 'success',
+    success: true,
+    nomorDefinitif: noDefinitif,
+    kewenangan: 'CABANG_MANDIRI',
+    penilai: conf.rekan,
+    cabang: cabang,
+    message: 'Nomor Laporan Definitif Cabang berhasil diterbitkan.'
+  };
 }
 
