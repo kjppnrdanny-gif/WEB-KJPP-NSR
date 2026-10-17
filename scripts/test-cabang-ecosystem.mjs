@@ -64,8 +64,32 @@ try {
   assert(indexHtml.includes('id="btn-text-portal-kwitansi"'), 'Elemen id="btn-text-portal-kwitansi" tersedia');
   assert(indexHtml.includes('id="sublink-portal-kwitansi"'), 'Elemen id="sublink-portal-kwitansi" tersedia');
 
-  // Pastikan fungsi updateDynamicSmartCards ada
+  // Pastikan elemen Kartu 4 & Kartu 5 tersedia
+  assert(indexHtml.includes('id="kartu-surat-umum"'), 'Elemen id="kartu-surat-umum" pembungkus Kartu 4 tersedia');
+  assert(indexHtml.includes('id="title-portal-sop"'), 'Elemen id="title-portal-sop" tersedia');
+  assert(indexHtml.includes('id="sub-portal-sop"'), 'Elemen id="sub-portal-sop" tersedia');
+  assert(indexHtml.includes('id="btn-text-portal-sop"'), 'Elemen id="btn-text-portal-sop" tersedia');
+  assert(indexHtml.includes('id="link-portal-sop"'), 'Elemen id="link-portal-sop" tersedia');
+
+  // Pastikan Modal Permohonan Akses SOP & Form terpasang
+  assert(indexHtml.includes('id="modal-request-sop"'), 'Modal id="modal-request-sop" terpasang di DOM');
+  assert(indexHtml.includes('id="form-request-sop"'), 'Form id="form-request-sop" terpasang');
+  assert(indexHtml.includes('id="req-sop-cabang"'), 'Input id="req-sop-cabang" terpasang');
+  assert(indexHtml.includes('id="req-sop-nama"'), 'Input id="req-sop-nama" terpasang');
+  assert(indexHtml.includes('id="req-sop-jabatan"'), 'Select id="req-sop-jabatan" terpasang');
+  assert(indexHtml.includes('id="req-sop-dokumen"'), 'Textarea id="req-sop-dokumen" terpasang');
+  assert(indexHtml.includes('id="req-sop-keperluan"'), 'Input id="req-sop-keperluan" terpasang');
+
+  // Pastikan handler permohonan SOP dan WA admin tersedia
+  assert(indexHtml.includes('function bukaModalRequestDokumenSOP()'), 'Fungsi bukaModalRequestDokumenSOP() terdefinisi');
+  assert(indexHtml.includes('function kirimPermohonanSopWA('), 'Fungsi kirimPermohonanSopWA(e) terdefinisi');
+  assert(indexHtml.includes('6285110513157'), 'Nomor WhatsApp Admin Pusat 6285110513157 terpasang sebagai gateway permohonan berkas');
+
+  // Pastikan fungsi updateDynamicSmartCards ada dan menangani Surat Umum & SOP
   assert(indexHtml.includes('function updateDynamicSmartCards(auth)'), 'Fungsi updateDynamicSmartCards(auth) terpasang di runtime JS');
+  assert(indexHtml.includes("kartuSU.style.display = 'none'"), 'Kartu Surat Umum disembunyikan saat sesi Cabang aktif');
+  assert(indexHtml.includes("kartuSU.style.display = ''"), 'Kartu Surat Umum ditampilkan saat sesi Pusat aktif');
+  assert(indexHtml.includes('🔒 Minta Akses &nearr;'), 'Label tombol SOP diubah menjadi 🔒 Minta Akses saat sesi Cabang');
   assert(indexHtml.includes('portal-nolap-cabang.html'), 'Routing portal-nolap-cabang.html terkonfigurasi untuk sesi cabang');
 
 
