@@ -194,7 +194,7 @@
 
         <button id="tab-btn-monitoring" onclick="bukaTabMonitoringEksekutif()" class="py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-sky-400 hover:text-sky-300 flex items-center gap-2 transition">
           <span>📊 6. Dasbor Pengawasan Terpadu</span>
-          <span class="px-1.5 py-0.5 rounded text-[9.5px] font-black bg-sky-500/20 text-sky-300 border border-sky-400/40 tracking-wider">PIN NSR8899</span>
+          <span class="px-1.5 py-0.5 rounded text-[9.5px] font-black bg-sky-500/20 text-sky-300 border border-sky-400/40 tracking-wider">🔒 Khusus Admin Pusat</span>
         </button>
 
         <div class="ml-auto flex items-center my-auto py-1">
@@ -13323,41 +13323,106 @@
       const isSuperOrAdmin = ['SUPER_ADMIN', 'SUPERADMIN', 'PUSAT', 'ADMIN_PUSAT', 'ADMIN', 'ROOT'].includes(role) ||
                              (typeof isSuperOrAdminPusat === 'function' && isSuperOrAdminPusat());
 
+      const tabBtnPengajuan = document.getElementById('tab-btn-pengajuan');
+      const tabBtnSpm = document.getElementById('tab-btn-spm');
+      const tabBtnApproval = document.getElementById('tab-btn-approval') || document.getElementById('tab_btn_approval');
+      const tabBtnElsa = document.getElementById('tab-btn-elsa') || document.getElementById('tab_btn_elsa') || document.getElementById('tab_btn_laporan');
+      const tabBtnRiwayat = document.getElementById('tab-btn-riwayat') || document.getElementById('tab_btn_riwayat') || document.getElementById('tab_btn_register');
+      const tabBtnMonitoring = document.getElementById('tab-btn-monitoring');
       const badgeAdmin = document.getElementById('badge-admin-pusat');
-      const allRestrictedTabs = [
-        document.getElementById('tab-btn-approval'),
-        document.getElementById('tab_btn_approval'),
-        document.getElementById('tab-btn-elsa'),
-        document.getElementById('tab_btn_elsa'),
-        document.getElementById('tab-btn-riwayat'),
-        document.getElementById('tab_btn_riwayat'),
-        document.getElementById('tab_btn_register'),
-        document.getElementById('tab_btn_laporan'),
-        document.getElementById('tab_btn_rekap')
-      ].filter(Boolean);
 
       if (isSuperOrAdmin) {
+        // Mode Super Admin / Admin Pusat: TAMPILKAN SELURUH TAB (1 s/d 6) LENGKAP
         if (badgeAdmin) {
           badgeAdmin.classList.remove('hidden');
           badgeAdmin.style.removeProperty('display');
         }
-        allRestrictedTabs.forEach(tab => {
-          tab.classList.remove('hidden');
-          tab.classList.add('flex');
-          tab.style.removeProperty('display');
-          tab.removeAttribute('hidden');
-        });
+        if (tabBtnPengajuan) {
+          tabBtnPengajuan.classList.remove('hidden');
+          tabBtnPengajuan.style.removeProperty('display');
+          tabBtnPengajuan.innerHTML = '<span>📁 1. Form Pengajuan NoLap</span>';
+        }
+        if (tabBtnSpm) {
+          tabBtnSpm.classList.remove('hidden');
+          tabBtnSpm.style.removeProperty('display');
+          tabBtnSpm.innerHTML = '<span>🛡️ 2. Mitigasi Risiko &amp; SPM</span>';
+        }
+        if (tabBtnApproval) {
+          tabBtnApproval.classList.remove('hidden');
+          tabBtnApproval.style.removeProperty('display');
+          tabBtnApproval.innerHTML = '<span>⚖️ 3. Verifikasi &amp; Approval Admin <span id="badge-count-pending" class="px-1.5 py-0.2 rounded-full bg-amber-500 text-slate-950 font-black text-[10px] hidden">0</span></span>';
+        }
+        if (tabBtnElsa) {
+          tabBtnElsa.classList.remove('hidden');
+          tabBtnElsa.style.removeProperty('display');
+          tabBtnElsa.innerHTML = '<span>🔍 4. Integrasi eLSa (PPPK)</span>';
+        }
+        if (tabBtnRiwayat) {
+          tabBtnRiwayat.classList.remove('hidden');
+          tabBtnRiwayat.style.removeProperty('display');
+          tabBtnRiwayat.innerHTML = '<span>📋 5. Riwayat Seluruh NoLap</span>';
+        }
+        if (tabBtnMonitoring) {
+          tabBtnMonitoring.classList.remove('hidden');
+          tabBtnMonitoring.style.removeProperty('display');
+          tabBtnMonitoring.innerHTML = '<span>📊 6. Dasbor Pengawasan Terpadu</span> <span class="px-1.5 py-0.5 rounded text-[9.5px] font-black bg-sky-500/20 text-sky-300 border border-sky-400/40 tracking-wider">🔒 Khusus Admin Pusat</span>';
+        }
+
+        const selFilter = document.getElementById('filter-cabang');
+        if (selFilter) selFilter.disabled = false;
+        const titleRiwayat = document.querySelector('#panel-riwayat h3');
+        if (titleRiwayat) {
+          titleRiwayat.innerHTML = '<span>📋 Buku Induk &amp; Riwayat Penerbitan Nomor Laporan</span>';
+        }
       } else {
+        // Mode Mandiri Cabang (Role "CABANG"): TAMPILKAN HANYA Tab 1 & Tab 2 (Riwayat Cabang)
         if (badgeAdmin) {
           badgeAdmin.classList.add('hidden');
           badgeAdmin.style.display = 'none';
         }
-        allRestrictedTabs.forEach(tab => {
-          tab.classList.add('hidden');
-          tab.classList.remove('flex');
-          tab.style.display = 'none';
-          tab.setAttribute('hidden', 'true');
+        if (tabBtnPengajuan) {
+          tabBtnPengajuan.classList.remove('hidden');
+          tabBtnPengajuan.style.removeProperty('display');
+          tabBtnPengajuan.innerHTML = '<span>📁 1. Form Pengajuan NoLap</span>';
+        }
+        if (tabBtnRiwayat) {
+          tabBtnRiwayat.classList.remove('hidden');
+          tabBtnRiwayat.style.removeProperty('display');
+          const cabangNama = (activeUser && activeUser.cabang) ? activeUser.cabang : 'Cabang';
+          tabBtnRiwayat.innerHTML = `<span>📋 2. Riwayat Permohonan Cabang (${cabangNama})</span>`;
+        }
+
+        // SEMBUNYIKAN SEPENUHNYA DARI BILAH TAB (Tab 3 Approval, Tab 4 eLSa, Tab 5 SPM, Tab 6 Monitoring)
+        [tabBtnSpm, tabBtnApproval, tabBtnElsa, tabBtnMonitoring].forEach(tab => {
+          if (tab) {
+            tab.classList.add('hidden');
+            tab.classList.remove('flex');
+            tab.style.display = 'none';
+            tab.setAttribute('hidden', 'true');
+          }
         });
+
+        // Auto-filter pada Tab 2 Riwayat Permohonan Cabang
+        if (activeUser && activeUser.cabang) {
+          const selFilter = document.getElementById('filter-cabang');
+          if (selFilter) {
+            selFilter.value = activeUser.cabang;
+            selFilter.disabled = true;
+          }
+          const titleRiwayat = document.querySelector('#panel-riwayat h3');
+          if (titleRiwayat) {
+            titleRiwayat.innerHTML = `<span>📋 Riwayat Permohonan Nomor Laporan Cabang ${activeUser.cabang}</span>`;
+          }
+        }
+
+        // Pastikan cabang tidak tertahan di panel terlarang
+        const isHiddenPanelActive = ['spm', 'approval', 'elsa', 'monitoring'].some(k => {
+          const p = document.getElementById('panel-' + k);
+          return p && !p.classList.contains('hidden') && p.style.display !== 'none';
+        });
+        if (isHiddenPanelActive) {
+          gantiTabModul('pengajuan');
+        }
       }
     }
     window.applyRBAC = applyRBAC;
@@ -13634,6 +13699,7 @@
       }
       if (!t) return null;
 
+      // 1. PIN Super Admin Pusat / Master
       if (t === 'NSR8899' || t === 'SUPER_ADMIN' || t === 'SUPERADMIN' || t === 'MASTER' || t === 'ROOT') {
         return {
           token: 'NSR8899',
@@ -13644,32 +13710,40 @@
           jabatan: 'Super Admin / Master Otoritas'
         };
       }
+
+      // 2. Token Admin Pusat
       if (t === 'NSR-PST-2026' || t === 'NSR2026' || t === 'PUSAT' || t === 'ADMIN_PUSAT' || t === 'ADMIN') {
         return {
           token: 'NSR-PST-2026',
-          role: 'ADMIN_PUSAT',
+          role: 'PUSAT',
           roleLabel: 'Admin Pusat',
           cabang: 'Pusat',
           nama: 'Admin Pusat KJPP NSR',
           jabatan: 'Admin Otorisasi Pusat'
         };
       }
+
+      // 3. Token Cabang Mandiri
       const cabangMap = {
         'NSR-BDG-2026': { cabang: 'Bandung', nama: 'Admin Cabang Bandung' },
         'NSR-PDG-2026': { cabang: 'Padang', nama: 'Admin Cabang Padang' },
         'NSR-MKS-2026': { cabang: 'Makassar', nama: 'Admin Cabang Makassar' },
         'NSR-PLB-2026': { cabang: 'Palembang', nama: 'Admin Cabang Palembang' }
       };
-      if (cabangMap[t]) {
+
+      if (cabangMap[t] || t.startsWith('NSR-CAB-') || t.includes('CABANG')) {
+        const cInfo = cabangMap[t] || { cabang: 'Cabang', nama: 'Admin Cabang' };
         return {
           token: t,
-          role: 'ADMIN_CABANG',
+          role: 'CABANG',
           roleLabel: 'Admin Cabang',
-          cabang: cabangMap[t].cabang,
-          nama: cabangMap[t].nama,
-          jabatan: `Admin Kantor Cabang ${cabangMap[t].cabang}`
+          cabang: cInfo.cabang,
+          nama: cInfo.nama,
+          jabatan: `Admin Kantor Cabang ${cInfo.cabang}`
         };
       }
+
+      // 4. Role Fungsional Lainnya
       if (t === 'NSR-REV-2026') {
         return {
           token: t,
@@ -14890,14 +14964,41 @@
 
     function filterTabelRiwayat() {
       const tbodyRiwayat = document.getElementById('tabel-body-riwayat');
-      const filterCabang = document.getElementById('filter-cabang')?.value || 'ALL';
       if (!tbodyRiwayat) return;
 
+      const activeUser = (typeof sesiAktif !== 'undefined' && sesiAktif) || 
+                         (typeof currentUser !== 'undefined' && currentUser) || null;
+      const isPusat = isSuperOrAdminPusat();
+
+      let targetCabang = 'ALL';
+      if (!isPusat && activeUser && activeUser.cabang && activeUser.cabang !== 'Pusat') {
+        // Mode Mandiri Cabang: WAJIB auto-filter HANYA riwayat pengajuan milik cabang sendiri
+        targetCabang = activeUser.cabang;
+        const selFilter = document.getElementById('filter-cabang');
+        if (selFilter) {
+          selFilter.value = targetCabang;
+          selFilter.disabled = true;
+        }
+      } else {
+        targetCabang = document.getElementById('filter-cabang')?.value || 'ALL';
+        const selFilter = document.getElementById('filter-cabang');
+        if (selFilter) selFilter.disabled = false;
+      }
+
       tbodyRiwayat.innerHTML = '';
-      const dataTerfilter = daftarPermohonan.filter(p => {
-        if (filterCabang !== 'ALL' && p.cabang !== filterCabang) return false;
+      const dataTerfilter = (typeof daftarPermohonan !== 'undefined' && Array.isArray(daftarPermohonan) ? daftarPermohonan : []).filter(p => {
+        if (targetCabang !== 'ALL') {
+          const cP = String(p.cabang || '').toLowerCase();
+          const cTarget = targetCabang.toLowerCase();
+          if (cP !== cTarget && !cP.includes(cTarget)) return false;
+        }
         return true;
       });
+
+      if (dataTerfilter.length === 0) {
+        tbodyRiwayat.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">Belum ada riwayat permohonan nomor laporan untuk ${targetCabang !== 'ALL' ? 'Cabang ' + targetCabang : 'kriteria ini'}.</td></tr>`;
+        return;
+      }
 
       dataTerfilter.forEach(p => {
         const tr = document.createElement('tr');
@@ -18525,9 +18626,9 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       if (tabKey === 'register') tabKey = 'riwayat';
       if (tabKey === 'laporan') tabKey = 'elsa';
 
-      // Proteksi Akses Ketat: Tab 3 (Approval), Tab 4 (eLSa), Tab 5 (Riwayat) HANYA untuk Admin Master Akses & Admin Pusat
-      if (['approval', 'elsa', 'riwayat'].includes(tabKey) && !isSuperOrAdminPusat()) {
-        alert('🔒 Akses Dibatasi: Modul ' + tabKey.toUpperCase() + ' hanya dapat diakses oleh Admin Master Akses dan Admin Kantor Pusat.');
+      // Proteksi Akses Ketat: Tab 3 (Approval), Tab 4 (eLSa), Tab 5 (SPM), Tab 6 (Monitoring) HANYA untuk Admin Pusat!
+      if (['approval', 'elsa', 'spm', 'monitoring'].includes(tabKey) && !isSuperOrAdminPusat()) {
+        alert('🔒 Akses Dibatasi: Modul ' + tabKey.toUpperCase() + ' hanya dapat diakses oleh Admin Kantor Pusat.');
         return;
       }
 
@@ -18536,6 +18637,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       document.getElementById('panel-spm')?.classList.add('hidden');
       document.getElementById('panel-approval')?.classList.add('hidden');
       document.getElementById('panel-elsa')?.classList.add('hidden');
+      document.getElementById('panel-monitoring')?.classList.add('hidden');
       document.getElementById('panel-riwayat')?.classList.add('hidden');
       document.getElementById('panel-monitoring')?.classList.add('hidden');
 
@@ -18863,20 +18965,11 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
     let sesiMonitoringSah = false;
 
     function bukaTabMonitoringEksekutif() {
-      if (sesiMonitoringSah || (typeof isSuperOrAdminPusat === 'function' && isSuperOrAdminPusat())) {
-        bukaPanelMonitoring();
-      } else {
-        const modal = document.getElementById('modal-pin-monitoring');
-        if (modal) {
-          modal.classList.remove('hidden');
-          const inp = document.getElementById('input-pin-monitoring');
-          if (inp) {
-            inp.value = '';
-            setTimeout(() => inp.focus(), 100);
-          }
-          document.getElementById('pesan-error-pin-mon')?.classList.add('hidden');
-        }
+      if (!isSuperOrAdminPusat()) {
+        alert('🔒 Akses Dibatasi: Dasbor Pengawasan Terpadu khusus untuk Admin Kantor Pusat & Manajemen Eksekutif.');
+        return;
       }
+      bukaPanelMonitoring();
     }
 
     function tutupModalPinMonitoring() {
@@ -18893,7 +18986,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       } else {
         const err = document.getElementById('pesan-error-pin-mon');
         if (err) {
-          err.innerText = 'PIN Super Admin tidak valid. Gunakan PIN: NSR8899';
+          err.innerText = 'PIN Otorisasi Pusat tidak valid. Akses ditolak.';
           err.classList.remove('hidden');
         }
       }
