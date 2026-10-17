@@ -2600,14 +2600,43 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
 
       perbaruiPreviewKwitansi();
 
-      // Sinkronisasi query param mode (?mode=pusat vs ?mode=mandiri)
+      // Sinkronisasi query param mode (?mode=pusat vs ?mode=mandiri) & Isolasi Cabang Mandiri
       try {
         const urlParamsKw = new URLSearchParams(window.location.search);
         const modeKw = urlParamsKw.get('mode');
-        if (modeKw === 'pusat') {
-          gantiTab('pusat');
-        } else if (modeKw === 'mandiri') {
+        const isCabangUser = Boolean(currentUser && (currentUser.role === 'CABANG' || currentUser.branch));
+        const isModeMandiriKw = (modeKw === 'mandiri') || (isCabangUser && modeKw !== 'pusat');
+
+        if (isModeMandiriKw) {
           gantiTab('cabang');
+          
+          // Sembunyikan alur kirim pengajuan ke keuangan pusat & tab pusat
+          const btnSubmitPengajuan = document.getElementById('btn-submit-pengajuan');
+          if (btnSubmitPengajuan) {
+            btnSubmitPengajuan.classList.add('hidden');
+            btnSubmitPengajuan.setAttribute('style', 'display: none !important');
+          }
+          const tabBtnPusat = document.getElementById('tab-btn-pusat');
+          if (tabBtnPusat) {
+            tabBtnPusat.classList.add('hidden');
+            tabBtnPusat.setAttribute('style', 'display: none !important');
+          }
+
+          // Pilih rekening operasional cabang otomatis
+          const branchName = String(currentUser?.branch || currentUser?.displayName || document.getElementById('cabang-pengaju')?.value || '').toLowerCase();
+          let defaultBank = 'MANDIRI';
+          if (branchName.includes('bdg') || branchName.includes('bandung')) defaultBank = 'BJB';
+          else if (branchName.includes('pdg') || branchName.includes('padang')) defaultBank = 'BRI';
+          else if (branchName.includes('plb') || branchName.includes('palembang')) defaultBank = 'BTN';
+          else if (branchName.includes('mks') || branchName.includes('makassar')) defaultBank = 'MANDIRI';
+
+          const selRek = document.getElementById('pilihan_rekening_tujuan');
+          if (selRek) {
+            selRek.value = defaultBank;
+            gantiRekeningTujuan('form');
+          }
+        } else if (modeKw === 'pusat') {
+          gantiTab('pusat');
         }
       } catch (e) {}
     }

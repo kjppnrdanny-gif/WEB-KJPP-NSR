@@ -127,6 +127,12 @@ try {
   assert(joHtml.includes("'MANDIRI'"), 'Rekening default Mandiri Cabang Makassar terdaftar');
   assert(joHtml.includes("'BTN'"), 'Rekening default BTN Cabang Palembang terdaftar');
 
+  // Isolasi Mode Mandiri Cabang
+  assert(joHtml.includes("isModeMandiri = (paramMode === 'mandiri') || (isCabangToken && paramMode !== 'pusat')"), 'Formula isModeMandiri akurat mendeteksi query param mandiri dan token cabang');
+  assert(joHtml.includes("containerDualMode.setAttribute('style', 'display: none !important')"), 'Container dual-mode disembunyikan permanen dengan inline style display none');
+  assert(joHtml.includes("labelCentral.setAttribute('style', 'display: none !important')"), 'Kartu Alur 1 Pusat disembunyikan permanen saat mode mandiri cabang');
+  assert(joHtml.includes("await periksaSesiLogin()"), 'Pemeriksaan sesi login di-await sebelum inisialisasi mode');
+
 
   // -----------------------------------------------------------------
   // 3. TEST portal-kwitansi.html - DUAL MODE KWITANSI & PIN FINANCE
@@ -139,6 +145,9 @@ try {
   assert(kwHtml.includes('verifikasiDanTerbitkanKwitansiResmiCabang'), 'Fungsi verifikasiDanTerbitkanKwitansiResmiCabang terpasang');
   assert(kwHtml.includes('modal-pin-finance-cabang'), 'Modal PIN Finance Cabang terpasang di DOM');
   assert(kwHtml.includes('KW-NSR-'), 'Format nomor kwitansi resmi cabang KW-NSR-[KODE_CABANG] terkonfigurasi');
+  assert(kwHtml.includes("isModeMandiriKw = (modeKw === 'mandiri') || (isCabangUser && modeKw !== 'pusat')"), 'Pemisahan mode mandiri kwitansi terpasang');
+  assert(kwHtml.includes("btnSubmitPengajuan.setAttribute('style', 'display: none !important')"), 'Tombol pengajuan ke keuangan pusat disembunyikan saat mode mandiri aktif');
+  assert(kwHtml.includes("tabBtnPusat.setAttribute('style', 'display: none !important')"), 'Tab verifikasi pusat disembunyikan saat mode mandiri kwitansi aktif');
 
 
   // -----------------------------------------------------------------
