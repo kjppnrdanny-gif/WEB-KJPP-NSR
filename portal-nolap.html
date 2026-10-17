@@ -324,9 +324,28 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+            <!-- Pilihan Klasifikasi Entitas Pemberi Tugas (SPI 103) -->
+            <div class="lg:col-span-3 p-3.5 rounded-xl bg-slate-950/80 border border-slate-800">
+              <label class="block font-semibold text-slate-300 mb-2">Klasifikasi Entitas Pemberi Tugas (SPI 103) *</label>
+              <div class="flex flex-wrap items-center gap-2">
+                <label class="cursor-pointer">
+                  <input type="radio" name="entitas_pemberi_tugas" id="entitas-badan" value="badan" checked onchange="toggleKlasifikasiEntitas()" class="peer sr-only">
+                  <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400 peer-checked:text-slate-950 peer-checked:border-amber-400 shadow-sm">
+                    🏢 Badan Usaha / Bank / Korporasi / Instansi
+                  </span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="entitas_pemberi_tugas" id="entitas-perorangan" value="perorangan" onchange="toggleKlasifikasiEntitas()" class="peer sr-only">
+                  <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400 peer-checked:text-slate-950 peer-checked:border-amber-400 shadow-sm">
+                    👤 Perorangan / Pribadi
+                  </span>
+                </label>
+              </div>
+            </div>
+
             <div class="lg:col-span-2">
-              <label class="block font-semibold text-slate-300 mb-1">Nama Pemberi Tugas / Klien *</label>
-              <input type="text" id="f-klien" required oninput="deteksiOtomatisSektorBank()" placeholder="Contoh: PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. IVANDER PUTRA SUKSES" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <label id="label-f-klien" class="block font-semibold text-slate-300 mb-1">Nama Klien / Instansi / Pemberi Tugas *</label>
+              <input type="text" id="f-klien" required oninput="deteksiOtomatisSektorBank()" placeholder="Contoh: PT. BANK CENTRAL ASIA, Tbk KANTOR WILAYAH V – MEDAN" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
               <p id="hint-bank-sektor" class="text-[11px] text-amber-300 mt-1 hidden">💡 Terdeteksi Bank/BTN: Disarankan memilih <strong>07 — Sektor Keuangan - Perbankan</strong>.</p>
             </div>
 
@@ -345,24 +364,90 @@
             </div>
 
             <div class="lg:col-span-2">
-              <label class="block font-semibold text-slate-300 mb-1">Alamat Lengkap Pemberi Tugas *</label>
+              <label id="label-f-alamat-klien" class="block font-semibold text-slate-300 mb-1">Alamat Lengkap Pemberi Tugas *</label>
               <input type="text" id="f-alamat-klien" required placeholder="Alamat kantor pemberi tugas..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Nomor Kontak Klien / PIC *</label>
+              <label id="label-f-npwp" class="block font-semibold text-slate-300 mb-1">NPWP Klien *</label>
+              <input type="text" id="f-npwp" required oninput="updateLivePreview()" placeholder="Contoh: 86.456.757.3-435.000 (atau ketik: - jika non-NPWP)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <span id="hint-f-npwp" class="text-[10px] text-slate-400 mt-0.5 block">Kode NPWP: "1" jika ada, "0" jika tanpa NPWP (Auto).</span>
+            </div>
+
+            <!-- Field PIC / Contact Person dan Jabatan (Dinamis sesuai Entitas) -->
+            <div id="wrap-pic-klien">
+              <label id="label-f-pic-klien" class="block font-semibold text-slate-300 mb-1">PIC / Contact Person</label>
+              <input type="text" id="f-pic-klien" placeholder="Nama narahubung / PIC..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+            </div>
+
+            <div id="wrap-jabatan-klien">
+              <label id="label-f-jabatan-klien" class="block font-semibold text-slate-300 mb-1">Jabatan PIC</label>
+              <input type="text" id="f-jabatan-klien" placeholder="Contoh: Relationship Manager / Appraisal Staff" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+            </div>
+
+            <div id="wrap-kontak-klien">
+              <label id="label-f-kontak-klien" class="block font-semibold text-slate-300 mb-1">Nomor Kontak Klien / PIC *</label>
               <input type="text" id="f-kontak-klien" required placeholder="0813... / (021)..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">NPWP Klien *</label>
-              <input type="text" id="f-npwp" required oninput="updateLivePreview()" placeholder="Contoh: 86.456.757.3-435.000 (atau ketik: - jika non-NPWP)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
-              <span class="text-[10px] text-slate-400 mt-0.5 block">Kode NPWP: "1" jika ada, "0" jika tanpa NPWP (Auto).</span>
-            </div>
+            <!-- ========================================================
+                 SEKSI 3: PENGGUNA LAPORAN PENILAIAN (SPI 103 Klausul 3)
+                 ======================================================== -->
+            <div class="lg:col-span-3 p-4 sm:p-5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-4">
+              <div class="border-b border-slate-800/80 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h4 class="text-sm font-extrabold text-amber-400 flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs font-black">3</span>
+                    <span>3. PENGGUNA LAPORAN PENILAIAN (SPI 103 Klausul 3)</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                    Tentukan pihak yang berhak mengandalkan laporan penilaian. Kolom bersifat teks bebas dan dapat disesuaikan per penugasan.
+                  </p>
+                </div>
 
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Pengguna Laporan *</label>
-              <input type="text" id="f-pengguna-laporan" required placeholder="Contoh: PT Bank BTN / Internal Perusahaan" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                <!-- 3 Tombol Pintas Preset (Quick Chips Helper) -->
+                <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                  <button type="button" onclick="presetSameAsClient()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-400/30 hover:border-amber-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                    <span>🔘 Sama dengan Pemberi Tugas</span>
+                  </button>
+                  <button type="button" onclick="presetBankDebitur()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-sky-300 border border-sky-400/30 hover:border-sky-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                    <span>🔘 Bank &amp; Debitur</span>
+                  </button>
+                  <button type="button" onclick="clearPenggunaLaporan()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                    <span>🔘 Bersihkan Isian</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 4 Field Input Teks Bebas (Grid 2 Kolom) -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Poin (a) -->
+                <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800/80 space-y-3">
+                  <div>
+                    <label class="block font-semibold text-slate-200 mb-1 text-xs">a. Nama Pengguna Laporan *</label>
+                    <input type="text" id="input_pengguna_lap_a_nama" required placeholder="Contoh: PT. BANK CENTRAL ASIA, Tbk KANTOR WILAYAH V – MEDAN" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs">
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1 text-xs">a. Alamat Pengguna Laporan</label>
+                    <input type="text" id="input_pengguna_lap_a_alamat" placeholder="Contoh: Jl. Pangeran Diponegoro No. 15, Medan, Sumatera Utara" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs">
+                  </div>
+                </div>
+
+                <!-- Poin (b) - Fleksibel / Opsional -->
+                <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800/80 space-y-3">
+                  <div>
+                    <label class="block font-semibold text-slate-200 mb-1 text-xs">b. Nama Pengguna Laporan Tambahan / Debitur</label>
+                    <input type="text" id="input_pengguna_lap_b_nama" placeholder="Contoh: PT. MAJU JAYA BERSAMA (Selaku Debitur) / Perorangan" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs">
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-300 mb-1 text-xs">b. Alamat Pengguna Laporan Tambahan</label>
+                    <input type="text" id="input_pengguna_lap_b_alamat" placeholder="Contoh: Kawasan Industri Medan II, Saentis, Deli Serdang" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400 text-xs">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hidden input f-pengguna-laporan for backwards compatibility -->
+              <input type="hidden" id="f-pengguna-laporan" name="f-pengguna-laporan" value="">
             </div>
 
             <div>
@@ -590,7 +675,7 @@
               <span>🔒 Data tersimpan otomatis di database sistem &amp; terkirim ke Admin Pusat.</span>
             </div>
             <div class="flex items-center gap-3">
-              <button type="reset" onclick="setTimeout(perbaruiIdempotencyKey, 20);" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+              <button type="reset" onclick="setTimeout(() => { toggleKlasifikasiEntitas(); clearPenggunaLaporan(); perbaruiIdempotencyKey(); }, 20);" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
                 Reset Isian
               </button>
               <button type="submit" id="btn-submit-pengajuan" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber-400/20">
@@ -13175,6 +13260,7 @@
       // Periksa sesi autentikasi serverless via /api/auth-verify
       await periksaSesiServer();
 
+      toggleKlasifikasiEntitas();
       updateLivePreview();
       try { inisialisasiSmartSpmTanah(); } catch(e){}
       try { inisialisasiSmartSpmUmum(); } catch(e){}
@@ -13627,6 +13713,104 @@
       document.getElementById('seg-waktu').innerText = strWaktu;
     }
 
+    
+    /* =========================================================================
+       LOGIKA DINAMIS PEMBERI TUGAS & PENGGUNA LAPORAN (SPI 103)
+       ========================================================================= */
+    function toggleKlasifikasiEntitas() {
+      const isBadan = document.getElementById('entitas-badan')?.checked !== false;
+      const labelKlien = document.getElementById('label-f-klien');
+      const inputKlien = document.getElementById('f-klien');
+      const wrapPic = document.getElementById('wrap-pic-klien');
+      const wrapJabatan = document.getElementById('wrap-jabatan-klien');
+      const inputPic = document.getElementById('f-pic-klien');
+      const inputJabatan = document.getElementById('f-jabatan-klien');
+      const labelKontak = document.getElementById('label-f-kontak-klien');
+      const labelNpwp = document.getElementById('label-f-npwp');
+      const inputNpwp = document.getElementById('f-npwp');
+      const hintNpwp = document.getElementById('hint-f-npwp');
+      const statusKlien = document.getElementById('f-status-klien');
+
+      if (isBadan) {
+        if (labelKlien) labelKlien.innerText = "Nama Klien / Instansi / Pemberi Tugas *";
+        if (inputKlien) inputKlien.placeholder = "Contoh: PT. BANK CENTRAL ASIA, Tbk KANTOR WILAYAH V – MEDAN";
+        if (wrapPic) wrapPic.classList.remove('hidden');
+        if (wrapJabatan) wrapJabatan.classList.remove('hidden');
+        if (labelKontak) labelKontak.innerText = "Nomor Kontak Klien / PIC *";
+        if (labelNpwp) labelNpwp.innerText = "NPWP Klien *";
+        if (inputNpwp) {
+          inputNpwp.required = true;
+          inputNpwp.placeholder = "Contoh: 86.456.757.3-435.000 (atau ketik: - jika non-NPWP)";
+        }
+        if (hintNpwp) hintNpwp.innerText = 'Kode NPWP: "1" jika ada, "0" jika tanpa NPWP (Auto).';
+        if (statusKlien && statusKlien.value === 'Perorangan') {
+          statusKlien.value = 'Bank';
+        }
+      } else {
+        if (labelKlien) labelKlien.innerText = "Nama Lengkap Pemberi Tugas (sesuai KTP) *";
+        if (inputKlien) inputKlien.placeholder = "Contoh: Budi Santoso / H. Muhammad Arifin";
+        if (wrapPic) wrapPic.classList.add('hidden');
+        if (wrapJabatan) wrapJabatan.classList.add('hidden');
+        if (inputPic) inputPic.value = '';
+        if (inputJabatan) inputJabatan.value = '';
+        if (labelKontak) labelKontak.innerText = "Nomor Kontak / WhatsApp Pemberi Tugas *";
+        if (labelNpwp) labelNpwp.innerText = "NPWP / NIK Pemberi Tugas (16 Digit)";
+        if (inputNpwp) {
+          inputNpwp.required = false;
+          inputNpwp.placeholder = "Contoh: 320101... (NIK KTP / NPWP Pribadi, atau '-' jika non-NPWP)";
+        }
+        if (hintNpwp) hintNpwp.innerText = 'Opsional / NIK KTP (16 Digit). Kode: "1" jika valid, "0" jika tanpa NPWP.';
+        if (statusKlien) {
+          statusKlien.value = 'Perorangan';
+        }
+      }
+    }
+
+    function presetSameAsClient() {
+      const klien = (document.getElementById('f-klien')?.value || '').trim();
+      const alamatKlien = (document.getElementById('f-alamat-klien')?.value || '').trim();
+
+      const elA = document.getElementById('input_pengguna_lap_a_nama');
+      const elAlamatA = document.getElementById('input_pengguna_lap_a_alamat');
+      const elB = document.getElementById('input_pengguna_lap_b_nama');
+      const elAlamatB = document.getElementById('input_pengguna_lap_b_alamat');
+
+      if (elA) elA.value = klien;
+      if (elAlamatA) elAlamatA.value = alamatKlien;
+      if (elB) elB.value = '';
+      if (elAlamatB) elAlamatB.value = '';
+    }
+
+    function presetBankDebitur() {
+      const klien = (document.getElementById('f-klien')?.value || '').trim();
+      const alamatKlien = (document.getElementById('f-alamat-klien')?.value || '').trim();
+      const pemilik = (document.getElementById('f-pemilik-objek')?.value || '').trim();
+      const lokasi = (document.getElementById('f-lokasi-objek')?.value || '').trim();
+
+      const elA = document.getElementById('input_pengguna_lap_a_nama');
+      const elAlamatA = document.getElementById('input_pengguna_lap_a_alamat');
+      const elB = document.getElementById('input_pengguna_lap_b_nama');
+      const elAlamatB = document.getElementById('input_pengguna_lap_b_alamat');
+
+      if (elA) elA.value = klien;
+      if (elAlamatA) elAlamatA.value = alamatKlien;
+      if (elB) elB.value = pemilik ? (pemilik + " (Selaku Debitur)") : "(Selaku Debitur)";
+      if (elAlamatB) elAlamatB.value = lokasi;
+    }
+
+    function clearPenggunaLaporan() {
+      const elA = document.getElementById('input_pengguna_lap_a_nama');
+      const elAlamatA = document.getElementById('input_pengguna_lap_a_alamat');
+      const elB = document.getElementById('input_pengguna_lap_b_nama');
+      const elAlamatB = document.getElementById('input_pengguna_lap_b_alamat');
+      const elHidden = document.getElementById('f-pengguna-laporan');
+
+      if (elA) elA.value = '';
+      if (elAlamatA) elAlamatA.value = '';
+      if (elB) elB.value = '';
+      if (elAlamatB) elAlamatB.value = '';
+      if (elHidden) elHidden.value = '';
+    }
     function deteksiOtomatisSektorBank() {
       const klien = document.getElementById('f-klien')?.value.toLowerCase() || '';
       const hint = document.getElementById('hint-bank-sektor');
@@ -13730,7 +13914,27 @@
       const alamatKlien = document.getElementById('f-alamat-klien').value.trim();
       const kontakKlien = document.getElementById('f-kontak-klien').value.trim();
       const npwp = document.getElementById('f-npwp').value.trim();
-      const penggunaLaporan = document.getElementById('f-pengguna-laporan').value.trim();
+      // Kompilasi Pengguna Laporan SPI 103 (Klausul 3):
+      const elNamaA = document.getElementById('input_pengguna_lap_a_nama');
+      const elAlamatA = document.getElementById('input_pengguna_lap_a_alamat');
+      const elNamaB = document.getElementById('input_pengguna_lap_b_nama');
+      const elAlamatB = document.getElementById('input_pengguna_lap_b_alamat');
+
+      const namaA = (elNamaA ? elNamaA.value : (document.getElementById('f-pengguna-laporan')?.value || '')).trim();
+      const alamatA = (elAlamatA ? elAlamatA.value : '').trim();
+      const namaB = (elNamaB ? elNamaB.value : '').trim();
+      const alamatB = (elAlamatB ? elAlamatB.value : '').trim();
+
+      let finalPenggunaLaporan = '';
+      if (namaB) {
+        finalPenggunaLaporan = `a. ${namaA}${alamatA ? ', Alamat: ' + alamatA : ''}; b. ${namaB}${alamatB ? ', Alamat: ' + alamatB : ''}`;
+      } else {
+        finalPenggunaLaporan = `${namaA}${alamatA ? ', Alamat: ' + alamatA : ''}`;
+      }
+
+      const elHiddenLap = document.getElementById('f-pengguna-laporan');
+      if (elHiddenLap) elHiddenLap.value = finalPenggunaLaporan;
+      const penggunaLaporan = finalPenggunaLaporan;
       const jasa = document.getElementById('f-jasa').value;
       const industri = document.getElementById('f-industri').value;
       const tujuan = document.getElementById('f-tujuan').value;
@@ -13794,7 +13998,15 @@
         izinPenilai: izinPenilai,
         npwp: npwp,
         kodeNpwp: kodeNpwp,
-        penggunaLaporan: penggunaLaporan,
+        penggunaLaporan: finalPenggunaLaporan,
+        "Pengguna Laporan": finalPenggunaLaporan,
+        penggunaLapANama: namaA,
+        penggunaLapAAlamat: alamatA,
+        penggunaLapBNama: namaB,
+        penggunaLapBAlamat: alamatB,
+        entitasKlien: document.getElementById('entitas-perorangan')?.checked ? 'Perorangan' : 'Badan Usaha',
+        picKlien: (document.getElementById('f-pic-klien')?.value || '').trim(),
+        jabatanPicKlien: (document.getElementById('f-jabatan-klien')?.value || '').trim(),
         noSpk: noSpk,
         tglSpk: tglSpk,
         tglPenilaian: tglPenilaian,
@@ -13902,6 +14114,8 @@
           bodyToSend["File Laporan Penilaian"] = valLap;
           bodyToSend["File Data Pembanding"] = valPem;
           bodyToSend["File Berita Acara Inspeksi"] = valBai;
+          bodyToSend["Pengguna Laporan"] = bodyToSend["Pengguna Laporan"] || bodyToSend.penggunaLaporan || '';
+          bodyToSend["penggunaLaporan"] = bodyToSend["Pengguna Laporan"];
         }
 
         payload.append('payload', JSON.stringify(bodyToSend));
@@ -14018,7 +14232,7 @@
         `• *No. Permintaan:* ${data.noPermintaan}%0A` +
         `• *Kantor/Cabang:* ${data.cabang}%0A` +
         `• *Pemohon:* ${data.namaPemohon} (${data.waPemohon})%0A` +
-        `• *Pemberi Tugas:* ${data.namaKlien}%0A` +
+        `• *Pemberi Tugas:* ${data.namaKlien}%0A• *Pengguna Laporan:* ${data.penggunaLaporan || data['Pengguna Laporan'] || '-'}%0A` +
         `• *Objek:* ${data.jenisObjek}%0A` +
         `• *Lokasi:* ${data.lokasiObjek}%0A` +
         `• *Penilai:* ${data.penilai} (Izin: ${data.izinPenilai})%0A` +
@@ -14039,6 +14253,7 @@
           <div class="text-slate-400">Ringkasan Penugasan:</div>
           <div class="grid grid-cols-2 gap-2 text-[11px]">
             <div><strong>Klien:</strong> ${data.namaKlien}</div>
+            <div class="col-span-2"><strong>Pengguna Laporan:</strong> ${data.penggunaLaporan || data['Pengguna Laporan'] || '-'}</div>
             <div><strong>Cabang:</strong> ${data.cabang}</div>
             <div><strong>Penilai:</strong> ${data.penilai}</div>
             <div><strong>Sektor:</strong> Sektor ${data.kodeIndustri}</div>
@@ -14298,7 +14513,7 @@
           <div><span class="text-slate-400 block">Email Pemohon:</span> ${item.emailPemohon}</div>
           <div class="sm:col-span-2"><span class="text-slate-400 block">Pemberi Tugas / Klien:</span> <strong class="text-white text-xs">${item.namaKlien}</strong></div>
           <div><span class="text-slate-400 block">NPWP Klien:</span> ${item.npwp || '-'} (Kode: ${item.kodeNpwp})</div>
-          <div><span class="text-slate-400 block">Pengguna Laporan:</span> ${item.penggunaLaporan || '-'}</div>
+          <div class="sm:col-span-2"><span class="text-slate-400 block">Pengguna Laporan (SPI 103):</span> <strong class="text-white">${item.penggunaLaporan || item['Pengguna Laporan'] || '-'}</strong></div>
           <div><span class="text-slate-400 block">Jasa & Sektor:</span> ${item.klasifikasiJasa} — Sektor ${item.kodeIndustri}</div>
           <div><span class="text-slate-400 block">Penilai Penandatangan:</span> ${item.penilai} (Izin: ${item.izinPenilai})</div>
           <div class="sm:col-span-2"><span class="text-slate-400 block">Objek & Lokasi:</span> ${item.jenisObjek} di ${item.lokasiObjek}</div>
