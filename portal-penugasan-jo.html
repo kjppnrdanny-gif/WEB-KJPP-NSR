@@ -554,25 +554,43 @@
         </div>
 
         <!-- 2. PEMBERI TUGAS & PENGGUNA LAPORAN -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
-          <h3 class="text-sm font-black text-amber-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span class="w-6 h-6 rounded-md bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs">02</span>
-            <span>Identitas Pemberi Tugas &amp; Pengguna Laporan</span>
-          </h3>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <h3 class="text-sm font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs">02</span>
+              <span>Identitas Pemberi Tugas &amp; Pengguna Laporan</span>
+            </h3>
+
+            <!-- Klasifikasi Entitas Pemberi Tugas (Toggle Pill) -->
+            <div class="inline-flex p-1 bg-slate-950 border border-slate-800 rounded-xl select-none">
+              <label class="cursor-pointer">
+                <input type="radio" name="entitas_pemberi_tugas" id="entitas_badan_usaha" value="Badan Usaha" checked onchange="onEntitasPemberiTugasChange()" class="peer sr-only">
+                <span class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 peer-checked:bg-amber-400 peer-checked:text-slate-950 peer-checked:shadow-sm">
+                  🏢 Badan Usaha / Bank / Korporasi / Instansi
+                </span>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="entitas_pemberi_tugas" id="entitas_perorangan" value="Perorangan" onchange="onEntitasPemberiTugasChange()" class="peer sr-only">
+                <span class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 peer-checked:bg-amber-400 peer-checked:text-slate-950 peer-checked:shadow-sm">
+                  👤 Perorangan / Pribadi
+                </span>
+              </label>
+            </div>
+          </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
             <div class="lg:col-span-2">
-              <label class="block font-semibold text-slate-300 mb-1">Nama Instansi / Badan Usaha Pemberi Tugas <span class="text-rose-400">*</span></label>
+              <label id="lbl_pemberi_tugas_nama" class="block font-semibold text-slate-300 mb-1">Nama Instansi / Badan Usaha Pemberi Tugas <span class="text-rose-400">*</span></label>
               <input type="text" id="pemberi_tugas_nama" required placeholder="Contoh: PT BANK RAKYAT INDONESIA (PERSERO) TBK" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-bold focus:outline-none focus:border-amber-400">
             </div>
 
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Nama PIC / Pejabat Penandatangan</label>
+            <div id="col_pemberi_tugas_pic">
+              <label id="lbl_pemberi_tugas_pic" class="block font-semibold text-slate-300 mb-1">Nama PIC / Pejabat Penandatangan</label>
               <input type="text" id="pemberi_tugas_pic" placeholder="Contoh: Bpk. Bambang Sutrisno" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
             </div>
 
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Jabatan PIC</label>
+            <div id="col_pemberi_tugas_jabatan">
+              <label id="lbl_pemberi_tugas_jabatan" class="block font-semibold text-slate-300 mb-1">Jabatan PIC</label>
               <input type="text" id="pemberi_tugas_jabatan" placeholder="Contoh: Pemimpin Cabang / Relationship Manager" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
             </div>
 
@@ -589,32 +607,62 @@
 
           <div class="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Alamat Kantor Pemberi Tugas <span class="text-rose-400">*</span></label>
+              <label id="lbl_pemberi_tugas_alamat" class="block font-semibold text-slate-300 mb-1">Alamat Kantor Pemberi Tugas <span class="text-rose-400">*</span></label>
               <textarea id="pemberi_tugas_alamat" rows="2" required placeholder="Jl. Pemuda No. 45, Rawamangun, Pulo Gadung, Jakarta Timur 13220" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400"></textarea>
             </div>
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">NPWP &amp; Alamat NPWP Pemberi Tugas</label>
+              <label id="lbl_pemberi_tugas_npwp" class="block font-semibold text-slate-300 mb-1">NPWP &amp; Alamat NPWP Pemberi Tugas</label>
               <textarea id="pemberi_tugas_npwp" rows="2" placeholder="NPWP: 01.001.604.1-092.000 (Alamat sesuai NPWP: Jl. Jend. Sudirman Kav. 44-46, Jakarta Pusat)" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400"></textarea>
             </div>
           </div>
 
-          <!-- Bagian Pengguna Laporan -->
-          <div class="mt-4 pt-4 border-t border-slate-800/80">
-            <div class="flex items-center justify-between mb-3">
-              <label class="font-bold text-slate-200 text-xs">Pengguna Laporan Penilaian (SPI 103 klausul 3)</label>
-              <label class="inline-flex items-center gap-1.5 text-xs text-amber-300 cursor-pointer">
-                <input type="checkbox" id="check_same_pengguna" onchange="handleCopyPengguna()" class="rounded border-slate-700 text-amber-400 focus:ring-0">
-                <span>Sama dengan Pemberi Tugas</span>
-              </label>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <!-- Bagian Pengguna Laporan (SPI 103 Klausul 3) -->
+          <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <label class="block font-semibold text-slate-300 mb-1">Poin (a) Pengguna Utama <span class="text-rose-400">*</span></label>
-                <input type="text" id="pengguna_laporan_a" required placeholder="PT BANK RAKYAT INDONESIA (PERSERO) TBK" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
+                <label class="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                  <span class="text-amber-400">3.</span> PENGGUNA LAPORAN PENILAIAN (SPI 103 Klausul 3)
+                </label>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                  Tentukan pihak yang berhak mengandalkan laporan penilaian. Kolom bersifat teks bebas dan dapat disesuaikan per penugasan.
+                </p>
               </div>
-              <div>
-                <label class="block font-semibold text-slate-300 mb-1">Poin (b) Pengguna Tambahan / Bank Terkait</label>
-                <input type="text" id="pengguna_laporan_b" placeholder="PT Bank Rakyat Indonesia (Persero) Tbk Kantor Cabang Rawamangun" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
+
+              <!-- 3 Quick Chips Helper Buttons -->
+              <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                <button type="button" onclick="presetSameAsClientPenugasan()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-semibold border border-amber-400/30 flex items-center gap-1 transition">
+                  <span>🔘 Sama dengan Pemberi Tugas</span>
+                </button>
+                <button type="button" onclick="presetBankDebiturPenugasan()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 text-[11px] font-semibold border border-sky-400/30 flex items-center gap-1 transition">
+                  <span>🔘 Bank &amp; Debitur</span>
+                </button>
+                <button type="button" onclick="clearPenggunaLaporanPenugasan()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-rose-900/50 text-slate-300 hover:text-rose-200 text-[11px] font-semibold border border-slate-700 flex items-center gap-1 transition">
+                  <span>🔘 Bersihkan Isian</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2.5">
+                <div>
+                  <label class="block font-semibold text-slate-200 mb-1">a. Nama Pengguna Laporan <span class="text-rose-400">*</span></label>
+                  <input type="text" id="pengguna_laporan_a" required placeholder="Contoh: PT BANK RAKYAT INDONESIA (PERSERO) TBK" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 font-bold focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-400 mb-1">a. Alamat Pengguna Laporan</label>
+                  <input type="text" id="pengguna_laporan_a_alamat" placeholder="Contoh: Jl. Jend. Sudirman Kav. 44-46, Jakarta Pusat 10210" class="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2.5">
+                <div>
+                  <label class="block font-semibold text-slate-200 mb-1">b. Nama Pengguna Laporan Tambahan / Debitur (Opsional)</label>
+                  <input type="text" id="pengguna_laporan_b" placeholder="Contoh: Bpk. H. AHMAD FAUZI / PT CITRA JAYA ABADI" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-400 mb-1">b. Alamat Pengguna Laporan Tambahan</label>
+                  <input type="text" id="pengguna_laporan_b_alamat" placeholder="Contoh: Alamat debitur / lokasi aset penjaminan" class="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-[11px] focus:outline-none focus:border-amber-400">
+                </div>
               </div>
             </div>
           </div>
@@ -745,7 +793,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs items-start mb-4">
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Maksud &amp; Tujuan Penilaian <span class="text-rose-400">*</span></label>
-              <select id="maksud_tujuan_penilaian" name="tujuan_penilaian" required onchange="handleTujuanChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400 font-semibold">
+              <select id="maksud_tujuan_penilaian" name="tujuan_penilaian" required onchange="onTujuanPenilaianJoChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400 font-semibold">
                 <option value="Penjaminan Hutang / Agunan Kredit">Penjaminan Hutang / Agunan Kredit</option>
                 <option value="Jual Beli / Transaksi Wajar">Jual Beli / Transaksi Wajar</option>
                 <option value="Laporan Keuangan &amp; Revaluasi Aset Tetap (PSAK)">Laporan Keuangan &amp; Revaluasi Aset Tetap (PSAK)</option>
@@ -783,6 +831,92 @@
             </div>
           </div>
 
+          <!-- KONTEN DINAMIS REGULASI PENGADAAN TANAH (PP No. 19/2021 & SPI 204) -->
+          <div id="container-pengadaan-tanah-jo" class="hidden p-4 sm:p-5 rounded-2xl bg-amber-950/20 border border-amber-400/40 space-y-4 mb-4">
+            <div class="border-b border-amber-400/20 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 class="text-sm font-extrabold text-amber-300 flex items-center gap-2">
+                  <span class="w-5 h-5 rounded bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs font-black">⚖️</span>
+                  <span>Kategori &amp; Mekanisme Pengadaan Tanah (PP No. 19/2021 &amp; SPI 204)</span>
+                </h4>
+                <p class="text-[11px] text-slate-300 mt-1">
+                  Pilih skala penugasan untuk penyesuaian otomatis Dasar Nilai (NPW / Nilai Pasar) dan validasi dokumen yuridis.
+                </p>
+              </div>
+              <span class="px-2.5 py-1 rounded bg-amber-400/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-400/40 shrink-0">
+                SPI 204 / PP 19/2021
+              </span>
+            </div>
+
+            <!-- 3 Radio Card / Pills Kategori Skala Tanah -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+              <label class="cursor-pointer">
+                <input type="radio" name="kategori_skala_tanah_jo" id="skala_besar_jo" value="Skala Besar (> 5 Ha) — Mengikuti Regulasi Tahapan Penuh" checked onchange="onKategoriSkalaTanahJoChange()" class="peer sr-only">
+                <div class="p-3 rounded-xl border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400/20 peer-checked:text-amber-200 peer-checked:border-amber-400 h-full flex flex-col justify-between shadow-sm">
+                  <div>
+                    <div class="font-bold text-xs flex items-center justify-between">
+                      <span>📐 Skala Besar (&gt; 5 Ha)</span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black">Wajib Penlok</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Mengikuti Regulasi Tahapan Penuh (4 Tahapan: Perencanaan, Persiapan, Pelaksanaan, Penyerahan).</p>
+                  </div>
+                  <div class="mt-2 text-[10px] text-amber-300/90 font-medium font-mono">Dasar Nilai: NPW (Kunci Otomatis)</div>
+                </div>
+              </label>
+
+              <label class="cursor-pointer">
+                <input type="radio" name="kategori_skala_tanah_jo" id="skala_kecil_tahapan_jo" value="Skala Kecil (≤ 5 Ha) — Mengikuti Tahapan Pengadaan Tanah" onchange="onKategoriSkalaTanahJoChange()" class="peer sr-only">
+                <div class="p-3 rounded-xl border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400/20 peer-checked:text-amber-200 peer-checked:border-amber-400 h-full flex flex-col justify-between shadow-sm">
+                  <div>
+                    <div class="font-bold text-xs flex items-center justify-between">
+                      <span>⚖️ Skala Kecil (&le; 5 Ha)</span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-400 text-slate-950 font-black">Dengan Tahapan</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Mengikuti Tahapan Pengadaan Tanah dengan SK Penlok Instansi.</p>
+                  </div>
+                  <div class="mt-2 text-[10px] text-amber-300/90 font-medium font-mono">Dasar Nilai: Nilai Pasar (Bisa NPW)</div>
+                </div>
+              </label>
+
+              <label class="cursor-pointer">
+                <input type="radio" name="kategori_skala_tanah_jo" id="skala_kecil_tanpa_tahapan_jo" value="Skala Kecil (≤ 5 Ha) — Tanpa Tahapan (Pembelian / Transaksi Langsung)" onchange="onKategoriSkalaTanahJoChange()" class="peer sr-only">
+                <div class="p-3 rounded-xl border transition select-none bg-slate-900 border-slate-700 text-slate-300 peer-checked:bg-amber-400/20 peer-checked:text-amber-200 peer-checked:border-amber-400 h-full flex flex-col justify-between shadow-sm">
+                  <div>
+                    <div class="font-bold text-xs flex items-center justify-between">
+                      <span>🤝 Skala Kecil (&le; 5 Ha)</span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400 text-slate-950 font-black">Tanpa Tahapan</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Pembelian / Transaksi Langsung (Pasal 124 PP 19/2021). Tanpa Penlok.</p>
+                  </div>
+                  <div class="mt-2 text-[10px] text-amber-300/90 font-medium font-mono">Dasar Nilai: Nilai Pasar (Kunci Otomatis)</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Blok Sub-Grid Dokumen Yuridis Pengadaan Tanah -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2 text-xs">
+              <div>
+                <label class="block font-semibold text-amber-200 mb-1">Nomor Daftar Nominatif (Danom) <span class="text-rose-400">*</span></label>
+                <input type="text" id="input_no_danom_jo" placeholder="Contoh: DANOM-014/PENG-TNH/2026" class="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-amber-400">
+              </div>
+
+              <div id="col_penlok_jo">
+                <label class="block font-semibold text-amber-200 mb-1">Nomor SK Penetapan Lokasi (Penlok) <span class="text-rose-400">*</span></label>
+                <input type="text" id="input_no_penlok_jo" placeholder="Contoh: SK Gub No. 590/12/PL/2026" class="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-amber-400">
+              </div>
+
+              <div id="col_tgl_penlok_jo">
+                <label class="block font-semibold text-amber-200 mb-1">Tanggal SK Penlok <span class="text-rose-400">*</span></label>
+                <input type="date" id="input_tgl_penlok_jo" onchange="onTglPenlokJoChange()" class="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-400">
+              </div>
+
+              <div id="col_rtrw_jo" class="hidden lg:col-span-2">
+                <label class="block font-semibold text-emerald-300 mb-1">Konfirmasi Kesesuaian Tata Ruang (RTRW / KKPR) <span class="text-rose-400">*</span></label>
+                <input type="text" id="input_kesesuaian_rtrw_jo" placeholder="Contoh: Surat KKPR / Rekomendasi Kesesuaian Tata Ruang No. 650/44/DPUTR/2026" class="w-full h-9 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-400">
+              </div>
+            </div>
+          </div>
+
           <!-- Baris 2: Administrasi, Tanggal, Sumber Proyek & PIC Marketing (4 Kolom Proporsional) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs items-start">
             <div>
@@ -791,7 +925,7 @@
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Tanggal Penilaian (Cut-off Inspeksi) <span class="text-rose-400">*</span></label>
+              <label id="lbl_tanggal_penilaian" for="tanggal_penilaian" class="block font-semibold text-slate-300 mb-1">Tanggal Penilaian (Cut-off Inspeksi) <span class="text-rose-400">*</span></label>
               <input type="date" id="tanggal_penilaian" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono focus:outline-none focus:border-amber-400">
             </div>
 
@@ -2320,16 +2454,16 @@
         Penilai: p.penilai_nama,
         Asisten_Surveyor: p.asisten_nama,
         Surveyor_Pendamping_HP: p.surveyor_pendamping || `${p.asisten_nama} / ${p.debitur_cp || '-'}`,
-        Nama_Pemberi_Tugas: p.pemberi_tugas_nama,
+        Nama_Pemberi_Tugas: p.Nama_Pemberi_Tugas || p.pemberi_tugas_nama,
         Bidang_Usaha_Klien: p.bidang_usaha_klien || 'Perbankan',
-        NPWP_Klien: p.pemberi_tugas_npwp,
-        PIC_Klien: p.pemberi_tugas_pic,
-        Jabatan_PIC: p.pemberi_tugas_jabatan,
+        NPWP_Klien: p.NPWP_Klien || p.pemberi_tugas_npwp,
+        PIC_Klien: p.PIC_Klien || p.pemberi_tugas_pic || '-',
+        Jabatan_PIC: p.Jabatan_PIC || p.pemberi_tugas_jabatan || '-',
         Telp_PIC: p.pemberi_tugas_kontak,
         Email_PIC: p.pemberi_tugas_email,
-        Alamat_Pemberi_Tugas: p.pemberi_tugas_alamat,
-        Pengguna_Laporan_A: p.pengguna_laporan_a || p.pemberi_tugas_nama,
-        Pengguna_Laporan_B: p.pengguna_laporan_b || '-',
+        Alamat_Pemberi_Tugas: p.Alamat_Pemberi_Tugas || p.pemberi_tugas_alamat,
+        Pengguna_Laporan_A: p.Pengguna_Laporan_A || p.pengguna_laporan_a || p.pemberi_tugas_nama,
+        Pengguna_Laporan_B: p.Pengguna_Laporan_B || p.pengguna_laporan_b || '-',
         Nama_Debitur_Utama: p.debitur_nama,
         Nama_Pemilik_Sertipikat: p.pemilik_sertipikat || p.debitur_nama,
         Hubungan_Pemilik_Sertipikat: p.hubungan_pemilik || 'Milik Sendiri',
@@ -2338,12 +2472,12 @@
         Alamat_Lokasi_Objek: (p.objek_list && p.objek_list.length > 0)
           ? p.objek_list.map((o, idx) => `${idx + 1}. [${o.jenis}] ${o.lokasi || '-'}`).join('; ')
           : (p.objek_lokasi || '-'),
-        Tujuan_Penilaian: p.tujuan_penilaian,
+        Tujuan_Penilaian: p.catatan_yuridis_tanah ? `${p.tujuan_penilaian} | ${p.catatan_yuridis_tanah}` : p.tujuan_penilaian,
         Dasar_Nilai: p.dasar_nilai,
         Pendekatan_Penilaian: p.pendekatan_penilaian,
         Mata_Uang: p.mata_uang || 'Rupiah (IDR)',
         Tgl_Penilaian: p.tanggal_penilaian || p.tanggal_surat,
-        Tgl_Survey: p.survey_tanggal || p.tanggal_surat,
+        Tgl_Survey: p.tanggal_penilaian || p.survey_tanggal || p.tanggal_surat,
         Survey_Hari: p.survey_hari || getNamaHari(p.survey_tanggal || p.tanggal_surat),
         SLA_Inspeksi: parseInt(p.sla_inspeksi, 10) || 1,
         SLA_Analisa: parseInt(p.sla_analisa, 10) || 2,
@@ -4434,12 +4568,209 @@
       updateNomorOtomatisPreview();
     }
 
+    function onEntitasPemberiTugasChange() {
+      const isPerorangan = document.getElementById('entitas_perorangan')?.checked;
+      const lblNama = document.getElementById('lbl_pemberi_tugas_nama');
+      const inpNama = document.getElementById('pemberi_tugas_nama');
+      const colPic = document.getElementById('col_pemberi_tugas_pic');
+      const colJabatan = document.getElementById('col_pemberi_tugas_jabatan');
+      const inpPic = document.getElementById('pemberi_tugas_pic');
+      const inpJabatan = document.getElementById('pemberi_tugas_jabatan');
+      const lblAlamat = document.getElementById('lbl_pemberi_tugas_alamat');
+      const lblNpwp = document.getElementById('lbl_pemberi_tugas_npwp');
+      const inpNpwp = document.getElementById('pemberi_tugas_npwp');
+
+      if (isPerorangan) {
+        if (lblNama) lblNama.innerHTML = 'Nama Lengkap Pemberi Tugas (sesuai KTP) <span class="text-rose-400">*</span>';
+        if (inpNama) inpNama.placeholder = 'Contoh: Budi Santoso / H. Muhammad Arifin';
+        if (colPic) colPic.classList.add('hidden');
+        if (colJabatan) colJabatan.classList.add('hidden');
+        if (inpPic) { inpPic.required = false; inpPic.value = ''; }
+        if (inpJabatan) { inpJabatan.required = false; inpJabatan.value = ''; }
+        if (lblAlamat) lblAlamat.innerHTML = 'Alamat Domisili KTP Pemberi Tugas <span class="text-rose-400">*</span>';
+        if (lblNpwp) lblNpwp.innerHTML = 'NIK KTP (16 Digit) / NPWP Pribadi';
+        if (inpNpwp) inpNpwp.placeholder = 'Contoh: 3201012304850001 (NIK 16 Digit) atau NPWP Pribadi (opsional / "-" jika non-NPWP)';
+      } else {
+        if (lblNama) lblNama.innerHTML = 'Nama Instansi / Badan Usaha Pemberi Tugas <span class="text-rose-400">*</span>';
+        if (inpNama) inpNama.placeholder = 'Contoh: PT BANK RAKYAT INDONESIA (PERSERO) TBK';
+        if (colPic) colPic.classList.remove('hidden');
+        if (colJabatan) colJabatan.classList.remove('hidden');
+        if (lblAlamat) lblAlamat.innerHTML = 'Alamat Kantor Pemberi Tugas <span class="text-rose-400">*</span>';
+        if (lblNpwp) lblNpwp.innerHTML = 'NPWP &amp; Alamat NPWP Pemberi Tugas';
+        if (inpNpwp) inpNpwp.placeholder = 'NPWP: 01.001.604.1-092.000 (Alamat sesuai NPWP: Jl. Jend. Sudirman Kav. 44-46, Jakarta Pusat)';
+      }
+    }
+
+    function presetSameAsClientPenugasan() {
+      const namaKlien = document.getElementById('pemberi_tugas_nama')?.value || '';
+      const alamatKlien = document.getElementById('pemberi_tugas_alamat')?.value || '';
+      const inpA = document.getElementById('pengguna_laporan_a');
+      const inpAAlamat = document.getElementById('pengguna_laporan_a_alamat');
+      const inpB = document.getElementById('pengguna_laporan_b');
+      const inpBAlamat = document.getElementById('pengguna_laporan_b_alamat');
+
+      if (inpA) inpA.value = namaKlien;
+      if (inpAAlamat) inpAAlamat.value = alamatKlien;
+      if (inpB) inpB.value = '';
+      if (inpBAlamat) inpBAlamat.value = '';
+    }
+
+    function presetBankDebiturPenugasan() {
+      const namaKlien = document.getElementById('pemberi_tugas_nama')?.value || '';
+      const alamatKlien = document.getElementById('pemberi_tugas_alamat')?.value || '';
+      const namaDebitur = document.getElementById('debitur_nama')?.value || '';
+      
+      let alamatDebitur = '';
+      if (window.objekRows && window.objekRows.length > 0 && window.objekRows[0].lokasi) {
+        alamatDebitur = window.objekRows[0].lokasi;
+      }
+
+      const inpA = document.getElementById('pengguna_laporan_a');
+      const inpAAlamat = document.getElementById('pengguna_laporan_a_alamat');
+      const inpB = document.getElementById('pengguna_laporan_b');
+      const inpBAlamat = document.getElementById('pengguna_laporan_b_alamat');
+
+      if (inpA) inpA.value = namaKlien;
+      if (inpAAlamat) inpAAlamat.value = alamatKlien;
+      if (inpB) inpB.value = namaDebitur;
+      if (inpBAlamat) inpBAlamat.value = alamatDebitur;
+    }
+
+    function clearPenggunaLaporanPenugasan() {
+      const inpA = document.getElementById('pengguna_laporan_a');
+      const inpAAlamat = document.getElementById('pengguna_laporan_a_alamat');
+      const inpB = document.getElementById('pengguna_laporan_b');
+      const inpBAlamat = document.getElementById('pengguna_laporan_b_alamat');
+
+      if (inpA) inpA.value = '';
+      if (inpAAlamat) inpAAlamat.value = '';
+      if (inpB) inpB.value = '';
+      if (inpBAlamat) inpBAlamat.value = '';
+    }
+
     function handleCopyPengguna() {
-      const chk = document.getElementById('check_same_pengguna').checked;
-      if (chk) {
-        const instansi = document.getElementById('pemberi_tugas_nama').value;
-        document.getElementById('pengguna_laporan_a').value = instansi;
-        document.getElementById('pengguna_laporan_b').value = instansi;
+      presetSameAsClientPenugasan();
+    }
+
+    function onTujuanPenilaianJoChange() {
+      handleTujuanChange();
+      const elTujuan = document.getElementById('maksud_tujuan_penilaian') || document.getElementById('tujuan_penilaian');
+      const val = elTujuan ? elTujuan.value : '';
+      const isTanah = val.includes('Pengadaan Tanah') || val.includes('SPI 204');
+      const container = document.getElementById('container-pengadaan-tanah-jo');
+
+      if (container) {
+        if (isTanah) {
+          container.classList.remove('hidden');
+          onKategoriSkalaTanahJoChange();
+        } else {
+          container.classList.add('hidden');
+          const danom = document.getElementById('input_no_danom_jo');
+          const penlok = document.getElementById('input_no_penlok_jo');
+          const tglPenlok = document.getElementById('input_tgl_penlok_jo');
+          const rtrw = document.getElementById('input_kesesuaian_rtrw_jo');
+          if (danom) { danom.required = false; danom.value = ''; }
+          if (penlok) { penlok.required = false; penlok.value = ''; }
+          if (tglPenlok) { tglPenlok.required = false; tglPenlok.value = ''; }
+          if (rtrw) { rtrw.required = false; rtrw.value = ''; }
+
+          const selDasar = document.getElementById('dasar_nilai');
+          if (selDasar) {
+            selDasar.disabled = false;
+            selDasar.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-slate-900');
+          }
+          const lblTglPenilaian = document.getElementById('lbl_tanggal_penilaian');
+          if (lblTglPenilaian) lblTglPenilaian.innerHTML = 'Tanggal Penilaian (Cut-off Inspeksi) <span class="text-rose-400">*</span>';
+        }
+      }
+    }
+
+    function onKategoriSkalaTanahJoChange() {
+      const skalaBesar = document.getElementById('skala_besar_jo')?.checked;
+      const skalaKecilTahapan = document.getElementById('skala_kecil_tahapan_jo')?.checked;
+      const skalaKecilTanpaTahapan = document.getElementById('skala_kecil_tanpa_tahapan_jo')?.checked;
+
+      const colPenlok = document.getElementById('col_penlok_jo');
+      const colTglPenlok = document.getElementById('col_tgl_penlok_jo');
+      const colRtrw = document.getElementById('col_rtrw_jo');
+
+      const inpDanom = document.getElementById('input_no_danom_jo');
+      const inpPenlok = document.getElementById('input_no_penlok_jo');
+      const inpTglPenlok = document.getElementById('input_tgl_penlok_jo');
+      const inpRtrw = document.getElementById('input_kesesuaian_rtrw_jo');
+
+      const selDasar = document.getElementById('dasar_nilai');
+      const inpTglPenilaian = document.getElementById('tanggal_penilaian');
+      const inpSurveyTgl = document.getElementById('survey_tanggal');
+      const lblTglPenilaian = document.getElementById('lbl_tanggal_penilaian');
+
+      if (inpDanom) inpDanom.required = true;
+
+      if (skalaBesar) {
+        if (selDasar) {
+          selDasar.value = "Nilai Penggantian Wajar / NPW (SPI 204)";
+          selDasar.disabled = true;
+          selDasar.classList.add('opacity-75', 'cursor-not-allowed', 'bg-slate-900');
+        }
+        if (colPenlok) colPenlok.classList.remove('hidden');
+        if (colTglPenlok) colTglPenlok.classList.remove('hidden');
+        if (colRtrw) colRtrw.classList.add('hidden');
+        if (inpPenlok) inpPenlok.required = true;
+        if (inpTglPenlok) inpTglPenlok.required = true;
+        if (inpRtrw) { inpRtrw.required = false; inpRtrw.value = ''; }
+
+        if (lblTglPenilaian) lblTglPenilaian.innerHTML = 'Tanggal Penilaian (Sesuai Tanggal SK Penlok) <span class="text-rose-400">*</span>';
+        if (inpTglPenlok && inpTglPenlok.value && inpTglPenilaian) {
+          inpTglPenilaian.value = inpTglPenlok.value;
+        }
+      } else if (skalaKecilTahapan) {
+        if (selDasar) {
+          selDasar.disabled = false;
+          selDasar.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-slate-900');
+          if (!selDasar.value.includes("Nilai Penggantian Wajar") && !selDasar.value.includes("Nilai Pasar")) {
+            selDasar.value = "Nilai Pasar / Market Value (SPI 101)";
+          }
+        }
+        if (colPenlok) colPenlok.classList.remove('hidden');
+        if (colTglPenlok) colTglPenlok.classList.remove('hidden');
+        if (colRtrw) colRtrw.classList.add('hidden');
+        if (inpPenlok) inpPenlok.required = true;
+        if (inpTglPenlok) inpTglPenlok.required = true;
+        if (inpRtrw) { inpRtrw.required = false; inpRtrw.value = ''; }
+
+        if (lblTglPenilaian) lblTglPenilaian.innerHTML = 'Tanggal Penilaian (Cut-off Survei Lapangan) <span class="text-rose-400">*</span>';
+        if (inpSurveyTgl && inpSurveyTgl.value && inpTglPenilaian) {
+          inpTglPenilaian.value = inpSurveyTgl.value;
+        }
+      } else if (skalaKecilTanpaTahapan) {
+        if (selDasar) {
+          selDasar.value = "Nilai Pasar / Market Value (SPI 101)";
+          selDasar.disabled = true;
+          selDasar.classList.add('opacity-75', 'cursor-not-allowed', 'bg-slate-900');
+        }
+        if (colPenlok) colPenlok.classList.add('hidden');
+        if (colTglPenlok) colTglPenlok.classList.add('hidden');
+        if (colRtrw) colRtrw.classList.remove('hidden');
+        if (inpPenlok) { inpPenlok.required = false; inpPenlok.value = ''; }
+        if (inpTglPenlok) { inpTglPenlok.required = false; inpTglPenlok.value = ''; }
+        if (inpRtrw) inpRtrw.required = true;
+
+        if (lblTglPenilaian) lblTglPenilaian.innerHTML = 'Tanggal Penilaian (Cut-off Survei Lapangan) <span class="text-rose-400">*</span>';
+        if (inpSurveyTgl && inpSurveyTgl.value && inpTglPenilaian) {
+          inpTglPenilaian.value = inpSurveyTgl.value;
+        }
+      }
+      handleDasarNilaiChange();
+    }
+
+    function onTglPenlokJoChange() {
+      const skalaBesar = document.getElementById('skala_besar_jo')?.checked;
+      if (skalaBesar) {
+        const tglPenlok = document.getElementById('input_tgl_penlok_jo')?.value;
+        const inpTglPenilaian = document.getElementById('tanggal_penilaian');
+        if (tglPenlok && inpTglPenilaian) {
+          inpTglPenilaian.value = tglPenlok;
+        }
       }
     }
 
@@ -4885,6 +5216,42 @@
         projectStatus = (userSession.role === 'ADMIN_CABANG') ? "APPROVED" : "WAITING_BRANCH_ADMIN";
       }
 
+      const isPerorangan = document.getElementById('entitas_perorangan')?.checked;
+      const entitasPemberiTugas = isPerorangan ? 'Perorangan' : 'Badan Usaha';
+      const namaPemberiTugas = document.getElementById('pemberi_tugas_nama')?.value.trim() || '';
+      const picKlien = isPerorangan ? '-' : (document.getElementById('pemberi_tugas_pic')?.value.trim() || '-');
+      const jabatanPic = isPerorangan ? '-' : (document.getElementById('pemberi_tugas_jabatan')?.value.trim() || '-');
+      const npwpKlien = document.getElementById('pemberi_tugas_npwp')?.value.trim() || '';
+      const alamatPemberiTugas = document.getElementById('pemberi_tugas_alamat')?.value.trim() || '';
+
+      // Pengguna Laporan A & B Terstruktur (SPI 103 klausul 3)
+      const namaPenggunaA = document.getElementById('pengguna_laporan_a')?.value.trim() || namaPemberiTugas;
+      const alamatPenggunaA = document.getElementById('pengguna_laporan_a_alamat')?.value.trim() || '';
+      const finalPenggunaA = `${namaPenggunaA}${alamatPenggunaA ? ', Alamat: ' + alamatPenggunaA : ''}`;
+
+      const namaPenggunaB = document.getElementById('pengguna_laporan_b')?.value.trim() || '';
+      const alamatPenggunaB = document.getElementById('pengguna_laporan_b_alamat')?.value.trim() || '';
+      const finalPenggunaB = namaPenggunaB ? `${namaPenggunaB}${alamatPenggunaB ? ', Alamat: ' + alamatPenggunaB : ''}` : '-';
+
+      // Parameter Yuridis Pengadaan Tanah (PP 19/2021 & SPI 204)
+      const rawTujuan = getResolvedTujuanPenilaian();
+      const isPengadaanTanah = rawTujuan.includes('Pengadaan Tanah') || rawTujuan.includes('SPI 204');
+      let skalaPengadaan = '';
+      let noDanom = '';
+      let noPenlok = '';
+      let tglPenlok = '';
+      let rtrwKkpr = '';
+      let catatanYuridisTanah = '';
+
+      if (isPengadaanTanah) {
+        skalaPengadaan = document.querySelector('input[name="kategori_skala_tanah_jo"]:checked')?.value || 'Skala Besar';
+        noDanom = document.getElementById('input_no_danom_jo')?.value.trim() || '-';
+        noPenlok = document.getElementById('input_no_penlok_jo')?.value.trim() || '-';
+        tglPenlok = document.getElementById('input_tgl_penlok_jo')?.value.trim() || '-';
+        rtrwKkpr = document.getElementById('input_kesesuaian_rtrw_jo')?.value.trim() || '-';
+        catatanYuridisTanah = `[PENGADAAN TANAH: ${skalaPengadaan}] Danom:${noDanom} | Penlok:${noPenlok} (Tgl:${tglPenlok}) | RTRW/KKPR:${rtrwKkpr}`;
+      }
+
       const newProject = {
         id: projectId,
         status: projectStatus,
@@ -4899,16 +5266,34 @@
         rujukan_surat_nomor: document.getElementById('rujukan_surat_nomor').value || '-',
         rujukan_surat_tanggal: document.getElementById('rujukan_surat_tanggal').value || tglStr,
         masa_berlaku_lp: dMasa.toISOString().split('T')[0],
-        pemberi_tugas_nama: document.getElementById('pemberi_tugas_nama').value.trim(),
-        bidang_usaha_klien: "Perbankan / Finansial",
-        pemberi_tugas_pic: document.getElementById('pemberi_tugas_pic').value.trim(),
-        pemberi_tugas_jabatan: document.getElementById('pemberi_tugas_jabatan').value.trim(),
+        entitas_pemberi_tugas: entitasPemberiTugas,
+        pemberi_tugas_nama: namaPemberiTugas,
+        bidang_usaha_klien: isPerorangan ? "Perorangan / Pribadi" : "Perbankan / Finansial",
+        pemberi_tugas_pic: picKlien,
+        pemberi_tugas_jabatan: jabatanPic,
         pemberi_tugas_kontak: document.getElementById('pemberi_tugas_kontak').value.trim(),
         pemberi_tugas_email: document.getElementById('pemberi_tugas_email').value.trim(),
-        pemberi_tugas_alamat: document.getElementById('pemberi_tugas_alamat').value.trim(),
-        pemberi_tugas_npwp: document.getElementById('pemberi_tugas_npwp').value.trim(),
-        pengguna_laporan_a: document.getElementById('pengguna_laporan_a').value.trim() || document.getElementById('pemberi_tugas_nama').value.trim(),
-        pengguna_laporan_b: document.getElementById('pengguna_laporan_b').value.trim() || '-',
+        pemberi_tugas_alamat: alamatPemberiTugas,
+        pemberi_tugas_npwp: npwpKlien,
+        pengguna_laporan_a: finalPenggunaA,
+        pengguna_laporan_b: finalPenggunaB,
+        pengguna_laporan_a_nama: namaPenggunaA,
+        pengguna_laporan_a_alamat: alamatPenggunaA,
+        pengguna_laporan_b_nama: namaPenggunaB,
+        pengguna_laporan_b_alamat: alamatPenggunaB,
+        Pengguna_Laporan_A: finalPenggunaA,
+        Pengguna_Laporan_B: finalPenggunaB,
+        Nama_Pemberi_Tugas: namaPemberiTugas,
+        NPWP_Klien: npwpKlien,
+        PIC_Klien: picKlien,
+        Jabatan_PIC: jabatanPic,
+        Alamat_Pemberi_Tugas: alamatPemberiTugas,
+        skala_pengadaan_tanah: skalaPengadaan,
+        no_danom: noDanom,
+        no_penlok: noPenlok,
+        tgl_penlok: tglPenlok,
+        kesesuaian_rtrw: rtrwKkpr,
+        catatan_yuridis_tanah: catatanYuridisTanah,
         debitur_nama: document.getElementById('debitur_nama').value.trim().toUpperCase(),
         debitur_cp: document.getElementById('debitur_cp').value.trim() || document.getElementById('debitur_nama').value.trim(),
         pemilik_sertipikat: document.getElementById('debitur_nama').value.trim().toUpperCase(),
@@ -5558,8 +5943,8 @@
                             <div>
                               <p class="font-bold text-slate-800">a. Pengguna Laporan Utama :</p>
                               <table class="doc-table-clean pl-4" style="width: auto;">
-                                <tr><td class="w-52 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pengguna_laporan_a || p.pemberi_tugas_nama}</td></tr>
-                                <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pemberi_tugas_alamat || '-'}</td></tr>
+                                <tr><td class="w-52 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pengguna_laporan_a_nama || (p.pengguna_laporan_a ? p.pengguna_laporan_a.split(', Alamat:')[0] : p.pemberi_tugas_nama)}</td></tr>
+                                <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pengguna_laporan_a_alamat || (p.pengguna_laporan_a && p.pengguna_laporan_a.includes(', Alamat:') ? p.pengguna_laporan_a.split(', Alamat:')[1] : (p.pemberi_tugas_alamat || '-'))}</td></tr>
                                 <tr><td class="font-semibold">PIC</td><td>:</td><td>${p.pemberi_tugas_pic || '-'}</td></tr>
                                 <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${p.pemberi_tugas_jabatan || '-'}</td></tr>
                                 <tr><td class="font-semibold">No. Telepon / Faksimile</td><td>:</td><td>${p.pemberi_tugas_telp || '-'}</td></tr>
@@ -5571,8 +5956,8 @@
                               <p class="font-bold text-slate-800">b. Pengguna Laporan Tambahan :</p>
                               ${p.pengguna_laporan_b && p.pengguna_laporan_b !== '-' ? `
                               <table class="doc-table-clean pl-4" style="width: auto;">
-                                <tr><td class="w-52 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pengguna_laporan_b}</td></tr>
-                                <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pengguna_b_alamat || '-'}</td></tr>
+                                <tr><td class="w-52 font-semibold">Nama</td><td class="w-3">:</td><td class="font-bold">${p.pengguna_laporan_b_nama || p.pengguna_laporan_b.split(', Alamat:')[0]}</td></tr>
+                                <tr><td class="font-semibold">Alamat</td><td>:</td><td>${p.pengguna_laporan_b_alamat || (p.pengguna_laporan_b.includes(', Alamat:') ? p.pengguna_laporan_b.split(', Alamat:')[1] : (p.pengguna_b_alamat || '-'))}</td></tr>
                                 <tr><td class="font-semibold">PIC</td><td>:</td><td>${p.pengguna_b_pic || '-'}</td></tr>
                                 <tr><td class="font-semibold">Jabatan</td><td>:</td><td>${p.pengguna_b_jabatan || '-'}</td></tr>
                                 <tr><td class="font-semibold">No. Telepon / Faksimile</td><td>:</td><td>${p.pengguna_b_telp || '-'}</td></tr>

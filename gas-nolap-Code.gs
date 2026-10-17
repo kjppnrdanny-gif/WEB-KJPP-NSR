@@ -33,8 +33,8 @@ const CONFIG_NOLAP = {
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
-    // Kunci proses maksimal 20 detik untuk mencegah tumpang tindih nomor permintaan / baris
-    lock.waitLock(20000);
+    // Kunci proses maksimal 30 detik untuk mencegah tumpang tindih nomor permintaan / baris
+    lock.waitLock(30000);
 
     let action = '';
     let payload = null;
@@ -120,6 +120,26 @@ function handleSubmitPengajuanNoLap(data) {
   if (colIndexPembanding <= 0) colIndexPembanding = 52; // Kolom AZ
   if (colIndexBai <= 0) colIndexBai = 53;               // Kolom BA
 
+  // Format Catatan Pemohon & Parameter Yuridis Pengadaan Tanah
+  let catatanPemohon = (data.catatanPemohon || '').toString().trim();
+  if (data.catatanYuridisTanah && !catatanPemohon.includes(data.catatanYuridisTanah)) {
+    catatanPemohon = (catatanPemohon ? (catatanPemohon + ' | ') : '') + data.catatanYuridisTanah;
+  }
+
+  // Format Pengguna Laporan Terstruktur (SPI 103)
+  let penggunaLaporan = (data.penggunaLaporan || data['Pengguna Laporan'] || '').toString().trim();
+  if (!penggunaLaporan && (data.penggunaLapANama || data.namaA)) {
+    const namaA = (data.penggunaLapANama || data.namaA || '').toString().trim();
+    const alamatA = (data.penggunaLapAAlamat || data.alamatA || '').toString().trim();
+    const namaB = (data.penggunaLapBNama || data.namaB || '').toString().trim();
+    const alamatB = (data.penggunaLapBAlamat || data.alamatB || '').toString().trim();
+    if (namaB) {
+      penggunaLaporan = `a. ${namaA}${alamatA ? ', Alamat: ' + alamatA : ''}; b. ${namaB}${alamatB ? ', Alamat: ' + alamatB : ''}`;
+    } else if (namaA) {
+      penggunaLaporan = `a. ${namaA}${alamatA ? ', Alamat: ' + alamatA : ''}`;
+    }
+  }
+
   // 3. Susun Baris Data Baru (53 Kolom)
   const now = new Date();
   const timestampStr = Utilities.formatDate(now, "Asia/Jakarta", "M/d/yyyy HH:mm:ss");
@@ -133,8 +153,8 @@ function handleSubmitPengajuanNoLap(data) {
   row[3]  = data.jabatanPemohon || '';                      // 4 (D): Jabatan Pemohon
   row[4]  = data.emailPemohon || '';                        // 5 (E): Email Pemohon
   row[5]  = data.waPemohon || data.nomorWhatsAppPemohon || ''; // 6 (F): Nomor WhatsApp Pemohon
-  row[6]  = data.namaKlien || '';                           // 7 (G): Nama Klien
-  row[7]  = data.statusKlien || data.statusKepemilikan || ''; // 8 (H): Status Kepemilikan Pemberi Tugas
+  row[6]  = data.namaKlien || data.namaInstansi || data.namaLengkapKtp || ''; // 7 (G): Nama Klien (Badan Usaha / KTP)
+  row[7]  = data.statusKlien || data.statusKepemilikan || (data.entitasKlien ? (data.entitasKlien === 'Perorangan' ? 'Perorangan' : 'Badan Usaha') : 'Badan Usaha'); // 8 (H): Status Kepemilikan Pemberi Tugas
   row[8]  = data.alamatKlien || '';                         // 9 (I): Alamat Lengkap Pemberi Tugas
   row[9]  = data.emailKlien || data.emailPemberiTugas || '';// 10 (J): Email Pemberi Tugas
   row[10] = data.kontakKlien || data.nomorKontakKlien || '';// 11 (K): Nomor Kontak Klien
@@ -145,7 +165,7 @@ function handleSubmitPengajuanNoLap(data) {
   row[15] = data.deadline || data.deadlineLaporan || '';    // 16 (P): Deadline Laporan
   row[16] = data.penilai || data.namaPenandatangan || '';   // 17 (Q): Nama Penandatangan
   row[17] = data.kodeIndustri || '';                        // 18 (R): Kode Industri
-  row[18] = data.npwp || '';                                // 19 (S): NPWP
+  row[18] = data.npwp || data.nikKtp || '';                 // 19 (S): NPWP (NPWP Badan / NIK 16 Digit)
   row[19] = data.noPermintaan || '';                        // 20 (T): No Permintaan
 
   // Kolom 21 - 34 (Status Operasional & ELSA)
@@ -160,20 +180,20 @@ function handleSubmitPengajuanNoLap(data) {
   row[28] = data.tglPenyampaianQr || '';                    // 29 (AC): Tanggal Penyampaian QR
   row[29] = data.statusPenyampaianQr || 'BELUM DISAMPAIKAN';// 30 (AD): Status Penyampaian QR
   row[30] = data.catatanElsa || '';                         // 31 (AE): Catatan ELSA
-  row[31] = data.catatanPemohon || '';                      // 32 (AF): Catatan Pemohon
+  row[31] = catatanPemohon;                                 // 32 (AF): Catatan Pemohon
   row[32] = data.catatanAdmin || '';                        // 33 (AG): Catatan Admin
-  row[33] = data.waPemohon ? ('https://wa.me/' + data.waPemohon.toString().replace(/\\D/g, '')) : ''; // 34 (AH): Link WhatsApp
+  row[33] = data.waPemohon ? ('https://wa.me/' + data.waPemohon.toString().replace(/\D/g, '')) : ''; // 34 (AH): Link WhatsApp
 
   // Kolom 35 - 50 (Parameter Teknis & Finansial Penugasan)
   row[34] = data.noLingkup || data.noLingkupPenugasan || '';// 35 (AI): No Lingkup Penugasan
   row[35] = data.tglLingkup || '';                          // 36 (AJ): Tanggal Lingkup Penugasan
   row[36] = data.noSpk || '';                               // 37 (AK): No SPK
   row[37] = data.tglSpk || '';                              // 38 (AL): Tanggal SPK
-  row[38] = data.tglPenilaian || '';                        // 39 (AM): Tanggal Penilaian
-  row[39] = data.penggunaLaporan || '';                     // 40 (AN): Pengguna Laporan
+  row[38] = data.tglPenilaian || '';                        // 39 (AM): Tanggal Penilaian (Cut-off Survei / Penlok)
+  row[39] = penggunaLaporan;                                // 40 (AN): Pengguna Laporan (SPI 103 klausul 3)
   row[40] = data.pendekatan || data.pendekatanPenilaian || ''; // 41 (AO): Pendekatan Penilaian
   row[41] = data.metode || data.metodePenilaian || '';      // 42 (AP): Metode Penilaian
-  row[42] = data.dasarNilai || '';                          // 43 (AQ): Dasar Nilai
+  row[42] = data.dasarNilai || '';                          // 43 (AQ): Dasar Nilai (NPW / Nilai Pasar)
   row[43] = data.bentukLaporan || '';                       // 44 (AR): Bentuk Laporan
   row[44] = data.kesimpulanNilai || '';                     // 45 (AS): Kesimpulan Nilai
   row[45] = data.biayaJasa || data.totalBayar || 0;         // 46 (AT): Biaya Jasa
@@ -199,6 +219,9 @@ function handleSubmitPengajuanNoLap(data) {
   sheet.getRange(nextRow, colIndexPembanding).setValue(filePembanding);
   sheet.getRange(nextRow, colIndexBai).setValue(fileBai);
 
+  // Kirim Notifikasi Email HTML Resmi ke admin@kjppnanangrahayu.com
+  sendEmailNotificationNoLap(data, nextRow, fileLaporan, filePembanding, fileBai, penggunaLaporan, catatanPemohon);
+
   return jsonResponse({
     success: true,
     message: 'Pengajuan nomor laporan berhasil direkam ke Google Sheets PENGAJUAN pada baris ke-' + nextRow,
@@ -210,6 +233,79 @@ function handleSubmitPengajuanNoLap(data) {
       kolomBA: { col: colIndexBai, name: 'File Berita Acara Inspeksi', value: fileBai }
     }
   });
+}
+
+/**
+ * Pengiriman Notifikasi Email HTML Resmi ke admin@kjppnanangrahayu.com
+ * Dilengkapi Tombol Tindakan Cepat WhatsApp Konfirmasi (Mba Siti & Admin Resmi)
+ */
+function sendEmailNotificationNoLap(data, rowIndex, fileLaporan, filePembanding, fileBai, penggunaLaporan, catatanPemohon) {
+  try {
+    const recipient = 'admin@kjppnanangrahayu.com';
+    const noReq = data.noPermintaan || ('REQ-' + Date.now());
+    const namaKlien = data.namaKlien || data.namaInstansi || data.namaLengkapKtp || 'Klien';
+    const cabang = data.cabang || data.namaCabang || 'Pusat';
+    const subject = `[PENGAJUAN NOLAP] ${noReq} - ${namaKlien} (${cabang})`;
+
+    const waTextMbaSiti = encodeURIComponent(`Halo Mba Siti, konfirmasi pengajuan NoLap:\n• No Permintaan: ${noReq}\n• Klien: ${namaKlien}\n• Cabang: ${cabang}\n• Objek: ${data.jenisObjek || '-'}\nMohon diverifikasi di sheet PENGAJUAN baris ke-${rowIndex}. Terima kasih.`);
+    const waUrlMbaSiti = `https://wa.me/628871336710?text=${waTextMbaSiti}`;
+
+    const waTextAdmin = encodeURIComponent(`Halo Admin Resmi KJPP NSR, konfirmasi pengajuan NoLap:\n• No Permintaan: ${noReq}\n• Klien: ${namaKlien}\n• Cabang: ${cabang}\n• Objek: ${data.jenisObjek || '-'}\nMohon diproses untuk penerbitan NoLap. Terima kasih.`);
+    const waUrlAdmin = `https://wa.me/6285110513157?text=${waTextAdmin}`;
+
+    const htmlBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+        <div style="background-color: #0f172a; color: #f8fafc; padding: 20px; text-align: center;">
+          <h2 style="margin: 0; color: #f59e0b; font-size: 19px; letter-spacing: 0.5px;">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
+          <p style="margin: 6px 0 0; font-size: 13px; color: #94a3b8;">Notifikasi Permohonan Nomor Laporan (NoLap) Baru</p>
+        </div>
+        <div style="padding: 22px;">
+          <p style="font-size: 13.5px; color: #334155; margin-top: 0; line-height: 1.5;">
+            Permohonan Nomor Laporan baru telah berhasil dicatat pada Google Sheets <strong>PENGAJUAN</strong> pada baris ke-<strong>${rowIndex}</strong>:
+          </p>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 16px 0;">
+            <tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; width: 34%; border: 1px solid #e2e8f0;">No. Permintaan</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0; color: #0284c7; font-weight: bold;">${noReq}</td></tr>
+            <tr><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Cabang / Pemohon</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${cabang} &bull; ${data.namaPemohon || '-'} (${data.jabatanPemohon || '-'})</td></tr>
+            <tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Pemberi Tugas (Klien)</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>${namaKlien}</strong> [${data.statusKlien || data.statusKepemilikan || 'Badan Usaha'}]</td></tr>
+            <tr><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Pengguna Laporan (SPI 103)</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${penggunaLaporan || '-'}</td></tr>
+            <tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Tujuan & Dasar Nilai</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${data.tujuanPenilaian || '-'} &bull; <strong>${data.dasarNilai || '-'}</strong></td></tr>
+            <tr><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Objek & Lokasi</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${data.jenisObjek || '-'} (${data.lokasiObjek || '-'})</td></tr>
+            <tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Tgl Penilaian (Cut-off)</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0;">${data.tglPenilaian || '-'}</td></tr>
+            <tr><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Catatan / Yuridis Tanah</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-size: 11.5px; color: #475569;">${catatanPemohon || '-'}</td></tr>
+            <tr style="background-color: #f8fafc;"><td style="padding: 8px 12px; font-weight: bold; border: 1px solid #e2e8f0;">Berkas Terstruktur (Drive)</td><td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-size: 12px;">
+              • File Laporan: ${fileLaporan ? ('<a href="' + fileLaporan + '" target="_blank" style="color: #0284c7; font-weight: bold;">Buka Laporan</a>') : '-'}<br>
+              • Data Pembanding: ${filePembanding ? ('<a href="' + filePembanding + '" target="_blank" style="color: #0284c7; font-weight: bold;">Buka Pembanding</a>') : '-'}<br>
+              • Berita Acara Inspeksi: ${fileBai ? ('<a href="' + fileBai + '" target="_blank" style="color: #0284c7; font-weight: bold;">Buka BAI</a>') : '-'}
+            </td></tr>
+          </table>
+
+          <div style="margin-top: 22px; padding: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center;">
+            <p style="margin: 0 0 10px; font-size: 13px; font-weight: bold; color: #1e293b;">Tombol Konfirmasi Cepat WhatsApp:</p>
+            <div style="margin: 6px 0;">
+              <a href="${waUrlMbaSiti}" target="_blank" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 9px 16px; border-radius: 6px; font-size: 12.5px; font-weight: bold; margin: 4px;">
+                💬 Konfirmasi ke Mba Siti (08871336710)
+              </a>
+              <a href="${waUrlAdmin}" target="_blank" style="display: inline-block; background-color: #0284c7; color: #ffffff; text-decoration: none; padding: 9px 16px; border-radius: 6px; font-size: 12.5px; font-weight: bold; margin: 4px;">
+                💬 Konfirmasi ke Admin Resmi (085110513157)
+              </a>
+            </div>
+          </div>
+        </div>
+        <div style="background-color: #f1f5f9; padding: 10px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
+          Email otomatis ini diterbitkan oleh Backend Google Apps Script KJPP NSR Portal NoLap.
+        </div>
+      </div>
+    `;
+
+    MailApp.sendEmail({
+      to: recipient,
+      subject: subject,
+      htmlBody: htmlBody
+    });
+    Logger.log('Notifikasi email berhasil dikirim ke ' + recipient);
+  } catch (err) {
+    Logger.log('Gagal mengirim notifikasi email: ' + err.toString());
+  }
 }
 
 /**
