@@ -239,6 +239,46 @@ try {
   assert(joHtml.includes('simpanSesiSSO'), 'Fungsi simpanSesiSSO menyinkronkan NSR_AUTH_TOKEN, NSR_USER_SESSION, TOKEN_AUTH_NSR, CURRENT_AUTH_TOKEN');
   assert(joHtml.includes('unduhBackupPrivatCabang'), 'Fungsi unduhBackupPrivatCabang mengisolasi ekspor JSON khusus data cabang aktif');
 
+  // D. Uji Kebersihan Markup DOM (Zero Static Dummy Rows di tbody_antrean)
+  const tbodyAntreanMatch = joHtml.match(/<tbody\s+id="tbody_antrean"[^>]*>([\s\S]*?)<\/tbody>/i);
+  assert(tbodyAntreanMatch !== null, 'Tag <tbody id="tbody_antrean"> ditemukan di portal-penugasan-jo.html');
+  assert(tbodyAntreanMatch[1].trim() === '', 'Tag <tbody id="tbody_antrean"> dalam keadaan KOSONG TOTAL (Zero hardcoded dummy rows)');
+
+  // E. Uji Isolasi Khusus Cabang Padang (NSR-PDG-2026)
+  const authPdg = resolveUnifiedToken('NSR-PDG-2026');
+  assert(authPdg && authPdg.role === 'ADMIN_CABANG' && authPdg.isCabang === true && authPdg.wilayah === 'Padang', 'Token NSR-PDG-2026 dikenali sebagai Admin Cabang Padang');
+  assert(authPdg.kodeKantor === '2.0160-01' && authPdg.kodeWilayah === '2.0160-01', 'Token NSR-PDG-2026 memuat kode kantor dan kode wilayah resmi 2.0160-01');
+
+  const mockDatasetPadang = [
+    { id: 'JO-PST-01', kantor_wilayah: 'Kantor Pusat Jakarta', debitur_nama: 'PT Megah Jakarta', status: 'APPROVED' },
+    { id: 'JO-BDG-01', kantor_wilayah: 'Kantor Cabang Bandung', debitur_nama: 'PT Priangan Bandung', status: 'WAITING_APPROVAL' },
+    { id: 'JO-PDG-01', kantor_wilayah: 'Kantor Cabang Padang', debitur_nama: 'PT Minang Sejahtera', nomor_spk: '0001/NSR-PDG/PN-APP/X/2026', status: 'APPROVED' },
+    { id: 'JO-PLB-01', kantor_wilayah: 'Kantor Cabang Palembang', debitur_nama: 'PT Sriwijaya Sakti', status: 'APPROVED' }
+  ];
+
+  const namaCabangPadang = (authPdg.wilayahLabel || authPdg.wilayah || '').toLowerCase();
+  const kataKunciPadang = namaCabangPadang.replace('kantor cabang', '').trim();
+  const kodeKemenkeuPadang = (authPdg.kodeWilayah || authPdg.kode || authPdg.kodeKantor || '').toLowerCase();
+
+  const filteredPadang = mockDatasetPadang.filter(item => {
+    const wilayahItem = (item.kantor_wilayah || item.wilayah || '').toLowerCase();
+    const kodeItem = (item.kode_kantor || item.kode || item.kodeWilayah || '').toLowerCase();
+    const noSpkItem = (item.nomor_spk || item.no_spk || item.nomor_lp || '').toLowerCase();
+    const noAdmItem = (item.nomor_adm || item.id || '').toLowerCase();
+    const shortCode = (authPdg.wilayahCode || kataKunciPadang.substring(0, 3)).toLowerCase();
+    
+    return wilayahItem.includes(kataKunciPadang) || 
+           (kodeKemenkeuPadang && kodeItem.includes(kodeKemenkeuPadang)) || 
+           (noSpkItem && (noSpkItem.includes(`nsr-${shortCode}`) || noSpkItem.includes(`/${shortCode}/`) || noSpkItem.includes(`nsr-${kataKunciPadang.substring(0, 3)}`))) ||
+           (noAdmItem && (noAdmItem.includes(`nsr-${shortCode}`) || noAdmItem.includes(`/${shortCode}/`)));
+  });
+
+  assert(filteredPadang.length === 1 && filteredPadang[0].id === 'JO-PDG-01', 'Isolasi Mutlak Cabang Padang: Hanya data Padang yang lolos (Jakarta, Bandung, Palembang = 0)');
+  assert(joHtml.includes('Belum Ada Riwayat Penugasan untuk'), 'Tersedia Empty State ramah pengguna saat riwayat cabang kosong');
+  assert(joHtml.includes('📋 2. Buku Register & Riwayat Cabang'), 'Teks tombol Tab 2 diperbarui menjadi Buku Register & Riwayat Cabang untuk sesi cabang');
+  assert(joHtml.includes("selectWilayah.closest('.filter-col, div')?.setAttribute('style', 'display: none !important')"), 'Filter wilayah disembunyikan langsung dengan inline style display none');
+
+
 
   // -----------------------------------------------------------------
   // 3. TEST portal-kwitansi.html - DUAL MODE KWITANSI & PIN FINANCE

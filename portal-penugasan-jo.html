@@ -392,7 +392,7 @@
         <span>1. Input Penugasan &amp; JO Baru</span>
       </button>
 
-      <button id="btn-tab-dashboard" onclick="pindahTab('dashboard')" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
+      <button id="btn-tab-dashboard" data-alias="tab-btn-2" onclick="pindahTab('dashboard')" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
         <span>2. Dashboard &amp; Antrean Approval</span>
         <span id="badge-antrean-count" class="ml-1 px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black hidden">0</span>
@@ -1275,9 +1275,7 @@
                 <th class="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody id="tbody-dashboard" class="divide-y divide-slate-800/80 text-slate-200">
-              <!-- Diisi oleh JS renderDashboardTabel() -->
-            </tbody>
+            <tbody id="tbody_antrean" data-alias="tbody-dashboard" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
           </table>
         </div>
       </div>
@@ -2989,6 +2987,7 @@
           token: t,
           kode: c.kode,
           kodeKantor: c.kode,
+          kodeWilayah: c.kode,
           nama: c.nama,
           kantor: c.nama,
           rekan: c.rekan,
@@ -3776,7 +3775,7 @@
       const modeTitle = document.getElementById('mode-title');
       const modeDesc = document.getElementById('mode-desc');
       const btnSubmit = document.getElementById('label-btn-submit');
-      const selectWilayah = document.getElementById('kantor_wilayah');
+      const inputSelectWilayah = document.getElementById('kantor_wilayah');
       const noticeRole = document.getElementById('notice-penilai-reviewer');
       const labelRoleNotice = document.getElementById('label-role-notice');
       const formPenugasan = document.getElementById('form-penugasan');
@@ -3882,28 +3881,29 @@
 
       
       // Proteksi UI Tab 2 (Filter Wilayah & Opsi Wilayah untuk Sesi Cabang)
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       const wrapFilterWil = document.getElementById('wrapper-filter-wilayah');
-      const selFilterWil = document.getElementById('filter_wilayah');
-      const isCabangUser = Boolean(userSession && (userSession.isCabang || (userSession.mode === 'CABANG' && !userSession.isSuperAdmin)));
+      const selectWilayah = document.getElementById('filter_wilayah') || document.getElementById('filter-kantor-wilayah');
+      const selFilterWil = selectWilayah;
+      const isCabangUser = Boolean(auth && (auth.isCabang || (auth.mode === 'CABANG' && !auth.isSuperAdmin)));
 
-      if (isCabangUser) {
-        if (wrapFilterWil) {
-          wrapFilterWil.classList.add('hidden');
-        }
-        if (selFilterWil) {
-          const cWil = userSession.wilayahLabel || userSession.wilayah;
+      if (selectWilayah) {
+        if (auth && auth.isCabang) {
+          // Sembunyikan langsung dropdown dan container pembungkusnya
+          selectWilayah.closest('.filter-col, div')?.setAttribute('style', 'display: none !important');
+          if (wrapFilterWil) wrapFilterWil.classList.add('hidden');
+          const cWil = auth.wilayahLabel || auth.wilayah || '';
           selFilterWil.innerHTML = `<option value="${cWil}">${cWil}</option>`;
-          selFilterWil.value = cWil;
+          selFilterWil.value = auth.wilayah || '';
           selFilterWil.disabled = true;
-        }
-      } else {
-        if (wrapFilterWil) {
-          wrapFilterWil.classList.remove('hidden');
-        }
-        if (selFilterWil) {
+          selectWilayah.disabled = true;
+        } else {
+          selectWilayah.closest('.filter-col, div')?.removeAttribute('style');
+          if (wrapFilterWil) wrapFilterWil.classList.remove('hidden');
           selFilterWil.disabled = false;
-          if (!selFilterWil.querySelector('option[value="ALL"]')) {
-            selFilterWil.innerHTML = `
+          selectWilayah.disabled = false;
+          if (!selectWilayah.querySelector('option[value="ALL"]')) {
+            selectWilayah.innerHTML = `
               <option value="ALL">Semua Wilayah</option>
               <option value="Kantor Pusat Jakarta">Kantor Pusat Jakarta</option>
               <option value="Kantor Cabang Bandung">Kantor Cabang Bandung</option>
@@ -3915,7 +3915,21 @@
         }
       }
 
-      // 5. Update Preview Nomor & Render Dashboard
+      // 2. Perbarui Teks & Badge Tab 2 untuk Cabang:
+      if (auth && auth.isCabang) {
+        const tab2Btn = document.querySelector('button[onclick*="gantiTab(2)"]') || 
+                        document.getElementById('tab-btn-2') || 
+                        document.getElementById('btn-tab-dashboard') || 
+                        document.querySelector('button[onclick*="dashboard"]');
+        if (tab2Btn) {
+          tab2Btn.innerHTML = `📋 2. Buku Register & Riwayat Cabang`;
+        }
+        // Hapus badge antrean kuning
+        const badgePending = tab2Btn?.querySelector('.badge-pending, span.bg-amber-500, #badge-antrean-count');
+        if (badgePending) badgePending.remove();
+      }
+
+      // 5. Update Preview Nomor & Render Dashboard Langsung
       updateNomorOtomatisPreview();
       renderDashboardTabel();
     }
@@ -6346,14 +6360,16 @@ Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
     // 10. RENDER TABEL DASHBOARD ANTREAN
     // ==========================================================
     function renderDashboardTabel() {
-      const tbody = document.getElementById('tbody-dashboard');
-      const fStatus = document.getElementById('filter_status').value;
-      const fWil = document.getElementById('filter_wilayah')?.value || 'ALL';
-      const query = document.getElementById('cari_proyek').value.toLowerCase().trim();
-
+      // 1. Ambil sesi autentikasi aktif:
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const tbody = document.getElementById('tbody_antrean') || document.querySelector('#tab-2 tbody') || document.getElementById('tbody-dashboard') || document.querySelector('#tab-content-dashboard tbody');
+      if (!tbody) return;
+
+      const fStatus = document.getElementById('filter_status')?.value || 'ALL';
+      const fWil = document.getElementById('filter_wilayah')?.value || 'ALL';
+      const query = document.getElementById('cari_proyek')?.value.toLowerCase().trim() || '';
+
       const isCabangUser = Boolean(auth && (auth.isCabang || (auth.mode === 'CABANG' && !auth.isSuperAdmin)));
-      const namaCabangSesi = (auth.wilayah || auth.kantor || '').trim().toLowerCase();
 
       // Gabungkan data cloud dengan arsip privat lokal cabang pengguna
       const localPrivate = ambilDataPrivatCabang(auth.wilayah || userSession.wilayah);
@@ -6364,11 +6380,25 @@ Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
         }
       });
 
-      // ISOLASI MUTLAK: Jika sesi cabang aktif, filter secara mutlak HANYA data cabang bersangkutan
-      if (isCabangUser) {
+      // 2. Jika sesi adalah KANTOR CABANG (auth && auth.isCabang === true):
+      if (auth && auth.isCabang) {
+        // Ambil identitas cabang login:
+        const namaCabang = (auth.wilayahLabel || auth.wilayah || '').toLowerCase(); // contoh: "kantor cabang padang" atau "padang"
+        const kataKunci = namaCabang.replace('kantor cabang', '').trim(); // contoh: "padang"
+        const kodeKemenkeu = (auth.kodeWilayah || auth.kode || auth.kodeKantor || '').toLowerCase(); // contoh: "2.0160-01"
+
+        // Saring data secara ketat:
         combined = combined.filter(item => {
-          const itemWilayah = (item.kantor_wilayah || item.wilayah || '').trim().toLowerCase();
-          return itemWilayah.includes(namaCabangSesi) || namaCabangSesi.includes(itemWilayah);
+          const wilayahItem = (item.kantor_wilayah || item.wilayah || '').toLowerCase();
+          const kodeItem = (item.kode_kantor || item.kode || item.kodeWilayah || '').toLowerCase();
+          const noSpkItem = (item.nomor_spk || item.no_spk || item.nomor_lp || '').toLowerCase();
+          const noAdmItem = (item.nomor_adm || item.id || '').toLowerCase();
+          const shortCode = (auth.wilayahCode || kataKunci.substring(0, 3)).toLowerCase();
+          
+          return wilayahItem.includes(kataKunci) || 
+                 (kodeKemenkeu && kodeItem.includes(kodeKemenkeu)) || 
+                 (noSpkItem && (noSpkItem.includes(`nsr-${shortCode}`) || noSpkItem.includes(`/${shortCode}/`) || noSpkItem.includes(`nsr-${kataKunci.substring(0, 3)}`))) ||
+                 (noAdmItem && (noAdmItem.includes(`nsr-${shortCode}`) || noAdmItem.includes(`/${shortCode}/`)));
         });
       }
 
@@ -6378,7 +6408,7 @@ Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
         if (query) {
           const matchKlien = (p.pemberi_tugas_nama || "").toLowerCase().includes(query);
           const matchDebitur = (p.debitur_nama || "").toLowerCase().includes(query);
-          const matchNo = (p.nomor_lp || "").toLowerCase().includes(query);
+          const matchNo = (p.nomor_lp || p.nomor_spk || p.nomor_adm || "").toLowerCase().includes(query);
           if (!matchKlien && !matchDebitur && !matchNo) return false;
         }
         return true;
@@ -6387,11 +6417,15 @@ Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
       // Update badge antrean count
       const waitingCount = combined.filter(p => p.status === "WAITING_APPROVAL" || p.status === "WAITING_BRANCH_ADMIN").length;
       const badgeCount = document.getElementById('badge-antrean-count');
-      if (waitingCount > 0) {
-        badgeCount.textContent = waitingCount;
-        badgeCount.classList.remove('hidden');
-      } else {
-        badgeCount.classList.add('hidden');
+      if (badgeCount) {
+        if (isCabangUser) {
+          badgeCount.classList.add('hidden');
+        } else if (waitingCount > 0) {
+          badgeCount.textContent = waitingCount;
+          badgeCount.classList.remove('hidden');
+        } else {
+          badgeCount.classList.add('hidden');
+        }
       }
 
       // Counter Terakhir: Hanya menghitung total data cabang bersangkutan pada sesi cabang
@@ -6404,8 +6438,23 @@ Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
         }
       }
 
+      // 3. Tampilkan Empty State Jika Belum Ada Data:
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 italic">Tidak ada data penugasan yang sesuai dengan filter.</td></tr>`;
+        if (auth && auth.isCabang) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center py-12 text-slate-400 bg-slate-800/20">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <span class="text-3xl">📋</span>
+                  <p class="font-semibold text-slate-300">Belum Ada Riwayat Penugasan untuk ${auth.wilayahLabel || 'Kantor Cabang'}</p>
+                  <p class="text-xs text-slate-500">Seluruh penerbitan SPK & JO mandiri cabang akan tercatat secara otomatis di sini.</p>
+                </div>
+              </td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 italic">Tidak ada data penugasan yang sesuai dengan filter.</td></tr>`;
+        }
         return;
       }
 
