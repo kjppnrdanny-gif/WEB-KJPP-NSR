@@ -322,6 +322,15 @@ try {
   const hasilSuperAdmin = simulasikanGuardTab3(authPusat, null);
   assert(hasilSuperAdmin.diblokir === false && hasilSuperAdmin.targetTab === 3, 'Quality Gate Guard: Super Admin Pusat memiliki hak inspeksi Tab 3');
 
+  // G. Uji Mode Mandiri Cabang & Tab 3 Quality Gate Unlock untuk Admin Cabang
+  console.log('\n\x1b[36m[2e/7] Menguji Mode Mandiri Cabang & Instant Unlock Tab 3 (portal-penugasan-jo.html)\x1b[0m');
+  assert(joHtml.includes("currentModeAlur = 'MANDIRI'"), 'currentModeAlur dikunci ke MANDIRI saat sesi cabang login');
+  assert(joHtml.includes('Mode Akses: Penerbitan Mandiri'), 'Banner hijau penerbitan mandiri cabang terpasang');
+  assert(joHtml.includes('Simpan & Cetak Instan (Mandiri Cabang)'), 'Tombol Simpan & Cetak Instan Mandiri Cabang terpasang');
+  assert(joHtml.includes('🖨️ 3. Pratinjau & Cetak Dokumen Cabang'), 'Label Tab 3 terbuka (UNLOCKED) untuk Admin Cabang');
+  assert(joHtml.includes("status_approval: (isPrivateCabang && isCabangAdmin) ? 'APPROVED_CABANG'"), 'Status approval otomatis APPROVED_CABANG untuk penugasan mandiri cabang');
+  assert(joHtml.includes("gantiTab(3)"), 'Admin Cabang otomatis diarahkan ke Tab 3 saat submit instan');
+
 
 
   // -----------------------------------------------------------------

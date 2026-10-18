@@ -410,7 +410,7 @@
     <div id="tab-content-form" class="space-y-6">
       
       <!-- Box Status Mode Pengguna -->
-      <div id="form-mode-banner" class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-900 border border-emerald-500/40 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+      <div id="banner-mode-akses" data-alias="form-mode-banner" class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-900 border border-emerald-500/40 flex flex-wrap items-center justify-between gap-4 shadow-xl">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black">
             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -1837,8 +1837,8 @@
           if (elAdm && elAdm.dataset.manualEdited !== "true") {
             elAdm.value = `${numPadded}/JO/NSR/${romawi}/${thn}`;
           }
-        } else if (currentModeAlur === 'PRIVATE_CABANG') {
-          const code = getKodeCabang(userSession.wilayah);
+        } else if (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI' || (userSession && userSession.isCabang)) {
+          const code = getKodeCabang(userSession.wilayah || (window.CURRENT_AUTH_SESSION && window.CURRENT_AUTH_SESSION.wilayahLabel));
           elLp.value = `${numPadded}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
           elLp.dataset.manualEdited = "true";
           if (elAdm && elAdm.dataset.manualEdited !== "true") {
@@ -1883,8 +1883,8 @@
       if (elLp) {
         if (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT") {
           elLp.value = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
-        } else if (currentModeAlur === 'PRIVATE_CABANG') {
-          const code = getKodeCabang(userSession.wilayah);
+        } else if (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI' || (userSession && userSession.isCabang)) {
+          const code = getKodeCabang(userSession.wilayah || (window.CURRENT_AUTH_SESSION && window.CURRENT_AUTH_SESSION.wilayahLabel));
           elLp.value = `${nextNum}/NSR-${code}/${kodeLap}/${romawi}/${thn}`;
         }
         delete elLp.dataset.manualEdited;
@@ -1892,8 +1892,8 @@
       if (elAdm) {
         if (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT") {
           elAdm.value = `${nextNum}/JO/NSR/${romawi}/${thn}`;
-        } else if (currentModeAlur === 'PRIVATE_CABANG') {
-          const code = getKodeCabang(userSession.wilayah);
+        } else if (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI' || (userSession && userSession.isCabang)) {
+          const code = getKodeCabang(userSession.wilayah || (window.CURRENT_AUTH_SESSION && window.CURRENT_AUTH_SESSION.wilayahLabel));
           elAdm.value = `${code}-${nextNum}`;
         }
         delete elAdm.dataset.manualEdited;
@@ -3502,34 +3502,21 @@
     }
 
     function inisialisasiModeAksesDariUrl() {
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
       const urlParams = new URLSearchParams(window.location.search);
       const paramMode = urlParams.get('mode');
 
-      // Deteksi token cabang dari userSession atau sessionStorage
-      let tokenStr = (userSession && userSession.token) ? userSession.token : '';
-      if (!tokenStr) {
-        tokenStr = sessionStorage.getItem('NSR_AUTH_TOKEN') || '';
-      }
-      if (!tokenStr) {
-        const rawInternal = sessionStorage.getItem('kjpp_token_internal') || '';
-        try {
-          const parsed = JSON.parse(rawInternal);
-          tokenStr = (parsed && parsed.token) ? parsed.token : rawInternal;
-        } catch (_) {
-          tokenStr = rawInternal;
-        }
-      }
+      // Deteksi token cabang dari auth atau sessionStorage
+      let tokenStr = (auth && auth.token) ? auth.token : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
       tokenStr = String(tokenStr).toUpperCase();
-
       const isCabangToken = Boolean(
-        (userSession && (userSession.mode === 'CABANG' || userSession.role === 'ADMIN_CABANG')) ||
+        (auth && (auth.isCabang || auth.mode === 'CABANG' || auth.role === 'ADMIN_CABANG')) ||
         tokenStr.includes('BDG') ||
         tokenStr.includes('PDG') ||
         tokenStr.includes('MKS') ||
         tokenStr.includes('PLB')
       );
 
-      // Jika ada param 'mandiri', ATAU pengguna login dengan token cabang (tanpa param pusat)
       const isModeMandiri = (paramMode === 'mandiri') || (isCabangToken && paramMode !== 'pusat');
 
       const containerDualMode = document.getElementById('container-dual-mode');
@@ -3537,45 +3524,52 @@
       const labelPrivate = document.getElementById('label-mode-private');
       const radioCentral = document.getElementById('alur_kerja_pusat') || document.querySelector('input[value="CENTRAL"]') || document.getElementById('radio-mode-central');
       const radioPrivate = document.getElementById('alur_kerja_mandiri') || document.querySelector('input[value="MANDIRI"]') || document.getElementById('radio-mode-private');
-      const titleAlur2 = document.getElementById('title-mode-private');
-      const subAlur2 = document.getElementById('sub-mode-private');
 
-      if (titleAlur2) {
-        titleAlur2.innerHTML = `<span>ALUR 2: Penerbitan Mandiri Cabang (Kewenangan Rekan Pemimpin Cabang)</span> <span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Mandiri</span>`;
-      }
-      if (subAlur2) {
-        subAlur2.textContent = "Nomor SPK & JO terbit instan dari buku register cabang, tersinkronisasi ke database cabang.";
-      }
-
+      // JIKA MEMEGANG TOKEN CABANG DAN TIDAK ADA PARAM ?mode=pusat (ATAU param ?mode=mandiri):
       if (isModeMandiri) {
-        // ============================================================
-        // 1. MODE MANDIRI CABANG: ISOLASI TOTAL & HIDE ALUR PUSAT
-        // ============================================================
-        // Hapus / sembunyikan sepenuhnya Alur 1 Pusat dan container pemilih radio
-        if (labelCentral) {
-          labelCentral.style.display = 'none';
-          labelCentral.setAttribute('style', 'display: none !important');
-          labelCentral.classList.add('hidden');
-        }
-        if (radioCentral) {
-          radioCentral.checked = false;
-        }
-        if (containerDualMode) {
-          containerDualMode.style.display = 'none';
-          containerDualMode.setAttribute('style', 'display: none !important');
-          containerDualMode.classList.add('hidden');
+        // A. Kunci mode ke Mandiri Cabang:
+        currentModeAlur = 'MANDIRI';
+        
+        // B. Sembunyikan total kontainer pemilihan mode & radio pusat:
+        if (containerDualMode) containerDualMode.setAttribute('style', 'display: none !important');
+        if (labelCentral) labelCentral.setAttribute('style', 'display: none !important');
+        if (radioCentral) radioCentral.checked = false;
+        if (radioPrivate) radioPrivate.checked = true;
+
+        // Kunci dropdown penandatangan ke rekan cabang aktif
+        const selRekan = document.getElementById('rekan_nama');
+        if (selRekan) {
+          const partner = getRekanByWilayah((auth && (auth.wilayahLabel || auth.wilayah)) || userSession.wilayah);
+          selRekan.innerHTML = `<option value="${partner.nama}">${partner.nama} (${partner.jabatan}) - Terkunci Cabang</option>`;
+          selRekan.value = partner.nama;
+          selRekan.disabled = true;
+          vlookupRekan();
         }
 
-        // Kunci state ke Alur 2 Mandiri
-        if (radioPrivate) {
-          radioPrivate.checked = true;
+        // C. Render Banner Hijau Mandiri Cabang:
+        const bannerMode = document.getElementById('banner-mode-akses') || document.getElementById('form-mode-banner');
+        if (bannerMode) {
+          bannerMode.className = 'p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 text-emerald-300 mb-6 flex items-start gap-3';
+          bannerMode.innerHTML = `
+            <span class="text-2xl">⚡</span>
+            <div>
+              <div class="font-bold text-sm text-emerald-200">Mode Akses: Penerbitan Mandiri ${(auth && auth.wilayahLabel) || 'Cabang'}</div>
+              <div class="text-xs text-emerald-400/90 mt-0.5">
+                Kewenangan Penuh Rekan Pemimpin Cabang (${(auth && auth.rekanNama) || 'Rekan Cabang'}). Nomor SPK & JO terbit instan dari buku register cabang tanpa antrean Kantor Pusat.
+              </div>
+            </div>
+          `;
         }
-        pilihModeAlur('PRIVATE_CABANG');
+
+        const btnSubmit = document.getElementById('label-btn-submit');
+        if (btnSubmit) {
+          btnSubmit.textContent = "Simpan & Cetak Instan (Mandiri Cabang)";
+        }
+
+        // D. Input Nomor SPK & JO LANGSUNG TERISI (BUKAN "Menunggu Input & Otorisasi"):
+        updateNomorOtomatisPreview(); // Terbit instan format [NOMOR]/NSR-[KODE]/PN-APP/...
       } else {
-        // ============================================================
-        // 2. MODE PUSAT (Kewenangan Verifikasi & Otorisasi Pusat)
-        // ============================================================
-        // Hapus / sembunyikan sepenuhnya opsi Alur 2 Mandiri
+        // Mode Pusat
         if (labelPrivate) {
           labelPrivate.style.display = 'none';
           labelPrivate.setAttribute('style', 'display: none !important');
@@ -3590,10 +3584,10 @@
           containerDualMode.classList.add('hidden');
         }
 
-        // Kunci state ke Alur 1 Pusat
         if (radioCentral) {
           radioCentral.checked = true;
         }
+        currentModeAlur = 'CENTRAL_APPROVAL';
         pilihModeAlur('CENTRAL_APPROVAL');
       }
     }
@@ -3958,6 +3952,9 @@
     }
 
     function bangunDraftDariForm() {
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+      const branchPartner = isCabang ? getRekanByWilayah(auth.wilayahLabel || auth.wilayah) : null;
       const debNama = (document.getElementById('debitur_nama')?.value || '').trim().toUpperCase() || 'DRAF PENUGASAN';
       const tglStr = document.getElementById('tanggal_surat')?.value || new Date().toISOString().split('T')[0];
       const totalSla = parseInt(document.getElementById('sla_inspeksi')?.value || 1, 10) +
@@ -3965,24 +3962,32 @@
                        parseInt(document.getElementById('sla_final')?.value || 2, 10);
       const dMasa = new Date(new Date(tglStr).getTime() + 30 * 24 * 60 * 60 * 1000);
       const rekanVal = document.getElementById('rekan_nama')?.value;
-      const rekanSelected = DATABASE_REKAN.find(r => r.nama === rekanVal) || DATABASE_REKAN[0] || {};
+      const rekanSelected = (isCabang && branchPartner) ? branchPartner : (DATABASE_REKAN.find(r => r.nama === rekanVal) || DATABASE_REKAN[0] || {});
 
       let noAdm = (getElAdm()?.value || '').trim();
       let noLp = (getElLp()?.value || '').trim();
-      if (!noAdm || noAdm.includes('Menunggu')) noAdm = '0001/JO/NSR/X/2026 (DRAF)';
-      if (!noLp || noLp.includes('Menunggu')) noLp = '0001/NSR/LAP-APP/X/2026 (DRAF)';
+      const codeCabang = getKodeCabang((auth && (auth.wilayahLabel || auth.wilayah)) || 'Cabang');
+      if (!noAdm || noAdm.includes('Menunggu')) noAdm = isCabang ? `${codeCabang}-0001` : '0001/JO/NSR/X/2026 (DRAF)';
+      if (!noLp || noLp.includes('Menunggu')) noLp = isCabang ? `0001/NSR-${codeCabang}/PN-APP/X/2026` : '0001/NSR/LAP-APP/X/2026 (DRAF)';
+
+      const wilText = (isCabang && auth && auth.wilayahLabel) 
+        ? (auth.wilayahLabel.startsWith('Kantor Cabang') ? auth.wilayahLabel : `Kantor Cabang ${auth.wilayahLabel}`)
+        : (document.getElementById('kantor_wilayah')?.value || (userSession && userSession.wilayah) || 'Kantor Pusat Jakarta');
 
       return {
-        id: 'DRAFT-LIVE-PREVIEW',
+        id: isCabang ? `DRAFT-${codeCabang}-LIVE` : 'DRAFT-LIVE-PREVIEW',
         isDraftPreview: true,
-        status: 'WAITING_APPROVAL',
+        status: isCabang ? 'APPROVED' : 'WAITING_APPROVAL',
+        status_approval: isCabang ? 'APPROVED_CABANG' : 'WAITING_APPROVAL',
+        approved_by: isCabang ? (auth.roleLabel || 'ADMIN CABANG') : null,
+        approved_at: isCabang ? new Date().toISOString() : null,
         nomor_adm: noAdm,
         nomor_lp: noLp,
         jenis_laporan: document.getElementById('jenis_laporan')?.value || 'APP',
-        kantor_wilayah: document.getElementById('kantor_wilayah')?.value || (userSession && userSession.wilayah) || 'Kantor Pusat Jakarta',
-        mode_pengaju: userSession ? userSession.mode : 'PUSAT',
-        is_private: false,
-        mode_alur: 'CENTRAL_APPROVAL',
+        kantor_wilayah: wilText,
+        mode_pengaju: userSession ? userSession.mode : (isCabang ? 'CABANG' : 'PUSAT'),
+        is_private: isCabang,
+        mode_alur: isCabang ? 'MANDIRI' : 'CENTRAL_APPROVAL',
         tanggal_surat: tglStr,
         rujukan_surat_nomor: document.getElementById('rujukan_surat_nomor')?.value || '-',
         rujukan_surat_tanggal: document.getElementById('rujukan_surat_tanggal')?.value || tglStr,
@@ -4014,8 +4019,8 @@
         sumber_proyek: (document.getElementById('sumber_proyek')?.value || '').trim() || 'Direct Klien',
         pic_marketing: (document.getElementById('pic_marketing')?.value || document.getElementById('marketing_nama')?.value || '').trim() || 'Divisi BD & Marketing',
         marketing_nama: (document.getElementById('pic_marketing')?.value || document.getElementById('marketing_nama')?.value || '').trim() || 'Divisi BD & Marketing',
-        rekan_nama: document.getElementById('rekan_nama')?.value || rekanSelected.nama || '',
-        rekan_izin: rekanSelected.izin || 'P-1.20.00581',
+        rekan_nama: (isCabang && branchPartner) ? branchPartner.nama : (document.getElementById('rekan_nama')?.value || rekanSelected.nama || ''),
+        rekan_izin: (isCabang && branchPartner) ? (branchPartner.izin || 'P-1.20.00581') : (rekanSelected.izin || 'P-1.20.00581'),
         reviewer_nama: document.getElementById('reviewer_nama')?.value || '',
         penilai_nama: document.getElementById('penilai_nama')?.value || '',
         asisten_nama: document.getElementById('asisten_nama')?.value || '',
@@ -4055,13 +4060,21 @@
     // ==========================================================
     function perbaruiIndikatorTab3(proyek) {
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+      const isSuperAdmin = Boolean(auth && auth.isSuperAdmin);
       const proyekAktif = proyek || window.DATA_PROYEK_TERPILIH || activeProjectData || null;
-      const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED');
-      const isSuperAdmin = auth && auth.isSuperAdmin;
+      const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED' || proyekAktif.status_approval === 'APPROVED_CABANG');
 
       const btnPrev = document.getElementById('btn-tab-preview') || document.querySelector('button[onclick*="gantiTab(3)"]') || document.querySelector('button[onclick*="preview"]');
       if (!btnPrev) return;
       const span = btnPrev.querySelector('span');
+
+      // Admin Cabang memiliki yurisdiksi mandiri lokal: Tab 3 UNLOCKED (Bebas dibuka dan dicetak kapan saja)
+      if (isCabang) {
+        if (span) span.textContent = '🖨️ 3. Pratinjau & Cetak Dokumen Cabang';
+        btnPrev.classList.remove('opacity-60', 'cursor-not-allowed');
+        return;
+      }
 
       if (isSuperAdmin || isApproved) {
         if (span) span.textContent = '🖨️ 3. Pratinjau & Cetak 9 Dokumen';
@@ -4077,25 +4090,32 @@
       else if (tabIdx === 'dashboard') tabIdx = 2;
       else if (tabIdx === 'preview') tabIdx = 3;
 
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+      const isSuperAdmin = Boolean(auth && auth.isSuperAdmin);
+      const proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData || null;
+
       if (tabIdx === 3) {
-        const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
-        const proyekAktif = window.DATA_PROYEK_TERPILIH || null;
+        // Tab 3 HANYA TERKUNCI jika:
+        // Pengajuan penugasan dibuat melalui Alur 1 / Mode Pusat (proyek.mode_alur === 'CENTRAL_APPROVAL' atau statusnya WAITING_APPROVAL).
+        const _isCentralWaiting = proyekAktif &&
+          !proyekAktif.isDraftPreview &&
+          (proyekAktif.mode_alur === 'CENTRAL_APPROVAL' || proyekAktif.mode_pengaju === 'PUSAT') &&
+          proyekAktif.status === 'WAITING_APPROVAL';
 
-        // Pemeriksaan Hak Akses Tab 3:
-        // 1. Wajib ada proyek yang dipilih dari Tab 2
-        // 2. Jika bukan Super Admin, status proyek WAJIB 'APPROVED' atau 'TERBIT'
-        const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED');
-        const isSuperAdmin = auth && auth.isSuperAdmin;
-
-        if (!isSuperAdmin && !isApproved) {
-          // Tampilkan Modal/Toast Peringatan Kepatuhan
+        if (_isCentralWaiting && !isSuperAdmin) {
           alert(
             "🔒 AKSES DITOLAK — QUALITY GATE TERKUNCI!\n\n" +
             "Dokumen penugasan resmi belum dapat dibuka atau dicetak karena belum mendapatkan persetujuan (APPROVAL) serta pengesahan TTD/Stempel resmi dari Kantor Pusat.\n\n" +
             "Silakan periksa status penugasan pada Tab 2 (Dashboard & Antrean Approval)."
           );
-          
-          // Arahkan otomatis ke Tab 2
+          tabIdx = 2;
+        } else if (!isCabang && !isSuperAdmin && (!proyekAktif || (proyekAktif.status !== 'APPROVED' && proyekAktif.status_approval !== 'APPROVED'))) {
+          alert(
+            "🔒 AKSES DITOLAK — QUALITY GATE TERKUNCI!\n\n" +
+            "Dokumen penugasan resmi belum dapat dibuka atau dicetak karena belum mendapatkan persetujuan (APPROVAL) serta pengesahan TTD/Stempel resmi dari Kantor Pusat.\n\n" +
+            "Silakan periksa status penugasan pada Tab 2 (Dashboard & Antrean Approval)."
+          );
           tabIdx = 2;
         }
       }
@@ -4121,22 +4141,6 @@
         if (btnDash) btnDash.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
         renderDashboardTabel();
       } else if (tabIdx === 3) {
-        // Quality Gate: block Tab 3 for unresolved Central Approval submissions
-        const _qgProyek = window.DATA_PROYEK_TERPILIH || activeProjectData;
-        const _isCentralWaiting = _qgProyek &&
-          !_qgProyek.isDraftPreview &&
-          (_qgProyek.mode_alur === 'CENTRAL_APPROVAL' || _qgProyek.mode_pengaju === 'PUSAT') &&
-          _qgProyek.status === 'WAITING_APPROVAL';
-
-        if (_isCentralWaiting) {
-          if (tabDash) tabDash.classList.remove('hidden');
-          if (btnDash) btnDash.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
-          perbaruiIndikatorTab3(null);
-          alert(`🔒 Dokumen Terkunci\n\nPengajuan ini sedang menunggu otorisasi Admin Kantor Pusat.\nTab Pratinjau & Cetak hanya dapat diakses setelah status APPROVED.\n\nSilakan hubungi Admin Pusat untuk mempercepat proses approval.`);
-          renderDashboardTabel();
-          return;
-        }
-
         if (tabPrev) tabPrev.classList.remove('hidden');
         if (btnPrev) btnPrev.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
 
@@ -4155,16 +4159,31 @@
 
     function renderPratinjauDokumen() {
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
-      const proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData || null;
+      let proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData || null;
+      const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+      const isSuperAdmin = Boolean(auth && auth.isSuperAdmin);
 
-      const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED');
-      const isSuperAdmin = auth && auth.isSuperAdmin;
+      if (!proyekAktif && isCabang) {
+        proyekAktif = bangunDraftDariForm();
+        window.DATA_PROYEK_TERPILIH = proyekAktif;
+        activeProjectData = proyekAktif;
+      }
+
+      const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED' || proyekAktif.status_approval === 'APPROVED_CABANG');
 
       const lockScreen = document.getElementById('tab3-lock-screen');
       const toolbarCetak = document.getElementById('toolbar-cetak-dokumen');
       const lembarDokumen = document.getElementById('lembar-pratinjau-dokumen');
 
-      if (!isSuperAdmin && !isApproved) {
+      // Quality Gate Lock hanya aktif jika:
+      // Pengajuan penugasan dibuat melalui Alur 1 / Pusat dan belum disetujui (WAITING_APPROVAL)
+      const isWaitingPusat = proyekAktif &&
+        !proyekAktif.isDraftPreview &&
+        (proyekAktif.mode_alur === 'CENTRAL_APPROVAL' || proyekAktif.mode_pengaju === 'PUSAT') &&
+        proyekAktif.status === 'WAITING_APPROVAL';
+
+      // Sembunyikan #tab3-lock-screen saat sesi cabang membuka pratinjau dokumen penugasan mandiri cabang
+      if (!isSuperAdmin && !isCabang && (!isApproved || isWaitingPusat)) {
         if (lockScreen) {
           lockScreen.classList.remove('hidden');
           lockScreen.style.display = 'flex';
@@ -5786,7 +5805,11 @@
       const elLp = getElLp();
       const elAdm = getElAdm();
 
-      if (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT") {
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+      const isCabangMandiri = isCabang || (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI');
+
+      if ((userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT" || userSession.role === "SUPER_ADMIN") && !isCabangMandiri) {
         // Ambil counter tertinggi antara serverCounter (baseline 415) dan projectDatabase
         const cLp = parseInt(String(serverCounter.LAST_NO_LP_SPK || 415).trim(), 10);
         const cAdm = parseInt(String(serverCounter.LAST_NO_ADM_JO || 415).trim(), 10);
@@ -5877,9 +5900,10 @@
           }
         }
       } else {
-        if (currentModeAlur === 'PRIVATE_CABANG') {
-          const code = getKodeCabang(userSession.wilayah);
-          const localList = ambilDataPrivatCabang(userSession.wilayah);
+        if (isCabangMandiri) {
+          const wilNama = (auth && (auth.wilayahLabel || auth.wilayah)) || userSession.wilayah || 'Padang';
+          const code = getKodeCabang(wilNama);
+          const localList = ambilDataPrivatCabang(wilNama);
           const lastPrivateSeq = localList.length;
           const seq = (lastPrivateSeq + 1).toString().padStart(4, '0');
           const lastPrivateNum = lastPrivateSeq.toString().padStart(4, '0');
@@ -6036,10 +6060,13 @@
       const jenisLap = document.getElementById('jenis_laporan')?.value || 'APP';
       const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
 
-      const isPusat = (userSession.mode === "PUSAT");
-      const isPrivateCabang = (!isPusat && currentModeAlur === 'PRIVATE_CABANG');
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const isPusat = (userSession.mode === "PUSAT" || (auth && (auth.isSuperAdmin || auth.role === 'ADMIN_PUSAT')));
+      const isCabangAdmin = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+      const isPrivateCabang = (!isPusat && (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI' || isCabangAdmin));
+      const wilCabang = (auth && (auth.wilayahLabel || auth.wilayah)) || userSession.wilayah || 'Padang';
 
-      let isApproved = isPusat || (isPrivateCabang && userSession.role === 'ADMIN_CABANG');
+      let isApproved = isPusat || (isPrivateCabang && isCabangAdmin);
       let noAdm = "";
       let noLp = "";
       let projectId = "";
@@ -6098,8 +6125,8 @@
         if (badgeCounter) badgeCounter.textContent = finalCounter;
       } else if (isPrivateCabang) {
         // ALUR 2: MANDIRI CABANG (ZERO-CLOUD KE SERVER PUSAT)
-        const code = getKodeCabang(userSession.wilayah);
-        const localList = ambilDataPrivatCabang(userSession.wilayah);
+        const code = getKodeCabang(wilCabang);
+        const localList = ambilDataPrivatCabang(wilCabang);
         const seq = (localList.length + 1).toString().padStart(4, '0');
 
         let rawLp = (getElLp()?.value || '').trim();
@@ -6136,7 +6163,7 @@
       if (isPusat) {
         projectStatus = "APPROVED";
       } else if (isPrivateCabang) {
-        projectStatus = (userSession.role === 'ADMIN_CABANG') ? "APPROVED" : "WAITING_BRANCH_ADMIN";
+        projectStatus = isCabangAdmin ? "APPROVED" : "WAITING_BRANCH_ADMIN";
       }
 
       const isPerorangan = document.getElementById('entitas_perorangan')?.checked;
@@ -6175,16 +6202,20 @@
         catatanYuridisTanah = `[PENGADAAN TANAH: ${skalaPengadaan}] Danom:${noDanom} | Penlok:${noPenlok} (Tgl:${tglPenlok}) | RTRW/KKPR:${rtrwKkpr}`;
       }
 
+      const branchPartner = isPrivateCabang ? getRekanByWilayah(wilCabang) : null;
+
       const newProject = {
         id: projectId,
-        status: projectStatus,
+        status: isPrivateCabang ? (isCabangAdmin ? "APPROVED" : "WAITING_BRANCH_ADMIN") : projectStatus,
+        status_approval: (isPrivateCabang && isCabangAdmin) ? 'APPROVED_CABANG' : ((isPusat && projectStatus === 'APPROVED') ? 'APPROVED' : 'WAITING_APPROVAL'),
+        approved_by: (isPrivateCabang && isCabangAdmin) ? (auth.roleLabel || userSession.roleLabel || 'ADMIN CABANG') : (isPusat ? 'Admin Pusat' : null),
         nomor_adm: noAdm,
         nomor_lp: noLp,
         jenis_laporan: jenisLap,
-        kantor_wilayah: document.getElementById('kantor_wilayah').value,
+        kantor_wilayah: isPrivateCabang ? (wilCabang.startsWith('Kantor Cabang') ? wilCabang : `Kantor Cabang ${wilCabang}`) : document.getElementById('kantor_wilayah').value,
         mode_pengaju: userSession.mode,
         is_private: isPrivateCabang,
-        mode_alur: isPrivateCabang ? 'PRIVATE_CABANG' : 'CENTRAL_APPROVAL',
+        mode_alur: isPrivateCabang ? 'MANDIRI' : 'CENTRAL_APPROVAL',
         tanggal_surat: tglStr,
         rujukan_surat_nomor: document.getElementById('rujukan_surat_nomor').value || '-',
         rujukan_surat_tanggal: document.getElementById('rujukan_surat_tanggal').value || tglStr,
@@ -6234,8 +6265,8 @@
         sumber_proyek: (document.getElementById('sumber_proyek')?.value || '').trim() || 'Direct Klien',
         pic_marketing: (document.getElementById('pic_marketing')?.value || document.getElementById('marketing_nama')?.value || '').trim() || 'Divisi BD & Marketing',
         marketing_nama: (document.getElementById('pic_marketing')?.value || document.getElementById('marketing_nama')?.value || '').trim() || 'Divisi BD & Marketing',
-        rekan_nama: document.getElementById('rekan_nama').value,
-        rekan_izin: rekanSelected.izin || 'P-1.20.00581',
+        rekan_nama: (isPrivateCabang && branchPartner) ? branchPartner.nama : document.getElementById('rekan_nama').value,
+        rekan_izin: (isPrivateCabang && branchPartner) ? (branchPartner.izin || 'P-1.20.00581') : (rekanSelected.izin || 'P-1.20.00581'),
         reviewer_nama: document.getElementById('reviewer_nama').value,
         penilai_nama: document.getElementById('penilai_nama').value,
         asisten_nama: document.getElementById('asisten_nama').value,
@@ -6294,17 +6325,18 @@
           return JSON.stringify(list);
         })(),
         alamat_lokasi_objek: objekRows.map((o, idx) => `${idx + 1}. [${getObjekNamaDisplay(o)}] ${o.lokasi || '-'}`).join('; '),
-        approved_at: (projectStatus === 'APPROVED') ? new Date().toISOString() : '-',
-        disetujui_oleh: (projectStatus === 'APPROVED') ? (isPusat ? `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})` : `Admin Cabang (${userSession.token || 'CABANG'})`) : '-',
+        approved_at: (projectStatus === 'APPROVED' || (isPrivateCabang && isCabangAdmin)) ? new Date().toISOString() : '-',
+        disetujui_oleh: (projectStatus === 'APPROVED' || (isPrivateCabang && isCabangAdmin)) ? (isPusat ? `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})` : `Admin Cabang (${auth.roleLabel || userSession.roleLabel || 'CABANG'})`) : '-',
         folder_drive_url: '-',
         created_at: new Date().toISOString()
       };
 
       if (isPrivateCabang) {
         // Simpan eksklusif ke local private storage milik cabang (Zero-Cloud)
-        const localList = ambilDataPrivatCabang(userSession.wilayah);
+        const localList = ambilDataPrivatCabang(wilCabang);
         localList.unshift(newProject);
-        simpanDataPrivatCabang(userSession.wilayah, localList);
+        simpanDataPrivatCabang(wilCabang, localList);
+        window.DATA_PROYEK_TERPILIH = newProject;
         activeProjectData = newProject;
         renderDashboardTabel();
 
@@ -6315,9 +6347,9 @@
           validasiDuplikatLive();
         }
 
-        if (userSession.role === 'ADMIN_CABANG') {
+        if (isCabangAdmin) {
           alert(`Sukses! Data penugasan disimpan secara PRIVAT MANDIRI CABANG (100% Zero-Cloud):\n\n• ID: ${projectId}\n• No. SPK: ${noLp}\n• No. Adm JO: ${noAdm}\n\nStatus: APPROVED (🔒 MANDIRI CABANG).\nDokumen Anda langsung siap dicetak tanpa menunggu server pusat.`);
-          pindahTab('preview');
+          gantiTab(3);
         } else {
           alert(`Sukses! Data draft penugasan disimpan secara PRIVAT MANDIRI CABANG:\n\n• ID: ${projectId}\n• Status: Menunggu Verifikasi Admin Cabang.`);
           pindahTab('dashboard');
@@ -6706,15 +6738,29 @@
 
     function renderSemuaDokumen() {
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
-      const p = window.DATA_PROYEK_TERPILIH || activeProjectData;
-      const isApproved = p && (p.status === 'APPROVED' || p.status_approval === 'APPROVED');
-      const isSuperAdmin = auth && auth.isSuperAdmin;
+      let p = window.DATA_PROYEK_TERPILIH || activeProjectData;
+      const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+      const isSuperAdmin = Boolean(auth && auth.isSuperAdmin);
+
+      if (!p && isCabang) {
+        p = bangunDraftDariForm();
+        window.DATA_PROYEK_TERPILIH = p;
+        activeProjectData = p;
+      }
+
+      const isApproved = p && (p.status === 'APPROVED' || p.status_approval === 'APPROVED' || p.status_approval === 'APPROVED_CABANG');
 
       const lockScreen = document.getElementById('tab3-lock-screen');
       const toolbarCetak = document.getElementById('toolbar-cetak-dokumen');
       const lembarDokumen = document.getElementById('lembar-pratinjau-dokumen');
 
-      if (!isSuperAdmin && !isApproved) {
+      const isWaitingPusat = p &&
+        !p.isDraftPreview &&
+        (p.mode_alur === 'CENTRAL_APPROVAL' || p.mode_pengaju === 'PUSAT') &&
+        p.status === 'WAITING_APPROVAL';
+
+      // Sembunyikan #tab3-lock-screen saat sesi cabang membuka pratinjau dokumen penugasan mandiri cabang
+      if (!isSuperAdmin && !isCabang && (!isApproved || isWaitingPusat)) {
         if (lockScreen) {
           lockScreen.classList.remove('hidden');
           lockScreen.style.display = 'flex';
