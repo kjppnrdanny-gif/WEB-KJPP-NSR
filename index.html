@@ -3800,27 +3800,6 @@
         </p>
       </div>
     </div>
-
-    <!-- Status Telemetri Sistem & Verifikasi Server (Linear / Minimalist Style) -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pt-4 border-t border-slate-900/80 flex justify-center">
-      <div class="group inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-950/60 hover:bg-slate-900/80 border border-slate-800/80 hover:border-slate-700/80 text-[11px] text-slate-400 transition-all duration-300 shadow-sm cursor-default">
-        <span class="relative flex h-2 w-2 flex-shrink-0" title="Status Operasional Terkoordinasi">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-        </span>
-        <span class="font-medium text-slate-300 tracking-tight">Sistem Aktif</span>
-        <span class="text-slate-600 select-none">&bull;</span>
-        <div class="inline-flex items-center gap-1">
-          <span class="text-slate-400">Total Kunjungan:</span>
-          <span id="visitor-total" class="font-mono font-medium text-slate-200 tabular-nums tracking-tight">40</span>
-        </div>
-        <span class="text-slate-600 select-none">&bull;</span>
-        <div class="inline-flex items-center gap-1">
-          <span class="text-slate-400">Hari ini:</span>
-          <span id="visitor-today" class="font-mono font-medium text-slate-300 tabular-nums tracking-tight">1</span>
-        </div>
-      </div>
-    </div>
   </footer>
 
   <!-- 13. TOMBOL WHATSAPP MELAYANG -->
@@ -4682,11 +4661,9 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         inisialisasiMarqueeMitra();
-        inisialisasiVisitorCounter();
         initUIInteraktif();
       });
     } else {
-      inisialisasiVisitorCounter();
       initUIInteraktif();
     }
 
@@ -7008,126 +6985,6 @@
       } else {
         stats.forEach(animateStat);
       }
-    }
-
-    // 7. Visitor Counter (Real-Time Device Tracking & Auto-Sync)
-    async function inisialisasiVisitorCounter() {
-      const fallback = { total: 40, today: 1 };
-      const elTotal = document.getElementById('visitor-total');
-      const elToday = document.getElementById('visitor-today');
-
-      let curTotal = fallback.total;
-      let curToday = fallback.today;
-
-      function formatNum(n) {
-        return Number(n).toLocaleString('id-ID');
-      }
-
-      function animateValue(el, start, end, duration = 650) {
-        if (!el || start === end) {
-          if (el) el.textContent = formatNum(end);
-          return;
-        }
-        const range = end - start;
-        const startTime = performance.now();
-        function update(now) {
-          const progress = Math.min((now - startTime) / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          const current = Math.floor(start + range * eased);
-          el.textContent = formatNum(current);
-          if (progress < 1) requestAnimationFrame(update);
-          else el.textContent = formatNum(end);
-        }
-        requestAnimationFrame(update);
-      }
-
-      const tampilkan = (data, animate = false) => {
-        const nextTotal = Number(data.total ?? fallback.total);
-        const nextToday = Number(data.today ?? fallback.today);
-        if (animate && (nextTotal !== curTotal || nextToday !== curToday)) {
-          animateValue(elTotal, curTotal, nextTotal);
-          animateValue(elToday, curToday, nextToday);
-        } else {
-          if (elTotal) elTotal.textContent = formatNum(nextTotal);
-          if (elToday) elToday.textContent = formatNum(nextToday);
-        }
-        curTotal = nextTotal;
-        curToday = nextToday;
-      };
-
-      tampilkan(fallback, false);
-
-      function getVisitorId() {
-        try {
-          let vid = localStorage.getItem('nsr_vid');
-          if (!vid || !/^[a-f0-9\-]{16,80}$/i.test(vid)) {
-            vid = (window.crypto && crypto.randomUUID) 
-              ? crypto.randomUUID().replace(/-/g, '') 
-              : (Math.random().toString(36).slice(2) + Date.now().toString(36));
-            localStorage.setItem('nsr_vid', vid);
-          }
-          return vid;
-        } catch (_) {
-          return '';
-        }
-      }
-
-      async function requestStats(isPoll = false) {
-        const vid = getVisitorId();
-        const params = new URLSearchParams();
-        if (isPoll) params.set('poll', '1');
-        if (vid) params.set('vid', vid);
-        const query = '?' + params.toString();
-
-        const isLocal = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' || 
-                        window.location.protocol === 'file:';
-        
-        // Direct production sync on localhost/preview; relative with fallback on production domain
-        const endpoints = isLocal
-          ? ['https://kjppnanangrahayu.com/visitor-stats.php' + query]
-          : [
-              'visitor-stats.php' + query,
-              '/visitor-stats.php' + query,
-              'https://kjppnanangrahayu.com/visitor-stats.php' + query
-            ];
-
-        for (const ep of endpoints) {
-          try {
-            const response = await fetch(ep, {
-              method: 'GET',
-              headers: { 'Accept': 'application/json' },
-              cache: 'no-store'
-            });
-            if (response.ok) {
-              const data = await response.json();
-              if (data && typeof data.total === 'number') return data;
-            }
-          } catch (e) {
-            // try next endpoint
-          }
-        }
-        return null;
-      }
-
-      // Initial visit hit
-      try {
-        const initialData = await requestStats(false);
-        if (initialData) tampilkan(initialData, true);
-      } catch (err) {
-        console.debug('Visitor stats initial fallback:', err?.message || err);
-      }
-
-      // Real-time background sync polling every 60 seconds (only when tab is visible)
-      setInterval(async () => {
-        if (document.visibilityState !== 'visible') return;
-        try {
-          const liveData = await requestStats(true);
-          if (liveData && (liveData.total !== curTotal || liveData.today !== curToday)) {
-            tampilkan(liveData, true);
-          }
-        } catch (_) {}
-      }, 60000);
     }
   </script>
 
