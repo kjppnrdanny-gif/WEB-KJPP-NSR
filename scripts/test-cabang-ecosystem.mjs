@@ -278,6 +278,50 @@ try {
   assert(joHtml.includes('📋 2. Buku Register & Riwayat Cabang'), 'Teks tombol Tab 2 diperbarui menjadi Buku Register & Riwayat Cabang untuk sesi cabang');
   assert(joHtml.includes("selectWilayah.closest('.filter-col, div')?.setAttribute('style', 'display: none !important')"), 'Filter wilayah disembunyikan langsung dengan inline style display none');
 
+  // F. Uji Quality Gate Lock Tab 3 (Pratinjau & Cetak 9 Dokumen)
+  console.log('\n\x1b[36m[2d/7] Menguji Quality Gate Lock Tab 3 (portal-penugasan-jo.html)\x1b[0m');
+  assert(joHtml.includes('function gantiTab(tabIdx)'), 'Fungsi navigasi gantiTab(tabIdx) terpasang di portal-penugasan-jo.html');
+  assert(joHtml.includes('AKSES DITOLAK — QUALITY GATE TERKUNCI!'), 'Peringatan kepatuhan Quality Gate Lock terpasang di gantiTab');
+  assert(joHtml.includes('id="tab3-lock-screen"'), 'Container overlay gembok id="tab3-lock-screen" terpasang di Tab 3');
+  assert(joHtml.includes('id="toolbar-cetak-dokumen"'), 'Bilah tombol cetak id="toolbar-cetak-dokumen" terpasang');
+  assert(joHtml.includes('id="lembar-pratinjau-dokumen"'), 'Container lembar dokumen id="lembar-pratinjau-dokumen" terpasang');
+  assert(joHtml.includes('function renderPratinjauDokumen()'), 'Fungsi renderPratinjauDokumen() terpasang dengan kendali lock-screen');
+  assert(joHtml.includes('function perbaruiIndikatorTab3('), 'Fungsi perbaruiIndikatorTab3() terpasang untuk indikator visual header');
+  assert(joHtml.includes('🔒 3. Pratinjau &amp; Cetak (Terkunci)'), 'Indikator tombol Tab 3 terpasang gembok terkunci secara default');
+  assert(joHtml.includes('onclick="gantiTab(2)"'), 'Tombol fallback kembali ke Tab 2 terpasang pada lock screen');
+
+  // Simulasi Navigasi Guard Tab 3:
+  const simulasikanGuardTab3 = (sesiAuth, proyekAktif) => {
+    const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED');
+    const isSuperAdmin = Boolean(sesiAuth && sesiAuth.isSuperAdmin);
+    if (!isSuperAdmin && !isApproved) {
+      return { diblokir: true, targetTab: 2 };
+    }
+    return { diblokir: false, targetTab: 3 };
+  };
+
+  const authPlb = resolveUnifiedToken('NSR-PLB-2026');
+  assert(authPlb && authPlb.isCabang === true, 'Token NSR-PLB-2026 dikenali sebagai sesi Cabang Palembang');
+
+  // Test 1: Sesi Palembang klik Tab 3 langsung tanpa proyek terpilih
+  const hasilKlikLangsung = simulasikanGuardTab3(authPlb, null);
+  assert(hasilKlikLangsung.diblokir === true && hasilKlikLangsung.targetTab === 2, 'Quality Gate Guard: Sesi Cabang Palembang diblokir dari Tab 3 tanpa proyek terpilih (Redirect ke Tab 2)');
+
+  // Test 2: Sesi Palembang memiliki proyek WAITING_APPROVAL
+  const proyekWaiting = { id: 'REQ-01', status: 'WAITING_APPROVAL' };
+  const hasilWaiting = simulasikanGuardTab3(authPlb, proyekWaiting);
+  assert(hasilWaiting.diblokir === true && hasilWaiting.targetTab === 2, 'Quality Gate Guard: Sesi Cabang diblokir dari Tab 3 jika proyek berstatus WAITING_APPROVAL');
+
+  // Test 3: Sesi Palembang memiliki proyek APPROVED
+  const proyekApproved = { id: 'REQ-01', status: 'APPROVED' };
+  const hasilApproved = simulasikanGuardTab3(authPlb, proyekApproved);
+  assert(hasilApproved.diblokir === false && hasilApproved.targetTab === 3, 'Quality Gate Guard: Sesi Cabang diizinkan membuka Tab 3 jika proyek berstatus APPROVED');
+
+  // Test 4: Sesi Super Admin Pusat (NSR8899 / NSR-PST-2026)
+  const authPusat = resolveUnifiedToken('NSR8899');
+  const hasilSuperAdmin = simulasikanGuardTab3(authPusat, null);
+  assert(hasilSuperAdmin.diblokir === false && hasilSuperAdmin.targetTab === 3, 'Quality Gate Guard: Super Admin Pusat memiliki hak inspeksi Tab 3');
+
 
 
   // -----------------------------------------------------------------

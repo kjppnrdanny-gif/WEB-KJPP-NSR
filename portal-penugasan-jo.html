@@ -387,20 +387,20 @@
     
     <!-- Tab Navigasi Utama -->
     <div class="flex border-b border-slate-800 mb-6 gap-2 sm:gap-4 overflow-x-auto">
-      <button id="btn-tab-form" onclick="pindahTab('form')" class="py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap">
+      <button id="btn-tab-form" onclick="gantiTab(1)" class="py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         <span>1. Input Penugasan &amp; JO Baru</span>
       </button>
 
-      <button id="btn-tab-dashboard" data-alias="tab-btn-2" onclick="pindahTab('dashboard')" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
+      <button id="btn-tab-dashboard" data-alias="tab-btn-2" onclick="gantiTab(2)" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
         <span>2. Dashboard &amp; Antrean Approval</span>
         <span id="badge-antrean-count" class="ml-1 px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black hidden">0</span>
       </button>
 
-      <button id="btn-tab-preview" onclick="pindahTab('preview')" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
+      <button id="btn-tab-preview" onclick="gantiTab(3)" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap opacity-60 cursor-not-allowed">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        <span>3. Pratinjau &amp; Cetak 9 Dokumen</span>
+        <span>🔒 3. Pratinjau &amp; Cetak (Terkunci)</span>
       </button>
     </div>
 
@@ -440,10 +440,10 @@
           Pembuatan Job Order baru merupakan wewenang Tim Admin &amp; Marketing. Sebagai tim teknis penilai / reviewer, Anda dapat memantau antrean penugasan di <strong>Tab 2 (Dashboard)</strong> serta melihat dan mencetak dokumen kerja teknis di <strong>Tab 3 (Pratinjau &amp; Cetak Dokumen)</strong> dengan perlindungan kerahasiaan nominal fee.
         </p>
         <div class="pt-2 flex justify-center gap-3">
-          <button type="button" onclick="pindahTab('dashboard')" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition shadow cursor-pointer">
+          <button type="button" onclick="gantiTab(2)" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition shadow cursor-pointer">
             Buka Dashboard Penugasan &rarr;
           </button>
-          <button type="button" onclick="pindahTab('preview')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 cursor-pointer">
+          <button type="button" onclick="gantiTab(3)" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 cursor-pointer">
             Buka Cetak Dokumen &rarr;
           </button>
         </div>
@@ -1284,10 +1284,10 @@
     <!-- ========================================================
          TAB 3: MESIN PRATINJAU & CETAK DOKUMEN A4 (PRINT ENGINE)
          ======================================================== -->
-    <div id="tab-content-preview" class="hidden space-y-6">
+    <div id="tab-3" data-alias="tab-content-preview" class="hidden space-y-6">
       
       <!-- Kontrol Pratinjau Dokumen -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+      <div id="toolbar-cetak-dokumen" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
         <div class="flex flex-wrap items-center gap-3 text-xs">
           <div>
             <label class="block text-[10px] text-slate-400 font-bold uppercase mb-1">Pilih Dokumen yang Ditampilkan / Dicetak:</label>
@@ -1331,8 +1331,22 @@
         </div>
       </div>
 
+      <!-- Lock Screen Overlay Tab 3 (Quality Gate Lock) -->
+      <div id="tab3-lock-screen" class="hidden flex-col items-center justify-center p-12 text-center bg-slate-900/90 border border-amber-500/30 rounded-2xl my-6">
+        <div class="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center text-3xl mb-4 border border-amber-500/20">
+          🔒
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Dokumen Penugasan Belum Disahkan</h3>
+        <p class="text-sm text-slate-300 max-w-md mb-6 leading-relaxed">
+          Sesuai Standar Penilaian Indonesia (SPI 103) &amp; Tata Kelola KJPP, 9 dokumen resmi hanya dapat dicetak setelah diverifikasi dan disahkan dengan tanda tangan Rekan Penandatangan &amp; Stempel Resmi Kantor Pusat.
+        </p>
+        <button onclick="gantiTab(2)" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-lg cursor-pointer">
+          ← Lihat Status di Tab 2
+        </button>
+      </div>
+
       <!-- Container Visual Lembar Kerja Pratinjau (Screen View) -->
-      <div class="bg-slate-800/60 p-4 sm:p-8 rounded-2xl border border-slate-800 flex justify-center overflow-x-auto shadow-inner">
+      <div id="lembar-pratinjau-dokumen" class="bg-slate-800/60 p-4 sm:p-8 rounded-2xl border border-slate-800 flex justify-center overflow-x-auto shadow-inner">
         <div id="preview-rendered-area" class="preview-container w-full max-w-[820px] flex flex-col items-center">
           <!-- Dokumen akan dirender oleh fungsi renderSemuaDokumen() -->
         </div>
@@ -2407,6 +2421,9 @@
       }
 
       simpanDatabaseLokal();
+      activeProjectData = p;
+      window.DATA_PROYEK_TERPILIH = p;
+      if (typeof perbaruiIndikatorTab3 === 'function') perbaruiIndikatorTab3(p);
       renderDashboardTabel();
 
       tutupModalApproval();
@@ -2478,6 +2495,7 @@
     let currentModeAlur = (initialParamMode === 'pusat') ? 'CENTRAL_APPROVAL' : 'PRIVATE_CABANG'; // "CENTRAL_APPROVAL" | "PRIVATE_CABANG"
 
     let activeProjectData = null; // Menyimpan data proyek yang sedang dilihat di Tab 3
+    window.DATA_PROYEK_TERPILIH = null;
     let projectDatabase = [];     // Array antrean penugasan
 
     // Data Awal Seed Resmi Sinkron dengan Google Spreadsheet DB_PENUGASAN_JO_NSR (Counter: 415)
@@ -3929,6 +3947,11 @@
         if (badgePending) badgePending.remove();
       }
 
+      // 3. Perbarui Indikator Kunci Mutlak Tab 3 (Quality Gate Lock)
+      if (typeof perbaruiIndikatorTab3 === 'function') {
+        perbaruiIndikatorTab3(window.DATA_PROYEK_TERPILIH || null);
+      }
+
       // 5. Update Preview Nomor & Render Dashboard Langsung
       updateNomorOtomatisPreview();
       renderDashboardTabel();
@@ -4028,70 +4051,142 @@
     }
 
     // ==========================================================
-    // 5. NAVIGASI TAB UTAMA
+    // 5. NAVIGASI TAB UTAMA & QUALITY GATE LOCK (TAB 3)
     // ==========================================================
-    function pindahTab(tabName) {
-      const tabForm = document.getElementById('tab-content-form');
-      const tabDash = document.getElementById('tab-content-dashboard');
-      const tabPrev = document.getElementById('tab-content-preview');
+    function perbaruiIndikatorTab3(proyek) {
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const proyekAktif = proyek || window.DATA_PROYEK_TERPILIH || activeProjectData || null;
+      const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED');
+      const isSuperAdmin = auth && auth.isSuperAdmin;
+
+      const btnPrev = document.getElementById('btn-tab-preview') || document.querySelector('button[onclick*="gantiTab(3)"]') || document.querySelector('button[onclick*="preview"]');
+      if (!btnPrev) return;
+      const span = btnPrev.querySelector('span');
+
+      if (isSuperAdmin || isApproved) {
+        if (span) span.textContent = '🖨️ 3. Pratinjau & Cetak 9 Dokumen';
+        btnPrev.classList.remove('opacity-60', 'cursor-not-allowed');
+      } else {
+        if (span) span.textContent = '🔒 3. Pratinjau & Cetak (Terkunci)';
+        btnPrev.classList.add('opacity-60', 'cursor-not-allowed');
+      }
+    }
+
+    function gantiTab(tabIdx) {
+      if (tabIdx === 'form') tabIdx = 1;
+      else if (tabIdx === 'dashboard') tabIdx = 2;
+      else if (tabIdx === 'preview') tabIdx = 3;
+
+      if (tabIdx === 3) {
+        const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
+        const proyekAktif = window.DATA_PROYEK_TERPILIH || null;
+
+        // Pemeriksaan Hak Akses Tab 3:
+        // 1. Wajib ada proyek yang dipilih dari Tab 2
+        // 2. Jika bukan Super Admin, status proyek WAJIB 'APPROVED' atau 'TERBIT'
+        const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED');
+        const isSuperAdmin = auth && auth.isSuperAdmin;
+
+        if (!isSuperAdmin && !isApproved) {
+          // Tampilkan Modal/Toast Peringatan Kepatuhan
+          alert(
+            "🔒 AKSES DITOLAK — QUALITY GATE TERKUNCI!\n\n" +
+            "Dokumen penugasan resmi belum dapat dibuka atau dicetak karena belum mendapatkan persetujuan (APPROVAL) serta pengesahan TTD/Stempel resmi dari Kantor Pusat.\n\n" +
+            "Silakan periksa status penugasan pada Tab 2 (Dashboard & Antrean Approval)."
+          );
+          
+          // Arahkan otomatis ke Tab 2
+          tabIdx = 2;
+        }
+      }
+
+      const tabForm = document.getElementById('tab-content-form') || document.getElementById('tab-1');
+      const tabDash = document.getElementById('tab-content-dashboard') || document.getElementById('tab-2');
+      const tabPrev = document.getElementById('tab-3') || document.getElementById('tab-content-preview');
 
       const btnForm = document.getElementById('btn-tab-form');
-      const btnDash = document.getElementById('btn-tab-dashboard');
+      const btnDash = document.getElementById('btn-tab-dashboard') || document.querySelector('[data-alias="tab-btn-2"]');
       const btnPrev = document.getElementById('btn-tab-preview');
 
-      [tabForm, tabDash, tabPrev].forEach(el => el.classList.add('hidden'));
-      [btnForm, btnDash, btnPrev].forEach(el => {
+      [tabForm, tabDash, tabPrev].filter(Boolean).forEach(el => el.classList.add('hidden'));
+      [btnForm, btnDash, btnPrev].filter(Boolean).forEach(el => {
         el.className = "py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap";
       });
 
-      if (tabName === 'form') {
-        tabForm.classList.remove('hidden');
-        btnForm.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
-      } else if (tabName === 'dashboard') {
-        tabDash.classList.remove('hidden');
-        btnDash.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
+      if (tabIdx === 1) {
+        if (tabForm) tabForm.classList.remove('hidden');
+        if (btnForm) btnForm.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
+      } else if (tabIdx === 2) {
+        if (tabDash) tabDash.classList.remove('hidden');
+        if (btnDash) btnDash.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
         renderDashboardTabel();
-      } else if (tabName === 'preview') {
+      } else if (tabIdx === 3) {
         // Quality Gate: block Tab 3 for unresolved Central Approval submissions
-        const _qgProyek = activeProjectData;
+        const _qgProyek = window.DATA_PROYEK_TERPILIH || activeProjectData;
         const _isCentralWaiting = _qgProyek &&
           !_qgProyek.isDraftPreview &&
           (_qgProyek.mode_alur === 'CENTRAL_APPROVAL' || _qgProyek.mode_pengaju === 'PUSAT') &&
           _qgProyek.status === 'WAITING_APPROVAL';
 
         if (_isCentralWaiting) {
-          [tabForm, tabDash, tabPrev].forEach(el => el.classList.add('hidden'));
-          [btnForm, btnDash, btnPrev].forEach(el => {
-            el.className = "py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap";
-          });
-          tabDash.classList.remove('hidden');
-          btnDash.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
-          const _tabPrevSpan = btnPrev ? btnPrev.querySelector('span') : null;
-          if (_tabPrevSpan) _tabPrevSpan.textContent = '3. Pratinjau & Cetak (Terkunci 🔒)';
-          alert(`🔒 Dokumen Terkunci
-
-Pengajuan ini sedang menunggu otorisasi Admin Kantor Pusat.
-Tab Pratinjau & Cetak hanya dapat diakses setelah status APPROVED.
-
-Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
+          if (tabDash) tabDash.classList.remove('hidden');
+          if (btnDash) btnDash.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
+          perbaruiIndikatorTab3(null);
+          alert(`🔒 Dokumen Terkunci\n\nPengajuan ini sedang menunggu otorisasi Admin Kantor Pusat.\nTab Pratinjau & Cetak hanya dapat diakses setelah status APPROVED.\n\nSilakan hubungi Admin Pusat untuk mempercepat proses approval.`);
           renderDashboardTabel();
           return;
         }
 
-        // Unlock label
-        const _tabPrevSpan2 = btnPrev ? btnPrev.querySelector('span') : null;
-        if (_tabPrevSpan2) _tabPrevSpan2.textContent = '3. Pratinjau & Cetak 9 Dokumen';
+        if (tabPrev) tabPrev.classList.remove('hidden');
+        if (btnPrev) btnPrev.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
 
-        tabPrev.classList.remove('hidden');
-        btnPrev.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
-        if (!activeProjectData || activeProjectData.isDraftPreview) {
-          activeProjectData = bangunDraftDariForm();
-        } else if (!activeProjectData && projectDatabase.length > 0) {
-          activeProjectData = projectDatabase[0];
-        }
-        renderSemuaDokumen();
+        perbaruiIndikatorTab3(window.DATA_PROYEK_TERPILIH || activeProjectData);
+        renderPratinjauDokumen();
       }
     }
+
+    function pindahTab(tabName) {
+      gantiTab(tabName);
+    }
+
+    window.gantiTab = gantiTab;
+    window.pindahTab = pindahTab;
+    window.perbaruiIndikatorTab3 = perbaruiIndikatorTab3;
+
+    function renderPratinjauDokumen() {
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData || null;
+
+      const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED');
+      const isSuperAdmin = auth && auth.isSuperAdmin;
+
+      const lockScreen = document.getElementById('tab3-lock-screen');
+      const toolbarCetak = document.getElementById('toolbar-cetak-dokumen');
+      const lembarDokumen = document.getElementById('lembar-pratinjau-dokumen');
+
+      if (!isSuperAdmin && !isApproved) {
+        if (lockScreen) {
+          lockScreen.classList.remove('hidden');
+          lockScreen.style.display = 'flex';
+        }
+        if (toolbarCetak) toolbarCetak.style.display = 'none';
+        if (lembarDokumen) lembarDokumen.style.display = 'none';
+        return;
+      }
+
+      if (lockScreen) {
+        lockScreen.classList.add('hidden');
+        lockScreen.style.display = 'none';
+      }
+      if (toolbarCetak) toolbarCetak.style.display = '';
+      if (lembarDokumen) lembarDokumen.style.display = '';
+
+      if (proyekAktif) {
+        activeProjectData = proyekAktif;
+      }
+      renderSemuaDokumen();
+    }
+    window.renderPratinjauDokumen = renderPratinjauDokumen;
 
     function getRekanByWilayah(wilayah) {
       const w = (wilayah || '').toLowerCase();
@@ -6352,7 +6447,9 @@ Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
       }
       if (p) {
         activeProjectData = p;
-        pindahTab('preview');
+        window.DATA_PROYEK_TERPILIH = p;
+        perbaruiIndikatorTab3(p);
+        gantiTab(3);
       }
     }
 
@@ -6608,7 +6705,33 @@ Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
     }
 
     function renderSemuaDokumen() {
-      if (!activeProjectData) {
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const p = window.DATA_PROYEK_TERPILIH || activeProjectData;
+      const isApproved = p && (p.status === 'APPROVED' || p.status_approval === 'APPROVED');
+      const isSuperAdmin = auth && auth.isSuperAdmin;
+
+      const lockScreen = document.getElementById('tab3-lock-screen');
+      const toolbarCetak = document.getElementById('toolbar-cetak-dokumen');
+      const lembarDokumen = document.getElementById('lembar-pratinjau-dokumen');
+
+      if (!isSuperAdmin && !isApproved) {
+        if (lockScreen) {
+          lockScreen.classList.remove('hidden');
+          lockScreen.style.display = 'flex';
+        }
+        if (toolbarCetak) toolbarCetak.style.display = 'none';
+        if (lembarDokumen) lembarDokumen.style.display = 'none';
+        return;
+      }
+
+      if (lockScreen) {
+        lockScreen.classList.add('hidden');
+        lockScreen.style.display = 'none';
+      }
+      if (toolbarCetak) toolbarCetak.style.display = '';
+      if (lembarDokumen) lembarDokumen.style.display = '';
+
+      if (!p) {
         document.getElementById('preview-rendered-area').innerHTML = `
           <div class="text-center py-16 text-slate-400">
             <p class="text-sm">Belum ada proyek yang dipilih untuk pratinjau.</p>
@@ -6617,8 +6740,7 @@ Silakan hubungi Admin Pusat untuk mempercepat proses approval.`);
         `;
         return;
       }
-
-      const p = activeProjectData;
+      activeProjectData = p;
       document.getElementById('preview-active-project-label').innerHTML = `Proyek Aktif: <strong class="text-amber-400">${p.debitur_nama}</strong> &bull; (${p.nomor_lp})`;
 
       // Masking Kerahasiaan Komersial (Fee & Terbilang) berdasarkan Role
