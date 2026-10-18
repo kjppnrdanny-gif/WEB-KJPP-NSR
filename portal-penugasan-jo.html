@@ -1321,9 +1321,16 @@
             </svg>
             <span>Unduh Draf Word (.doc)</span>
           </button>
-          <button type="button" onclick="eksekusiCetakDokumen()" class="px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center gap-2 cursor-pointer">
+          <button type="button" id="btn-cetak-dokumen-a4" onclick="eksekusiCetakDokumen()" class="px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center gap-2 cursor-pointer">
             <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>Cetak Dokumen (A4)</span>
+          </button>
+          <button type="button" 
+                  id="btn-approval-toolbar-tab3" 
+                  onclick="bukaModalApprovalDariTab3()" 
+                  class="hidden items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-95">
+            <span class="text-base">⚖️</span>
+            <span id="label-btn-approval-tab3">Otorisasi / Upload Scan PDF</span>
           </button>
           <button type="button" onclick="exportDataJSON()" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 transition" title="Export JSON Proyek">
             Ekspor JSON
@@ -2319,7 +2326,15 @@
     function eksekusiApprovalPusatSubmit(event) {
       if (event) event.preventDefault();
       const pId = document.getElementById('appr-target-project-id').value;
-      const p = projectDatabase.find(item => item.id === pId);
+      let p = projectDatabase.find(item => item.id === pId);
+      if (!p) {
+        p = (window.DATA_PROYEK_TERPILIH && window.DATA_PROYEK_TERPILIH.id === pId) ? window.DATA_PROYEK_TERPILIH : (activeProjectData && activeProjectData.id === pId ? activeProjectData : null);
+      }
+      if (!p) {
+        const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+        const localPrivate = ambilDataPrivatCabang((auth && auth.wilayah) || userSession.wilayah);
+        p = localPrivate.find(item => item.id === pId);
+      }
       if (!p) {
         alert("Data penugasan tidak ditemukan.");
         return;
@@ -2425,6 +2440,9 @@
       window.DATA_PROYEK_TERPILIH = p;
       if (typeof perbaruiIndikatorTab3 === 'function') perbaruiIndikatorTab3(p);
       renderDashboardTabel();
+      if (typeof renderSemuaDokumen === 'function') {
+        renderSemuaDokumen();
+      }
 
       tutupModalApproval();
 
@@ -4061,27 +4079,62 @@
     function perbaruiIndikatorTab3(proyek) {
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
-      const isSuperAdmin = Boolean(auth && auth.isSuperAdmin);
+      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT'));
       const proyekAktif = proyek || window.DATA_PROYEK_TERPILIH || activeProjectData || null;
       const isApproved = proyekAktif && (proyekAktif.status === 'APPROVED' || proyekAktif.status_approval === 'APPROVED' || proyekAktif.status_approval === 'APPROVED_CABANG');
 
       const btnPrev = document.getElementById('btn-tab-preview') || document.querySelector('button[onclick*="gantiTab(3)"]') || document.querySelector('button[onclick*="preview"]');
-      if (!btnPrev) return;
-      const span = btnPrev.querySelector('span');
+      if (btnPrev) {
+        const span = btnPrev.querySelector('span');
 
-      // Admin Cabang memiliki yurisdiksi mandiri lokal: Tab 3 UNLOCKED (Bebas dibuka dan dicetak kapan saja)
-      if (isCabang) {
-        if (span) span.textContent = '🖨️ 3. Pratinjau & Cetak Dokumen Cabang';
-        btnPrev.classList.remove('opacity-60', 'cursor-not-allowed');
-        return;
+        // Admin Cabang memiliki yurisdiksi mandiri lokal: Tab 3 UNLOCKED (Bebas dibuka dan dicetak kapan saja)
+        if (isCabang) {
+          if (span) span.textContent = '🖨️ 3. Pratinjau & Cetak Dokumen Cabang';
+          btnPrev.classList.remove('opacity-60', 'cursor-not-allowed');
+        } else if (isSuperAdmin || isApproved) {
+          if (span) span.textContent = '🖨️ 3. Pratinjau & Cetak 9 Dokumen';
+          btnPrev.classList.remove('opacity-60', 'cursor-not-allowed');
+        } else {
+          if (span) span.textContent = '🔒 3. Pratinjau & Cetak (Terkunci)';
+          btnPrev.classList.add('opacity-60', 'cursor-not-allowed');
+        }
       }
 
-      if (isSuperAdmin || isApproved) {
-        if (span) span.textContent = '🖨️ 3. Pratinjau & Cetak 9 Dokumen';
-        btnPrev.classList.remove('opacity-60', 'cursor-not-allowed');
+      // Kontrol Visibilitas & RBAC Tombol Otorisasi Tab 3
+      const btnApprovalTab3 = document.getElementById('btn-approval-toolbar-tab3');
+      const labelBtnApproval = document.getElementById('label-btn-approval-tab3');
+
+      // JIKA BUKAN SUPER ADMIN / SESI CABANG:
+      if (!isSuperAdmin || isCabang) {
+        if (btnApprovalTab3) {
+          btnApprovalTab3.classList.add('hidden');
+          btnApprovalTab3.style.setProperty('display', 'none', 'important');
+        }
       } else {
-        if (span) span.textContent = '🔒 3. Pratinjau & Cetak (Terkunci)';
-        btnPrev.classList.add('opacity-60', 'cursor-not-allowed');
+        // JIKA SUPER ADMIN / ADMIN PUSAT:
+        if (proyekAktif) {
+          if (btnApprovalTab3) {
+            btnApprovalTab3.classList.remove('hidden');
+            btnApprovalTab3.style.display = 'inline-flex';
+
+            const statusProyek = (proyekAktif.status || proyekAktif.status_approval || '').toUpperCase();
+            if (statusProyek === 'WAITING_APPROVAL') {
+              btnApprovalTab3.className = 'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/25 animate-pulse transition-all';
+              if (labelBtnApproval) labelBtnApproval.textContent = '⚖️ Otorisasi & Upload Scan (Pending)';
+            } else if (statusProyek === 'APPROVED' || statusProyek === 'TERBIT') {
+              btnApprovalTab3.className = 'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 transition-all';
+              if (labelBtnApproval) labelBtnApproval.textContent = '✅ Berkas Telah Disahkan (Ubah / Re-upload)';
+            } else {
+              btnApprovalTab3.className = 'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-95';
+              if (labelBtnApproval) labelBtnApproval.textContent = 'Otorisasi / Upload Scan PDF';
+            }
+          }
+        } else {
+          if (btnApprovalTab3) {
+            btnApprovalTab3.classList.add('hidden');
+            btnApprovalTab3.style.display = 'none';
+          }
+        }
       }
     }
 
@@ -4156,6 +4209,24 @@
     window.gantiTab = gantiTab;
     window.pindahTab = pindahTab;
     window.perbaruiIndikatorTab3 = perbaruiIndikatorTab3;
+
+    function bukaModalApprovalDariTab3() {
+      const proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData;
+      if (!proyekAktif || !proyekAktif.id) {
+        alert("Pilih berkas penugasan terlebih dahulu untuk melakukan otorisasi.");
+        return;
+      }
+      bukaModalApprovalPusat(proyekAktif.id);
+    }
+
+    function bukaModalApprovalPusat(projectId) {
+      if (typeof approveProyekPusat === 'function') {
+        approveProyekPusat(projectId);
+      }
+    }
+
+    window.bukaModalApprovalDariTab3 = bukaModalApprovalDariTab3;
+    window.bukaModalApprovalPusat = bukaModalApprovalPusat;
 
     function renderPratinjauDokumen() {
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
@@ -6382,12 +6453,21 @@
     }
 
     function approveProyekPusat(projectId) {
-      if (userSession.mode !== "PUSAT" && userSession.role !== "ADMIN_PUSAT" && userSession.role !== "SUPER_ADMIN") {
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === "SUPER_ADMIN" || auth.role === "ADMIN_PUSAT" || auth.mode === "PUSAT" || (userSession && (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT" || userSession.role === "SUPER_ADMIN"))));
+      if (!isSuperAdmin) {
         alert("Otorisasi ditolak. Hanya akun ber-Token Pusat yang berhak menerbitkan nomor resmi.");
         return;
       }
 
-      const p = projectDatabase.find(item => item.id === projectId);
+      let p = projectDatabase.find(item => item.id === projectId);
+      if (!p) {
+        p = (window.DATA_PROYEK_TERPILIH && window.DATA_PROYEK_TERPILIH.id === projectId) ? window.DATA_PROYEK_TERPILIH : (activeProjectData && activeProjectData.id === projectId ? activeProjectData : null);
+      }
+      if (!p) {
+        const localPrivate = ambilDataPrivatCabang((auth && auth.wilayah) || userSession.wilayah);
+        p = localPrivate.find(item => item.id === projectId);
+      }
       if (!p) {
         alert("Data penugasan tidak ditemukan.");
         return;
@@ -6441,8 +6521,8 @@
 
         const elApprLp = document.getElementById('appr-nomor-lp');
         const elApprAdm = document.getElementById('appr-nomor-adm');
-        if (elApprLp) elApprLp.value = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
-        if (elApprAdm) elApprAdm.value = `${nextNum}/JO/NSR/${romawi}/${thn}`;
+        if (elApprLp) elApprLp.value = p.nomor_lp || `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
+        if (elApprAdm) elApprAdm.value = p.nomor_adm || `${nextNum}/JO/NSR/${romawi}/${thn}`;
 
         const elRekTujuan = document.getElementById('pilihan_rekening_tujuan');
         if (elRekTujuan) {
@@ -6455,6 +6535,7 @@
         validasiApprovalDuplikatLive();
       }
     }
+    window.approveProyekPusat = approveProyekPusat;
 
     function hapusProyek(projectId) {
       if (!confirm("Apakah Anda yakin ingin menghapus arsip pengajuan ini?")) return;

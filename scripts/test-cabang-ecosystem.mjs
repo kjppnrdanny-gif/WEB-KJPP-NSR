@@ -331,6 +331,64 @@ try {
   assert(joHtml.includes("status_approval: (isPrivateCabang && isCabangAdmin) ? 'APPROVED_CABANG'"), 'Status approval otomatis APPROVED_CABANG untuk penugasan mandiri cabang');
   assert(joHtml.includes("gantiTab(3)"), 'Admin Cabang otomatis diarahkan ke Tab 3 saat submit instan');
 
+  // H. Uji Direct In-Context Approval & Upload Scan Basah Toolbar Tab 3
+  console.log('\n\x1b[36m[2f/7] Menguji Direct In-Context Approval Toolbar Tab 3 (portal-penugasan-jo.html)\x1b[0m');
+  assert(joHtml.includes('id="btn-approval-toolbar-tab3"'), 'Tombol id="btn-approval-toolbar-tab3" terpasang di toolbar Tab 3');
+  assert(joHtml.includes('id="label-btn-approval-tab3"'), 'Elemen label id="label-btn-approval-tab3" terpasang di tombol approval');
+  assert(joHtml.includes('bukaModalApprovalDariTab3'), 'Fungsi bukaModalApprovalDariTab3 terpasang');
+  assert(joHtml.includes('bukaModalApprovalPusat'), 'Fungsi bukaModalApprovalPusat terpasang');
+  assert(joHtml.includes('window.bukaModalApprovalDariTab3 = bukaModalApprovalDariTab3'), 'Fungsi bukaModalApprovalDariTab3 diekspor ke window');
+  assert(joHtml.includes('window.bukaModalApprovalPusat = bukaModalApprovalPusat'), 'Fungsi bukaModalApprovalPusat diekspor ke window');
+
+  // Simulasi Logika RBAC Toolbar Tab 3
+  function simulasikanToolbarTab3(auth, proyekAktif) {
+    const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+    const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT'));
+    
+    let isVisible = false;
+    let label = '';
+    let isPulse = false;
+
+    if (!isSuperAdmin || isCabang) {
+      isVisible = false;
+    } else {
+      if (proyekAktif) {
+        isVisible = true;
+        const statusProyek = (proyekAktif.status || proyekAktif.status_approval || '').toUpperCase();
+        if (statusProyek === 'WAITING_APPROVAL') {
+          label = '⚖️ Otorisasi & Upload Scan (Pending)';
+          isPulse = true;
+        } else if (statusProyek === 'APPROVED' || statusProyek === 'TERBIT') {
+          label = '✅ Berkas Telah Disahkan (Ubah / Re-upload)';
+        } else {
+          label = 'Otorisasi / Upload Scan PDF';
+        }
+      } else {
+        isVisible = false;
+      }
+    }
+    return { isVisible, label, isPulse };
+  }
+
+  // 1. Cabang Padang -> Wajib HIDDEN
+  const tbPadang = simulasikanToolbarTab3(authPdg, { id: 'REQ-PDG-001', status: 'WAITING_APPROVAL' });
+  assert(tbPadang.isVisible === false, 'RBAC Toolbar Tab 3: Sesi Cabang Padang tersembunyi mutlak (isVisible === false)');
+
+  // 2. Super Admin Pusat -> Proyek WAITING_APPROVAL -> Amber pulsing & label pending
+  const tbPusatPending = simulasikanToolbarTab3(authPusat, { id: 'REQ-2026-001', status: 'WAITING_APPROVAL' });
+  assert(tbPusatPending.isVisible === true, 'RBAC Toolbar Tab 3: Sesi Super Admin Pusat tombol otorisasi tampil');
+  assert(tbPusatPending.isPulse === true, 'RBAC Toolbar Tab 3: Mode WAITING_APPROVAL mengaktifkan styling pulsing');
+  assert(tbPusatPending.label.includes('Pending'), 'RBAC Toolbar Tab 3: Label WAITING_APPROVAL mencantumkan status pending');
+
+  // 3. Super Admin Pusat -> Proyek APPROVED -> Hijau Berkas Telah Disahkan
+  const tbPusatApproved = simulasikanToolbarTab3(authPusat, { id: 'NSR-2026-0415', status: 'APPROVED' });
+  assert(tbPusatApproved.isVisible === true, 'RBAC Toolbar Tab 3: Sesi Super Admin Pusat berkas approved tetap tampil untuk re-upload');
+  assert(tbPusatApproved.label.includes('Telah Disahkan'), 'RBAC Toolbar Tab 3: Label APPROVED menampilkan status telah disahkan');
+
+  // 4. Super Admin Pusat -> Tidak ada proyek terpilih -> Hidden
+  const tbPusatNoProject = simulasikanToolbarTab3(authPusat, null);
+  assert(tbPusatNoProject.isVisible === false, 'RBAC Toolbar Tab 3: Tersembunyi saat tidak ada proyek aktif terpilih');
+
 
 
   // -----------------------------------------------------------------
