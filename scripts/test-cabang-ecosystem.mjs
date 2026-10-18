@@ -538,6 +538,70 @@ try {
 
 
   // -----------------------------------------------------------------
+  // 6b. TEST LOCKDOWN AKSES SURAT UMUM (SU) UNTUK KANTOR CABANG
+  // -----------------------------------------------------------------
+  console.log('\n\x1b[36m[6b/7] Menguji Penutupan Mutlak (Total Lockdown) Surat Umum untuk Cabang\x1b[0m');
+  const suHtml = fs.readFileSync(path.join(ROOT_DIR, 'portal-surat-umum.html'), 'utf-8');
+
+  // A. Topbar portal-penugasan-jo.html
+  assert(joHtml.includes('id="nav-link-surat-umum"'), 'portal-penugasan-jo.html memiliki id="nav-link-surat-umum"');
+  assert(joHtml.includes("navSuratUmum.classList.add('hidden')") && joHtml.includes("navSuratUmum.style.setProperty('display', 'none', 'important')"), 'portal-penugasan-jo.html menyembunyikan link SU dengan display none important untuk sesi cabang');
+
+  // B. Topbar portal-kwitansi.html
+  assert(kwHtml.includes('id="nav-link-surat-umum"'), 'portal-kwitansi.html memiliki id="nav-link-surat-umum"');
+  assert(kwHtml.includes("navSuratUmum.classList.add('hidden')") && kwHtml.includes("navSuratUmum.style.setProperty('display', 'none', 'important')"), 'portal-kwitansi.html menyembunyikan link SU dengan display none important untuk sesi cabang');
+
+  // C. Navbar portal-nolap-cabang.html
+  const headerNolapCabang = cbgHtml.match(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi)?.[0] || '';
+  assert(!headerNolapCabang.includes('portal-surat-umum.html') && !headerNolapCabang.includes('Surat Umum'), 'Header navbar portal-nolap-cabang.html steril mutlak dari tautan Surat Umum');
+
+  // D. Route Guard di portal-surat-umum.html
+  assert(suHtml.includes('dapatkanSesiLogin()'), 'portal-surat-umum.html memiliki fungsi helper dapatkanSesiLogin()');
+  assert(suHtml.includes('resolveUnifiedTokenSync('), 'portal-surat-umum.html memiliki fungsi resolusi token sinkron');
+  assert(suHtml.includes('const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin()'), 'portal-surat-umum.html memeriksa sesi via CURRENT_AUTH_SESSION atau dapatkanSesiLogin');
+  assert(suHtml.includes('!auth || auth.isCabang === true'), 'portal-surat-umum.html memiliki guard pencegat rute !auth || auth.isCabang === true');
+  assert(suHtml.includes('⛔ AKSES DITOLAK — YURISDIKSI KHUSUS KANTOR PUSAT!'), 'portal-surat-umum.html memuat pesan penolakan eksklusif yurisdiksi kantor pusat');
+  assert(suHtml.includes("window.location.replace('index.html')"), 'portal-surat-umum.html mengalihkan paksa sesi tidak berhak kembali ke index.html');
+
+  // E. Simulasi Eksekusi Route Guard Surat Umum
+  function simulasikanRouteGuardSU(authSession) {
+    if (!authSession || authSession.isCabang === true || authSession.mode === 'CABANG' || authSession.role === 'ADMIN_CABANG') {
+      return {
+        aksesDiterima: false,
+        redirectTarget: 'index.html',
+        pesanAlert: '⛔ AKSES DITOLAK — YURISDIKSI KHUSUS KANTOR PUSAT!'
+      };
+    }
+    return {
+      aksesDiterima: true,
+      redirectTarget: null,
+      pesanAlert: null
+    };
+  }
+
+  // 1. Unauthenticated -> Ditolak
+  const guardUnauth = simulasikanRouteGuardSU(null);
+  assert(guardUnauth.aksesDiterima === false && guardUnauth.redirectTarget === 'index.html', 'Route Guard SU: Akses tanpa token ditolak dan dialihkan ke index.html');
+
+  // 2. Cabang Bandung (NSR-BDG-2026) -> Ditolak
+  const guardBdg = simulasikanRouteGuardSU(authBdg);
+  assert(guardBdg.aksesDiterima === false && guardBdg.redirectTarget === 'index.html', 'Route Guard SU: Sesi Cabang Bandung ditolak dan dialihkan ke index.html');
+
+  // 3. Cabang Padang (NSR-PDG-2026) -> Ditolak
+  const guardPdg = simulasikanRouteGuardSU(authPdg);
+  assert(guardPdg.aksesDiterima === false && guardPdg.redirectTarget === 'index.html', 'Route Guard SU: Sesi Cabang Padang ditolak dan dialihkan ke index.html');
+
+  // 4. Cabang Palembang (NSR-PLB-2026) -> Ditolak
+  const guardPlb = simulasikanRouteGuardSU(authPlb);
+  assert(guardPlb.aksesDiterima === false && guardPlb.redirectTarget === 'index.html', 'Route Guard SU: Sesi Cabang Palembang ditolak dan dialihkan ke index.html');
+
+  // 5. Super Admin Pusat (NSR8899 / NSR-PST-2026) -> Diterima
+  const guardPst = simulasikanRouteGuardSU(authPusat);
+  assert(guardPst.aksesDiterima === true && guardPst.redirectTarget === null, 'Route Guard SU: Sesi Super Admin Pusat (NSR8899) lolos otorisasi agenda Surat Umum');
+
+
+
+  // -----------------------------------------------------------------
   // 7. TEST BUILD PRODUCTION & ALLOWLIST
   // -----------------------------------------------------------------
   console.log('\n\x1b[36m[7/7] Menguji Build Produksi (scripts/build-production.mjs)\x1b[0m');

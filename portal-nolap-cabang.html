@@ -1571,6 +1571,10 @@
 
     // Inisialisasi saat DOM Selesai Dimuat
     document.addEventListener('DOMContentLoaded', () => {
+      // Pastikan link Surat Umum tidak pernah muncul di navbar cabang
+      const navSU = document.getElementById('nav-link-surat-umum') || document.querySelector('header a[href*="surat-umum"]');
+      if (navSU) navSU.remove();
+
       const today = new Date().toISOString().split('T')[0];
       const elTgl = document.getElementById('tanggal_laporan');
       if (elTgl) elTgl.value = today;

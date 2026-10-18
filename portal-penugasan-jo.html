@@ -3872,6 +3872,22 @@
         }
       }
 
+      // 2b. Proteksi & Sembunyikan Navigasi Buku Agenda Surat Umum (SU) jika Sesi Cabang
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const navSuratUmum = document.getElementById('nav-link-surat-umum') || 
+                           document.querySelector('a[href*="surat-umum"], a[href*="portal-surat-umum"]');
+      if (navSuratUmum) {
+        if (auth && auth.isCabang) {
+          // Sembunyikan mutlak untuk sesi cabang
+          navSuratUmum.classList.add('hidden');
+          navSuratUmum.style.setProperty('display', 'none', 'important');
+        } else {
+          // Tampilkan hanya untuk Super Admin / Kantor Pusat
+          navSuratUmum.classList.remove('hidden');
+          navSuratUmum.style.removeProperty('display');
+        }
+      }
+
       // 3. Konfigurasi Tampilan Tab 1 Berdasarkan Role & Set Dropdown Wilayah
       if (userSession.role === 'PENILAI' || userSession.role === 'REVIEWER') {
         if (noticeRole) {
@@ -3933,7 +3949,6 @@
 
       
       // Proteksi UI Tab 2 (Filter Wilayah & Opsi Wilayah untuk Sesi Cabang)
-      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       const wrapFilterWil = document.getElementById('wrapper-filter-wilayah');
       const selectWilayah = document.getElementById('filter_wilayah') || document.getElementById('filter-kantor-wilayah');
       const selFilterWil = selectWilayah;

@@ -106,6 +106,9 @@
         <a href="portal-nolap.html" title="Buka Portal Nomor Laporan" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
           <span>📁 Portal NoLap</span>
         </a>
+        <a href="portal-surat-umum.html" id="nav-link-surat-umum" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold transition items-center gap-1.5 border border-slate-700" title="Buka Buku Agenda Surat Umum (SU)">
+          <span>Surat Umum (SU)</span>
+        </a>
         <a href="https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec" target="_blank" rel="noopener noreferrer" title="Buka Presensi Online" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
           <span>⏱️ Presensi</span>
         </a>
@@ -2647,8 +2650,23 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       const dot = document.getElementById('dot-sesi-cabang');
       if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
 
-      const isCabang = user.role === 'CABANG';
-      const isKeuangan = user.role === 'KEUANGAN' || user.role === 'ADMIN_PUSAT' || user.role === 'ADMIN';
+      const isCabang = user.role === 'CABANG' || Boolean(user.isCabang);
+      const isKeuangan = user.role === 'KEUANGAN' || user.role === 'ADMIN_PUSAT' || user.role === 'ADMIN' || Boolean(user.isSuperAdmin);
+
+      // Proteksi & Sembunyikan Navigasi Surat Umum (SU) jika Sesi Cabang
+      const navSuratUmum = document.getElementById('nav-link-surat-umum') || 
+                           document.querySelector('a[href*="surat-umum"], a[href*="portal-surat-umum"]');
+      if (navSuratUmum) {
+        if (isCabang || (user && user.isCabang)) {
+          // Sembunyikan mutlak untuk sesi cabang
+          navSuratUmum.classList.add('hidden');
+          navSuratUmum.style.setProperty('display', 'none', 'important');
+        } else {
+          // Tampilkan hanya untuk Super Admin / Kantor Pusat
+          navSuratUmum.classList.remove('hidden');
+          navSuratUmum.style.removeProperty('display');
+        }
+      }
 
       if (labelBadge) {
         labelBadge.innerText = `Akses: ${user.displayName || user.sub} (${user.role})`;

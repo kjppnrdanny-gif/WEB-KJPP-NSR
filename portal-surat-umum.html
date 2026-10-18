@@ -718,10 +718,167 @@
       return 'SU-KET';
     }
 
+    // Helper Resolusi Token Sinkron (Universal Session Matrix)
+    function resolveUnifiedTokenSync(rawToken) {
+      if (!rawToken) return null;
+      const t = String(rawToken).trim().toUpperCase();
+
+      // Kelompok Super Admin & Admin Pusat (Akses Penuh Surat Umum)
+      const superAdminTokens = ['NSR8899', 'NSR-PST-2026', 'NSR-ADM-2026', 'NSR-ADMIN-2026', 'NSR2026'];
+      if (superAdminTokens.includes(t)) {
+        return {
+          valid: true,
+          token: t,
+          role: 'ADMIN_PUSAT',
+          roleLabel: 'SUPER ADMIN • KANTOR PUSAT',
+          displayRole: 'SUPER ADMIN • KANTOR PUSAT',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: true,
+          mode: 'PUSAT',
+          canManageSU: true
+        };
+      }
+
+      // Kelompok Kantor Cabang Resmi (Ditolak Akses SU)
+      const cabangMatrix = {
+        'NSR-BDG-2026': { kode: '2.0160-04', nama: 'Kantor Cabang Bandung', wilayah: 'Bandung', code: 'BDG', rekan: 'Deni Siswandi, S.T., MAPPI (Cert.)' },
+        'NSR-PDG-2026': { kode: '2.0160-01', nama: 'Kantor Cabang Padang', wilayah: 'Padang', code: 'PDG', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
+        'NSR-MKS-2026': { kode: '2.0160-02', nama: 'Kantor Cabang Makassar', wilayah: 'Makassar', code: 'MKS', rekan: 'M. Amin Sade, S.E., MAPPI (Cert.)' },
+        'NSR-PLB-2026': { kode: '2.0160-03', nama: 'Kantor Cabang Palembang', wilayah: 'Palembang', code: 'PLB', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' }
+      };
+
+      if (cabangMatrix[t]) {
+        const c = cabangMatrix[t];
+        return {
+          valid: true,
+          token: t,
+          kode: c.kode,
+          nama: c.nama,
+          rekan: c.rekan,
+          role: 'ADMIN_CABANG',
+          roleLabel: 'Admin Cabang ' + c.wilayah,
+          displayRole: 'Admin ' + c.nama,
+          wilayah: c.nama,
+          wilayahCode: c.code,
+          isCabang: true,
+          isSuperAdmin: false,
+          mode: 'CABANG',
+          canManageSU: false
+        };
+      }
+
+      if (t === 'NSR-MKT-2026') {
+        return {
+          valid: true,
+          token: t,
+          role: 'MARKETING',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: false,
+          mode: 'PUSAT',
+          canManageSU: false
+        };
+      }
+
+      if (t === 'NSR-REV-2026') {
+        return {
+          valid: true,
+          token: t,
+          role: 'REVIEWER',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: false,
+          mode: 'PUSAT',
+          canManageSU: false
+        };
+      }
+
+      const penilaiTokens = ['NSR-APP-2026', 'NSR-SVR-2026', 'NSR-PEN-2026', 'NSR-VAL-2026', 'NSR-PNL-2026'];
+      if (penilaiTokens.includes(t)) {
+        return {
+          valid: true,
+          token: t,
+          role: 'PENILAI',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: false,
+          mode: 'PUSAT',
+          canManageSU: false
+        };
+      }
+
+      return null;
+    }
+
+    function dapatkanSesiLogin() {
+      if (window.CURRENT_AUTH_SESSION && window.CURRENT_AUTH_SESSION.valid) {
+        return window.CURRENT_AUTH_SESSION;
+      }
+      const rawSession = sessionStorage.getItem('NSR_USER_SESSION');
+      if (rawSession) {
+        try {
+          const parsed = JSON.parse(rawSession);
+          if (parsed && (parsed.token || parsed.valid)) {
+            const resolved = resolveUnifiedTokenSync(parsed.token || parsed.userToken);
+            if (resolved) {
+              window.CURRENT_AUTH_SESSION = { ...resolved, ...parsed, valid: true };
+              return window.CURRENT_AUTH_SESSION;
+            }
+            const isCab = Boolean(parsed.isCabang || parsed.role === 'ADMIN_CABANG' || (parsed.mode === 'CABANG' && !parsed.isSuperAdmin));
+            window.CURRENT_AUTH_SESSION = { ...parsed, isCabang: isCab, valid: true };
+            return window.CURRENT_AUTH_SESSION;
+          }
+        } catch (_) {}
+      }
+      const token = sessionStorage.getItem('NSR_AUTH_TOKEN') ||
+                    sessionStorage.getItem('TOKEN_AUTH_NSR') ||
+                    sessionStorage.getItem('CURRENT_AUTH_TOKEN') ||
+                    sessionStorage.getItem('kjpp_token_internal') ||
+                    sessionStorage.getItem('kjpp_session_jo') ||
+                    localStorage.getItem('kjpp_token_auth') ||
+                    localStorage.getItem('kjpp_session_token');
+      if (token) {
+        let t = token;
+        if (typeof t === 'string' && t.startsWith('{')) {
+          try {
+            const p = JSON.parse(t);
+            t = p.token || '';
+            if (p.isCabang !== undefined) {
+              window.CURRENT_AUTH_SESSION = { ...p, valid: true };
+              return window.CURRENT_AUTH_SESSION;
+            }
+          } catch (_) {}
+        }
+        const resolved = resolveUnifiedTokenSync(t);
+        if (resolved) {
+          window.CURRENT_AUTH_SESSION = resolved;
+          return resolved;
+        }
+      }
+      return null;
+    }
+
     // ==========================================================
     // 3. INISIALISASI HALAMAN & CEK SESI LOGIN
     // ==========================================================
     document.addEventListener('DOMContentLoaded', async () => {
+      // 0. PENCEGAT RUTE (ROUTE GUARD): Eksklusif Yurisdiksi Kantor Pusat
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
+      if (!auth || auth.isCabang === true) {
+        alert(
+          "⛔ AKSES DITOLAK — YURISDIKSI KHUSUS KANTOR PUSAT!\n\n" +
+          "Buku Agenda Surat Umum (SU) merupakan wewenang eksklusif Kantor Pusat (Jakarta) dan tidak dapat diakses oleh Kantor Cabang.\n\n" +
+          "Anda akan dialihkan kembali ke Halaman Utama."
+        );
+        window.location.replace('index.html');
+        return;
+      }
+
       // 1. Set default tanggal surat ke hari ini
       const tglInput = document.getElementById('tanggal_surat');
       if (tglInput) {
@@ -749,19 +906,30 @@
     });
 
     async function periksaSesiLogin() {
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
+      if (auth && !auth.isCabang) {
+        terapkanSesiKeUI(auth, auth.token || 'NSR8899');
+        return;
+      }
+
       const rawToken = localStorage.getItem('kjpp_token_auth') || localStorage.getItem('kjpp_session_token');
       if (!rawToken) {
         tampilkanLoginModal();
         return;
       }
 
-      const auth = await resolveUnifiedToken(rawToken);
-      if (!auth) {
-        tampilkanLoginModal();
+      const resolved = resolveUnifiedTokenSync(rawToken) || await resolveUnifiedToken(rawToken);
+      if (!resolved || resolved.isCabang || resolved.role !== 'ADMIN_PUSAT') {
+        alert(
+          "⛔ AKSES DITOLAK — YURISDIKSI KHUSUS KANTOR PUSAT!\n\n" +
+          "Buku Agenda Surat Umum (SU) merupakan wewenang eksklusif Kantor Pusat (Jakarta) dan tidak dapat diakses oleh Kantor Cabang.\n\n" +
+          "Anda akan dialihkan kembali ke Halaman Utama."
+        );
+        window.location.replace('index.html');
         return;
       }
 
-      terapkanSesiKeUI(auth, rawToken);
+      terapkanSesiKeUI(resolved, rawToken);
     }
 
     // Expose helpers globally for testing & external integrations
@@ -774,6 +942,8 @@
     window.renderTabelSuratUmum = renderTabelSuratUmum;
     window.updateSaranNomorOtomatis = updateSaranNomorOtomatis;
     window.getDaftarSuratUmum = () => daftarSuratUmum;
+    window.dapatkanSesiLogin = dapatkanSesiLogin;
+    window.resolveUnifiedTokenSync = resolveUnifiedTokenSync;
 
     function terapkanSesiKeUI(auth, rawToken) {
       userSession = { ...auth, token: rawToken };
@@ -849,12 +1019,22 @@
         return;
       }
 
-      const auth = await resolveUnifiedToken(rawToken);
+      const auth = resolveUnifiedTokenSync(rawToken) || await resolveUnifiedToken(rawToken);
       if (!auth) {
         if (err) {
           err.innerText = 'Token tidak valid atau tidak terdaftar di sistem KJPP NSR.';
           err.classList.remove('hidden');
         }
+        return;
+      }
+
+      if (auth.isCabang === true || auth.role === 'ADMIN_CABANG' || auth.mode === 'CABANG') {
+        alert(
+          "⛔ AKSES DITOLAK — YURISDIKSI KHUSUS KANTOR PUSAT!\n\n" +
+          "Buku Agenda Surat Umum (SU) merupakan wewenang eksklusif Kantor Pusat (Jakarta) dan tidak dapat diakses oleh Kantor Cabang.\n\n" +
+          "Anda akan dialihkan kembali ke Halaman Utama."
+        );
+        window.location.replace('index.html');
         return;
       }
 
