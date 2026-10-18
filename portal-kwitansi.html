@@ -2285,93 +2285,158 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       if (!rawToken || typeof rawToken !== 'string') return null;
       const t = rawToken.trim().toUpperCase();
 
-      // 1. SUPER ADMIN: NSR8899 (ALLOWED)
-      if (t === 'NSR8899') {
+      // A. KELOMPOK SUPER ADMIN & ADMIN PUSAT (AKSES PENUH)
+      const superAdminTokens = ['NSR8899', 'NSR-PST-2026', 'NSR-ADM-2026', 'NSR-ADMIN-2026', 'NSR2026'];
+      if (superAdminTokens.includes(t)) {
         return {
+          valid: true,
           token: t,
-          role: 'SUPER_ADMIN',
-          roleLabel: 'Super Admin',
-          displayRole: 'Super Admin / Master Otoritas',
-          mode: 'PUSAT',
-          wilayah: 'Kantor Pusat Jakarta',
+          role: 'SUPER ADMIN',
+          roleLabel: 'SUPER ADMIN • KANTOR PUSAT',
+          displayRole: 'SUPER ADMIN • KANTOR PUSAT',
+          wilayah: 'PUSAT',
+          wilayahLabel: 'Kantor Pusat',
+          wilayahResmi: 'Kantor Pusat Jakarta',
           wilayahCode: 'PST',
-          canAccessKwitansi: true
+          isCabang: false,
+          isSuperAdmin: true,
+          aksesApproval: true,
+          aksesKwitansi: true,
+          aksesFee: true,
+          mode: 'PUSAT',
+          canAccessKwitansi: true,
+          seeFee: true,
+          canApprove: true,
+          canApprovePusat: true,
+          canApproveCabang: true,
+          canSubmit: true,
+          canInputForm: true,
+          lockWilayah: false
         };
       }
 
-      // 2. ADMIN PUSAT: NSR-PST-2026 & NSR2026 (ALLOWED)
-      if (t === 'NSR-PST-2026' || t === 'NSR2026') {
-        return {
-          token: t,
-          role: 'ADMIN_PUSAT',
-          roleLabel: 'Admin Pusat',
-          displayRole: 'Admin Pusat / Master Admin',
-          mode: 'PUSAT',
-          wilayah: 'Kantor Pusat Jakarta',
-          wilayahCode: 'PST',
-          canAccessKwitansi: true
-        };
-      }
-
-      // 3. ADMIN CABANG (HANYA 4 CABANG RESMI: Bandung, Padang, Makassar, Palembang - ALLOWED)
-      const cabangMap = {
-        'NSR-BDG-2026': { wilayah: 'Kantor Cabang Bandung', code: 'BDG' },
-        'NSR-PDG-2026': { wilayah: 'Kantor Cabang Padang', code: 'PDG' },
-        'NSR-MKS-2026': { wilayah: 'Kantor Cabang Makassar', code: 'MKS' },
-        'NSR-PLB-2026': { wilayah: 'Kantor Cabang Palembang', code: 'PLB' }
+      // B. KELOMPOK KANTOR CABANG RESMI
+      const cabangMatrix = {
+        'NSR-BDG-2026': { kode: '2.0160-04', nama: 'Kantor Cabang Bandung', wilayah: 'Bandung', code: 'BDG', rekan: 'Deni Siswandi, S.T., MAPPI (Cert.)' },
+        'NSR-PDG-2026': { kode: '2.0160-01', nama: 'Kantor Cabang Padang', wilayah: 'Padang', code: 'PDG', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
+        'NSR-MKS-2026': { kode: '2.0160-02', nama: 'Kantor Cabang Makassar', wilayah: 'Makassar', code: 'MKS', rekan: 'M. Amin Sade, S.E., MAPPI (Cert.)' },
+        'NSR-PLB-2026': { kode: '2.0160-03', nama: 'Kantor Cabang Palembang', wilayah: 'Palembang', code: 'PLB', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' }
       };
-      if (cabangMap[t]) {
+
+      if (cabangMatrix[t]) {
+        const c = cabangMatrix[t];
         return {
+          valid: true,
           token: t,
+          kode: c.kode,
+          kodeKantor: c.kode,
+          nama: c.nama,
+          kantor: c.nama,
+          rekan: c.rekan,
+          rekanNama: c.rekan,
           role: 'ADMIN_CABANG',
-          roleLabel: 'Admin Cabang',
-          displayRole: 'Admin Kantor Cabang',
+          roleLabel: 'Admin Cabang ' + c.wilayah,
+          displayRole: 'Admin ' + c.nama,
+          wilayah: c.wilayah,
+          wilayahLabel: c.nama,
+          wilayahResmi: c.nama,
+          wilayahCode: c.code,
+          isCabang: true,
+          isSuperAdmin: false,
+          aksesApproval: false,
+          aksesKwitansi: true,
+          aksesFee: true,
           mode: 'CABANG',
-          wilayah: cabangMap[t].wilayah,
-          wilayahCode: cabangMap[t].code,
-          canAccessKwitansi: true
+          canAccessKwitansi: true,
+          seeFee: true,
+          canApprove: false,
+          canApproveCabang: true,
+          canSubmit: true,
+          canInputForm: true,
+          lockWilayah: true
         };
       }
 
-      // 4. REVIEWER: NSR-REV-2026 (DENIED)
-      if (t === 'NSR-REV-2026') {
-        return {
-          token: t,
-          role: 'REVIEWER',
-          roleLabel: 'Reviewer',
-          displayRole: 'Reviewer KKP / Quality Control',
-          mode: 'PUSAT',
-          wilayah: 'Kantor Pusat Jakarta',
-          wilayahCode: 'PST',
-          canAccessKwitansi: false
-        };
-      }
-
-      // 5. PENILAI / SURVEYOR: NSR-VAL-2026 & Alias NSR-PNL-2026 (DENIED)
-      if (t === 'NSR-VAL-2026' || t === 'NSR-PNL-2026') {
-        return {
-          token: t,
-          role: 'PENILAI',
-          roleLabel: 'Penilai',
-          displayRole: 'Penilai Lapangan / Surveyor',
-          mode: 'PUSAT',
-          wilayah: 'Kantor Pusat Jakarta',
-          wilayahCode: 'PST',
-          canAccessKwitansi: false
-        };
-      }
-
-      // 6. MARKETING: NSR-MKT-2026 (DENIED)
+      // C. KELOMPOK FUNGSIONAL
       if (t === 'NSR-MKT-2026') {
         return {
+          valid: true,
           token: t,
           role: 'MARKETING',
           roleLabel: 'Marketing',
           displayRole: 'Divisi Business Development & Marketing',
-          mode: 'PUSAT',
-          wilayah: 'Kantor Pusat Jakarta',
+          wilayah: 'PUSAT',
+          wilayahLabel: 'Kantor Pusat',
+          wilayahResmi: 'Kantor Pusat Jakarta',
           wilayahCode: 'PST',
-          canAccessKwitansi: false
+          isCabang: false,
+          isSuperAdmin: false,
+          aksesApproval: false,
+          aksesKwitansi: false,
+          aksesFee: false,
+          mode: 'PUSAT',
+          canAccessKwitansi: false,
+          seeFee: false,
+          canApprove: false,
+          canSubmit: true,
+          canInputForm: true,
+          lockWilayah: false,
+          feeMaskText: '[Sesuai SPK / Khusus Admin]'
+        };
+      }
+
+      if (t === 'NSR-REV-2026') {
+        return {
+          valid: true,
+          token: t,
+          role: 'REVIEWER',
+          roleLabel: 'Reviewer QC',
+          displayRole: 'Reviewer KKP / Quality Control',
+          wilayah: 'PUSAT',
+          wilayahLabel: 'Kantor Pusat',
+          wilayahResmi: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: false,
+          aksesApproval: false,
+          aksesKwitansi: false,
+          aksesFee: false,
+          mode: 'PUSAT',
+          canAccessKwitansi: false,
+          seeFee: false,
+          canApprove: false,
+          canSubmit: false,
+          canInputForm: false,
+          lockWilayah: false,
+          feeMaskText: '[Sesuai Kontrak / Khusus Admin]'
+        };
+      }
+
+      const penilaiTokens = ['NSR-APP-2026', 'NSR-SVR-2026', 'NSR-PEN-2026', 'NSR-VAL-2026', 'NSR-PNL-2026'];
+      if (penilaiTokens.includes(t)) {
+        return {
+          valid: true,
+          token: t,
+          role: 'PENILAI',
+          roleLabel: 'Penilai',
+          displayRole: 'Penilai Lapangan / Surveyor',
+          wilayah: 'PUSAT',
+          wilayahLabel: 'Kantor Pusat',
+          wilayahResmi: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: false,
+          aksesApproval: false,
+          aksesKwitansi: false,
+          aksesFee: false,
+          mode: 'PUSAT',
+          canAccessKwitansi: false,
+          seeFee: false,
+          canApprove: false,
+          canSubmit: false,
+          canInputForm: false,
+          lockWilayah: false,
+          feeMaskText: '[Sesuai SPK / Khusus Admin]'
         };
       }
 
@@ -2380,8 +2445,13 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
 
     // 16. Pemeriksaan Sesi Server-Side & Token Terpadu
     async function periksaSesiKwitansi() {
-      // Periksa sesi lokal terlebih dahulu (dari portal utama / sessionStorage)
-      const rawStored = sessionStorage.getItem('NSR_AUTH_TOKEN') || sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('kjpp_session_jo');
+      // 1. Cek sesi SSO terpadu
+      const rawStored = sessionStorage.getItem('NSR_USER_SESSION') ||
+                        sessionStorage.getItem('NSR_AUTH_TOKEN') ||
+                        sessionStorage.getItem('TOKEN_AUTH_NSR') ||
+                        sessionStorage.getItem('CURRENT_AUTH_TOKEN') ||
+                        sessionStorage.getItem('kjpp_token_internal') ||
+                        sessionStorage.getItem('kjpp_session_jo');
       if (rawStored) {
         try {
           let t = rawStored;
@@ -2391,17 +2461,25 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           }
           const auth = resolveUnifiedToken(t);
           if (auth) {
-            if (!auth.canAccessKwitansi) {
+            if (!auth.canAccessKwitansi && !auth.aksesKwitansi) {
               alert(`Akses Ditolak: Modul Permintaan Kwitansi & Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${auth.roleLabel}.`);
               window.location.href = 'portal-penugasan-jo.html';
               return;
             } else {
+              // Simpan SSO lengkap
               sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
+              sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(auth));
+              sessionStorage.setItem('TOKEN_AUTH_NSR', auth.token);
+              sessionStorage.setItem('CURRENT_AUTH_TOKEN', auth.token);
+              sessionStorage.setItem('kjpp_token_internal', auth.token);
+              sessionStorage.setItem('kjpp_session_jo', JSON.stringify(auth));
+
+              const isPusatKeuangan = auth.isSuperAdmin || auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER ADMIN' || auth.role === 'SUPER_ADMIN';
               const simUser = {
-                sub: (auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER_ADMIN') ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
-                role: (auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER_ADMIN') ? 'KEUANGAN' : 'CABANG',
+                sub: isPusatKeuangan ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
+                role: isPusatKeuangan ? 'KEUANGAN' : 'CABANG',
                 branch: auth.wilayahCode,
-                displayName: auth.wilayah,
+                displayName: auth.wilayahLabel || auth.wilayah,
                 token: auth.token
               };
               terapkanSesiPengguna(simUser);
@@ -2533,6 +2611,10 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
 
     // 18. Logout Pengguna (POST /api/auth-logout)
     async function keluarSesiKwitansi() {
+      sessionStorage.removeItem('NSR_AUTH_TOKEN');
+      sessionStorage.removeItem('NSR_USER_SESSION');
+      sessionStorage.removeItem('TOKEN_AUTH_NSR');
+      sessionStorage.removeItem('CURRENT_AUTH_TOKEN');
       sessionStorage.removeItem('kjpp_token_internal');
       sessionStorage.removeItem('kjpp_session_jo');
       try {
@@ -2977,6 +3059,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           btnEl.innerHTML = oriText;
         }
       }
+    }
     // ==========================================================
     // DUAL-MODE PENERBITAN KWITANSI CABANG (MARKETING & FINANCE PIN)
     // ==========================================================

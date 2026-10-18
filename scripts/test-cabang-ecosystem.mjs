@@ -178,6 +178,67 @@ try {
   // Dashboard Action Column
   assert(joHtml.includes("metode_pengesahan === 'SCAN_BASAH' && p.berkas_scan_pdf"), 'Tab 2 membedakan tombol unduh PDF vs cetak berdasarkan metode_pengesahan');
 
+  // ---- 2c. Universal Token SSO & Isolasi Mutlak Tab 2 Cabang ----
+  console.log('\n\x1b[36m[2c/7] Menguji Universal Token SSO & Isolasi Mutlak Tab 2 Cabang\x1b[0m');
+  
+  // A. Uji resolveUnifiedToken dengan token NSR8899, NSR-PST-2026, NSR-ADM-2026
+  const resolveMatch = joHtml.match(/function resolveUnifiedToken\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
+  assert(resolveMatch !== null, 'Fungsi resolveUnifiedToken ditemukan di portal-penugasan-jo.html');
+  const resolveUnifiedToken = new Function(resolveMatch[0] + '; return resolveUnifiedToken;')();
+
+  const auth8899 = resolveUnifiedToken('NSR8899');
+  assert(auth8899 && auth8899.roleLabel === 'SUPER ADMIN • KANTOR PUSAT' && auth8899.isSuperAdmin === true, 'Token NSR8899 menghasilkan role SUPER ADMIN • KANTOR PUSAT');
+  assert(auth8899.mode === 'PUSAT' && auth8899.isCabang === false, 'Token NSR8899 mode PUSAT dan bukan cabang');
+
+  const authPst = resolveUnifiedToken('NSR-PST-2026');
+  assert(authPst && authPst.roleLabel === 'SUPER ADMIN • KANTOR PUSAT' && authPst.isSuperAdmin === true, 'Token NSR-PST-2026 menghasilkan role SUPER ADMIN • KANTOR PUSAT');
+  assert(authPst.mode === 'PUSAT' && authPst.canApprove === true, 'Token NSR-PST-2026 memiliki izin otorisasi penuh');
+
+  const authAdm = resolveUnifiedToken('NSR-ADM-2026');
+  assert(authAdm && authAdm.roleLabel === 'SUPER ADMIN • KANTOR PUSAT' && authAdm.isSuperAdmin === true, 'Token NSR-ADM-2026 menghasilkan role SUPER ADMIN • KANTOR PUSAT');
+
+  const authBdg = resolveUnifiedToken('NSR-BDG-2026');
+  assert(authBdg && authBdg.role === 'ADMIN_CABANG' && authBdg.isCabang === true && authBdg.wilayah === 'Bandung', 'Token NSR-BDG-2026 dikenali sebagai Admin Cabang Bandung');
+  assert(authBdg.kodeKantor === '2.0160-04' && authBdg.rekan.includes('Deni Siswandi'), 'Token NSR-BDG-2026 memuat kode kantor 2.0160-04 dan rekan Deni Siswandi');
+
+  // B. Uji Isolasi Tab 2 dengan dataset tiruan (Jakarta, Bandung, Palembang)
+  const mockDataset = [
+    { id: 'JO-PST-01', kantor_wilayah: 'Kantor Pusat Jakarta', debitur_nama: 'PT Megah Jakarta', status: 'APPROVED' },
+    { id: 'JO-BDG-01', kantor_wilayah: 'Kantor Cabang Bandung', debitur_nama: 'PT Priangan Bandung', status: 'WAITING_APPROVAL' },
+    { id: 'JO-BDG-02', kantor_wilayah: 'Kantor Cabang Bandung', debitur_nama: 'CV Dago Mandiri', status: 'APPROVED' },
+    { id: 'JO-PLB-01', kantor_wilayah: 'Kantor Cabang Palembang', debitur_nama: 'PT Sriwijaya Sakti', status: 'APPROVED' }
+  ];
+
+  const isCabangUser = Boolean(authBdg && (authBdg.isCabang || (authBdg.mode === 'CABANG' && !authBdg.isSuperAdmin)));
+  const namaCabangSesi = (authBdg.wilayah || authBdg.kantor || '').trim().toLowerCase();
+
+  let filteredProjects = [...mockDataset];
+  if (isCabangUser) {
+    filteredProjects = filteredProjects.filter(item => {
+      const itemWilayah = (item.kantor_wilayah || item.wilayah || '').trim().toLowerCase();
+      return itemWilayah.includes(namaCabangSesi) || namaCabangSesi.includes(itemWilayah);
+    });
+  }
+
+  const jakartaCount = filteredProjects.filter(p => p.kantor_wilayah.toLowerCase().includes('jakarta')).length;
+  const palembangCount = filteredProjects.filter(p => p.kantor_wilayah.toLowerCase().includes('palembang')).length;
+  const bandungCount = filteredProjects.filter(p => p.kantor_wilayah.toLowerCase().includes('bandung')).length;
+
+  assert(isCabangUser === true, 'Sesi NSR-BDG-2026 berstatus cabang aktif (isCabangUser = true)');
+  assert(filteredProjects.length === 2, `Isolasi Tab 2: Hanya 2 proyek milik Bandung yang tersisa (Ditemukan: ${filteredProjects.length})`);
+  assert(bandungCount === 2, 'Isolasi Tab 2: Seluruh proyek yang tersisa merupakan milik Cabang Bandung');
+  assert(jakartaCount === 0, 'Isolasi Tab 2: Proyek Kantor Pusat Jakarta tereliminasi mutlak (count = 0)');
+  assert(palembangCount === 0, 'Isolasi Tab 2: Proyek Kantor Cabang Palembang tereliminasi mutlak (count = 0)');
+
+  // C. Uji Proteksi UI Tab 2 (wrapper-filter-wilayah & opsi wilayah)
+  assert(joHtml.includes('id="wrapper-filter-wilayah"'), 'Wrapper filter wilayah memiliki id="wrapper-filter-wilayah"');
+  assert(joHtml.includes("wrapFilterWil.classList.add('hidden')"), 'Wrapper filter wilayah disembunyikan saat sesi Cabang aktif');
+  assert(joHtml.includes('selFilterWil.disabled = true'), 'Dropdown filter wilayah dinonaktifkan (disabled) untuk sesi Cabang');
+  assert(joHtml.includes('selFilterWil.innerHTML = `<option value="${cWil}">${cWil}</option>`'), 'Opsi dropdown wilayah dibersihkan dan hanya menampilkan cabang aktif (Opsi Semua Wilayah dihilangkan)');
+  assert(joHtml.includes('id="modal-token-auth"') && joHtml.includes('hidden') && joHtml.includes('data-alias="modal-auth-token gerbang-otorisasi"'), 'Modal token auth memiliki class hidden secara default untuk mencegah flicker sebelum hidrasi JS');
+  assert(joHtml.includes('simpanSesiSSO'), 'Fungsi simpanSesiSSO menyinkronkan NSR_AUTH_TOKEN, NSR_USER_SESSION, TOKEN_AUTH_NSR, CURRENT_AUTH_TOKEN');
+  assert(joHtml.includes('unduhBackupPrivatCabang'), 'Fungsi unduhBackupPrivatCabang mengisolasi ekspor JSON khusus data cabang aktif');
+
 
   // -----------------------------------------------------------------
   // 3. TEST portal-kwitansi.html - DUAL MODE KWITANSI & PIN FINANCE

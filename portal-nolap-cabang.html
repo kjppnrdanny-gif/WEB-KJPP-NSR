@@ -704,10 +704,184 @@
     let isQcUnlocked = false;
 
     // Inisialisasi Sesi Cabang
+    function resolveUnifiedToken(rawToken) {
+      if (!rawToken || typeof rawToken !== 'string') return null;
+      const t = rawToken.trim().toUpperCase();
+
+      // A. KELOMPOK SUPER ADMIN & ADMIN PUSAT (AKSES PENUH)
+      const superAdminTokens = ['NSR8899', 'NSR-PST-2026', 'NSR-ADM-2026', 'NSR-ADMIN-2026', 'NSR2026'];
+      if (superAdminTokens.includes(t)) {
+        return {
+          valid: true,
+          token: t,
+          role: 'SUPER ADMIN',
+          roleLabel: 'SUPER ADMIN • KANTOR PUSAT',
+          displayRole: 'SUPER ADMIN • KANTOR PUSAT',
+          wilayah: 'PUSAT',
+          wilayahLabel: 'Kantor Pusat',
+          wilayahResmi: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: true,
+          aksesApproval: true,
+          aksesKwitansi: true,
+          aksesFee: true,
+          mode: 'PUSAT',
+          canAccessKwitansi: true,
+          seeFee: true,
+          canApprove: true,
+          canApprovePusat: true,
+          canApproveCabang: true,
+          canSubmit: true,
+          canInputForm: true,
+          lockWilayah: false
+        };
+      }
+
+      // B. KELOMPOK KANTOR CABANG RESMI
+      const cabangMatrix = {
+        'NSR-BDG-2026': { kode: '2.0160-04', nama: 'Kantor Cabang Bandung', wilayah: 'Bandung', code: 'BDG', rekan: 'Deni Siswandi, S.T., MAPPI (Cert.)' },
+        'NSR-PDG-2026': { kode: '2.0160-01', nama: 'Kantor Cabang Padang', wilayah: 'Padang', code: 'PDG', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
+        'NSR-MKS-2026': { kode: '2.0160-02', nama: 'Kantor Cabang Makassar', wilayah: 'Makassar', code: 'MKS', rekan: 'M. Amin Sade, S.E., MAPPI (Cert.)' },
+        'NSR-PLB-2026': { kode: '2.0160-03', nama: 'Kantor Cabang Palembang', wilayah: 'Palembang', code: 'PLB', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' }
+      };
+
+      if (cabangMatrix[t]) {
+        const c = cabangMatrix[t];
+        return {
+          valid: true,
+          token: t,
+          kode: c.kode,
+          kodeKantor: c.kode,
+          nama: c.nama,
+          kantor: c.nama,
+          rekan: c.rekan,
+          rekanNama: c.rekan,
+          role: 'ADMIN_CABANG',
+          roleLabel: 'Admin Cabang ' + c.wilayah,
+          displayRole: 'Admin ' + c.nama,
+          wilayah: c.wilayah,
+          wilayahLabel: c.nama,
+          wilayahResmi: c.nama,
+          wilayahCode: c.code,
+          isCabang: true,
+          isSuperAdmin: false,
+          aksesApproval: false,
+          aksesKwitansi: true,
+          aksesFee: true,
+          mode: 'CABANG',
+          canAccessKwitansi: true,
+          seeFee: true,
+          canApprove: false,
+          canApproveCabang: true,
+          canSubmit: true,
+          canInputForm: true,
+          lockWilayah: true
+        };
+      }
+
+      // C. KELOMPOK FUNGSIONAL
+      if (t === 'NSR-MKT-2026') {
+        return {
+          valid: true,
+          token: t,
+          role: 'MARKETING',
+          roleLabel: 'Marketing',
+          displayRole: 'Divisi Business Development & Marketing',
+          wilayah: 'PUSAT',
+          wilayahLabel: 'Kantor Pusat',
+          wilayahResmi: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: false,
+          aksesApproval: false,
+          aksesKwitansi: false,
+          aksesFee: false,
+          mode: 'PUSAT',
+          canAccessKwitansi: false,
+          seeFee: false,
+          canApprove: false,
+          canSubmit: true,
+          canInputForm: true,
+          lockWilayah: false,
+          feeMaskText: '[Sesuai SPK / Khusus Admin]'
+        };
+      }
+
+      if (t === 'NSR-REV-2026') {
+        return {
+          valid: true,
+          token: t,
+          role: 'REVIEWER',
+          roleLabel: 'Reviewer QC',
+          displayRole: 'Reviewer KKP / Quality Control',
+          wilayah: 'PUSAT',
+          wilayahLabel: 'Kantor Pusat',
+          wilayahResmi: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: false,
+          aksesApproval: false,
+          aksesKwitansi: false,
+          aksesFee: false,
+          mode: 'PUSAT',
+          canAccessKwitansi: false,
+          seeFee: false,
+          canApprove: false,
+          canSubmit: false,
+          canInputForm: false,
+          lockWilayah: false,
+          feeMaskText: '[Sesuai Kontrak / Khusus Admin]'
+        };
+      }
+
+      const penilaiTokens = ['NSR-APP-2026', 'NSR-SVR-2026', 'NSR-PEN-2026', 'NSR-VAL-2026', 'NSR-PNL-2026'];
+      if (penilaiTokens.includes(t)) {
+        return {
+          valid: true,
+          token: t,
+          role: 'PENILAI',
+          roleLabel: 'Penilai',
+          displayRole: 'Penilai Lapangan / Surveyor',
+          wilayah: 'PUSAT',
+          wilayahLabel: 'Kantor Pusat',
+          wilayahResmi: 'Kantor Pusat Jakarta',
+          wilayahCode: 'PST',
+          isCabang: false,
+          isSuperAdmin: false,
+          aksesApproval: false,
+          aksesKwitansi: false,
+          aksesFee: false,
+          mode: 'PUSAT',
+          canAccessKwitansi: false,
+          seeFee: false,
+          canApprove: false,
+          canSubmit: false,
+          canInputForm: false,
+          lockWilayah: false,
+          feeMaskText: '[Sesuai SPK / Khusus Admin]'
+        };
+      }
+
+      return null;
+    }
+
     function inisialisasiSesiCabang() {
-      let token = sessionStorage.getItem('NSR_AUTH_TOKEN');
+      // 1. Cek dari semua kunci SSO
+      let token = sessionStorage.getItem('NSR_AUTH_TOKEN') ||
+                  sessionStorage.getItem('TOKEN_AUTH_NSR') ||
+                  sessionStorage.getItem('CURRENT_AUTH_TOKEN');
       if (!token) {
-        const stored = sessionStorage.getItem('kjpp_token_internal');
+        const rawSession = sessionStorage.getItem('NSR_USER_SESSION');
+        if (rawSession) {
+          try {
+            const parsed = JSON.parse(rawSession);
+            if (parsed && parsed.token) token = parsed.token;
+          } catch (_) {}
+        }
+      }
+      if (!token) {
+        const stored = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('kjpp_session_jo');
         if (stored) {
           try {
             const obj = JSON.parse(stored);
@@ -718,13 +892,24 @@
         }
       }
 
-      // Deteksi cabang dari token otorisasi resmi
       if (token) {
-        const t = token.toUpperCase().trim();
-        if (t.includes('PDG')) cabangAktif = 'Padang';
-        else if (t.includes('MKS')) cabangAktif = 'Makassar';
-        else if (t.includes('PLB')) cabangAktif = 'Palembang';
-        else if (t.includes('BDG')) cabangAktif = 'Bandung';
+        const auth = resolveUnifiedToken(token);
+        if (auth && auth.valid) {
+          sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
+          sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(auth));
+          sessionStorage.setItem('TOKEN_AUTH_NSR', auth.token);
+          sessionStorage.setItem('CURRENT_AUTH_TOKEN', auth.token);
+
+          if (auth.isCabang) {
+            cabangAktif = auth.wilayah;
+          }
+        } else {
+          const t = token.toUpperCase().trim();
+          if (t.includes('PDG')) cabangAktif = 'Padang';
+          else if (t.includes('MKS')) cabangAktif = 'Makassar';
+          else if (t.includes('PLB')) cabangAktif = 'Palembang';
+          else if (t.includes('BDG')) cabangAktif = 'Bandung';
+        }
       }
 
       const selWilayah = document.getElementById('kantor_wilayah');
