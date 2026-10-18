@@ -606,31 +606,38 @@ try {
   // -----------------------------------------------------------------
   console.log('\n\x1b[36m[6c/7] Menguji Zero-Trust SHA-256 Hash Matrix & Proteksi Anti-Tampering\x1b[0m');
 
-  // A. Verifikasi Sterilisasi 100% Plaintext Token dari Seluruh File Frontend
+  // A. Verifikasi Sterilisasi 100% Plaintext Token & Raw Drive Link dari Seluruh File Frontend
   const portalFilesToAudit = [
     'portal-penugasan-jo.html',
     'portal-nolap-cabang.html',
     'portal-kwitansi.html',
     'portal-surat-umum.html',
     'portal-nolap.html',
-    'index.html'
+    'index.html',
+    'layanan.html',
+    'portofolio-rekanan.html',
+    'profil-legalitas.html',
+    'tim-cabang.html',
+    'wawasan-regulasi.html'
   ];
   const forbiddenPlainTokens = [
     "'NSR8899'", '"NSR8899"',
     "'NSR-PST-2026'", '"NSR-PST-2026"',
+    "'NSR-ADM-2026'", '"NSR-ADM-2026"',
     "'NSR-BDG-2026'", '"NSR-BDG-2026"',
     "'NSR-PDG-2026'", '"NSR-PDG-2026"',
     "'NSR-MKS-2026'", '"NSR-MKS-2026"',
     "'NSR-PLB-2026'", '"NSR-PLB-2026"',
     "'NSR-MKT-2026'", '"NSR-MKT-2026"',
     "'NSR-REV-2026'", '"NSR-REV-2026"',
-    "'NSR-APP-2026'", '"NSR-APP-2026"'
+    "'NSR-APP-2026'", '"NSR-APP-2026"',
+    '11wF3BxOVDp3uraA3a0iIQdkYPizflQHz'
   ];
 
   for (const pf of portalFilesToAudit) {
     const fileContent = fs.readFileSync(path.join(ROOT_DIR, pf), 'utf-8');
     for (const tok of forbiddenPlainTokens) {
-      assert(!fileContent.includes(tok), `Zero-Trust Audit: ${pf} steril mutlak dari plaintext token ${tok}`);
+      assert(!fileContent.includes(tok), `Zero-Trust Audit: ${pf} steril mutlak dari plaintext token / raw SOP link: ${tok}`);
     }
   }
 
@@ -650,32 +657,38 @@ try {
   const authRotPlb = resolveUnifiedToken('NSR-PLB-6N2J-9R4K');
   assert(authRotPlb && authRotPlb.role === 'ADMIN_CABANG' && authRotPlb.wilayah === 'Palembang', 'High-Entropy Token Cabang Palembang (NSR-PLB-6N2J-9R4K) terverifikasi');
 
-  // C. Uji Anti-Tampering Session Signature
+  // C. Uji Anti-Tampering Session Signature & Checksum
   const sha256Match = joHtml.match(/function sha256Hex\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
-  const genSigMatch = joHtml.match(/function generateSessionSignature\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
-  const verSigMatch = joHtml.match(/function verifySessionSignature\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
-  assert(sha256Match && genSigMatch && verSigMatch, 'Fungsi Kriptografis Anti-Tampering (sha256Hex, generateSessionSignature, verifySessionSignature) terpasang di frontend');
+  const genSigMatch = joHtml.match(/function computeSessionChecksum\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
+  const verSigMatch = joHtml.match(/function verifySessionChecksum\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
+  assert(sha256Match && genSigMatch && verSigMatch, 'Fungsi Kriptografis Anti-Tampering (sha256Hex, computeSessionChecksum, verifySessionChecksum) terpasang di frontend');
 
   const sigModule = new Function(
+    'const NSR_CHECKSUM_SALT = "NSR_SESSION_INTEGRITY_2026_x7k9::";\n' +
     'const NSR_SEC_SALT = "NSR_ZERO_TRUST_SIG_2026_9x4m";\n' +
     sha256Match[0] + '\n' +
     genSigMatch[0] + '\n' +
     verSigMatch[0] + '\n' +
-    'return { generateSessionSignature, verifySessionSignature, sha256Hex };'
+    'return { computeSessionChecksum, verifySessionChecksum, sha256Hex };'
   )();
 
   const testHash = 'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818';
   const testTime = 1776500000000;
-  const legitSig = sigModule.generateSessionSignature(testHash, testTime, 'ADMIN_CABANG', false);
+  const legitChecksum = sigModule.computeSessionChecksum(testHash, 'ADMIN_CABANG', 'Bandung', testTime, false);
 
-  const legitSession = { tokenHash: testHash, loginTime: testTime, role: 'ADMIN_CABANG', isSuperAdmin: false, sig: legitSig };
-  assert(sigModule.verifySessionSignature(legitSession) === true, 'Sesi legal dengan tanda tangan kriptografis sah lolos verifikasi');
+  const legitSession = { tokenHash: testHash, expiresAt: testTime, role: 'ADMIN_CABANG', wilayah: 'Bandung', isSuperAdmin: false, sessionChecksum: legitChecksum };
+  assert(sigModule.verifySessionChecksum(legitSession) === true, 'Sesi legal dengan sessionChecksum sah lolos verifikasi');
 
-  const tamperedPrivilegeSession = { tokenHash: testHash, loginTime: testTime, role: 'SUPER ADMIN', isSuperAdmin: true, sig: legitSig };
-  assert(sigModule.verifySessionSignature(tamperedPrivilegeSession) === false, 'Anti-Tampering: Eskalasi hak akses lokal (isSuperAdmin diubah ilegal) GAGAL diverifikasi');
+  const tamperedPrivilegeSession = { tokenHash: testHash, expiresAt: testTime, role: 'SUPER ADMIN', wilayah: 'PUSAT', isSuperAdmin: true, sessionChecksum: legitChecksum };
+  assert(sigModule.verifySessionChecksum(tamperedPrivilegeSession) === false, 'Anti-Tampering: Eskalasi hak akses lokal (isSuperAdmin/role diubah ilegal) GAGAL diverifikasi');
 
-  const tamperedTokenSession = { tokenHash: 'evilhash1234567890abcdef1234567890abcdef1234567890abcdef12345678', loginTime: testTime, role: 'ADMIN_CABANG', isSuperAdmin: false, sig: legitSig };
-  assert(sigModule.verifySessionSignature(tamperedTokenSession) === false, 'Anti-Tampering: Modifikasi tokenHash lokal GAGAL diverifikasi');
+  const tamperedTokenSession = { tokenHash: 'evilhash1234567890abcdef1234567890abcdef1234567890abcdef12345678', expiresAt: testTime, role: 'ADMIN_CABANG', wilayah: 'Bandung', isSuperAdmin: false, sessionChecksum: legitChecksum };
+  assert(sigModule.verifySessionChecksum(tamperedTokenSession) === false, 'Anti-Tampering: Modifikasi tokenHash lokal GAGAL diverifikasi');
+
+  // C2. Uji SOP Gated Access & Anti-Bypass
+  assert(indexHtml.includes('bukaAksesSopDrive'), 'index.html memiliki fungsi akses SOP berpelindung enkripsi (bukaAksesSopDrive)');
+  assert(!indexHtml.includes('href="https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz'), 'index.html steril 100% dari raw URL Google Drive SOP');
+  assert(indexHtml.includes('href="javascript:void(0)"'), 'Link SOP & Absen di index.html menggunakan href safe javascript:void(0)');
 
   // D. Uji Backend Code.gs
   const codeGsContent = fs.readFileSync(path.join(ROOT_DIR, 'Code.gs'), 'utf-8');

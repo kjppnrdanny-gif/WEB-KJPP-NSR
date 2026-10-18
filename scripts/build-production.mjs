@@ -121,12 +121,17 @@ function auditDistSecurity(dir, baseDir = dir) {
 
 function auditPortalHardcodedTokens(distDir) {
   const portalFiles = [
+    "index.html",
     "portal-penugasan-jo.html",
     "portal-nolap-cabang.html",
     "portal-kwitansi.html",
     "portal-surat-umum.html",
     "portal-nolap.html",
-    "index.html"
+    "layanan.html",
+    "portofolio-rekanan.html",
+    "profil-legalitas.html",
+    "tim-cabang.html",
+    "wawasan-regulasi.html"
   ];
   const forbiddenCredentials = [
     /MASTER_TOKEN\s*=/i,
@@ -140,13 +145,15 @@ function auditPortalHardcodedTokens(distDir) {
     /JKT#00/i,
     /['"]NSR8899['"]/i,
     /['"]NSR-PST-2026['"]/i,
+    /['"]NSR-ADM-2026['"]/i,
     /['"]NSR-BDG-2026['"]/i,
     /['"]NSR-PDG-2026['"]/i,
     /['"]NSR-MKS-2026['"]/i,
     /['"]NSR-PLB-2026['"]/i,
     /['"]NSR-MKT-2026['"]/i,
     /['"]NSR-REV-2026['"]/i,
-    /['"]NSR-APP-2026['"]/i
+    /['"]NSR-APP-2026['"]/i,
+    /11wF3BxOVDp3uraA3a0iIQdkYPizflQHz/i
   ];
 
   for (const pf of portalFiles) {
@@ -156,7 +163,7 @@ function auditPortalHardcodedTokens(distDir) {
 
     for (const pat of forbiddenCredentials) {
       if (pat.test(content)) {
-        throw new Error(`[SECURITY_GATE_FAIL] Celah keamanan atau plaintext token terdeteksi di ${pf}: pola ${pat}`);
+        throw new Error(`[SECURITY_GATE_FAIL] Celah keamanan atau plaintext token/link terdeteksi di ${pf}: pola ${pat}`);
       }
     }
   }
