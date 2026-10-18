@@ -282,7 +282,10 @@ try {
   console.log('\n\x1b[36m[2d/7] Menguji Quality Gate Lock Tab 3 (portal-penugasan-jo.html)\x1b[0m');
   assert(joHtml.includes('function gantiTab(tabIdx)'), 'Fungsi navigasi gantiTab(tabIdx) terpasang di portal-penugasan-jo.html');
   assert(joHtml.includes('AKSES DITOLAK — QUALITY GATE TERKUNCI!'), 'Peringatan kepatuhan Quality Gate Lock terpasang di gantiTab');
+  assert(joHtml.includes('Akses Cetak Dibatasi! Dokumen ini berada dalam ranah Pengajuan Kantor Pusat'), 'Peringatan khusus Quality Gate pengajuan pusat terpasang');
+  assert(joHtml.includes('🔒 3. Pratinjau & Cetak (Terkunci - Menunggu Approval Pusat)'), 'Label Tab 3 indikator menunggu approval pusat terpasang');
   assert(joHtml.includes('id="tab3-lock-screen"'), 'Container overlay gembok id="tab3-lock-screen" terpasang di Tab 3');
+  assert(joHtml.includes('🔒 DOKUMEN PENGAJUAN BELUM DISETUJUI PUSAT'), 'Judul gembok penolakan cetak pengajuan pusat terpasang di lock screen');
   assert(joHtml.includes('id="toolbar-cetak-dokumen"'), 'Bilah tombol cetak id="toolbar-cetak-dokumen" terpasang');
   assert(joHtml.includes('id="lembar-pratinjau-dokumen"'), 'Container lembar dokumen id="lembar-pratinjau-dokumen" terpasang');
   assert(joHtml.includes('function renderPratinjauDokumen()'), 'Fungsi renderPratinjauDokumen() terpasang dengan kendali lock-screen');
@@ -321,6 +324,72 @@ try {
   const authPusat = resolveUnifiedToken('NSR8899');
   const hasilSuperAdmin = simulasikanGuardTab3(authPusat, null);
   assert(hasilSuperAdmin.diblokir === false && hasilSuperAdmin.targetTab === 3, 'Quality Gate Guard: Super Admin Pusat memiliki hak inspeksi Tab 3');
+
+  // Skenario Khusus: Siklus Hidup Pengajuan Cabang Palembang (NSR-PLB-2026) ke Pusat
+  const simulasikanSiklusPengajuanPusat = (auth, proyek, modeAlur) => {
+    const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT'));
+    const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
+
+    const isPengajuanPusat = (modeAlur === 'PUSAT' || modeAlur === 'CENTRAL_APPROVAL') ||
+      (proyek && (proyek.alur === 'PUSAT' || proyek.target === 'PUSAT' || proyek.mode_alur === 'CENTRAL_APPROVAL' || proyek.mode_pengaju === 'PUSAT' || proyek.status === 'WAITING_APPROVAL'));
+    const isDisetujuiPusat = Boolean(proyek && (proyek.status === 'APPROVED' && (proyek.status_approval === 'APPROVED' || !proyek.status_approval || proyek.status === 'APPROVED')));
+    const isMandiriCabang = (modeAlur === 'MANDIRI' || modeAlur === 'PRIVATE_CABANG') && !isPengajuanPusat;
+
+    let diblokir = false;
+    let targetTab = 3;
+    let label = '';
+
+    if (isSuperAdmin) {
+      diblokir = false;
+      targetTab = 3;
+      label = '🖨️ 3. Pratinjau & Cetak 9 Dokumen';
+    } else if (isPengajuanPusat && !isDisetujuiPusat) {
+      diblokir = true;
+      targetTab = 2;
+      label = '🔒 3. Pratinjau & Cetak (Terkunci - Menunggu Approval Pusat)';
+    } else if (isMandiriCabang) {
+      diblokir = false;
+      targetTab = 3;
+      label = '🖨️ 3. Pratinjau & Cetak Dokumen Cabang';
+    } else if (isDisetujuiPusat) {
+      diblokir = false;
+      targetTab = 3;
+      label = '🖨️ 3. Pratinjau & Cetak 9 Dokumen';
+    } else {
+      diblokir = true;
+      targetTab = 2;
+      label = '🔒 3. Pratinjau & Cetak (Terkunci)';
+    }
+    return { diblokir, targetTab, label };
+  };
+
+  // Step 1: Palembang ajukan ke pusat -> WAITING_APPROVAL
+  const pengajuanPalembang = {
+    id: 'REQ-PLB-001',
+    mode_pengaju: 'PUSAT',
+    mode_alur: 'CENTRAL_APPROVAL',
+    status: 'WAITING_APPROVAL',
+    debitur_nama: 'PT Semen Baturaja Tbk'
+  };
+
+  const guardPalembangPending = simulasikanSiklusPengajuanPusat(authPlb, pengajuanPalembang, 'CENTRAL_APPROVAL');
+  assert(guardPalembangPending.diblokir === true && guardPalembangPending.targetTab === 2, 'Quality Gate: Sesi Cabang Palembang diblokir dari Tab 3 saat status WAITING_APPROVAL (Redirect ke Tab 2)');
+  assert(guardPalembangPending.label === '🔒 3. Pratinjau & Cetak (Terkunci - Menunggu Approval Pusat)', 'Quality Gate: Label Tab 3 terkunci menunggu approval pusat');
+
+  // Step 2: Super Admin Pusat review
+  const guardPusatReview = simulasikanSiklusPengajuanPusat(authPusat, pengajuanPalembang, 'CENTRAL_APPROVAL');
+  assert(guardPusatReview.diblokir === false && guardPusatReview.targetTab === 3, 'Quality Gate: Super Admin Pusat memiliki akses inspeksi Tab 3 untuk otorisasi');
+
+  // Approval dieksekusi oleh Super Admin Pusat
+  pengajuanPalembang.status = 'APPROVED';
+  pengajuanPalembang.status_approval = 'APPROVED';
+  pengajuanPalembang.nomor_lp = '0416/NSR/PN-APP/X/2026';
+  pengajuanPalembang.nomor_adm = '0416/JO/NSR/X/2026';
+
+  // Step 3: Cek kembali akun Cabang Palembang pasca approval
+  const guardPalembangApproved = simulasikanSiklusPengajuanPusat(authPlb, pengajuanPalembang, 'CENTRAL_APPROVAL');
+  assert(guardPalembangApproved.diblokir === false && guardPalembangApproved.targetTab === 3, 'Quality Gate: Tab 3 otomatis terbuka bagi Cabang Palembang pasca-approval pusat');
+  assert(guardPalembangApproved.label === '🖨️ 3. Pratinjau & Cetak 9 Dokumen', 'Quality Gate: Label Tab 3 berganti menjadi 🖨️ 3. Pratinjau & Cetak 9 Dokumen');
 
   // G. Uji Mode Mandiri Cabang & Tab 3 Quality Gate Unlock untuk Admin Cabang
   console.log('\n\x1b[36m[2e/7] Menguji Mode Mandiri Cabang & Instant Unlock Tab 3 (portal-penugasan-jo.html)\x1b[0m');
