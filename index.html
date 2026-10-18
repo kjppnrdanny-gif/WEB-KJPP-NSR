@@ -694,12 +694,8 @@
 
     /* Tombol kembali ke atas */
     #back-to-top {
-      opacity: 0;
-      transform: translateY(12px) scale(.95);
-      pointer-events: none;
       transition: opacity .2s ease, transform .2s ease, background-color .2s ease;
     }
-    #back-to-top.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
     /* Efek & Transisi 4 Tab Ekosistem Utama */
     @keyframes tabFadeSlide {
@@ -1123,6 +1119,24 @@
       const menu = document.getElementById('mobile-menu');
       if (menu) menu.classList.toggle('hidden');
     }
+    function bukaModalPortal(targetPortal) {
+      if (typeof window._bukaModalPortalHandler === 'function') {
+        try {
+          window._bukaModalPortalHandler(targetPortal);
+        } catch (e) {
+          bukaModal('modal-portal');
+        }
+      } else {
+        bukaModal('modal-portal');
+      }
+    }
+    function tutupModalPortal() {
+      try {
+        tutupModal('modal-portal');
+      } catch (e) {}
+    }
+    window.bukaModalPortal = bukaModalPortal;
+    window.tutupModalPortal = tutupModalPortal;
   </script>
 
   <!-- ==================== 2. HEADER RESMI PROPORSIONAL (3 BAR) ==================== -->
@@ -3818,9 +3832,23 @@
   </a>
 
   <!-- Tombol kembali ke atas -->
-  <button id="back-to-top" type="button" aria-label="Kembali ke atas" title="Kembali ke atas" class="fixed bottom-6 left-6 z-[45] w-11 h-11 rounded-full bg-slate-950 hover:bg-blue-950 text-white shadow-xl border border-slate-700 hover:border-sky-400 flex items-center justify-center cursor-pointer transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+  <button id="back-to-top" type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" aria-label="Kembali ke atas" title="Kembali ke atas" style="display: none;" class="fixed bottom-6 left-6 z-[45] w-11 h-11 rounded-full bg-slate-950 hover:bg-blue-950 text-white shadow-xl border border-slate-700 hover:border-sky-400 flex items-center justify-center cursor-pointer transition focus:outline-none focus:ring-2 focus:ring-blue-500">
     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m5 15 7-7 7 7"/></svg>
   </button>
+
+  <!-- Kontrol Tombol Kembali ke Atas -->
+  <script>
+    (() => {
+      const btt = document.getElementById('back-to-top');
+      if (!btt) return;
+      const toggleBtt = () => {
+        const y = window.scrollY || document.documentElement.scrollTop;
+        btt.style.display = y > 300 ? 'flex' : 'none';
+      };
+      window.addEventListener('scroll', toggleBtt, { passive: true });
+      toggleBtt();
+    })();
+  </script>
 
   <!-- Toast global -->
   <div id="site-toast" role="status" aria-live="polite" class="fixed left-1/2 bottom-24 z-[70] max-w-[calc(100vw-2rem)] bg-slate-950 text-white border border-slate-700 shadow-2xl rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold"></div>
@@ -5772,18 +5800,20 @@
     const _ENC_URL_SOP_DRIVE = 'JicmLyV7emMwLSIzPHFVX11RIjZ8PDkseigmNj0gdjldXFZTPCB9bmc2E38WJwQTHS8BRUBXD2Azbz8IBCg/BhssIzleYXpMcSYhL2syPS0mNiUi';
     const _ENC_URL_ABSENSI = 'JicmLyV7emMnPDksKSscV11ZKT83cTUuOGM5Pig3NiwdQx13BTUrPDQ2HGEbDgYDDg5oQkhELxQ5CmYsERVsEg99ATV+R0JbIWMZLBkvFmE1HCoIGwBxaXZOJwx/JzEpZH0aFQ4yDQ8BW1wZKys3PA==';
 
-    function _dekripsiUrlAman(cipherText, key = _VAULT_KEY) {
+    function _dekripsiUrlAman(encoded, key = 'NSR_VAULT_KEY_2026') {
       try {
-        const raw = atob(cipherText);
-        let out = '';
+        if (!encoded) return '';
+        const raw = atob(encoded);
+        let res = '';
         for (let i = 0; i < raw.length; i++) {
-          out += String.fromCharCode(raw.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+          res += String.fromCharCode(raw.charCodeAt(i) ^ key.charCodeAt(i % key.length));
         }
-        return out;
-      } catch (_) {
+        return res;
+      } catch (e) {
         return '';
       }
     }
+    window._dekripsiUrlAman = _dekripsiUrlAman;
 
     function dapatkanSesiTervalidasi() {
       try {
@@ -6039,99 +6069,116 @@
     }
 
     function bukaModalPortal(targetPortal) {
-      window._targetPortal = targetPortal || null;
-      const storedSession = sessionStorage.getItem('kjpp_token_internal');
-      const panelLayanan = document.getElementById('panel-layanan');
-      const formToken = document.getElementById('form-token-portal');
-      const labelLokasi = document.getElementById('label-lokasi');
-      const pesanError = document.getElementById('pesan-error');
-      const pesanErrorText = document.getElementById('pesan-error-text');
-      if (pesanError) pesanError.classList.add('hidden');
+      try {
+        window._targetPortal = targetPortal || null;
+        const storedSession = sessionStorage.getItem('kjpp_token_internal');
+        const panelLayanan = document.getElementById('panel-layanan');
+        const formToken = document.getElementById('form-token-portal');
+        const labelLokasi = document.getElementById('label-lokasi');
+        const pesanError = document.getElementById('pesan-error');
+        const pesanErrorText = document.getElementById('pesan-error-text');
+        if (pesanError) pesanError.classList.add('hidden');
 
-      if (storedSession) {
-        try {
-          const sess = JSON.parse(storedSession);
-          const isExpired = sess.expiresAt && sess.expiresAt < Date.now();
-          if (!isExpired) {
-            // Evaluasi hak akses kwitansi jika pengguna klik kartu kwitansi
-            if (targetPortal === 'kwitansi') {
-              if (sess.canAccessKwitansi === false) {
-                bukaModal('modal-portal');
-                if (formToken) formToken.classList.remove('hidden');
-                if (panelLayanan) panelLayanan.classList.add('hidden');
-                if (pesanError && pesanErrorText) {
-                  pesanError.classList.remove('hidden');
-                  pesanErrorText.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${sess.roleLabel || sess.role}.`;
+        if (storedSession) {
+          try {
+            const sess = JSON.parse(storedSession);
+            const isExpired = sess.expiresAt && sess.expiresAt < Date.now();
+            if (!isExpired) {
+              // Evaluasi hak akses kwitansi jika pengguna klik kartu kwitansi
+              if (targetPortal === 'kwitansi') {
+                if (sess.canAccessKwitansi === false) {
+                  bukaModal('modal-portal');
+                  if (formToken) formToken.classList.remove('hidden');
+                  if (panelLayanan) panelLayanan.classList.add('hidden');
+                  if (pesanError && pesanErrorText) {
+                    pesanError.classList.remove('hidden');
+                    pesanErrorText.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${sess.roleLabel || sess.role}.`;
+                  }
+                  const inp = document.getElementById('input-token');
+                  if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 150); }
+                  return;
+                } else {
+                  window.location.href = 'portal-kwitansi.html';
+                  return;
                 }
-                const inp = document.getElementById('input-token');
-                if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 150); }
-                return;
-              } else {
-                window.location.href = 'portal-kwitansi.html';
-                return;
               }
-            }
 
-            if (targetPortal === 'penugasan') {
-              window.location.href = 'portal-penugasan-jo.html';
-              return;
-            }
-            if (targetPortal === 'nolap') {
-              if (sess.mode === 'CABANG') {
-                window.location.href = 'portal-nolap-cabang.html';
-              } else {
-                window.location.href = 'portal-nolap.html';
+              if (targetPortal === 'penugasan') {
+                window.location.href = 'portal-penugasan-jo.html';
+                return;
               }
-              return;
-            }
-            if (targetPortal === 'sop') {
-              if (sess.isCabang || sess.mode === 'CABANG') {
+              if (targetPortal === 'nolap') {
+                if (sess.mode === 'CABANG') {
+                  window.location.href = 'portal-nolap-cabang.html';
+                } else {
+                  window.location.href = 'portal-nolap.html';
+                }
+                return;
+              }
+              if (targetPortal === 'sop') {
+                if (sess.isCabang || sess.mode === 'CABANG') {
+                  bukaModalRequestDokumenSOP();
+                  return;
+                }
+                if (sess.isSuperAdmin) {
+                  const url = _dekripsiUrlAman(_ENC_URL_SOP_DRIVE);
+                  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                  return;
+                }
                 bukaModalRequestDokumenSOP();
                 return;
               }
-              if (sess.isSuperAdmin) {
-                const url = _dekripsiUrlAman(_ENC_URL_SOP_DRIVE);
+              if (targetPortal === 'absen') {
+                const url = _dekripsiUrlAman(_ENC_URL_ABSENSI);
                 if (url) window.open(url, '_blank', 'noopener,noreferrer');
                 return;
               }
-              bukaModalRequestDokumenSOP();
-              return;
-            }
-            if (targetPortal === 'absen') {
-              const url = _dekripsiUrlAman(_ENC_URL_ABSENSI);
-              if (url) window.open(url, '_blank', 'noopener,noreferrer');
-              return;
-            }
 
-            // General launcher
-            bukaModal('modal-portal');
-            if (labelLokasi) labelLokasi.innerHTML = `Terverifikasi: <strong>${sess.branch || sess.wilayah}</strong> &bull; <span class="uppercase text-emerald-800 font-extrabold">${sess.roleLabel || sess.role}</span>`;
-            if (formToken) formToken.classList.add('hidden');
-            if (panelLayanan) {
-              panelLayanan.classList.remove('hidden');
-              updateDynamicSmartCards(sess);
-              setupPanelKwitansiLink(sess.canAccessKwitansi !== false, sess.roleLabel || sess.role);
+              // General launcher
+              bukaModal('modal-portal');
+              if (labelLokasi) labelLokasi.innerHTML = `Terverifikasi: <strong>${sess.branch || sess.wilayah}</strong> &bull; <span class="uppercase text-emerald-800 font-extrabold">${sess.roleLabel || sess.role}</span>`;
+              if (formToken) formToken.classList.add('hidden');
+              if (panelLayanan) {
+                panelLayanan.classList.remove('hidden');
+                updateDynamicSmartCards(sess);
+                setupPanelKwitansiLink(sess.canAccessKwitansi !== false, sess.roleLabel || sess.role);
+              }
+              return;
             }
-            return;
+          } catch (e) {
+            console.warn('Gagal memproses sesi internal:', e);
           }
-        } catch (e) {}
-      }
+        }
 
-      // Default state: formulir input token tampil
-      bukaModal('modal-portal');
-      updateDynamicSmartCards(null);
-      if (formToken) formToken.classList.remove('hidden');
-      if (panelLayanan) panelLayanan.classList.add('hidden');
-      const inp = document.getElementById('input-token');
-      if (inp) {
-        inp.value = '';
-        setTimeout(() => inp.focus(), 150);
+        // Default state: formulir input token tampil
+        bukaModal('modal-portal');
+        updateDynamicSmartCards(null);
+        if (formToken) formToken.classList.remove('hidden');
+        if (panelLayanan) panelLayanan.classList.add('hidden');
+        const inp = document.getElementById('input-token');
+        if (inp) {
+          inp.value = '';
+          setTimeout(() => inp.focus(), 150);
+        }
+      } catch (err) {
+        console.error('Error saat membuka modal portal:', err);
+        try {
+          bukaModal('modal-portal');
+        } catch (_) {}
       }
     }
 
     function tutupModalPortal() {
-      tutupModal('modal-portal');
+      try {
+        tutupModal('modal-portal');
+      } catch (err) {
+        console.error('Error saat menutup modal portal:', err);
+      }
     }
+
+    window.bukaModalPortal = bukaModalPortal;
+    window._bukaModalPortalHandler = bukaModalPortal;
+    window.tutupModalPortal = tutupModalPortal;
 
     function toggleTokenVisibility() {
       const inp = document.getElementById('input-token');
@@ -6742,7 +6789,9 @@
           const header = document.getElementById('site-header');
           const backToTop = document.getElementById('back-to-top');
           header?.classList.toggle('is-scrolled', y > 24);
-          backToTop?.classList.toggle('show', y > 350);
+          if (backToTop) {
+            backToTop.style.display = (y > 300) ? 'flex' : 'none';
+          }
 
           const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
           const pb = document.getElementById('scroll-progress');

@@ -777,6 +777,26 @@ try {
   assert(codeGsContent.includes('LockService.getScriptLock()'), 'Code.gs mengunci concurrency dengan LockService.getScriptLock()');
 
 
+  // -----------------------------------------------------------------
+  // 6g. TEST TOMBOL BACK TO TOP KIRI BAWAH & MODAL PORTAL NATIVE DECODE
+  // -----------------------------------------------------------------
+  console.log('\n\x1b[36m[6g/7] Menguji Tombol Back to Top Kiri Bawah & Modal Portal Native Decode\x1b[0m');
+  const bttFiles = ['index.html', 'layanan.html', 'portofolio-rekanan.html', 'profil-legalitas.html', 'tim-cabang.html', 'wawasan-regulasi.html'];
+  
+  for (const bf of bttFiles) {
+    const bfc = fs.readFileSync(path.join(ROOT_DIR, bf), 'utf-8');
+    assert(bfc.includes('id="back-to-top"'), `${bf}: Memiliki elemen id="back-to-top"`);
+    assert(bfc.includes('fixed bottom-6 left-6 z-[45]'), `${bf}: Tombol Back to Top terpasang di KIRI BAWAH (fixed bottom-6 left-6 z-[45])`);
+    assert(bfc.includes('onclick="window.scrollTo({ top: 0, behavior: \'smooth\' })"'), `${bf}: Tombol Back to Top memiliki event klik mandiri smooth scroll`);
+    assert(bfc.includes('y > 300') && bfc.includes("style.display = y > 300 ? 'flex' : 'none'"), `${bf}: Tombol Back to Top dikontrol scrollY > 300 (flex / none)`);
+  }
+
+  // Uji index.html: Steril dari Buffer, Native _dekripsiUrlAman, & Global Modal Portal
+  assert(!indexHtml.includes('Buffer'), 'index.html steril 100% dari penggunaan Buffer (Anti-ReferenceError)');
+  assert(indexHtml.includes('function _dekripsiUrlAman(encoded, key = \'NSR_VAULT_KEY_2026\')'), 'index.html menggunakan fungsi dekripsi native browser _dekripsiUrlAman');
+  assert(indexHtml.includes('window.bukaModalPortal = bukaModalPortal'), 'window.bukaModalPortal diekspor secara global ke window');
+  assert(indexHtml.includes('window.tutupModalPortal = tutupModalPortal'), 'window.tutupModalPortal diekspor secara global ke window');
+
   console.log('\n\x1b[36m[7/7] Menguji Build Produksi (scripts/build-production.mjs)\x1b[0m');
   const buildMjs = fs.readFileSync(path.join(ROOT_DIR, 'scripts', 'build-production.mjs'), 'utf-8');
   assert(buildMjs.includes('"portal-nolap-cabang.html"'), 'portal-nolap-cabang.html terdaftar di ALLOWED_FILES');
