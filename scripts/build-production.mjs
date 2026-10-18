@@ -120,7 +120,14 @@ function auditDistSecurity(dir, baseDir = dir) {
 }
 
 function auditPortalHardcodedTokens(distDir) {
-  const portalFiles = ["portal-nolap.html", "portal-kwitansi.html", "index.html"];
+  const portalFiles = [
+    "portal-penugasan-jo.html",
+    "portal-nolap-cabang.html",
+    "portal-kwitansi.html",
+    "portal-surat-umum.html",
+    "portal-nolap.html",
+    "index.html"
+  ];
   const forbiddenCredentials = [
     /MASTER_TOKEN\s*=/i,
     /MASTER_USER_ACCOUNTS\s*=/i,
@@ -130,7 +137,16 @@ function auditPortalHardcodedTokens(distDir) {
     /urlParams\.get\(['"]token['"]\)/i,
     /NSR-ADM-99/i,
     /ADMIN#NSR/i,
-    /JKT#00/i
+    /JKT#00/i,
+    /['"]NSR8899['"]/i,
+    /['"]NSR-PST-2026['"]/i,
+    /['"]NSR-BDG-2026['"]/i,
+    /['"]NSR-PDG-2026['"]/i,
+    /['"]NSR-MKS-2026['"]/i,
+    /['"]NSR-PLB-2026['"]/i,
+    /['"]NSR-MKT-2026['"]/i,
+    /['"]NSR-REV-2026['"]/i,
+    /['"]NSR-APP-2026['"]/i
   ];
 
   for (const pf of portalFiles) {
@@ -140,7 +156,7 @@ function auditPortalHardcodedTokens(distDir) {
 
     for (const pat of forbiddenCredentials) {
       if (pat.test(content)) {
-        throw new Error(`[SECURITY_GATE_FAIL] Celah keamanan lama atau token hardcoded terdeteksi di ${pf}: pola ${pat}`);
+        throw new Error(`[SECURITY_GATE_FAIL] Celah keamanan atau plaintext token terdeteksi di ${pf}: pola ${pat}`);
       }
     }
   }
@@ -173,19 +189,26 @@ export function buildProduction(options = {}) {
     console.log("   (Portal NoLap & Portal Kwitansi aktif dengan link GAS baru disertakan)");
   }
 
-  // Salin File Allowlist
+  // Salin File Allowlist (dengan sanitasi log sensitif & whitespace)
   let fileCount = 0;
   for (const file of filesToCopy) {
     const src = path.join(ROOT_DIR, file);
     const dest = path.join(DIST_DIR, file);
     if (fs.existsSync(src)) {
-      fs.copyFileSync(src, dest);
+      if (file.endsWith('.html') || file.endsWith('.js')) {
+        let content = fs.readFileSync(src, "utf8");
+        // Sanitasi log kredensial dan debug internal di berkas distribusi publik
+        content = content.replace(/console\.(log|debug|info)\s*\([^)]*(?:token|auth|password|kredensial|secret)[^)]*\);?/gi, "");
+        fs.writeFileSync(dest, content, "utf8");
+      } else {
+        fs.copyFileSync(src, dest);
+      }
       fileCount++;
     } else {
       console.warn(`[Warning] File allowlist tidak ditemukan: ${file}`);
     }
   }
-  console.log(`✓ Menyalin ${fileCount} berkas web publik resmi.`);
+  console.log(`✓ Menyalin ${fileCount} berkas web publik resmi (tersanitasi).`);
 
   // 2. Salin Direktori Allowlist (dilewati bila mode index-only)
   if (!isIndexOnly) {

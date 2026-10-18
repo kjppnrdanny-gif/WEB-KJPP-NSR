@@ -602,8 +602,89 @@ try {
 
 
   // -----------------------------------------------------------------
-  // 7. TEST BUILD PRODUCTION & ALLOWLIST
+  // 6c. TEST ZERO-TRUST SHA-256 HASH MATRIX & PROTEKSI ANTI-TAMPERING
   // -----------------------------------------------------------------
+  console.log('\n\x1b[36m[6c/7] Menguji Zero-Trust SHA-256 Hash Matrix & Proteksi Anti-Tampering\x1b[0m');
+
+  // A. Verifikasi Sterilisasi 100% Plaintext Token dari Seluruh File Frontend
+  const portalFilesToAudit = [
+    'portal-penugasan-jo.html',
+    'portal-nolap-cabang.html',
+    'portal-kwitansi.html',
+    'portal-surat-umum.html',
+    'portal-nolap.html',
+    'index.html'
+  ];
+  const forbiddenPlainTokens = [
+    "'NSR8899'", '"NSR8899"',
+    "'NSR-PST-2026'", '"NSR-PST-2026"',
+    "'NSR-BDG-2026'", '"NSR-BDG-2026"',
+    "'NSR-PDG-2026'", '"NSR-PDG-2026"',
+    "'NSR-MKS-2026'", '"NSR-MKS-2026"',
+    "'NSR-PLB-2026'", '"NSR-PLB-2026"',
+    "'NSR-MKT-2026'", '"NSR-MKT-2026"',
+    "'NSR-REV-2026'", '"NSR-REV-2026"',
+    "'NSR-APP-2026'", '"NSR-APP-2026"'
+  ];
+
+  for (const pf of portalFilesToAudit) {
+    const fileContent = fs.readFileSync(path.join(ROOT_DIR, pf), 'utf-8');
+    for (const tok of forbiddenPlainTokens) {
+      assert(!fileContent.includes(tok), `Zero-Trust Audit: ${pf} steril mutlak dari plaintext token ${tok}`);
+    }
+  }
+
+  // B. Uji High-Entropy Rotated Tokens
+  const authRotPst = resolveUnifiedToken('NSR-HQ89-PST9-M4V2');
+  assert(authRotPst && authRotPst.isSuperAdmin === true && authRotPst.wilayah === 'PUSAT', 'High-Entropy Token Super Admin (NSR-HQ89-PST9-M4V2) terverifikasi');
+
+  const authRotBdg = resolveUnifiedToken('NSR-BDG-7K2P-9M4X');
+  assert(authRotBdg && authRotBdg.role === 'ADMIN_CABANG' && authRotBdg.wilayah === 'Bandung', 'High-Entropy Token Cabang Bandung (NSR-BDG-7K2P-9M4X) terverifikasi');
+
+  const authRotPdg = resolveUnifiedToken('NSR-PDG-8M3Q-2X7V');
+  assert(authRotPdg && authRotPdg.role === 'ADMIN_CABANG' && authRotPdg.wilayah === 'Padang', 'High-Entropy Token Cabang Padang (NSR-PDG-8M3Q-2X7V) terverifikasi');
+
+  const authRotMks = resolveUnifiedToken('NSR-MKS-5T9W-4L8Y');
+  assert(authRotMks && authRotMks.role === 'ADMIN_CABANG' && authRotMks.wilayah === 'Makassar', 'High-Entropy Token Cabang Makassar (NSR-MKS-5T9W-4L8Y) terverifikasi');
+
+  const authRotPlb = resolveUnifiedToken('NSR-PLB-6N2J-9R4K');
+  assert(authRotPlb && authRotPlb.role === 'ADMIN_CABANG' && authRotPlb.wilayah === 'Palembang', 'High-Entropy Token Cabang Palembang (NSR-PLB-6N2J-9R4K) terverifikasi');
+
+  // C. Uji Anti-Tampering Session Signature
+  const sha256Match = joHtml.match(/function sha256Hex\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
+  const genSigMatch = joHtml.match(/function generateSessionSignature\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
+  const verSigMatch = joHtml.match(/function verifySessionSignature\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
+  assert(sha256Match && genSigMatch && verSigMatch, 'Fungsi Kriptografis Anti-Tampering (sha256Hex, generateSessionSignature, verifySessionSignature) terpasang di frontend');
+
+  const sigModule = new Function(
+    'const NSR_SEC_SALT = "NSR_ZERO_TRUST_SIG_2026_9x4m";\n' +
+    sha256Match[0] + '\n' +
+    genSigMatch[0] + '\n' +
+    verSigMatch[0] + '\n' +
+    'return { generateSessionSignature, verifySessionSignature, sha256Hex };'
+  )();
+
+  const testHash = 'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818';
+  const testTime = 1776500000000;
+  const legitSig = sigModule.generateSessionSignature(testHash, testTime, 'ADMIN_CABANG', false);
+
+  const legitSession = { tokenHash: testHash, loginTime: testTime, role: 'ADMIN_CABANG', isSuperAdmin: false, sig: legitSig };
+  assert(sigModule.verifySessionSignature(legitSession) === true, 'Sesi legal dengan tanda tangan kriptografis sah lolos verifikasi');
+
+  const tamperedPrivilegeSession = { tokenHash: testHash, loginTime: testTime, role: 'SUPER ADMIN', isSuperAdmin: true, sig: legitSig };
+  assert(sigModule.verifySessionSignature(tamperedPrivilegeSession) === false, 'Anti-Tampering: Eskalasi hak akses lokal (isSuperAdmin diubah ilegal) GAGAL diverifikasi');
+
+  const tamperedTokenSession = { tokenHash: 'evilhash1234567890abcdef1234567890abcdef1234567890abcdef12345678', loginTime: testTime, role: 'ADMIN_CABANG', isSuperAdmin: false, sig: legitSig };
+  assert(sigModule.verifySessionSignature(tamperedTokenSession) === false, 'Anti-Tampering: Modifikasi tokenHash lokal GAGAL diverifikasi');
+
+  // D. Uji Backend Code.gs
+  const codeGsContent = fs.readFileSync(path.join(ROOT_DIR, 'Code.gs'), 'utf-8');
+  assert(codeGsContent.includes('HASH_MATRIX:'), 'Code.gs memiliki HASH_MATRIX SHA-256');
+  assert(codeGsContent.includes('autoSnapshotSpreadsheet('), 'Code.gs memiliki fungsi disaster recovery autoSnapshotSpreadsheet');
+  assert(codeGsContent.includes('PropertiesService.getScriptProperties()'), 'Code.gs menggunakan PropertiesService untuk keamanan backend');
+  assert(codeGsContent.includes('LockService.getScriptLock()'), 'Code.gs mengunci concurrency dengan LockService.getScriptLock()');
+
+
   console.log('\n\x1b[36m[7/7] Menguji Build Produksi (scripts/build-production.mjs)\x1b[0m');
   const buildMjs = fs.readFileSync(path.join(ROOT_DIR, 'scripts', 'build-production.mjs'), 'utf-8');
   assert(buildMjs.includes('"portal-nolap-cabang.html"'), 'portal-nolap-cabang.html terdaftar di ALLOWED_FILES');

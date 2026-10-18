@@ -1386,7 +1386,7 @@
       <form onsubmit="verifikasiTokenLogin(event)" class="space-y-3 pt-2">
         <div>
           <label class="block font-semibold text-slate-300 mb-1">Token Akses Otorisasi</label>
-          <input type="text" id="input_token_auth" required placeholder="Masukkan Token Otorisasi Resmi (Contoh: NSR-***-2026)" class="w-full h-11 px-3.5 rounded-xl bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold tracking-wider text-sm focus:outline-none focus:border-amber-400 uppercase">
+          <input type="text" id="input_token_auth" required placeholder="Masukkan Token Otorisasi Resmi (High-Entropy Token)" class="w-full h-11 px-3.5 rounded-xl bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold tracking-wider text-sm focus:outline-none focus:border-amber-400 uppercase">
         </div>
 
         <p id="pesan_error_token" class="text-rose-400 font-semibold text-xs hidden text-center"></p>
@@ -2324,6 +2324,7 @@
     }
 
     function eksekusiApprovalPusatSubmit(event) {
+      if (typeof auditSessionIntegrity === "function" && !auditSessionIntegrity()) return;
       if (event) event.preventDefault();
       const pId = document.getElementById('appr-target-project-id').value;
       let p = projectDatabase.find(item => item.id === pId);
@@ -2970,183 +2971,245 @@
       return hari[d.getDay()] || "";
     }
 
-        // ==========================================================
+            // ==========================================================
     // 4. UNIVERSAL TOKEN MATRIX & RBAC OTORISASI RESMI KJPP NSR
+    // ZERO-TRUST SHA-256 HASH MATRIX (ZERO PLAINTEXT TOKEN)
     // ==========================================================
+    const NSR_SEC_SALT = 'NSR_ZERO_TRUST_SIG_2026_9x4m';
+
+    function sha256Hex(ascii) {
+      function rightRotate(value, amount) {
+        return (value >>> amount) | (value << (32 - amount));
+      }
+      var mathPow = Math.pow;
+      var maxWord = mathPow(2, 32);
+      var lengthProperty = 'length';
+      var i, j;
+      var result = '';
+      var words = [];
+      var asciiBitLength = ascii[lengthProperty] * 8;
+      var hash = [];
+      var k = [];
+      var primeCounter = 0;
+
+      var isComposite = {};
+      for (var candidate = 2; primeCounter < 64; candidate++) {
+        if (!isComposite[candidate]) {
+          for (i = 0; i < 313; i += candidate) {
+            isComposite[i] = candidate;
+          }
+          hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+          k[primeCounter++] = (mathPow(candidate, 1/3) * maxWord) | 0;
+        }
+      }
+
+      ascii += '\x80';
+      while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+      for (i = 0; i < ascii[lengthProperty]; i++) {
+        j = ascii.charCodeAt(i);
+        if (j >> 8) return '';
+        words[i >> 2] |= j << ((3 - i) % 4) * 8;
+      }
+      words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+      words[words[lengthProperty]] = (asciiBitLength) | 0;
+
+      for (j = 0; j < words[lengthProperty];) {
+        var w = words.slice(j, j += 16);
+        var oldHash = hash;
+        hash = hash.slice(0, 8);
+        for (i = 0; i < 64; i++) {
+          var w15 = w[i - 15], w2 = w[i - 2];
+          var a = hash[0], e = hash[4];
+          var temp1 = hash[7]
+            + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+            + ((e & hash[5]) ^ ((~e) & hash[6]))
+            + k[i]
+            + (w[i] = (i < 16) ? w[i] : (
+                w[i - 16]
+                + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+                + w[i - 7]
+                + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+              ) | 0
+            );
+          var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+            + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+          hash = [(temp1 + temp2) | 0].concat(hash);
+          hash[4] = (hash[4] + temp1) | 0;
+        }
+        for (i = 0; i < 8; i++) {
+          hash[i] = (hash[i] + oldHash[i]) | 0;
+        }
+      }
+      for (i = 0; i < 8; i++) {
+        for (var i2 = 3; i2 >= 0; i2--) {
+          var b = (hash[i] >> (i2 * 8)) & 255;
+          result += ((b < 16) ? '0' : '') + b.toString(16);
+        }
+      }
+      return result;
+    }
+
+    async function hashTokenSHA256(rawToken) {
+      const clean = String(rawToken || '').trim().toUpperCase();
+      if (typeof crypto !== 'undefined' && crypto.subtle) {
+        try {
+          const buffer = new TextEncoder().encode(clean);
+          const digest = await crypto.subtle.digest('SHA-256', buffer);
+          return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch (_) {}
+      }
+      return sha256Hex(clean);
+    }
+
+    function generateSessionSignature(tokenHash, loginTime, role, isSuperAdmin) {
+      const payload = String(tokenHash || '') + ':' + String(loginTime || '') + ':' + String(role || '') + ':' + (isSuperAdmin ? '1' : '0') + ':' + NSR_SEC_SALT;
+      return sha256Hex(payload);
+    }
+
+    function verifySessionSignature(session) {
+      if (!session || !session.sig || !session.tokenHash || !session.loginTime) return false;
+      const expectedSig = generateSessionSignature(session.tokenHash, session.loginTime, session.role, session.isSuperAdmin);
+      return session.sig === expectedSig;
+    }
+
+    function auditSessionIntegrity() {
+      const rawSession = sessionStorage.getItem('NSR_USER_SESSION');
+      const sig = sessionStorage.getItem('NSR_SESSION_SIG');
+      if (!rawSession || !sig) {
+        return true;
+      }
+      try {
+        const parsed = JSON.parse(rawSession);
+        if (!verifySessionSignature({ ...parsed, sig: sig })) {
+          console.warn('⚠️ Anti-Tampering Violation: Sesi lokal dimanipulasi secara tidak sah.');
+          sessionStorage.clear();
+          localStorage.removeItem('kjpp_token_auth');
+          localStorage.removeItem('kjpp_session_token');
+          alert('⚠️ PELANGGARAN INTEGRITAS KEAMANAN!\n\nManipulasi data sesi lokal terdeteksi oleh sistem Zero-Trust. Sesi Anda telah dimatikan secara paksa.');
+          window.location.replace('index.html');
+          return false;
+        }
+      } catch (_) {
+        sessionStorage.clear();
+        return false;
+      }
+      return true;
+    }
+
+    window.sha256Hex = sha256Hex;
+    window.hashTokenSHA256 = hashTokenSHA256;
+    window.generateSessionSignature = generateSessionSignature;
+    window.verifySessionSignature = verifySessionSignature;
+    window.auditSessionIntegrity = auditSessionIntegrity;
     window.resolveUnifiedToken = resolveUnifiedToken;
+
     function resolveUnifiedToken(rawToken) {
       if (!rawToken || typeof rawToken !== 'string') return null;
-      const t = rawToken.trim().toUpperCase();
-
-      // A. KELOMPOK SUPER ADMIN & ADMIN PUSAT (AKSES PENUH)
-      const superAdminTokens = ['NSR8899', 'NSR-PST-2026', 'NSR-ADM-2026', 'NSR-ADMIN-2026', 'NSR2026'];
-      if (superAdminTokens.includes(t)) {
-        return {
-          valid: true,
-          token: t,
-          role: 'SUPER ADMIN',
-          roleLabel: 'SUPER ADMIN • KANTOR PUSAT',
-          displayRole: 'SUPER ADMIN • KANTOR PUSAT',
-          wilayah: 'PUSAT',
-          wilayahLabel: 'Kantor Pusat',
-          wilayahResmi: 'Kantor Pusat Jakarta',
-          wilayahCode: 'PST',
-          isCabang: false,
-          isSuperAdmin: true,
-          aksesApproval: true,
-          aksesKwitansi: true,
-          aksesFee: true,
-          mode: 'PUSAT',
-          canAccessKwitansi: true,
-          seeFee: true,
-          canApprove: true,
-          canApprovePusat: true,
-          canApproveCabang: true,
-          canSubmit: true,
-          canInputForm: true,
-          lockWilayah: false
-        };
+      function _internalSha256Hex(ascii) {
+        function rightRotate(v, a) { return (v >>> a) | (v << (32 - a)); }
+        var mathPow = Math.pow, maxWord = mathPow(2, 32), l = ascii.length, i, j, res = '', words = [];
+        var asciiBitLength = l * 8, hash = [], k = [], primeCounter = 0, isComp = {};
+        for (var c = 2; primeCounter < 64; c++) {
+          if (!isComp[c]) {
+            for (i = 0; i < 313; i += c) isComp[i] = c;
+            hash[primeCounter] = (mathPow(c, .5) * maxWord) | 0;
+            k[primeCounter++] = (mathPow(c, 1/3) * maxWord) | 0;
+          }
+        }
+        ascii += '\x80';
+        while (ascii.length % 64 - 56) ascii += '\x00';
+        for (i = 0; i < ascii.length; i++) {
+          j = ascii.charCodeAt(i);
+          words[i >> 2] |= j << ((3 - i) % 4) * 8;
+        }
+        words[words.length] = ((asciiBitLength / maxWord) | 0);
+        words[words.length] = (asciiBitLength) | 0;
+        for (j = 0; j < words.length;) {
+          var w = words.slice(j, j += 16), oldHash = hash;
+          hash = hash.slice(0, 8);
+          for (i = 0; i < 64; i++) {
+            var w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
+            var t1 = hash[7] + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) + ((e & hash[5]) ^ ((~e) & hash[6])) + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) | 0);
+            var t2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+            hash = [(t1 + t2) | 0].concat(hash);
+            hash[4] = (hash[4] + t1) | 0;
+          }
+          for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+        }
+        for (i = 0; i < 8; i++) {
+          for (var i2 = 3; i2 >= 0; i2--) {
+            var b = (hash[i] >> (i2 * 8)) & 255;
+            res += ((b < 16) ? '0' : '') + b.toString(16);
+          }
+        }
+        return res;
       }
+      const clean = rawToken.trim().toUpperCase();
+      const hash = (clean.length === 64 && /^[0-9a-f]{64}$/i.test(clean)) ? clean.toLowerCase() : _internalSha256Hex(clean);
 
-      // B. KELOMPOK KANTOR CABANG RESMI
-      const cabangMatrix = {
-        'NSR-BDG-2026': { kode: '2.0160-04', nama: 'Kantor Cabang Bandung', wilayah: 'Bandung', code: 'BDG', rekan: 'Deni Siswandi, S.T., MAPPI (Cert.)' },
-        'NSR-PDG-2026': { kode: '2.0160-01', nama: 'Kantor Cabang Padang', wilayah: 'Padang', code: 'PDG', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
-        'NSR-MKS-2026': { kode: '2.0160-02', nama: 'Kantor Cabang Makassar', wilayah: 'Makassar', code: 'MKS', rekan: 'M. Amin Sade, S.E., MAPPI (Cert.)' },
-        'NSR-PLB-2026': { kode: '2.0160-03', nama: 'Kantor Cabang Palembang', wilayah: 'Palembang', code: 'PLB', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' }
+      const HASH_MATRIX = {
+    '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true},
+    '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true},
+    'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true},
+    '116f1fc38a65e1f069d617ef30be1bd2c693e9cb69950ea475a694af2594dd99': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true},
+    '1bc922ff0ec6e30513822137b153bd0f067c8dd2d93c615ae8efc74f62867aaa': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true},
+    '90dcc577539898e27a73039150b137fe6ef7d437eb3e2425ff52d3a7cb7cfd3c': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true},
+    'b347f814a2f3d21306b0b8eae02611c1f4947abfd2f4e17d3bff343cfb6339c1': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true},
+    '58e70e6ee9bc4c777170b7af6645b0be5b17c238ea81451c7c7cacadf2de469a': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true},
+    'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818': {"valid":true,"kode":"2.0160-04","kodeKantor":"2.0160-04","kodeWilayah":"2.0160-04","nama":"Kantor Cabang Bandung","kantor":"Kantor Cabang Bandung","rekan":"Deni Siswandi, S.T., MAPPI (Cert.)","rekanNama":"Deni Siswandi, S.T., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Bandung","displayRole":"Admin Kantor Cabang Bandung","wilayah":"Bandung","wilayahLabel":"Kantor Cabang Bandung","wilayahResmi":"Kantor Cabang Bandung","wilayahCode":"BDG","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    '8d8ec827ee483752270d6256bb79de6662253f891e52842625ecc60af6e25878': {"valid":true,"kode":"2.0160-04","kodeKantor":"2.0160-04","kodeWilayah":"2.0160-04","nama":"Kantor Cabang Bandung","kantor":"Kantor Cabang Bandung","rekan":"Deni Siswandi, S.T., MAPPI (Cert.)","rekanNama":"Deni Siswandi, S.T., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Bandung","displayRole":"Admin Kantor Cabang Bandung","wilayah":"Bandung","wilayahLabel":"Kantor Cabang Bandung","wilayahResmi":"Kantor Cabang Bandung","wilayahCode":"BDG","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    '45b948d3c75010dcf2b4963c1275e2f0c982df88658616b3d0edaae59e9cd62c': {"valid":true,"kode":"2.0160-01","kodeKantor":"2.0160-01","kodeWilayah":"2.0160-01","nama":"Kantor Cabang Padang","kantor":"Kantor Cabang Padang","rekan":"Hernita, S.E., MAPPI (Cert.)","rekanNama":"Hernita, S.E., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Padang","displayRole":"Admin Kantor Cabang Padang","wilayah":"Padang","wilayahLabel":"Kantor Cabang Padang","wilayahResmi":"Kantor Cabang Padang","wilayahCode":"PDG","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    'a9df00e327795467cd60fad518eee698a0d82730f5c940816c07f176bf77f2c3': {"valid":true,"kode":"2.0160-01","kodeKantor":"2.0160-01","kodeWilayah":"2.0160-01","nama":"Kantor Cabang Padang","kantor":"Kantor Cabang Padang","rekan":"Hernita, S.E., MAPPI (Cert.)","rekanNama":"Hernita, S.E., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Padang","displayRole":"Admin Kantor Cabang Padang","wilayah":"Padang","wilayahLabel":"Kantor Cabang Padang","wilayahResmi":"Kantor Cabang Padang","wilayahCode":"PDG","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e': {"valid":true,"kode":"2.0160-02","kodeKantor":"2.0160-02","kodeWilayah":"2.0160-02","nama":"Kantor Cabang Makassar","kantor":"Kantor Cabang Makassar","rekan":"M. Amin Sade, S.E., MAPPI (Cert.)","rekanNama":"M. Amin Sade, S.E., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Makassar","displayRole":"Admin Kantor Cabang Makassar","wilayah":"Makassar","wilayahLabel":"Kantor Cabang Makassar","wilayahResmi":"Kantor Cabang Makassar","wilayahCode":"MKS","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    '05080f9dc585d39a2234f19ba420a83162249731bfea9e3ca0e733953d5efd95': {"valid":true,"kode":"2.0160-02","kodeKantor":"2.0160-02","kodeWilayah":"2.0160-02","nama":"Kantor Cabang Makassar","kantor":"Kantor Cabang Makassar","rekan":"M. Amin Sade, S.E., MAPPI (Cert.)","rekanNama":"M. Amin Sade, S.E., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Makassar","displayRole":"Admin Kantor Cabang Makassar","wilayah":"Makassar","wilayahLabel":"Kantor Cabang Makassar","wilayahResmi":"Kantor Cabang Makassar","wilayahCode":"MKS","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b': {"valid":true,"kode":"2.0160-03","kodeKantor":"2.0160-03","kodeWilayah":"2.0160-03","nama":"Kantor Cabang Palembang","kantor":"Kantor Cabang Palembang","rekan":"Dharma Priyanto, S.T., MAPPI (Cert.)","rekanNama":"Dharma Priyanto, S.T., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Palembang","displayRole":"Admin Kantor Cabang Palembang","wilayah":"Palembang","wilayahLabel":"Kantor Cabang Palembang","wilayahResmi":"Kantor Cabang Palembang","wilayahCode":"PLB","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    'c20c16d688a686f8cd5ac12f4949b8dac6b4937d513f92a00514ee6122368ed2': {"valid":true,"kode":"2.0160-03","kodeKantor":"2.0160-03","kodeWilayah":"2.0160-03","nama":"Kantor Cabang Palembang","kantor":"Kantor Cabang Palembang","rekan":"Dharma Priyanto, S.T., MAPPI (Cert.)","rekanNama":"Dharma Priyanto, S.T., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Palembang","displayRole":"Admin Kantor Cabang Palembang","wilayah":"Palembang","wilayahLabel":"Kantor Cabang Palembang","wilayahResmi":"Kantor Cabang Palembang","wilayahCode":"PLB","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    '4ea09485c491d4b43e42ebf0b64f912fcfa9608b5ceecd8b413f6b349298fadb': {"valid":true,"kode":"2.0160-03","kodeKantor":"2.0160-03","kodeWilayah":"2.0160-03","nama":"Kantor Cabang Palembang","kantor":"Kantor Cabang Palembang","rekan":"Dharma Priyanto, S.T., MAPPI (Cert.)","rekanNama":"Dharma Priyanto, S.T., MAPPI (Cert.)","role":"ADMIN_CABANG","roleLabel":"Admin Cabang Palembang","displayRole":"Admin Kantor Cabang Palembang","wilayah":"Palembang","wilayahLabel":"Kantor Cabang Palembang","wilayahResmi":"Kantor Cabang Palembang","wilayahCode":"PLB","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false},
+    '336c1d03b83f9a89f3f1fc33cc42192345b435f6e72f8e72ad43aaaaae6310fe': {"valid":true,"role":"MARKETING","roleLabel":"Marketing","displayRole":"Divisi Business Development & Marketing","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]"},
+    '49f55825bead055b28d4089b6f0f15fe4bf4f97467df50463b2e6c59603ea1cd': {"valid":true,"role":"MARKETING","roleLabel":"Marketing","displayRole":"Divisi Business Development & Marketing","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]"},
+    'da9ed250de0559c0e8cf6631bbd6e93375eec43c4d114d0f4f1ae17a4f5dd3a9': {"valid":true,"role":"REVIEWER","roleLabel":"Reviewer QC","displayRole":"Reviewer KKP / Quality Control","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":false,"canInputForm":false,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai Kontrak / Khusus Admin]"},
+    'b727e333eb3b28536736a20981fc9af83484098004c7a557f6d7035be7f6dd30': {"valid":true,"role":"REVIEWER","roleLabel":"Reviewer QC","displayRole":"Reviewer KKP / Quality Control","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":false,"canInputForm":false,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai Kontrak / Khusus Admin]"},
+    '14b4b51a13a2c3f62cb68bc65a229c6622ceee7528b9aa41f4964491d9e88e22': {"valid":true,"role":"PENILAI","roleLabel":"Penilai","displayRole":"Penilai Lapangan / Surveyor","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":false,"canInputForm":false,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]"},
+    '52dd65caf53c6a54b9fa2bbbfdedbfbe5e31dcda86a09dc4b325f107f511e68b': {"valid":true,"role":"PENILAI","roleLabel":"Penilai","displayRole":"Penilai Lapangan / Surveyor","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":false,"canInputForm":false,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]"},
+    '7c0febba4184aabfaa1fa8f036901bca942f44a44134922c734c6812845a5cbe': {"valid":true,"role":"PENILAI","roleLabel":"Penilai","displayRole":"Penilai Lapangan / Surveyor","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":false,"canInputForm":false,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]"},
+    '1d3ae4e60990bf3163099b17e0fb80575701e1f96e70e866c7a99145361ae896': {"valid":true,"role":"PENILAI","roleLabel":"Penilai","displayRole":"Penilai Lapangan / Surveyor","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":false,"canInputForm":false,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]"},
+    '5801bb3891c492e6497bd5c0eb4d583606d07eed0058c05f8d4238c114b9f3e1': {"valid":true,"role":"PENILAI","roleLabel":"Penilai","displayRole":"Penilai Lapangan / Surveyor","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":false,"canInputForm":false,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]"},
+    '5ee6a1ca445000d8984751016fef1a319d6b3f0cc3935cf331c98ab7fa97914b': {"valid":true,"role":"PENILAI","roleLabel":"Penilai","displayRole":"Penilai Lapangan / Surveyor","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":false,"canInputForm":false,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]"}
       };
 
-      if (cabangMatrix[t]) {
-        const c = cabangMatrix[t];
-        return {
-          valid: true,
-          token: t,
-          kode: c.kode,
-          kodeKantor: c.kode,
-          kodeWilayah: c.kode,
-          nama: c.nama,
-          kantor: c.nama,
-          rekan: c.rekan,
-          rekanNama: c.rekan,
-          role: 'ADMIN_CABANG',
-          roleLabel: 'Admin Cabang ' + c.wilayah,
-          displayRole: 'Admin ' + c.nama,
-          wilayah: c.wilayah,
-          wilayahLabel: c.nama,
-          wilayahResmi: c.nama,
-          wilayahCode: c.code,
-          isCabang: true,
-          isSuperAdmin: false,
-          aksesApproval: false,
-          aksesKwitansi: true,
-          aksesFee: true,
-          mode: 'CABANG',
-          canAccessKwitansi: true,
-          seeFee: true,
-          canApprove: false,
-          canApproveCabang: true,
-          canSubmit: true,
-          canInputForm: true,
-          lockWilayah: true
-        };
-      }
-
-      // C. KELOMPOK FUNGSIONAL
-      if (t === 'NSR-MKT-2026') {
-        return {
-          valid: true,
-          token: t,
-          role: 'MARKETING',
-          roleLabel: 'Marketing',
-          displayRole: 'Divisi Business Development & Marketing',
-          wilayah: 'PUSAT',
-          wilayahLabel: 'Kantor Pusat',
-          wilayahResmi: 'Kantor Pusat Jakarta',
-          wilayahCode: 'PST',
-          isCabang: false,
-          isSuperAdmin: false,
-          aksesApproval: false,
-          aksesKwitansi: false,
-          aksesFee: false,
-          mode: 'PUSAT',
-          canAccessKwitansi: false,
-          seeFee: false,
-          canApprove: false,
-          canSubmit: true,
-          canInputForm: true,
-          lockWilayah: false,
-          feeMaskText: '[Sesuai SPK / Khusus Admin]'
-        };
-      }
-
-      if (t === 'NSR-REV-2026') {
-        return {
-          valid: true,
-          token: t,
-          role: 'REVIEWER',
-          roleLabel: 'Reviewer QC',
-          displayRole: 'Reviewer KKP / Quality Control',
-          wilayah: 'PUSAT',
-          wilayahLabel: 'Kantor Pusat',
-          wilayahResmi: 'Kantor Pusat Jakarta',
-          wilayahCode: 'PST',
-          isCabang: false,
-          isSuperAdmin: false,
-          aksesApproval: false,
-          aksesKwitansi: false,
-          aksesFee: false,
-          mode: 'PUSAT',
-          canAccessKwitansi: false,
-          seeFee: false,
-          canApprove: false,
-          canSubmit: false,
-          canInputForm: false,
-          lockWilayah: false,
-          feeMaskText: '[Sesuai Kontrak / Khusus Admin]'
-        };
-      }
-
-      const penilaiTokens = ['NSR-APP-2026', 'NSR-SVR-2026', 'NSR-PEN-2026', 'NSR-VAL-2026', 'NSR-PNL-2026'];
-      if (penilaiTokens.includes(t)) {
-        return {
-          valid: true,
-          token: t,
-          role: 'PENILAI',
-          roleLabel: 'Penilai',
-          displayRole: 'Penilai Lapangan / Surveyor',
-          wilayah: 'PUSAT',
-          wilayahLabel: 'Kantor Pusat',
-          wilayahResmi: 'Kantor Pusat Jakarta',
-          wilayahCode: 'PST',
-          isCabang: false,
-          isSuperAdmin: false,
-          aksesApproval: false,
-          aksesKwitansi: false,
-          aksesFee: false,
-          mode: 'PUSAT',
-          canAccessKwitansi: false,
-          seeFee: false,
-          canApprove: false,
-          canSubmit: false,
-          canInputForm: false,
-          lockWilayah: false,
-          feeMaskText: '[Sesuai SPK / Khusus Admin]'
-        };
-      }
-
-      return null;
+      const auth = HASH_MATRIX[hash];
+      if (!auth) return null;
+      return {
+        ...auth,
+        token: clean,
+        tokenHash: hash
+      };
     }
 
     function simpanSesiSSO(sessionData) {
-      if (!sessionData || !sessionData.token) return;
-      const tokenClean = String(sessionData.token).trim().toUpperCase();
+      if (!sessionData) return;
+      const tokenClean = String(sessionData.token || '').trim().toUpperCase();
+      const tokenHash = sessionData.tokenHash || (tokenClean ? sha256Hex(tokenClean) : '');
+      const loginTime = sessionData.loginTime || Date.now();
+      const sig = generateSessionSignature(tokenHash, loginTime, sessionData.role, sessionData.isSuperAdmin);
+
+      const secureSession = {
+        ...sessionData,
+        token: tokenClean,
+        tokenHash: tokenHash,
+        loginTime: loginTime,
+        sig: sig
+      };
+
       sessionStorage.setItem('NSR_AUTH_TOKEN', tokenClean);
-      sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(sessionData));
+      sessionStorage.setItem('NSR_AUTH_HASH', tokenHash);
+      sessionStorage.setItem('NSR_SESSION_SIG', sig);
+      sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(secureSession));
       sessionStorage.setItem('TOKEN_AUTH_NSR', tokenClean);
       sessionStorage.setItem('CURRENT_AUTH_TOKEN', tokenClean);
       sessionStorage.setItem('kjpp_token_internal', tokenClean);
-      sessionStorage.setItem('kjpp_session_jo', JSON.stringify(sessionData));
-      window.CURRENT_AUTH_SESSION = sessionData;
+      sessionStorage.setItem('kjpp_session_jo', JSON.stringify(secureSession));
+      window.CURRENT_AUTH_SESSION = secureSession;
     }
 
     function dapatkanSesiLogin() {
@@ -3275,6 +3338,7 @@
     }
 
     function unduhBackupPrivatCabang() {
+      if (typeof auditSessionIntegrity === "function" && !auditSessionIntegrity()) return;
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       const isCabangUser = Boolean(auth && (auth.isCabang || (auth.mode === 'CABANG' && !auth.isSuperAdmin)));
       const namaCabangSesi = (auth.wilayah || auth.kantor || '').trim().toLowerCase();
@@ -4208,6 +4272,7 @@
       const proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData || null;
 
       if (tabIdx === 3) {
+        if (typeof auditSessionIntegrity === "function" && !auditSessionIntegrity()) return;
         const isPengajuanPusat = (currentModeAlur === 'PUSAT' || currentModeAlur === 'CENTRAL_APPROVAL') || 
                                  (proyekAktif && (proyekAktif.alur === 'PUSAT' || proyekAktif.target === 'PUSAT' || proyekAktif.mode_alur === 'CENTRAL_APPROVAL' || proyekAktif.mode_pengaju === 'PUSAT' || proyekAktif.status === 'WAITING_APPROVAL'));
         const isDisetujuiPusat = Boolean(proyekAktif && (proyekAktif.status === 'APPROVED' && (proyekAktif.status_approval === 'APPROVED' || !proyekAktif.status_approval || proyekAktif.status === 'APPROVED')));
@@ -4270,6 +4335,7 @@
     window.perbaruiIndikatorTab3 = perbaruiIndikatorTab3;
 
     function bukaModalApprovalDariTab3() {
+      if (typeof auditSessionIntegrity === "function" && !auditSessionIntegrity()) return;
       const proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData;
       if (!proyekAktif || !proyekAktif.id) {
         alert("Pilih berkas penugasan terlebih dahulu untuk melakukan otorisasi.");
@@ -6522,6 +6588,7 @@
     }
 
     function approveProyekPusat(projectId) {
+      if (typeof auditSessionIntegrity === "function" && !auditSessionIntegrity()) return;
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === "SUPER_ADMIN" || auth.role === "ADMIN_PUSAT" || auth.mode === "PUSAT" || (userSession && (userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT" || userSession.role === "SUPER_ADMIN"))));
       if (!isSuperAdmin) {
@@ -8897,6 +8964,7 @@
     }
 
     function eksekusiCetakDokumen() {
+      if (typeof auditSessionIntegrity === "function" && !auditSessionIntegrity()) return;
       if (!activeProjectData) {
         alert("Pilih data proyek terlebih dahulu sebelum mencetak.");
         return;
