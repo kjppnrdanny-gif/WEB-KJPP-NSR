@@ -133,6 +133,51 @@ try {
   assert(joHtml.includes("labelCentral.setAttribute('style', 'display: none !important')"), 'Kartu Alur 1 Pusat disembunyikan permanen saat mode mandiri cabang');
   assert(joHtml.includes("await periksaSesiLogin()"), 'Pemeriksaan sesi login di-await sebelum inisialisasi mode');
 
+  // ---- Dual-Method Approval Feature (Metode A: Digital TTD / Metode B: Scan PDF) ----
+  console.log('\n\x1b[36m[2b/7] Menguji Fitur Dual-Method Approval (portal-penugasan-jo.html)\x1b[0m');
+  // Modal UI Elements
+  assert(joHtml.includes('id="box-pengesahan-digital"'), 'Kontainer Metode A id="box-pengesahan-digital" tersedia di modal approval');
+  assert(joHtml.includes('id="box-pengesahan-scan-pdf"'), 'Kontainer Metode B id="box-pengesahan-scan-pdf" tersedia di modal approval');
+  assert(joHtml.includes('id="radio-metode-digital"'), 'Radio Metode A id="radio-metode-digital" tersedia');
+  assert(joHtml.includes('id="radio-metode-scan"'), 'Radio Metode B id="radio-metode-scan" tersedia');
+  assert(joHtml.includes('id="approval_upload_ttd"'), 'Input upload TTD id="approval_upload_ttd" tersedia');
+  assert(joHtml.includes('id="approval_upload_stempel"'), 'Input upload Stempel id="approval_upload_stempel" tersedia');
+  assert(joHtml.includes('id="approval_upload_pdf"'), 'Input upload PDF id="approval_upload_pdf" tersedia');
+  assert(joHtml.includes('id="preview_approval_ttd"'), 'Wadah pratinjau TTD id="preview_approval_ttd" tersedia');
+  assert(joHtml.includes('id="preview_approval_stempel"'), 'Wadah pratinjau Stempel id="preview_approval_stempel" tersedia');
+  assert(joHtml.includes('id="pdf-file-badge"'), 'Badge info file PDF id="pdf-file-badge" tersedia');
+  assert(joHtml.includes('id="overlay-ttd-img"') && joHtml.includes('id="overlay-stempel-img"'), 'Elemen overlay preview gabungan TTD+Stempel tersedia');
+  // JS State Functions
+  assert(joHtml.includes('let approvalMetodeAktif'), 'State variable approvalMetodeAktif dideklarasikan');
+  assert(joHtml.includes('function toggleMetodeApproval('), 'Fungsi toggleMetodeApproval() terdefinisi');
+  assert(joHtml.includes('function gunakanPresetTtd('), 'Fungsi gunakanPresetTtd() preset TTD terdefinisi');
+  assert(joHtml.includes('function gunakanPresetStempel('), 'Fungsi gunakanPresetStempel() preset Stempel terdefinisi');
+  assert(joHtml.includes('function bacaFileTtdDigital('), 'Fungsi bacaFileTtdDigital() FileReader TTD terdefinisi');
+  assert(joHtml.includes('function bacaFilePdfScanBasah('), 'Fungsi bacaFilePdfScanBasah() FileReader PDF terdefinisi');
+  assert(joHtml.includes('function resetApprovalDualMethodState('), 'Fungsi resetApprovalDualMethodState() terdefinisi');
+  assert(joHtml.includes('function handleDropPdf('), 'Fungsi handleDropPdf() drag-and-drop PDF terdefinisi');
+  assert(joHtml.includes('function batalkanPilihPdf('), 'Fungsi batalkanPilihPdf() terdefinisi');
+  // SVG Preset Data
+  assert(joHtml.includes('PRESET_TTD_NANANG') && joHtml.includes('PRESET_TTD_DENI'), 'Preset SVG TTD Nanang Rahayu & Deni Siswandi terdefinisi');
+  assert(joHtml.includes('PRESET_STEMPEL_NSR'), 'Preset SVG Stempel KJPP NSR terdefinisi');
+  // Data Model
+  assert(joHtml.includes("p.metode_pengesahan = isMetodeScanAktif ? 'SCAN_BASAH' : 'DIGITAL'"), "Field p.metode_pengesahan disimpan saat approval");
+  assert(joHtml.includes('p.berkas_scan_pdf = {'), 'Objek p.berkas_scan_pdf disimpan saat Metode B aktif');
+  assert(joHtml.includes('p.ttd_digital_base64 = approvalTtdDataUrl'), 'Field p.ttd_digital_base64 disimpan saat Metode A');
+  assert(joHtml.includes('p.stempel_digital_base64 = approvalStempelDataUrl'), 'Field p.stempel_digital_base64 disimpan saat Metode A');
+  assert(joHtml.includes('p.status_approval = "APPROVED"'), "Field p.status_approval diset ke APPROVED");
+  assert(joHtml.includes("p.approved_by = 'ADMIN_PUSAT'"), "Field p.approved_by diset ke ADMIN_PUSAT");
+  // Quality Gate Tab 3
+  assert(joHtml.includes('_isCentralWaiting'), 'Quality Gate _isCentralWaiting mengevaluasi WAITING_APPROVAL di pindahTab');
+  assert(joHtml.includes('Pratinjau & Cetak (Terkunci'), 'Label Tab 3 berubah Terkunci saat Central submission WAITING_APPROVAL');
+  // Tab 3 Rendering
+  assert(joHtml.includes('_scanBanner'), 'Banner scan basah _scanBanner dirender saat Metode B APPROVED');
+  assert(joHtml.includes('DOKUMEN RESMI TANDA TANGAN BASAH TERSEDIA'), 'Teks banner scan basah tersedia di renderSemuaDokumen');
+  assert(joHtml.includes('function renderTtdOverlay('), 'Helper renderTtdOverlay() terdefinisi di renderSemuaDokumen');
+  assert(joHtml.includes('_isDigitalApproved'), 'Flag _isDigitalApproved mengontrol injeksi overlay TTD+Stempel');
+  // Dashboard Action Column
+  assert(joHtml.includes("metode_pengesahan === 'SCAN_BASAH' && p.berkas_scan_pdf"), 'Tab 2 membedakan tombol unduh PDF vs cetak berdasarkan metode_pengesahan');
+
 
   // -----------------------------------------------------------------
   // 3. TEST portal-kwitansi.html - DUAL MODE KWITANSI & PIN FINANCE

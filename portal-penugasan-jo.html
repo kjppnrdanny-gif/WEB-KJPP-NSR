@@ -1395,15 +1395,16 @@
        MODAL KONFIRMASI APPROVAL & INPUT NOMOR RESMI ADMIN PUSAT
        ======================================================== -->
   <div id="modal-approval-pusat" class="fixed inset-0 z-50 bg-slate-950/85 flex items-center justify-center p-4 backdrop-blur-sm hidden" role="dialog" aria-modal="true">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl text-xs space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full shadow-2xl text-xs flex flex-col max-h-[92vh]">
+      <!-- Header Modal -->
+      <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-800 shrink-0">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
           <div>
             <h3 class="text-sm font-black text-white">Otorisasi &amp; Penerbitan Nomor Resmi Pusat</h3>
-            <p class="text-[11px] text-slate-400">Verifikasi penugasan dan tentukan nomor resmi yang diterbitkan.</p>
+            <p class="text-[11px] text-slate-400">Verifikasi penugasan dan pilih metode pengesahan dokumen resmi.</p>
           </div>
         </div>
         <button type="button" onclick="tutupModalApproval()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
@@ -1411,64 +1412,158 @@
         </button>
       </div>
 
-      <!-- Info Proyek Singkat -->
-      <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-slate-300 text-[11px]">
-        <div class="flex justify-between"><span class="text-slate-400">ID Pengajuan:</span> <span id="appr-info-id" class="font-mono font-bold text-amber-400">-</span></div>
-        <div class="flex justify-between"><span class="text-slate-400">Debitur / Klien:</span> <span id="appr-info-debitur" class="font-bold text-white">-</span></div>
-        <div class="flex justify-between"><span class="text-slate-400">Kantor Wilayah:</span> <span id="appr-info-wilayah" class="text-sky-300">-</span></div>
-        <div class="flex justify-between"><span class="text-slate-400">Tanggal Surat:</span> <span id="appr-info-tanggal" class="font-mono text-slate-200">-</span></div>
-      </div>
-
-      <form id="form-approval-pusat" onsubmit="eksekusiApprovalPusatSubmit(event)" class="space-y-3.5">
-        <input type="hidden" id="appr-target-project-id" value="">
-
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Jenis Laporan Penilaian <span class="text-rose-400">*</span></label>
-          <select id="appr-jenis-laporan" onchange="handleApprovalJenisLaporanChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
-            <option value="APP">Long Report — Kode: PN-APP (Laporan Lengkap)</option>
-            <option value="RTL">Short Report — Kode: PN-RTL (Laporan Ringkas / Retail)</option>
-          </select>
+      <!-- Scrollable Body -->
+      <div class="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+        <!-- Info Proyek Singkat -->
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-slate-300 text-[11px]">
+          <div class="flex justify-between"><span class="text-slate-400">ID Pengajuan:</span> <span id="appr-info-id" class="font-mono font-bold text-amber-400">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Debitur / Klien:</span> <span id="appr-info-debitur" class="font-bold text-white">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Kantor Wilayah:</span> <span id="appr-info-wilayah" class="text-sky-300">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Tanggal Surat:</span> <span id="appr-info-tanggal" class="font-mono text-slate-200">-</span></div>
         </div>
 
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">No. Lingkup Penugasan (SPK) Resmi <span class="text-rose-400">*</span></label>
-          <input type="text" id="appr-nomor-lp" required oninput="validasiApprovalDuplikatLive()" onblur="formatApprovalNomorInputOtomatis()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400">
-          <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
-            <span>ℹ️ Saran: <span id="appr-saran-seq" class="text-emerald-400 font-mono font-bold">0416</span></span>
-            <button type="button" onclick="gunakanSaranApprovalNomor()" class="text-[10px] text-emerald-400 hover:underline font-mono">Gunakan Nomor Saran</button>
+        <form id="form-approval-pusat" onsubmit="eksekusiApprovalPusatSubmit(event)" class="space-y-3.5">
+          <input type="hidden" id="appr-target-project-id" value="">
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Jenis Laporan Penilaian <span class="text-rose-400">*</span></label>
+            <select id="appr-jenis-laporan" onchange="handleApprovalJenisLaporanChange()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
+              <option value="APP">Long Report — Kode: PN-APP (Laporan Lengkap)</option>
+              <option value="RTL">Short Report — Kode: PN-RTL (Laporan Ringkas / Retail)</option>
+            </select>
           </div>
-        </div>
 
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">No. Adm Job Order (JO) Resmi <span class="text-rose-400">*</span></label>
-          <input type="text" id="appr-nomor-adm" required oninput="validasiApprovalDuplikatLive()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-sky-300 font-mono font-bold focus:outline-none focus:border-amber-400">
-        </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">No. Lingkup Penugasan (SPK) Resmi <span class="text-rose-400">*</span></label>
+            <input type="text" id="appr-nomor-lp" required oninput="validasiApprovalDuplikatLive()" onblur="formatApprovalNomorInputOtomatis()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400">
+            <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+              <span>ℹ️ Saran: <span id="appr-saran-seq" class="text-emerald-400 font-mono font-bold">0416</span></span>
+              <button type="button" onclick="gunakanSaranApprovalNomor()" class="text-[10px] text-emerald-400 hover:underline font-mono">Gunakan Nomor Saran</button>
+            </div>
+          </div>
 
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Rekening Bank Tujuan Transfer (SPK / Invoice) <span class="text-rose-400">*</span></label>
-          <select id="pilihan_rekening_tujuan" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
-            <option value="MANDIRI" selected>Bank Mandiri Cab. Jakarta Ampera Raya — 127-00-1014166-9 (Default)</option>
-            <option value="BJB">Bank BJB — 0124084891001</option>
-            <option value="BRI">Bank BRI — 042501000955306</option>
-            <option value="BTN">Bank BTN — 0019301300001254</option>
-          </select>
-          <p class="text-[11px] text-slate-400 mt-1">Dicantumkan pada instruksi transfer penagihan (Kwitansi / Invoice / SPK).</p>
-        </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">No. Adm Job Order (JO) Resmi <span class="text-rose-400">*</span></label>
+            <input type="text" id="appr-nomor-adm" required oninput="validasiApprovalDuplikatLive()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-sky-300 font-mono font-bold focus:outline-none focus:border-amber-400">
+          </div>
 
-        <!-- Warning Duplikat Approval -->
-        <div id="appr-warning-duplikat" class="hidden p-2.5 rounded-lg bg-rose-950/80 border border-rose-500 text-rose-200 text-xs font-semibold leading-relaxed">
-          ⚠️ Nomor sudah terpakai (Double)! Tidak dapat melakukan Approval dengan nomor ini.
-        </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Rekening Bank Tujuan Transfer (SPK / Invoice) <span class="text-rose-400">*</span></label>
+            <select id="pilihan_rekening_tujuan" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-semibold focus:outline-none focus:border-amber-400">
+              <option value="MANDIRI" selected>Bank Mandiri Cab. Jakarta Ampera Raya — 127-00-1014166-9 (Default)</option>
+              <option value="BJB">Bank BJB — 0124084891001</option>
+              <option value="BRI">Bank BRI — 042501000955306</option>
+              <option value="BTN">Bank BTN — 0019301300001254</option>
+            </select>
+            <p class="text-[11px] text-slate-400 mt-1">Dicantumkan pada instruksi transfer penagihan (Kwitansi / Invoice / SPK).</p>
+          </div>
 
-        <div class="pt-2 flex items-center justify-end gap-3">
-          <button type="button" onclick="tutupModalApproval()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">
-            Batal
-          </button>
-          <button type="submit" id="btn-konfirmasi-approval" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg flex items-center gap-2">
-            <span>Setujui &amp; Terbitkan Nomor</span>
-          </button>
-        </div>
-      </form>
+          <!-- PEMILIH METODE PENGESAHAN -->
+          <div class="pt-1">
+            <p class="font-black text-slate-200 mb-2 text-[11px] uppercase tracking-wider">Metode Pengesahan Dokumen Resmi Pusat <span class="text-rose-400">*</span></p>
+            <div class="grid grid-cols-2 gap-2">
+              <label id="label-metode-digital" class="flex items-start gap-2.5 p-3 rounded-xl border-2 border-emerald-500 bg-emerald-950/40 cursor-pointer transition">
+                <input type="radio" name="approval_metode_pengesahan" id="radio-metode-digital" value="DIGITAL" checked class="mt-0.5 accent-emerald-500" onchange="toggleMetodeApproval('DIGITAL')">
+                <div>
+                  <p class="font-black text-emerald-300 text-[11px]">Metode A</p>
+                  <p class="text-slate-300 text-[10px] leading-tight">Injeksi Digital (TTD &amp; Stempel PNG Transparan)</p>
+                </div>
+              </label>
+              <label id="label-metode-scan" class="flex items-start gap-2.5 p-3 rounded-xl border-2 border-slate-700 bg-slate-800/40 cursor-pointer transition">
+                <input type="radio" name="approval_metode_pengesahan" id="radio-metode-scan" value="SCAN_BASAH" class="mt-0.5 accent-sky-500" onchange="toggleMetodeApproval('SCAN_BASAH')">
+                <div>
+                  <p class="font-black text-sky-300 text-[11px]">Metode B</p>
+                  <p class="text-slate-300 text-[10px] leading-tight">Upload Berkas Scan Basah Lengkap (PDF)</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- BOX METODE A: INJEKSI DIGITAL TTD & STEMPEL -->
+          <div id="box-pengesahan-digital" class="space-y-3 p-4 rounded-xl border border-emerald-700/40 bg-emerald-950/20">
+            <div>
+              <p class="font-bold text-emerald-300 text-[11px] mb-2">&#x1F58B;&#xFE0F; Tanda Tangan Digital Rekan Penandatangan</p>
+              <div class="flex gap-2 mb-2 flex-wrap">
+                <button type="button" onclick="gunakanPresetTtd('NANANG')" class="px-2.5 py-1.5 rounded-lg bg-emerald-900/60 border border-emerald-700 text-emerald-300 text-[10px] font-bold hover:bg-emerald-800 transition">&#x1F58B;&#xFE0F; TTD Master Ir. Nanang Rahayu</button>
+                <button type="button" onclick="gunakanPresetTtd('DENI')" class="px-2.5 py-1.5 rounded-lg bg-emerald-900/60 border border-emerald-700 text-emerald-300 text-[10px] font-bold hover:bg-emerald-800 transition">&#x1F58B;&#xFE0F; TTD Master Deni Siswandi, S.T.</button>
+              </div>
+              <div class="flex items-center gap-3">
+                <label class="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg border border-dashed border-emerald-700 bg-slate-900 cursor-pointer hover:border-emerald-400 transition text-[11px] text-slate-400 hover:text-emerald-300">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  <span>Upload file TTD (PNG/JPG)</span>
+                  <input type="file" id="approval_upload_ttd" accept="image/png, image/jpeg" class="hidden" onchange="bacaFileTtdDigital(this)">
+                </label>
+                <div id="preview_approval_ttd" class="w-20 h-12 rounded-lg border border-slate-700 bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                  <span class="text-slate-600 text-[9px]">TTD</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="font-bold text-rose-300 text-[11px] mb-2">&#x1F534; Stempel Resmi KJPP NSR</p>
+              <div class="flex gap-2 mb-2">
+                <button type="button" onclick="gunakanPresetStempel()" class="px-2.5 py-1.5 rounded-lg bg-rose-900/60 border border-rose-700 text-rose-300 text-[10px] font-bold hover:bg-rose-800 transition">&#x1F534; Gunakan Stempel Master KJPP NSR</button>
+              </div>
+              <div class="flex items-center gap-3">
+                <label class="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg border border-dashed border-rose-700 bg-slate-900 cursor-pointer hover:border-rose-400 transition text-[11px] text-slate-400 hover:text-rose-300">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  <span>Upload Stempel (PNG transparan)</span>
+                  <input type="file" id="approval_upload_stempel" accept="image/png" class="hidden" onchange="bacaFileStempelDigital(this)">
+                </label>
+                <div id="preview_approval_stempel" class="w-14 h-14 rounded-full border border-slate-700 bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                  <span class="text-slate-600 text-[9px]">CAP</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="font-bold text-slate-400 text-[10px] mb-1.5">Pratinjau Gabungan (Overlay TTD + Stempel):</p>
+              <div id="preview-overlay-gabungan" class="relative h-20 w-60 rounded-lg border border-slate-700 bg-white/5 flex items-center">
+                <span id="overlay-placeholder" class="text-slate-600 text-[9px] w-full text-center">Pilih TTD dan Stempel</span>
+                <img id="overlay-stempel-img" src="" alt="Cap" class="absolute left-0 top-0 h-20 w-20 object-contain opacity-80 pointer-events-none z-10 hidden">
+                <img id="overlay-ttd-img" src="" alt="TTD" class="absolute left-5 top-1 h-[4.5rem] w-44 object-contain z-0 hidden">
+              </div>
+            </div>
+          </div>
+
+          <!-- BOX METODE B: UPLOAD BERKAS SCAN BASAH PDF -->
+          <div id="box-pengesahan-scan-pdf" class="hidden space-y-3 p-4 rounded-xl border border-sky-700/40 bg-sky-950/20">
+            <p class="font-bold text-sky-300 text-[11px]">&#x1F4C4; Unggah Berkas Scan Basah (PDF &le; 15 MB)</p>
+            <div id="drop-zone-pdf" class="relative flex flex-col items-center justify-center gap-2 h-28 rounded-xl border-2 border-dashed border-sky-600/60 bg-slate-900/60 cursor-pointer hover:border-sky-400 hover:bg-sky-950/30 transition text-center px-4"
+                 onclick="document.getElementById('approval_upload_pdf').click()"
+                 ondragover="event.preventDefault(); this.classList.add('border-sky-400')"
+                 ondragleave="this.classList.remove('border-sky-400')"
+                 ondrop="handleDropPdf(event)">
+              <input type="file" id="approval_upload_pdf" accept="application/pdf" class="hidden" onchange="bacaFilePdfScanBasah(this)">
+              <svg class="w-8 h-8 text-sky-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <p class="text-[11px] text-slate-400">Klik atau seret berkas PDF scan basah ke sini</p>
+              <p class="text-[10px] text-slate-500">Format: PDF &middot; Maks. 15 MB</p>
+            </div>
+            <div id="pdf-file-badge" class="hidden items-center justify-between gap-3 p-2.5 rounded-lg bg-sky-950/60 border border-sky-700">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="text-sky-400 text-sm">&#x1F4C4;</span>
+                <div class="min-w-0">
+                  <p id="pdf-file-name" class="text-sky-200 font-bold text-[11px] truncate">-</p>
+                  <p id="pdf-file-size" class="text-slate-400 text-[10px]">- KB</p>
+                </div>
+              </div>
+              <button type="button" onclick="batalkanPilihPdf()" class="shrink-0 px-2 py-1 rounded-lg bg-rose-900/50 border border-rose-700 text-rose-300 text-[10px] font-bold hover:bg-rose-800 transition">&times; Ganti</button>
+            </div>
+          </div>
+
+          <!-- Warning Duplikat Approval -->
+          <div id="appr-warning-duplikat" class="hidden p-2.5 rounded-lg bg-rose-950/80 border border-rose-500 text-rose-200 text-xs font-semibold leading-relaxed">
+            &#x26A0;&#xFE0F; Nomor sudah terpakai (Double)! Tidak dapat melakukan Approval dengan nomor ini.
+          </div>
+
+          <div class="pt-2 flex items-center justify-end gap-3">
+            <button type="button" onclick="tutupModalApproval()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">
+              Batal
+            </button>
+            <button type="submit" id="btn-konfirmasi-approval" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg flex items-center gap-2">
+              <span>Setujui &amp; Terbitkan Dokumen Resmi</span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -1999,6 +2094,7 @@
     function tutupModalApproval() {
       const modal = document.getElementById('modal-approval-pusat');
       if (modal) modal.classList.add('hidden');
+      resetApprovalDualMethodState();
     }
 
     function gunakanSaranApprovalNomor() {
@@ -2029,6 +2125,183 @@
       document.getElementById('appr-nomor-lp').value = `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
       document.getElementById('appr-nomor-adm').value = `${nextNum}/JO/NSR/${romawi}/${thn}`;
       validasiApprovalDuplikatLive();
+    }
+
+    // ==========================================================
+    // DUAL-METHOD APPROVAL STATE MANAGEMENT
+    // ==========================================================
+    let approvalMetodeAktif = 'DIGITAL';
+    let approvalTtdDataUrl = '';
+    let approvalStempelDataUrl = '';
+    let approvalPdfData = null;
+
+    // Preset TTD SVG - Ir. Nanang Rahayu (blue cursive signature)
+    const _svgTtdNanang = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80">' +
+      '<path d="M10,50 C20,20 35,65 50,45 C65,25 70,60 90,40 C110,20 115,55 135,38 C155,22 160,52 180,35 C195,22 200,50 220,40 L230,38" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>' +
+      '<path d="M15,60 C30,58 60,62 90,59 C120,56 150,61 180,58 L220,60" fill="none" stroke="#1d4ed8" stroke-width="1" stroke-linecap="round" opacity="0.5"/>' +
+      '</svg>';
+    const PRESET_TTD_NANANG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgTtdNanang);
+
+    // Preset TTD SVG - Deni Siswandi, S.T. (blue italic signature)
+    const _svgTtdDeni = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80">' +
+      '<path d="M15,55 C25,30 40,60 55,40 C70,22 85,55 100,38 C115,22 125,50 145,35 C160,22 170,48 190,36 C205,25 215,45 228,38" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>' +
+      '<path d="M20,65 C45,62 80,67 115,63 C150,59 185,65 220,62" fill="none" stroke="#1d4ed8" stroke-width="1" stroke-linecap="round" opacity="0.5"/>' +
+      '<circle cx="60" cy="28" r="3" fill="#1d4ed8" opacity="0.6"/>' +
+      '</svg>';
+    const PRESET_TTD_DENI = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgTtdDeni);
+
+    // Preset Stempel SVG - KJPP NSR circular stamp
+    const _svgStempel = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">' +
+      '<circle cx="60" cy="60" r="56" fill="none" stroke="#b91c1c" stroke-width="3" opacity="0.85"/>' +
+      '<circle cx="60" cy="60" r="48" fill="none" stroke="#b91c1c" stroke-width="1.5" opacity="0.85"/>' +
+      '<defs>' +
+        '<path id="nsr-top-arc" d="M 15,60 A 45,45 0 0,1 105,60"/>' +
+        '<path id="nsr-bot-arc" d="M 12,65 A 48,48 0 0,0 108,65"/>' +
+      '</defs>' +
+      '<text font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#b91c1c" text-anchor="middle" opacity="0.85">' +
+        '<textPath href="#nsr-top-arc" startOffset="50%">KANTOR JASA PENILAI PUBLIK</textPath>' +
+      '</text>' +
+      '<text font-family="Arial,sans-serif" font-size="5.5" font-weight="bold" fill="#1e3a8a" text-anchor="middle" opacity="0.85">' +
+        '<textPath href="#nsr-bot-arc" startOffset="50%">NANANG RAHAYU SIGIT PARYANTO &amp; REKAN</textPath>' +
+      '</text>' +
+      '<text x="60" y="57" font-family="Arial,sans-serif" font-size="8" font-weight="900" fill="#1e3a8a" text-anchor="middle" opacity="0.85">KJPP NSR</text>' +
+      '<text x="60" y="68" font-family="Arial,sans-serif" font-size="5.5" fill="#b91c1c" text-anchor="middle" opacity="0.75">2.19.0160</text>' +
+      '</svg>';
+    const PRESET_STEMPEL_NSR = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgStempel);
+
+    function toggleMetodeApproval(metode) {
+      approvalMetodeAktif = metode;
+      const boxDigital = document.getElementById('box-pengesahan-digital');
+      const boxScan = document.getElementById('box-pengesahan-scan-pdf');
+      const labelDigital = document.getElementById('label-metode-digital');
+      const labelScan = document.getElementById('label-metode-scan');
+      if (metode === 'DIGITAL') {
+        if (boxDigital) boxDigital.classList.remove('hidden');
+        if (boxScan) boxScan.classList.add('hidden');
+        if (labelDigital) { labelDigital.classList.add('border-emerald-500','bg-emerald-950/40'); labelDigital.classList.remove('border-slate-700','bg-slate-800/40'); }
+        if (labelScan) { labelScan.classList.remove('border-sky-500','bg-sky-950/40'); labelScan.classList.add('border-slate-700','bg-slate-800/40'); }
+      } else {
+        if (boxDigital) boxDigital.classList.add('hidden');
+        if (boxScan) boxScan.classList.remove('hidden');
+        if (labelDigital) { labelDigital.classList.remove('border-emerald-500','bg-emerald-950/40'); labelDigital.classList.add('border-slate-700','bg-slate-800/40'); }
+        if (labelScan) { labelScan.classList.add('border-sky-500','bg-sky-950/40'); labelScan.classList.remove('border-slate-700','bg-slate-800/40'); }
+      }
+    }
+
+    function perbaruiOverlayPreview() {
+      const imgTtd = document.getElementById('overlay-ttd-img');
+      const imgStempel = document.getElementById('overlay-stempel-img');
+      const placeholder = document.getElementById('overlay-placeholder');
+      const hasTtd = Boolean(approvalTtdDataUrl);
+      const hasStempel = Boolean(approvalStempelDataUrl);
+      if (imgTtd) { imgTtd.src = approvalTtdDataUrl || ''; imgTtd.classList.toggle('hidden', !hasTtd); }
+      if (imgStempel) { imgStempel.src = approvalStempelDataUrl || ''; imgStempel.classList.toggle('hidden', !hasStempel); }
+      if (placeholder) placeholder.classList.toggle('hidden', hasTtd || hasStempel);
+    }
+
+    function gunakanPresetTtd(rekanKey) {
+      approvalTtdDataUrl = (rekanKey === 'DENI') ? PRESET_TTD_DENI : PRESET_TTD_NANANG;
+      const prevEl = document.getElementById('preview_approval_ttd');
+      if (prevEl) prevEl.innerHTML = '<img src="' + approvalTtdDataUrl + '" class="w-full h-full object-contain p-0.5" alt="TTD">';
+      perbaruiOverlayPreview();
+    }
+
+    function gunakanPresetStempel() {
+      approvalStempelDataUrl = PRESET_STEMPEL_NSR;
+      const prevEl = document.getElementById('preview_approval_stempel');
+      if (prevEl) prevEl.innerHTML = '<img src="' + approvalStempelDataUrl + '" class="w-full h-full object-contain p-0.5" alt="Stempel">';
+      perbaruiOverlayPreview();
+    }
+
+    function bacaFileTtdDigital(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        approvalTtdDataUrl = e.target.result;
+        const prevEl = document.getElementById('preview_approval_ttd');
+        if (prevEl) prevEl.innerHTML = '<img src="' + approvalTtdDataUrl + '" class="w-full h-full object-contain p-0.5" alt="TTD">';
+        perbaruiOverlayPreview();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function bacaFileStempelDigital(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        approvalStempelDataUrl = e.target.result;
+        const prevEl = document.getElementById('preview_approval_stempel');
+        if (prevEl) prevEl.innerHTML = '<img src="' + approvalStempelDataUrl + '" class="w-full h-full object-contain p-0.5" alt="Stempel">';
+        perbaruiOverlayPreview();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function bacaFilePdfScanBasah(input) {
+      const file = input && input.files && input.files[0];
+      if (!file) return;
+      if (file.size > 15 * 1024 * 1024) {
+        alert('Ukuran file PDF melebihi batas maksimum 15 MB. Silakan kompres file terlebih dahulu.');
+        if (input.value !== undefined) input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        approvalPdfData = { name: file.name, size: file.size, dataUrl: e.target.result };
+        const badge = document.getElementById('pdf-file-badge');
+        const nameEl = document.getElementById('pdf-file-name');
+        const sizeEl = document.getElementById('pdf-file-size');
+        if (badge) { badge.classList.remove('hidden'); badge.classList.add('flex'); }
+        if (nameEl) nameEl.textContent = file.name;
+        if (sizeEl) sizeEl.textContent = Math.round(file.size / 1024) + ' KB';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleDropPdf(event) {
+      event.preventDefault();
+      const dropZone = document.getElementById('drop-zone-pdf');
+      if (dropZone) dropZone.classList.remove('border-sky-400');
+      const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (!file || file.type !== 'application/pdf') { alert('Hanya berkas PDF yang diterima.'); return; }
+      bacaFilePdfScanBasah({ files: [file] });
+    }
+
+    function batalkanPilihPdf() {
+      approvalPdfData = null;
+      const input = document.getElementById('approval_upload_pdf');
+      if (input) input.value = '';
+      const badge = document.getElementById('pdf-file-badge');
+      if (badge) { badge.classList.add('hidden'); badge.classList.remove('flex'); }
+    }
+
+    function resetApprovalDualMethodState() {
+      approvalMetodeAktif = 'DIGITAL';
+      approvalTtdDataUrl = '';
+      approvalStempelDataUrl = '';
+      approvalPdfData = null;
+      const rdDigital = document.getElementById('radio-metode-digital');
+      if (rdDigital) rdDigital.checked = true;
+      const prevTtd = document.getElementById('preview_approval_ttd');
+      if (prevTtd) prevTtd.innerHTML = '<span class="text-slate-600 text-[9px]">TTD</span>';
+      const prevStempel = document.getElementById('preview_approval_stempel');
+      if (prevStempel) prevStempel.innerHTML = '<span class="text-slate-600 text-[9px]">CAP</span>';
+      const overlayTtd = document.getElementById('overlay-ttd-img');
+      if (overlayTtd) { overlayTtd.src = ''; overlayTtd.classList.add('hidden'); }
+      const overlayStempel = document.getElementById('overlay-stempel-img');
+      if (overlayStempel) { overlayStempel.src = ''; overlayStempel.classList.add('hidden'); }
+      const placeholder = document.getElementById('overlay-placeholder');
+      if (placeholder) placeholder.classList.remove('hidden');
+      const inTtd = document.getElementById('approval_upload_ttd');
+      if (inTtd) inTtd.value = '';
+      const inStempel = document.getElementById('approval_upload_stempel');
+      if (inStempel) inStempel.value = '';
+      const inPdf = document.getElementById('approval_upload_pdf');
+      if (inPdf) inPdf.value = '';
+      batalkanPilihPdf();
+      toggleMetodeApproval('DIGITAL');
     }
 
     function eksekusiApprovalPusatSubmit(event) {
@@ -2090,8 +2363,39 @@
       p.rekening_resmi = rekObj.teksCetak;
 
       p.status = "APPROVED";
+      p.status_approval = "APPROVED";
       p.approved_at = new Date().toISOString();
+      p.approved_by = 'ADMIN_PUSAT';
       p.disetujui_oleh = `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})`;
+      p.nomor_spk_pusat = finalLp;
+
+      const isMetodeScanAktif = (approvalMetodeAktif === 'SCAN_BASAH');
+      p.metode_pengesahan = isMetodeScanAktif ? 'SCAN_BASAH' : 'DIGITAL';
+
+      if (isMetodeScanAktif) {
+        if (!approvalPdfData) {
+          alert('Metode B dipilih: Harap unggah berkas scan PDF sebelum menyetujui.');
+          if (btnAppr) { delete btnAppr.dataset.submitting; btnAppr.disabled = false; if (labelAppr) labelAppr.textContent = origApprText; }
+          return;
+        }
+        p.berkas_scan_pdf = {
+          nama_file: approvalPdfData.name,
+          file_url: approvalPdfData.dataUrl,
+          ukuran_kb: Math.round(approvalPdfData.size / 1024),
+          uploaded_at: new Date().toISOString()
+        };
+        delete p.ttd_digital_base64;
+        delete p.stempel_digital_base64;
+      } else {
+        if (!approvalTtdDataUrl) {
+          alert('Metode A dipilih: Harap unggah atau pilih preset TTD Tanda Tangan Rekan sebelum menyetujui.');
+          if (btnAppr) { delete btnAppr.dataset.submitting; btnAppr.disabled = false; if (labelAppr) labelAppr.textContent = origApprText; }
+          return;
+        }
+        p.ttd_digital_base64 = approvalTtdDataUrl;
+        p.stempel_digital_base64 = approvalStempelDataUrl || '';
+        delete p.berkas_scan_pdf;
+      }
 
       const usedSeq = extractSeqNumber(finalAdm) || extractSeqNumber(finalLp);
       if (usedSeq > 0) {
@@ -2118,7 +2422,11 @@
         if (labelAppr) labelAppr.textContent = origApprText;
       }
 
-      alert(`Nomor Resmi Berhasil Diterbitkan!\n\n• No. Lingkup Penugasan (SPK): ${p.nomor_lp}\n• No. Adm JO: ${p.nomor_adm}\n• Status: APPROVED`);
+      const metodePesan = p.metode_pengesahan === 'SCAN_BASAH'
+        ? '• Metode: Upload Scan Basah PDF\n• File: ' + (p.berkas_scan_pdf ? p.berkas_scan_pdf.nama_file : '-')
+        : '• Metode: Injeksi Digital (TTD & Stempel PNG)';
+      alert(`Nomor Resmi Berhasil Diterbitkan!\n\n• No. SPK: ${p.nomor_lp}\n• No. Adm JO: ${p.nomor_adm}\n• Status: APPROVED\n${metodePesan}`);
+      resetApprovalDualMethodState();
     }
 
     // ==========================================================
@@ -3514,6 +3822,36 @@
         btnDash.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
         renderDashboardTabel();
       } else if (tabName === 'preview') {
+        // Quality Gate: block Tab 3 for unresolved Central Approval submissions
+        const _qgProyek = activeProjectData;
+        const _isCentralWaiting = _qgProyek &&
+          !_qgProyek.isDraftPreview &&
+          (_qgProyek.mode_alur === 'CENTRAL_APPROVAL' || _qgProyek.mode_pengaju === 'PUSAT') &&
+          _qgProyek.status === 'WAITING_APPROVAL';
+
+        if (_isCentralWaiting) {
+          [tabForm, tabDash, tabPrev].forEach(el => el.classList.add('hidden'));
+          [btnForm, btnDash, btnPrev].forEach(el => {
+            el.className = "py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap";
+          });
+          tabDash.classList.remove('hidden');
+          btnDash.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
+          const _tabPrevSpan = btnPrev ? btnPrev.querySelector('span') : null;
+          if (_tabPrevSpan) _tabPrevSpan.textContent = '3. Pratinjau & Cetak (Terkunci 🔒)';
+          alert('🔒 Dokumen Terkunci
+
+Pengajuan ini sedang menunggu otorisasi Admin Kantor Pusat.
+Tab Pratinjau & Cetak hanya dapat diakses setelah status APPROVED.
+
+Silakan hubungi Admin Pusat untuk mempercepat proses approval.');
+          renderDashboardTabel();
+          return;
+        }
+
+        // Unlock label
+        const _tabPrevSpan2 = btnPrev ? btnPrev.querySelector('span') : null;
+        if (_tabPrevSpan2) _tabPrevSpan2.textContent = '3. Pratinjau & Cetak 9 Dokumen';
+
         tabPrev.classList.remove('hidden');
         btnPrev.className = "py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap";
         if (!activeProjectData || activeProjectData.isDraftPreview) {
@@ -5755,6 +6093,7 @@
           elRekTujuan.value = rekKode;
         }
 
+        resetApprovalDualMethodState();
         modal.classList.remove('hidden');
         validasiApprovalDuplikatLive();
       }
@@ -5885,9 +6224,15 @@
                   </button>
                 ` : ''}
 
-                <button type="button" onclick="bukaPratinjauProyek('${p.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] transition shadow" title="Buka & Cetak 9 Dokumen">
-                  Cetak 9 Dokumen
-                </button>
+                ${isApproved && p.metode_pengesahan === 'SCAN_BASAH' && p.berkas_scan_pdf ? `
+                  <a href="${p.berkas_scan_pdf.file_url}" target="_blank" download="${p.berkas_scan_pdf.nama_file}" class="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition shadow flex items-center gap-1" title="Unduh Berkas Scan Basah PDF">
+                    &#x1F4E5; Unduh Scan PDF
+                  </a>
+                ` : `
+                  <button type="button" onclick="bukaPratinjauProyek('${p.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] transition shadow" title="Buka & Cetak 9 Dokumen">
+                    ${isApproved ? '&#x1F5A8;&#xFE0F; Pratinjau & Cetak' : 'Cetak 9 Dokumen'}
+                  </button>
+                `}
 
                 ${userSession.role === 'ADMIN_PUSAT' || userSession.role === 'SUPER_ADMIN' || userSession.role === 'ADMIN_CABANG' ? `
                   <button type="button" onclick="hapusProyek('${p.id}')" class="p-1 rounded-lg bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 transition" title="Hapus">
@@ -6022,6 +6367,20 @@
 
       const selDok = document.getElementById('pilih_tampilan_dokumen').value;
       const htmlDocs = [];
+
+      // Dual-Method rendering helpers
+      const _isDigitalApproved = p.status === 'APPROVED' && p.metode_pengesahan === 'DIGITAL' && p.ttd_digital_base64;
+      const _isScanApproved = p.status === 'APPROVED' && p.metode_pengesahan === 'SCAN_BASAH' && p.berkas_scan_pdf;
+
+      function renderTtdOverlay() {
+        if (!_isDigitalApproved) return '<div class="mb-16"></div>';
+        const _ttdSrc = p.ttd_digital_base64 || '';
+        const _stempelSrc = p.stempel_digital_base64 || '';
+        return '<div class="relative select-none" style="height:64px;width:192px;margin:4px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact;">' +
+          (_stempelSrc ? '<img src="' + _stempelSrc + '" style="position:absolute;left:0;top:0;height:64px;width:64px;object-fit:contain;opacity:0.82;z-index:10;pointer-events:none;" alt="Cap Resmi">' : '') +
+          (_ttdSrc ? '<img src="' + _ttdSrc + '" style="position:absolute;left:16px;top:2px;height:60px;width:160px;object-fit:contain;z-index:5;" alt="TTD Rekan">' : '') +
+          '</div>';
+      }
 
       // Kelola visibilitas tombol unduh draf Word Surat Representasi
       const btnWordRep = document.getElementById('btn_download_word_rep');
@@ -6540,7 +6899,8 @@
                               <td class="w-1/2 align-top text-left pr-4">
                                 <p class="font-bold">Hormat kami,</p>
                                 <p class="font-bold text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
-                                <p class="text-[10px] text-slate-600 mb-20 italic">Licensed Public Appraisers &amp; Consultants</p>
+                                <p class="text-[10px] text-slate-600 italic">Licensed Public Appraisers &amp; Consultants</p>
+                                ${renderTtdOverlay()}
                                 <p class="font-bold underline text-sm">${rekanObj.nama}</p>
                                 <p class="font-bold text-[10.5px] text-slate-800">${rekanObj.jabatan}</p>
                                 <table class="text-[10px] text-slate-700 mt-1">
@@ -6650,7 +7010,8 @@
                               <td class="w-1/2 align-top text-left pr-4">
                                 <p class="font-bold">Penyedia Jasa (KJPP),</p>
                                 <p class="font-bold text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
-                                <p class="text-[10px] text-slate-600 mb-20 italic">Licensed Public Appraisers &amp; Consultants</p>
+                                <p class="text-[10px] text-slate-600 italic">Licensed Public Appraisers &amp; Consultants</p>
+                                ${renderTtdOverlay()}
                                 <p class="font-bold underline text-sm">${rekanObj.nama}</p>
                                 <p class="font-bold text-[10.5px] text-slate-800">${rekanObj.jabatan}</p>
                                 <p class="text-[10px] text-slate-600 mt-1 font-mono">Izin Penilai Publik: ${rekanObj.izin}</p>
@@ -7403,7 +7764,7 @@
                         <div class="signature-block-container avoid-break signature-block flex justify-end">
                           <div class="w-80 text-center text-xs">
                             <p class="font-bold mb-1">${kotaKantor}, ${formatTanggalIndo(p.tanggal_surat)}<br>KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
-                            <div class="h-16"></div>
+                            ${renderTtdOverlay()}
                             <p class="font-bold underline">${rekanObj.nama}</p>
                             <p class="text-[10px]">Rekan Penilai Publik Penanggung Jawab</p>
                             <p class="text-[9px] text-slate-600">No. Izin: ${rekanObj.izin} | RMK: ${rekanObj.rmk}</p>
@@ -7848,7 +8209,8 @@
                           <table class="w-full text-center text-xs">
                             <tr>
                               <td class="w-1/4 align-top">
-                                <p class="font-bold mb-10">Penilai Publik / Rekan,</p>
+                                <p class="font-bold">Penilai Publik / Rekan,</p>
+                                ${renderTtdOverlay()}
                                 <p class="font-bold underline text-[10.5px]">${rekanObj.nama}</p>
                                 <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${rekanObj.mappi}</p>
                                 <p class="text-[9px] text-slate-600 font-mono">No. Izin: ${rekanObj.izin}</p>
@@ -7887,10 +8249,33 @@
       }
 
       const container = document.getElementById('preview-rendered-area');
-      container.innerHTML = htmlDocs.join('');
+
+      // Build scan-basah banner if applicable
+      let _scanBanner = '';
+      if (_isScanApproved && p.berkas_scan_pdf) {
+        const _pdfNama = p.berkas_scan_pdf.nama_file || 'dokumen-scan.pdf';
+        const _pdfUrl = p.berkas_scan_pdf.file_url || '#';
+        const _pdfKb = p.berkas_scan_pdf.ukuran_kb ? ' (' + p.berkas_scan_pdf.ukuran_kb + ' KB)' : '';
+        _scanBanner =
+          '<div class="no-print mb-6 p-4 rounded-2xl border-2 border-emerald-600 bg-emerald-950/60 shadow-xl" style="-webkit-print-color-adjust:exact;print-color-adjust:exact;">' +
+            '<div class="flex items-start gap-3">' +
+              '<div class="text-2xl shrink-0">&#x1F4DC;</div>' +
+              '<div class="flex-1">' +
+                '<p class="font-black text-emerald-300 text-sm mb-1">DOKUMEN RESMI TANDA TANGAN BASAH TERSEDIA</p>' +
+                '<p class="text-slate-300 text-xs mb-3 leading-relaxed">Dokumen penugasan ini telah ditandatangani basah oleh Rekan Penandatangan dan distempel cap resmi oleh Kantor Pusat KJPP NSR.<br>Unduh berkas resmi PDF di bawah ini untuk dokumen berkekuatan hukum.</p>' +
+                '<a href="' + _pdfUrl + '" target="_blank" download="' + _pdfNama + '" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-lg transition">' +
+                  '&#x1F4E5; Unduh Berkas Scan PDF Asli (' + _pdfNama + _pdfKb + ')' +
+                '</a>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+      }
+
+      const _finalDocs = htmlDocs.join('');
+      container.innerHTML = _scanBanner + _finalDocs;
 
       // Sinkronkan ke print container
-      document.getElementById('print-master-container').innerHTML = htmlDocs.join('');
+      document.getElementById('print-master-container').innerHTML = _scanBanner + _finalDocs;
     }
 
     function eksekusiCetakDokumen() {
