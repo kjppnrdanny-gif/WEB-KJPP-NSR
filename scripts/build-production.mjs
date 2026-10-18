@@ -58,6 +58,7 @@ const ALLOWED_FILES = [
   ".htaccess",
   "visitor-stats.php",
   "auth-handler.php",
+  "api/auth.php",
   "pdp-consent-handler.php",
   "nolap-data-handler.php",
   "kwitansi-data-handler.php"
@@ -202,6 +203,9 @@ export function buildProduction(options = {}) {
     const src = path.join(ROOT_DIR, file);
     const dest = path.join(DIST_DIR, file);
     if (fs.existsSync(src)) {
+      const destDir = path.dirname(dest);
+      if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
       if (file.endsWith('.html') || file.endsWith('.js')) {
         let content = fs.readFileSync(src, "utf8");
         // Sanitasi log kredensial dan debug internal di berkas distribusi publik

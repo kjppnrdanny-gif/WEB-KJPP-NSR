@@ -13997,12 +13997,12 @@
     }
 
     async function periksaSesiServer() {
-      // 0. Cek session tersimpan di sessionStorage / localStorage terlebih dahulu
+      // 0. Cek session tersimpan dengan verifikasi kriptografis anti-tampering
       try {
-        const storedSesi = sessionStorage.getItem('nsr_nolap_session') || localStorage.getItem('nsr_nolap_session');
+        const storedSesi = sessionStorage.getItem('NSR_USER_SESSION') || sessionStorage.getItem('nsr_nolap_session');
         if (storedSesi) {
           const parsed = JSON.parse(storedSesi);
-          if (parsed && (parsed.role || parsed.token)) {
+          if (parsed && typeof verifySessionChecksum === 'function' && verifySessionChecksum(parsed)) {
             sesiAktif = parsed;
             window.currentUser = parsed;
             currentUser = parsed;
@@ -14013,37 +14013,35 @@
         }
       } catch (e) {}
 
-      // 1. Single Sign-On (SSO): Periksa token via URL query string atau sessionStorage
+      // 1. Single Sign-On (SSO): Periksa token tersimpan resmi di sessionStorage
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const ssoKey = ['tok', 'en'].join('');
-        const queryToken = urlParams.get(ssoKey) || urlParams.get('auth_token');
         const storedToken = sessionStorage.getItem('NSR_AUTH_TOKEN') || sessionStorage.getItem('kjpp_token_internal');
-        const tokenCandidate = queryToken || storedToken;
-
-        if (tokenCandidate) {
-          let cleanToken = tokenCandidate;
+        if (storedToken) {
+          let cleanToken = storedToken;
           if (cleanToken.startsWith('{')) {
             try {
               const parsed = JSON.parse(cleanToken);
-              cleanToken = parsed.token || '';
+              cleanToken = parsed.token || parsed.tokenHash || '';
             } catch(e) {}
           }
           const auth = resolveUnifiedTokenNoLap(cleanToken);
           if (auth) {
             sesiAktif = {
-              sub: auth.token,
-              username: auth.token,
+              sub: auth.token || auth.tokenHash,
+              username: auth.token || auth.tokenHash,
               role: auth.role,
-              cabang: auth.cabang,
+              cabang: auth.cabang || auth.wilayah,
               label: `${auth.nama} (${auth.roleLabel})`,
               nama: auth.nama,
               jabatan: auth.jabatan,
-              token: auth.token
+              token: auth.token || auth.tokenHash,
+              tokenHash: auth.tokenHash,
+              sessionChecksum: auth.sessionChecksum
             };
-            sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
+            sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token || auth.tokenHash);
             sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
             aktifkanPanelUtama();
+            applyRBAC(sesiAktif);
             return;
           }
         }
@@ -14066,17 +14064,19 @@
               sub: data.user.sub,
               username: data.user.sub,
               role: data.user.role,
-              cabang: data.user.branch || 'Pusat',
+              cabang: data.user.branch || data.user.wilayah || 'Pusat',
               label: `${data.user.displayName || data.user.sub} (${data.user.title || data.user.role})`,
               nama: data.user.displayName || data.user.sub,
-              jabatan: data.user.title || data.user.role
+              jabatan: data.user.title || data.user.role,
+              tokenHash: data.tokenHash,
+              sessionChecksum: data.sessionChecksum
             };
             sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
             aktifkanPanelUtama();
+            applyRBAC(sesiAktif);
             return;
           }
         } else {
-          // Server eksplisit menolak (401 unauthenticated / sesi kedaluwarsa)
           sessionStorage.removeItem('nsr_nolap_session');
           sesiAktif = null;
           document.getElementById('box-auth-token').classList.remove('hidden');

@@ -972,8 +972,13 @@
       if (rawSession) {
         try {
           const parsed = JSON.parse(rawSession);
-          if (parsed && (parsed.token || parsed.valid)) {
-            const resolved = resolveUnifiedTokenSync(parsed.token || parsed.userToken);
+          if (parsed && (parsed.token || parsed.tokenHash || parsed.valid)) {
+            if (typeof verifySessionChecksum === 'function' && !verifySessionChecksum(parsed)) {
+              console.warn('⚠️ Anti-Tampering Violation di portal-surat-umum');
+              sessionStorage.clear();
+              return null;
+            }
+            const resolved = resolveUnifiedTokenSync(parsed.token || parsed.tokenHash || parsed.userToken);
             if (resolved) {
               window.CURRENT_AUTH_SESSION = { ...resolved, ...parsed, valid: true };
               return window.CURRENT_AUTH_SESSION;

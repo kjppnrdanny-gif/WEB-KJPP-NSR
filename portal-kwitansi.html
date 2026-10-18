@@ -2531,42 +2531,33 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
 
     // 16. Pemeriksaan Sesi Server-Side & Token Terpadu
     async function periksaSesiKwitansi() {
-      // 1. Cek sesi SSO terpadu
-      const rawStored = sessionStorage.getItem('NSR_USER_SESSION') ||
-                        sessionStorage.getItem('NSR_AUTH_TOKEN') ||
-                        sessionStorage.getItem('TOKEN_AUTH_NSR') ||
-                        sessionStorage.getItem('CURRENT_AUTH_TOKEN') ||
-                        sessionStorage.getItem('kjpp_token_internal') ||
-                        sessionStorage.getItem('kjpp_session_jo');
+      // 1. Cek sesi SSO terpadu dengan verifikasi integritas
+      const rawStored = sessionStorage.getItem('NSR_USER_SESSION');
       if (rawStored) {
         try {
-          let t = rawStored;
-          if (rawStored.startsWith('{')) {
-            const parsed = JSON.parse(rawStored);
-            t = parsed.token || "";
-          }
-          const auth = resolveUnifiedToken(t);
-          if (auth) {
-            if (!auth.canAccessKwitansi && !auth.aksesKwitansi) {
-              alert(`Akses Ditolak: Modul Permintaan Kwitansi & Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${auth.roleLabel}.`);
-              window.location.href = 'portal-penugasan-jo.html';
+          const parsed = JSON.parse(rawStored);
+          if (parsed) {
+            if (typeof verifySessionChecksum === 'function' && !verifySessionChecksum(parsed)) {
+              console.warn('⚠️ Anti-Tampering Violation di portal-kwitansi');
+              sessionStorage.clear();
+              tampilkanLoginState();
               return;
-            } else {
-              // Simpan SSO lengkap
-              sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
-              sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(auth));
-              sessionStorage.setItem('TOKEN_AUTH_NSR', auth.token);
-              sessionStorage.setItem('CURRENT_AUTH_TOKEN', auth.token);
-              sessionStorage.setItem('kjpp_token_internal', auth.token);
-              sessionStorage.setItem('kjpp_session_jo', JSON.stringify(auth));
-
+            }
+            const auth = resolveUnifiedToken(parsed.token || parsed.tokenHash);
+            if (auth) {
+              if (!auth.canAccessKwitansi && !auth.aksesKwitansi) {
+                alert(`Akses Ditolak: Modul Permintaan Kwitansi & Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${auth.roleLabel}.`);
+                window.location.href = 'portal-penugasan-jo.html';
+                return;
+              }
               const isPusatKeuangan = auth.isSuperAdmin || auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER ADMIN' || auth.role === 'SUPER_ADMIN';
               const simUser = {
                 sub: isPusatKeuangan ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
                 role: isPusatKeuangan ? 'KEUANGAN' : 'CABANG',
                 branch: auth.wilayahCode,
                 displayName: auth.wilayahLabel || auth.wilayah,
-                token: auth.token
+                token: auth.token || auth.tokenHash,
+                tokenHash: auth.tokenHash
               };
               terapkanSesiPengguna(simUser);
               return;

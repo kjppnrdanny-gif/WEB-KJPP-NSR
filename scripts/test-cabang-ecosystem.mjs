@@ -690,6 +690,85 @@ try {
   assert(!indexHtml.includes('href="https://drive.google.com/drive/folders/11wF3BxOVDp3uraA3a0iIQdkYPizflQHz'), 'index.html steril 100% dari raw URL Google Drive SOP');
   assert(indexHtml.includes('href="javascript:void(0)"'), 'Link SOP & Absen di index.html menggunakan href safe javascript:void(0)');
 
+  // Simulasi Akses SOP: Cabang -> WA Modal, Super Admin -> Drive
+  function simulasikanAksesSop(session) {
+    if (!session) {
+      return { action: 'PROMPT_LOGIN_MODAL', openedDrive: false, openedWaModal: false };
+    }
+    if (session.isCabang || session.mode === 'CABANG') {
+      return { action: 'OPEN_WA_MODAL', openedDrive: false, openedWaModal: true };
+    }
+    if (session.isSuperAdmin) {
+      return { action: 'OPEN_GOOGLE_DRIVE', openedDrive: true, openedWaModal: false };
+    }
+    return { action: 'OPEN_WA_MODAL', openedDrive: false, openedWaModal: true };
+  }
+
+  const authMks = resolveUnifiedToken('NSR-MKS-2026');
+  assert(simulasikanAksesSop(null).action === 'PROMPT_LOGIN_MODAL', 'Akses SOP tanpa sesi: Memicu dialog login modal');
+  assert(simulasikanAksesSop(authBdg).openedWaModal === true && simulasikanAksesSop(authBdg).openedDrive === false, 'Akses SOP Sesi Cabang Bandung: WAJIB membuka dialog permohonan WhatsApp, TIDAK membuka Google Drive');
+  assert(simulasikanAksesSop(authPdg).openedWaModal === true && simulasikanAksesSop(authPdg).openedDrive === false, 'Akses SOP Sesi Cabang Padang: WAJIB membuka dialog permohonan WhatsApp, TIDAK membuka Google Drive');
+  assert(simulasikanAksesSop(authMks).openedWaModal === true && simulasikanAksesSop(authMks).openedDrive === false, 'Akses SOP Sesi Cabang Makassar: WAJIB membuka dialog permohonan WhatsApp, TIDAK membuka Google Drive');
+  assert(simulasikanAksesSop(authPlb).openedWaModal === true && simulasikanAksesSop(authPlb).openedDrive === false, 'Akses SOP Sesi Cabang Palembang: WAJIB membuka dialog permohonan WhatsApp, TIDAK membuka Google Drive');
+  assert(simulasikanAksesSop(authPusat).openedDrive === true && simulasikanAksesSop(authPusat).openedWaModal === false, 'Akses SOP Sesi Super Admin Pusat: Diizinkan membuka Google Drive aman');
+
+  // C3. Uji Penutupan Bypass Langsung ke Seluruh Portal
+  console.log('\n\x1b[36m[6d/7] Menguji Penutupan Bypass Akses Langsung Seluruh Halaman Portal\x1b[0m');
+  
+  // 1. portal-penugasan-jo.html: Initial state anonim & Form Gate
+  assert(joHtml.includes('role: "ANONYMOUS"') && joHtml.includes('mode: "UNAUTHENTICATED"'), 'portal-penugasan-jo.html default state diinisialisasi ANONYMOUS tanpa hak akses');
+  assert(indexHtml.includes('onclick="if (!dapatkanSesiTervalidasi()) { event.preventDefault(); bukaModalPortal(\'penugasan\'); }"'), 'index.html: Kartu penugasan memblokir klik langsung pengguna tanpa sesi dan membuka modal login');
+
+  // 2. portal-nolap-cabang.html: Akses langsung tanpa login dialihkan paksa
+  assert(cbgHtml.includes('window.location.replace(\'index.html\')'), 'portal-nolap-cabang.html mengalihkan paksa pengguna tanpa sesi sah kembali ke index.html');
+  assert(cbgHtml.includes('⛔ AKSES DITOLAK: Portal NoLap Mandiri Cabang memerlukan sesi login resmi cabang KJPP NSR.'), 'portal-nolap-cabang.html menampilkan peringatan akses ditolak jika sesi tidak terotorisasi');
+
+  // 3. portal-nolap.html: Menolak manipulasi localStorage & query param bypass
+  assert(!nolapHtml.includes("localStorage.getItem('nsr_nolap_session')"), 'portal-nolap.html steril mutlak dari unverified localStorage session bypass');
+  assert(!nolapHtml.includes("urlParams.get(ssoKey)"), 'portal-nolap.html steril mutlak dari URL query string token bypass');
+  assert(nolapHtml.includes('verifySessionChecksum'), 'portal-nolap.html memvalidasi sessionChecksum anti-tampering sebelum mengaktifkan panel utama');
+
+  // 4. portal-kwitansi.html: Verifikasi sesi ketat anti-tampering
+  assert(kwHtml.includes('verifySessionChecksum'), 'portal-kwitansi.html memverifikasi sessionChecksum sebelum mengaktifkan sesi pengguna');
+  assert(kwHtml.includes('tampilkanLoginState();'), 'portal-kwitansi.html menyembunyikan form dan menampilkan login gate jika sesi tidak sah');
+
+  // C4. Uji Kompatibilitas 100% Token Staf yang Berjalan (Zero Operational Disruption)
+  console.log('\n\x1b[36m[6e/7] Menguji Kompatibilitas 100% Token Login Staf (Zero Disruption)\x1b[0m');
+  const staffTokensToVerify = [
+    { tok: 'NSR8899', expectedRole: 'SUPER ADMIN', expectedWilayah: 'PUSAT', isSuper: true, isCab: false },
+    { tok: 'NSR-PST-2026', expectedRole: 'SUPER ADMIN', expectedWilayah: 'PUSAT', isSuper: true, isCab: false },
+    { tok: 'NSR-ADM-2026', expectedRole: 'SUPER ADMIN', expectedWilayah: 'PUSAT', isSuper: true, isCab: false },
+    { tok: 'NSR-BDG-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Bandung', isSuper: false, isCab: true },
+    { tok: 'NSR-PDG-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Padang', isSuper: false, isCab: true },
+    { tok: 'NSR-MKS-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Makassar', isSuper: false, isCab: true },
+    { tok: 'NSR-PLB-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Palembang', isSuper: false, isCab: true },
+    { tok: 'NSR-MKT-2026', expectedRole: 'MARKETING', expectedWilayah: 'PUSAT', isSuper: false, isCab: false },
+    { tok: 'NSR-REV-2026', expectedRole: 'REVIEWER', expectedWilayah: 'PUSAT', isSuper: false, isCab: false },
+    { tok: 'NSR-APP-2026', expectedRole: 'PENILAI', expectedWilayah: 'PUSAT', isSuper: false, isCab: false }
+  ];
+
+  for (const st of staffTokensToVerify) {
+    const auth = resolveUnifiedToken(st.tok);
+    assert(auth !== null, `Token staf ${st.tok} berhasil diverifikasi tanpa error`);
+    assert(auth.role === st.expectedRole, `Token ${st.tok} memetakan role tepat: ${st.expectedRole}`);
+    assert(auth.wilayah === st.expectedWilayah, `Token ${st.tok} memetakan wilayah tepat: ${st.expectedWilayah}`);
+    assert(Boolean(auth.isSuperAdmin) === st.isSuper, `Token ${st.tok} isSuperAdmin tepat: ${st.isSuper}`);
+    assert(Boolean(auth.isCabang) === st.isCab, `Token ${st.tok} isCabang tepat: ${st.isCab}`);
+  }
+
+  // C5. Uji Kapabilitas Server-Side Authentication (PHP Gateway & Apps Script)
+  console.log('\n\x1b[36m[6f/7] Menguji Kapabilitas Server-Side Auth PHP (cPanel Architecture)\x1b[0m');
+  assert(fs.existsSync(path.join(ROOT_DIR, 'api', 'auth.php')), 'Endpoint server api/auth.php terpasang di filesystem');
+  assert(fs.existsSync(path.join(ROOT_DIR, 'auth-handler.php')), 'Handler auth-handler.php terpasang');
+  
+  const authPhpContent = fs.readFileSync(path.join(ROOT_DIR, 'auth-handler.php'), 'utf-8');
+  assert(authPhpContent.includes('function resolveServerToken'), 'auth-handler.php memiliki helper resolveServerToken');
+  assert(authPhpContent.includes('NSR_SESSION_INTEGRITY_2026_x7k9::'), 'auth-handler.php menerbitkan sessionChecksum tersinkronisasi');
+  assert(authPhpContent.includes('sessionChecksum'), 'auth-handler.php menyertakan sessionChecksum dalam respon otorisasi');
+
+  const htaccessContent = fs.readFileSync(path.join(ROOT_DIR, '.htaccess'), 'utf-8');
+  assert(htaccessContent.includes('RewriteRule ^api/auth/?$ auth-handler.php'), '.htaccess mengarahkan rute /api/auth ke auth-handler.php');
+
   // D. Uji Backend Code.gs
   const codeGsContent = fs.readFileSync(path.join(ROOT_DIR, 'Code.gs'), 'utf-8');
   assert(codeGsContent.includes('HASH_MATRIX:'), 'Code.gs memiliki HASH_MATRIX SHA-256');
@@ -701,11 +780,26 @@ try {
   console.log('\n\x1b[36m[7/7] Menguji Build Produksi (scripts/build-production.mjs)\x1b[0m');
   const buildMjs = fs.readFileSync(path.join(ROOT_DIR, 'scripts', 'build-production.mjs'), 'utf-8');
   assert(buildMjs.includes('"portal-nolap-cabang.html"'), 'portal-nolap-cabang.html terdaftar di ALLOWED_FILES');
+  assert(buildMjs.includes('"api/auth.php"'), 'api/auth.php terdaftar di ALLOWED_FILES build produksi');
 
   // Jalankan build script
   const buildOutput = execSync('node scripts/build-production.mjs', { cwd: ROOT_DIR, encoding: 'utf-8' });
   assert(buildOutput.includes('BUILD SELESAI'), 'Build produksi berhasil dieksekusi dengan status sukses');
   assert(fs.existsSync(path.join(ROOT_DIR, 'dist', 'portal-nolap-cabang.html')), 'dist/portal-nolap-cabang.html berhasil dibuat di direktori publik');
+  assert(fs.existsSync(path.join(ROOT_DIR, 'dist', 'api', 'auth.php')), 'dist/api/auth.php berhasil dibuat di direktori publikasi cPanel');
+  assert(fs.existsSync(path.join(ROOT_DIR, 'dist', 'auth-handler.php')), 'dist/auth-handler.php berhasil dibuat di direktori publikasi cPanel');
+
+  // Audit Sterilisasi 100% Seluruh File di dist/
+  console.log('🔍 Memindai sterilisasi total direktori dist/...');
+  const distEntries = fs.readdirSync(path.join(ROOT_DIR, 'dist'), { withFileTypes: true });
+  for (const entry of distEntries) {
+    if (entry.isFile() && (entry.name.endsWith('.html') || entry.name.endsWith('.js'))) {
+      const distContent = fs.readFileSync(path.join(ROOT_DIR, 'dist', entry.name), 'utf-8');
+      for (const tok of forbiddenPlainTokens) {
+        assert(!distContent.includes(tok), `Dist Sterility: dist/${entry.name} steril mutlak dari plaintext token / raw SOP link: ${tok}`);
+      }
+    }
+  }
 
   console.log('\n======================================================');
   console.log(`\x1b[32m🎉 SEMUA PENGUJIAN BERHASIL: ${passedTests}/${totalTests} UJI VALID!\x1b[0m`);

@@ -950,49 +950,67 @@
     }
 
     function inisialisasiSesiCabang() {
-      // 1. Cek dari semua kunci SSO
-      let token = sessionStorage.getItem('NSR_AUTH_TOKEN') ||
-                  sessionStorage.getItem('TOKEN_AUTH_NSR') ||
-                  sessionStorage.getItem('CURRENT_AUTH_TOKEN');
-      if (!token) {
-        const rawSession = sessionStorage.getItem('NSR_USER_SESSION');
-        if (rawSession) {
-          try {
-            const parsed = JSON.parse(rawSession);
-            if (parsed && parsed.token) token = parsed.token;
-          } catch (_) {}
-        }
+      // 1. Dapatkan dan validasi sesi via Zero-Trust Anti-Tampering Check
+      let auth = null;
+      const rawSession = sessionStorage.getItem('NSR_USER_SESSION');
+      if (rawSession) {
+        try {
+          const parsed = JSON.parse(rawSession);
+          if (parsed && (parsed.token || parsed.tokenHash || parsed.valid)) {
+            if (typeof verifySessionChecksum === 'function' && !verifySessionChecksum(parsed)) {
+              console.warn('⚠️ Anti-Tampering Violation di portal-nolap-cabang');
+              sessionStorage.clear();
+              alert('⚠️ PELANGGARAN INTEGRITAS KEAMANAN!\n\nManipulasi sesi lokal terdeteksi. Sesi Anda telah dibatalkan.');
+              window.location.replace('index.html');
+              return;
+            }
+            const resolved = resolveUnifiedToken(parsed.token || parsed.tokenHash);
+            if (resolved && resolved.valid) {
+              auth = { ...resolved, ...parsed, valid: true };
+            }
+          }
+        } catch (_) {}
       }
-      if (!token) {
-        const stored = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('kjpp_session_jo');
-        if (stored) {
-          try {
-            const obj = JSON.parse(stored);
-            if (obj && obj.token) token = obj.token;
-          } catch (e) {
-            token = stored;
+
+      if (!auth) {
+        let token = sessionStorage.getItem('NSR_AUTH_TOKEN') ||
+                    sessionStorage.getItem('TOKEN_AUTH_NSR') ||
+                    sessionStorage.getItem('CURRENT_AUTH_TOKEN');
+        if (!token) {
+          const stored = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('kjpp_session_jo');
+          if (stored) {
+            try {
+              const obj = JSON.parse(stored);
+              token = obj.token || obj.tokenHash || '';
+            } catch (e) {
+              token = stored;
+            }
+          }
+        }
+        if (token) {
+          const resolved = resolveUnifiedToken(token);
+          if (resolved && resolved.valid) {
+            auth = resolved;
           }
         }
       }
 
-      if (token) {
-        const auth = resolveUnifiedToken(token);
-        if (auth && auth.valid) {
-          sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
-          sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(auth));
-          sessionStorage.setItem('TOKEN_AUTH_NSR', auth.token);
-          sessionStorage.setItem('CURRENT_AUTH_TOKEN', auth.token);
+      // 2. Blokir akses tanpa sesi sah
+      if (!auth || (!auth.isCabang && !auth.isSuperAdmin && auth.role !== 'SUPER ADMIN' && auth.role !== 'ADMIN_CABANG')) {
+        alert('⛔ AKSES DITOLAK: Portal NoLap Mandiri Cabang memerlukan sesi login resmi cabang KJPP NSR.');
+        window.location.replace('index.html');
+        return;
+      }
 
-          if (auth.isCabang) {
-            cabangAktif = auth.wilayah;
-          }
-        } else {
-          const t = token.toUpperCase().trim();
-          if (t.includes('PDG')) cabangAktif = 'Padang';
-          else if (t.includes('MKS')) cabangAktif = 'Makassar';
-          else if (t.includes('PLB')) cabangAktif = 'Palembang';
-          else if (t.includes('BDG')) cabangAktif = 'Bandung';
-        }
+      sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token || auth.tokenHash || '');
+      sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(auth));
+      sessionStorage.setItem('TOKEN_AUTH_NSR', auth.token || auth.tokenHash || '');
+      sessionStorage.setItem('CURRENT_AUTH_TOKEN', auth.token || auth.tokenHash || '');
+
+      if (auth.isCabang) {
+        cabangAktif = auth.wilayah;
+      } else if (auth.isSuperAdmin) {
+        if (!cabangAktif) cabangAktif = 'Bandung';
       }
 
       const selWilayah = document.getElementById('kantor_wilayah');

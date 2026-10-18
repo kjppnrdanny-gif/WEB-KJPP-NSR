@@ -4248,7 +4248,7 @@
                   <p id="sub-portal-penugasan" class="text-[11px] sm:text-xs text-indigo-200 opacity-80 leading-normal line-clamp-1 mt-0.5">Sistem Otomasi SPK, Surat Representasi &amp; 7 Dokumen Bundel JO</p>
                 </div>
               </div>
-              <a id="link-portal-penugasan" href="portal-penugasan-jo.html" class="text-xs font-semibold py-1.5 px-3 rounded-lg whitespace-nowrap flex items-center gap-1 shadow-sm transition-all hover:scale-[1.02] active:scale-95 bg-white text-indigo-950 hover:bg-indigo-50 shrink-0">
+              <a id="link-portal-penugasan" href="portal-penugasan-jo.html" onclick="if (!dapatkanSesiTervalidasi()) { event.preventDefault(); bukaModalPortal('penugasan'); }" class="text-xs font-semibold py-1.5 px-3 rounded-lg whitespace-nowrap flex items-center gap-1 shadow-sm transition-all hover:scale-[1.02] active:scale-95 bg-white text-indigo-950 hover:bg-indigo-50 shrink-0">
                 <span id="btn-text-portal-penugasan">Masuk Portal &nearr;</span>
               </a>
             </div>
@@ -5970,6 +5970,18 @@
         // Kartu 6: Kembalikan normal 1 kolom (3x2 simetris untuk Pusat)
         if (kartuPresensiWrapper) kartuPresensiWrapper.classList.remove('md:col-span-2');
       }
+
+      // Pastikan kartu penugasan melewati gerbang login jika belum ada sesi valid
+      if (linkJO) {
+        if (!auth) {
+          linkJO.onclick = function(e) {
+            e.preventDefault();
+            bukaModalPortal('penugasan');
+          };
+        } else {
+          linkJO.onclick = null;
+        }
+      }
     }
 
     function bukaModalRequestDokumenSOP() {
@@ -6140,7 +6152,7 @@
       }
     }
 
-    function verifikasiTokenPortal(e) {
+    async function verifikasiTokenPortal(e) {
       if (e) e.preventDefault();
       const inputEl = document.getElementById('input-token');
       const btnSubmit = document.getElementById('btn-submit-token');
@@ -6157,8 +6169,41 @@
       }
 
       if (errEl) errEl.classList.add('hidden');
+      if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerText = 'Memverifikasi...'; }
 
-      const auth = resolveUnifiedToken(input);
+      let auth = null;
+
+      // 1. Validasi Otoritatif Server-Side (PHP cPanel Zero-Trust Endpoint)
+      try {
+        const resp = await fetch('/api/auth-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ token: input }),
+          credentials: 'include'
+        });
+        if (resp.ok) {
+          const srv = await resp.json();
+          if (srv && srv.authenticated && srv.user) {
+            auth = {
+              ...srv.user,
+              valid: true,
+              tokenHash: srv.tokenHash || computeTokenHashSync(input),
+              sessionChecksum: srv.sessionChecksum,
+              expiresAt: srv.expiresAt || (Date.now() + (8 * 3600 * 1000))
+            };
+          }
+        }
+      } catch (_) {
+        // Offline / mode berkas statis
+      }
+
+      // 2. Fallback Resolver jika lingkungan serverless/offline
+      if (!auth) {
+        auth = resolveUnifiedToken(input);
+      }
+
+      if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = 'Buka Akses Sistem \u2192'; }
+
       if (!auth) {
         if (errEl) errEl.classList.remove('hidden');
         if (errText) errText.innerText = 'Token tidak valid. Pastikan memasukkan token resmi KJPP NSR (Admin Pusat, Admin Cabang, Marketing, Reviewer, atau Penilai).';

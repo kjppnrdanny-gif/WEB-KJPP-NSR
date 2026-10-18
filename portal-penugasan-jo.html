@@ -2500,14 +2500,15 @@
     let userSession = {
       isLoggedIn: false,
       token: "",
-      role: "ADMIN_PUSAT",
-      mode: "PUSAT", // "PUSAT" | "CABANG"
-      wilayah: "Kantor Pusat Jakarta",
-      wilayahResmi: "Kantor Pusat Jakarta",
-      canAccessKwitansi: true,
-      seeFee: true,
-      canApprove: true,
-      canSubmit: true
+      tokenHash: "",
+      role: "ANONYMOUS",
+      mode: "UNAUTHENTICATED", // "PUSAT" | "CABANG"
+      wilayah: "",
+      wilayahResmi: "",
+      canAccessKwitansi: false,
+      seeFee: false,
+      canApprove: false,
+      canSubmit: false
     };
     const initialUrlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const initialParamMode = initialUrlParams ? initialUrlParams.get('mode') : null;
@@ -3250,8 +3251,13 @@
       if (rawSession) {
         try {
           const parsed = JSON.parse(rawSession);
-          if (parsed && (parsed.token || parsed.valid)) {
-            const resolved = resolveUnifiedToken(parsed.token);
+          if (parsed && (parsed.token || parsed.tokenHash || parsed.valid)) {
+            if (typeof verifySessionChecksum === 'function' && !verifySessionChecksum(parsed)) {
+              console.warn('⚠️ Anti-Tampering Violation: Manipulasi data sesi lokal terdeteksi.');
+              sessionStorage.clear();
+              return null;
+            }
+            const resolved = resolveUnifiedToken(parsed.token || parsed.tokenHash);
             if (resolved) {
               window.CURRENT_AUTH_SESSION = { ...resolved, ...parsed, valid: true };
               return window.CURRENT_AUTH_SESSION;
@@ -3839,7 +3845,33 @@
       const rawInput = document.getElementById('input_token_auth').value.trim().toUpperCase();
       const pesan = document.getElementById('pesan_error_token');
 
-      const info = resolveUnifiedToken(rawInput);
+      let info = null;
+      // 1. Validasi Otoritatif Server-Side (PHP cPanel Endpoint)
+      try {
+        const resp = await fetch('/api/auth-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ token: rawInput }),
+          credentials: 'include'
+        });
+        if (resp.ok) {
+          const srv = await resp.json();
+          if (srv && srv.authenticated && srv.user) {
+            info = {
+              ...srv.user,
+              valid: true,
+              tokenHash: srv.tokenHash || computeTokenHashSync(rawInput),
+              sessionChecksum: srv.sessionChecksum
+            };
+          }
+        }
+      } catch (_) {}
+
+      // 2. Fallback offline
+      if (!info) {
+        info = resolveUnifiedToken(rawInput);
+      }
+
       if (!info) {
         if (pesan) {
           pesan.textContent = "Token tidak valid. Pastikan memasukkan token resmi yang diterbitkan Manajemen KJPP NSR.";
@@ -3852,6 +3884,8 @@
         isLoggedIn: true,
         valid: true,
         token: rawInput,
+        tokenHash: info.tokenHash || computeTokenHashSync(rawInput),
+        sessionChecksum: info.sessionChecksum,
         role: info.role,
         roleLabel: info.roleLabel,
         mode: info.mode,
@@ -3878,12 +3912,34 @@
     }
 
     async function periksaSesiLogin() {
-      const auth = dapatkanSesiLogin();
+      let auth = dapatkanSesiLogin();
+      if (!auth) {
+        try {
+          const res = await fetch('/api/auth-verify', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include'
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.authenticated && data.user) {
+              auth = {
+                ...data.user,
+                valid: true,
+                tokenHash: data.tokenHash,
+                sessionChecksum: data.sessionChecksum
+              };
+            }
+          }
+        } catch (_) {}
+      }
+
       if (auth && auth.valid) {
         userSession = {
           isLoggedIn: true,
           valid: true,
-          token: auth.token,
+          token: auth.token || auth.tokenHash,
+          tokenHash: auth.tokenHash,
           role: auth.role,
           roleLabel: auth.roleLabel,
           mode: auth.mode,
@@ -3907,7 +3963,10 @@
         terapkanSesiUI(userSession);
         return;
       }
-      // Bila belum login, tampilkan modal token
+      // Bila belum login, pastikan status tidak aktif dan kunci form dengan modal
+      userSession.isLoggedIn = false;
+      userSession.canSubmit = false;
+      userSession.canApprove = false;
       bukaModalToken();
     }
 

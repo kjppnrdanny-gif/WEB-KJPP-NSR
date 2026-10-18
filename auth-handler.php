@@ -59,110 +59,706 @@ if (session_status() === PHP_SESSION_NONE) {
 // Menjamin token rahasia tidak bocor dalam kode sumber publik
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
-    // Otorisasi Kantor Pusat Jakarta (Rotated Secure Token)
-    '1f43a0f065bc44637dbb2b2021932c570ee4d40fb42a294985f00e05aef42285' => [
-        'sub'         => 'cabang_jkt',
-        'branch'      => 'Pusat',
-        'displayName' => 'Akses Resmi Kantor Pusat Jakarta',
-        'role'        => 'ADMIN_PUSAT',
-        'title'       => 'Admin Operasional Pusat'
-    ],
-    // Otorisasi Kantor Pusat Jakarta (Secondary Token)
-    '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2' => [
-        'sub'         => 'cabang_jkt',
-        'branch'      => 'Pusat',
-        'displayName' => 'Akses Resmi Kantor Pusat Jakarta',
-        'role'        => 'ADMIN_PUSAT',
-        'title'       => 'Admin Operasional Pusat'
-    ],
-    // Otorisasi Cabang Bandung
-    'a52e824efe550c1e89aa3026587e4aa54620e597fcc977b2c88876870c88a4cb' => [
-        'sub'         => 'cabang_bdg',
-        'branch'      => 'Bandung',
-        'displayName' => 'Akses Resmi Cabang Bandung',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Bandung'
-    ],
-    // Otorisasi Cabang Bandung (Secondary Token)
-    'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818' => [
-        'sub'         => 'cabang_bdg',
-        'branch'      => 'Bandung',
-        'displayName' => 'Akses Resmi Cabang Bandung',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Bandung'
-    ],
-    // Otorisasi Cabang Padang
-    '6b838f77d520840a9bd8adb2e01d75ad511ea2f2d371b1ac16809e8fe1ac11bd' => [
-        'sub'         => 'cabang_pdg',
-        'branch'      => 'Padang',
-        'displayName' => 'Akses Resmi Cabang Padang',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Padang'
-    ],
-    // Otorisasi Cabang Padang (Secondary Token)
-    '45b948d3c75010dcf2b4963c1275e2f0c982df88658616b3d0edaae59e9cd62c' => [
-        'sub'         => 'cabang_pdg',
-        'branch'      => 'Padang',
-        'displayName' => 'Akses Resmi Cabang Padang',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Padang'
-    ],
-    // Otorisasi Cabang Makassar
-    '3c56bf3fbad429421e401e6ca9b335734a90b9986d9af890c12e2cf69f6129d4' => [
-        'sub'         => 'cabang_mks',
-        'branch'      => 'Makassar',
-        'displayName' => 'Akses Resmi Cabang Makassar',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Makassar'
-    ],
-    // Otorisasi Cabang Makassar (Secondary Token)
-    '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e' => [
-        'sub'         => 'cabang_mks',
-        'branch'      => 'Makassar',
-        'displayName' => 'Akses Resmi Cabang Makassar',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Makassar'
-    ],
-    // Otorisasi Cabang Palembang
-    '8eec45b74d429d76724acd10312485fee4f180cddf0fd7210eb0da736c878ab3' => [
-        'sub'         => 'cabang_plb',
-        'branch'      => 'Palembang',
-        'displayName' => 'Akses Resmi Cabang Palembang',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Palembang'
-    ],
-    // Otorisasi Cabang Palembang (Secondary Token)
-    '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b' => [
-        'sub'         => 'cabang_plb',
-        'branch'      => 'Palembang',
-        'displayName' => 'Akses Resmi Cabang Palembang',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Palembang'
-    ],
-    // Otorisasi Cabang Palembang (Tertiary Token)
-    'c20c16d688a686f8cd5ac12f4949b8dac6b4937d513f92a00514ee6122368ed2' => [
-        'sub'         => 'cabang_plb',
-        'branch'      => 'Palembang',
-        'displayName' => 'Akses Resmi Cabang Palembang',
-        'role'        => 'CABANG',
-        'title'       => 'Staf Penilai Palembang'
-    ],
-    // Otorisasi Master Operasional Pusat
-    'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91' => [
-        'sub'         => 'admin_master',
-        'branch'      => 'Pusat',
-        'displayName' => 'Master Akses Operasional',
-        'role'        => 'ADMIN_PUSAT',
-        'title'       => 'Master Operasional'
-    ],
-    // Otorisasi Master Operasional Pusat (Secondary Token)
     '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' => [
-        'sub'         => 'admin_master',
-        'branch'      => 'Pusat',
-        'displayName' => 'Master Akses Operasional',
-        'role'        => 'ADMIN_PUSAT',
-        'title'       => 'Master Operasional'
-    ]
+        'sub'               => 'admin_master',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
+        'title'             => 'Super Admin Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f'
+    ],
+    '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f' => [
+        'sub'               => 'admin_master',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
+        'title'             => 'Super Admin Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f'
+    ],
+    '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2' => [
+        'sub'               => 'cabang_jkt',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
+        'title'             => 'Admin Operasional Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c'
+    ],
+    '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c' => [
+        'sub'               => 'cabang_jkt',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
+        'title'             => 'Admin Operasional Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c'
+    ],
+    '116f1fc38a65e1f069d617ef30be1bd2c693e9cb69950ea475a694af2594dd99' => [
+        'sub'               => 'cabang_jkt_adm',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
+        'title'             => 'Admin Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04'
+    ],
+    '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04' => [
+        'sub'               => 'cabang_jkt_adm',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
+        'title'             => 'Admin Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04'
+    ],
+    '90dcc577539898e27a73039150b137fe6ef7d437eb3e2425ff52d3a7cb7cfd3c' => [
+        'sub'               => 'cabang_jkt',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
+        'title'             => 'Super Admin Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'b95dca135f05d89f9481f7f7a23d67d11088edcaad811c2538869925fdd9cf9b'
+    ],
+    'b95dca135f05d89f9481f7f7a23d67d11088edcaad811c2538869925fdd9cf9b' => [
+        'sub'               => 'cabang_jkt',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
+        'title'             => 'Super Admin Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'b95dca135f05d89f9481f7f7a23d67d11088edcaad811c2538869925fdd9cf9b'
+    ],
+    'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818' => [
+        'sub'               => 'cabang_bdg',
+        'branch'            => 'Bandung',
+        'displayName'       => 'Kantor Cabang Bandung',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Bandung',
+        'title'             => 'Admin Cabang Bandung',
+        'wilayah'           => 'Bandung',
+        'wilayahLabel'      => 'Kantor Cabang Bandung',
+        'wilayahCode'       => 'BDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => '974e90dc35652f926a4951c49ab969a70df89f90f82af08419a0d13bfe4e927d',
+        'kodeKemenkeu'      => '2.0160-04'
+    ],
+    '974e90dc35652f926a4951c49ab969a70df89f90f82af08419a0d13bfe4e927d' => [
+        'sub'               => 'cabang_bdg',
+        'branch'            => 'Bandung',
+        'displayName'       => 'Kantor Cabang Bandung',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Bandung',
+        'title'             => 'Admin Cabang Bandung',
+        'wilayah'           => 'Bandung',
+        'wilayahLabel'      => 'Kantor Cabang Bandung',
+        'wilayahCode'       => 'BDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => '974e90dc35652f926a4951c49ab969a70df89f90f82af08419a0d13bfe4e927d',
+        'kodeKemenkeu'      => '2.0160-04'
+    ],
+    '8d8ec827ee483752270d6256bb79de6662253f891e52842625ecc60af6e25878' => [
+        'sub'               => 'cabang_bdg',
+        'branch'            => 'Bandung',
+        'displayName'       => 'Kantor Cabang Bandung',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Bandung',
+        'title'             => 'Admin Cabang Bandung',
+        'wilayah'           => 'Bandung',
+        'wilayahLabel'      => 'Kantor Cabang Bandung',
+        'wilayahCode'       => 'BDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => '2744adc6a1f8ddcb761536669297f5c662d9226b6f41f6b1bcdc7b5e3f68d053',
+        'kodeKemenkeu'      => '2.0160-04'
+    ],
+    '2744adc6a1f8ddcb761536669297f5c662d9226b6f41f6b1bcdc7b5e3f68d053' => [
+        'sub'               => 'cabang_bdg',
+        'branch'            => 'Bandung',
+        'displayName'       => 'Kantor Cabang Bandung',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Bandung',
+        'title'             => 'Admin Cabang Bandung',
+        'wilayah'           => 'Bandung',
+        'wilayahLabel'      => 'Kantor Cabang Bandung',
+        'wilayahCode'       => 'BDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => '2744adc6a1f8ddcb761536669297f5c662d9226b6f41f6b1bcdc7b5e3f68d053',
+        'kodeKemenkeu'      => '2.0160-04'
+    ],
+    '45b948d3c75010dcf2b4963c1275e2f0c982df88658616b3d0edaae59e9cd62c' => [
+        'sub'               => 'cabang_pdg',
+        'branch'            => 'Padang',
+        'displayName'       => 'Kantor Cabang Padang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Padang',
+        'title'             => 'Admin Cabang Padang',
+        'wilayah'           => 'Padang',
+        'wilayahLabel'      => 'Kantor Cabang Padang',
+        'wilayahCode'       => 'PDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'db6da2b4cde952d408263966d2106faebe6ff26c5df15656961d5c1e64ab0495',
+        'kodeKemenkeu'      => '2.0160-01'
+    ],
+    'db6da2b4cde952d408263966d2106faebe6ff26c5df15656961d5c1e64ab0495' => [
+        'sub'               => 'cabang_pdg',
+        'branch'            => 'Padang',
+        'displayName'       => 'Kantor Cabang Padang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Padang',
+        'title'             => 'Admin Cabang Padang',
+        'wilayah'           => 'Padang',
+        'wilayahLabel'      => 'Kantor Cabang Padang',
+        'wilayahCode'       => 'PDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'db6da2b4cde952d408263966d2106faebe6ff26c5df15656961d5c1e64ab0495',
+        'kodeKemenkeu'      => '2.0160-01'
+    ],
+    'a9df00e327795467cd60fad518eee698a0d82730f5c940816c07f176bf77f2c3' => [
+        'sub'               => 'cabang_pdg',
+        'branch'            => 'Padang',
+        'displayName'       => 'Kantor Cabang Padang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Padang',
+        'title'             => 'Admin Cabang Padang',
+        'wilayah'           => 'Padang',
+        'wilayahLabel'      => 'Kantor Cabang Padang',
+        'wilayahCode'       => 'PDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'e8abc5817053f821e6b38767d7f72456d150295007b9969e7f4bf946e0b38e0f',
+        'kodeKemenkeu'      => '2.0160-01'
+    ],
+    'e8abc5817053f821e6b38767d7f72456d150295007b9969e7f4bf946e0b38e0f' => [
+        'sub'               => 'cabang_pdg',
+        'branch'            => 'Padang',
+        'displayName'       => 'Kantor Cabang Padang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Padang',
+        'title'             => 'Admin Cabang Padang',
+        'wilayah'           => 'Padang',
+        'wilayahLabel'      => 'Kantor Cabang Padang',
+        'wilayahCode'       => 'PDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'e8abc5817053f821e6b38767d7f72456d150295007b9969e7f4bf946e0b38e0f',
+        'kodeKemenkeu'      => '2.0160-01'
+    ],
+    '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e' => [
+        'sub'               => 'cabang_mks',
+        'branch'            => 'Makassar',
+        'displayName'       => 'Kantor Cabang Makassar',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Makassar',
+        'title'             => 'Admin Cabang Makassar',
+        'wilayah'           => 'Makassar',
+        'wilayahLabel'      => 'Kantor Cabang Makassar',
+        'wilayahCode'       => 'MKS',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'f5aadfecaf3ab9a3440cf6e0886514d80a7ea78925e9e8eaa9e303f7f0474569',
+        'kodeKemenkeu'      => '2.0160-02'
+    ],
+    'f5aadfecaf3ab9a3440cf6e0886514d80a7ea78925e9e8eaa9e303f7f0474569' => [
+        'sub'               => 'cabang_mks',
+        'branch'            => 'Makassar',
+        'displayName'       => 'Kantor Cabang Makassar',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Makassar',
+        'title'             => 'Admin Cabang Makassar',
+        'wilayah'           => 'Makassar',
+        'wilayahLabel'      => 'Kantor Cabang Makassar',
+        'wilayahCode'       => 'MKS',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'f5aadfecaf3ab9a3440cf6e0886514d80a7ea78925e9e8eaa9e303f7f0474569',
+        'kodeKemenkeu'      => '2.0160-02'
+    ],
+    '05080f9dc585d39a2234f19ba420a83162249731bfea9e3ca0e733953d5efd95' => [
+        'sub'               => 'cabang_mks',
+        'branch'            => 'Makassar',
+        'displayName'       => 'Kantor Cabang Makassar',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Makassar',
+        'title'             => 'Admin Cabang Makassar',
+        'wilayah'           => 'Makassar',
+        'wilayahLabel'      => 'Kantor Cabang Makassar',
+        'wilayahCode'       => 'MKS',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'b3102a30c374eb0726ef2ba4ef6a9e0d324ee99e775b83683182eb9117bfd1c6',
+        'kodeKemenkeu'      => '2.0160-02'
+    ],
+    'b3102a30c374eb0726ef2ba4ef6a9e0d324ee99e775b83683182eb9117bfd1c6' => [
+        'sub'               => 'cabang_mks',
+        'branch'            => 'Makassar',
+        'displayName'       => 'Kantor Cabang Makassar',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Makassar',
+        'title'             => 'Admin Cabang Makassar',
+        'wilayah'           => 'Makassar',
+        'wilayahLabel'      => 'Kantor Cabang Makassar',
+        'wilayahCode'       => 'MKS',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'b3102a30c374eb0726ef2ba4ef6a9e0d324ee99e775b83683182eb9117bfd1c6',
+        'kodeKemenkeu'      => '2.0160-02'
+    ],
+    '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b' => [
+        'sub'               => 'cabang_plb',
+        'branch'            => 'Palembang',
+        'displayName'       => 'Kantor Cabang Palembang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Palembang',
+        'title'             => 'Admin Cabang Palembang',
+        'wilayah'           => 'Palembang',
+        'wilayahLabel'      => 'Kantor Cabang Palembang',
+        'wilayahCode'       => 'PLB',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'e5298836aaaed72f1974a3191d5a23d59bb3990003ca7a288f9a41b2045d9827',
+        'kodeKemenkeu'      => '2.0160-03'
+    ],
+    'e5298836aaaed72f1974a3191d5a23d59bb3990003ca7a288f9a41b2045d9827' => [
+        'sub'               => 'cabang_plb',
+        'branch'            => 'Palembang',
+        'displayName'       => 'Kantor Cabang Palembang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Palembang',
+        'title'             => 'Admin Cabang Palembang',
+        'wilayah'           => 'Palembang',
+        'wilayahLabel'      => 'Kantor Cabang Palembang',
+        'wilayahCode'       => 'PLB',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'e5298836aaaed72f1974a3191d5a23d59bb3990003ca7a288f9a41b2045d9827',
+        'kodeKemenkeu'      => '2.0160-03'
+    ],
+    '4ea09485c491d4b43e42ebf0b64f912fcfa9608b5ceecd8b413f6b349298fadb' => [
+        'sub'               => 'cabang_plb',
+        'branch'            => 'Palembang',
+        'displayName'       => 'Kantor Cabang Palembang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Palembang',
+        'title'             => 'Admin Cabang Palembang',
+        'wilayah'           => 'Palembang',
+        'wilayahLabel'      => 'Kantor Cabang Palembang',
+        'wilayahCode'       => 'PLB',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'd54abce9045452c4900da5ab86ce8cd17051d7b24c3d42a1cc764c029c91db97',
+        'kodeKemenkeu'      => '2.0160-03'
+    ],
+    'd54abce9045452c4900da5ab86ce8cd17051d7b24c3d42a1cc764c029c91db97' => [
+        'sub'               => 'cabang_plb',
+        'branch'            => 'Palembang',
+        'displayName'       => 'Kantor Cabang Palembang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Palembang',
+        'title'             => 'Admin Cabang Palembang',
+        'wilayah'           => 'Palembang',
+        'wilayahLabel'      => 'Kantor Cabang Palembang',
+        'wilayahCode'       => 'PLB',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'tokenHash'         => 'd54abce9045452c4900da5ab86ce8cd17051d7b24c3d42a1cc764c029c91db97',
+        'kodeKemenkeu'      => '2.0160-03'
+    ],
+    '336c1d03b83f9a89f3f1fc33cc42192345b435f6e72f8e72ad43aaaaae6310fe' => [
+        'sub'               => 'marketing_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'MARKETING',
+        'roleLabel'         => 'Marketing',
+        'title'             => 'Marketing',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '9977faeecaba8f98d6639482a0d7160d66a3886f5af70be176de7f9632562b59'
+    ],
+    '9977faeecaba8f98d6639482a0d7160d66a3886f5af70be176de7f9632562b59' => [
+        'sub'               => 'marketing_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'MARKETING',
+        'roleLabel'         => 'Marketing',
+        'title'             => 'Marketing',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '9977faeecaba8f98d6639482a0d7160d66a3886f5af70be176de7f9632562b59'
+    ],
+    '5dba8ce519ce82d7bb8bfe2ef01238f64a07d8cca1739b8cb717e63ede11f2b6' => [
+        'sub'               => 'marketing_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'MARKETING',
+        'roleLabel'         => 'Marketing',
+        'title'             => 'Marketing',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '1c30064deeacf28f1ecf2bce27d91d3824c1c5ce8aff62a409729e8702ddf4e7'
+    ],
+    '1c30064deeacf28f1ecf2bce27d91d3824c1c5ce8aff62a409729e8702ddf4e7' => [
+        'sub'               => 'marketing_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'MARKETING',
+        'roleLabel'         => 'Marketing',
+        'title'             => 'Marketing',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '1c30064deeacf28f1ecf2bce27d91d3824c1c5ce8aff62a409729e8702ddf4e7'
+    ],
+    'da9ed250de0559c0e8cf6631bbd6e93375eec43c4d114d0f4f1ae17a4f5dd3a9' => [
+        'sub'               => 'reviewer_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'REVIEWER',
+        'roleLabel'         => 'Reviewer QC',
+        'title'             => 'Reviewer QC',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'cf86dd7ad31d605d308c86f51f623664dfe786bcd0933d67b7b024a768f704f9'
+    ],
+    'cf86dd7ad31d605d308c86f51f623664dfe786bcd0933d67b7b024a768f704f9' => [
+        'sub'               => 'reviewer_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'REVIEWER',
+        'roleLabel'         => 'Reviewer QC',
+        'title'             => 'Reviewer QC',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'cf86dd7ad31d605d308c86f51f623664dfe786bcd0933d67b7b024a768f704f9'
+    ],
+    '9f5137bd18e31ae431c3aa998400f73e83168cae567420cc08e6c02a116e19a1' => [
+        'sub'               => 'reviewer_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'REVIEWER',
+        'roleLabel'         => 'Reviewer QC',
+        'title'             => 'Reviewer QC',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'f0e094d23c6cc9580a7122705d5651d327682c301c3ecaea93c6debf7a1f6349'
+    ],
+    'f0e094d23c6cc9580a7122705d5651d327682c301c3ecaea93c6debf7a1f6349' => [
+        'sub'               => 'reviewer_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'REVIEWER',
+        'roleLabel'         => 'Reviewer QC',
+        'title'             => 'Reviewer QC',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'f0e094d23c6cc9580a7122705d5651d327682c301c3ecaea93c6debf7a1f6349'
+    ],
+    '52dd65caf53c6a54b9fa2bbbfdedbfbe5e31dcda86a09dc4b325f107f511e68b' => [
+        'sub'               => 'penilai_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'PENILAI',
+        'roleLabel'         => 'Penilai',
+        'title'             => 'Penilai',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'd50a896599ef1420ccf19551893fb17466dca8a3da39215efe6e23013d98202e'
+    ],
+    'd50a896599ef1420ccf19551893fb17466dca8a3da39215efe6e23013d98202e' => [
+        'sub'               => 'penilai_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'PENILAI',
+        'roleLabel'         => 'Penilai',
+        'title'             => 'Penilai',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'd50a896599ef1420ccf19551893fb17466dca8a3da39215efe6e23013d98202e'
+    ],
+    'fdfbb69e0de283a8c061c6eaee9173bd15cbc8890a12ddbe1b85642f3350d902' => [
+        'sub'               => 'penilai_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'PENILAI',
+        'roleLabel'         => 'Penilai',
+        'title'             => 'Penilai',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'c84442605e24bd6cce6370f43e8dbe7e5761c3959bd5dd5a4deccf263b4c8909'
+    ],
+    'c84442605e24bd6cce6370f43e8dbe7e5761c3959bd5dd5a4deccf263b4c8909' => [
+        'sub'               => 'penilai_pst',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Kantor Pusat Jakarta',
+        'role'              => 'PENILAI',
+        'roleLabel'         => 'Penilai',
+        'title'             => 'Penilai',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'c84442605e24bd6cce6370f43e8dbe7e5761c3959bd5dd5a4deccf263b4c8909'
+    ],
 ];
 
 // -------------------------------------------------------------
@@ -208,9 +804,37 @@ $USER_ACCOUNTS = [
 ];
 
 // -------------------------------------------------------------
+
+// -------------------------------------------------------------
+// HELPER RESOLVER TOKEN RESMI DARI SERVER
+// -------------------------------------------------------------
+function resolveServerToken($rawToken, $hashRegistry) {
+    if (!$rawToken || !is_string($rawToken)) return null;
+    $clean = trim($rawToken);
+    
+    // 1. Pencocokan langsung 64 karakter hex
+    if (strlen($clean) === 64 && isset($hashRegistry[strtolower($clean)])) {
+        return [$hashRegistry[strtolower($clean)], strtolower($clean)];
+    }
+    
+    // 2. Raw SHA-256
+    $rawHash = hash('sha256', strtoupper($clean));
+    if (isset($hashRegistry[$rawHash])) {
+        return [$hashRegistry[$rawHash], $rawHash];
+    }
+    
+    // 3. Salted SHA-256
+    $saltedHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($clean));
+    if (isset($hashRegistry[$saltedHash])) {
+        return [$hashRegistry[$saltedHash], $saltedHash];
+    }
+    
+    return null;
+}
+
 // 3. DETEKSI ACTION ROUTING
 // -------------------------------------------------------------
-$action = $_GET['action'] ?? null;
+$action = $_GET['action'] ?? $_POST['action'] ?? null;
 if (!$action) {
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
     if (strpos($path, 'auth-token') !== false) {
@@ -221,6 +845,12 @@ if (!$action) {
         $action = 'verify';
     } elseif (strpos($path, 'auth-logout') !== false) {
         $action = 'logout';
+    } elseif (strpos($path, 'auth.php') !== false || strpos($path, 'api/auth') !== false) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $action = 'login';
+        } else {
+            $action = 'verify';
+        }
     }
 }
 
@@ -299,23 +929,38 @@ if ($action === 'token') {
         exit;
     }
 
-    $tokenHash = hash('sha256', strtoupper($rawToken));
+    $resolved = resolveServerToken($rawToken, $OFFICIAL_TOKEN_HASHES);
 
-    if (isset($OFFICIAL_TOKEN_HASHES[$tokenHash])) {
+    if ($resolved) {
         clearFail($rateFile);
-        $user = $OFFICIAL_TOKEN_HASHES[$tokenHash];
+        list($user, $tokenHash) = $resolved;
         $_SESSION['nsr_user'] = $user;
         $_SESSION['nsr_login_time'] = time();
 
         $sessionToken = bin2hex(random_bytes(16));
         $_SESSION['nsr_session_token'] = $sessionToken;
 
+        $expiresAt = (time() + 28800) * 1000;
+        $checksumPayload = implode('::', [
+            'NSR_SESSION_INTEGRITY_2026_x7k9::',
+            $user['tokenHash'] ?? $tokenHash,
+            $user['role'],
+            $user['wilayah'],
+            $expiresAt,
+            !empty($user['isSuperAdmin']) ? 'TRUE' : 'FALSE',
+            'NSR_ZERO_TRUST_SIG_2026_9x4m'
+        ]);
+        $sessionChecksum = hash('sha256', $checksumPayload);
+
         echo json_encode([
-            'success'       => true,
-            'authenticated' => true,
-            'branch'        => $user['displayName'],
-            'user'          => $user,
-            'sessionToken'  => $sessionToken
+            'success'         => true,
+            'authenticated'   => true,
+            'branch'          => $user['displayName'],
+            'user'            => $user,
+            'tokenHash'       => $user['tokenHash'] ?? $tokenHash,
+            'sessionToken'    => $sessionToken,
+            'sessionChecksum' => $sessionChecksum,
+            'expiresAt'       => $expiresAt
         ]);
         exit;
     } else {
@@ -324,7 +969,7 @@ if ($action === 'token') {
         echo json_encode([
             'success'       => false,
             'authenticated' => false,
-            'error'         => 'Token akses tidak valid atau belum terdaftar. Pastikan memasukkan token kantor cabang resmi KJPP NSR.'
+            'error'         => 'Token akses tidak valid atau belum terdaftar. Pastikan memasukkan token resmi KJPP NSR.'
         ]);
         exit;
     }
@@ -344,60 +989,93 @@ if ($action === 'login') {
     $identifier = trim(strtolower($body['identifier'] ?? $body['username'] ?? ''));
     $password = $body['password'] ?? '';
 
-    // Cek 1: Jika dikirim token langsung
-    if ($token !== '') {
-        $tokenHash = hash('sha256', strtoupper($token));
-        if (isset($OFFICIAL_TOKEN_HASHES[$tokenHash])) {
-            clearFail($rateFile);
-            $user = $OFFICIAL_TOKEN_HASHES[$tokenHash];
-            $_SESSION['nsr_user'] = $user;
-            $_SESSION['nsr_login_time'] = time();
+    // Cek 1: Token otorisasi langsung
+    $tokenCandidate = $token ?: ($identifier ?: $password);
+    $resolved = resolveServerToken($tokenCandidate, $OFFICIAL_TOKEN_HASHES);
 
-            echo json_encode([
-                'success'       => true,
-                'authenticated' => true,
-                'user'          => $user
-            ]);
-            exit;
-        }
-    }
-
-    // Cek 2: Jika identifier atau password berisi Token Cabang resmi
-    $idHash = hash('sha256', strtoupper($identifier));
-    $passHash = hash('sha256', strtoupper($password));
-    if (isset($OFFICIAL_TOKEN_HASHES[$idHash])) {
+    if ($resolved) {
         clearFail($rateFile);
-        $user = $OFFICIAL_TOKEN_HASHES[$idHash];
+        list($user, $tokenHash) = $resolved;
         $_SESSION['nsr_user'] = $user;
         $_SESSION['nsr_login_time'] = time();
-        echo json_encode(['success' => true, 'authenticated' => true, 'user' => $user]);
-        exit;
-    }
-    if (isset($OFFICIAL_TOKEN_HASHES[$passHash])) {
-        clearFail($rateFile);
-        $user = $OFFICIAL_TOKEN_HASHES[$passHash];
-        $_SESSION['nsr_user'] = $user;
-        $_SESSION['nsr_login_time'] = time();
-        echo json_encode(['success' => true, 'authenticated' => true, 'user' => $user]);
+
+        $sessionToken = bin2hex(random_bytes(16));
+        $_SESSION['nsr_session_token'] = $sessionToken;
+
+        $expiresAt = (time() + 28800) * 1000;
+        $checksumPayload = implode('::', [
+            'NSR_SESSION_INTEGRITY_2026_x7k9::',
+            $user['tokenHash'] ?? $tokenHash,
+            $user['role'],
+            $user['wilayah'],
+            $expiresAt,
+            !empty($user['isSuperAdmin']) ? 'TRUE' : 'FALSE',
+            'NSR_ZERO_TRUST_SIG_2026_9x4m'
+        ]);
+        $sessionChecksum = hash('sha256', $checksumPayload);
+
+        echo json_encode([
+            'success'         => true,
+            'authenticated'   => true,
+            'user'            => $user,
+            'tokenHash'       => $user['tokenHash'] ?? $tokenHash,
+            'sessionToken'    => $sessionToken,
+            'sessionChecksum' => $sessionChecksum,
+            'expiresAt'       => $expiresAt
+        ]);
         exit;
     }
 
-    // Cek 3: Verifikasi kredensial User Account
+    // Cek 2: User Account Login (Khusus Staf Keuangan / NoLap Staging)
     if (isset($USER_ACCOUNTS[$identifier])) {
         $acc = $USER_ACCOUNTS[$identifier];
         $inputPassHash = hash('sha256', $password);
         if (hash_equals($acc['passHash'], $inputPassHash)) {
             clearFail($rateFile);
             $user = [
-                'sub'         => $identifier,
-                'branch'      => $acc['branch'],
-                'displayName' => $acc['displayName'],
-                'role'        => $acc['role'],
-                'title'       => $acc['title']
+                'sub'               => $identifier,
+                'branch'            => $acc['branch'],
+                'displayName'       => $acc['displayName'],
+                'role'              => $acc['role'],
+                'roleLabel'         => $acc['displayName'],
+                'title'             => $acc['title'],
+                'wilayah'           => $acc['branch'],
+                'wilayahLabel'      => 'Kantor Pusat Jakarta',
+                'wilayahCode'       => 'PST',
+                'isSuperAdmin'      => ($acc['role'] === 'ADMIN_PUSAT'),
+                'isCabang'          => ($acc['role'] === 'CABANG'),
+                'canAccessKwitansi' => true,
+                'canApprove'        => ($acc['role'] === 'ADMIN_PUSAT'),
+                'canSubmit'         => true,
+                'seeFee'            => true,
+                'mode'              => ($acc['role'] === 'CABANG') ? 'CABANG' : 'PUSAT'
             ];
             $_SESSION['nsr_user'] = $user;
             $_SESSION['nsr_login_time'] = time();
-            echo json_encode(['success' => true, 'authenticated' => true, 'user' => $user]);
+
+            $sessionToken = bin2hex(random_bytes(16));
+            $_SESSION['nsr_session_token'] = $sessionToken;
+
+            $expiresAt = (time() + 28800) * 1000;
+            $checksumPayload = implode('::', [
+                'NSR_SESSION_INTEGRITY_2026_x7k9::',
+                hash('sha256', $identifier),
+                $user['role'],
+                $user['wilayah'],
+                $expiresAt,
+                !empty($user['isSuperAdmin']) ? 'TRUE' : 'FALSE',
+                'NSR_ZERO_TRUST_SIG_2026_9x4m'
+            ]);
+            $sessionChecksum = hash('sha256', $checksumPayload);
+
+            echo json_encode([
+                'success'         => true,
+                'authenticated'   => true,
+                'user'            => $user,
+                'sessionToken'    => $sessionToken,
+                'sessionChecksum' => $sessionChecksum,
+                'expiresAt'       => $expiresAt
+            ]);
             exit;
         }
     }
@@ -407,7 +1085,7 @@ if ($action === 'login') {
     echo json_encode([
         'success'       => false,
         'authenticated' => false,
-        'error'         => 'Akses Ditolak: Nama pengguna atau kata sandi tidak valid.'
+        'error'         => 'Akses Ditolak: Token atau kredensial pengguna tidak valid.'
     ]);
     exit;
 }
@@ -416,13 +1094,65 @@ if ($action === 'login') {
 // C. ACTION: VERIFY (GET/POST /api/auth-verify)
 // ==========================================
 if ($action === 'verify') {
+    // 1. Sesi PHP
     if (isset($_SESSION['nsr_user']) && is_array($_SESSION['nsr_user'])) {
         $loginTime = $_SESSION['nsr_login_time'] ?? 0;
-        if (time() - $loginTime < 28800) { // Dalam 8 jam
+        if (time() - $loginTime < 28800) {
+            $user = $_SESSION['nsr_user'];
+            $expiresAt = ($loginTime + 28800) * 1000;
+            $tokenHash = $user['tokenHash'] ?? '';
+            $checksumPayload = implode('::', [
+                'NSR_SESSION_INTEGRITY_2026_x7k9::',
+                $tokenHash,
+                $user['role'],
+                $user['wilayah'],
+                $expiresAt,
+                !empty($user['isSuperAdmin']) ? 'TRUE' : 'FALSE',
+                'NSR_ZERO_TRUST_SIG_2026_9x4m'
+            ]);
+            $sessionChecksum = hash('sha256', $checksumPayload);
             echo json_encode([
-                'success'       => true,
-                'authenticated' => true,
-                'user'          => $_SESSION['nsr_user']
+                'success'         => true,
+                'authenticated'   => true,
+                'user'            => $user,
+                'tokenHash'       => $tokenHash,
+                'sessionChecksum' => $sessionChecksum,
+                'expiresAt'       => $expiresAt
+            ]);
+            exit;
+        }
+    }
+
+    // 2. Bearer token / X-NSR-Token
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    $rawBearer = '';
+    if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $m)) {
+        $rawBearer = $m[1];
+    } elseif (!empty($_SERVER['HTTP_X_NSR_TOKEN'])) {
+        $rawBearer = $_SERVER['HTTP_X_NSR_TOKEN'];
+    }
+    if ($rawBearer) {
+        $resolved = resolveServerToken($rawBearer, $OFFICIAL_TOKEN_HASHES);
+        if ($resolved) {
+            list($user, $tokenHash) = $resolved;
+            $expiresAt = (time() + 28800) * 1000;
+            $checksumPayload = implode('::', [
+                'NSR_SESSION_INTEGRITY_2026_x7k9::',
+                $user['tokenHash'] ?? $tokenHash,
+                $user['role'],
+                $user['wilayah'],
+                $expiresAt,
+                !empty($user['isSuperAdmin']) ? 'TRUE' : 'FALSE',
+                'NSR_ZERO_TRUST_SIG_2026_9x4m'
+            ]);
+            $sessionChecksum = hash('sha256', $checksumPayload);
+            echo json_encode([
+                'success'         => true,
+                'authenticated'   => true,
+                'user'            => $user,
+                'tokenHash'       => $user['tokenHash'] ?? $tokenHash,
+                'sessionChecksum' => $sessionChecksum,
+                'expiresAt'       => $expiresAt
             ]);
             exit;
         }
