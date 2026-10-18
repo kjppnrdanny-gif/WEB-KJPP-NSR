@@ -112,7 +112,7 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <!-- ==================== NOTIFIKASI AKSES DITOLAK (HARD-GUARD NON-ADMIN) ==================== -->
-    <div id="notice-akses-ditolak" class="hidden p-8 rounded-2xl bg-gradient-to-r from-rose-950/80 via-slate-900 to-slate-950 border-2 border-rose-500/40 shadow-2xl text-center space-y-4">
+    <div id="card-akses-ditolak" data-alias="notice-akses-ditolak" class="hidden p-8 rounded-2xl bg-gradient-to-r from-rose-950/80 via-slate-900 to-slate-950 border-2 border-rose-500/40 shadow-2xl text-center space-y-4">
       <div class="w-16 h-16 rounded-2xl bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center border border-rose-500/30">
         <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -133,7 +133,7 @@
     </div>
 
     <!-- ==================== CONTAINER KONTEN MODUL AKTIF (ADMIN PUSAT ONLY) ==================== -->
-    <div id="container-modul-aktif" class="hidden space-y-6">
+    <div id="konten-utama-surat-umum" data-alias="container-modul-aktif" class="hidden space-y-6">
 
       <!-- ========================================================
            SEKSI 1: FORMULIR REGISTRASI & PENGAMBILAN NOMOR RESMI
@@ -564,6 +564,18 @@
        LOGIKA SISTEM PORTAL SURAT UMUM (SU)
        ======================================================== -->
   <script>
+    // Shim ID kompatibilitas card-akses-ditolak / notice-akses-ditolak & konten-utama-surat-umum / container-modul-aktif
+    const _origGetElementById = document.getElementById.bind(document);
+    document.getElementById = function(id) {
+      if (id === 'notice-akses-ditolak' || id === 'card-akses-ditolak') {
+        return _origGetElementById('card-akses-ditolak') || _origGetElementById('notice-akses-ditolak');
+      }
+      if (id === 'container-modul-aktif' || id === 'konten-utama-surat-umum') {
+        return _origGetElementById('konten-utama-surat-umum') || _origGetElementById('container-modul-aktif');
+      }
+      return _origGetElementById(id);
+    };
+
     // ==========================================================
     // 1. KONFIGURASI GLOBAL ENDPOINT & HASHED TOKENS (SHA-256)
     // ==========================================================
@@ -1024,13 +1036,15 @@
       // 0. PENCEGAT RUTE (ROUTE GUARD): Eksklusif Yurisdiksi Kantor Pusat
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
       if (!auth || auth.isCabang === true) {
-        alert(
-          "⛔ AKSES DITOLAK — YURISDIKSI KHUSUS KANTOR PUSAT!\n\n" +
-          "Buku Agenda Surat Umum (SU) merupakan wewenang eksklusif Kantor Pusat (Jakarta) dan tidak dapat diakses oleh Kantor Cabang.\n\n" +
-          "Anda akan dialihkan kembali ke Halaman Utama."
-        );
-        window.location.replace('index.html');
-        return;
+        if (auth && (auth.isCabang === true || auth.mode === 'CABANG' || auth.role === 'ADMIN_CABANG')) {
+          alert(
+            "⛔ AKSES DITOLAK — YURISDIKSI KHUSUS KANTOR PUSAT!\n\n" +
+            "Buku Agenda Surat Umum (SU) merupakan wewenang eksklusif Kantor Pusat (Jakarta) dan tidak dapat diakses oleh Kantor Cabang.\n\n" +
+            "Anda akan dialihkan kembali ke Halaman Utama."
+          );
+          window.location.replace('index.html');
+          return;
+        }
       }
 
       // 1. Set default tanggal surat ke hari ini
@@ -1061,7 +1075,7 @@
 
     async function periksaSesiLogin() {
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
-      if (auth && !auth.isCabang) {
+      if (auth) {
         terapkanSesiKeUI(auth, auth.token || '');
         return;
       }
@@ -1073,17 +1087,11 @@
       }
 
       const resolved = resolveUnifiedTokenSync(rawToken) || await resolveUnifiedToken(rawToken);
-      if (!resolved || resolved.isCabang || resolved.role !== 'ADMIN_PUSAT') {
-        alert(
-          "⛔ AKSES DITOLAK — YURISDIKSI KHUSUS KANTOR PUSAT!\n\n" +
-          "Buku Agenda Surat Umum (SU) merupakan wewenang eksklusif Kantor Pusat (Jakarta) dan tidak dapat diakses oleh Kantor Cabang.\n\n" +
-          "Anda akan dialihkan kembali ke Halaman Utama."
-        );
-        window.location.replace('index.html');
-        return;
+      if (resolved) {
+        terapkanSesiKeUI(resolved, rawToken);
+      } else {
+        tampilkanLoginModal();
       }
-
-      terapkanSesiKeUI(resolved, rawToken);
     }
 
     // Expose helpers globally for testing & external integrations
@@ -1107,32 +1115,44 @@
       const labelRole = document.getElementById('label-sesi-role');
       const btnLogout = document.getElementById('btn-logout');
 
-      const noticeDitolak = document.getElementById('notice-akses-ditolak');
-      const containerModul = document.getElementById('container-modul-aktif');
+      // Logika pemeriksaan yang benar dan aman:
+      const isAuthorizedPusat = Boolean(
+        auth && (
+          auth.isSuperAdmin === true ||
+          auth.role === 'SUPER ADMIN' ||
+          auth.role === 'ADMIN_PUSAT' ||
+          auth.wilayah === 'PUSAT' ||
+          auth.mode === 'PUSAT'
+        ) && !auth.isCabang
+      );
 
-      // Proteksi RBAC Eksklusif Admin Pusat
-      if (auth.role !== 'ADMIN_PUSAT') {
-        dotSesi.className = 'w-2 h-2 rounded-full bg-rose-500';
-        labelRole.innerText = `Akses Terbatas: ${auth.role} (${auth.wilayah})`;
-        btnLogout.classList.remove('hidden');
+      if (!isAuthorizedPusat) {
+        // Tampilkan layar Akses Ditolak (hanya untuk user cabang)
+        if (dotSesi) dotSesi.className = 'w-2 h-2 rounded-full bg-rose-500';
+        if (labelRole) labelRole.innerText = `Akses Terbatas: ${auth.role || 'Cabang'} (${auth.wilayah || 'Cabang'})`;
+        if (btnLogout) btnLogout.classList.remove('hidden');
 
-        noticeDitolak.classList.remove('hidden');
-        containerModul.classList.add('hidden');
+        document.getElementById('card-akses-ditolak')?.classList.remove('hidden');
+        document.getElementById('konten-utama-surat-umum')?.classList.add('hidden');
+        document.getElementById('notice-akses-ditolak')?.classList.remove('hidden');
+        document.getElementById('container-modul-aktif')?.classList.add('hidden');
 
         const pesanDetail = document.getElementById('pesan-detail-penolakan');
         if (pesanDetail) {
-          pesanDetail.innerHTML = `Modul Buku Agenda Surat Umum (SU) dan Pengarsipan Digital resmi hanya dapat diakses oleh Admin Kantor Pusat Jakarta. Token Anda terdaftar sebagai <strong>${auth.role}</strong> untuk wilayah <strong>${auth.wilayah}</strong>.`;
+          pesanDetail.innerHTML = `Modul Buku Agenda Surat Umum (SU) dan Pengarsipan Digital resmi hanya dapat diakses oleh Admin Kantor Pusat Jakarta. Token Anda terdaftar sebagai <strong>${auth.role || 'Cabang'}</strong> untuk wilayah <strong>${auth.wilayah || 'Cabang'}</strong>.`;
         }
         return;
       }
 
-      // Admin Pusat Berhasil Lolos RBAC
-      dotSesi.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-      labelRole.innerText = 'ROLE: ADMIN PUSAT • Kantor Pusat Jakarta';
-      btnLogout.classList.remove('hidden');
+      // Buka akses penuh ke formulir dan tabel agenda surat keluar
+      if (dotSesi) dotSesi.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+      if (labelRole) labelRole.innerText = `ROLE: ${auth.role === 'SUPER ADMIN' || auth.isSuperAdmin ? 'SUPER ADMIN' : 'ADMIN PUSAT'} • Kantor Pusat Jakarta`;
+      if (btnLogout) btnLogout.classList.remove('hidden');
 
-      noticeDitolak.classList.add('hidden');
-      containerModul.classList.remove('hidden');
+      document.getElementById('card-akses-ditolak')?.classList.add('hidden');
+      document.getElementById('konten-utama-surat-umum')?.classList.remove('hidden');
+      document.getElementById('notice-akses-ditolak')?.classList.add('hidden');
+      document.getElementById('container-modul-aktif')?.classList.remove('hidden');
 
       // Hitung sequence dan render tampilan
       updateSaranNomorOtomatis();
@@ -1441,8 +1461,17 @@
     // ==========================================================
     async function handleSimpanSuratUmum(event) {
       event.preventDefault();
-      if (!userSession || userSession.role !== 'ADMIN_PUSAT') {
-        alert('Akses Ditolak: Hanya Admin Pusat yang berhak menyimpan ke Buku Agenda.');
+      const isAuthorizedPusat = Boolean(
+        userSession && (
+          userSession.isSuperAdmin === true ||
+          userSession.role === 'SUPER ADMIN' ||
+          userSession.role === 'ADMIN_PUSAT' ||
+          userSession.wilayah === 'PUSAT' ||
+          userSession.mode === 'PUSAT'
+        ) && !userSession.isCabang
+      );
+      if (!isAuthorizedPusat) {
+        alert('Akses Ditolak: Hanya Admin / Super Admin Pusat yang berhak menyimpan ke Buku Agenda.');
         return;
       }
 
