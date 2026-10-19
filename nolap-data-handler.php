@@ -882,6 +882,8 @@ function muatBaselineResmi() {
             'timestamp' => '2026-09-23 16:50:06',
             'cabang' => 'Pusat',
             'namaPemohon' => 'Zahra',
+            'penilai' => 'Deni Siswandi',
+            'izinPenilai' => '00581',
             'jabatanPemohon' => 'Admin',
             'namaKlien' => 'PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. IVANDER PUTRA SUKSES',
             'statusKlien' => 'Bank',
