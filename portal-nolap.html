@@ -13374,8 +13374,30 @@
                          (typeof currentUser !== 'undefined' && currentUser) || 
                          (typeof window !== 'undefined' && window.currentUser) || null;
       if (!activeUser) return false;
-      const sessionRole = String(activeUser.role || activeUser.roleLabel || '').toUpperCase().trim();
-      return ['SUPER_ADMIN', 'SUPERADMIN', 'PUSAT', 'ADMIN_PUSAT', 'ADMIN', 'ROOT'].includes(sessionRole);
+
+      // Normalisasi role yang konsisten: uppercase, hapus spasi/underscore/tanda hubung/titik
+      const rawRole = String(activeUser.role || '').toUpperCase().trim();
+      const rawLabel = String(activeUser.roleLabel || '').toUpperCase().trim();
+      const cleanRole = rawRole.replace(/[\s\-_]+/g, '');
+      const cleanLabel = rawLabel.replace(/[\s\-_•]+/g, '');
+
+      // Daftar role sah Admin Pusat & Super Admin
+      const isRoleMatch = [
+        'SUPER_ADMIN', 'SUPERADMIN', 'SUPER ADMIN',
+        'ADMIN_PUSAT', 'ADMINPUSAT', 'ADMIN PUSAT',
+        'PUSAT', 'ADMIN', 'ROOT'
+      ].includes(rawRole) ||
+      ['SUPERADMIN', 'ADMINPUSAT', 'ROOT'].includes(cleanRole) ||
+      cleanLabel.includes('SUPERADMIN') ||
+      cleanLabel.includes('ADMINPUSAT');
+
+      // Validasi hak approval eksplisit dari kredensial terverifikasi (bukan sekadar teks wilayah)
+      const hasVerifiedPrivilege = Boolean(
+        (activeUser.aksesApproval === true || activeUser.canApprove === true || activeUser.isSuperAdmin === true) &&
+        !activeUser.isCabang
+      );
+
+      return Boolean(isRoleMatch && hasVerifiedPrivilege);
     }
 
     function applyRBAC(user) {
@@ -13383,11 +13405,8 @@
                          (typeof currentUser !== 'undefined' && currentUser) || 
                          (typeof window !== 'undefined' && window.currentUser) || 
                          (typeof sesiAktif !== 'undefined' && sesiAktif) || null;
-      const rawRole = (activeUser && (activeUser.role || activeUser.roleLabel || activeUser.roleName)) || '';
-      const role = String(rawRole).toUpperCase().trim();
 
-      const isSuperOrAdmin = ['SUPER_ADMIN', 'SUPERADMIN', 'PUSAT', 'ADMIN_PUSAT', 'ADMIN', 'ROOT'].includes(role) ||
-                             (typeof isSuperOrAdminPusat === 'function' && isSuperOrAdminPusat());
+      const isSuperOrAdmin = typeof isSuperOrAdminPusat === 'function' && isSuperOrAdminPusat();
 
       const tabBtnPengajuan = document.getElementById('tab-btn-pengajuan');
       const tabBtnSpm = document.getElementById('tab-btn-spm');
