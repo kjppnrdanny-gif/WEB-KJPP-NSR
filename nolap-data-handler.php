@@ -795,9 +795,15 @@ if (!$currentUser) {
 if (!$currentUser) {
     $customToken = $_SERVER['HTTP_X_NSR_TOKEN'] ?? '';
     if ($customToken) {
-        $tHash = hash('sha256', strtoupper(trim($customToken)));
-        if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
-            $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
+        $trimmed = trim($customToken);
+        // Cek langsung jika input sudah berbentuk SHA-256 hash resmi
+        if (isset($OFFICIAL_TOKEN_HASHES[$trimmed])) {
+            $currentUser = $OFFICIAL_TOKEN_HASHES[$trimmed];
+        } else {
+            $tHash = hash('sha256', strtoupper($trimmed));
+            if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
+                $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
+            }
         }
     }
 }
@@ -813,7 +819,11 @@ if (!$currentUser) {
     exit;
 }
 
-$userRole = $currentUser['role'] ?? 'CABANG';
+// Normalisasi role pengguna untuk konsistensi RBAC backend
+$rawRole = $currentUser['role'] ?? 'CABANG';
+$isSuperOrPusat = in_array(strtoupper($rawRole), ['ADMIN_PUSAT', 'SUPER ADMIN', 'SUPER_ADMIN'], true) || !empty($currentUser['isSuperAdmin']) || !empty($currentUser['canApprove']);
+$isCabangRole = in_array(strtoupper($rawRole), ['CABANG', 'ADMIN_CABANG'], true) || !empty($currentUser['isCabang']);
+$userRole = $isSuperOrPusat ? 'ADMIN_PUSAT' : ($isCabangRole ? 'CABANG' : $rawRole);
 $userBranch = trim($currentUser['branch'] ?? 'Pusat');
 $userDisplayName = $currentUser['displayName'] ?? $currentUser['sub'] ?? 'Staf NSR';
 
@@ -1029,6 +1039,53 @@ function simpanDatabaseNoLap($dataFile, $records) {
     fclose($fp);
     @unlink($tempFile);
     return false;
+}
+
+/**
+ * Transaksi Atomik Database NoLap dengan Exclusive File Lock (flock LOCK_EX)
+ * Menjamin pembacaan data paling mutakhir di dalam lock (Anti-Race Condition & Anti-TOCTOU)
+ */
+function transaksiDatabaseNoLap($dataFile, callable $callback) {
+    $dir = dirname($dataFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0750, true);
+    }
+    $lockFile = $dir . '/.nolap_txn.lock';
+    $fpLock = fopen($lockFile, 'c+');
+    if (!$fpLock) {
+        return [
+            'success'   => false,
+            'http_code' => 500,
+            'error'     => 'Gagal inisialisasi file lock transaksi database'
+        ];
+    }
+
+    if (!flock($fpLock, LOCK_EX)) {
+        fclose($fpLock);
+        return [
+            'success'   => false,
+            'http_code' => 503,
+            'error'     => 'Sistem sibuk: Gagal memperoleh antrean lock transaksi atomik'
+        ];
+    }
+
+    try {
+        // 1. Baca data paling segar di dalam lock
+        $records = muatDatabaseNoLap($dataFile);
+
+        // 2. Eksekusi callback transaksional
+        $res = $callback($records);
+
+        // 3. Jika berhasil dan terdapat records yang dimutasi, simpan atomik
+        if (is_array($res) && !empty($res['success']) && isset($res['records'])) {
+            simpanDatabaseNoLap($dataFile, $res['records']);
+        }
+
+        return $res;
+    } finally {
+        flock($fpLock, LOCK_UN);
+        fclose($fpLock);
+    }
 }
 
 $records = muatDatabaseNoLap($dataFile);
@@ -1487,7 +1544,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // =========================================================================
-    // C. TINDAKAN APPROVAL / PENETAPAN NOMOR RESMI NOLAP
+    // C. TINDAKAN APPROVAL / PENETAPAN NOMOR RESMI NOLAP (ATOMIC TRANSACTION)
     // =========================================================================
     if ($action === 'approveRequest') {
         if ($userRole !== 'ADMIN_PUSAT') {
@@ -1500,51 +1557,140 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        $noReq = $payload['noPermintaan'] ?? '';
+        $noReq = trim($payload['noPermintaan'] ?? '');
         $noLap = trim($payload['nomorLaporan'] ?? '');
-        if (!$noLap) {
+        $tglTerbit = !empty($payload['tglTerbit']) ? trim($payload['tglTerbit']) : date('Y-m-d');
+        $catatanAdmin = trim($payload['catatanAdmin'] ?? 'Disetujui Admin Pusat.');
+
+        if (!$noReq || !$noLap) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Nomor laporan resmi wajib diisi']);
+            echo json_encode(['success' => false, 'error' => 'Nomor permintaan dan nomor laporan resmi wajib diisi']);
             exit;
         }
 
-        $targetIndex = -1;
-        foreach ($records as $idx => $item) {
-            if ($item['noPermintaan'] === $noReq) {
-                $targetIndex = $idx;
-                break;
+        // Eksekusi transaksi atomik terproteksi lock file eksklusif (flock LOCK_EX)
+        $txnResult = transaksiDatabaseNoLap($dataFile, function(&$freshRecords) use ($noReq, $noLap, $tglTerbit, $catatanAdmin) {
+            $targetIndex = -1;
+            foreach ($freshRecords as $idx => $item) {
+                if (($item['noPermintaan'] ?? '') === $noReq) {
+                    $targetIndex = $idx;
+                    break;
+                }
             }
-        }
 
-        if ($targetIndex === -1) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'error' => 'Data permohonan tidak ditemukan']);
-            exit;
-        }
+            if ($targetIndex === -1) {
+                return ['success' => false, 'http_code' => 404, 'error' => 'Data permohonan tidak ditemukan'];
+            }
 
-        // Proteksi Record VOID / Data Uji: Tidak dapat di-approve atau diterbitkan nomor laporan
-        if (($records[$targetIndex]['status'] ?? '') === 'VOID' || !empty($records[$targetIndex]['isTestRecord'])) {
-            http_response_code(400);
+            // A. Idempotency Check: Jika permohonan sudah disetujui dengan nomor yang sama
+            if (($freshRecords[$targetIndex]['status'] ?? '') === 'NOMOR DITERBITKAN' &&
+                strcasecmp(trim($freshRecords[$targetIndex]['nomorLaporan'] ?? ''), $noLap) === 0) {
+                return [
+                    'success'    => true,
+                    'http_code'  => 200,
+                    'idempotent' => true,
+                    'message'    => "Nomor laporan resmi '{$noLap}' sudah tercatat sah untuk permohonan {$noReq}.",
+                    'record'     => $freshRecords[$targetIndex]
+                ];
+            }
+
+            // Proteksi Record VOID / Data Uji
+            if (($freshRecords[$targetIndex]['status'] ?? '') === 'VOID' || !empty($freshRecords[$targetIndex]['isTestRecord'])) {
+                return [
+                    'success'   => false,
+                    'http_code' => 400,
+                    'error'     => "Permohonan {$noReq} berstatus VOID / DATA UJI dan tidak dapat diterbitkan nomor laporan resminya.",
+                    'violation' => 'VOID_RECORD_CANNOT_BE_APPROVED'
+                ];
+            }
+
+            // B. Validasi Anti-Duplikasi Nomor Laporan Resmi di Dalam Lock
+            foreach ($freshRecords as $r) {
+                if (($r['noPermintaan'] ?? '') !== $noReq &&
+                    !empty($r['nomorLaporan']) &&
+                    strcasecmp(trim($r['nomorLaporan']), $noLap) === 0 &&
+                    ($r['status'] ?? '') !== 'VOID' && ($r['status'] ?? '') !== 'DIBATALKAN') {
+                    return [
+                        'success'   => false,
+                        'http_code' => 409, // 409 Conflict
+                        'error'     => "Penetapan ditolak: Nomor laporan '{$noLap}' sudah digunakan oleh permohonan {$r['noPermintaan']} ({$r['namaKlien']}). Mohon gunakan nomor unik.",
+                        'violation' => 'DUPLICATE_REPORT_NUMBER',
+                        'existingRecord' => [
+                            'noPermintaan' => $r['noPermintaan'],
+                            'namaKlien'    => $r['namaKlien'] ?? '-',
+                            'cabang'       => $r['cabang'] ?? '-'
+                        ]
+                    ];
+                }
+            }
+
+            // C. Mutasi Data Otoritatif
+            $freshRecords[$targetIndex]['status'] = 'NOMOR DITERBITKAN';
+            $freshRecords[$targetIndex]['nomorLaporan'] = $noLap;
+            $freshRecords[$targetIndex]['tglTerbit'] = $tglTerbit;
+            $freshRecords[$targetIndex]['catatanAdmin'] = $catatanAdmin;
+            $freshRecords[$targetIndex]['authoritativeSSOT'] = 'CPANEL_PHP_NOLAP_DB';
+            $freshRecords[$targetIndex]['approvedAt'] = date('Y-m-d H:i:s');
+
+            return [
+                'success'   => true,
+                'http_code' => 200,
+                'message'   => "Nomor laporan resmi '{$noLap}' berhasil ditetapkan secara atomik oleh Admin Kantor Pusat.",
+                'record'    => $freshRecords[$targetIndex],
+                'records'   => $freshRecords
+            ];
+        });
+
+        http_response_code($txnResult['http_code'] ?? ($txnResult['success'] ? 200 : 500));
+        echo json_encode($txnResult);
+        exit;
+    }
+
+    // =========================================================================
+    // C.0. TINDAKAN REQUEST REVISION (Wewenang Admin Kantor Pusat)
+    // =========================================================================
+    if ($action === 'requestRevision') {
+        if ($userRole !== 'ADMIN_PUSAT') {
+            http_response_code(403);
             echo json_encode([
                 'success'   => false,
-                'error'     => "Permohonan {$noReq} berstatus VOID / DATA UJI dan tidak dapat disetujui atau diterbitkan nomor laporan resminya.",
-                'violation' => 'VOID_RECORD_CANNOT_BE_APPROVED'
+                'error'     => 'Akses Ditolak (403 Forbidden): Wewenang meminta revisi mutlak milik Admin Kantor Pusat.',
+                'violation' => 'UNAUTHORIZED_REVISION_ATTEMPT'
             ]);
             exit;
         }
 
-        $records[$targetIndex]['status'] = 'NOMOR DITERBITKAN';
-        $records[$targetIndex]['nomorLaporan'] = $noLap;
-        $records[$targetIndex]['tglTerbit'] = date('Y-m-d');
-        $records[$targetIndex]['catatanAdmin'] = $payload['catatanAdmin'] ?? 'Disetujui Admin Pusat.';
+        $noReq = trim($payload['noPermintaan'] ?? '');
+        $catatanAdmin = trim($payload['catatanAdmin'] ?? 'Status Dikembalikan untuk Revisi oleh Admin Pusat.');
 
-        simpanDatabaseNoLap($dataFile, $records);
+        $txnResult = transaksiDatabaseNoLap($dataFile, function(&$freshRecords) use ($noReq, $catatanAdmin) {
+            $targetIndex = -1;
+            foreach ($freshRecords as $idx => $item) {
+                if (($item['noPermintaan'] ?? '') === $noReq) {
+                    $targetIndex = $idx;
+                    break;
+                }
+            }
 
-        echo json_encode([
-            'success' => true,
-            'message' => "Nomor laporan resmi '{$noLap}' berhasil ditetapkan oleh Admin Kantor Pusat.",
-            'record'  => $records[$targetIndex]
-        ]);
+            if ($targetIndex === -1) {
+                return ['success' => false, 'http_code' => 404, 'error' => 'Data permohonan tidak ditemukan'];
+            }
+
+            $freshRecords[$targetIndex]['status'] = 'PERLU REVISI';
+            $freshRecords[$targetIndex]['catatanAdmin'] = $catatanAdmin;
+            $freshRecords[$targetIndex]['revisedAt'] = date('Y-m-d H:i:s');
+
+            return [
+                'success'   => true,
+                'http_code' => 200,
+                'message'   => "Permohonan '{$noReq}' telah berhasil dikembalikan untuk revisi.",
+                'record'    => $freshRecords[$targetIndex],
+                'records'   => $freshRecords
+            ];
+        });
+
+        http_response_code($txnResult['http_code'] ?? ($txnResult['success'] ? 200 : 500));
+        echo json_encode($txnResult);
         exit;
     }
 

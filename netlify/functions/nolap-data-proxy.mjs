@@ -409,7 +409,11 @@ export default async (req) => {
         );
       }
 
-      const { noPermintaan, nomorLaporan, catatanAdmin } = payload || {};
+      const dataApprove = payload || body.data || body || {};
+      const noPermintaan = dataApprove.noPermintaan || dataApprove.idPermohonan;
+      const nomorLaporan = dataApprove.nomorLaporan || dataApprove.nomorLaporanResmi;
+      const catatanAdmin = dataApprove.catatanAdmin || "";
+
       if (!nomorLaporan || typeof nomorLaporan !== "string" || !nomorLaporan.trim()) {
         return jsonResponse({ error: "Nomor laporan resmi wajib diisi" }, 400);
       }
@@ -443,6 +447,36 @@ export default async (req) => {
       return jsonResponse({
         success: true,
         message: `Nomor laporan resmi '${nomorLaporan}' berhasil ditetapkan oleh Admin Kantor Pusat.`,
+        record: targetItem
+      });
+    }
+
+    // C.1. TINDAKAN REQUEST REVISION (Wewenang ADMIN_PUSAT)
+    if (action === "requestRevision") {
+      if (userRole !== ROLES.ADMIN_PUSAT) {
+        return jsonResponse(
+          {
+            error: "Akses Ditolak (403 Forbidden): Wewenang meminta revisi pengajuan mutlak milik Admin Kantor Pusat.",
+            violation: "UNAUTHORIZED_REVISION_ATTEMPT"
+          },
+          403
+        );
+      }
+
+      const { noPermintaan, catatanAdmin } = payload || {};
+      const targetItem = activeData.find((i) => i.noPermintaan === noPermintaan);
+      if (!targetItem) {
+        return jsonResponse({ error: "Data permohonan tidak ditemukan" }, 404);
+      }
+
+      targetItem.status = "PERLU REVISI";
+      targetItem.catatanAdmin = catatanAdmin || "Status Dikembalikan untuk Revisi.";
+
+      await _saveNolapDatabase(activeData);
+
+      return jsonResponse({
+        success: true,
+        message: `Permohonan '${noPermintaan}' telah berhasil dikembalikan untuk revisi.`,
         record: targetItem
       });
     }

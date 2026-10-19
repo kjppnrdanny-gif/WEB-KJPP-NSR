@@ -64,6 +64,59 @@ function doGet(e) {
 }
 
 /**
+ * Endpoint HTTP POST: Mendukung Permintaan API JSON dari Aplikasi Web Eksternal
+ * Memungkinkan portal-absensi.html beroperasi via POST mandiri ke backend GAS.
+ */
+function doPost(e) {
+  try {
+    let payload = {};
+    if (e && e.postData && e.postData.contents) {
+      try {
+        payload = JSON.parse(e.postData.contents);
+      } catch (err) {
+        payload = (e && e.parameter) || {};
+      }
+    } else {
+      payload = (e && e.parameter) || {};
+    }
+
+    const action = payload.action || 'STATUS';
+    let res = {};
+
+    if (action === 'STATUS') {
+      res = { status: 'success', success: true, message: 'Backend GAS Absensi KJPP NSR Aktif.' };
+    } else if (action === 'cekKaryawan') {
+      const data = cekKaryawan(payload.nik);
+      res = { status: 'success', success: true, data: data };
+    } else if (action === 'mintaOTP') {
+      res = mintaOTP(payload.nik);
+    } else if (action === 'verifikasiOTP') {
+      res = verifikasiOTP(payload.nik, payload.otp);
+    } else if (action === 'simpanAbsensi') {
+      res = simpanAbsensi(payload);
+    } else if (action === 'simpanWFH') {
+      res = simpanWFH(payload);
+    } else if (action === 'simpanPengajuanCuti') {
+      res = simpanPengajuanCuti(payload);
+    } else if (action === 'getRiwayatPresensi') {
+      res = getRiwayatPresensi(payload.nik, payload.sessionToken);
+    } else {
+      res = { status: 'error', success: false, message: 'Aksi [' + action + '] tidak dikenali.' };
+    }
+
+    return ContentService.createTextOutput(JSON.stringify(res))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      success: false,
+      message: err.message || err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
  * Mendapatkan Spreadsheet Database Aktif
  */
 function getSS_() {
@@ -652,7 +705,6 @@ function simpanAbsensi(params) {
 
     const now = new Date();
     const tglStr = Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd');
-    const jamStr = Utilities.formatDate(now, 'Asia/Jakarta', 'HH:mm:ss') + ' WIB';
 
     // 3. Cek Double Submission
     if (cekDoubleAbsensi(nik, jenis, tglStr)) {
@@ -672,6 +724,8 @@ function simpanAbsensi(params) {
     let statusValidasi = 'VALID';
     let kantorTerdekat = '-';
     let jarakMeter = 0;
+    let targetTz = 'Asia/Jakarta';
+    let tzLabel = 'WIB';
 
     // 5. Geofencing Multi-Kantor & WFH
     if (lokasi === 'KANTOR') {
@@ -688,6 +742,11 @@ function simpanAbsensi(params) {
 
       kantorTerdekat = namaKantor;
       jarakMeter = minJarak;
+
+      if (namaKantor === 'Cabang Makassar') {
+        targetTz = 'Asia/Makassar';
+        tzLabel = 'WITA';
+      }
 
       if (minJarak > CONFIG.RADIUS_KANTOR_METER) {
         statusValidasi = 'TIDAK VALID';
@@ -715,6 +774,8 @@ function simpanAbsensi(params) {
       jarakMeter = 0;
       statusValidasi = 'VALID';
     }
+
+    const jamStr = Utilities.formatDate(now, targetTz, 'HH:mm:ss') + ' ' + tzLabel;
 
     // 6. Simpan ke Google Sheets dengan Pemetaan Header Dinamis
     const ss = getSS_();
@@ -970,4 +1031,106 @@ function simpanPengajuanCuti(params) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * 11. BACA RIWAYAT & REKAPITULASI PRESENSI KARYAWAN
+ * Parameter: nik, sessionToken
+ */
+function getRiwayatPresensi(nik, sessionToken) {
+  if (!nik) throw new Error('Harap cantumkan NIK Karyawan.');
+  const cleanNik = normalizeNikKey_(nik);
+
+  // Validasi Sesi OTP Server
+  validasiSesi_(sessionToken, cleanNik);
+
+  const ss = getSS_();
+  const riwayatAbsen = [];
+  const riwayatCuti = [];
+
+  // Baca Riwayat Presensi
+  const shAbsen = ss.getSheetByName(CONFIG.SHEET_ABSENSI);
+  if (shAbsen && shAbsen.getLastRow() >= 2) {
+    const lastCol = shAbsen.getLastColumn();
+    const headers = shAbsen.getRange(1, 1, 1, lastCol).getValues()[0];
+    const data = shAbsen.getRange(2, 1, shAbsen.getLastRow() - 1, lastCol).getValues();
+
+    let colTs = 0, colNik = 1, colJenis = 5, colStatus = 8, colJam = 9, colLok = 11;
+    for (let c = 0; c < headers.length; c++) {
+      const h = String(headers[c]).trim().toUpperCase();
+      if (h.indexOf('TIMESTAMP') !== -1) colTs = c;
+      else if (h === 'NIK' || h.indexOf('NIK') !== -1) colNik = c;
+      else if (h.indexOf('JENIS') !== -1) colJenis = c;
+      else if (h.indexOf('STATUS_GPS') !== -1 || h.indexOf('STATUS GPS') !== -1) colStatus = c;
+      else if (h.indexOf('JAM') !== -1) colJam = c;
+      else if (h.indexOf('VALIDASI') !== -1 || h.indexOf('KANTOR') !== -1) colLok = c;
+    }
+
+    for (let i = data.length - 1; i >= 0; i--) {
+      if (isNikMatch_(String(data[i][colNik]), cleanNik)) {
+        let tsStr = '';
+        const rawTs = data[i][colTs];
+        if (rawTs instanceof Date) {
+          tsStr = Utilities.formatDate(rawTs, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss');
+        } else {
+          tsStr = String(rawTs || '');
+        }
+
+        riwayatAbsen.push({
+          timestamp: tsStr,
+          jenis: String(data[i][colJenis] || ''),
+          jam: String(data[i][colJam] || ''),
+          status_validasi: String(data[i][colStatus] || '').includes('TIDAK') || String(data[i][colStatus] || '').includes('LUAR') ? 'TIDAK VALID' : 'VALID',
+          kantor_terdekat: String(data[i][colLok] || '')
+        });
+      }
+    }
+  }
+
+  // Baca Riwayat Cuti
+  const shCuti = ss.getSheetByName(CONFIG.SHEET_CUTI);
+  if (shCuti && shCuti.getLastRow() >= 2) {
+    const lastCol = shCuti.getLastColumn();
+    const headers = shCuti.getRange(1, 1, 1, lastCol).getValues()[0];
+    const data = shCuti.getRange(2, 1, shCuti.getLastRow() - 1, lastCol).getValues();
+
+    let colNik = 1, colKat = 4, colMulai = 5, colSelesai = 6, colStatus = 9;
+    for (let c = 0; c < headers.length; c++) {
+      const h = String(headers[c]).trim().toUpperCase();
+      if (h === 'NIK' || h.indexOf('NIK') !== -1) colNik = c;
+      else if (h.indexOf('JENIS') !== -1 || h.indexOf('KATEGORI') !== -1) colKat = c;
+      else if (h.indexOf('MULAI') !== -1) colMulai = c;
+      else if (h.indexOf('SELESAI') !== -1) colSelesai = c;
+      else if (h.indexOf('APPROVAL') !== -1 || h.indexOf('STATUS') !== -1) colStatus = c;
+    }
+
+    for (let i = data.length - 1; i >= 0; i--) {
+      if (isNikMatch_(String(data[i][colNik]), cleanNik)) {
+        riwayatCuti.push({
+          jenis_cuti: String(data[i][colKat] || ''),
+          tgl_mulai: String(data[i][colMulai] || ''),
+          tgl_selesai: String(data[i][colSelesai] || ''),
+          status: String(data[i][colStatus] || 'Menunggu Persetujuan')
+        });
+      }
+    }
+  }
+
+  const totalMasuk = riwayatAbsen.filter(function(r) { return r.jenis === 'Masuk'; }).length;
+  const totalValid = riwayatAbsen.filter(function(r) { return r.status_validasi === 'VALID'; }).length;
+
+  return {
+    status: 'success',
+    success: true,
+    nik: cleanNik,
+    rekap: {
+      total_presensi: riwayatAbsen.length,
+      total_masuk: totalMasuk,
+      total_valid: totalValid,
+      total_tidak_valid: riwayatAbsen.length - totalValid,
+      total_pengajuan_cuti: riwayatCuti.length
+    },
+    riwayat_absensi: riwayatAbsen.slice(0, 30),
+    riwayat_cuti: riwayatCuti
+  };
 }

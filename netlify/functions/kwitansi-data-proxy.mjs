@@ -29,6 +29,7 @@ const KWITANSI_QUEUE_KEY = "records_list";
 // Data Dummy Awal Sintetis untuk Kwitansi Staging
 const INITIAL_DUMMY_KWITANSI = [
   {
+    idKwitansi: "DRAFT-KW-001",
     idDraft: "DRAFT-KW-001",
     timestamp: "2026-10-09 10:00:00",
     cabang: "Cabang Bandung",
@@ -53,6 +54,7 @@ const INITIAL_DUMMY_KWITANSI = [
     catatanKeuangan: "Kwitansi disahkan oleh Keuangan Pusat."
   },
   {
+    idKwitansi: "DRAFT-KW-002",
     idDraft: "DRAFT-KW-002",
     timestamp: "2026-10-09 14:30:00",
     cabang: "Cabang Padang",
@@ -84,8 +86,12 @@ export async function _loadKwitansiDatabase() {
   try {
     const persisted = await kwitansiStore.get(KWITANSI_QUEUE_KEY);
     if (persisted && Array.isArray(persisted) && persisted.length > 0) {
-      dummyDatabaseKwitansi = persisted;
-      return persisted;
+      dummyDatabaseKwitansi = persisted.map(item => ({
+        ...item,
+        idKwitansi: item.idKwitansi || item.idDraft,
+        idDraft: item.idDraft || item.idKwitansi
+      }));
+      return dummyDatabaseKwitansi;
     }
   } catch (err) {
     if (err.message && err.message.includes("STORAGE_SIMULATED_FAILURE")) {
@@ -129,6 +135,12 @@ function extractToken(req) {
   const authHeader = req.headers.get("authorization") || "";
   if (authHeader.startsWith("Bearer ")) {
     return authHeader.slice(7).trim();
+  }
+
+  // 3. Fallback: X-NSR-Token header
+  const nsrTokenHeader = req.headers.get("x-nsr-token");
+  if (nsrTokenHeader) {
+    return nsrTokenHeader.trim();
   }
 
   return null;
@@ -247,8 +259,12 @@ export default async (req) => {
     const { action, payload } = body || {};
 
     // A. TINDAKAN SUBMIT DRAF KWITANSI (Cabang, Keuangan, Admin berwenang)
-    if (action === "submitDraft") {
-      if (!payload || !payload.klien || !payload.hargaDasar) {
+    if (action === "submitDraft" || action === "simpanPengajuanKwitansi") {
+      const dataPayload = payload || body.data || body || {};
+      const klienNama = dataPayload.klien || dataPayload.namaKlien;
+      const dpp = parseFloat(dataPayload.dpp) || parseFloat(dataPayload.hargaDasar) || parseFloat(dataPayload.nominalTagihan) || 0;
+
+      if (!klienNama || dpp <= 0) {
         return jsonResponse({ error: "Data pengajuan draf tidak lengkap" }, 400);
       }
 
@@ -257,33 +273,54 @@ export default async (req) => {
       if (userRole === ROLES.CABANG) {
         cabangPengaju = `Cabang ${userBranch}`;
       } else {
-        cabangPengaju = payload.cabang || "Kantor Pusat Jakarta";
+        cabangPengaju = dataPayload.cabang || "Kantor Pusat Jakarta";
       }
 
-      const idDraft = `DRAFT-KW-${String(activeData.length + 1).padStart(3, "0")}`;
-      const dpp = parseFloat(payload.hargaDasar) || 0;
-      const tarifPpn = parseFloat(payload.tarifPpn) || 0.11;
+      const seqNum = activeData.length + 1;
+      const idGen = dataPayload.idKwitansi || dataPayload.idDraft || `DRAFT-KW-${String(seqNum).padStart(3, "0")}`;
+      const tarifPpn = parseFloat(dataPayload.tarifPpn) || 0.11;
       const nominalPpn = Math.round(dpp * tarifPpn);
       const totalBayar = dpp + nominalPpn;
 
+      // Pengecekan Akumulasi SPK
+      const noSpk = String(dataPayload.noSpk || dataPayload.noSPK || '').trim();
+      const nilaiKontrakSpk = parseFloat(dataPayload.nilaiKontrakSpk) || 0;
+      let totalTertagih = 0;
+      if (noSpk) {
+        for (const r of activeData) {
+          if (r.status !== 'VOID' && r.status !== 'DIKEMBALIKAN' && String(r.noSpk || '').toLowerCase() === noSpk.toLowerCase()) {
+            totalTertagih += (parseFloat(r.hargaDasar) || parseFloat(r.dpp) || 0);
+          }
+        }
+      }
+      totalTertagih += dpp;
+      const isOverbilling = Boolean(nilaiKontrakSpk > 0 && totalTertagih > nilaiKontrakSpk);
+
       const newRecord = {
-        idDraft,
+        idKwitansi: idGen,
+        idDraft: idGen,
+        noPermintaan: dataPayload.noPermintaan || "",
+        noSpk: noSpk,
+        nilaiKontrakSpk: nilaiKontrakSpk,
         timestamp: new Date().toISOString().replace("T", " ").slice(0, 19),
         cabang: cabangPengaju,
-        namaPengaju: payload.namaPengaju || user.displayName || user.sub,
-        waPengaju: payload.waPengaju || "",
-        klien: String(payload.klien).trim(),
-        keterangan: String(payload.keterangan || "").trim(),
-        banyaknya: String(payload.banyaknya || "100% Pelunasan").trim(),
+        namaPengaju: dataPayload.namaPengaju || user.displayName || user.sub,
+        waPengaju: dataPayload.waPengaju || "",
+        klien: String(klienNama).trim(),
+        keterangan: String(dataPayload.keterangan || dataPayload.keperluan || "").trim(),
+        banyaknya: String(dataPayload.banyaknya || "100% Pelunasan").trim(),
         hargaDasar: dpp,
+        dpp: dpp,
         tarifPpn: tarifPpn,
         nominalPpn: nominalPpn,
         totalBayar: totalBayar,
-        terbilang: payload.terbilang || "",
-        rekeningTujuan: payload.rekeningTujuan || "MANDIRI",
-        rekeningResmi: payload.rekeningResmi || "Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)",
+        terbilang: dataPayload.terbilang || "",
+        rekeningTujuan: dataPayload.rekeningTujuan || "MANDIRI",
+        rekeningResmi: dataPayload.rekeningResmi || "Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)",
         status: "DIAJUKAN",
         isApproved: false,
+        isOverbilling: isOverbilling,
+        totalTertagih: totalTertagih,
         noKwitansiResmi: "",
         tglSah: "",
         tempatTerbit: "Jakarta",
@@ -299,6 +336,8 @@ export default async (req) => {
       return jsonResponse({
         success: true,
         message: "Draf permohonan kwitansi tagihan berhasil diajukan ke Keuangan Pusat.",
+        idKwitansi: idGen,
+        isOverbilling,
         record: newRecord
       });
     }
@@ -326,23 +365,40 @@ export default async (req) => {
         );
       }
 
-      const {
-        idDraft,
-        noKwitansiResmi,
-        namaPejabat,
-        jabatanPejabat,
-        subjabatanPejabat,
-        tempatTerbit,
-        catatanKeuangan
-      } = payload || {};
+      const dataApproval = payload || body.data || body || {};
+      const idKwitansi = dataApproval.idKwitansi;
+      const idDraft = dataApproval.idDraft;
+      const noKwitansiResmi = dataApproval.noKwitansiResmi;
+      const namaPejabat = dataApproval.namaPejabat;
+      const jabatanPejabat = dataApproval.jabatanPejabat;
+      const subjabatanPejabat = dataApproval.subjabatanPejabat;
+      const tempatTerbit = dataApproval.tempatTerbit;
+      const catatanKeuangan = dataApproval.catatanKeuangan;
+
+      const targetId = idKwitansi || idDraft;
+      if (!targetId) {
+        return jsonResponse({ error: "Identifikasi kwitansi wajib disertakan" }, 400);
+      }
 
       if (!noKwitansiResmi || typeof noKwitansiResmi !== "string" || !noKwitansiResmi.trim()) {
         return jsonResponse({ error: "Nomor kwitansi resmi wajib diisi" }, 400);
       }
 
-      const targetItem = activeData.find((i) => i.idDraft === idDraft);
+      const targetItem = activeData.find((i) => (i.idKwitansi === targetId || i.idDraft === targetId));
       if (!targetItem) {
         return jsonResponse({ error: "Data draf kwitansi tidak ditemukan" }, 404);
+      }
+
+      // Idempotency check: jika sudah berstatus disahkan dengan nomor kwitansi yang sama
+      if (targetItem.isApproved && targetItem.status === "DISAHKAN") {
+        if (!noKwitansiResmi || targetItem.noKwitansiResmi === noKwitansiResmi.trim()) {
+          return jsonResponse({
+            success: true,
+            idempotent: true,
+            message: `Kwitansi '${targetItem.noKwitansiResmi}' sudah disahkan sebelumnya (Idempotent).`,
+            record: targetItem
+          });
+        }
       }
 
       // Validasi Anti-Duplikasi Nomor Kwitansi Resmi
@@ -350,7 +406,7 @@ export default async (req) => {
         (i) =>
           i.noKwitansiResmi &&
           i.noKwitansiResmi.trim().toLowerCase() === noKwitansiResmi.trim().toLowerCase() &&
-          i.idDraft !== idDraft
+          (i.idKwitansi !== targetId && i.idDraft !== targetId)
       );
       if (isDuplicate) {
         return jsonResponse(
@@ -371,14 +427,84 @@ export default async (req) => {
       if (jabatanPejabat) targetItem.jabatanPejabat = jabatanPejabat;
       if (subjabatanPejabat) targetItem.subjabatanPejabat = subjabatanPejabat;
       if (catatanKeuangan) targetItem.catatanKeuangan = catatanKeuangan;
-      if (payload.rekeningTujuan) targetItem.rekeningTujuan = payload.rekeningTujuan;
-      if (payload.rekeningResmi) targetItem.rekeningResmi = payload.rekeningResmi;
+      if (dataApproval.rekeningTujuan) targetItem.rekeningTujuan = dataApproval.rekeningTujuan;
+      if (dataApproval.rekeningResmi) targetItem.rekeningResmi = dataApproval.rekeningResmi;
 
       await _saveKwitansiDatabase(activeData);
 
       return jsonResponse({
         success: true,
         message: `Kwitansi resmi '${noKwitansiResmi}' berhasil diverifikasi dan disahkan oleh Bagian Keuangan Pusat.`,
+        record: targetItem
+      });
+    }
+
+    // C. TINDAKAN PENGEMBALIAN DRAF / REVISI KE CABANG (KHUSUS KEUANGAN PUSAT)
+    if (action === "returnKwitansi") {
+      if (userRole === ROLES.CABANG) {
+        return jsonResponse(
+          {
+            error: "Akses Ditolak (403 Forbidden): Hanya Bagian Keuangan Pusat yang berhak mengembalikan draf tagihan.",
+            violation: "UNAUTHORIZED_RETURN_ATTEMPT"
+          },
+          403
+        );
+      }
+
+      if (userRole !== ROLES.KEUANGAN && userRole !== ROLES.ADMIN_PUSAT) {
+        return jsonResponse({ error: "Akses Ditolak: Wewenang mutlak milik Bagian Keuangan Kantor Pusat." }, 403);
+      }
+
+      const targetId = payload?.idKwitansi || payload?.idDraft;
+      if (!targetId) {
+        return jsonResponse({ error: "Identifikasi kwitansi wajib disertakan" }, 400);
+      }
+
+      const targetItem = activeData.find((i) => (i.idKwitansi === targetId || i.idDraft === targetId));
+      if (!targetItem) {
+        return jsonResponse({ error: "Data draf kwitansi tidak ditemukan" }, 404);
+      }
+
+      targetItem.status = "DIKEMBALIKAN";
+      targetItem.catatanRevisi = payload.catatanRevisi || "Draf dikembalikan untuk penyesuaian data penugasan.";
+      targetItem.returnedBy = user.displayName || user.sub;
+      targetItem.returnedAt = new Date().toISOString().replace("T", " ").slice(0, 19);
+
+      await _saveKwitansiDatabase(activeData);
+
+      return jsonResponse({
+        success: true,
+        message: `Draf kwitansi ${targetId} berhasil dikembalikan ke Cabang dengan status revisi.`,
+        record: targetItem
+      });
+    }
+
+    // D. TINDAKAN VOID / DIBATALKAN UNTUK RECORD UJI QA
+    if (action === "voidKwitansi") {
+      if (userRole !== ROLES.KEUANGAN && userRole !== ROLES.ADMIN_PUSAT) {
+        return jsonResponse({ error: "Akses Ditolak: Wewenang VOID mutlak milik Kantor Pusat." }, 403);
+      }
+
+      const targetId = payload?.idKwitansi || payload?.idDraft;
+      if (!targetId) {
+        return jsonResponse({ error: "Identifikasi kwitansi wajib disertakan" }, 400);
+      }
+
+      const targetItem = activeData.find((i) => (i.idKwitansi === targetId || i.idDraft === targetId));
+      if (!targetItem) {
+        return jsonResponse({ error: "Data draf kwitansi tidak ditemukan" }, 404);
+      }
+
+      targetItem.status = "VOID";
+      targetItem.isTestRecord = true;
+      targetItem.voidBy = user.displayName || user.sub;
+      targetItem.voidAt = new Date().toISOString().replace("T", " ").slice(0, 19);
+
+      await _saveKwitansiDatabase(activeData);
+
+      return jsonResponse({
+        success: true,
+        message: `Record ${targetId} ditandai sebagai VOID (Data Uji).`,
         record: targetItem
       });
     }

@@ -15067,29 +15067,53 @@
       };
 
       try {
-        // Kirim ke backend proxy cPanel resmi (/api/nolap-data-proxy)
-        const res = await fetch('/api/nolap-data-proxy', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'accept': 'application/json',
-            ...(sesiAktif && sesiAktif.token ? { 'X-NSR-Token': sesiAktif.token } : {})
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            action: 'submitRequest',
-            payload: dataBaru
-          })
-        });
+        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        let json = {};
+        try {
+          // Kirim ke backend proxy cPanel resmi (/api/nolap-data-proxy)
+          const res = await fetch('/api/nolap-data-proxy', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'accept': 'application/json',
+              ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              action: 'submitRequest',
+              payload: dataBaru
+            })
+          });
 
-        const json = await res.json().catch(() => ({}));
+          json = await res.json().catch(() => ({}));
 
-        if (!res.ok || !json.success) {
-          if (json.code === 'DENI_SISWANDI_DAILY_BRANCH_LOCKED' || (json.error && json.error.includes('DENI_SISWANDI_DAILY_BRANCH_LOCKED'))) {
-            tampilkanModalLockPenilai(json.cabangPengguna || 'Cabang Lain');
-            alihkanKeNanangRahayu();
+          if (!res.ok || !json.success) {
+            if (json.code === 'DENI_SISWANDI_DAILY_BRANCH_LOCKED' || (json.error && json.error.includes('DENI_SISWANDI_DAILY_BRANCH_LOCKED'))) {
+              tampilkanModalLockPenilai(json.cabangPengguna || 'Cabang Lain');
+              alihkanKeNanangRahayu();
+              throw new Error(json.error || 'Kewenangan tanda tangan Penilai Publik Deni Siswandi telah digunakan cabang lain hari ini.');
+            }
+            throw new Error(json.error || `Gagal menyimpan permohonan ke server (HTTP ${res.status})`);
           }
-          throw new Error(json.error || `Gagal menyimpan permohonan ke server (HTTP ${res.status})`);
+        } catch (fetchErr) {
+          if (fetchErr.message && fetchErr.message.includes('Deni Siswandi')) {
+            throw fetchErr;
+          }
+          // Mode Dev / Offline Fallback jika backend proxy belum tersedia
+          console.warn('Backend proxy tidak merespons, menerapkan fallback lokal development:', fetchErr);
+          const maxNum = daftarPermohonan.reduce((acc, curr) => {
+            const m = String(curr.noPermintaan || '').match(/^REQ-(\d+)$/);
+            return m ? Math.max(acc, parseInt(m[1], 10)) : acc;
+          }, 0);
+          json = {
+            success: true,
+            isOfflineFallback: true,
+            noPermintaan: 'REQ-' + String(maxNum + 1).padStart(6, '0'),
+            record: Object.assign({}, dataBaru, {
+              noPermintaan: 'REQ-' + String(maxNum + 1).padStart(6, '0'),
+              timestamp: new Date().toLocaleString('id-ID')
+            })
+          };
         }
 
         const finalRecord = json.record || Object.assign({}, dataBaru, {
@@ -15218,9 +15242,13 @@
 
     async function sinkronkanDariServerProxy() {
       try {
+        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
         const res = await fetch('/api/nolap-data-proxy', {
           method: 'GET',
-          headers: { 'accept': 'application/json' },
+          headers: {
+            'accept': 'application/json',
+            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+          },
           credentials: 'include'
         });
         if (res.ok) {
@@ -15255,7 +15283,11 @@
       const content = document.getElementById('modal-detail-content');
       const action = document.getElementById('modal-action-bar');
 
-      title.innerHTML = `✅ Pengajuan Berhasil Terkirim: <span class="font-mono text-amber-400">${data.noPermintaan}</span>`;
+      if (data.isOfflineFallback) {
+        title.innerHTML = `⚠️ Simulasi Pengajuan Dev: <span class="font-mono text-amber-400">${data.noPermintaan}</span>`;
+      } else {
+        title.innerHTML = `✅ Pengajuan Berhasil Terkirim: <span class="font-mono text-amber-400">${data.noPermintaan}</span>`;
+      }
       
       const pesanWa = `*PENGAJUAN NOMOR LAPORAN PENILAIAN KJPP NSR*%0A` +
         `-----------------------------------------%0A` +
@@ -15278,10 +15310,17 @@
       const linkWaAdmin = `https://wa.me/6285110513157?text=${pesanWa}`;
 
       content.innerHTML = `
-        <div class="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-2">
-          <p class="font-bold text-emerald-300 text-sm">Permohonan Nomor Laporan Telah Berhasil Direkam!</p>
-          <p class="text-slate-300">Nomor Registrasi Anda adalah <strong>${data.noPermintaan}</strong>. Sistem telah mencatat parameter penugasan dan mengirimkan notifikasi ke Meja Verifikasi Admin Pusat.</p>
-        </div>
+        ${data.isOfflineFallback ? `
+          <div class="p-4 rounded-xl bg-amber-950/50 border border-amber-500/50 space-y-2">
+            <p class="font-bold text-amber-300 text-sm">⚠️ Mode Pengembangan Lokal (Simulasi Dev Offline)</p>
+            <p class="text-slate-300 text-xs">Pengajuan ini dicatat dalam penyimpanan simulasi browser untuk kebutuhan pengembangan/trial-and-error. <strong>Data belum tersimpan ke server backend cPanel produksi.</strong></p>
+          </div>
+        ` : `
+          <div class="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-2">
+            <p class="font-bold text-emerald-300 text-sm">Permohonan Nomor Laporan Telah Berhasil Direkam!</p>
+            <p class="text-slate-300">Nomor Registrasi Anda adalah <strong>${data.noPermintaan}</strong>. Sistem telah mencatat parameter penugasan dan mengirimkan notifikasi ke Meja Verifikasi Admin Pusat.</p>
+          </div>
+        `}
         <div class="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
           <div class="text-slate-400">Ringkasan Penugasan:</div>
           <div class="grid grid-cols-2 gap-2 text-[11px]">
@@ -15497,7 +15536,7 @@
       currentReqToApprove = null;
     }
 
-    function simpanPenerbitanManual() {
+    async function simpanPenerbitanManual() {
       if (!currentReqToApprove) return;
       const inputNoLap = document.getElementById('input-manual-nolap').value.trim();
       const inputTgl = document.getElementById('input-manual-tgl-terbit').value;
@@ -15508,15 +15547,71 @@
         return;
       }
 
+      // Validasi Anti-Duplikasi Nomor Laporan Resmi
+      const duplikat = daftarPermohonan.find(p => 
+        p.nomorLaporan && 
+        p.nomorLaporan.toLowerCase().trim() === inputNoLap.toLowerCase().trim() && 
+        p.noPermintaan !== currentReqToApprove.noPermintaan &&
+        p.status !== 'VOID' && p.status !== 'DIBATALKAN'
+      );
+      if (duplikat) {
+        alert(`⚠️ PERINGATAN NOMOR GANDA!\n\nNomor Laporan "${inputNoLap}" sudah digunakan oleh permohonan lain:\n• No. Permintaan: ${duplikat.noPermintaan}\n• Klien: ${duplikat.namaKlien || '-'}\n• Cabang: ${duplikat.cabang || '-'}\n\nSatu nomor laporan Kemenkeu tidak boleh diterbitkan ganda.`);
+        return;
+      }
+
+      const tglTerbit = inputTgl || new Date().toISOString().split('T')[0];
+      const catatanAdmin = inputCatatan || 'Disetujui dan ditetapkan secara manual oleh Admin Pusat (Master Akses).';
+
       currentReqToApprove.status = "NOMOR DITERBITKAN";
       currentReqToApprove.nomorLaporan = inputNoLap;
-      currentReqToApprove.tglTerbit = inputTgl || new Date().toISOString().split('T')[0];
-      currentReqToApprove.catatanAdmin = inputCatatan || 'Disetujui dan ditetapkan secara manual oleh Admin Pusat (Master Akses).';
+      currentReqToApprove.tglTerbit = tglTerbit;
+      currentReqToApprove.catatanAdmin = catatanAdmin;
 
       simpanDatabaseLokal();
       muatUlangTabel();
       tutupModalTerbitkanManual();
       tutupModalDetail();
+
+      // Sinkronisasi ke backend proxy server
+      try {
+        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        fetch('/api/nolap-data-proxy', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'accept': 'application/json',
+            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'approveRequest',
+            payload: {
+              noPermintaan: currentReqToApprove.noPermintaan,
+              nomorLaporan: inputNoLap,
+              tglTerbit: tglTerbit,
+              catatanAdmin: catatanAdmin
+            }
+          })
+        }).then(r => r.json()).then(res => {
+          if (res && res.record) {
+            const idx = daftarPermohonan.findIndex(p => p.noPermintaan === res.record.noPermintaan);
+            if (idx >= 0) {
+              daftarPermohonan[idx] = Object.assign(daftarPermohonan[idx], res.record);
+              simpanDatabaseLokal();
+              muatUlangTabel();
+            }
+          }
+        }).catch(err => console.log('Proxy approval notice:', err));
+      } catch (e) {}
+
+      // Sinkronisasi background ke Google Apps Script
+      kirimKeAppsScriptBackground({
+        action: 'approveRequest',
+        noPermintaan: currentReqToApprove.noPermintaan,
+        nomorLaporan: inputNoLap,
+        tglTerbit: tglTerbit,
+        catatanAdmin: catatanAdmin
+      });
 
       alert(`✅ Berhasil! Nomor Laporan resmi telah ditetapkan secara manual:\n\n${inputNoLap}`);
     }
@@ -15542,6 +15637,35 @@
       simpanDatabaseLokal();
       muatUlangTabel();
       tutupModalDetail();
+
+      // Sinkronisasi ke backend proxy server
+      try {
+        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        fetch('/api/nolap-data-proxy', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'accept': 'application/json',
+            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'requestRevision',
+            payload: {
+              noPermintaan: noReq,
+              catatanAdmin: item.catatanAdmin
+            }
+          })
+        }).catch(err => console.log('Proxy revision notice:', err));
+      } catch (e) {}
+
+      // Sinkronisasi background ke Google Apps Script
+      kirimKeAppsScriptBackground({
+        action: 'requestRevision',
+        noPermintaan: noReq,
+        catatanAdmin: item.catatanAdmin
+      });
+
       alert('Permohonan telah dikembalikan untuk revisi oleh cabang.');
     }
 

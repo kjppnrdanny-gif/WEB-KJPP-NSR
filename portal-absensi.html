@@ -132,28 +132,10 @@
   <!-- ========================================================
        MAIN APPLICATION CONTAINER (MOBILE-FIRST 480PX - 640PX)
        ======================================================== -->
-  <main class="flex-1 w-full max-w-xl mx-auto px-3.5 sm:px-6 py-4 sm:py-6">
-
-    <!-- SEGMENTED NAVIGATION TABS -->
-    <div class="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-inner mb-4">
-      <button type="button" id="tab-btn-absen" onclick="gantiMode('absen')" class="tab-btn active py-2.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-transparent">
-        <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Presensi</span>
-      </button>
-
-      <button type="button" id="tab-btn-wfh" onclick="gantiMode('wfh')" class="tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent">
-        <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>Titik WFH</span>
-      </button>
-
-      <button type="button" id="tab-btn-cuti" onclick="gantiMode('cuti')" class="tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent">
-        <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        <span>Izin / Cuti</span>
-      </button>
-    </div>
+  <main class="flex-1 w-full max-w-xl mx-auto px-3.5 sm:px-6 py-4 sm:py-6 space-y-4">
 
     <!-- LIVE GPS RADAR & STATUS BANNER -->
-    <div id="gps-radar-box" class="rounded-2xl p-3.5 mb-4 border transition bg-slate-900/90 border-slate-800 shadow-md">
+    <div id="gps-radar-box" class="rounded-2xl p-3.5 border transition bg-slate-900/90 border-slate-800 shadow-md">
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
           <div class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-sky-950/80 border border-sky-500/30 text-sky-400 shrink-0">
@@ -185,6 +167,107 @@
       </div>
     </div>
 
+    <!-- ========================================================
+         KARTU AUTENTIKASI NIK & OTP GMAIL PRIBADI
+         ======================================================== -->
+    <div id="auth-card" class="rounded-2xl p-4 border transition bg-slate-900 border-slate-800 shadow-lg space-y-3">
+      <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-base shrink-0">🔐</span>
+          <div class="min-w-0">
+            <h2 class="text-xs font-bold text-white uppercase tracking-wide truncate">Autentikasi NIK &amp; OTP Gmail</h2>
+            <p class="text-[10px] text-slate-400 truncate">Verifikasi identitas karyawan via email pribadi resmi</p>
+          </div>
+        </div>
+        <span id="auth-status-pill" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30 shrink-0">Belum Terverifikasi</span>
+      </div>
+
+      <!-- FORM LOGIN NIK & OTP (JIKA BELUM TERVERIFIKASI) -->
+      <div id="auth-box-unverified" class="space-y-3">
+        <!-- Input NIK -->
+        <div>
+          <label for="auth-nik-input" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <span>1. Masukkan NIK Karyawan <span class="text-rose-400">*</span></span>
+            <span class="text-[10px] text-slate-400 font-normal">Contoh: NSR-2019-005</span>
+          </label>
+          <div class="flex gap-2">
+            <input type="text" id="auth-nik-input" placeholder="Ketik NIK Karyawan" autocomplete="off" class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition uppercase">
+            <button type="button" id="btn-minta-otp" onclick="eksekusiMintaOTP()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-md transition btn-tactile cursor-pointer disabled:opacity-50 whitespace-nowrap">
+              Kirim OTP
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview Info Karyawan / Masked Email -->
+        <div id="auth-nik-preview" class="hidden p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px]"></div>
+
+        <!-- Section Input 6-Digit OTP (Muncul setelah OTP berhasil dikirim) -->
+        <div id="auth-box-otp-input" class="hidden space-y-2.5 pt-2.5 border-t border-slate-800/80">
+          <div class="p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30 text-[11px] text-sky-200">
+            Kode OTP 6-digit dikirim ke: <strong id="auth-target-email" class="text-amber-300 font-mono">email</strong>. Berlaku 5 menit.
+          </div>
+          <div>
+            <label for="auth-otp-input" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              2. Masukkan 6-Digit Kode OTP <span class="text-rose-400">*</span>
+            </label>
+            <div class="flex gap-2">
+              <input type="text" id="auth-otp-input" maxlength="6" placeholder="• • • • • •" inputmode="numeric" autocomplete="one-time-code" class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-center text-sm font-mono font-bold tracking-widest focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400/20 transition">
+              <button type="button" id="btn-verif-otp" onclick="eksekusiVerifOTP()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs shadow-md transition btn-tactile cursor-pointer disabled:opacity-50 whitespace-nowrap">
+                Verifikasi
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+            <span>Tidak menerima kode?</span>
+            <button type="button" id="btn-resend-otp" onclick="eksekusiMintaOTP()" class="text-sky-400 hover:underline font-semibold cursor-pointer disabled:opacity-40 disabled:no-underline" disabled>
+              Kirim Ulang (<span id="cooldown-counter">60</span>s)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KARTU IDENTITAS TERVERIFIKASI (JIKA SESI AKTIF) -->
+      <div id="auth-box-verified" class="hidden space-y-2.5">
+        <div class="p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-sm shrink-0">
+              ✓
+            </div>
+            <div class="min-w-0">
+              <span id="verified-karyawan-nama" class="block font-bold text-white text-xs truncate">Nama Karyawan</span>
+              <span id="verified-karyawan-sub" class="block text-[10px] text-emerald-300 truncate">NIK &bull; Jabatan</span>
+              <span id="verified-karyawan-email" class="block text-[10px] text-slate-400 truncate">Email Terdaftar</span>
+            </div>
+          </div>
+          <button type="button" onclick="logoutSesi()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold border border-slate-700 transition shrink-0 btn-tactile cursor-pointer" title="Ganti NIK / Keluar dari sesi">
+            Ganti NIK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEGMENTED NAVIGATION TABS -->
+    <div class="grid grid-cols-4 gap-1 sm:gap-1.5 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-inner">
+      <button type="button" id="tab-btn-absen" onclick="gantiMode('absen')" class="tab-btn active py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 border border-transparent">
+        <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Presensi</span>
+      </button>
+
+      <button type="button" id="tab-btn-wfh" onclick="gantiMode('wfh')" class="tab-btn py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1 border border-transparent">
+        <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Titik WFH</span>
+      </button>
+
+      <button type="button" id="tab-btn-cuti" onclick="gantiMode('cuti')" class="tab-btn py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1 border border-transparent">
+        <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Izin/Cuti</span>
+      </button>
+
+      <button type="button" id="tab-btn-riwayat" onclick="gantiMode('riwayat')" class="tab-btn py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1 border border-transparent">
+        <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Riwayat</span>
+      </button>
+    </div>
 
     <!-- ========================================================
          TAB PANEL 1: PRESENSI KEHADIRAN ONLINE (DEFAULT)
@@ -193,7 +276,6 @@
 
       <!-- QUICK ACTION SELECTOR CARDS (MASUK / PULANG / DINAS) -->
       <div class="grid grid-cols-3 gap-2">
-        
         <!-- Kartu 1: Absen Masuk -->
         <button type="button" onclick="pilihKategoriAbsen('Masuk')" id="card-btn-masuk" class="kategori-card p-3 rounded-2xl border text-center transition btn-tactile flex flex-col items-center justify-center gap-1.5 bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-sm shadow-emerald-500/10">
           <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -220,40 +302,22 @@
           <span class="text-xs font-bold">Dinas Luar</span>
           <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-800 font-semibold text-slate-400">Inspeksi</span>
         </button>
-
       </div>
 
       <!-- MAIN FORM CARD -->
       <div class="card-glass rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
         
-        <!-- NIK INPUT -->
+        <!-- Identitas Karyawan Terverifikasi -->
         <div>
-          <label for="nik" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-            <span>1. NIK Karyawan <span class="text-rose-400">*</span></span>
-            <span class="text-[10px] font-normal text-slate-400 lowercase">otomatis verifikasi</span>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            1. Identitas Karyawan Presensi
           </label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </div>
-            <input 
-              type="text" 
-              id="nik" 
-              placeholder="Ketik NIK Karyawan (Contoh: NSR001)" 
-              autocomplete="off"
-              class="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition">
-            <div id="nik-spinner" class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center">
-              <svg class="animate-spin h-4 w-4 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-            </div>
-          </div>
-
-          <!-- VERIFIED EMPLOYEE PREVIEW CARD -->
-          <div id="infoKaryawan" class="hidden mt-2.5 p-3 rounded-2xl bg-gradient-to-r from-blue-950/80 to-slate-900 border border-blue-500/40 shadow-sm">
-            <!-- Injected by JS -->
+          <div id="presensi-id-badge" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-400">
+            Silakan verifikasi NIK &amp; OTP Gmail di atas terlebih dahulu.
           </div>
         </div>
 
-        <!-- HIDDEN / SELECT KATEGORI ASLI (Sync with cards) -->
+        <!-- HIDDEN KATEGORI ASLI (Sync with cards) -->
         <input type="hidden" id="jenis" value="Masuk">
 
         <!-- LOKASI PENUGASAN -->
@@ -268,13 +332,55 @@
             <select 
               id="lokasi" 
               class="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 text-white text-sm font-semibold focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition appearance-none cursor-pointer">
-              <option value="KANTOR">🏢 KANTOR PUSAT / CABANG RESMI</option>
-              <option value="WFH">🏡 WFH (LOKASI RUMAH TERDAFTAR)</option>
+              <option value="KANTOR">🏢 KANTOR PUSAT / CABANG RESMI (RADIUS 150M)</option>
+              <option value="WFH">🏡 WFH (LOKASI RUMAH TERDAFTAR - RADIUS 100M)</option>
               <option value="DINAS LUAR">📍 DINAS LUAR / INSPEKSI LAPANGAN</option>
             </select>
             <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
               <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
+          </div>
+        </div>
+
+        <!-- KAMERA SELFIE KEHADIRAN (PROGRESSIVE ENHANCEMENT & PRIVASI UU PDP) -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-sm shrink-0">📸</span>
+              <div class="min-w-0">
+                <span class="block text-xs font-bold text-slate-200 truncate">Foto Selfie Kehadiran (Opsional)</span>
+                <span class="block text-[10px] text-slate-400 truncate">Verifikasi wajah mandiri &bull; Kepatuhan UU PDP No. 27/2022</span>
+              </div>
+            </div>
+            <button type="button" id="btn-toggle-kamera" onclick="toggleKamera()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 text-[11px] font-bold border border-slate-700 transition shrink-0">
+              Buka Kamera
+            </button>
+          </div>
+
+          <!-- Video Stream & Capture Container (Hidden by default) -->
+          <div id="camera-container" class="hidden space-y-2 pt-2 border-t border-slate-800/80">
+            <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-slate-700">
+              <video id="camera-video" autoplay playsinline class="w-full h-full object-cover"></video>
+              <canvas id="camera-canvas" class="hidden"></canvas>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" id="btn-capture-selfie" onclick="ambilFotoSelfie()" class="flex-1 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition">
+                Ambil Foto
+              </button>
+              <button type="button" onclick="tutupKamera()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
+                Batal
+              </button>
+            </div>
+            <p class="text-[10px] text-slate-500 italic">Kamera hanya aktif sesaat dengan izin browser saat tombol ditekan, tidak ada perekaman latar belakang.</p>
+          </div>
+
+          <!-- Preview Foto Tersimpan -->
+          <div id="camera-preview-box" class="hidden flex items-center justify-between p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-xs text-emerald-300">
+            <div class="flex items-center gap-2 min-w-0">
+              <img id="camera-preview-img" src="" alt="Selfie Presensi" class="w-8 h-8 rounded-lg object-cover border border-emerald-400/50 shrink-0">
+              <span class="text-[11px] truncate">Foto kehadiran siap dilampirkan.</span>
+            </div>
+            <button type="button" onclick="hapusFotoSelfie()" class="text-rose-400 hover:underline text-[10px] font-semibold shrink-0">Hapus</button>
           </div>
         </div>
 
@@ -308,12 +414,10 @@
 
     </div>
 
-
     <!-- ========================================================
          TAB PANEL 2: PENDAFTARAN TITIK LOKASI WFH
          ======================================================== -->
     <div id="panelWFH" class="hidden space-y-4">
-      
       <div class="card-glass rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
         
         <div class="text-center pb-2 border-b border-slate-800">
@@ -321,21 +425,15 @@
             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
           <h2 class="text-sm sm:text-base font-extrabold text-white">Pendaftaran Titik Lokasi Rumah (WFH)</h2>
-          <p class="text-[11px] text-slate-400 mt-0.5">Kunci koordinat GPS tempat tinggal untuk validasi presensi WFH resmi.</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Kunci koordinat GPS tempat tinggal untuk validasi presensi WFH resmi (Radius 100m).</p>
         </div>
 
-        <!-- NIK WFH -->
+        <!-- Identitas Karyawan WFH -->
         <div>
-          <label for="nikWFH" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-            NIK Karyawan <span class="text-rose-400">*</span>
-          </label>
-          <input 
-            type="text" 
-            id="nikWFH" 
-            placeholder="Ketik NIK Karyawan" 
-            autocomplete="off"
-            class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition">
-          <div id="infoKaryawanWFH" class="hidden mt-2 p-3 rounded-2xl bg-slate-900 border border-blue-500/30 text-xs"></div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Identitas Karyawan</label>
+          <div id="wfh-id-badge" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-400">
+            Silakan verifikasi NIK &amp; OTP Gmail di atas terlebih dahulu.
+          </div>
         </div>
 
         <!-- ALAMAT WFH -->
@@ -383,15 +481,12 @@
         </div>
 
       </div>
-
     </div>
-
 
     <!-- ========================================================
          TAB PANEL 3: FORMULIR PERMOHONAN IZIN & CUTI
          ======================================================== -->
     <div id="panelCuti" class="hidden space-y-4">
-      
       <div class="card-glass rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
         
         <div class="text-center pb-2 border-b border-slate-800">
@@ -402,18 +497,12 @@
           <p class="text-[11px] text-slate-400 mt-0.5">Pengajuan izin tidak masuk, sakit, cuti tahunan, atau alasan penting.</p>
         </div>
 
-        <!-- NIK CUTI -->
+        <!-- Identitas Karyawan Cuti -->
         <div>
-          <label for="nikCuti" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-            NIK Karyawan <span class="text-rose-400">*</span>
-          </label>
-          <input 
-            type="text" 
-            id="nikCuti" 
-            placeholder="Ketik NIK Karyawan" 
-            autocomplete="off"
-            class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 text-white placeholder-slate-500 text-sm font-semibold focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition">
-          <div id="infoKaryawanCuti" class="hidden mt-2 p-3 rounded-2xl bg-slate-900 border border-blue-500/30 text-xs"></div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Identitas Karyawan</label>
+          <div id="cuti-id-badge" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-400">
+            Silakan verifikasi NIK &amp; OTP Gmail di atas terlebih dahulu.
+          </div>
         </div>
 
         <!-- KATEGORI CUTI -->
@@ -507,7 +596,61 @@
         </div>
 
       </div>
+    </div>
 
+    <!-- ========================================================
+         TAB PANEL 4: RIWAYAT & REKAPITULASI PRESENSI
+         ======================================================== -->
+    <div id="panelRiwayat" class="hidden space-y-4">
+      <div class="card-glass rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+        
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-sm sm:text-base font-extrabold text-white">Riwayat &amp; Rekapitulasi Presensi</h2>
+            <p class="text-[11px] text-slate-400 mt-0.5">Catatan kehadiran dan status permohonan izin/cuti karyawan.</p>
+          </div>
+          <button type="button" onclick="muatRiwayatPresensi()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 transition" title="Segarkan Data">
+            🔄
+          </button>
+        </div>
+
+        <!-- Rekap Ringkas Cards -->
+        <div class="grid grid-cols-4 gap-2 text-center text-xs">
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="block text-[10px] text-slate-400">Total Presensi</span>
+            <strong id="rekap-total-presensi" class="text-base text-white font-mono">0</strong>
+          </div>
+          <div class="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
+            <span class="block text-[10px] text-emerald-400">Hadir Valid</span>
+            <strong id="rekap-total-valid" class="text-base text-emerald-300 font-mono">0</strong>
+          </div>
+          <div class="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30">
+            <span class="block text-[10px] text-amber-400">Luar Radius</span>
+            <strong id="rekap-total-invalid" class="text-base text-amber-300 font-mono">0</strong>
+          </div>
+          <div class="p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/30">
+            <span class="block text-[10px] text-sky-400">Izin/Cuti</span>
+            <strong id="rekap-total-cuti" class="text-base text-sky-300 font-mono">0</strong>
+          </div>
+        </div>
+
+        <!-- List Riwayat Presensi -->
+        <div class="space-y-2">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wide">30 Presensi Terakhir</h3>
+          <div id="riwayat-presensi-list" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+            <p class="text-xs text-slate-400 text-center py-4">Verifikasi NIK &amp; OTP terlebih dahulu untuk melihat riwayat kehadiran.</p>
+          </div>
+        </div>
+
+        <!-- List Riwayat Cuti -->
+        <div class="space-y-2 pt-2 border-t border-slate-800">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wide">Permohonan Izin / Cuti</h3>
+          <div id="riwayat-cuti-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <p class="text-[11px] text-slate-500 text-center py-2">Belum ada permohonan cuti aktif.</p>
+          </div>
+        </div>
+
+      </div>
     </div>
 
   </main>
@@ -517,12 +660,12 @@
        ======================================================== -->
   <div id="modal-notif" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
-      <div id="modal-notif-icon" class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30">
-        <!-- Injected icon -->
+      <div id="modal-notif-icon" class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 font-bold text-lg">
+        ✓
       </div>
       <div>
         <h3 id="modal-notif-title" class="text-base font-extrabold text-white">Presensi Berhasil</h3>
-        <p id="modal-notif-desc" class="text-xs text-slate-300 mt-1 leading-relaxed">Data Anda telah tercatat dengan aman pada server presensi KJPP NSR.</p>
+        <p id="modal-notif-desc" class="text-xs text-slate-300 mt-1 leading-relaxed whitespace-pre-line">Data Anda telah tercatat dengan aman pada server presensi KJPP NSR.</p>
       </div>
       <button type="button" onclick="tutupModalNotif()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-600 transition">
         Tutup &amp; Selesai
@@ -546,21 +689,31 @@
   </footer>
 
   <!-- ========================================================
-       JAVASCRIPT LOGIC & GAS BRIDGE
+       JAVASCRIPT LOGIC & RESILIENT BACKEND CALLER
        ======================================================== -->
   <script>
     // Koordinat Referensi Kantor KJPP NSR
     const KANTOR_REF = [
       { nama: "Pusat Jakarta", lat: -6.287972658138783, lng: 106.82477864308436 },
-      { nama: "Cabang Bandung", lat: -6.938889, lng: 107.625833 },
-      { nama: "Cabang Padang", lat: -0.947222, lng: 100.363889 },
-      { nama: "Cabang Makassar", lat: -5.155833, lng: 119.412778 },
-      { nama: "Cabang Palembang", lat: -2.936667, lng: 104.721667 }
+      { nama: "Cabang Bandung", lat: -6.8597817, lng: 107.5604289 },
+      { nama: "Cabang Padang", lat: -0.94932, lng: 100.376055 },
+      { nama: "Cabang Makassar", lat: -5.1582, lng: 119.4095 },
+      { nama: "Cabang Palembang", lat: -2.929044, lng: 104.695981 }
     ];
 
+    // State Sesi Tersimpan HANYA di Memori JavaScript (Zero-LocalStorage untuk Token)
     let gpsUser = "";
     let userLat = null;
     let userLng = null;
+    let sessionToken = "";
+    let sessionNik = "";
+    let sessionUser = null;
+    let cooldownTimerId = null;
+    let cameraStream = null;
+    let selfiePhotoBase64 = null;
+
+    const BACKEND_API_URL = "/api/absensi-data-proxy";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec";
 
     // 1. DIGITAL CLOCK
     function updateClock() {
@@ -578,41 +731,127 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. MODE SWITCHER
+    // 2. MODAL NOTIFIKASI
+    function bukaModalNotif(title, desc, isSuccess = true) {
+      const modal = document.getElementById('modal-notif');
+      const icon = document.getElementById('modal-notif-icon');
+      const t = document.getElementById('modal-notif-title');
+      const d = document.getElementById('modal-notif-desc');
+
+      if (!isSuccess) {
+        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-rose-400 bg-rose-500/20 border border-rose-500/30 font-bold text-lg";
+        icon.textContent = "✕";
+      } else {
+        icon.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 font-bold text-lg";
+        icon.textContent = "✓";
+      }
+
+      t.textContent = title;
+      d.textContent = desc;
+      modal.classList.remove('hidden');
+    }
+
+    function tutupModalNotif() {
+      const modal = document.getElementById('modal-notif');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // 3. UNIFIED BACKEND CALLER (SSOT Proxy -> GAS POST -> google.script.run)
+    async function callBackend(action, data = {}) {
+      const payload = { action, ...data };
+      if (sessionToken) payload.sessionToken = sessionToken;
+
+      // 1. Coba Backend SSOT Proxy (cPanel / Netlify)
+      try {
+        const res = await fetch(`${BACKEND_API_URL}?action=${encodeURIComponent(action)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Session-Token': sessionToken || ''
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          return json;
+        }
+      } catch (err) {
+        console.warn(`[Proxy Fallback] Kendala pada ${BACKEND_API_URL}:`, err.message);
+      }
+
+      // 2. Coba Google Apps Script google.script.run jika berjalan di lingkungan GAS iframe
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return new Promise((resolve, reject) => {
+          const runner = google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject);
+
+          if (action === 'cekKaryawan') runner.cekKaryawan(data.nik);
+          else if (action === 'mintaOTP') runner.mintaOTP(data.nik);
+          else if (action === 'verifikasiOTP') runner.verifikasiOTP(data.nik, data.otp);
+          else if (action === 'simpanAbsensi') runner.simpanAbsensi(payload);
+          else if (action === 'simpanWFH') runner.simpanWFH(payload);
+          else if (action === 'simpanPengajuanCuti') runner.simpanPengajuanCuti(payload);
+          else if (action === 'getRiwayatPresensi') runner.getRiwayatPresensi(data.nik, sessionToken);
+          else reject(new Error('Aksi tidak dikenali di google.script.run'));
+        });
+      }
+
+      // 3. Coba Direct GAS Web App via POST
+      try {
+        const gasRes = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow',
+          body: JSON.stringify(payload)
+        });
+        if (gasRes.ok) {
+          const json = await gasRes.json();
+          return json;
+        }
+      } catch (gasErr) {
+        console.warn(`[GAS Direct Fallback] Kendala pada ${GAS_WEB_APP_URL}:`, gasErr.message);
+      }
+
+      throw new Error('Semua kanal backend (Proxy cPanel, GAS) tidak dapat dihubungi. Periksa koneksi internet Anda.');
+    }
+
+    // 4. MODE SWITCHER
     function gantiMode(mode) {
       const pAbsen = document.getElementById("panelAbsensi");
       const pWFH = document.getElementById("panelWFH");
       const pCuti = document.getElementById("panelCuti");
+      const pRiwayat = document.getElementById("panelRiwayat");
 
       const bAbsen = document.getElementById("tab-btn-absen");
       const bWFH = document.getElementById("tab-btn-wfh");
       const bCuti = document.getElementById("tab-btn-cuti");
+      const bRiwayat = document.getElementById("tab-btn-riwayat");
 
-      // Reset tabs style
-      [bAbsen, bWFH, bCuti].forEach(btn => {
-        btn.className = "tab-btn py-2.5 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5 border border-transparent";
+      [pAbsen, pWFH, pCuti, pRiwayat].forEach(p => { if (p) p.classList.add("hidden"); });
+      [bAbsen, bWFH, bCuti, bRiwayat].forEach(b => {
+        if (b) b.className = "tab-btn py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1 border border-transparent";
       });
 
       if (mode === 'wfh') {
-        pAbsen.classList.add("hidden");
-        pWFH.classList.remove("hidden");
-        pCuti.classList.add("hidden");
-        bWFH.className = "tab-btn active py-2.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-transparent";
+        if (pWFH) pWFH.classList.remove("hidden");
+        if (bWFH) bWFH.className = "tab-btn active py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 border border-transparent";
         updateWFHDisplay();
       } else if (mode === 'cuti') {
-        pAbsen.classList.add("hidden");
-        pWFH.classList.add("hidden");
-        pCuti.classList.remove("hidden");
-        bCuti.className = "tab-btn active py-2.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-transparent";
+        if (pCuti) pCuti.classList.remove("hidden");
+        if (bCuti) bCuti.className = "tab-btn active py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 border border-transparent";
+      } else if (mode === 'riwayat') {
+        if (pRiwayat) pRiwayat.classList.remove("hidden");
+        if (bRiwayat) bRiwayat.className = "tab-btn active py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 border border-transparent";
+        muatRiwayatPresensi();
       } else {
-        pAbsen.classList.remove("hidden");
-        pWFH.classList.add("hidden");
-        pCuti.classList.add("hidden");
-        bAbsen.className = "tab-btn active py-2.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-transparent";
+        if (pAbsen) pAbsen.classList.remove("hidden");
+        if (bAbsen) bAbsen.className = "tab-btn active py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 border border-transparent";
       }
     }
 
-    // 3. KATEGORI SELECTOR CARDS
+    // 5. KATEGORI SELECTOR CARDS
     function pilihKategoriAbsen(kategori) {
       document.getElementById("jenis").value = kategori;
 
@@ -634,84 +873,230 @@
       }
     }
 
-    // 4. CEK NIK KARYAWAN
-    ['nik', 'nikWFH', 'nikCuti'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('blur', function() {
-          const targetMap = {
-            'nik': 'infoKaryawan',
-            'nikWFH': 'infoKaryawanWFH',
-            'nikCuti': 'infoKaryawanCuti'
-          };
-          cekNIK(this.value.trim(), targetMap[id]);
-        });
-      }
-    });
+    // 6. UPDATE IDENTITAS BADGES DI SEMUA TAB
+    function updateIdentitasBadges() {
+      const badges = ['presensi-id-badge', 'wfh-id-badge', 'cuti-id-badge'];
+      badges.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '';
 
-    function cekNIK(nik, targetId) {
-      const info = document.getElementById(targetId);
-      if (!info) return;
+        if (sessionToken && sessionUser) {
+          el.innerHTML = `
+            <div class="flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <span class="block font-bold text-white text-xs truncate">${sessionUser.nama} (${sessionNik})</span>
+                <span class="block text-[11px] text-emerald-400 truncate">${sessionUser.jabatan} &bull; ${sessionUser.divisi}</span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
+                TERVERIFIKASI
+              </span>
+            </div>
+          `;
+        } else {
+          el.innerHTML = `<span class="text-slate-400">Silakan verifikasi NIK &amp; OTP Gmail di atas terlebih dahulu.</span>`;
+        }
+      });
+    }
 
+    // 7. INPUT NIK BLUR PREVIEW
+    const nikInputEl = document.getElementById('auth-nik-input');
+    if (nikInputEl) {
+      nikInputEl.addEventListener('blur', async function() {
+        const nik = this.value.trim().toUpperCase();
+        const preview = document.getElementById('auth-nik-preview');
+        if (!preview) return;
+
+        if (!nik) {
+          preview.classList.add('hidden');
+          return;
+        }
+
+        preview.classList.remove('hidden');
+        preview.innerHTML = `
+          <div class="flex items-center gap-2 text-slate-400 text-xs">
+            <svg class="animate-spin h-3.5 w-3.5 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+            <span>Memverifikasi NIK ke database master...</span>
+          </div>
+        `;
+
+        try {
+          const res = await callBackend('cekKaryawan', { nik });
+          if (res && (res.status === 'success' || res.success)) {
+            preview.innerHTML = `
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-400 font-bold">✓</span>
+                <div class="leading-tight min-w-0">
+                  <strong class="text-white block truncate">${res.nama} (${res.divisi || '-'})</strong>
+                  <span class="text-slate-300 text-[10px] block truncate">${res.maskedEmail ? 'Gmail Terdaftar: ' + res.maskedEmail : 'Email belum terdaftar'}</span>
+                </div>
+              </div>
+            `;
+          } else {
+            preview.innerHTML = `<span class="text-rose-400 text-xs">${res.message || 'NIK tidak ditemukan di database.'}</span>`;
+          }
+        } catch (err) {
+          preview.innerHTML = `<span class="text-slate-400 text-xs">${err.message || 'Koneksi terputus.'}</span>`;
+        }
+      });
+
+      nikInputEl.addEventListener('input', function() {
+        if (sessionToken && this.value.trim().toUpperCase() !== sessionNik) {
+          logoutSesi();
+        }
+      });
+    }
+
+    // 8. MINTA KODE OTP GMAIL
+    async function eksekusiMintaOTP() {
+      const input = document.getElementById('auth-nik-input');
+      const btn = document.getElementById('btn-minta-otp');
+      const resendBtn = document.getElementById('btn-resend-otp');
+
+      const nik = input ? input.value.trim().toUpperCase() : "";
       if (!nik) {
-        info.classList.add('hidden');
+        bukaModalNotif("Perhatian ⚠️", "Harap masukkan NIK Karyawan terlebih dahulu!", false);
+        if (input) input.focus();
         return;
       }
 
-      info.classList.remove('hidden');
-      info.innerHTML = `
-        <div class="flex items-center gap-2 text-slate-400 text-xs">
-          <svg class="animate-spin h-3.5 w-3.5 text-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-          <span>Memverifikasi NIK ke database master...</span>
-        </div>
-      `;
+      btn.disabled = true;
+      btn.textContent = "Mengirim...";
+      if (resendBtn) resendBtn.disabled = true;
 
-      // Cek apakah berjalan di dalam Google Apps Script
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(data) {
-            renderInfoKaryawan(info, data);
-          })
-          .withFailureHandler(function() {
-            renderInfoKaryawan(info, null);
-          })
-          .cekKaryawan(nik);
-      } else {
-        info.innerHTML = `
-          <div class="flex items-center gap-2 text-amber-300 text-xs">
-            <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
-            <span>Verifikasi NIK otomatis aktif saat dijalankan di aplikasi resmi Google Apps Script.</span>
-          </div>
-        `;
+      try {
+        const res = await callBackend('mintaOTP', { nik });
+        btn.disabled = false;
+        btn.textContent = "Kirim OTP";
+
+        document.getElementById('auth-box-otp-input').classList.remove('hidden');
+        document.getElementById('auth-target-email').textContent = res.maskedEmail || 'Gmail Anda';
+        const pill = document.getElementById('auth-status-pill');
+        pill.textContent = 'Menunggu OTP';
+        pill.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-sky-500/10 text-sky-300 border border-sky-500/30 shrink-0';
+
+        mulaiCooldownOTP(60);
+
+        bukaModalNotif(
+          "Kode OTP Berhasil Dikirim 📩",
+          res.pesan || `Kode 6-digit telah dikirimkan ke ${res.maskedEmail}. Harap periksa Kotak Masuk atau folder Spam.`
+        );
+
+        const otpInput = document.getElementById('auth-otp-input');
+        if (otpInput) {
+          if (res.test_otp_hint) otpInput.value = res.test_otp_hint; // Test helper
+          otpInput.focus();
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = "Kirim OTP";
+        bukaModalNotif("Permintaan OTP Gagal ❌", err.message || "Gagal mengirimkan kode OTP.", false);
       }
     }
 
-    function renderInfoKaryawan(container, data) {
-      if (data && data.nama) {
-        container.innerHTML = `
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-black text-xs shrink-0">
-              ✓
-            </div>
-            <div class="leading-tight min-w-0">
-              <span class="block font-black text-white text-xs uppercase">${data.nama}</span>
-              <span class="block text-[11px] text-slate-300 mt-0.5">${data.jabatan} &bull; <span class="text-amber-400 font-medium">${data.divisi}</span></span>
-            </div>
-          </div>
-        `;
-      } else {
-        container.innerHTML = `
-          <div class="flex items-center gap-2 text-rose-400 text-xs">
-            <span class="w-2 h-2 rounded-full bg-rose-400 shrink-0"></span>
-            <span>NIK tidak ditemukan dalam database Master Karyawan!</span>
-          </div>
-        `;
+    function mulaiCooldownOTP(detik) {
+      const resendBtn = document.getElementById('btn-resend-otp');
+      const counterEl = document.getElementById('cooldown-counter');
+      if (!resendBtn || !counterEl) return;
+
+      if (cooldownTimerId) clearInterval(cooldownTimerId);
+      resendBtn.disabled = true;
+      let sisa = detik;
+      counterEl.textContent = sisa;
+
+      cooldownTimerId = setInterval(function() {
+        sisa -= 1;
+        if (sisa <= 0) {
+          clearInterval(cooldownTimerId);
+          resendBtn.disabled = false;
+          counterEl.textContent = '0';
+        } else {
+          counterEl.textContent = sisa;
+        }
+      }, 1000);
+    }
+
+    // 9. VERIFIKASI KODE OTP
+    async function eksekusiVerifOTP() {
+      const nik = document.getElementById('auth-nik-input').value.trim().toUpperCase();
+      const otpInput = document.getElementById('auth-otp-input');
+      const btn = document.getElementById('btn-verif-otp');
+
+      const otp = otpInput ? otpInput.value.trim() : "";
+      if (!nik || !otp || otp.length !== 6) {
+        bukaModalNotif("Perhatian ⚠️", "Harap masukkan 6-digit kode OTP dengan lengkap!", false);
+        if (otpInput) otpInput.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Memverifikasi...";
+
+      try {
+        const res = await callBackend('verifikasiOTP', { nik, otp });
+        btn.disabled = false;
+        btn.textContent = "Verifikasi";
+
+        sessionToken = res.sessionToken;
+        sessionNik = nik;
+        sessionUser = {
+          nama: res.nama,
+          jabatan: res.jabatan,
+          divisi: res.divisi,
+          cabang: res.cabang,
+          maskedEmail: res.maskedEmail || ''
+        };
+
+        pasangStateTerverifikasi();
+        bukaModalNotif("Autentikasi Berhasil ✅", res.message || "Identitas Anda berhasil diverifikasi. Sesi aktif 12 jam.");
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = "Verifikasi";
+        bukaModalNotif("Verifikasi Gagal ❌", err.message || "Kode OTP salah atau telah kedaluwarsa.", false);
       }
     }
 
-    // 5. GPS GEOLOCATION ENGINE
+    function pasangStateTerverifikasi() {
+      document.getElementById('auth-box-unverified').classList.add('hidden');
+      document.getElementById('auth-box-verified').classList.remove('hidden');
+
+      const pill = document.getElementById('auth-status-pill');
+      pill.textContent = 'Sesi Aktif (12 Jam)';
+      pill.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 shrink-0';
+
+      if (sessionUser) {
+        document.getElementById('verified-karyawan-nama').textContent = sessionUser.nama;
+        document.getElementById('verified-karyawan-sub').textContent = sessionNik + ' • ' + (sessionUser.jabatan || '-') + ' • ' + (sessionUser.divisi || '-');
+        document.getElementById('verified-karyawan-email').textContent = 'Kantor: ' + (sessionUser.cabang || 'Pusat Jakarta');
+      }
+
+      updateIdentitasBadges();
+    }
+
+    function logoutSesi() {
+      sessionToken = "";
+      sessionNik = "";
+      sessionUser = null;
+
+      if (cooldownTimerId) clearInterval(cooldownTimerId);
+
+      document.getElementById('auth-box-unverified').classList.remove('hidden');
+      document.getElementById('auth-box-verified').classList.add('hidden');
+      document.getElementById('auth-box-otp-input').classList.add('hidden');
+
+      const otpInput = document.getElementById('auth-otp-input');
+      if (otpInput) otpInput.value = "";
+
+      const pill = document.getElementById('auth-status-pill');
+      pill.textContent = 'Belum Terverifikasi';
+      pill.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30 shrink-0';
+
+      updateIdentitasBadges();
+    }
+
+    // 10. GPS GEOLOCATION ENGINE
     function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371; // Radius bumi dalam km
+      const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
       const a = 
@@ -719,7 +1104,7 @@
         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
         Math.sin(dLon/2) * Math.sin(dLon/2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c; // km
+      return R * c;
     }
 
     function updateNearestOffice(lat, lng) {
@@ -757,20 +1142,13 @@
       const badge = document.getElementById('gps-status-badge');
       const accText = document.getElementById('gps-accuracy-text');
       const coordText = document.getElementById('gps-coord-text');
-      const radarIcon = document.getElementById('radar-icon-el');
 
       if (!navigator.geolocation) {
         if (badge) {
           badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30";
-          badge.innerText = "GPS Tidak Didukung";
+          badge.innerText = "GPS Tak Didukung";
         }
-        if (coordText) coordText.innerText = "Browser tidak mendukung Geolocation.";
         return;
-      }
-
-      if (badge) {
-        badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-400/20 text-amber-300 border border-amber-400/30";
-        badge.innerText = "Mendeteksi...";
       }
 
       navigator.geolocation.getCurrentPosition(
@@ -779,14 +1157,12 @@
           userLng = pos.coords.longitude;
           gpsUser = `${userLat},${userLng}`;
 
-          const acc = Math.round(pos.coords.accuracy);
-
           if (badge) {
             badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
             badge.innerText = "Terkunci ✅";
           }
-          if (accText) accText.innerText = `Akurasi: ±${acc}m`;
-          if (coordText) coordText.innerText = `Koordinat: ${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
+          if (accText) accText.innerText = `±${Math.round(pos.coords.accuracy)}m`;
+          if (coordText) coordText.innerText = gpsUser;
 
           updateNearestOffice(userLat, userLng);
           updateWFHDisplay();
@@ -796,112 +1172,152 @@
             badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30";
             badge.innerText = "GPS Gagal ❌";
           }
-          if (coordText) coordText.innerText = `Akses Lokasi Ditolak: ${err.message}`;
+          if (coordText) coordText.innerText = "Izin lokasi ditolak / sinyal tidak ditemukan.";
         },
-        { enableHighAccuracy: true, timeout: 25000, maximumAge: 10000 }
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
       );
     }
-    // Auto detect GPS saat dibuka
     ambilGPS();
 
-    // 6. FILE ATTACHMENT PREVIEW
-    const fileInput = document.getElementById('fileBukti');
-    if (fileInput) {
-      fileInput.addEventListener('change', function() {
-        const preview = document.getElementById('file-name-preview');
-        if (this.files && this.files[0]) {
-          const f = this.files[0];
-          const sz = (f.size / (1024 * 1024)).toFixed(2);
-          preview.innerText = `📄 ${f.name} (${sz} MB)`;
-          preview.className = "text-xs text-amber-300 font-bold";
-        }
-      });
-    }
+    // 11. PROGRESSIVE SELFIE CAMERA INTEGRATION (UU PDP COMPLIANT)
+    async function toggleKamera() {
+      const container = document.getElementById('camera-container');
+      const video = document.getElementById('camera-video');
 
-    // 8. MODAL NOTIFIKASI
-    function bukaModalNotif(title, desc, isSuccess = true) {
-      const modal = document.getElementById('modal-notif');
-      const iconBox = document.getElementById('modal-notif-icon');
-      const t = document.getElementById('modal-notif-title');
-      const d = document.getElementById('modal-notif-desc');
-
-      if (isSuccess) {
-        iconBox.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 bg-emerald-500/20 border border-emerald-500/30";
-        iconBox.innerHTML = `<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-      } else {
-        iconBox.className = "w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-rose-400 bg-rose-500/20 border border-rose-500/30";
-        iconBox.innerHTML = `<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+      if (!container.classList.contains('hidden')) {
+        tutupKamera();
+        return;
       }
 
-      t.innerText = title;
-      d.innerText = desc;
-      modal.classList.remove('hidden');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Fitur kamera tidak didukung pada peramban web ini.');
+        return;
+      }
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+        });
+        video.srcObject = cameraStream;
+        container.classList.remove('hidden');
+      } catch (err) {
+        alert('Tidak dapat mengakses kamera: ' + (err.message || 'Izin kamera ditolak.'));
+      }
     }
 
-    function tutupModalNotif() {
-      document.getElementById('modal-notif').classList.add('hidden');
+    function ambilFotoSelfie() {
+      const video = document.getElementById('camera-video');
+      const canvas = document.getElementById('camera-canvas');
+      const previewBox = document.getElementById('camera-preview-box');
+      const previewImg = document.getElementById('camera-preview-img');
+
+      if (!video || !canvas) return;
+
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      selfiePhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      if (previewImg) previewImg.src = selfiePhotoBase64;
+      if (previewBox) previewBox.classList.remove('hidden');
+
+      tutupKamera();
     }
 
-    // ========================================================
-    // 9. AKSI PRESENSI, WFH & CUTI (GAS BACKEND COMPLIANT)
-    // ========================================================
+    function tutupKamera() {
+      const container = document.getElementById('camera-container');
+      const video = document.getElementById('camera-video');
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      if (video) video.srcObject = null;
+      if (container) container.classList.add('hidden');
+    }
 
-    function kirimAbsensi() {
-      const nik = document.getElementById("nik").value.trim();
+    function hapusFotoSelfie() {
+      selfiePhotoBase64 = null;
+      const previewBox = document.getElementById('camera-preview-box');
+      if (previewBox) previewBox.classList.add('hidden');
+    }
+
+    // 12. KIRIM PRESENSI KEHADIRAN
+    async function kirimAbsensi() {
+      if (!sessionToken || !sessionNik) {
+        bukaModalNotif(
+          "Autentikasi Diperlukan ⚠️",
+          "Silakan masukkan NIK dan verifikasi kode OTP yang dikirim ke Gmail Anda terlebih dahulu sebelum mencatat presensi.",
+          false
+        );
+        const nikInp = document.getElementById('auth-nik-input');
+        if (nikInp) nikInp.focus();
+        return;
+      }
+
+      if (!gpsUser) {
+        bukaModalNotif("Perhatian ⚠️", "GPS belum terkunci. Klik tombol 'Segarkan GPS' untuk mengunci koordinat perangkat.", false);
+        ambilGPS();
+        return;
+      }
+
       const jenis = document.getElementById("jenis").value;
       const lokasi = document.getElementById("lokasi").value;
       const btn = document.getElementById("btnAbsen");
       const btnText = document.getElementById("btnAbsenText");
 
-      if (!nik) {
-        alert("Harap ketikkan NIK Karyawan terlebih dahulu!");
-        document.getElementById("nik").focus();
-        return;
-      }
-
-      if (!gpsUser) {
-        alert("GPS belum terkunci! Pastikan izin lokasi perangkat telah diaktifkan.");
-        ambilGPS();
-        return;
-      }
-
       btn.disabled = true;
       btnText.innerText = "Memproses Presensi...";
 
-      const payload = { nik: nik, jenis: jenis, lokasi: lokasi, gps: gpsUser };
+      const payload = {
+        nik: sessionNik,
+        jenis: jenis,
+        lokasi: lokasi,
+        gps: gpsUser,
+        selfieData: selfiePhotoBase64
+      };
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function() {
-            bukaModalNotif("Presensi Berhasil Dicatat! ✅", `Kehadiran ${jenis} untuk NIK ${nik} berhasil tersimpan ke sistem database resmi KJPP NSR.`);
-            btn.disabled = false;
-            btnText.innerText = "Simpan Presensi Kehadiran";
-          })
-          .withFailureHandler(function(err) {
-            bukaModalNotif("Gagal Mencatat Presensi ❌", err.message || "Terjadi kendala koneksi ke server presensi.", false);
-            btn.disabled = false;
-            btnText.innerText = "Simpan Presensi Kehadiran";
-          })
-          .simpanAbsensi(payload);
-      } else {
-        bukaModalNotif(
-          "Koneksi Google Apps Script Diperlukan ⚠️",
-          "Halaman ini merupakan pratinjau desain antarmuka. Pencatatan presensi nyata tersimpan langsung ke database Google Sheets via aplikasi resmi Google Apps Script (https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec).",
-          false
-        );
+      try {
+        const res = await callBackend('simpanAbsensi', payload);
         btn.disabled = false;
         btnText.innerText = "Simpan Presensi Kehadiran";
+
+        if (res && res.statusValidasi === 'VALID') {
+          bukaModalNotif(
+            "Presensi Berhasil Terverifikasi ✅",
+            `Kehadiran ${jenis} untuk ${res.nama || sessionNik} telah DICATAT & VALID.\nLokasi: ${lokasi}\nJarak kantor terdekat: ${res.jarak || 0} meter.\nJam: ${res.jam || '-'}`
+          );
+        } else if (res && res.statusValidasi === 'TIDAK VALID') {
+          bukaModalNotif(
+            "Presensi Dicatat (Status: TIDAK VALID) ⚠️",
+            `Kehadiran ${jenis} telah TERSIMPAN, namun berstatus TIDAK VALID karena berada di luar radius izin (${res.jarak || 0} meter).\nCatatan ini tetap tersimpan untuk ditinjau bagian HR.`,
+            false
+          );
+        } else {
+          bukaModalNotif("Presensi Berhasil", res.message || "Presensi kehadiran berhasil tersimpan.");
+        }
+
+        hapusFotoSelfie();
+      } catch (err) {
+        btn.disabled = false;
+        btnText.innerText = "Simpan Presensi Kehadiran";
+        bukaModalNotif("Gagal Mencatat Presensi ❌", err.message || "Terjadi kesalahan pada server presensi.", false);
       }
     }
 
-    function kirimWFH() {
-      const nik = document.getElementById("nikWFH").value.trim();
+    // 13. KIRIM PENDAFTARAN TITIK WFH
+    async function kirimWFH() {
+      if (!sessionToken || !sessionNik) {
+        bukaModalNotif("Autentikasi Diperlukan ⚠️", "Silakan verifikasi NIK & OTP Gmail terlebih dahulu.", false);
+        return;
+      }
+
       const alamat = document.getElementById("alamatWFH").value.trim();
       const btn = document.getElementById("btnDaftarWFH");
       const btnText = document.getElementById("btnDaftarWFHText");
 
-      if (!nik || !alamat) {
-        alert("Harap lengkapi NIK dan Alamat domisili rumah lengkap!");
+      if (!alamat) {
+        alert("Harap lengkapi Alamat domisili tempat tinggal!");
         return;
       }
 
@@ -914,35 +1330,31 @@
       btn.disabled = true;
       btnText.innerText = "Menyimpan Titik Rumah...";
 
-      const payload = { nik: nik, alamat: alamat, gps: gpsUser };
+      try {
+        const res = await callBackend('simpanWFH', {
+          nik: sessionNik,
+          alamat: alamat,
+          gps: gpsUser
+        });
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function() {
-            bukaModalNotif("Titik Rumah Berhasil Didaftarkan! 🏡", `Lokasi WFH untuk NIK ${nik} telah dikunci. Anda dapat memilih opsi WFH saat presensi.`);
-            btn.disabled = false;
-            btnText.innerText = "Kunci & Daftarkan Titik Rumah";
-            gantiMode('absen');
-          })
-          .withFailureHandler(function(err) {
-            bukaModalNotif("Pendaftaran Gagal ❌", err.message || "Gagal menyimpan koordinat rumah.", false);
-            btn.disabled = false;
-            btnText.innerText = "Kunci & Daftarkan Titik Rumah";
-          })
-          .simpanWFH(payload);
-      } else {
-        bukaModalNotif(
-          "Koneksi Google Apps Script Diperlukan ⚠️",
-          "Pendaftaran titik lokasi WFH resmi tersimpan langsung ke Google Sheets melalui aplikasi Google Apps Script (https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec).",
-          false
-        );
         btn.disabled = false;
         btnText.innerText = "Kunci & Daftarkan Titik Rumah";
+        bukaModalNotif("Titik Rumah Berhasil Didaftarkan! 🏡", res.message || "Titik lokasi WFH telah dikunci.");
+        gantiMode('absen');
+      } catch (err) {
+        btn.disabled = false;
+        btnText.innerText = "Kunci & Daftarkan Titik Rumah";
+        bukaModalNotif("Pendaftaran Gagal ❌", err.message || "Gagal menyimpan koordinat rumah.", false);
       }
     }
 
-    function kirimCuti() {
-      const nik = document.getElementById("nikCuti").value.trim();
+    // 14. KIRIM PENGAJUAN CUTI / IZIN
+    async function kirimCuti() {
+      if (!sessionToken || !sessionNik) {
+        bukaModalNotif("Autentikasi Diperlukan ⚠️", "Silakan verifikasi NIK & OTP Gmail terlebih dahulu.", false);
+        return;
+      }
+
       const jenisCuti = document.getElementById("jenisCuti").value;
       const tglMulai = document.getElementById("tglMulai").value;
       const tglSelesai = document.getElementById("tglSelesai").value;
@@ -951,13 +1363,13 @@
       const btn = document.getElementById("btnKirimCuti");
       const btnText = document.getElementById("btnKirimCutiText");
 
-      if (!nik || !tglMulai || !tglSelesai) {
-        alert("Harap lengkapi NIK serta rentang Tanggal Mulai dan Selesai!");
+      if (!tglMulai || !tglSelesai) {
+        alert("Harap lengkapi rentang Tanggal Mulai dan Selesai permohonan!");
         return;
       }
 
       const payload = {
-        nik: nik,
+        nik: sessionNik,
         jenisCuti: jenisCuti,
         tglMulai: tglMulai,
         tglSelesai: tglSelesai,
@@ -979,44 +1391,93 @@
         }
 
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
           payload.fileData = e.target.result;
           payload.fileName = file.name;
-          eksekusiKirimCuti(payload, btn, btnText);
+          await eksekusiKirimCuti(payload, btn, btnText);
         };
         reader.readAsDataURL(file);
       } else {
-        eksekusiKirimCuti(payload, btn, btnText);
+        await eksekusiKirimCuti(payload, btn, btnText);
       }
     }
 
-    function eksekusiKirimCuti(payload, btn, btnText) {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function() {
-            bukaModalNotif("Permohonan Cuti Terkirim! 📋", "Pengajuan izin/cuti berhasil terkirim. Status: Menunggu Persetujuan HR/Manajemen.");
-            btn.disabled = false;
-            btnText.innerText = "Kirimkan Pengajuan Permohonan";
-            const fileInput = document.getElementById("fileBukti");
-            if (fileInput) fileInput.value = "";
-            const preview = document.getElementById('file-name-preview');
-            if (preview) preview.innerText = "";
-            gantiMode('absen');
-          })
-          .withFailureHandler(function(err) {
-            bukaModalNotif("Pengajuan Gagal ❌", err.message || "Gagal mengirimkan formulir izin/cuti.", false);
-            btn.disabled = false;
-            btnText.innerText = "Kirimkan Pengajuan Permohonan";
-          })
-          .simpanPengajuanCuti(payload);
-      } else {
-        bukaModalNotif(
-          "Koneksi Google Apps Script Diperlukan ⚠️",
-          "Pengajuan izin/cuti resmi diproses langsung oleh Google Sheets melalui aplikasi Google Apps Script (https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec).",
-          false
-        );
+    async function eksekusiKirimCuti(payload, btn, btnText) {
+      try {
+        const res = await callBackend('simpanPengajuanCuti', payload);
         btn.disabled = false;
         btnText.innerText = "Kirimkan Pengajuan Permohonan";
+        bukaModalNotif("Permohonan Berhasil Terkirim! 📋", res.message || "Pengajuan izin/cuti berhasil terkirim. Status: Menunggu Persetujuan HR/Manajemen.");
+
+        const fileInput = document.getElementById("fileBukti");
+        if (fileInput) fileInput.value = "";
+        const preview = document.getElementById('file-name-preview');
+        if (preview) preview.innerText = "Pilih atau Seret Berkas ke Sini";
+        gantiMode('absen');
+      } catch (err) {
+        btn.disabled = false;
+        btnText.innerText = "Kirimkan Pengajuan Permohonan";
+        bukaModalNotif("Pengajuan Gagal ❌", err.message || "Gagal mengirimkan formulir izin/cuti.", false);
+      }
+    }
+
+    // 15. MUAT RIWAYAT & REKAP PRESENSI KARYAWAN
+    async function muatRiwayatPresensi() {
+      const listPresensi = document.getElementById('riwayat-presensi-list');
+      const listCuti = document.getElementById('riwayat-cuti-list');
+      if (!listPresensi) return;
+
+      if (!sessionToken || !sessionNik) {
+        listPresensi.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Verifikasi NIK &amp; OTP terlebih dahulu untuk melihat riwayat kehadiran.</p>`;
+        return;
+      }
+
+      listPresensi.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Memuat riwayat kehadiran dari server...</p>`;
+
+      try {
+        const res = await callBackend('getRiwayatPresensi', { nik: sessionNik });
+        if (res && res.rekap) {
+          document.getElementById('rekap-total-presensi').innerText = res.rekap.total_presensi || 0;
+          document.getElementById('rekap-total-valid').innerText = res.rekap.total_valid || 0;
+          document.getElementById('rekap-total-invalid').innerText = res.rekap.total_tidak_valid || 0;
+          document.getElementById('rekap-total-cuti').innerText = res.rekap.total_pengajuan_cuti || 0;
+        }
+
+        if (res && res.riwayat_absensi && res.riwayat_absensi.length > 0) {
+          listPresensi.innerHTML = res.riwayat_absensi.map(r => `
+            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+              <div class="min-w-0">
+                <span class="font-bold text-white block truncate">${r.jenis || 'Presensi'} &bull; <span class="text-amber-400 font-normal">${r.kantor_terdekat || '-'}</span></span>
+                <span class="text-[10px] text-slate-400 block">${r.jam || r.timestamp}</span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${r.status_validasi === 'VALID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+                ${r.status_validasi || 'VALID'}
+              </span>
+            </div>
+          `).join('');
+        } else {
+          listPresensi.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Belum ada catatan presensi tersimpan.</p>`;
+        }
+
+        if (listCuti) {
+          if (res && res.riwayat_cuti && res.riwayat_cuti.length > 0) {
+            listCuti.innerHTML = res.riwayat_cuti.map(c => `
+              <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                <div class="min-w-0">
+                  <span class="font-bold text-white block truncate">${c.jenis_cuti || c.jenisCuti}</span>
+                  <span class="text-[10px] text-slate-400 block">${c.tgl_mulai} s/d ${c.tgl_selesai}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30 shrink-0">
+                  ${c.status || 'Menunggu'}
+                </span>
+              </div>
+            `).join('');
+          } else {
+            listCuti.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Belum ada permohonan cuti aktif.</p>`;
+          }
+        }
+      } catch (err) {
+        listPresensi.innerHTML = `<p class="text-xs text-rose-400 text-center py-4">Gagal memuat riwayat: ${err.message}</p>`;
       }
     }
   </script>

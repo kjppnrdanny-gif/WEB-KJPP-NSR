@@ -61,7 +61,9 @@ const ALLOWED_FILES = [
   "api/auth.php",
   "pdp-consent-handler.php",
   "nolap-data-handler.php",
-  "kwitansi-data-handler.php"
+  "kwitansi-data-handler.php",
+  "surat-umum-data-handler.php",
+  "absensi-data-handler.php"
 ];
 
 // 2. ALLOWLIST DIREKTORI PUBLIK
@@ -190,11 +192,8 @@ export function buildProduction(options = {}) {
     filesToCopy = ["index.html"];
     console.log("⚡ Mode Isolasi Maksimum: HANYA index.html yang disalin ke paket deployment.");
   } else if (isCpanel) {
-    // Portal NoLap dan Kwitansi kini menyertakan tautan Google Apps Script Live baru
-    // Hanya portal-absensi.html (desain mockup) yang dikecualikan dari cPanel
-    filesToCopy = filesToCopy.filter((f) => f !== "portal-absensi.html");
-    console.log("🛡️ cPanel Protection Active: portal-absensi.html (mock) DIKECUALIKAN dari dist/");
-    console.log("   (Portal NoLap & Portal Kwitansi aktif dengan link GAS baru disertakan)");
+    // Seluruh portal operasional tervalidasi (JO, NoLap, Kwitansi, SU, Absensi) disertakan lengkap
+    console.log("🛡️ cPanel Build Active: Seluruh paket web & portal tervalidasi disertakan.");
   }
 
   // Salin File Allowlist (dengan sanitasi log sensitif & whitespace)

@@ -355,37 +355,22 @@ function doGet(e) {
   try {
     const params = (e && e.parameter) || {};
 
-    // Routing khusus modul Buku Agenda Surat Umum (SU) via GET
+    // 1. BLOKIR TOTAL PEMBACAAN DATA SURAT UMUM VIA HTTP GET
+    // Proteksi Keamanan: Dilarang keras membaca daftar surat umum, nomor, atau tautan arsip via GET publik.
+    // Pengambilan data internal wajib melalui backend proxy SSOT cPanel atau HTTP POST resmi berautentikasi.
     if (params.action === 'GET_SURAT_UMUM_LIST') {
-      const ss = getMasterSpreadsheet();
-      const targetYear = parseInt(params.target_year || params.targetYear, 10) || new Date().getFullYear() || 2026;
-      const resSU = bacaDaftarSuratUmum(ss, targetYear);
-      return respondJSON(resSU);
-    }
-
-    const forceRefresh = params.refresh === 'true';
-
-    const cache = CacheService.getScriptCache();
-    const cacheKey = 'DB_PENUGASAN_JO_NSR_CACHE';
-    let cachedPayload = null;
-
-    if (!forceRefresh) {
-      const cached = cache.get(cacheKey);
-      if (cached) {
-        try {
-          cachedPayload = JSON.parse(cached);
-        } catch (cErr) {
-          cachedPayload = null;
-        }
-      }
-    }
-
-    if (cachedPayload) {
-      return respondJSON(cachedPayload);
+      return respondJSON({
+        status: 'error',
+        success: false,
+        authenticated: false,
+        code: 'FORBIDDEN_GET',
+        message: 'Akses Ditolak: Modul Buku Agenda Surat Umum tidak melayani pembacaan data via HTTP GET publik. Gunakan backend proxy SSOT cPanel terautentikasi atau HTTP POST resmi.'
+      }, 403);
     }
 
     const ss = getMasterSpreadsheet();
-    
+    const forceRefresh = params.refresh === 'true';
+
     // Jika forceRefresh aktif, sinkronkan counter ke data riil Data_Penugasan
     if (forceRefresh) {
       try {
@@ -395,54 +380,28 @@ function doGet(e) {
       }
     }
 
-    // 1. Baca Counter dari Config_Counter
+    // 2. Baca Counter dari Config_Counter (Metadata publik)
     const counterData = bacaConfigCounter(ss);
 
-    // 2. Baca Submissions dari Data_Penugasan
-    const sheetData = ss.getSheetByName(CONFIG.SHEET_DATA) || ss.getSheetByName('Database_Penugasan') || buatSheetDatabase(ss);
-    const submissions = [];
-
-    if (sheetData && sheetData.getLastRow() > 1) {
-      const numRows = sheetData.getLastRow() - 1;
-      const numCols = sheetData.getLastColumn();
-      const rows = sheetData.getRange(2, 1, numRows, numCols).getValues();
-      const headers = sheetData.getRange(1, 1, 1, numCols).getValues()[0];
-
-      for (let i = 0; i < rows.length; i++) {
-        const item = {};
-        for (let j = 0; j < headers.length; j++) {
-          const colName = String(headers[j]).trim();
-          item[colName] = rows[i][j];
-        }
-        submissions.push(item);
-      }
-    }
-
-    const responsePayload = {
+    // 3. FAIL-CLOSED DEFAULT UNTUK HTTP GET:
+    // Sesuai standar keamanan Kemenkeu & UU PDP, HTTP GET publik HANYA mengembalikan status endpoint
+    // dan counter operasional publik, TANPA pernah mengekspos daftar penugasan (submissions) atau personil.
+    // Seluruh pengambilan data internal berwenang WAJIB dilakukan melalui HTTP POST berautentikasi (action: 'SYNC' / 'GET_DATA').
+    return respondJSON({
       status: 'success',
       success: true,
+      public: true,
+      authenticated: false,
       counter: counterData,
-      submissions: submissions,
-      masterPersonil: bacaMasterPersonil(ss),
-      totalCount: submissions.length,
-      timestamp: new Date().toISOString()
-    };
-
-    // Simpan ke CacheService
-    try {
-      cache.put(cacheKey, JSON.stringify(responsePayload), CONFIG.CACHE_TTL_SECONDS);
-    } catch (cErr) {
-      console.warn('Gagal menyimpan cache:', cErr);
-    }
-
-    return respondJSON(responsePayload);
+      message: 'Endpoint status OK. Data penugasan terproteksi otorisasi KJPP NSR.'
+    });
 
   } catch (error) {
     console.error('Fatal Error di doGet:', error);
     return respondJSON({
       status: 'error',
       success: false,
-      error: 'Gagal memuat data penugasan: ' + error.toString()
+      error: 'Gagal memuat status endpoint: ' + error.toString()
     }, 500);
   }
 }
@@ -547,7 +506,7 @@ function doPost(e) {
           status: 'success',
           success: true,
           counter: bacaConfigCounter(ss),
-          submissions: bacaSemuaSubmissions(ss),
+          submissions: bacaSemuaSubmissions(ss, authResult),
           masterPersonil: bacaMasterPersonil(ss)
         };
         break;
@@ -1353,9 +1312,9 @@ function bacaConfigCounter(ss) {
 }
 
 /**
- * Membaca semua submissions
+ * Membaca semua submissions dengan kontrol akses cabang (Strict Branch Isolation)
  */
-function bacaSemuaSubmissions(ss) {
+function bacaSemuaSubmissions(ss, authResult) {
   const sheetData = ss.getSheetByName(CONFIG.SHEET_DATA) || ss.getSheetByName('Database_Penugasan');
   if (!sheetData || sheetData.getLastRow() < 2) return [];
 
@@ -1370,6 +1329,27 @@ function bacaSemuaSubmissions(ss) {
     }
     list.push(item);
   }
+
+  // Jika authResult merupakan ADMIN_CABANG, saring agar cabang hanya dapat mengakses data miliknya sendiri
+  if (authResult && (authResult.isCabang || authResult.role === 'ADMIN_CABANG' || authResult.mode === 'CABANG') && !authResult.isSuperAdmin) {
+    const cabangLower = String(authResult.wilayah || authResult.wilayahLabel || '').toLowerCase();
+    const cleanWil = cabangLower.replace('kantor cabang', '').replace('kantor', '').trim();
+    const wilCode = String(authResult.wilayahCode || '').toLowerCase();
+    const kodeKantor = String(authResult.kodeKantor || authResult.kodeWilayah || '').toLowerCase();
+
+    return list.filter(item => {
+      const itemWil = String(item.Kantor_Wilayah || item.kantor_wilayah || item.Wilayah || '').toLowerCase();
+      const itemKode = String(item.Kode_Kantor || item.kode_kantor || '').toLowerCase();
+      const itemNoSpk = String(item.No_Lingkup_Penugasan || item.nomor_lp || '').toLowerCase();
+      const itemNoAdm = String(item.No_Adm_JO || item.nomor_adm || '').toLowerCase();
+
+      if (cleanWil && itemWil.includes(cleanWil)) return true;
+      if (wilCode && (itemNoSpk.includes(wilCode) || itemNoAdm.includes(wilCode))) return true;
+      if (kodeKantor && (itemKode === kodeKantor || itemWil.includes(kodeKantor))) return true;
+      return false;
+    });
+  }
+
   return list;
 }
 

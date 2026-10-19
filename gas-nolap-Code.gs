@@ -66,6 +66,10 @@ function doPost(e) {
     // Router Tindakan
     if (action === 'submitRequest') {
       return handleSubmitPengajuanNoLap(payload);
+    } else if (action === 'approveRequest') {
+      return handleApproveNoLap(payload);
+    } else if (action === 'requestRevision') {
+      return handleRequestRevision(payload);
     } else if (action === 'issueCabangDraftNoLap') {
       return handleIssueCabangDraftNoLap(payload);
     } else if (action === 'issueCabangDefinitiveNoLap') {
@@ -580,6 +584,126 @@ function sendEmailNotificationFinalizeBooking(targetRowData, rowIndex, fileLapor
   } catch (err) {
     Logger.log('Gagal mengirim email finalisasi: ' + err.toString());
   }
+}
+
+/**
+ * Handler Khusus untuk Approval dan Penetapan Nomor Laporan Resmi oleh Admin Pusat
+ * Memvalidasi keunikan nomor laporan, mencegah duplikasi, dan mengupdate baris di Sheet PENGAJUAN
+ */
+function handleApproveNoLap(data) {
+  const ss = SpreadsheetApp.openById(CONFIG_NOLAP.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG_NOLAP.SHEET_PENGAJUAN);
+  if (!sheet) {
+    throw new Error('Sheet "' + CONFIG_NOLAP.SHEET_PENGAJUAN + '" tidak ditemukan pada database.');
+  }
+
+  const noReq = (data.noPermintaan || '').toString().trim();
+  const noLap = (data.nomorLaporan || '').toString().trim();
+  const tglTerbit = (data.tglTerbit || Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd")).toString().trim();
+  const catatanAdmin = (data.catatanAdmin || 'Disetujui dan ditetapkan resmi oleh Admin Pusat.').toString().trim();
+
+  if (!noReq || !noLap) {
+    return jsonResponse({ success: false, error: 'Nomor Permintaan dan Nomor Laporan wajib diisi untuk approval resmi.' });
+  }
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    return jsonResponse({ success: false, error: 'Database pengajuan kosong.' });
+  }
+
+  const lastCol = Math.max(sheet.getLastColumn(), 53);
+  const dataRange = sheet.getRange(2, 1, lastRow - 1, lastCol);
+  const values = dataRange.getValues();
+
+  // 1. Validasi Anti-Duplikasi Nomor Laporan Resmi di Spreadsheet
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    const rowNoReq = (row[19] || '').toString().trim(); // Kolom 20 (T)
+    const rowNoLap = (row[21] || '').toString().trim(); // Kolom 22 (V)
+    const rowStatus = (row[20] || '').toString().trim().toUpperCase(); // Kolom 21 (U)
+
+    if (rowNoReq !== noReq && rowNoLap && rowNoLap.toLowerCase() === noLap.toLowerCase() && !rowStatus.includes('VOID') && !rowStatus.includes('DIBATALKAN')) {
+      return jsonResponse({
+        success: false,
+        error: 'Nomor Laporan "' + noLap + '" sudah terdaftar pada permohonan ' + rowNoReq + '. Duplikasi nomor laporan ditolak sistem.',
+        code: 'DUPLICATE_REPORT_NUMBER'
+      });
+    }
+  }
+
+  // 2. Cari baris permohonan yang akan di-approve
+  let targetRowIndex = -1;
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    const rowNoReq = (row[19] || '').toString().trim();
+    if (rowNoReq === noReq) {
+      targetRowIndex = i + 2; // header is row 1
+      break;
+    }
+  }
+
+  if (targetRowIndex === -1) {
+    return jsonResponse({ success: false, error: 'Data permohonan ' + noReq + ' tidak ditemukan di sheet PENGAJUAN.' });
+  }
+
+  // 3. Update Status (Kolom 21 U), Nomor Laporan (Kolom 22 V), Tanggal Terbit (Kolom 23 W), Catatan Admin (Kolom 33 AG)
+  sheet.getRange(targetRowIndex, 21).setValue('NOMOR DITERBITKAN');
+  sheet.getRange(targetRowIndex, 22).setValue(noLap);
+  sheet.getRange(targetRowIndex, 23).setValue(tglTerbit);
+  sheet.getRange(targetRowIndex, 33).setValue(catatanAdmin);
+
+  return jsonResponse({
+    success: true,
+    message: 'Nomor Laporan resmi ' + noLap + ' berhasil disetujui dan dicatat pada baris ke-' + targetRowIndex,
+    noPermintaan: noReq,
+    nomorLaporan: noLap,
+    tglTerbit: tglTerbit,
+    rowIndex: targetRowIndex
+  });
+}
+
+/**
+ * Handler Khusus untuk Pengembalian Permohonan Revisi oleh Admin Pusat
+ */
+function handleRequestRevision(data) {
+  const ss = SpreadsheetApp.openById(CONFIG_NOLAP.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG_NOLAP.SHEET_PENGAJUAN);
+  if (!sheet) {
+    throw new Error('Sheet "' + CONFIG_NOLAP.SHEET_PENGAJUAN + '" tidak ditemukan pada database.');
+  }
+
+  const noReq = (data.noPermintaan || '').toString().trim();
+  const catatanAdmin = (data.catatanAdmin || 'Status Dikembalikan untuk Revisi.').toString().trim();
+
+  if (!noReq) {
+    return jsonResponse({ success: false, error: 'Nomor Permintaan wajib diisi.' });
+  }
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ success: false, error: 'Database kosong.' });
+
+  const values = sheet.getRange(2, 20, lastRow - 1, 1).getValues(); // Kolom 20 (T): noPermintaan
+  let targetRowIndex = -1;
+  for (let i = 0; i < values.length; i++) {
+    if ((values[i][0] || '').toString().trim() === noReq) {
+      targetRowIndex = i + 2;
+      break;
+    }
+  }
+
+  if (targetRowIndex === -1) {
+    return jsonResponse({ success: false, error: 'Data permohonan ' + noReq + ' tidak ditemukan.' });
+  }
+
+  sheet.getRange(targetRowIndex, 21).setValue('PERLU REVISI');
+  sheet.getRange(targetRowIndex, 33).setValue(catatanAdmin);
+
+  return jsonResponse({
+    success: true,
+    message: 'Permohonan ' + noReq + ' berhasil dikembalikan untuk revisi.',
+    noPermintaan: noReq,
+    rowIndex: targetRowIndex
+  });
 }
 
 /**

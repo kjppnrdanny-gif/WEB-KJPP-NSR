@@ -112,28 +112,31 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <!-- ==================== NOTIFIKASI AKSES DITOLAK (HARD-GUARD NON-ADMIN) ==================== -->
-    <div id="card-akses-ditolak" data-alias="notice-akses-ditolak" class="hidden p-8 rounded-2xl bg-gradient-to-r from-rose-950/80 via-slate-900 to-slate-950 border-2 border-rose-500/40 shadow-2xl text-center space-y-4">
-      <div class="w-16 h-16 rounded-2xl bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center border border-rose-500/30">
-        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-      </div>
-      <h2 class="text-lg font-black text-rose-300 tracking-wide">AKSES DITOLAK: HAK AKSES KHUSUS ADMIN PUSAT</h2>
-      <p id="pesan-detail-penolakan" class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
-        Modul Buku Agenda Surat Umum (SU) dan Pengarsipan Resmi hanya dapat diakses oleh Admin Kantor Pusat Jakarta. Token Anda terdaftar dengan otorisasi terbatas.
-      </p>
-      <div class="pt-3 flex justify-center gap-3">
-        <button type="button" onclick="bukaModalLogin(true)" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition shadow-lg">
-          Ganti Token Otorisasi
-        </button>
-        <a href="portal-penugasan-jo.html" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700">
-          Kembali ke Portal SPK/JO
-        </a>
+    <div id="notice-akses-ditolak" data-alias="card-akses-ditolak" class="hidden p-8 rounded-2xl bg-gradient-to-r from-rose-950/80 via-slate-900 to-slate-950 border-2 border-rose-500/40 shadow-2xl text-center space-y-4">
+      <div id="card-akses-ditolak" class="w-full space-y-4">
+        <div class="w-16 h-16 rounded-2xl bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center border border-rose-500/30">
+          <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 class="text-lg font-black text-rose-300 tracking-wide">AKSES DITOLAK: HAK AKSES KHUSUS ADMIN PUSAT</h2>
+        <p id="pesan-detail-penolakan" class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
+          Modul Buku Agenda Surat Umum (SU) dan Pengarsipan Resmi hanya dapat diakses oleh Admin Kantor Pusat Jakarta. Token Anda terdaftar dengan otorisasi terbatas.
+        </p>
+        <div class="pt-3 flex justify-center gap-3">
+          <button type="button" onclick="bukaModalLogin(true)" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition shadow-lg">
+            Ganti Token Otorisasi
+          </button>
+          <a href="portal-penugasan-jo.html" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700">
+            Kembali ke Portal SPK/JO
+          </a>
+        </div>
       </div>
     </div>
 
     <!-- ==================== CONTAINER KONTEN MODUL AKTIF (ADMIN PUSAT ONLY) ==================== -->
-    <div id="konten-utama-surat-umum" data-alias="container-modul-aktif" class="hidden space-y-6">
+    <div id="container-modul-aktif" data-alias="konten-utama-surat-umum" class="hidden space-y-6">
+      <div id="konten-utama-surat-umum" class="space-y-6">
 
       <!-- ========================================================
            SEKSI 1: FORMULIR REGISTRASI & PENGAMBILAN NOMOR RESMI
@@ -389,6 +392,7 @@
       </div>
 
     </div>
+  </div>
 
   </main>
 
@@ -564,22 +568,27 @@
        LOGIKA SISTEM PORTAL SURAT UMUM (SU)
        ======================================================== -->
   <script>
-    // Shim ID kompatibilitas card-akses-ditolak / notice-akses-ditolak & konten-utama-surat-umum / container-modul-aktif
-    const _origGetElementById = document.getElementById.bind(document);
-    document.getElementById = function(id) {
-      if (id === 'notice-akses-ditolak' || id === 'card-akses-ditolak') {
-        return _origGetElementById('card-akses-ditolak') || _origGetElementById('notice-akses-ditolak');
-      }
-      if (id === 'container-modul-aktif' || id === 'konten-utama-surat-umum') {
-        return _origGetElementById('konten-utama-surat-umum') || _origGetElementById('container-modul-aktif');
-      }
-      return _origGetElementById(id);
-    };
-
     // ==========================================================
     // 1. KONFIGURASI GLOBAL ENDPOINT & HASHED TOKENS (SHA-256)
     // ==========================================================
+    const BACKEND_SU_PROXY_URL = "/api/surat-umum-data-proxy";
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF5SI6A6hj0yuPBVd8FlRNc7uaXqCNDtoe6RdvlPdL7t33ithJ6TFrHQEB11fxzMqF/exec";
+
+    function getSuratUmumAuthHeaders(extraHeaders = {}) {
+      const token = (typeof userSession !== 'undefined' && userSession && userSession.token) 
+        ? userSession.token 
+        : (localStorage.getItem('kjpp_token_auth') || localStorage.getItem('kjpp_session_token') || '');
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...extraHeaders
+      };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+        headers['X-NSR-Token'] = token;
+      }
+      return headers;
+    }
 
     // Kamus Token Resmi Ter-Obfuskasi (SHA-256 RBAC)
     const HASHED_TOKENS = {
@@ -976,10 +985,29 @@
       };
     }
 
-    function dapatkanSesiLogin() {
-      if (window.CURRENT_AUTH_SESSION && window.CURRENT_AUTH_SESSION.valid) {
-        return window.CURRENT_AUTH_SESSION;
+    function dapatkanSesiLogin(forceCheckStorage = false) {
+      const storedToken = sessionStorage.getItem('NSR_AUTH_TOKEN') ||
+                          sessionStorage.getItem('TOKEN_AUTH_NSR') ||
+                          sessionStorage.getItem('CURRENT_AUTH_TOKEN') ||
+                          sessionStorage.getItem('kjpp_token_internal') ||
+                          sessionStorage.getItem('kjpp_session_jo') ||
+                          localStorage.getItem('kjpp_token_auth') ||
+                          localStorage.getItem('kjpp_session_token');
+
+      if (!forceCheckStorage && window.CURRENT_AUTH_SESSION && window.CURRENT_AUTH_SESSION.valid) {
+        if (storedToken) {
+          const storedClean = String(storedToken).trim().toUpperCase();
+          const sessToken = String(window.CURRENT_AUTH_SESSION.token || window.CURRENT_AUTH_SESSION.rawToken || '').trim().toUpperCase();
+          if (!sessToken || storedClean === sessToken) {
+            return window.CURRENT_AUTH_SESSION;
+          }
+        } else {
+          return window.CURRENT_AUTH_SESSION;
+        }
       }
+
+      window.CURRENT_AUTH_SESSION = null;
+
       const rawSession = sessionStorage.getItem('NSR_USER_SESSION');
       if (rawSession) {
         try {
@@ -992,7 +1020,7 @@
             }
             const resolved = resolveUnifiedTokenSync(parsed.token || parsed.tokenHash || parsed.userToken);
             if (resolved) {
-              window.CURRENT_AUTH_SESSION = { ...resolved, ...parsed, valid: true };
+              window.CURRENT_AUTH_SESSION = { ...resolved, ...parsed, token: (parsed.token || parsed.userToken || ''), valid: true };
               return window.CURRENT_AUTH_SESSION;
             }
             const isCab = Boolean(parsed.isCabang || parsed.role === 'ADMIN_CABANG' || (parsed.mode === 'CABANG' && !parsed.isSuperAdmin));
@@ -1001,29 +1029,23 @@
           }
         } catch (_) {}
       }
-      const token = sessionStorage.getItem('NSR_AUTH_TOKEN') ||
-                    sessionStorage.getItem('TOKEN_AUTH_NSR') ||
-                    sessionStorage.getItem('CURRENT_AUTH_TOKEN') ||
-                    sessionStorage.getItem('kjpp_token_internal') ||
-                    sessionStorage.getItem('kjpp_session_jo') ||
-                    localStorage.getItem('kjpp_token_auth') ||
-                    localStorage.getItem('kjpp_session_token');
-      if (token) {
-        let t = token;
+
+      if (storedToken) {
+        let t = storedToken;
         if (typeof t === 'string' && t.startsWith('{')) {
           try {
             const p = JSON.parse(t);
             t = p.token || '';
             if (p.isCabang !== undefined) {
-              window.CURRENT_AUTH_SESSION = { ...p, valid: true };
+              window.CURRENT_AUTH_SESSION = { ...p, token: t, valid: true };
               return window.CURRENT_AUTH_SESSION;
             }
           } catch (_) {}
         }
         const resolved = resolveUnifiedTokenSync(t);
         if (resolved) {
-          window.CURRENT_AUTH_SESSION = resolved;
-          return resolved;
+          window.CURRENT_AUTH_SESSION = { ...resolved, token: t, rawToken: t, valid: true };
+          return window.CURRENT_AUTH_SESSION;
         }
       }
       return null;
@@ -1073,10 +1095,10 @@
       setupDragAndDrop();
     });
 
-    async function periksaSesiLogin() {
-      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
+    async function periksaSesiLogin(forceCheck = false) {
+      const auth = dapatkanSesiLogin(forceCheck);
       if (auth) {
-        terapkanSesiKeUI(auth, auth.token || '');
+        terapkanSesiKeUI(auth, auth.token || auth.rawToken || '');
         return;
       }
 
@@ -1108,7 +1130,8 @@
     window.resolveUnifiedTokenSync = resolveUnifiedTokenSync;
 
     function terapkanSesiKeUI(auth, rawToken) {
-      userSession = { ...auth, token: rawToken };
+      userSession = { ...auth, token: rawToken, rawToken: rawToken };
+      window.CURRENT_AUTH_SESSION = userSession;
 
       const badgeHeader = document.getElementById('badge-sesi-header');
       const dotSesi = document.getElementById('dot-sesi');
@@ -1225,7 +1248,9 @@
     function keluarSesi() {
       localStorage.removeItem('kjpp_token_auth');
       localStorage.removeItem('kjpp_session_token');
-      userSession = null;
+      sessionStorage.removeItem('NSR_USER_SESSION');
+      sessionStorage.removeItem('NSR_AUTH_TOKEN');
+      window.CURRENT_AUTH_SESSION = null;
       window.location.reload();
     }
 
@@ -1521,7 +1546,8 @@
       delete document.getElementById('no_surat').dataset.manualEdited;
       updateSaranNomorOtomatis();
 
-      // 2. Kirim Sinkronisasi ke Backend Google Apps Script
+      // 2. Kirim Sinkronisasi ke Backend SSOT Proxy (cPanel / Netlify) dengan Mirror GAS
+      let savedSuccessfully = false;
       try {
         const bodyReq = {
           action: 'CREATE_SURAT_UMUM',
@@ -1530,23 +1556,63 @@
           ...payloadSurat
         };
 
-        const res = await fetch(GAS_WEB_APP_URL, {
+        // A. Coba kirim ke Backend SSOT Proxy
+        const proxyRes = await fetch(BACKEND_SU_PROXY_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          redirect: 'follow',
+          headers: getSuratUmumAuthHeaders(),
           body: JSON.stringify(bodyReq)
         });
 
-        if (res.ok) {
-          const respData = await res.json();
-          if (respData && respData.status === 'success') {
-            console.log('Surat Umum tersimpan di Google Sheets master:', respData);
-          } else if (respData && respData.code === 'DUPLICATE_NUMBER') {
-            alert('Peringatan Server: ' + respData.message);
-          }
+        if (proxyRes.ok || proxyRes.status === 201 || proxyRes.status === 200) {
+          const respData = await proxyRes.json();
+          savedSuccessfully = true;
+          console.log('✓ Surat Umum tersimpan di Backend SSOT cPanel:', respData);
+        } else if (proxyRes.status === 409) {
+          const conflictData = await proxyRes.json();
+          // Rollback data lokal karena duplikasi di server
+          daftarSuratUmum = daftarSuratUmum.filter(x => x.No_Surat !== payloadSurat.No_Surat);
+          localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
+          renderTabelSuratUmum();
+          alert('⛔ DUPLIKASI NOMOR SURAT DITOLAK SERVER (409 Conflict):\n\n' + (conflictData.error || 'Nomor surat sudah digunakan sebelumnya di database server.'));
+          return;
+        } else {
+          throw new Error('Proxy HTTP ' + proxyRes.status);
         }
-      } catch (err) {
-        console.warn('Sinkronisasi cloud tertunda (disimpan lokal):', err);
+      } catch (proxyErr) {
+        console.warn('Backend proxy cPanel tidak merespons, mencoba jalur Google Apps Script:', proxyErr);
+        // B. Fallback ke Google Apps Script
+        try {
+          const bodyReq = {
+            action: 'CREATE_SURAT_UMUM',
+            token: userSession.token,
+            data: payloadSurat,
+            ...payloadSurat
+          };
+
+          const res = await fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            redirect: 'follow',
+            body: JSON.stringify(bodyReq)
+          });
+
+          if (res.ok) {
+            const respData = await res.json();
+            if (respData && respData.status === 'success') {
+              savedSuccessfully = true;
+              console.log('Surat Umum tersimpan di Google Sheets master:', respData);
+            } else if (respData && respData.code === 'DUPLICATE_NUMBER') {
+              // Rollback data lokal
+              daftarSuratUmum = daftarSuratUmum.filter(x => x.No_Surat !== payloadSurat.No_Surat);
+              localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
+              renderTabelSuratUmum();
+              alert('Peringatan Server: ' + respData.message);
+              return;
+            }
+          }
+        } catch (gasErr) {
+          console.warn('⚠️ Mode Pengembangan Lokal (Simulasi Dev Offline) — Data belum tersimpan ke server backend cPanel produksi:', gasErr);
+        }
       } finally {
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = originalBtnText;
@@ -1554,7 +1620,7 @@
     }
 
     // ==========================================================
-    // 6. SINKRONISASI BUKU AGENDA DENGAN GOOGLE APPS SCRIPT
+    // 6. SINKRONISASI BUKU AGENDA DENGAN BACKEND SSOT & GAS
     // ==========================================================
     async function muatDataSuratUmum(forceRefresh = false) {
       const btnRef = document.getElementById('btn-refresh');
@@ -1563,21 +1629,61 @@
         btnRef.classList.add('opacity-50');
       }
 
+      let loaded = false;
       try {
-        const url = `${GAS_WEB_APP_URL}?action=GET_SURAT_UMUM_LIST&target_year=2026${forceRefresh ? '&refresh=true' : ''}`;
-        const res = await fetch(url, { method: 'GET', redirect: 'follow' });
-        if (res.ok) {
-          const json = await res.json();
-          if (json && (json.status === 'success' || json.success) && Array.isArray(json.data) && json.data.length > 0) {
-            daftarSuratUmum = json.data;
-            localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
-            serverMaxSeq = json.maxSeq || hitungMaxSequenceTahun(2026);
-            updateSaranNomorOtomatis();
-            renderTabelSuratUmum();
+        // 1. Coba muat dari Backend SSOT Proxy
+        try {
+          const proxyUrl = `${BACKEND_SU_PROXY_URL}?target_year=2026${forceRefresh ? '&refresh=true' : ''}`;
+          const proxyRes = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: getSuratUmumAuthHeaders()
+          });
+
+          if (proxyRes.ok) {
+            const json = await proxyRes.json();
+            if (json && (json.status === 'success' || json.success) && Array.isArray(json.data) && json.data.length > 0) {
+              daftarSuratUmum = json.data;
+              localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
+              serverMaxSeq = json.maxSeq || hitungMaxSequenceTahun(2026);
+              updateSaranNomorOtomatis();
+              renderTabelSuratUmum();
+              loaded = true;
+            }
+          }
+        } catch (proxyErr) {
+          console.warn('Gagal memuat dari proxy SSOT cPanel, mencoba jalur GAS:', proxyErr);
+        }
+
+        // 2. Fallback ke Google Apps Script jika proxy gagal
+        if (!loaded) {
+          try {
+            const res = await fetch(GAS_WEB_APP_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              redirect: 'follow',
+              body: JSON.stringify({
+                action: 'GET_SURAT_UMUM_LIST',
+                token: userSession?.token || '',
+                tokenHash: userSession?.tokenHash || '',
+                target_year: 2026,
+                refresh: forceRefresh
+              })
+            });
+            if (res.ok) {
+              const json = await res.json();
+              if (json && (json.status === 'success' || json.success) && Array.isArray(json.data) && json.data.length > 0) {
+                daftarSuratUmum = json.data;
+                localStorage.setItem('kjpp_surat_umum_data', JSON.stringify(daftarSuratUmum));
+                serverMaxSeq = json.maxSeq || hitungMaxSequenceTahun(2026);
+                updateSaranNomorOtomatis();
+                renderTabelSuratUmum();
+                loaded = true;
+              }
+            }
+          } catch (err) {
+            console.warn('⚠️ Mode Pengembangan Lokal (Simulasi Dev Offline) — Menggunakan cache lokal untuk Buku Agenda:', err);
           }
         }
-      } catch (err) {
-        console.warn('Menggunakan cache lokal untuk Buku Agenda:', err);
       } finally {
         if (btnRef) {
           btnRef.disabled = false;
@@ -1915,23 +2021,49 @@
             file_base64: base64Data
           };
 
-          const res = await fetch(GAS_WEB_APP_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            redirect: 'follow',
-            body: JSON.stringify(reqPayload)
-          });
-
           let resultUrl = '';
           let resultId = '';
           let newStatus = '';
 
-          if (res.ok) {
-            const json = await res.json();
-            if (json && json.status === 'success') {
-              resultUrl = json.file_url;
-              resultId = json.file_id;
-              newStatus = json.status_arsip;
+          // A. Simpan metadata arsip ke backend SSOT proxy cPanel / Netlify
+          try {
+            const proxyRes = await fetch(BACKEND_SU_PROXY_URL, {
+              method: 'POST',
+              headers: getSuratUmumAuthHeaders(),
+              body: JSON.stringify(reqPayload)
+            });
+            if (proxyRes.ok) {
+              const pJson = await proxyRes.json();
+              if (pJson && (pJson.status === 'success' || pJson.success)) {
+                resultUrl = pJson.file_url;
+                resultId = pJson.file_id;
+                newStatus = pJson.status_arsip;
+              }
+            }
+          } catch (pErr) {
+            console.warn('Gagal upload ke backend proxy, mencoba GAS:', pErr);
+          }
+
+          // B. Fallback / mirror ke Google Apps Script Drive jika proxy belum mengembalikan URL
+          if (!resultUrl) {
+            try {
+              const res = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                redirect: 'follow',
+                body: JSON.stringify(reqPayload)
+              });
+
+              if (res.ok) {
+                const json = await res.json();
+                if (json && json.status === 'success') {
+                  resultUrl = json.file_url;
+                  resultId = json.file_id;
+                  newStatus = json.status_arsip;
+                }
+              }
+            } catch (gErr) {
+              console.warn('GAS drive upload tidak merespons:', gErr);
             }
           }
 

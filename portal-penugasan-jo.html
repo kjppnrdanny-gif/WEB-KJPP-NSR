@@ -1729,24 +1729,7 @@
     function getElAdm() {
       return document.getElementById('no_adm_jo') || document.getElementById('nomor_adm');
     }
-
-    const _origGetById = document.getElementById.bind(document);
-    document.getElementById = function(id) {
-      if (id === 'nomor_lp') return _origGetById('no_lingkup_penugasan') || _origGetById('nomor_lp');
-      if (id === 'nomor_adm') return _origGetById('no_adm_jo') || _origGetById('nomor_adm');
-      if (id === 'no_lingkup_penugasan') return _origGetById('no_lingkup_penugasan') || _origGetById('nomor_lp');
-      if (id === 'no_adm_jo') return _origGetById('no_adm_jo') || _origGetById('nomor_adm');
-      return _origGetById(id);
-    };
-
-    const _origQuerySelector = document.querySelector.bind(document);
-    document.querySelector = function(selector) {
-      if (selector === '#nomor_lp') return _origGetById('no_lingkup_penugasan') || _origQuerySelector(selector);
-      if (selector === '#nomor_adm') return _origGetById('no_adm_jo') || _origQuerySelector(selector);
-      if (selector === '#no_lingkup_penugasan') return _origGetById('no_lingkup_penugasan') || _origQuerySelector(selector);
-      if (selector === '#no_adm_jo') return _origGetById('no_adm_jo') || _origQuerySelector(selector);
-      return _origQuerySelector(selector);
-    };
+    // Catatan: Gunakan getElLp() dan getElAdm() untuk resolusi aman nomor SPK/JO tanpa mengubah DOM global.
 
     function extractSeqNumber(str) {
       if (!str) return 0;
@@ -2470,10 +2453,18 @@
       resetApprovalDualMethodState();
     }
 
-    // ==========================================================
-    // 2. KONFIGURASI INTEGRASI GOOGLE APPS SCRIPT & GOOGLE SPREADSHEET
-    // ==========================================================
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
+    // Environment Development & Staging Dummy Guard
+    const IS_DEV_ENV = Boolean(
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.protocol === 'file:' ||
+      window.localStorage.getItem('NSR_DEV_MODE') === 'true'
+    );
+
+    const PROD_GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
+    const GAS_WEB_APP_URL = (IS_DEV_ENV && window.localStorage.getItem('NSR_DEV_GAS_URL')) 
+      ? window.localStorage.getItem('NSR_DEV_GAS_URL')
+      : PROD_GAS_WEB_APP_URL;
 
     // Counter Sinkronisasi Server DB_PENUGASAN_JO_NSR (Baseline Aktif: 415)
     let serverCounter = {
@@ -3490,7 +3481,7 @@
       const btnSubmit = document.getElementById('label-btn-submit');
       const modeDesc = document.getElementById('mode-desc');
       const modeTitle = document.getElementById('mode-title');
-      const banner = document.getElementById('form-mode-banner');
+      const banner = document.getElementById('banner-mode-akses') || document.getElementById('form-mode-banner');
 
       if (mode === 'PRIVATE_CABANG') {
         if (radioPrivate) radioPrivate.checked = true;
@@ -3993,7 +3984,7 @@
       const labelRoleNotice = document.getElementById('label-role-notice');
       const formPenugasan = document.getElementById('form-penugasan');
       const containerDualMode = document.getElementById('container-dual-mode');
-      const formModeBanner = document.getElementById('form-mode-banner');
+      const formModeBanner = document.getElementById('banner-mode-akses') || document.getElementById('form-mode-banner');
       const navLinkKwitansi = document.getElementById('nav-link-kwitansi');
 
       const roleDisplayMap = {
@@ -6329,11 +6320,33 @@
     // ==========================================================
     async function kirimDataKeGasServer(action, projectObj) {
       if (!GAS_WEB_APP_URL) return null;
+
+      // Safe Dummy Dev Simulation:
+      // Di lingkungan dev lokal (file/localhost), jika tidak ada custom dev endpoint GAS yang diset secara eksplisit,
+      // simulasikan respon sukses dan cegah modifikasi terhadap spreadsheet produksi asli.
+      if (IS_DEV_ENV && !window.localStorage.getItem('NSR_DEV_GAS_URL')) {
+        console.log(`[DEV MODE] Simulated GAS [${action}] for:`, projectObj.id);
+        const simRes = {
+          status: 'success',
+          success: true,
+          mode: 'DEV_SIMULATED',
+          noAdmJO: projectObj.nomor_adm,
+          noLingkupPenugasan: projectObj.nomor_lp,
+          statusApproval: projectObj.status || 'APPROVED',
+          message: 'Data tersimpan di environment Development (Isolasi Aman Dummy).'
+        };
+        projectObj.is_dev_dummy = true;
+        simpanDatabaseLokal();
+        renderDashboardTabel();
+        return simRes;
+      }
+
       const payload44 = mapProjectToSheetPayload(projectObj, userSession);
       try {
         const bodyData = {
           action: action,
           token: userSession.token || '',
+          tokenHash: userSession.tokenHash || '',
           projectId: projectObj.id,
           idPenugasan: projectObj.id,
           data: payload44,
@@ -9364,9 +9377,31 @@
       }
 
       try {
-        const res = await fetch(GAS_WEB_APP_URL, { method: 'GET', redirect: 'follow' });
-        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-        const data = await res.json();
+        const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+        let data = null;
+
+        // Keamanan: Hindari mengirimkan token via query string URL GET.
+        // Jika terautentikasi, gunakan POST dengan payload action: 'SYNC' di body request.
+        if (auth && (auth.token || auth.tokenHash)) {
+          const res = await fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            redirect: 'follow',
+            body: JSON.stringify({
+              action: 'SYNC',
+              token: auth.token || '',
+              tokenHash: auth.tokenHash || '',
+              wilayah: auth.wilayah || ''
+            })
+          });
+          if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+          data = await res.json();
+        } else {
+          // Jika unauthenticated / anonim, gunakan GET bersih (hanya metadata counter publik)
+          const res = await fetch(GAS_WEB_APP_URL, { method: 'GET', redirect: 'follow' });
+          if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+          data = await res.json();
+        }
 
         if (data && (data.status === 'success' || data.success)) {
           // 1. Update Counter
@@ -9387,7 +9422,17 @@
           if (Array.isArray(remoteList) && remoteList.length > 0) {
             const mappedRemote = remoteList.map(mapSheetRowToProject).filter(Boolean);
 
-            mappedRemote.forEach(remItem => {
+            // Filter cabang jika sesi aktif adalah cabang (perlindungan lapis ganda di frontend)
+            const filteredRemote = (auth && auth.isCabang)
+              ? mappedRemote.filter(item => {
+                  const wilItem = (item.kantor_wilayah || item.wilayah || '').toLowerCase();
+                  const short = (auth.wilayahCode || '').toLowerCase();
+                  const targetWil = (auth.wilayahLabel || auth.wilayah || '').toLowerCase().replace('kantor cabang', '').trim();
+                  return (targetWil && wilItem.includes(targetWil)) || (short && (item.nomor_lp || '').toLowerCase().includes(short));
+                })
+              : mappedRemote;
+
+            filteredRemote.forEach(remItem => {
               const idx = projectDatabase.findIndex(p => p.id === remItem.id || (p.nomor_lp && p.nomor_lp === remItem.nomor_lp && remItem.nomor_lp !== 'Menunggu Otorisasi Pusat'));
               if (idx >= 0) {
                 projectDatabase[idx] = Object.assign(projectDatabase[idx], remItem);

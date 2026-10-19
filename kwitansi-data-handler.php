@@ -786,9 +786,19 @@ if (!$currentUser) {
     }
 
     if ($rawToken) {
-        $tokenHash = hash('sha256', $rawToken);
-        if (isset($OFFICIAL_TOKEN_HASHES[$tokenHash])) {
-            $currentUser = $OFFICIAL_TOKEN_HASHES[$tokenHash];
+        $trimmed = trim($rawToken);
+        if (isset($OFFICIAL_TOKEN_HASHES[$trimmed])) {
+            $currentUser = $OFFICIAL_TOKEN_HASHES[$trimmed];
+        } else {
+            $tokenHash = hash('sha256', $trimmed);
+            if (isset($OFFICIAL_TOKEN_HASHES[$tokenHash])) {
+                $currentUser = $OFFICIAL_TOKEN_HASHES[$tokenHash];
+            } else {
+                $upperHash = hash('sha256', strtoupper($trimmed));
+                if (isset($OFFICIAL_TOKEN_HASHES[$upperHash])) {
+                    $currentUser = $OFFICIAL_TOKEN_HASHES[$upperHash];
+                }
+            }
         }
     }
 }
@@ -803,10 +813,14 @@ if (!$currentUser) {
     exit;
 }
 
-$userRole = $currentUser['role'] ?? 'CABANG';
-$userBranch = $currentUser['branch'] ?? 'Pusat';
+// Normalisasi Role Pengguna untuk Konsistensi Keuangan & RBAC
+$rawRole = $currentUser['role'] ?? 'CABANG';
+$isSuperOrPusat = in_array(strtoupper($rawRole), ['ADMIN_PUSAT', 'SUPER ADMIN', 'SUPER_ADMIN', 'KEUANGAN', 'ADMIN'], true) || !empty($currentUser['isSuperAdmin']) || !empty($currentUser['canApprove']);
+$isCabangRole = in_array(strtoupper($rawRole), ['CABANG', 'ADMIN_CABANG'], true) || !empty($currentUser['isCabang']);
+$userRole = $isSuperOrPusat ? 'ADMIN_PUSAT' : ($isCabangRole ? 'CABANG' : $rawRole);
+$userBranch = trim($currentUser['branch'] ?? 'Pusat');
 $userDisplayName = $currentUser['displayName'] ?? ($currentUser['sub'] ?? 'Petugas Terverifikasi');
-$isKeuanganOrAdmin = ($userRole === 'ADMIN_PUSAT' || $userRole === 'KEUANGAN' || $userRole === 'ADMIN');
+$isKeuanganOrAdmin = $isSuperOrPusat;
 
 // -------------------------------------------------------------
 // 3. PENYIMPANAN DATA TERPUSAT (cPanel SSOT)
@@ -946,6 +960,62 @@ function keRomawi($bulan) {
     return $map[(int)$bulan] ?? 'X';
 }
 
+function cabangSesuai($recordBranch, $userBranch) {
+    $rb = strtolower(trim(preg_replace('/^(kantor\s+cabang|cabang|kantor\s+pusat)\s+/i', '', (string)$recordBranch)));
+    $ub = strtolower(trim(preg_replace('/^(kantor\s+cabang|cabang|kantor\s+pusat)\s+/i', '', (string)$userBranch)));
+    if ($rb === $ub) return true;
+    if ($ub !== '' && (strpos($rb, $ub) !== false || strpos($ub, $rb) !== false)) return true;
+    return false;
+}
+
+/**
+ * Transaksi Atomik Database Kwitansi dengan Exclusive File Lock (flock LOCK_EX)
+ * Menjamin pembacaan data paling mutakhir di dalam lock (Anti-Race Condition & Anti-TOCTOU)
+ */
+function transaksiDatabaseKwitansi($dataFile, callable $callback) {
+    $dir = dirname($dataFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0750, true);
+    }
+    $lockFile = $dir . '/.kwitansi_txn.lock';
+    $fpLock = fopen($lockFile, 'c+');
+    if (!$fpLock) {
+        return [
+            'success'   => false,
+            'http_code' => 500,
+            'error'     => 'Gagal inisialisasi file lock transaksi database kwitansi'
+        ];
+    }
+
+    if (!flock($fpLock, LOCK_EX)) {
+        fclose($fpLock);
+        return [
+            'success'   => false,
+            'http_code' => 503,
+            'error'     => 'Sistem sibuk: Gagal memperoleh antrean lock transaksi atomik kwitansi'
+        ];
+    }
+
+    try {
+        // 1. Baca data paling segar di dalam lock
+        $records = muatDatabaseKwitansi($dataFile);
+
+        // 2. Eksekusi callback transaksional
+        $res = $callback($records);
+
+        // 3. Jika berhasil dan terdapat records yang dimutasi, simpan atomik
+        if (is_array($res) && !empty($res['success']) && isset($res['records'])) {
+            simpanDatabaseKwitansi($dataFile, $res['records']);
+            unset($res['records']);
+        }
+
+        return $res;
+    } finally {
+        flock($fpLock, LOCK_UN);
+        fclose($fpLock);
+    }
+}
+
 $records = muatDatabaseKwitansi($dataFile);
 
 // -------------------------------------------------------------
@@ -970,7 +1040,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
 
         // Isolasi Cabang
-        if (!$isKeuanganOrAdmin && strcasecmp($found['cabang'] ?? '', $userBranch) !== 0) {
+        if (!$isKeuanganOrAdmin && !cabangSesuai($found['cabang'] ?? '', $userBranch)) {
             http_response_code(403);
             echo json_encode([
                 'success'   => false,
@@ -998,7 +1068,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     // Role Cabang: HANYA berhak melihat kwitansi cabangnya sendiri
     $filtered = array_values(array_filter($records, function($item) use ($userBranch) {
-        return strcasecmp($item['cabang'] ?? '', $userBranch) === 0;
+        return cabangSesuai($item['cabang'] ?? '', $userBranch);
     }));
 
     echo json_encode([
@@ -1054,86 +1124,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $noSpk = trim($payload['noSpk'] ?? '');
         $nilaiKontrakSpk = isset($payload['nilaiKontrakSpk']) ? (float)$payload['nilaiKontrakSpk'] : 0;
 
-        // Pengecekan Akumulasi Termin Terhadap Nilai Kontrak SPK (Requirement 6)
-        $totalTertagihSebelumnya = 0;
-        if ($noSpk !== '') {
-            foreach ($records as $r) {
-                if (($r['status'] ?? '') !== 'VOID' && ($r['status'] ?? '') !== 'DIKEMBALIKAN') {
-                    if (strcasecmp($r['noSpk'] ?? '', $noSpk) === 0) {
-                        $totalTertagihSebelumnya += (float)($r['dpp'] ?? $r['hargaDasar'] ?? 0);
+        $txnResult = transaksiDatabaseKwitansi($dataFile, function(&$records) use ($payload, $cabangPengaju, $dpp, $tarifPpn, $nominalPpn, $totalBayar, $noSpk, $nilaiKontrakSpk, $userDisplayName, $userRole) {
+            // Pengecekan Akumulasi Termin Terhadap Nilai Kontrak SPK (Requirement 6)
+            $totalTertagihSebelumnya = 0;
+            if ($noSpk !== '') {
+                foreach ($records as $r) {
+                    if (($r['status'] ?? '') !== 'VOID' && ($r['status'] ?? '') !== 'DIKEMBALIKAN') {
+                        if (strcasecmp($r['noSpk'] ?? '', $noSpk) === 0) {
+                            $totalTertagihSebelumnya += (float)($r['dpp'] ?? $r['hargaDasar'] ?? 0);
+                        }
                     }
                 }
             }
-        }
 
-        $akumulasiDenganDrafIni = $totalTertagihSebelumnya + $dpp;
-        $isOverbilling = false;
-        $catatanAkumulasi = "Akumulasi tertagih untuk SPK {$noSpk}: Rp " . number_format($akumulasiDenganDrafIni, 0, ',', '.');
-        if ($nilaiKontrakSpk > 0) {
-            if ($akumulasiDenganDrafIni > $nilaiKontrakSpk) {
-                $isOverbilling = true;
-                $kelebihan = $akumulasiDenganDrafIni - $nilaiKontrakSpk;
-                $catatanAkumulasi .= " [PERINGATAN: Melebihi Nilai Kontrak SPK sebesar Rp " . number_format($kelebihan, 0, ',', '.') . "]";
-            } else {
-                $sisa = $nilaiKontrakSpk - $akumulasiDenganDrafIni;
-                $catatanAkumulasi .= " (Sisa pagu kontrak: Rp " . number_format($sisa, 0, ',', '.') . ")";
+            $akumulasiDenganDrafIni = $totalTertagihSebelumnya + $dpp;
+            $isOverbilling = false;
+            $catatanAkumulasi = "Akumulasi tertagih untuk SPK {$noSpk}: Rp " . number_format($akumulasiDenganDrafIni, 0, ',', '.');
+            if ($nilaiKontrakSpk > 0) {
+                if ($akumulasiDenganDrafIni > $nilaiKontrakSpk) {
+                    $isOverbilling = true;
+                    $kelebihan = $akumulasiDenganDrafIni - $nilaiKontrakSpk;
+                    $catatanAkumulasi .= " [PERINGATAN: Melebihi Nilai Kontrak SPK sebesar Rp " . number_format($kelebihan, 0, ',', '.') . "]";
+                } else {
+                    $sisa = $nilaiKontrakSpk - $akumulasiDenganDrafIni;
+                    $catatanAkumulasi .= " (Sisa pagu kontrak: Rp " . number_format($sisa, 0, ',', '.') . ")";
+                }
             }
-        }
 
-        // Generate ID Draf Baru (Monoton naik: DRAFT-KW-XXXXXX)
-        $maxNum = 0;
-        foreach ($records as $r) {
-            if (isset($r['idKwitansi']) && preg_match('/^(?:KW|DRAFT-KW)-(\d+)$/', $r['idKwitansi'], $m)) {
-                $num = (int)$m[1];
-                if ($num > $maxNum) $maxNum = $num;
+            // Generate ID Draf Baru secara atomik (Monoton naik: DRAFT-KW-XXXXXX)
+            $maxNum = 0;
+            foreach ($records as $r) {
+                if (isset($r['idKwitansi']) && preg_match('/^(?:KW|DRAFT-KW)-(\d+)$/', $r['idKwitansi'], $m)) {
+                    $num = (int)$m[1];
+                    if ($num > $maxNum) $maxNum = $num;
+                }
             }
-        }
-        $newId = 'DRAFT-KW-' . str_pad((string)($maxNum + 1), 6, '0', STR_PAD_LEFT);
+            $newId = 'DRAFT-KW-' . str_pad((string)($maxNum + 1), 6, '0', STR_PAD_LEFT);
+            $serverTimestamp = date('Y-m-d H:i:s');
 
-        $serverTimestamp = date('Y-m-d H:i:s');
+            $newRecord = [
+                'idKwitansi'       => $newId,
+                'noKwitansiResmi'  => 'DRAFT (Belum Disahkan)',
+                'noPermintaan'     => trim($payload['noPermintaan'] ?? ''),
+                'noSpk'            => $noSpk,
+                'cabang'           => $cabangPengaju,
+                'namaPengaju'      => trim($payload['namaPengaju'] ?? $userDisplayName),
+                'waPengaju'        => trim($payload['waPengaju'] ?? ''),
+                'klien'            => trim($payload['klien']),
+                'keterangan'       => trim($payload['keterangan'] ?? ''),
+                'banyaknya'        => trim($payload['banyaknya'] ?? '100% Pelunasan'),
+                'persentaseTermin' => (float)($payload['persentaseTermin'] ?? 0),
+                'nilaiKontrakSpk'  => $nilaiKontrakSpk,
+                'hargaDasar'       => $dpp,
+                'dpp'              => $dpp,
+                'tarifPpn'         => $tarifPpn,
+                'nominalPpn'       => $nominalPpn,
+                'totalBayar'       => $totalBayar,
+                'terbilang'        => trim($payload['terbilang'] ?? ''),
+                'rekeningTujuan'   => $payload['rekeningTujuan'] ?? 'MANDIRI',
+                'rekeningResmi'    => $payload['rekeningResmi'] ?? 'Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)',
+                'status'           => 'DRAFT',
+                'isApproved'       => false,
+                'isOverbilling'    => $isOverbilling,
+                'totalTertagih'    => $akumulasiDenganDrafIni,
+                'catatanAkumulasi' => $catatanAkumulasi,
+                'tglPengajuan'     => $payload['tglPengajuan'] ?? date('Y-m-d'),
+                'createdAt'        => $serverTimestamp,
+                'createdBy'        => $userDisplayName,
+                'createdRole'      => $userRole
+            ];
 
-        $newRecord = [
-            'idKwitansi'       => $newId,
-            'noKwitansiResmi'  => 'DRAFT (Belum Disahkan)',
-            'noPermintaan'     => trim($payload['noPermintaan'] ?? ''),
-            'noSpk'            => $noSpk,
-            'cabang'           => $cabangPengaju,
-            'namaPengaju'      => trim($payload['namaPengaju'] ?? $userDisplayName),
-            'waPengaju'        => trim($payload['waPengaju'] ?? ''),
-            'klien'            => trim($payload['klien']),
-            'keterangan'       => trim($payload['keterangan'] ?? ''),
-            'banyaknya'        => trim($payload['banyaknya'] ?? '100% Pelunasan'),
-            'persentaseTermin' => (float)($payload['persentaseTermin'] ?? 0),
-            'nilaiKontrakSpk'  => $nilaiKontrakSpk,
-            'hargaDasar'       => $dpp,
-            'dpp'              => $dpp,
-            'tarifPpn'         => $tarifPpn,
-            'nominalPpn'       => $nominalPpn,
-            'totalBayar'       => $totalBayar,
-            'terbilang'        => trim($payload['terbilang'] ?? ''),
-            'rekeningTujuan'   => $payload['rekeningTujuan'] ?? 'MANDIRI',
-            'rekeningResmi'    => $payload['rekeningResmi'] ?? 'Bank Mandiri Cab. Jakarta Ampera Raya No. Rek. 127-00-1014166-9 an KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (Cantumkan No. Invoice Pada Copy Transfer)',
-            'status'           => 'DRAFT',
-            'isApproved'       => false,
-            'isOverbilling'    => $isOverbilling,
-            'totalTertagih'    => $akumulasiDenganDrafIni,
-            'catatanAkumulasi' => $catatanAkumulasi,
-            'tglPengajuan'     => $payload['tglPengajuan'] ?? date('Y-m-d'),
-            'createdAt'        => $serverTimestamp,
-            'createdBy'        => $userDisplayName,
-            'createdRole'      => $userRole
-        ];
+            array_unshift($records, $newRecord);
 
-        array_unshift($records, $newRecord);
-        simpanDatabaseKwitansi($dataFile, $records);
+            return [
+                'success'       => true,
+                'http_code'     => 200,
+                'message'       => "Draf kwitansi {$newId} berhasil dikirim dan tersimpan di server terpusat cPanel.",
+                'idKwitansi'    => $newId,
+                'isOverbilling' => $isOverbilling,
+                'record'        => $newRecord,
+                'records'       => $records
+            ];
+        });
 
-        echo json_encode([
-            'success'       => true,
-            'message'       => "Draf kwitansi {$newId} berhasil dikirim dan tersimpan di server terpusat cPanel.",
-            'idKwitansi'    => $newId,
-            'isOverbilling' => $isOverbilling,
-            'record'        => $newRecord
-        ]);
+        http_response_code($txnResult['http_code'] ?? ($txnResult['success'] ? 200 : 500));
+        echo json_encode($txnResult);
         exit;
     }
 
@@ -1152,76 +1227,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $idKwitansi = $payload['idKwitansi'] ?? '';
-        $targetIndex = -1;
-        foreach ($records as $idx => $item) {
-            if ($item['idKwitansi'] === $idKwitansi) {
-                $targetIndex = $idx;
-                break;
-            }
-        }
-
-        if ($targetIndex === -1) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'error' => "Data draf kwitansi '{$idKwitansi}' tidak ditemukan"]);
-            exit;
-        }
-
-        $targetItem = &$records[$targetIndex];
-
-        if (($targetItem['status'] ?? '') === 'VOID' || !empty($targetItem['isTestRecord'])) {
+        if (empty($idKwitansi)) {
             http_response_code(400);
-            echo json_encode([
-                'success'   => false,
-                'error'     => "Kwitansi {$idKwitansi} berstatus VOID / DATA UJI dan tidak dapat disahkan.",
-                'violation' => 'VOID_RECORD_CANNOT_BE_APPROVED'
-            ]);
+            echo json_encode(['success' => false, 'error' => 'Parameter idKwitansi wajib diisi']);
             exit;
         }
 
-        // Tentukan Nomor Kwitansi Resmi Urut Otomatis jika tidak disediakan
-        $noResmi = trim($payload['noKwitansiResmi'] ?? '');
-        if ($noResmi === '' || $noResmi === 'DRAFT (Belum Disahkan)' || strpos($noResmi, '018/KW-NSR') !== false) {
-            $maxKwNum = 0;
-            foreach ($records as $r) {
-                if (isset($r['noKwitansiResmi']) && preg_match('/^(\d+)\/KW-NSR\//i', $r['noKwitansiResmi'], $m)) {
-                    $val = (int)$m[1];
-                    if ($val > $maxKwNum) $maxKwNum = $val;
+        $txnResult = transaksiDatabaseKwitansi($dataFile, function(&$records) use ($idKwitansi, $payload, $userDisplayName, $userRole) {
+            $targetIndex = -1;
+            foreach ($records as $idx => $item) {
+                if ($item['idKwitansi'] === $idKwitansi) {
+                    $targetIndex = $idx;
+                    break;
                 }
             }
-            $bulanRomawi = keRomawi(date('n'));
-            $tahunSekarang = date('Y');
-            $noResmi = str_pad((string)($maxKwNum + 1), 3, '0', STR_PAD_LEFT) . "/KW-NSR/{$bulanRomawi}/{$tahunSekarang}";
-        }
 
-        $serverTimestamp = date('Y-m-d H:i:s');
+            if ($targetIndex === -1) {
+                return [
+                    'success'   => false,
+                    'http_code' => 404,
+                    'error'     => "Data draf kwitansi '{$idKwitansi}' tidak ditemukan"
+                ];
+            }
 
-        $targetItem['status']           = 'DISAHKAN';
-        $targetItem['isApproved']       = true;
-        $targetItem['noKwitansiResmi']  = $noResmi;
-        $targetItem['tglSah']           = $payload['tglSah'] ?? date('Y-m-d');
-        $targetItem['tempatSah']        = $payload['tempatSah'] ?? 'Jakarta';
-        $targetItem['namaPejabat']      = $payload['namaPejabat'] ?? 'Milda Hidayati Dewi, S.E.';
-        $targetItem['jabatanPejabat']   = $payload['jabatanPejabat'] ?? 'Keuangan';
-        $targetItem['subjabatanPejabat']= $payload['subjabatanPejabat'] ?? 'Bagian Keuangan';
-        $targetItem['approvedBy']       = $userDisplayName;
-        $targetItem['approvedRole']     = $userRole;
-        $targetItem['approvedAt']       = $serverTimestamp;
-        $targetItem['catatanAdmin']     = $payload['catatanAdmin'] ?? 'Disahkan Bagian Keuangan Kantor Pusat.';
-        if (!empty($payload['rekeningTujuan'])) {
-            $targetItem['rekeningTujuan'] = $payload['rekeningTujuan'];
-        }
-        if (!empty($payload['rekeningResmi'])) {
-            $targetItem['rekeningResmi'] = $payload['rekeningResmi'];
-        }
+            $targetItem = &$records[$targetIndex];
 
-        simpanDatabaseKwitansi($dataFile, $records);
+            if (($targetItem['status'] ?? '') === 'VOID' || !empty($targetItem['isTestRecord'])) {
+                return [
+                    'success'   => false,
+                    'http_code' => 400,
+                    'error'     => "Kwitansi {$idKwitansi} berstatus VOID / DATA UJI dan tidak dapat disahkan.",
+                    'violation' => 'VOID_RECORD_CANNOT_BE_APPROVED'
+                ];
+            }
 
-        echo json_encode([
-            'success'         => true,
-            'message'         => "Kwitansi {$idKwitansi} berhasil DISAHKAN dengan Nomor Resmi {$noResmi}.",
-            'noKwitansiResmi' => $noResmi,
-            'record'          => $targetItem
-        ]);
+            $requestedNoResmi = trim($payload['noKwitansiResmi'] ?? '');
+
+            // IDEMPOTENCY CHECK: Jika record ini sudah disahkan
+            if (!empty($targetItem['isApproved']) && ($targetItem['status'] ?? '') === 'DISAHKAN') {
+                $currentNo = $targetItem['noKwitansiResmi'] ?? '';
+                if ($requestedNoResmi === '' || strcasecmp($currentNo, $requestedNoResmi) === 0 || $requestedNoResmi === 'DRAFT (Belum Disahkan)') {
+                    return [
+                        'success'         => true,
+                        'http_code'       => 200,
+                        'idempotent'      => true,
+                        'message'         => "Kwitansi {$idKwitansi} telah berstatus DISAHKAN dengan nomor {$currentNo} (Idempotent).",
+                        'noKwitansiResmi' => $currentNo,
+                        'record'          => $targetItem
+                    ];
+                }
+            }
+
+            // Hitung nomor kwitansi urut otomatis jika kosong atau masih berstatus draft
+            $noResmi = $requestedNoResmi;
+            if ($noResmi === '' || $noResmi === 'DRAFT (Belum Disahkan)') {
+                $maxKwNum = 0;
+                foreach ($records as $r) {
+                    if (isset($r['noKwitansiResmi']) && preg_match('/^(\d+)\/KW-NSR\//i', $r['noKwitansiResmi'], $m)) {
+                        $val = (int)$m[1];
+                        if ($val > $maxKwNum) $maxKwNum = $val;
+                    }
+                }
+                $bulanRomawi = keRomawi(date('n'));
+                $tahunSekarang = date('Y');
+                $noResmi = str_pad((string)($maxKwNum + 1), 3, '0', STR_PAD_LEFT) . "/KW-NSR/{$bulanRomawi}/{$tahunSekarang}";
+            }
+
+            // ATOMIC ANTI-DUPLICATION CHECK: Cek apakah noResmi sudah pernah digunakan oleh kwitansi lain!
+            foreach ($records as $r) {
+                if (($r['idKwitansi'] ?? '') !== $idKwitansi) {
+                    $otherNo = trim($r['noKwitansiResmi'] ?? '');
+                    if ($otherNo !== '' && $otherNo !== 'DRAFT (Belum Disahkan)' && strcasecmp($otherNo, $noResmi) === 0) {
+                        return [
+                            'success'   => false,
+                            'http_code' => 409,
+                            'error'     => "Pengesahan Ditolak (409 Conflict): Nomor Kwitansi Resmi '{$noResmi}' sudah digunakan oleh kwitansi {$r['idKwitansi']}.",
+                            'violation' => 'DUPLICATE_RECEIPT_NUMBER'
+                        ];
+                    }
+                }
+            }
+
+            $serverTimestamp = date('Y-m-d H:i:s');
+
+            $targetItem['status']           = 'DISAHKAN';
+            $targetItem['isApproved']       = true;
+            $targetItem['noKwitansiResmi']  = $noResmi;
+            $targetItem['tglSah']           = $payload['tglSah'] ?? date('Y-m-d');
+            $targetItem['tempatSah']        = $payload['tempatSah'] ?? 'Jakarta';
+            $targetItem['namaPejabat']      = $payload['namaPejabat'] ?? 'Milda Hidayati Dewi, S.E.';
+            $targetItem['jabatanPejabat']   = $payload['jabatanPejabat'] ?? 'Keuangan';
+            $targetItem['subjabatanPejabat']= $payload['subjabatanPejabat'] ?? 'Bagian Keuangan';
+            $targetItem['approvedBy']       = $userDisplayName;
+            $targetItem['approvedRole']     = $userRole;
+            $targetItem['approvedAt']       = $serverTimestamp;
+            $targetItem['catatanAdmin']     = $payload['catatanAdmin'] ?? 'Disahkan Bagian Keuangan Kantor Pusat.';
+            if (!empty($payload['rekeningTujuan'])) {
+                $targetItem['rekeningTujuan'] = $payload['rekeningTujuan'];
+            }
+            if (!empty($payload['rekeningResmi'])) {
+                $targetItem['rekeningResmi'] = $payload['rekeningResmi'];
+            }
+
+            return [
+                'success'         => true,
+                'http_code'       => 200,
+                'message'         => "Kwitansi {$idKwitansi} berhasil DISAHKAN dengan Nomor Resmi {$noResmi}.",
+                'noKwitansiResmi' => $noResmi,
+                'record'          => $targetItem,
+                'records'         => $records
+            ];
+        });
+
+        http_response_code($txnResult['http_code'] ?? ($txnResult['success'] ? 200 : 500));
+        echo json_encode($txnResult);
         exit;
     }
 
@@ -1240,32 +1359,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $idKwitansi = $payload['idKwitansi'] ?? '';
-        $targetIndex = -1;
-        foreach ($records as $idx => $item) {
-            if ($item['idKwitansi'] === $idKwitansi) {
-                $targetIndex = $idx;
-                break;
-            }
-        }
-
-        if ($targetIndex === -1) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'error' => "Data draf kwitansi '{$idKwitansi}' tidak ditemukan"]);
+        if (empty($idKwitansi)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Parameter idKwitansi wajib diisi']);
             exit;
         }
 
-        $records[$targetIndex]['status']        = 'DIKEMBALIKAN';
-        $records[$targetIndex]['catatanRevisi'] = $payload['catatanRevisi'] ?? 'Draf dikembalikan untuk penyesuaian data penugasan.';
-        $records[$targetIndex]['returnedBy']    = $userDisplayName;
-        $records[$targetIndex]['returnedAt']    = date('Y-m-d H:i:s');
+        $txnResult = transaksiDatabaseKwitansi($dataFile, function(&$records) use ($idKwitansi, $payload, $userDisplayName) {
+            $targetIndex = -1;
+            foreach ($records as $idx => $item) {
+                if ($item['idKwitansi'] === $idKwitansi) {
+                    $targetIndex = $idx;
+                    break;
+                }
+            }
 
-        simpanDatabaseKwitansi($dataFile, $records);
+            if ($targetIndex === -1) {
+                return [
+                    'success'   => false,
+                    'http_code' => 404,
+                    'error'     => "Data draf kwitansi '{$idKwitansi}' tidak ditemukan"
+                ];
+            }
 
-        echo json_encode([
-            'success' => true,
-            'message' => "Draf kwitansi {$idKwitansi} berhasil dikembalikan ke Cabang dengan status revisi.",
-            'record'  => $records[$targetIndex]
-        ]);
+            $records[$targetIndex]['status']        = 'DIKEMBALIKAN';
+            $records[$targetIndex]['catatanRevisi'] = $payload['catatanRevisi'] ?? 'Draf dikembalikan untuk penyesuaian data penugasan.';
+            $records[$targetIndex]['returnedBy']    = $userDisplayName;
+            $records[$targetIndex]['returnedAt']    = date('Y-m-d H:i:s');
+
+            return [
+                'success'   => true,
+                'http_code' => 200,
+                'message'   => "Draf kwitansi {$idKwitansi} berhasil dikembalikan ke Cabang dengan status revisi.",
+                'record'    => $records[$targetIndex],
+                'records'   => $records
+            ];
+        });
+
+        http_response_code($txnResult['http_code'] ?? ($txnResult['success'] ? 200 : 500));
+        echo json_encode($txnResult);
         exit;
     }
 
@@ -1280,32 +1412,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $idKwitansi = $payload['idKwitansi'] ?? '';
-        $targetIndex = -1;
-        foreach ($records as $idx => $item) {
-            if ($item['idKwitansi'] === $idKwitansi) {
-                $targetIndex = $idx;
-                break;
-            }
-        }
-
-        if ($targetIndex === -1) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'error' => 'Record tidak ditemukan']);
+        if (empty($idKwitansi)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Parameter idKwitansi wajib diisi']);
             exit;
         }
 
-        $records[$targetIndex]['status']       = 'VOID';
-        $records[$targetIndex]['isTestRecord'] = true;
-        $records[$targetIndex]['voidBy']       = $userDisplayName;
-        $records[$targetIndex]['voidAt']       = date('Y-m-d H:i:s');
+        $txnResult = transaksiDatabaseKwitansi($dataFile, function(&$records) use ($idKwitansi, $userDisplayName) {
+            $targetIndex = -1;
+            foreach ($records as $idx => $item) {
+                if ($item['idKwitansi'] === $idKwitansi) {
+                    $targetIndex = $idx;
+                    break;
+                }
+            }
 
-        simpanDatabaseKwitansi($dataFile, $records);
+            if ($targetIndex === -1) {
+                return [
+                    'success'   => false,
+                    'http_code' => 404,
+                    'error'     => 'Record tidak ditemukan'
+                ];
+            }
 
-        echo json_encode([
-            'success' => true,
-            'message' => "Record {$idKwitansi} ditandai sebagai VOID (Data Uji).",
-            'record'  => $records[$targetIndex]
-        ]);
+            $records[$targetIndex]['status']       = 'VOID';
+            $records[$targetIndex]['isTestRecord'] = true;
+            $records[$targetIndex]['voidBy']       = $userDisplayName;
+            $records[$targetIndex]['voidAt']       = date('Y-m-d H:i:s');
+
+            return [
+                'success'   => true,
+                'http_code' => 200,
+                'message'   => "Record {$idKwitansi} ditandai sebagai VOID (Data Uji).",
+                'record'    => $records[$targetIndex],
+                'records'   => $records
+            ];
+        });
+
+        http_response_code($txnResult['http_code'] ?? ($txnResult['success'] ? 200 : 500));
+        echo json_encode($txnResult);
         exit;
     }
 

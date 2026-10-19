@@ -1317,7 +1317,6 @@
       dataKwitansiAktif.terbilang = kalimatTerbilang;
       
       perbaruiPreviewKwitansi();
-      muatDaftarKwitansi();
     }
 
     function setTermin(teks) {
@@ -1730,19 +1729,33 @@
       alert('Tanda tangan coretan berhasil diterapkan ke lembar kwitansi!');
     }
 
+    function getKwitansiAuthHeaders(extraHeaders = {}) {
+      const headers = { 'Accept': 'application/json', ...extraHeaders };
+      const token = sessionStorage.getItem('NSR_AUTH_TOKEN') || (currentUser && (currentUser.token || currentUser.tokenHash));
+      if (token) {
+        headers['X-NSR-Token'] = token;
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      return headers;
+    }
+
     // 12. Submit Pengajuan Draf ke Google Form / Sheets
     async function muatDaftarKwitansi() {
       if (!currentUser) return;
       try {
         const res = await fetch('/api/kwitansi-data-proxy', {
           method: 'GET',
-          headers: { 'Accept': 'application/json' },
+          headers: getKwitansiAuthHeaders(),
           credentials: 'include'
         });
         if (res.ok) {
           const json = await res.json();
           if (json.success && Array.isArray(json.data)) {
-            daftarKwitansiGlobal = json.data;
+            daftarKwitansiGlobal = json.data.map(item => ({
+              ...item,
+              idKwitansi: item.idKwitansi || item.idDraft,
+              idDraft: item.idDraft || item.idKwitansi
+            }));
             renderTabelKwitansi();
           }
         }
@@ -1862,7 +1875,7 @@
     }
 
     function pilihDrafUntukVerifikasi(id) {
-      const item = daftarKwitansiGlobal.find(k => k.idKwitansi === id);
+      const item = daftarKwitansiGlobal.find(k => (k.idKwitansi === id || k.idDraft === id));
       if (!item) return;
 
       const rekKodeItem = item.rekeningTujuan || item.rekening_kode || getKodeRekeningFromText(item.rekeningResmi || item.rekening_resmi) || 'MANDIRI';
@@ -1936,7 +1949,7 @@
       try {
         const res = await fetch('/api/kwitansi-data-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getKwitansiAuthHeaders({ 'Content-Type': 'application/json' }),
           credentials: 'include',
           body: JSON.stringify({
             action: 'returnKwitansi',
@@ -1987,7 +2000,7 @@
       try {
         const res = await fetch('/api/kwitansi-data-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getKwitansiAuthHeaders({ 'Content-Type': 'application/json' }),
           credentials: 'include',
           body: JSON.stringify({
             action: 'submitDraft',
@@ -2052,8 +2065,19 @@
         }
       } catch (err) {
         console.error('Error saat menghubungi server kwitansi:', err);
-        // GAGAL SERVER: Jangan tampilkan notifikasi sukses palsu!
-        alert('❌ Gagal Menghubungi Server: ' + err.message + '\n\nIsian formulir tetap dipertahankan pada layar. Silakan periksa koneksi Anda dan coba lagi.');
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+        if (isLocalDev) {
+          const simDraftId = 'DRAFT-KW-SIM-' + Date.now().toString().slice(-4);
+          dataKwitansiAktif.idKwitansi = simDraftId;
+          dataKwitansiAktif.status = 'DRAFT';
+          dataKwitansiAktif.isApproved = false;
+          dataKwitansiAktif.noKwitansiResmi = 'DRAFT (Simulasi Lokal Offline)';
+          document.getElementById('panel-notifikasi-sukses')?.classList.remove('hidden');
+          perbaruiPreviewKwitansi();
+          alert(`⚠️ Mode Pengembangan Lokal (Simulasi Dev Offline) — Data belum tersimpan ke server backend cPanel produksi.\n\nNomor Draf Simulasi: ${simDraftId}`);
+        } else {
+          alert('❌ Gagal Menghubungi Server: ' + err.message + '\n\nIsian formulir tetap dipertahankan pada layar. Silakan periksa koneksi Anda dan coba lagi.');
+        }
       } finally {
         btn.disabled = false;
         btn.innerHTML = textOriginal;
@@ -2878,7 +2902,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       try {
         const res = await fetch('/api/kwitansi-data-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getKwitansiAuthHeaders({ 'Content-Type': 'application/json' }),
           credentials: 'include',
           body: JSON.stringify({
             action: 'approveKwitansi',
@@ -2956,7 +2980,17 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       }
 
       try {
-        const resp = await fetch(GAS_PENUGASAN_ENDPOINT, { method: 'GET', redirect: 'follow' });
+        const authToken = sessionStorage.getItem('NSR_AUTH_TOKEN') || (currentUser && (currentUser.token || currentUser.tokenHash)) || '';
+        const resp = await fetch(GAS_PENUGASAN_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'SYNC',
+            token: authToken,
+            wilayah: (currentUser && (currentUser.branch || currentUser.wilayahCode)) || 'PUSAT'
+          }),
+          redirect: 'follow'
+        });
         if (resp.ok) {
           const json = await resp.json();
           if (json && json.submissions && Array.isArray(json.submissions)) {

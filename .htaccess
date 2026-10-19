@@ -21,9 +21,11 @@ RewriteRule ^api/auth-verify/?$ auth-handler.php?action=verify [L,QSA]
 RewriteRule ^api/auth-logout/?$ auth-handler.php?action=logout [L,QSA]
 RewriteRule ^api/auth/?$ auth-handler.php [L,QSA]
 
-# 5. Route endpoint /api/nolap-data-proxy & /api/kwitansi-data-proxy
+# 5. Route endpoint /api/nolap-data-proxy, /api/kwitansi-data-proxy, /api/surat-umum-data-proxy & /api/absensi-data-proxy
 RewriteRule ^api/nolap-data-proxy/?$ nolap-data-handler.php [L,QSA]
 RewriteRule ^api/kwitansi-data-proxy/?$ kwitansi-data-handler.php [L,QSA]
+RewriteRule ^api/surat-umum-data-proxy/?$ surat-umum-data-handler.php [L,QSA]
+RewriteRule ^api/absensi-data-proxy/?$ absensi-data-handler.php [L,QSA]
 
 # 6. Route endpoint /api/pdp-* ke pdp-consent-handler.php
 RewriteRule ^api/pdp-consent/?$ pdp-consent-handler.php?action=consent [L,QSA]
@@ -31,7 +33,7 @@ RewriteRule ^api/pdp-request/?$ pdp-consent-handler.php?action=request [L,QSA]
 RewriteRule ^api/pdp-verify/?$ pdp-consent-handler.php?action=verify [L,QSA]
 
 # 7. Lindungi data json counter, database, dan PDP audit logs dari akses publik langsung
-<FilesMatch "^(visitor-data|nolap-data|nolap_database|kwitansi_database|pdp-consent-logs|pdp-requests).*\.json$">
+<FilesMatch "^(visitor-data|nolap-data|nolap_database|kwitansi_database|surat_umum_database|absensi_database|pdp-consent-logs|pdp-requests).*\.json$">
     Require all denied
 </FilesMatch>
 
