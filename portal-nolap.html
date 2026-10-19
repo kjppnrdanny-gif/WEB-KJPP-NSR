@@ -15366,6 +15366,31 @@
     /* =========================================================================
        6. TABEL DAN MEJA VERIFIKASI ADMIN APPROVAL
        ========================================================================= */
+    function resolveNamaPenilaiDisplay(p) {
+      if (!p) return '-';
+      const raw = p.penilai || p.namaPenilai || p.Penilai || '';
+      if (raw && typeof raw === 'string' && raw.trim() !== '' && raw.trim().toLowerCase() !== 'undefined' && raw.trim().toLowerCase() !== 'null') {
+        return raw.trim();
+      }
+      const c = String(p.cabang || '').trim().toLowerCase();
+      if (c.includes('padang')) return 'Hernita';
+      if (c.includes('bandung')) return 'Deni Siswandi';
+      if (c.includes('makassar')) return 'Muhammad Amin Sade';
+      if (c.includes('palembang')) return 'Dharma Priyanto Sih Budi Susilo';
+      if (c.includes('pusat')) return 'Nanang Rahayu';
+      return '-';
+    }
+
+    function resolveIzinPenilaiDisplay(p) {
+      if (!p) return '00581';
+      const rawIzin = p.izinPenilai || p.noIzinPenilai || '';
+      if (rawIzin && typeof rawIzin === 'string' && rawIzin.trim() !== '' && rawIzin.trim().toLowerCase() !== 'undefined' && rawIzin.trim().toLowerCase() !== 'null') {
+        return rawIzin.trim();
+      }
+      const nama = resolveNamaPenilaiDisplay(p);
+      return MASTER_PENILAI[nama] || "00581";
+    }
+
     function muatUlangTabel() {
       // 1. Muat Tabel Pending Approval (Tab 3)
       const tbodyPending = document.getElementById('tabel-body-pending');
@@ -15396,7 +15421,7 @@
                 <div class="font-bold text-white line-clamp-1">${p.namaKlien}</div>
                 <div class="text-[11px] text-slate-400 line-clamp-1">${p.jenisObjek} — ${p.lokasiObjek}</div>
               </td>
-              <td class="p-3">${p.penilai}</td>
+              <td class="p-3 font-semibold text-slate-200">${resolveNamaPenilaiDisplay(p)}</td>
               <td class="p-3">
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.status === 'DIAJUKAN' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}">
                   ${p.status}
@@ -15474,7 +15499,7 @@
           <td class="p-3">${p.cabang}</td>
           <td class="p-3">
             <div class="font-bold text-white line-clamp-1">${p.namaKlien}</div>
-            <div class="text-[11px] text-slate-400">${p.penilai}</div>
+            <div class="text-[11px] text-slate-400">${resolveNamaPenilaiDisplay(p)}</div>
           </td>
           <td class="p-3">Sektor ${p.kodeIndustri}</td>
           <td class="p-3 font-mono font-bold text-xs ${p.nomorLaporan ? 'text-emerald-400 select-all' : 'text-slate-500'}">
@@ -15528,7 +15553,8 @@
       const kodeKantor = MASTER_KANTOR[item.cabang]?.kode || "2.0160-00";
       const kodeJasa = item.klasifikasiJasa || "PI";
       const kodeIndustri = String(item.kodeIndustri).padStart(2, '0');
-      const izinPenilai = item.izinPenilai || MASTER_PENILAI[item.penilai] || "00581";
+      const penilaiResolved = resolveNamaPenilaiDisplay(item);
+      const izinPenilai = item.izinPenilai || resolveIzinPenilaiDisplay(item) || "00581";
       const kodeNpwp = item.kodeNpwp || "1";
 
       const refDate = item.tglPenilaian ? new Date(item.tglPenilaian) : new Date();
@@ -15541,7 +15567,7 @@
       document.getElementById('manual-req-id').innerText = item.noPermintaan;
       document.getElementById('manual-req-klien').innerText = item.namaKlien;
       document.getElementById('manual-req-kantor').innerText = `${item.cabang} (${kodeKantor})`;
-      document.getElementById('manual-req-penilai').innerText = `${item.penilai} (Izin: ${izinPenilai})`;
+      document.getElementById('manual-req-penilai').innerText = `${penilaiResolved} (Izin: ${izinPenilai})`;
 
       const inputNoLap = document.getElementById('input-manual-nolap');
       if (inputNoLap) {
@@ -15726,7 +15752,7 @@
           <div><span class="text-slate-400 block">NPWP Klien:</span> ${item.npwp || '-'} (Kode: ${item.kodeNpwp})</div>
           <div class="sm:col-span-2"><span class="text-slate-400 block">Pengguna Laporan (SPI 103):</span> <strong class="text-white">${item.penggunaLaporan || item['Pengguna Laporan'] || '-'}</strong></div>
           <div><span class="text-slate-400 block">Jasa & Sektor:</span> ${item.klasifikasiJasa} — Sektor ${item.kodeIndustri}</div>
-          <div><span class="text-slate-400 block">Penilai Penandatangan:</span> ${item.penilai} (Izin: ${item.izinPenilai})</div>
+          <div><span class="text-slate-400 block">Penilai Penandatangan:</span> ${resolveNamaPenilaiDisplay(item)} (Izin: ${resolveIzinPenilaiDisplay(item)})</div>
           <div class="sm:col-span-2"><span class="text-slate-400 block">Objek & Lokasi:</span> ${item.jenisObjek} di ${item.lokasiObjek}</div>
           <div><span class="text-slate-400 block">Nomor & Tanggal SPK:</span> ${item.noSpk || '-'} (${item.tglSpk || '-'})</div>
           <div><span class="text-slate-400 block">Tanggal Penilaian (Cut-off):</span> ${item.tglPenilaian || '-'}</div>
@@ -17318,7 +17344,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
             <tr><td class="py-1 font-semibold">Pemberi Tugas / Klien:</td><td><strong>${item.namaKlien}</strong></td></tr>
             <tr><td class="py-1 font-semibold">Status Klien / NPWP:</td><td>${item.statusKlien || '-'} / ${item.npwp || '-'} (Kode: ${item.kodeNpwp})</td></tr>
             <tr><td class="py-1 font-semibold">Klasifikasi Jasa & Industri:</td><td>${item.klasifikasiJasa} (Sektor ${item.kodeIndustri})</td></tr>
-            <tr><td class="py-1 font-semibold">Penilai Penandatangan:</td><td>${item.penilai} (Izin No: ${item.izinPenilai})</td></tr>
+            <tr><td class="py-1 font-semibold">Penilai Penandatangan:</td><td>${resolveNamaPenilaiDisplay(item)} (Izin No: ${resolveIzinPenilaiDisplay(item)})</td></tr>
             <tr><td class="py-1 font-semibold">Jenis & Lokasi Objek:</td><td>${item.jenisObjek} — ${item.lokasiObjek}</td></tr>
             <tr><td class="py-1 font-semibold">Maksud / Tujuan Penilaian:</td><td>${item.tujuanPenilaian}</td></tr>
             <tr><td class="py-1 font-semibold">Dasar Nilai / Pendekatan:</td><td>${item.dasarNilai || 'Nilai Pasar'} / ${item.pendekatan || '-'}</td></tr>

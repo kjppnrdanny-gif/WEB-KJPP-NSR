@@ -287,8 +287,27 @@ check('Ketentuan 5: Role umum "ADMIN" atau "ROOT" tanpa role Super Admin / Admin
 });
 
 check('Ketentuan 6: Permohonan PERLU REVISI menampilkan "Menunggu Pengajuan Ulang" dan memblokir approval manual', () => {
-  assert(nolapHtml.includes("Menunggu Pengajuan Ulang"), 'Label Menunggu Pengajuan Ulang ada di UI');
-  assert(nolapHtml.includes("if (item.status === 'PERLU REVISI') {\n        alert('Permohonan ' + noReq + ' berstatus PERLU REVISI dan harus menunggu pengajuan ulang"), 'bukaModalTerbitkanManual memblokir status PERLU REVISI');
+  const currentHtml = fs.readFileSync('portal-nolap.html', 'utf8');
+  assert(currentHtml.includes("Menunggu Pengajuan Ulang"), 'Label Menunggu Pengajuan Ulang ada di UI');
+  assert(currentHtml.includes("if (item.status === 'PERLU REVISI') {\n        alert('Permohonan ' + noReq + ' berstatus PERLU REVISI dan harus menunggu pengajuan ulang"), 'bukaModalTerbitkanManual memblokir status PERLU REVISI');
+});
+
+check('Kerapian UI: resolveNamaPenilaiDisplay tidak pernah menghasilkan "undefined" untuk data kosong', () => {
+  const currentHtml = fs.readFileSync('portal-nolap.html', 'utf8');
+  const penilaiFnMatch = currentHtml.match(/function resolveNamaPenilaiDisplay\(p\)\s*\{([\s\S]*?)\n    \}/);
+  assert(penilaiFnMatch, 'Fungsi resolveNamaPenilaiDisplay ada');
+  const tester = new Function('p', `
+    ${penilaiFnMatch[0]}
+    return resolveNamaPenilaiDisplay(p);
+  `);
+
+  assert.strictEqual(tester({ cabang: 'Padang' }), 'Hernita');
+  assert.strictEqual(tester({ cabang: 'Bandung' }), 'Deni Siswandi');
+  assert.strictEqual(tester({ cabang: 'Palembang' }), 'Dharma Priyanto Sih Budi Susilo');
+  assert.strictEqual(tester({ cabang: 'Pusat' }), 'Nanang Rahayu');
+  assert.strictEqual(tester({ penilai: 'Deni Siswandi' }), 'Deni Siswandi');
+  assert.strictEqual(tester({ penilai: 'undefined', cabang: 'Padang' }), 'Hernita');
+  assert(!tester({}).includes('undefined'), 'Tidak boleh menghasilkan undefined');
 });
 
 // -------------------------------------------------------------
