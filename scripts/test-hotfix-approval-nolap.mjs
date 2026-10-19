@@ -279,15 +279,28 @@ check('Fungsi bukaModalTerbitkanManual & mintaRevisiPengajuan memblokir akses ji
   assert(nolapHtml.includes("function mintaRevisiPengajuan(noReq) {\n      if (!isSuperOrAdminPusat()) {"), 'Guard mintaRevisiPengajuan aktif');
 });
 
+check('Ketentuan 5: Role umum "ADMIN" atau "ROOT" tanpa role Super Admin / Admin Pusat sah ditolak (FALSE)', () => {
+  const userAdmin = { role: "ADMIN", roleLabel: "Admin", isCabang: false, aksesApproval: false };
+  const userRoot = { role: "ROOT", roleLabel: "Root User", isCabang: false, aksesApproval: false };
+  assert.strictEqual(createTester(userAdmin), false);
+  assert.strictEqual(createTester(userRoot), false);
+});
+
+check('Ketentuan 6: Permohonan PERLU REVISI menampilkan "Menunggu Pengajuan Ulang" dan memblokir approval manual', () => {
+  assert(nolapHtml.includes("Menunggu Pengajuan Ulang"), 'Label Menunggu Pengajuan Ulang ada di UI');
+  assert(nolapHtml.includes("if (item.status === 'PERLU REVISI') {\n        alert('Permohonan ' + noReq + ' berstatus PERLU REVISI dan harus menunggu pengajuan ulang"), 'bukaModalTerbitkanManual memblokir status PERLU REVISI');
+});
+
 // -------------------------------------------------------------
 // 4. SINKRONISASI BUNDLE DIST
 // -------------------------------------------------------------
 console.log('\n[4/4] INTEGRITAS PAKET BUILD DIST:');
 
 check('dist/portal-nolap.html tersinkronisasi dengan perbaikan isSuperOrAdminPusat()', () => {
-  assert(distHtml.includes("function isSuperOrAdminPusat()"), 'Fungsi ada di dist');
-  assert(distHtml.includes("['SUPERADMIN', 'ADMINPUSAT', 'ROOT'].includes(cleanRole)"), 'Normalisasi cleanRole ada di dist');
-  assert(distHtml.includes("!activeUser.isCabang"), 'Pemeriksaan isCabang ada di dist');
+  const currentDistHtml = fs.readFileSync('dist/portal-nolap.html', 'utf8');
+  assert(currentDistHtml.includes("function isSuperOrAdminPusat()"), 'Fungsi ada di dist');
+  assert(currentDistHtml.includes("['SUPERADMIN', 'ADMINPUSAT'].includes(cleanRole)"), 'Normalisasi cleanRole ada di dist');
+  assert(currentDistHtml.includes("!activeUser.isCabang"), 'Pemeriksaan isCabang ada di dist');
 });
 
 console.log('\n===============================================================');

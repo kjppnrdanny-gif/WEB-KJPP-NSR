@@ -13384,10 +13384,9 @@
       // Daftar role sah Admin Pusat & Super Admin
       const isRoleMatch = [
         'SUPER_ADMIN', 'SUPERADMIN', 'SUPER ADMIN',
-        'ADMIN_PUSAT', 'ADMINPUSAT', 'ADMIN PUSAT',
-        'PUSAT', 'ADMIN', 'ROOT'
+        'ADMIN_PUSAT', 'ADMINPUSAT', 'ADMIN PUSAT'
       ].includes(rawRole) ||
-      ['SUPERADMIN', 'ADMINPUSAT', 'ROOT'].includes(cleanRole) ||
+      ['SUPERADMIN', 'ADMINPUSAT'].includes(cleanRole) ||
       cleanLabel.includes('SUPERADMIN') ||
       cleanLabel.includes('ADMINPUSAT');
 
@@ -15407,8 +15406,12 @@
                 <div class="inline-flex gap-1.5">
                   <button onclick="lihatDetailModal('${p.noPermintaan}')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Detail</button>
                   ${isSuperOrAdminPusat() ? `
-                    <button onclick="bukaModalTerbitkanManual('${p.noPermintaan}')" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow">Terbitkan NoLap (Manual)</button>
-                    <button onclick="mintaRevisiPengajuan('${p.noPermintaan}')" class="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold">Revisi</button>
+                    ${p.status === 'DIAJUKAN' ? `
+                      <button onclick="bukaModalTerbitkanManual('${p.noPermintaan}')" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow">Terbitkan NoLap (Manual)</button>
+                      <button onclick="mintaRevisiPengajuan('${p.noPermintaan}')" class="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold">Revisi</button>
+                    ` : `
+                      <span class="text-[10px] text-amber-300 italic px-2 py-1 bg-amber-950/40 rounded border border-amber-500/30">Menunggu Pengajuan Ulang</span>
+                    `}
                   ` : ''}
                 </div>
               </td>
@@ -15511,6 +15514,11 @@
 
       const item = daftarPermohonan.find(p => p.noPermintaan === noReq);
       if (!item) return;
+
+      if (item.status === 'PERLU REVISI') {
+        alert('Permohonan ' + noReq + ' berstatus PERLU REVISI dan harus menunggu pengajuan ulang dari cabang sebelum dapat disetujui.');
+        return;
+      }
 
       currentReqToApprove = item;
 
