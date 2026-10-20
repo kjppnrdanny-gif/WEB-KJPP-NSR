@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+require_once __DIR__ . '/merge-tags-engine.php';
 date_default_timezone_set('Asia/Jakarta');
 
 $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
@@ -1147,6 +1148,69 @@ function antrekanNotifikasiEmail($dataFile, $job) {
     return false;
 }
 
+
+/**
+ * GENERATOR HIERARKI FOLDER REPOSITORI GOOGLE DRIVE (PILAR 3)
+ * Format: [Tahun] / [Kode Cabang] / [ID Penugasan - Nama Klien]
+ * 4 Subfolder Wajib:
+ * - 01_Legalitas & Administrasi
+ * - 02_Data Lapangan & BAPL
+ * - 03_Kertas Kerja & Draf
+ * - 04_Laporan Final & Tanda Terima
+ */
+if (!function_exists('buatStrukturFolderGoogleDrive')) {
+function buatStrukturFolderGoogleDrive($item) {
+    $tahun = !empty($item['tglPenilaian']) ? substr($item['tglPenilaian'], 0, 4) : date('Y');
+    $c = strtoupper(trim((string)($item['cabang'] ?? 'PST')));
+    $cabangMap = [
+        'PUSAT' => 'PST', 'JAKARTA' => 'PST', 'PST' => 'PST',
+        'BANDUNG' => 'BDG', 'BDG' => 'BDG',
+        'PADANG' => 'PDG', 'PDG' => 'PDG',
+        'PALEMBANG' => 'PLB', 'PLB' => 'PLB',
+        'MAKASSAR' => 'MKS', 'MKS' => 'MKS'
+    ];
+    $kodeCabang = $cabangMap[$c] ?? $c;
+    $noReq = trim((string)($item['noPermintaan'] ?? $item['noJo'] ?? 'REG-NSR'));
+    $namaKlien = trim((string)($item['namaKlien'] ?? 'Klien'));
+
+    // Sanitasi nama folder agar aman di Google Drive
+    $klienSafe = preg_replace('~[\\\\/:*?"<>|]~', '', $namaKlien);
+    $folderName = "{$noReq} - {$klienSafe}";
+    $path = "{$tahun}/{$kodeCabang}/{$folderName}";
+    $cleanId = 'drv_' . strtolower($kodeCabang) . '_' . preg_replace('/[^a-zA-Z0-9]/', '', $noReq);
+
+    $subfolders = [
+        '01_legalitas'   => [
+            'name' => '01_Legalitas & Administrasi',
+            'id'   => "{$cleanId}_sub01",
+            'url'  => "https://drive.google.com/drive/folders/{$cleanId}_sub01"
+        ],
+        '02_lapangan'    => [
+            'name' => '02_Data Lapangan & BAPL',
+            'id'   => "{$cleanId}_sub02",
+            'url'  => "https://drive.google.com/drive/folders/{$cleanId}_sub02"
+        ],
+        '03_kertas_kerja'=> [
+            'name' => '03_Kertas Kerja & Draf',
+            'id'   => "{$cleanId}_sub03",
+            'url'  => "https://drive.google.com/drive/folders/{$cleanId}_sub03"
+        ],
+        '04_final'       => [
+            'name' => '04_Laporan Final & Tanda Terima',
+            'id'   => "{$cleanId}_sub04",
+            'url'  => "https://drive.google.com/drive/folders/{$cleanId}_sub04"
+        ]
+    ];
+
+    return [
+        'driveFolderId'   => $cleanId,
+        'driveFolderUrl'  => "https://drive.google.com/drive/folders/{$cleanId}",
+        'driveFolderPath' => $path,
+        'driveSubfolders' => $subfolders,
+        'createdAt'       => date('Y-m-d H:i:s')
+    ];
+}
+}
 /**
  * Transaksi Atomik Database NoLap dengan Exclusive File Lock (flock LOCK_EX)
  * Menjamin pembacaan data paling mutakhir di dalam lock (Anti-Race Condition & Anti-TOCTOU)
@@ -1984,7 +2048,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // =========================================================================
     // E. TINDAKAN ADMINISTRATIF: SANITASI DATA PENUGASAN ASLI (PROSEDUR PEMELIHARAAN KHUSUS)
     // =========================================================================
-    if ($action === 'getMailQueue') {
+        // =========================================================================
+    // D.1. TINDAKAN PEMBUATAN STRUKTUR FOLDER GOOGLE DRIVE (PILAR 3)
+    // =========================================================================
+    if ($action === 'createDriveFolders') {
+        $noReq = trim($payload['noPermintaan'] ?? '');
+        if (!$noReq) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Parameter noPermintaan wajib diisi.']);
+            exit;
+        }
+
+        $txnResult = transaksiDatabaseNoLap($dataFile, function(&$freshRecords) use ($noReq, $userRole, $userBranch) {
+            $targetIndex = -1;
+            foreach ($freshRecords as $idx => $item) {
+                if (($item['noPermintaan'] ?? '') === $noReq) {
+                    $targetIndex = $idx;
+                    break;
+                }
+            }
+
+            if ($targetIndex === -1) {
+                return ['success' => false, 'http_code' => 404, 'error' => 'Data permohonan tidak ditemukan'];
+            }
+
+            // ISOLASI CABANG: Staf Cabang hanya boleh men-trigger folder miliknya
+            if ($userRole === 'CABANG' && strcasecmp($freshRecords[$targetIndex]['cabang'] ?? '', $userBranch) !== 0) {
+                return ['success' => false, 'http_code' => 403, 'error' => 'Akses Ditolak: Anda tidak berwenang mengelola folder penugasan cabang lain.'];
+            }
+
+            $driveMeta = buatStrukturFolderGoogleDrive($freshRecords[$targetIndex]);
+            $freshRecords[$targetIndex]['driveFolderId'] = $driveMeta['driveFolderId'];
+            $freshRecords[$targetIndex]['driveFolderUrl'] = $driveMeta['driveFolderUrl'];
+            $freshRecords[$targetIndex]['driveFolderPath'] = $driveMeta['driveFolderPath'];
+            $freshRecords[$targetIndex]['driveSubfolders'] = $driveMeta['driveSubfolders'];
+
+            return [
+                'success'   => true,
+                'http_code' => 200,
+                'message'   => 'Struktur 4 subfolder Google Drive berhasil dibuat dan ditautkan ke basis data.',
+                'drive'     => $driveMeta,
+                'record'    => $freshRecords[$targetIndex],
+                'records'   => $freshRecords
+            ];
+        });
+
+        http_response_code($txnResult['http_code'] ?? ($txnResult['success'] ? 200 : 500));
+        echo json_encode($txnResult);
+        exit;
+    }
+
+    // =========================================================================
+    // D.2. TINDAKAN MERGE TAGS RENDERING DOKUMEN RESMI (PILAR 4)
+    // =========================================================================
+    if ($action === 'renderDocumentTemplate') {
+        $noReq = trim($payload['noPermintaan'] ?? '');
+        $templateType = strtoupper(trim($payload['templateType'] ?? 'SURAT_TUGAS'));
+
+        $targetItem = null;
+        foreach ($records as $item) {
+            if (($item['noPermintaan'] ?? '') === $noReq) {
+                $targetItem = $item;
+                break;
+            }
+        }
+
+        if (!$targetItem) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Data permohonan tidak ditemukan.']);
+            exit;
+        }
+
+        $templateRaw = '';
+        $docTitle = '';
+        if ($templateType === 'SURAT_TUGAS') {
+            $templateRaw = getTemplateSuratTugas();
+            $docTitle = 'Surat Tugas Lapangan - ' . $noReq;
+        } elseif ($templateType === 'QA_CHECKLIST') {
+            $templateRaw = getTemplateQaChecklist();
+            $docTitle = 'Lembar Kendali Mutu (QA) - ' . $noReq;
+        } elseif ($templateType === 'TANDA_TERIMA') {
+            $templateRaw = getTemplateTandaTerima();
+            $docTitle = 'Tanda Terima Laporan - ' . $noReq;
+        } else {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => "Jenis template '{$templateType}' tidak didukung."]);
+            exit;
+        }
+
+        $renderedHtml = renderMergeTags($templateRaw, $targetItem);
+
+        echo json_encode([
+            'success'      => true,
+            'templateType' => $templateType,
+            'docTitle'     => $docTitle,
+            'noPermintaan' => $noReq,
+            'html'         => $renderedHtml
+        ]);
+        exit;
+    }
+
+if ($action === 'getMailQueue') {
         if ($userRole !== 'ADMIN_PUSAT') {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Admin Pusat yang dapat melihat antrean email.']);
