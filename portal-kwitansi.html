@@ -919,7 +919,7 @@
 
       <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
         <span class="text-[10px] text-slate-400 uppercase font-semibold">Cabang Pengaju:</span>
-        <p id="label-cabang-modal-finance" class="text-xs font-bold text-amber-300">Cabang Bandung</p>
+        <p id="label-cabang-modal-finance" class="text-xs font-bold text-amber-300">Kantor Cabang Pengaju</p>
       </div>
 
       <div class="space-y-1.5">
@@ -1075,7 +1075,7 @@
         <div class="text-[9.5px] text-slate-500 leading-tight border-t border-slate-200 pt-2">
           <p class="font-bold text-slate-700 mb-1">Catatan Keabsahan:</p>
           <p>&bull; Kwitansi ini sah apabila pembayaran telah diterima di rekening resmi KJPP NSR.</p>
-          <p id="print-unit-pengaju">&bull; Diajukan oleh: Kantor Cabang Bandung</p>
+          <p id="print-unit-pengaju">&bull; Diajukan oleh: Kantor Pusat Jakarta</p>
           <p>&bull; Dokumen diverifikasi terpusat Kantor Pusat Jakarta.</p>
         </div>
 
@@ -1269,7 +1269,7 @@
 
     // Database Draf Saat Ini di Memori
     let dataKwitansiAktif = {
-      cabang: "Cabang Bandung",
+      cabang: "Kantor Pusat Jakarta",
       tanggal: new Date().toISOString().split('T')[0],
       klien: "PT Rekanan Perbankan / BUMN",
       keterangan: "Biaya Penilaian Properti Komersial & Agunan Bank",
@@ -1428,6 +1428,8 @@
       'MKS': 'Cabang Makassar',
       'BDG': 'Cabang Bandung',
       'PST': 'Kantor Pusat Jakarta',
+      'PUSAT': 'Kantor Pusat Jakarta',
+      'JAKARTA': 'Kantor Pusat Jakarta',
       '00':  'Kantor Pusat Jakarta',
       '01':  'Cabang Padang',
       '02':  'Cabang Makassar',
@@ -1981,7 +1983,8 @@
     }
 
     function renderTabelKwitansi() {
-      const isKeuangan = currentUser && (currentUser.role === 'KEUANGAN' || currentUser.role === 'ADMIN_PUSAT' || currentUser.role === 'ADMIN');
+      const peran = evaluasiPeranKwitansi(currentUser);
+      const isKeuangan = peran.isPusat;
 
       // 1. Render Tabel Pusat
       const tbodyPusat = document.getElementById('body-tabel-kwitansi-pusat');
@@ -2178,8 +2181,8 @@
     }
 
     async function kembalikanDrafKwitansi(idKwitansi) {
-      const isKeuanganAuth = currentUser && (currentUser.role === 'KEUANGAN' || currentUser.role === 'ADMIN_PUSAT' || currentUser.role === 'ADMIN' || currentUser.role === 'SUPER ADMIN' || currentUser.role === 'SUPER_ADMIN' || Boolean(currentUser.isSuperAdmin));
-      if (!isKeuanganAuth) {
+      const peran = evaluasiPeranKwitansi(currentUser);
+      if (!currentUser || !peran.isPusat) {
         alert('Akses Ditolak: Hanya Bagian Keuangan Pusat yang berhak mengembalikan draf.');
         return;
       }
@@ -3033,9 +3036,65 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
     }
 
+    // 18. Evaluasi Peran Pengguna (RBAC Single Source of Truth)
+    function evaluasiPeranKwitansi(user) {
+      if (!user) {
+        return {
+          isPusat: false,
+          isCabang: false,
+          roleNormalized: 'GUEST',
+          branchNormalized: '',
+          displayName: 'Tamu',
+          canApprove: false
+        };
+      }
+
+      const role = String(user.role || '').toUpperCase().trim();
+      const branch = String(user.branch || user.cabang || user.wilayahCode || user.wilayah || '').toUpperCase().trim();
+      const displayName = String(user.displayName || user.sub || user.roleLabel || '').toUpperCase().trim();
+
+      // Indikator Tegas Akun Level Kantor Pusat / Verifikasi & Approval
+      const pusatBranchCodes = ['PST', 'PUSAT', '00', 'JAKARTA', 'KANTOR PUSAT', 'KANTOR PUSAT JAKARTA'];
+      const pusatRoles = [
+        'KEUANGAN', 'PUSAT_KEUANGAN', 'ADMIN_PUSAT', 'SUPER ADMIN', 'SUPER_ADMIN',
+        'PEMIMPIN_REKAN', 'REKAN', 'ADMIN'
+      ];
+
+      const isPusatByBranch = pusatBranchCodes.includes(branch) ||
+                              displayName.includes('PUSAT') ||
+                              displayName.includes('JAKARTA');
+
+      const isPusatByRole = pusatRoles.includes(role) ||
+                            Boolean(user.isSuperAdmin) ||
+                            Boolean(user.canApprove) ||
+                            Boolean(user.canApprovePusat) ||
+                            user.mode === 'PUSAT';
+
+      // Sesi Cabang Eksplisit (hanya jika bukan Pusat dan bukan role approval)
+      const isExplicitCabang = (role === 'CABANG' || role === 'ADMIN_CABANG' || role === 'KEUANGAN_CABANG') &&
+                               !isPusatByRole &&
+                               !isPusatByBranch;
+
+      const isPusat = (isPusatByBranch || isPusatByRole) && !isExplicitCabang;
+      const isCabang = !isPusat;
+
+      const roleNormalized = isPusat ? 'PUSAT_KEUANGAN' : 'CABANG';
+      const branchNormalized = isPusat ? 'Kantor Pusat Jakarta' : (getNormalizedCabangFromUser(user) || 'Cabang Bandung');
+
+      return {
+        isPusat,
+        isCabang,
+        roleNormalized,
+        branchNormalized,
+        displayName: user.displayName || (isPusat ? 'Keuangan Kantor Pusat' : 'Admin Cabang'),
+        canApprove: isPusat
+      };
+    }
+
     // 19. Terapkan Sesi Sesuai Role Pengguna
     function terapkanSesiPengguna(user) {
       currentUser = user;
+      window.currentUser = user;
       document.getElementById('box-auth-kwitansi').classList.add('hidden');
       document.getElementById('btn-logout-header')?.classList.remove('hidden');
 
@@ -3043,88 +3102,99 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       const dot = document.getElementById('dot-sesi-cabang');
       if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
 
-      const isCabang = user.role === 'CABANG' || user.role === 'ADMIN_CABANG' || (Boolean(user.isCabang) && user.branch !== 'PUSAT');
-      const isKeuangan = !isCabang && (user.role === 'KEUANGAN' || user.role === 'ADMIN_PUSAT' || user.role === 'ADMIN' || user.role === 'SUPER ADMIN' || user.role === 'SUPER_ADMIN' || user.branch === 'PUSAT' || Boolean(user.isSuperAdmin));
+      // Evaluasi RBAC secara ketat dan konsisten
+      const peran = evaluasiPeranKwitansi(user);
+      currentUser.isPusat = peran.isPusat;
+      currentUser.isCabang = peran.isCabang;
+      currentUser.role = peran.roleNormalized;
+      currentUser.canApprove = peran.canApprove;
 
       // Proteksi & Sembunyikan Navigasi Surat Umum (SU) jika Sesi Cabang
       const navSuratUmum = document.getElementById('nav-link-surat-umum') || 
                            document.querySelector('a[href*="surat-umum"], a[href*="portal-surat-umum"]');
       if (navSuratUmum) {
-        if (isCabang || (user && user.isCabang)) {
-          // Sembunyikan mutlak untuk sesi cabang
+        if (peran.isCabang) {
           navSuratUmum.classList.add('hidden');
           navSuratUmum.style.setProperty('display', 'none', 'important');
         } else {
-          // Tampilkan hanya untuk Super Admin / Kantor Pusat
           navSuratUmum.classList.remove('hidden');
           navSuratUmum.style.removeProperty('display');
         }
       }
 
+      // 1. Update Badge Navbar Header
       if (labelBadge) {
-        labelBadge.innerText = isKeuangan
-          ? `Akses: ${user.displayName || 'Kantor Pusat Jakarta'} (KEUANGAN PUSAT)`
-          : `Akses: ${user.displayName || user.sub} (CABANG)`;
+        labelBadge.innerText = peran.isPusat
+          ? `Akses: ${peran.displayName || 'Kantor Pusat Jakarta'} (KEUANGAN PUSAT)`
+          : `Akses: ${peran.displayName || user.sub} (CABANG)`;
       }
 
+      // 2. Update Label Notifikasi Sesi Terverifikasi
       const labelVerified = document.getElementById('label-cabang-terverifikasi');
       if (labelVerified) {
-        labelVerified.innerText = isKeuangan
-          ? `Keuangan Pusat (${user.displayName || 'Milda H'})`
-          : `Cabang ${user.branch || user.displayName}`;
+        labelVerified.innerText = peran.isPusat
+          ? `Kantor Pusat Jakarta (Otoritas Verifikasi & Pengesahan)`
+          : `Cabang ${peran.branchNormalized.replace(/^Kantor\s+/i, '').replace(/^Cabang\s+/i, '')}`;
       }
 
-      // TAHAP 1: Inisialisasi Dropdown Kantor Cabang Pengaju Sesuai Sesi Login
+      // 3. Sanitasi Dropdown Kantor Cabang Pengaju
       const selCabang = document.getElementById('cabang-pengaju');
-      const targetCabang = getNormalizedCabangFromUser(user);
-
       if (selCabang) {
-        if (targetCabang) {
-          selCabang.value = targetCabang;
-          saatCabangBerubah(targetCabang);
-        }
-        if (isCabang) {
-          // Kunci pilihan dropdown jika sesi Cabang
-          selCabang.disabled = true;
-          selCabang.classList.add('opacity-80', 'cursor-not-allowed');
-        } else {
-          // Buka pilihan jika sesi Pusat / Super Admin
+        if (peran.isPusat) {
+          // Buka pilihan jika sesi Pusat / Super Admin (tidak terkunci)
           selCabang.disabled = false;
           selCabang.classList.remove('opacity-80', 'cursor-not-allowed');
-          if (!selCabang.value) {
-            selCabang.value = 'Kantor Pusat Jakarta';
-            saatCabangBerubah('Kantor Pusat Jakarta');
-          }
+          selCabang.value = 'Kantor Pusat Jakarta';
+          dataKwitansiAktif.cabang = 'Kantor Pusat Jakarta';
+          saatCabangBerubah('Kantor Pusat Jakarta');
+        } else {
+          // Kunci pilihan dropdown jika sesi Cabang
+          selCabang.value = peran.branchNormalized;
+          dataKwitansiAktif.cabang = peran.branchNormalized;
+          selCabang.disabled = true;
+          selCabang.classList.add('opacity-80', 'cursor-not-allowed');
+          saatCabangBerubah(peran.branchNormalized);
         }
       }
 
-      // Default buka tab cabang untuk formulir kwitansi
-      document.getElementById('konten-form-cabang').classList.remove('hidden');
+      // 4. Pengaturan Navigasi Tab & Routing Tampilan Default
+      const tabBtnCabang = document.getElementById('tab-btn-cabang');
+      const tabBtnPusat = document.getElementById('tab-btn-pusat');
 
-      if (isKeuangan) {
-        document.getElementById('guard-akses-pusat-cabang').classList.add('hidden');
-        const tabBtnPusat = document.getElementById('tab-btn-pusat');
+      if (peran.isPusat) {
+        // Mode Akun Pusat: Tampilkan kedua tab navigasi
         if (tabBtnPusat) {
           tabBtnPusat.classList.remove('hidden');
           tabBtnPusat.removeAttribute('style');
+          const spanPusat = tabBtnPusat.querySelector('span');
+          if (spanPusat) spanPusat.innerText = '2. Dashboard Verifikasi & Approval (Keuangan Pusat)';
         }
-        // Muat antrean verifikasi untuk Keuangan Pusat
-        muatDaftarKwitansi();
-        // Otomatis arahkan Keuangan Pusat langsung ke Meja Verifikasi (Tab 2)
-        setTimeout(() => gantiTab('pusat'), 100);
-      }
+        if (tabBtnCabang) {
+          const spanCabang = tabBtnCabang.querySelector('span');
+          if (spanCabang) spanCabang.innerText = '1. Pengajuan Draf (Pusat / Cabang)';
+        }
 
-      // TAHAP 2: Inisialisasi Alur Dual Mode (Mode Cabang vs Mode Pusat)
-      try {
-        const urlParamsKw = new URLSearchParams(window.location.search);
-        const modeKw = urlParamsKw.get('mode');
-        if (modeKw === 'pusat') {
-          pilihModePenerbitan('pusat');
-          if (isKeuangan) gantiTab('pusat');
-        } else {
-          pilihModePenerbitan('cabang');
+        // Buka guard dan aktifkan modul operasional pusat
+        document.getElementById('guard-akses-pusat-cabang').classList.add('hidden');
+        document.getElementById('konten-operasional-pusat').classList.remove('hidden');
+
+        // ROUTING DEFAULT UNTUK PUSAT: Langsung arahkan ke Dashboard Verifikasi & Approval (Tab 2)
+        gantiTab('pusat');
+        muatDaftarKwitansi();
+        pilihModePenerbitan('pusat');
+      } else {
+        // Mode Akun Cabang: Sembunyikan tab approval pusat
+        if (tabBtnPusat) {
+          tabBtnPusat.classList.add('hidden');
         }
-      } catch (e) {
+        if (tabBtnCabang) {
+          const spanCabang = tabBtnCabang.querySelector('span');
+          if (spanCabang) spanCabang.innerText = '1. Pengajuan Draf Tagihan (Cabang)';
+        }
+
+        // ROUTING DEFAULT UNTUK CABANG: Langsung arahkan ke Formulir Pengajuan Draf (Tab 1)
+        document.getElementById('konten-form-cabang').classList.remove('hidden');
+        gantiTab('cabang');
         pilihModePenerbitan('cabang');
       }
 
@@ -3143,35 +3213,44 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       const pCabang = document.getElementById('panel-cabang');
       const pPusat = document.getElementById('panel-pusat');
 
-      const isCabang = currentUser && (currentUser.role === 'CABANG' || currentUser.role === 'ADMIN_CABANG' || (Boolean(currentUser.isCabang) && currentUser.branch !== 'PUSAT'));
-      const isKeuangan = currentUser && !isCabang && (currentUser.role === 'KEUANGAN' || currentUser.role === 'ADMIN_PUSAT' || currentUser.role === 'ADMIN' || currentUser.role === 'SUPER ADMIN' || currentUser.role === 'SUPER_ADMIN' || currentUser.branch === 'PUSAT' || Boolean(currentUser.isSuperAdmin));
+      const peran = evaluasiPeranKwitansi(currentUser);
 
       if (tab === 'cabang') {
-        btnCabang.className = "py-3 px-4 sm:px-6 font-extrabold text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition";
-        btnPusat.className = "py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition";
+        // Tampilkan Modul Pengajuan Draf
+        btnCabang.className = "py-3 px-4 sm:px-6 font-extrabold text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition cursor-pointer";
+        if (peran.isCabang) {
+          btnPusat.className = "hidden";
+        } else {
+          btnPusat.className = "py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition cursor-pointer";
+        }
         pCabang.classList.remove('hidden');
         pPusat.classList.add('hidden');
+        document.getElementById('konten-form-cabang').classList.remove('hidden');
+        document.getElementById('box-auth-kwitansi').classList.add('hidden');
       } else {
-        btnPusat.className = "py-3 px-4 sm:px-6 font-extrabold text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition";
-        btnCabang.className = "py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition";
+        // Tampilkan Modul Approval / Verifikasi
+        btnPusat.className = "py-3 px-4 sm:px-6 font-extrabold text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition cursor-pointer";
+        btnCabang.className = "py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition cursor-pointer";
         pPusat.classList.remove('hidden');
         pCabang.classList.add('hidden');
 
-        if (!isKeuangan) {
+        if (!peran.isPusat) {
           // Role Cabang: Tampilkan peringatan pembatasan akses
           document.getElementById('guard-akses-pusat-cabang').classList.remove('hidden');
           document.getElementById('konten-operasional-pusat').classList.add('hidden');
         } else {
-          // Role Keuangan/Admin: Buka panel verifikasi operasional
+          // Role Keuangan/Admin Pusat: Buka panel verifikasi & approval operasional
           document.getElementById('guard-akses-pusat-cabang').classList.add('hidden');
           document.getElementById('konten-operasional-pusat').classList.remove('hidden');
+          muatDaftarKwitansi();
           perbaruiPreviewKwitansi();
         }
       }
     }
 
     async function sahkanDanKunciKwitansi() {
-      if (!currentUser || (currentUser.role !== 'KEUANGAN' && currentUser.role !== 'ADMIN_PUSAT' && currentUser.role !== 'ADMIN')) {
+      const peran = evaluasiPeranKwitansi(currentUser);
+      if (!currentUser || !peran.isPusat) {
         alert('Akses Ditolak (403): Hanya Bagian Keuangan Pusat yang berhak mengesahkan kwitansi resmi.');
         return;
       }
