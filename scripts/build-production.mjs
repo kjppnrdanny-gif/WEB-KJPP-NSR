@@ -61,9 +61,12 @@ const ALLOWED_FILES = [
   "api/auth.php",
   "pdp-consent-handler.php",
   "nolap-data-handler.php",
+  "merge-tags-engine.php",
+  "process-mail-queue.php",
   "kwitansi-data-handler.php",
   "surat-umum-data-handler.php",
-  "absensi-data-handler.php"
+  "absensi-data-handler.php",
+  "data/.htaccess"
 ];
 
 // 2. ALLOWLIST DIREKTORI PUBLIK

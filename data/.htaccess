@@ -1,2 +1,19 @@
-# Lindungi direktori data dan backup database dari akses web langsung
-Require all denied
+# Lindungi direktori data, database transaksi, mail queue, lock files, dan audit logs dari akses web langsung
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+</IfModule>
+
+# Blokir seluruh file berekstensi sensitif
+<FilesMatch "\.(json|log|lock|txt|bak|backup|sql)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
