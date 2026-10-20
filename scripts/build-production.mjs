@@ -29,6 +29,8 @@ const ALLOWED_FILES = [
   "portal-penugasan-jo.html",
   "portal-nolap-cabang.html",
   "portal-surat-umum.html",
+  "portal-operasional.html",
+  "verifikasi-dokumen.html",
   "kebijakan-privasi.html",
   "disclaimer.html",
   "trusted-by.html",
@@ -68,6 +70,7 @@ const ALLOWED_FILES = [
   "kwitansi-data-handler.php",
   "surat-umum-data-handler.php",
   "absensi-data-handler.php",
+  "operasional-data-handler.php",
   "data/.htaccess"
 ];
 
@@ -134,6 +137,8 @@ function auditPortalHardcodedTokens(distDir) {
     "portal-nolap-cabang.html",
     "portal-kwitansi.html",
     "portal-surat-umum.html",
+    "portal-operasional.html",
+    "verifikasi-dokumen.html",
     "portal-nolap.html",
     "layanan.html",
     "portofolio-rekanan.html",
