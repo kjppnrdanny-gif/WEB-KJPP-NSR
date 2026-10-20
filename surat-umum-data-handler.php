@@ -25,7 +25,8 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedHosts = ['kjppnanangrahayu.com', 'www.kjppnanangrahayu.com', 'localhost', '127.0.0.1'];
 if ($origin) {
     $parsedOrigin = parse_url($origin, PHP_URL_HOST);
-    if (in_array($parsedOrigin, $allowedHosts, true)) {
+    $selfHost = parse_url("http://" . ($_SERVER["HTTP_HOST"] ?? ""), PHP_URL_HOST);
+    if (in_array($parsedOrigin, $allowedHosts, true) || $parsedOrigin === $selfHost || preg_match("/\.(lhr\.life|trycloudflare\.com|loca\.lt)$/i", (string)$parsedOrigin)) {
         header('Access-Control-Allow-Origin: ' . $origin);
     }
 }

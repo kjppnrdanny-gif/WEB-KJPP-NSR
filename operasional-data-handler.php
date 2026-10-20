@@ -24,7 +24,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $referer = $_SERVER['HTTP_REFERER'] ?? '';
 $allowedHosts = ['kjppnanangrahayu.com', 'www.kjppnanangrahayu.com', 'localhost', '127.0.0.1'];
 
-// Proteksi CSRF: Validasi Host Origin & Referer
+// Proteksi CSRF: Validasi Host Origin & Referer (Mendukung Staging Preview & Same-Origin)
 $hostToCheck = '';
 if ($origin) {
     $hostToCheck = parse_url($origin, PHP_URL_HOST);
@@ -32,7 +32,12 @@ if ($origin) {
     $hostToCheck = parse_url($referer, PHP_URL_HOST);
 }
 
-if ($hostToCheck && !in_array($hostToCheck, $allowedHosts, true)) {
+$selfHost = parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST);
+$isAllowedOrigin = in_array($hostToCheck, $allowedHosts, true) ||
+                   ($hostToCheck && $hostToCheck === $selfHost) ||
+                   ($hostToCheck && preg_match('/\.(lhr\.life|trycloudflare\.com|loca\.lt)$/i', $hostToCheck));
+
+if ($hostToCheck && !$isAllowedOrigin) {
     http_response_code(403);
     echo json_encode([
         'success'   => false,
@@ -42,7 +47,7 @@ if ($hostToCheck && !in_array($hostToCheck, $allowedHosts, true)) {
     exit;
 }
 
-if ($origin && in_array($hostToCheck, $allowedHosts, true)) {
+if ($origin && $isAllowedOrigin) {
     header('Access-Control-Allow-Origin: ' . $origin);
 }
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
