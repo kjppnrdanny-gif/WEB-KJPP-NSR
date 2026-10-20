@@ -21,12 +21,29 @@ header('X-Frame-Options: DENY');
 header('Access-Control-Allow-Credentials: true');
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$referer = $_SERVER['HTTP_REFERER'] ?? '';
 $allowedHosts = ['kjppnanangrahayu.com', 'www.kjppnanangrahayu.com', 'localhost', '127.0.0.1'];
+
+// Proteksi CSRF: Validasi Host Origin & Referer
+$hostToCheck = '';
 if ($origin) {
-    $parsedOrigin = parse_url($origin, PHP_URL_HOST);
-    if (in_array($parsedOrigin, $allowedHosts, true)) {
-        header('Access-Control-Allow-Origin: ' . $origin);
-    }
+    $hostToCheck = parse_url($origin, PHP_URL_HOST);
+} elseif ($referer) {
+    $hostToCheck = parse_url($referer, PHP_URL_HOST);
+}
+
+if ($hostToCheck && !in_array($hostToCheck, $allowedHosts, true)) {
+    http_response_code(403);
+    echo json_encode([
+        'success'   => false,
+        'error'     => 'Akses Ditolak (403 Forbidden): Pelanggaran kebijakan Origin / Referer (CSRF Protection).',
+        'violation' => 'CSRF_REJECTED'
+    ]);
+    exit;
+}
+
+if ($origin && in_array($hostToCheck, $allowedHosts, true)) {
+    header('Access-Control-Allow-Origin: ' . $origin);
 }
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Accept, Authorization, X-Requested-With, X-NSR-Token');
@@ -60,16 +77,17 @@ if (session_status() === PHP_SESSION_NONE) {
 // 1. DATA TOKENS RESMI UNTUK VALIDASI API / BEARER / HEADER
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
-    // Super Admin Master / Pemimpin Rekan
+    // Super Admin Master / Pemimpin Rekan (Ir. Nanang Rahayu)
     '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' => [
         'sub'          => 'admin_master',
         'branch'       => 'PUSAT',
         'displayName'  => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
         'role'         => 'SUPER ADMIN',
-        'roleLabel'    => 'Pemimpin Rekan & Super Admin',
+        'roleLabel'    => 'Pemimpin Rekan & Super Admin Master',
         'wilayah'      => 'PUSAT',
         'wilayahCode'  => '00',
         'isSuperAdmin' => true,
+        'isMaster'     => true,
         'isCabang'     => false,
         'canApprove'   => true,
         'mode'         => 'PUSAT',
@@ -78,27 +96,29 @@ $OFFICIAL_TOKEN_HASHES = [
     '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f' => [
         'sub'          => 'admin_master',
         'branch'       => 'PUSAT',
-        'displayName'  => 'Kantor Pusat Jakarta',
+        'displayName'  => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
         'role'         => 'SUPER ADMIN',
-        'roleLabel'    => 'SUPER ADMIN • KANTOR PUSAT',
+        'roleLabel'    => 'Pemimpin Rekan & Super Admin Master',
         'wilayah'      => 'PUSAT',
         'wilayahCode'  => '00',
         'isSuperAdmin' => true,
+        'isMaster'     => true,
         'isCabang'     => false,
         'canApprove'   => true,
         'mode'         => 'PUSAT',
         'tokenHash'    => '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f'
     ],
-    // Admin Pusat Jakarta (NSR-PST-2026)
+    // Admin Pusat Jakarta - Verifikasi Administrasi (Danny Taufik Hidayat, S.H. - NSR-PST-2026)
     '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2' => [
         'sub'          => 'admin_pst',
         'branch'       => 'PUSAT',
         'displayName'  => 'Danny Taufik Hidayat, S.H.',
-        'role'         => 'SUPER ADMIN',
+        'role'         => 'ADMIN_PUSAT',
         'roleLabel'    => 'Verifikasi Administrasi & Legal',
         'wilayah'      => 'PUSAT',
         'wilayahCode'  => '00',
-        'isSuperAdmin' => true,
+        'isSuperAdmin' => false,
+        'isMaster'     => false,
         'isCabang'     => false,
         'canApprove'   => true,
         'mode'         => 'PUSAT',
@@ -108,11 +128,12 @@ $OFFICIAL_TOKEN_HASHES = [
         'sub'          => 'admin_pst',
         'branch'       => 'PUSAT',
         'displayName'  => 'Danny Taufik Hidayat, S.H.',
-        'role'         => 'SUPER ADMIN',
+        'role'         => 'ADMIN_PUSAT',
         'roleLabel'    => 'Verifikasi Administrasi & Legal',
         'wilayah'      => 'PUSAT',
         'wilayahCode'  => '00',
-        'isSuperAdmin' => true,
+        'isSuperAdmin' => false,
+        'isMaster'     => false,
         'isCabang'     => false,
         'canApprove'   => true,
         'mode'         => 'PUSAT',
@@ -122,12 +143,13 @@ $OFFICIAL_TOKEN_HASHES = [
     '116f1fc38a65e1f069d617ef30be1bd2c693e9cb69950ea475a694af2594dd99' => [
         'sub'          => 'cabang_jkt_adm',
         'branch'       => 'PUSAT',
-        'displayName'  => 'Kantor Pusat Jakarta',
-        'role'         => 'SUPER ADMIN',
-        'roleLabel'    => 'SUPER ADMIN • KANTOR PUSAT',
+        'displayName'  => 'Danny Taufik Hidayat, S.H.',
+        'role'         => 'ADMIN_PUSAT',
+        'roleLabel'    => 'Admin Kantor Pusat Jakarta',
         'wilayah'      => 'PUSAT',
         'wilayahCode'  => '00',
-        'isSuperAdmin' => true,
+        'isSuperAdmin' => false,
+        'isMaster'     => false,
         'isCabang'     => false,
         'canApprove'   => true,
         'mode'         => 'PUSAT',
@@ -136,12 +158,13 @@ $OFFICIAL_TOKEN_HASHES = [
     '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04' => [
         'sub'          => 'cabang_jkt_adm',
         'branch'       => 'PUSAT',
-        'displayName'  => 'Kantor Pusat Jakarta',
-        'role'         => 'SUPER ADMIN',
-        'roleLabel'    => 'SUPER ADMIN • KANTOR PUSAT',
+        'displayName'  => 'Danny Taufik Hidayat, S.H.',
+        'role'         => 'ADMIN_PUSAT',
+        'roleLabel'    => 'Admin Kantor Pusat Jakarta',
         'wilayah'      => 'PUSAT',
         'wilayahCode'  => '00',
-        'isSuperAdmin' => true,
+        'isSuperAdmin' => false,
+        'isMaster'     => false,
         'isCabang'     => false,
         'canApprove'   => true,
         'mode'         => 'PUSAT',
@@ -906,6 +929,7 @@ if (!$currentUser) {
 }
 
 $userRole = strtoupper($currentUser['role'] ?? 'CABANG');
+$isMaster = !empty($currentUser['isMaster']) || (!empty($currentUser['isSuperAdmin']) && $userRole === 'SUPER ADMIN');
 $isSuperOrPusat = in_array($userRole, ['SUPER ADMIN', 'ADMIN_PUSAT', 'ADMIN'], true) || !empty($currentUser['isSuperAdmin']);
 $userBranch = trim($currentUser['branch'] ?? 'Pusat');
 $userDisplayName = $currentUser['displayName'] ?? ($currentUser['sub'] ?? 'Petugas Terverifikasi');
@@ -1214,8 +1238,17 @@ if ($action === 'simpanPengajuan') {
         $isRevision = false;
         if ($existing) {
             $prevStatus = $existing['status'] ?? 'DRAFT';
+            // Pencegahan Manipulasi: Dokumen SUBMITTED, IN_REVIEW, atau APPROVED tidak boleh diubah kembali ke DRAFT!
+            if ($isDraft && ($prevStatus === 'SUBMITTED' || $prevStatus === 'IN_REVIEW' || $prevStatus === 'APPROVED')) {
+                return [
+                    'success'   => false,
+                    'http_code' => 400,
+                    'error'     => 'Dokumen yang telah diajukan atau disetujui tidak dapat diubah kembali menjadi draf tanpa prosedur revisi resmi.'
+                ];
+            }
+
             // Jika dokumen sebelumnya sudah disubmit/ditolak, maka pengajuan ulang dianggap revisi (versi naik)
-            if (!$isDraft && ($prevStatus === 'REJECTED' || $prevStatus === 'IN_REVIEW' || $prevStatus === 'APPROVED' || $prevStatus === 'SUBMITTED')) {
+            if ($prevStatus === 'REJECTED' || $prevStatus === 'IN_REVIEW' || $prevStatus === 'APPROVED' || $prevStatus === 'SUBMITTED') {
                 $versi = ((int)($existing['versi'] ?? 1)) + 1;
                 $isRevision = true;
             } else {
@@ -1373,7 +1406,7 @@ if ($action === 'approveTier') {
         exit;
     }
 
-    $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $tier, $currentUser, $userRole, $isSuperOrPusat, $SERVER_SECRET) {
+    $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $tier, $currentUser, $userRole, $isSuperOrPusat, $isMaster, $SERVER_SECRET) {
         $now = date('Y-m-d H:i:s');
         $targetIndex = -1;
 
@@ -1402,25 +1435,28 @@ if ($action === 'approveTier') {
             return ['success' => false, 'http_code' => 400, 'error' => 'Dokumen sudah disetujui sepenuhnya (Tier 5 Selesai).'];
         }
 
-        // ROLE-BASED AUTHORIZATION CHECK
+        // ROLE-BASED AUTHORIZATION CHECK (STRICT SEPARATION OF DUTIES)
         $authorized = false;
-        if ($isSuperOrPusat) {
-            $authorized = true;
-        } elseif ($tier === 2 && in_array($userRole, ['ADMIN_CABANG', 'REVIEWER', 'CABANG'], true)) {
-            $authorized = true;
-        } elseif ($tier === 3 && in_array($userRole, ['ADMIN_PUSAT', 'MANAGEMENT'], true)) {
-            $authorized = true;
-        } elseif ($tier === 4 && in_array($userRole, ['KEUANGAN', 'KEUANGAN_PUSAT'], true)) {
-            $authorized = true;
-        } elseif ($tier === 5 && in_array($userRole, ['SUPER ADMIN', 'PEMIMPIN_REKAN'], true)) {
-            $authorized = true;
+        if ($tier === 2) {
+            // Tier 2: Mengetahui (Deni Siswandi, S.T. / Kepala Cabang / Reviewer)
+            $authorized = in_array($userRole, ['REVIEWER', 'ADMIN_CABANG', 'KEPALA_CABANG', 'CABANG'], true) || $isMaster;
+        } elseif ($tier === 3) {
+            // Tier 3: Verifikasi Administrasi (Danny Taufik Hidayat, S.H. / Admin Pusat / Legal)
+            $authorized = in_array($userRole, ['ADMIN_PUSAT', 'ADMIN', 'MANAGEMENT', 'LEGAL'], true) || $isMaster;
+        } elseif ($tier === 4) {
+            // Tier 4: Menyetujui (Milda H / Keuangan)
+            $authorized = in_array($userRole, ['KEUANGAN', 'KEUANGAN_PUSAT'], true) || $isMaster;
+        } elseif ($tier === 5) {
+            // Tier 5: Penanggung Jawab (Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) / Pemimpin Rekan)
+            // Hanya Super Admin Master (NSR8899) atau akun Pemimpin Rekan yang berwenang
+            $authorized = in_array($userRole, ['SUPER ADMIN', 'PEMIMPIN_REKAN'], true) && $isMaster;
         }
 
         if (!$authorized) {
             return [
                 'success'   => false,
                 'http_code' => 403,
-                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki wewenang untuk menyetujui Tier {$tier}."
+                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki wewenang untuk mengesahkan Tier {$tier} atas nama pejabat berwenang."
             ];
         }
 
@@ -1444,6 +1480,9 @@ if ($action === 'approveTier') {
         // Tentukan Nama Pejabat Otoritas
         $defaultPejabat = $doc['approvals'][$tier]['pejabat'] ?? 'Pejabat Berwenang';
         $pejabatNama = !empty($currentUser['displayName']) ? $currentUser['displayName'] : $defaultPejabat;
+        if ($isMaster && $tier < 5 && !empty($defaultPejabat)) {
+            $pejabatNama = $defaultPejabat;
+        }
         $pejabatJabatan = $doc['approvals'][$tier]['jabatan'] ?? 'Pejabat';
 
         // Hitung Cryptographic HMAC Token
