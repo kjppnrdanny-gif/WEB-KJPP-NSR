@@ -35,6 +35,7 @@ const ALLOWED_FILES = [
   "panduan-sosialisasi-karyawan.html",
   "panduan-operasional-nolap-kwitansi.html",
   "panduan-operasional-portal-nolap.html",
+  "alur-kerja-penugasan-nolap-kwitansi.html",
 
   // Aset Brand, Icon, dan Dokumen Resmi
   "favicon.ico",

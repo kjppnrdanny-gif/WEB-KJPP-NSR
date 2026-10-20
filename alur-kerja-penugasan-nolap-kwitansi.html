@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedoman Standar Alur Kerja Terpadu (SOP End-to-End) | KJPP Nanang Rahayu &amp; Rekan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    
+    /* Print Optimization untuk Dokumen SOP Resmi */
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: #0f172a !important; padding: 0 !important; font-size: 11pt !important; }
+      .page-break { page-break-before: always; }
+      .avoid-break { page-break-inside: avoid; }
+      .print-shadow-none { box-shadow: none !important; }
+      .print-border { border: 1px solid #cbd5e1 !important; }
+      .print-bg-white { background: white !important; color: #0f172a !important; }
+      a { text-decoration: none !important; color: inherit !important; }
+      @page {
+        size: A4 portrait;
+        margin: 1.6cm 1.4cm 1.8cm 1.4cm;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased p-3 sm:p-6 lg:p-8">
+
+  <!-- ================================================================= -->
+  <!-- TOP BAR AKSI (HANYA LAYAR BROWSER - TIDAK TERCETAK)               -->
+  <!-- ================================================================= -->
+  <aside aria-label="Aksi Halaman" class="max-w-5xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-3 no-print">
+    <div class="flex items-center gap-2">
+      <a href="panduan-operasional-portal-nolap.html" class="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-slate-950 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-sm transition">
+        &larr; Panduan Portal NoLap
+      </a>
+      <a href="daftar-token-akses-internal.html" class="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-slate-950 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-sm transition">
+        🔐 Direktori Token Kredensial
+      </a>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="window.print()" class="inline-flex items-center gap-2 text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-300 px-5 py-2.5 rounded-xl shadow-lg shadow-amber-400/25 transition cursor-pointer">
+        <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+        Cetak Pedoman / Simpan PDF
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================================================================= -->
+  <!-- DOKUMEN UTAMA (KERTAS A4 ELEGAN)                                  -->
+  <!-- ================================================================= -->
+  <main class="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-10 lg:p-14 print-shadow-none print-border">
+
+    <!-- HEADER RESMI PERUSAHAAN -->
+    <header class="border-b-2 border-slate-900 pb-6 mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+      <div class="space-y-1.5">
+        <div class="flex items-center gap-2">
+          <span class="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-950 text-amber-400">
+            PEDOMAN OPERASIONAL RESMI (SOP)
+          </span>
+          <span class="text-xs text-slate-500 font-semibold">Dokumen ID: SOP-TERPADU-2026-v2</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight leading-tight">
+          ALUR KERJA OPERASIONAL TERPADU<br>
+          <span class="text-blue-900">JOB ORDER (JO) &bull; PORTAL NOLAP &bull; KWITANSI &amp; KEUANGAN</span>
+        </h1>
+        <p class="text-xs text-slate-600 font-medium">
+          Standar Operasional Prosedur (SOP) Pelaksanaan Penugasan Penilaian Berbasis Sistem Terintegrasi
+        </p>
+      </div>
+      <div class="text-left sm:text-right shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
+        <span class="block text-xs font-black text-slate-950 uppercase tracking-widest">KJPP NANANG RAHAYU &amp; REKAN</span>
+        <span class="block text-xs font-bold text-amber-600">Izin Usaha Menkeu No. 2.19.0160</span>
+        <span class="block text-[11px] text-slate-500 mt-1">Kantor Pusat Jakarta &bull; Cabang Bandung &bull; Padang &bull; Makassar &bull; Palembang</span>
+        <span class="inline-block mt-2 px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+          Standar Kepatuhan KEPI &amp; SPI 102/103
+        </span>
+      </div>
+    </header>
+
+    <!-- INTRODUKSI & TUJUAN PEDOMAN -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 mb-8 space-y-2 avoid-break">
+      <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+        <span>🎯</span> Maksud &amp; Tujuan Pedoman Alur Kerja
+      </h3>
+      <p class="leading-relaxed">
+        Dokumen ini disusun sebagai panduan operasional tunggal bagi seluruh jajaran manajemen, Penilai Publik, tim penilai, surveyor, komite kendali mutu (QA), staf pemasaran, serta divisi keuangan di <strong>Kantor Pusat Jakarta maupun Kantor Cabang (Bandung, Padang, Makassar, Palembang)</strong>. 
+      </p>
+      <p class="leading-relaxed text-slate-600">
+        Pedoman ini menghubungkan <strong>3 pilar sistem aplikasi internal</strong>: (1) Modul Administrasi Job Order (JO), (2) Portal Nomor Laporan (NoLap) dengan 8 Tahapan Siklus Mutu, dan (3) Portal Kwitansi &amp; Pengendalian Keuangan, guna memastikan setiap laporan penilaian yang diterbitkan memenuhi asas independensi, tertib administrasi, zero-defect mutu, dan tertib rekonsiliasi keuangan.
+      </p>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- BAGAN ALIR UTAMA (GRAND PIPELINE OVERVIEW)                         -->
+    <!-- ================================================================= -->
+    <section class="mb-10 avoid-break">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2.5 mb-5">
+        <h3 class="text-sm font-black text-blue-950 uppercase tracking-wider flex items-center gap-2">
+          <span>🗺️</span> Bagan Alir Eksekutif 4 Fase Operasional Terpadu
+        </h3>
+        <span class="text-[11px] font-semibold text-slate-500">Pipeline Penugasan End-to-End</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+        <!-- Fase 1 -->
+        <div class="p-4 rounded-2xl bg-amber-50/70 border-2 border-amber-300 relative overflow-hidden">
+          <div class="w-7 h-7 rounded-lg bg-amber-500 text-white font-black text-xs flex items-center justify-center mb-2.5 shadow-sm">
+            F1
+          </div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-amber-800 block">Pilar 1: Pra-Penugasan</span>
+          <h4 class="font-black text-slate-900 text-xs mt-0.5 mb-2">Order, KDKP &amp; Job Order (JO)</h4>
+          <p class="text-[11px] text-slate-600 leading-snug">
+            Registrasi order awal klien, telaah KDKP &amp; SPI 103, penawaran fee, SPK, dan pembentukan ID Penugasan resmi.
+          </p>
+          <div class="mt-3 pt-2 border-t border-amber-200/60 text-[10px] font-bold text-amber-900">
+            Aktor: Marketing &bull; Admin Cabang
+          </div>
+        </div>
+
+        <!-- Fase 2 -->
+        <div class="p-4 rounded-2xl bg-sky-50/70 border-2 border-sky-300 relative overflow-hidden">
+          <div class="w-7 h-7 rounded-lg bg-sky-600 text-white font-black text-xs flex items-center justify-center mb-2.5 shadow-sm">
+            F2
+          </div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-sky-800 block">Pilar 2: Lapangan &amp; Teknis</span>
+          <h4 class="font-black text-slate-900 text-xs mt-0.5 mb-2">Surat Tugas &amp; Inspeksi Objek</h4>
+          <p class="text-[11px] text-slate-600 leading-snug">
+            Cetak Surat Tugas otomatis, pembentukan 4 folder Drive, inspeksi fisik, BAPL, foto GPS, &amp; kertas kerja nilai.
+          </p>
+          <div class="mt-3 pt-2 border-t border-sky-200/60 text-[10px] font-bold text-sky-900">
+            Aktor: Surveyor &bull; Penilai (Valuer)
+          </div>
+        </div>
+
+        <!-- Fase 3 -->
+        <div class="p-4 rounded-2xl bg-emerald-50/70 border-2 border-emerald-300 relative overflow-hidden">
+          <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center mb-2.5 shadow-sm">
+            F3
+          </div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">Pilar 2: Kendali Mutu</span>
+          <h4 class="font-black text-slate-900 text-xs mt-0.5 mb-2">Review QA &amp; Terbit NoLap 7 Segmen</h4>
+          <p class="text-[11px] text-slate-600 leading-snug">
+            Checklist kepatuhan SPI 102 oleh QA, otorisasi Partner, pembukaan gembok 🔒, &amp; penerbitan Nomor Laporan resmi.
+          </p>
+          <div class="mt-3 pt-2 border-t border-emerald-200/60 text-[10px] font-bold text-emerald-900">
+            Aktor: Reviewer QA &bull; Partner Pusat
+          </div>
+        </div>
+
+        <!-- Fase 4 -->
+        <div class="p-4 rounded-2xl bg-purple-50/70 border-2 border-purple-300 relative overflow-hidden">
+          <div class="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center mb-2.5 shadow-sm">
+            F4
+          </div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-purple-800 block">Pilar 3: Keuangan &amp; Rilis</span>
+          <h4 class="font-black text-slate-900 text-xs mt-0.5 mb-2">Kwitansi &amp; Penyerahan Laporan</h4>
+          <p class="text-[11px] text-slate-600 leading-snug">
+            Pencatatan DP survei cabang, verifikasi pelunasan invoice oleh Finance Pusat, cetak Tanda Terima, &amp; rilis berkas final.
+          </p>
+          <div class="mt-3 pt-2 border-t border-purple-200/60 text-[10px] font-bold text-purple-900">
+            Aktor: Kasir Cabang &bull; Keuangan Pusat
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PILAR 1: ALUR LINGKUP PENUGASAN & JOB ORDER (JO)                  -->
+    <!-- ================================================================= -->
+    <section class="mb-12 avoid-break">
+      <div class="flex items-center gap-3 border-b-2 border-slate-900 pb-3 mb-6">
+        <div class="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 font-black text-base flex items-center justify-center shadow-md">
+          P1
+        </div>
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 block">PILAR OPERASIONAL 1</span>
+          <h2 class="text-lg sm:text-xl font-black text-slate-950 uppercase tracking-tight">
+            Lingkup Penugasan &amp; Penerbitan Job Order (JO)
+          </h2>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Langkah 1.1 -->
+        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-start gap-3.5">
+          <div class="w-7 h-7 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center shrink-0 text-xs">1</div>
+          <div class="space-y-1.5 flex-1">
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="font-bold text-slate-950 text-sm">Penerimaan Order &amp; Registrasi Profil Klien</h4>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900">Marketing &amp; Admin Cabang</span>
+            </div>
+            <p class="text-slate-600 leading-relaxed text-[11px]">
+              Permohonan penilaian diterima melalui Divisi Marketing atau datang langsung ke Kantor Cabang. Petugas mencatat: nama pemberi tugas, debitur/pemilik properti, tujuan penilaian (misal: penjaminan utang, laporan keuangan, transaksi jual beli), lokasi objek, serta kontak PIC klien.
+            </p>
+          </div>
+        </div>
+
+        <!-- Langkah 1.2 -->
+        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-start gap-3.5">
+          <div class="w-7 h-7 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center shrink-0 text-xs">2</div>
+          <div class="space-y-1.5 flex-1">
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="font-bold text-slate-950 text-sm">Telaah Penerimaan Penugasan &amp; Kepatuhan SPI 103 (KDKP)</h4>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900">Partner &bull; Kepala Cabang</span>
+            </div>
+            <p class="text-slate-600 leading-relaxed text-[11px]">
+              Sebelum menerima tugas, dilakukan telaah mandatori sesuai <strong>Standar Penilaian Indonesia (SPI 103)</strong>:
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-slate-600 text-[11px] pl-1">
+              <li>Pemeriksaan benturan kepentingan (*conflict of interest*) antara penilai dengan klien/debitur.</li>
+              <li>Pemeriksaan kompetensi teknis tim penilai sesuai klasifikasi aset (Properti Sederhana / Properti Komersial / Bisnis).</li>
+              <li>Persetujuan syarat pembatas dan asumsi khusus yang diminta oleh pemberi tugas.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Langkah 1.3 -->
+        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-start gap-3.5">
+          <div class="w-7 h-7 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center shrink-0 text-xs">3</div>
+          <div class="space-y-1.5 flex-1">
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="font-bold text-slate-950 text-sm">Penerbitan Kontrak SPK &amp; Job Order (JO)</h4>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900">Admin Cabang &bull; Admin Pusat</span>
+            </div>
+            <p class="text-slate-600 leading-relaxed text-[11px]">
+              Setelah biaya imbalan jasa (*professional fee*) disetujui klien, diterbitkan Surat Perjanjian Kerja (SPK) resmi. Admin menginput data ke modul penugasan untuk menghasilkan <strong>ID Penugasan Unik</strong> (contoh: <code class="font-mono-code bg-slate-100 px-1 py-0.5 rounded text-blue-900">JO-2026-BDG-0042</code>).
+            </p>
+          </div>
+        </div>
+
+        <!-- Langkah 1.4 -->
+        <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 flex items-start gap-3.5">
+          <div class="w-7 h-7 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center shrink-0 text-xs">4</div>
+          <div class="space-y-1.5 flex-1">
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="font-bold text-slate-950 text-sm">Otomasi Pembuatan Folder Google Drive &amp; Dokumen Awal</h4>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-950">Sistem Otomatis (Cloud API)</span>
+            </div>
+            <p class="text-slate-600 leading-relaxed text-[11px]">
+              Sistem backend secara instan membuat direktori penyimpanan Google Drive terpusat dengan hirarki baku:
+            </p>
+            <div class="p-2.5 rounded-xl bg-white border border-amber-200 font-mono-code text-[10.5px] text-slate-700">
+              📁 Drive Root / [Tahun 2026] / [Kode Cabang: BDG] / [ID Penugasan - Nama Klien]<br>
+              &nbsp;&nbsp;├── 📁 01_Legalitas &amp; Administrasi<br>
+              &nbsp;&nbsp;├── 📁 02_Data Lapangan &amp; BAPL<br>
+              &nbsp;&nbsp;├── 📁 03_Kertas Kerja &amp; Draf<br>
+              &nbsp;&nbsp;└── 📁 04_Laporan Final &amp; Tanda Terima
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PILAR 2: PORTAL NOMOR LAPORAN (NOLAP) & 8 SIKLUS MUTU             -->
+    <!-- ================================================================= -->
+    <section class="mb-12 page-break avoid-break">
+      <div class="flex items-center gap-3 border-b-2 border-slate-900 pb-3 mb-6">
+        <div class="w-10 h-10 rounded-2xl bg-blue-900 text-amber-400 font-black text-base flex items-center justify-center shadow-md">
+          P2
+        </div>
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-blue-700 block">PILAR OPERASIONAL 2</span>
+          <h2 class="text-lg sm:text-xl font-black text-slate-950 uppercase tracking-tight">
+            Portal Nomor Laporan (NoLap) &amp; Siklus Kendali Mutu
+          </h2>
+        </div>
+      </div>
+
+      <!-- TABEL 8 SIKLUS MUTU (STATE MACHINE) -->
+      <div class="mb-6">
+        <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+          <span>🔄</span> 8 Tahapan Siklus Hidup Berkas Penugasan (*State Machine*)
+        </h3>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-900 text-slate-200 font-bold">
+                <th class="p-3 text-center w-12">No</th>
+                <th class="p-3">Nama Status Baku</th>
+                <th class="p-3">Penanggung Jawab</th>
+                <th class="p-3">Tindakan Operasional &amp; Output Dokumen</th>
+                <th class="p-3 text-center">Status Tombol NoLap</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 text-slate-700 text-[11px]">
+              <tr>
+                <td class="p-3 text-center font-bold text-slate-900">1</td>
+                <td class="p-3 font-bold text-slate-900">Draft Registrasi</td>
+                <td class="p-3">Admin Cabang</td>
+                <td class="p-3">Input data awal objek &amp; unggah sertifikat ke folder <code>01_Legalitas</code>.</td>
+                <td class="p-3 text-center"><span class="text-rose-600 font-bold">🔒 Terkunci</span></td>
+              </tr>
+              <tr class="bg-slate-50/60">
+                <td class="p-3 text-center font-bold text-slate-900">2</td>
+                <td class="p-3 font-bold text-amber-700">Menunggu Persetujuan Risiko/Partner</td>
+                <td class="p-3">Partner / Kepala Cabang</td>
+                <td class="p-3">Verifikasi kesesuaian SPK, risiko aset, dan persetujuan penunjukan tim penilai.</td>
+                <td class="p-3 text-center"><span class="text-rose-600 font-bold">🔒 Terkunci</span></td>
+              </tr>
+              <tr>
+                <td class="p-3 text-center font-bold text-slate-900">3</td>
+                <td class="p-3 font-bold text-sky-700">Surat Tugas Terbit / Lapangan</td>
+                <td class="p-3">Surveyor &bull; Valuer</td>
+                <td class="p-3">
+                  <strong>Cetak Dokumen Surat Tugas Lapangan</strong> via portal. Inspeksi fisik, foto GPS, dan penandatanganan Berita Acara (BAPL) bersama perwakilan klien di lapangan.
+                </td>
+                <td class="p-3 text-center"><span class="text-rose-600 font-bold">🔒 Terkunci</span></td>
+              </tr>
+              <tr class="bg-slate-50/60">
+                <td class="p-3 text-center font-bold text-slate-900">4</td>
+                <td class="p-3 font-bold text-purple-700">Dalam Review Mutu (QA)</td>
+                <td class="p-3">Reviewer Mutu (QA)</td>
+                <td class="p-3">
+                  Pemeriksaan draf laporan &amp; kertas kerja (*spreadsheet*) di folder <code>03_Kertas Kerja</code> terhadap kepatuhan SPI 102. Pengisian <strong>Lembar Kendali Mutu (QA)</strong>.
+                </td>
+                <td class="p-3 text-center"><span class="text-rose-600 font-bold">🔒 Terkunci</span></td>
+              </tr>
+              <tr class="bg-rose-50/40">
+                <td class="p-3 text-center font-bold text-rose-600">5</td>
+                <td class="p-3 font-bold text-rose-600">Perlu Perbaikan Cabang</td>
+                <td class="p-3">Admin Cabang &bull; Valuer</td>
+                <td class="p-3">
+                  Reviewer menolak draf sementara dan mengisi form catatan perbaikan (wajib &gt; 10 karakter). Cabang memperbaiki kertas kerja dan mengirim ulang telaah.
+                </td>
+                <td class="p-3 text-center"><span class="text-rose-600 font-bold">🔒 Terkunci</span></td>
+              </tr>
+              <tr class="bg-emerald-50/40">
+                <td class="p-3 text-center font-bold text-emerald-800">6</td>
+                <td class="p-3 font-bold text-emerald-800">Disetujui Partner</td>
+                <td class="p-3">Partner Penandatangan</td>
+                <td class="p-3">
+                  Checklist QA tercentang 100% dan Partner menekan tombol otorisasi persetujuan final di Meja Approval Pusat.
+                </td>
+                <td class="p-3 text-center"><span class="text-emerald-700 font-bold">🔓 Terbuka</span></td>
+              </tr>
+              <tr class="bg-emerald-100/50">
+                <td class="p-3 text-center font-bold text-emerald-950">7</td>
+                <td class="p-3 font-bold text-emerald-950">Nomor Terbit &amp; Final</td>
+                <td class="p-3">Admin Pusat &bull; Partner</td>
+                <td class="p-3">
+                  Sistem mengeksekusi <strong>Transaksi Pengunci (Atomic Lock)</strong>, menerbitkan Nomor Laporan 7 Segmen resmi, dan menghasilkan <strong>Lembar Tanda Terima Penyerahan</strong>.
+                </td>
+                <td class="p-3 text-center"><span class="text-emerald-700 font-black">✓ SUDAH TERBIT</span></td>
+              </tr>
+              <tr>
+                <td class="p-3 text-center font-bold text-slate-900">8</td>
+                <td class="p-3 font-bold text-slate-600">Selesai / Diarsipkan</td>
+                <td class="p-3">Arsiparis Pusat &bull; Cabang</td>
+                <td class="p-3">Laporan cetak resmi diserahkan ke klien. PDF bertanda tangan digital disimpan permanen di folder <code>04_Laporan Final</code>.</td>
+                <td class="p-3 text-center"><span class="text-slate-400 font-bold">Arsip Tutup</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FORMULA PENOMORAN RESMI 7 SEGMEN -->
+      <div class="p-4 rounded-2xl bg-slate-900 text-white text-xs avoid-break">
+        <h4 class="font-bold text-amber-400 mb-2 flex items-center gap-2">
+          <span>🏷️</span> Formula Penomoran Laporan Resmi 7 Segmen Kemenkeu
+        </h4>
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono-code text-center text-amber-300 text-sm font-bold tracking-wider mb-2">
+          [Nomor Urut] / [Kode Klasifikasi Jasa] / [Kode KJPP] / [Kode Cabang] / [Bulan Romawi] / [Tahun]
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10.5px] text-slate-300 pt-1">
+          <div>&bull; <strong>Nomor Urut:</strong> 001, 002, dst.</div>
+          <div>&bull; <strong>Klasifikasi:</strong> PP (Properti) / PS (Sederhana)</div>
+          <div>&bull; <strong>Kode KJPP:</strong> NSR</div>
+          <div>&bull; <strong>Kode Cabang:</strong> PST / BDG / PDG / MKS / PLB</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PILAR 3: PORTAL KWITANSI & TATA KELOLA KEUANGAN                   -->
+    <!-- ================================================================= -->
+    <section class="mb-12 avoid-break">
+      <div class="flex items-center gap-3 border-b-2 border-slate-900 pb-3 mb-6">
+        <div class="w-10 h-10 rounded-2xl bg-emerald-700 text-white font-black text-base flex items-center justify-center shadow-md">
+          P3
+        </div>
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">PILAR OPERASIONAL 3</span>
+          <h2 class="text-lg sm:text-xl font-black text-slate-950 uppercase tracking-tight">
+            Portal Kwitansi &amp; Tata Kelola Keuangan
+          </h2>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs mb-5">
+        <!-- Kasir Cabang -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-900 text-sm">Pencatatan Uang Muka (DP) &amp; Kasir Cabang</h4>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-900">Token: NSR-KAS-2026</span>
+          </div>
+          <p class="text-slate-600 leading-relaxed text-[11px]">
+            Untuk biaya operasional inspeksi lapangan, klien cabang dapat menyetorkan uang muka (DP) survei. Kasir cabang mencatat bukti transfer ke portal kwitansi dan mencetak tanda terima titipan dana sementara. Dana direkonsiliasi setiap hari kerja ke rekening resmi kantor pusat.
+          </p>
+        </div>
+
+        <!-- Finance Pusat -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-900 text-sm">Verifikasi Pelunasan &amp; Kwitansi Resmi</h4>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900">Token: NSR-KEU-2026</span>
+          </div>
+          <p class="text-slate-600 leading-relaxed text-[11px]">
+            Divisi Keuangan Pusat memeriksa rekening koran atas pelunasan tagihan invoice penugasan. Setelah pembayaran 100% valid, Finance Pusat menerbitkan <strong>Kwitansi Resmi Bermaterai</strong> dengan nomor seri terpusat yang terhubung langsung ke Nomor Laporan penugasan.
+          </p>
+        </div>
+      </div>
+
+      <!-- ATURAN PENGUNCIAN RILIS BERKAS -->
+      <div class="p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-950 text-xs avoid-break">
+        <h4 class="font-black text-rose-900 text-sm mb-1.5 flex items-center gap-2">
+          <span>⛔</span> Aturan Penguncian Pelepasan Dokumen Laporan Asli (*Zero-Defect Release Gate*)
+        </h4>
+        <p class="leading-relaxed text-[11.5px]">
+          Laporan Hasil Penilaian cetak asli (*hardcopy*) bertanda tangan basah dan bermaterai <strong>DILARANG KERAS diserahkan kepada pihak klien/debitur</strong> apabila:
+        </p>
+        <ul class="list-disc list-inside mt-2 space-y-1 text-[11px] font-semibold text-rose-900">
+          <li>Nomor Laporan resmi belum terbit di Portal NoLap (Status belum mencapai &quot;Nomor Terbit &amp; Final&quot;).</li>
+          <li>Status keuangan belum berstatus <strong>LUNAS</strong> yang diverifikasi oleh Divisi Keuangan Pusat.</li>
+          <li>Klien belum menandatangani lembar <strong>Berita Acara / Tanda Terima Penyerahan Dokumen</strong>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- MATRIKS TANGGUNG JAWAB PER PERAN (RACI MATRIX)                     -->
+    <!-- ================================================================= -->
+    <section class="mb-10 page-break avoid-break">
+      <div class="border-b border-slate-200 pb-3 mb-4">
+        <h3 class="text-sm font-black text-blue-950 uppercase tracking-wider flex items-center gap-2">
+          <span>👥</span> Matriks Tanggung Jawab Operasional (RACI Matrix)
+        </h3>
+        <p class="text-xs text-slate-500 mt-0.5">
+          R = Responsible (Pelaksana) &bull; A = Accountable (Penanggung Jawab Akhir) &bull; C = Consulted (Pemeriksa) &bull; I = Informed (Penerima Laporan)
+        </p>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-200">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-900 text-slate-200 font-bold text-center">
+              <th class="p-2.5 text-left">Tahapan Alur Kerja</th>
+              <th class="p-2.5 w-16">MKT</th>
+              <th class="p-2.5 w-16">ADM Cab</th>
+              <th class="p-2.5 w-16">Surveyor</th>
+              <th class="p-2.5 w-16">Valuer</th>
+              <th class="p-2.5 w-16">QA Rev</th>
+              <th class="p-2.5 w-16">Partner</th>
+              <th class="p-2.5 w-16">Finance</th>
+              <th class="p-2.5 w-16">Direksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 text-slate-700 text-center text-[11px]">
+            <tr>
+              <td class="p-2.5 text-left font-medium">1. Order Klien &amp; Registrasi Profil</td>
+              <td class="font-bold text-blue-700">R</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>I</td>
+              <td>I</td>
+              <td>I</td>
+            </tr>
+            <tr class="bg-slate-50/60">
+              <td class="p-2.5 text-left font-medium">2. Telaah KDKP &amp; Kepatuhan SPI 103</td>
+              <td>C</td>
+              <td>R</td>
+              <td>-</td>
+              <td>C</td>
+              <td>C</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td>-</td>
+              <td>I</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 text-left font-medium">3. Penerbitan Surat Tugas &amp; BAPL</td>
+              <td>-</td>
+              <td class="font-bold text-blue-700">R</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td class="font-bold text-blue-700">R</td>
+              <td>-</td>
+              <td>I</td>
+              <td>-</td>
+              <td>I</td>
+            </tr>
+            <tr class="bg-slate-50/60">
+              <td class="p-2.5 text-left font-medium">4. Inspeksi Fisik Lapangan &amp; Foto GPS</td>
+              <td>-</td>
+              <td>-</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td class="font-bold text-blue-700">R</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 text-left font-medium">5. Kertas Kerja Penilaian &amp; Draf Nilai</td>
+              <td>-</td>
+              <td>-</td>
+              <td>C</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td>-</td>
+              <td>I</td>
+              <td>-</td>
+              <td>I</td>
+            </tr>
+            <tr class="bg-slate-50/60">
+              <td class="p-2.5 text-left font-medium">6. Telaah Kendali Mutu &amp; Checklist QA</td>
+              <td>-</td>
+              <td>I</td>
+              <td>-</td>
+              <td>C</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td>C</td>
+              <td>-</td>
+              <td>I</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 text-left font-medium">7. Otorisasi Persetujuan &amp; Terbit NoLap</td>
+              <td>-</td>
+              <td>I</td>
+              <td>-</td>
+              <td>-</td>
+              <td>C</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td>-</td>
+              <td class="font-bold text-purple-700">Override</td>
+            </tr>
+            <tr class="bg-slate-50/60">
+              <td class="p-2.5 text-left font-medium">8. Validasi Pembayaran &amp; Kwitansi Pelunasan</td>
+              <td>I</td>
+              <td>C</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td>I</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 text-left font-medium">9. Penyerahan Laporan Final &amp; Tanda Terima</td>
+              <td>I</td>
+              <td class="font-bold text-emerald-700">A</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>I</td>
+              <td>C</td>
+              <td>I</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PETUNJUK SOSIALISASI & SIMULASI INTERNAL                          -->
+    <!-- ================================================================= -->
+    <section class="mb-8 avoid-break">
+      <div class="border-b border-slate-200 pb-2.5 mb-4">
+        <h3 class="text-sm font-black text-blue-950 uppercase tracking-wider flex items-center gap-2">
+          <span>📢</span> Petunjuk Teknis Sosialisasi ke Seluruh Kantor Cabang
+        </h3>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs text-blue-950 space-y-2.5 leading-relaxed">
+        <p class="font-semibold text-slate-900">
+          Untuk membantu Direksi &amp; Kepala Kantor dalam sosialisasi implementasi portal ke seluruh personel:
+        </p>
+        <ol class="list-decimal list-inside space-y-1.5 text-slate-700 pl-1 text-[11px]">
+          <li><strong>Distribusi Token Privat:</strong> Buka file <a href="daftar-token-akses-internal.html" class="text-blue-700 font-bold underline">daftar-token-akses-internal.html</a>, potong atau salin slip kredensial individual sesuai perannya masing-masing. Jangan bagikan token master <code class="bg-white px-1 py-0.5 rounded text-rose-700 font-bold">NSR8899</code> kepada staf umum.</li>
+          <li><strong>Pelatihan Simulasi (1 Penugasan UAT):</strong> Minta setiap kantor cabang melakukan simulasi input 1 penugasan fiktif di portal aktif <a href="portal-nolap.html" target="_blank" class="text-blue-700 font-bold underline">portal-nolap.html</a> mulai dari pendaftaran JO, pencetakan Surat Tugas, hingga alur review QA.</li>
+          <li><strong>Verifikasi Tombol Terkunci (🔒):</strong> Pastikan admin cabang memahami bahwa tombol generate nomor laporan tidak akan pernah bisa diklik sebelum verifikasi QA dan Partner berstatus disetujui.</li>
+          <li><strong>Penyimpanan Berkas Digital:</strong> Tekankan kepada seluruh penilai dan surveyor untuk mengunggah seluruh dokumen pendukung ke 4 Subfolder Google Drive penugasan sesuai nomor folder yang ditentukan.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- LEMBAR PENGESAHAN DOKUMEN -->
+    <footer class="border-t-2 border-slate-900 pt-6 mt-10 avoid-break">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-center">
+        <div>
+          <span class="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">Disusun Oleh:</span>
+          <p class="font-bold text-slate-900">Tim Pengembang Sistem &amp; Mutu</p>
+          <div class="h-12 flex items-center justify-center text-slate-400 italic text-[10px]">Tervalidasi Digital</div>
+          <p class="text-[11px] text-slate-700">Komite Sistem Terpadu</p>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">Diperiksa Oleh:</span>
+          <p class="font-bold text-slate-900">Komite Pengendalian Mutu (QA)</p>
+          <div class="h-12 flex items-center justify-center text-slate-400 italic text-[10px]">Tervalidasi Digital</div>
+          <p class="text-[11px] text-slate-700">Kepatuhan KEPI &amp; SPI 102/103</p>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">Disahkan Oleh:</span>
+          <p class="font-bold text-slate-900">Pemimpin Rekan / Direktur Utama</p>
+          <div class="h-12 flex items-center justify-center text-blue-950 font-black text-xs">Ir. Nanang Rahayu, M.Sc.</div>
+          <p class="text-[11px] text-slate-700">Izin Penilai Publik No. 2.19.0160</p>
+        </div>
+      </div>
+      <div class="text-center text-[10px] text-slate-400 mt-6 pt-3 border-t border-slate-200">
+        Hak Cipta &copy; 2026 KJPP Nanang Rahayu &amp; Rekan. Seluruh hak cipta dilindungi undang-undang. Dokumen resmi operasional internal.
+      </div>
+    </footer>
+
+  </main>
+
+</body>
+</html>
