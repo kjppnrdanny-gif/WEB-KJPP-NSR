@@ -126,8 +126,17 @@
         <button id="btn-logout" onclick="keluarSesi()" class="hidden px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-rose-300 text-xs font-semibold transition border border-slate-700">
           Keluar
         </button>
+        <a href="portal-penugasan-jo.html" title="Buka Portal SPK &amp; Job Order" class="hidden md:inline-flex px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+          SPK/JO
+        </a>
+        <a href="portal-nolap.html" title="Buka Portal Nomor Laporan" class="hidden md:inline-flex px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+          NoLap
+        </a>
+        <a href="portal-kwitansi.html" title="Buka Portal Kwitansi" class="hidden md:inline-flex px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+          Kwitansi
+        </a>
         <a href="index.html" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
-          Kembali ke Web
+          Web Utama &rarr;
         </a>
       </div>
 
@@ -1093,33 +1102,26 @@
       return 'Rp ' + val.toLocaleString('id-ID');
     }
 
-    function terbilangRupiah(nilai) {
+    function terbilangBilangan(nilai) {
       nilai = Math.floor(Math.abs(nilai));
       const huruf = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
-      let hasil = "";
+      if (nilai === 0) return "";
+      if (nilai < 12) return huruf[nilai];
+      if (nilai < 20) return terbilangBilangan(nilai - 10) + " Belas";
+      if (nilai < 100) return terbilangBilangan(Math.floor(nilai / 10)) + " Puluh " + (nilai % 10 !== 0 ? terbilangBilangan(nilai % 10) : "");
+      if (nilai < 200) return "Seratus " + (nilai - 100 !== 0 ? terbilangBilangan(nilai - 100) : "");
+      if (nilai < 1000) return terbilangBilangan(Math.floor(nilai / 100)) + " Ratus " + (nilai % 100 !== 0 ? terbilangBilangan(nilai % 100) : "");
+      if (nilai < 2000) return "Seribu " + (nilai - 1000 !== 0 ? terbilangBilangan(nilai - 1000) : "");
+      if (nilai < 1000000) return terbilangBilangan(Math.floor(nilai / 1000)) + " Ribu " + (nilai % 1000 !== 0 ? terbilangBilangan(nilai % 1000) : "");
+      if (nilai < 1000000000) return terbilangBilangan(Math.floor(nilai / 1000000)) + " Juta " + (nilai % 1000000 !== 0 ? terbilangBilangan(nilai % 1000000) : "");
+      if (nilai < 1000000000000) return terbilangBilangan(Math.floor(nilai / 1000000000)) + " Miliar " + (nilai % 1000000000 !== 0 ? terbilangBilangan(nilai % 1000000000) : "");
+      return terbilangBilangan(Math.floor(nilai / 1000000000000)) + " Triliun " + (nilai % 1000000000000 !== 0 ? terbilangBilangan(nilai % 1000000000000) : "");
+    }
 
-      if (nilai < 12) {
-        hasil = huruf[nilai];
-      } else if (nilai < 20) {
-        hasil = terbilangRupiah(nilai - 10) + " Belas";
-      } else if (nilai < 100) {
-        hasil = terbilangRupiah(Math.floor(nilai / 10)) + " Puluh " + terbilangRupiah(nilai % 10);
-      } else if (nilai < 200) {
-        hasil = "Seratus " + terbilangRupiah(nilai - 100);
-      } else if (nilai < 1000) {
-        hasil = terbilangRupiah(Math.floor(nilai / 100)) + " Ratus " + terbilangRupiah(nilai % 100);
-      } else if (nilai < 2000) {
-        hasil = "Seribu " + terbilangRupiah(nilai - 1000);
-      } else if (nilai < 1000000) {
-        hasil = terbilangRupiah(Math.floor(nilai / 1000)) + " Ribu " + terbilangRupiah(nilai % 1000);
-      } else if (nilai < 1000000000) {
-        hasil = terbilangRupiah(Math.floor(nilai / 1000000)) + " Juta " + terbilangRupiah(nilai % 1000000);
-      } else if (nilai < 1000000000000) {
-        hasil = terbilangRupiah(Math.floor(nilai / 1000000000)) + " Miliar " + terbilangRupiah(nilai % 1000000000);
-      } else {
-        hasil = terbilangRupiah(Math.floor(nilai / 1000000000000)) + " Triliun " + terbilangRupiah(nilai % 1000000000000);
-      }
-      return hasil.replace(/\s+/g, ' ').trim() + " Rupiah";
+    function terbilangRupiah(nilai) {
+      if (!nilai || nilai === 0) return "Nol Rupiah";
+      const kata = terbilangBilangan(nilai).replace(/\s+/g, ' ').trim();
+      return kata + " Rupiah";
     }
 
     // Switch Tabs
@@ -1851,55 +1853,72 @@
       if (doc.jenisOperasional === 'OPR-SRV' && doc.survey) {
         if (doc.survey.biayaPersonal) {
           doc.survey.biayaPersonal.forEach(p => {
+            const vol = p.volume ?? p.hari ?? p.qty ?? 1;
+            const sat = p.satuan || 'Hari';
+            const tarif = p.tarif ?? p.uangHarian ?? p.hargaSatuan ?? 0;
+            const tot = p.total ?? p.nominal ?? (vol * tarif);
             rowsHtml += `
               <tr>
                 <td class="border border-slate-400 p-1 text-center">${rowNum++}</td>
                 <td class="border border-slate-400 p-1">${p.uraian || p.nama || 'Biaya Personal'} (Personal)</td>
-                <td class="border border-slate-400 p-1 text-center">${p.volume}</td>
-                <td class="border border-slate-400 p-1 text-center">${p.satuan}</td>
-                <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(p.tarif)}</td>
-                <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(p.total)}</td>
+                <td class="border border-slate-400 p-1 text-center">${vol}</td>
+                <td class="border border-slate-400 p-1 text-center">${sat}</td>
+                <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(tarif)}</td>
+                <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(tot)}</td>
               </tr>
             `;
           });
         }
         if (doc.survey.biayaKolektif) {
           doc.survey.biayaKolektif.forEach(k => {
+            const vol = k.volume ?? k.qty ?? 1;
+            const sat = k.satuan || 'Paket';
+            const tarif = k.tarif ?? k.nominal ?? k.hargaSatuan ?? 0;
+            const tot = k.total ?? k.nominal ?? (vol * tarif);
             rowsHtml += `
               <tr>
                 <td class="border border-slate-400 p-1 text-center">${rowNum++}</td>
                 <td class="border border-slate-400 p-1">${k.uraian || k.item || 'Biaya Kolektif'} (Armada/Kolektif)</td>
-                <td class="border border-slate-400 p-1 text-center">${k.volume}</td>
-                <td class="border border-slate-400 p-1 text-center">${k.satuan}</td>
-                <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(k.tarif)}</td>
-                <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(k.total)}</td>
+                <td class="border border-slate-400 p-1 text-center">${vol}</td>
+                <td class="border border-slate-400 p-1 text-center">${sat}</td>
+                <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(tarif)}</td>
+                <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(tot)}</td>
               </tr>
             `;
           });
         }
       } else if (doc.jenisOperasional === 'OPR-MTG' && doc.meeting && doc.meeting.rincianBiaya) {
         doc.meeting.rincianBiaya.forEach(m => {
+          const vol = m.volume ?? m.qty ?? 1;
+          const sat = m.satuan || 'Paket';
+          const tarif = m.tarif ?? m.hargaSatuan ?? 0;
+          const tot = m.total ?? (vol * tarif);
           rowsHtml += `
             <tr>
               <td class="border border-slate-400 p-1 text-center">${rowNum++}</td>
               <td class="border border-slate-400 p-1">${m.uraian || m.item || 'Biaya Rapat'}</td>
-              <td class="border border-slate-400 p-1 text-center">${m.volume}</td>
-              <td class="border border-slate-400 p-1 text-center">${m.satuan}</td>
-              <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(m.tarif)}</td>
-              <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(m.total)}</td>
+              <td class="border border-slate-400 p-1 text-center">${vol}</td>
+              <td class="border border-slate-400 p-1 text-center">${sat}</td>
+              <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(tarif)}</td>
+              <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(tot)}</td>
             </tr>
           `;
         });
-      } else if (doc.umum && doc.umum.rincianItem) {
-        doc.umum.rincianItem.forEach(u => {
+      } else if (doc.umum && (doc.umum.rincianItem || doc.umum.rincianKebutuhan)) {
+        const items = doc.umum.rincianItem || doc.umum.rincianKebutuhan || [];
+        items.forEach(u => {
+          const vol = u.qty ?? u.volume ?? 1;
+          const sat = u.satuan || 'Unit';
+          const tarif = u.hargaSatuan ?? u.tarif ?? 0;
+          const tot = u.subtotal ?? u.total ?? (vol * tarif);
           rowsHtml += `
             <tr>
               <td class="border border-slate-400 p-1 text-center">${rowNum++}</td>
-              <td class="border border-slate-400 p-1">${u.deskripsi || 'Item Operasional'}</td>
-              <td class="border border-slate-400 p-1 text-center">${u.qty}</td>
-              <td class="border border-slate-400 p-1 text-center">${u.satuan}</td>
-              <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(u.hargaSatuan)}</td>
-              <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(u.subtotal)}</td>
+              <td class="border border-slate-400 p-1">${u.deskripsi || u.uraian || 'Item Operasional'}</td>
+              <td class="border border-slate-400 p-1 text-center">${vol}</td>
+              <td class="border border-slate-400 p-1 text-center">${sat}</td>
+              <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(tarif)}</td>
+              <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(tot)}</td>
             </tr>
           `;
         });

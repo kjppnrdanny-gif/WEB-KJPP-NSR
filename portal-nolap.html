@@ -78,6 +78,9 @@
         <a href="portal-kwitansi.html" title="Buka Portal Kwitansi" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
           <span>🧾 Portal Kwitansi</span>
         </a>
+        <a href="portal-operasional.html" title="Buka Portal e-Operasional" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
+          <span>💼 e-Operasional</span>
+        </a>
         <a href="https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec" target="_blank" rel="noopener noreferrer" title="Buka Presensi Online" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition items-center gap-1.5 border border-slate-700">
           <span>⏱️ Presensi</span>
         </a>
@@ -15848,6 +15851,14 @@ function resolveIzinPenilaiDisplay(p) {
       } catch (e) {
         console.warn('Revisi proxy notice:', e);
       }
+
+      // Sinkronisasi background ke Google Apps Script
+      kirimKeAppsScriptBackground({
+        action: 'requestRevision',
+        noPermintaan: noReq,
+        catatanAdmin: currentReqToRevise.catatanAdmin,
+        catatanPerbaikan: catatan
+      });
 
       alert('✅ Berhasil! Permohonan ' + noReq + ' telah dikembalikan ke Cabang dengan status "Perlu Perbaikan Cabang". Notifikasi email otomatis telah diantrekan.');
     }
