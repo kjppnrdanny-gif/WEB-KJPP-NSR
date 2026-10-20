@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifikasi Keabsahan Dokumen Operasional | KJPP Nanang Rahayu Sigit Paryanto dan Rekan</title>
+  <meta name="description" content="Portal Verifikasi Dokumen Kriptografis Resmi KJPP Nanang Rahayu Sigit Paryanto dan Rekan (Izin KMK No. 2.19.0160). Validasi Keabsahan Tanda Tangan Digital & Nomor Registrasi Dokumen Operasional.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+
+  <!-- Tailwind CSS & Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono-num { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- ==================== HEADER KOP RESMI ==================== -->
+  <header class="bg-slate-900 border-b border-slate-800 shadow-xl">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+      <a href="index.html" class="flex items-center gap-3 group">
+        <svg class="h-10 w-auto shrink-0 drop-shadow" viewBox="0 0 160 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="nsrBlueVerif" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2563eb" />
+              <stop offset="50%" stop-color="#1d4ed8" />
+              <stop offset="100%" stop-color="#0b1b4f" />
+            </linearGradient>
+          </defs>
+          <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#ef4444" stroke-width="7" stroke-linejoin="round">NSR</text>
+          <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round">NSR</text>
+          <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="url(#nsrBlueVerif)">NSR</text>
+        </svg>
+        <div class="leading-tight text-left">
+          <span class="block text-xs sm:text-sm font-extrabold text-white tracking-wide">
+            PORTAL VERIFIKASI KEABSAHAN DOKUMEN
+          </span>
+          <span class="block text-[10px] text-slate-400">
+            KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan &bull; Izin KMK No. 2.19.0160
+          </span>
+        </div>
+      </a>
+      <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="font-semibold">Sistem Validasi Server Terpusat</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT AREA ==================== -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 flex flex-col justify-center">
+
+    <!-- 1. LOADING STATE -->
+    <div id="card-loading" class="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 text-center shadow-2xl space-y-4">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-400/10 text-amber-400 animate-spin mb-2">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+      <h2 class="text-lg font-bold text-white">Memverifikasi Dokumen &amp; Token Kriptografis...</h2>
+      <p class="text-xs text-slate-400 max-w-md mx-auto">
+        Menghubungi server pangkalan data KJPP NSR untuk mencocokkan digest integritas dokumen dan tanda tangan HMAC pejabat yang berwenang.
+      </p>
+    </div>
+
+    <!-- 2. SUCCESS STATE (VALID) -->
+    <div id="card-valid" class="hidden bg-slate-900 border border-emerald-500/40 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden space-y-6">
+      
+      <!-- Top Glow Accent -->
+      <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600"></div>
+      
+      <!-- Status Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+            <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-500/30 mb-1">
+              <span>&#10003; TERVERIFIKASI SAH</span>
+            </div>
+            <h1 class="text-lg sm:text-xl font-extrabold text-white">
+              Dokumen Terverifikasi Sah &amp; Terdaftar Resmi
+            </h1>
+            <p class="text-xs text-slate-400">
+              Pengesahan digital terbukti otentik dan tercatat dalam sistem e-Operasional KJPP NSR.
+            </p>
+          </div>
+        </div>
+        <div class="text-left sm:text-right shrink-0">
+          <span class="block text-[10px] text-slate-400 uppercase tracking-widest font-bold">TINGKAT PENGESAHAN</span>
+          <span id="label-tier-badge" class="inline-block mt-0.5 px-3 py-1 rounded-xl bg-blue-500/20 text-blue-300 text-xs font-black border border-blue-500/30">
+            TIER -
+          </span>
+        </div>
+      </div>
+
+      <!-- Detail Verifikasi Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        
+        <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+          <span class="text-[10px] uppercase font-bold text-slate-500">Nomor Registrasi Dokumen</span>
+          <p id="res-no-registrasi" class="font-mono-num font-bold text-amber-300 text-sm break-all">-</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+          <span class="text-[10px] uppercase font-bold text-slate-500">Jenis Pengajuan Operasional</span>
+          <p id="res-jenis-label" class="font-semibold text-white text-sm">-</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+          <span class="text-[10px] uppercase font-bold text-slate-500">Kantor / Cabang Pengaju</span>
+          <p id="res-kantor" class="font-semibold text-slate-200">-</p>
+          <span id="res-kode-kantor" class="text-[10px] font-mono text-slate-400 block">-</span>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+          <span class="text-[10px] uppercase font-bold text-slate-500">Versi Dokumen &amp; Status</span>
+          <div class="flex items-center gap-2 pt-0.5">
+            <span id="res-versi" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-bold">Versi 1</span>
+            <span id="res-status" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[11px] font-extrabold border border-emerald-500/30">APPROVED</span>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+          <span class="text-[10px] uppercase font-bold text-slate-500">Pejabat Pengesah</span>
+          <p id="res-pejabat-nama" class="font-bold text-white text-sm">-</p>
+          <span id="res-pejabat-jabatan" class="text-[11px] text-amber-400 font-medium block">-</span>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1">
+          <span class="text-[10px] uppercase font-bold text-slate-500">Waktu Pengesahan Resmi</span>
+          <p id="res-waktu-sah" class="font-mono-num font-semibold text-slate-200 text-sm">-</p>
+          <span class="text-[10px] text-slate-500 block">Zona Waktu: Asia/Jakarta (WIB)</span>
+        </div>
+
+      </div>
+
+      <!-- Keterangan Keamanan Kriptografi -->
+      <div class="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/20 text-[11px] text-emerald-200/90 leading-relaxed flex items-start gap-3">
+        <svg class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <span class="font-bold text-emerald-300 block mb-0.5">Jaminan Kriptografis Terpadu</span>
+          Pemeriksaan token digital (HMAC-SHA256) membuktikan bahwa dokumen ini telah melalui tahapan otorisasi pejabat yang sah secara berurutan sesuai Kode Etik Penilai Indonesia (KEPI) dan Standar Penilaian Indonesia (SPI).
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. FAILED STATE (INVALID) -->
+    <div id="card-invalid" class="hidden bg-slate-900 border border-rose-500/40 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden space-y-6">
+      
+      <!-- Top Glow Accent -->
+      <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600"></div>
+
+      <div class="flex items-center gap-4 border-b border-slate-800 pb-6">
+        <div class="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+          <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-black uppercase tracking-wider border border-rose-500/30 mb-1">
+            <span>&#10007; PERINGATAN INTEGRITAS</span>
+          </div>
+          <h1 class="text-lg sm:text-xl font-extrabold text-white">
+            DOKUMEN TIDAK VALID / VERIFIKASI GAGAL
+          </h1>
+          <p class="text-xs text-slate-400">
+            Sistem tidak dapat mengonfirmasi keabsahan dokumen atau tanda tangan digital yang diperiksa.
+          </p>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-xs text-rose-200 space-y-2">
+        <div class="font-bold flex items-center gap-2">
+          <span>Penyebab Kemungkinan:</span>
+        </div>
+        <ul class="list-disc list-inside space-y-1 text-slate-300 text-[11px]">
+          <li>Token kriptografis (HMAC hash) tidak cocok atau telah dimanipulasi.</li>
+          <li>Nomor dokumen tidak terdaftar pada pangkalan data operasional KJPP NSR.</li>
+          <li>Pengajuan telah direvisi sehingga QR Code dan pengesahan versi sebelumnya telah dibatalkan.</li>
+          <li>Status dokumen berstatus Draf atau Ditolak (REJECTED).</li>
+          <li>Otorisasi pejabat pada tier yang bersangkutan belum dilakukan secara sah.</li>
+        </ul>
+        <div id="error-detail-text" class="pt-2 text-[11px] font-mono text-rose-400 border-t border-rose-500/20"></div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+        <strong class="text-slate-300">Pemberitahuan Hukum:</strong> Segala bentuk pemalsuan tanda tangan elektronik, stempel digital, atau nomor registrasi KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan merupakan pelanggaran hukum berat sesuai UU No. 11/2008 tentang ITE dan KUHP Republik Indonesia.
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-slate-900 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-4xl mx-auto px-4 space-y-1">
+      <p>&copy; 2026 KJPP Nanang Rahayu Sigit Paryanto dan Rekan. Seluruh hak cipta dilindungi.</p>
+      <p class="text-[10px] text-slate-600">Kantor Jasa Penilai Publik &bull; Izin Usaha KMK No. 2.19.0160</p>
+    </div>
+  </footer>
+
+  <!-- ==================== SCRIPT VERIFIKASI ==================== -->
+  <script>
+    async function jalankanVerifikasi() {
+      const cardLoading = document.getElementById('card-loading');
+      const cardValid   = document.getElementById('card-valid');
+      const cardInvalid = document.getElementById('card-invalid');
+
+      const params = new URLSearchParams(window.location.search);
+      const doc  = params.get('doc');
+      const tier = params.get('tier');
+      const hash = params.get('hash');
+
+      if (!doc || !tier || !hash) {
+        cardLoading.classList.add('hidden');
+        cardInvalid.classList.remove('hidden');
+        document.getElementById('error-detail-text').innerText = 'Kesalahan: Parameter verifikasi (doc, tier, hash) tidak lengkap pada tautan URL.';
+        return;
+      }
+
+      try {
+        const url = `operasional-data-handler.php?action=verifyDocument&doc=${encodeURIComponent(doc)}&tier=${encodeURIComponent(tier)}&hash=${encodeURIComponent(hash)}`;
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        const data = await res.json().catch(() => null);
+
+        cardLoading.classList.add('hidden');
+
+        if (data && data.success && data.valid && data.verification) {
+          const v = data.verification;
+          document.getElementById('label-tier-badge').innerText = `TIER ${v.tier} — ${v.tierLabel || 'PENGESAHAN'}`;
+          document.getElementById('res-no-registrasi').innerText = v.noRegistrasi || '-';
+          document.getElementById('res-jenis-label').innerText = v.jenisLabel || v.jenisOperasional || '-';
+          document.getElementById('res-kantor').innerText = `Kantor ${v.kantor || 'Pusat'}`;
+          document.getElementById('res-kode-kantor').innerText = `Kode Izin: ${v.kodeKantor || '-'}`;
+          document.getElementById('res-versi').innerText = `Versi ${v.versi || 1}`;
+          document.getElementById('res-status').innerText = v.statusDokumen || 'APPROVED';
+          document.getElementById('res-pejabat-nama').innerText = v.pejabat || '-';
+          document.getElementById('res-pejabat-jabatan').innerText = v.jabatan || 'Pejabat Berwenang';
+          document.getElementById('res-waktu-sah').innerText = v.approvedAt || '-';
+
+          cardValid.classList.remove('hidden');
+        } else {
+          cardInvalid.classList.remove('hidden');
+          const errMsg = data && (data.error || data.message) ? (data.error || data.message) : 'Server merespons penolakan verifikasi.';
+          document.getElementById('error-detail-text').innerText = `Keterangan Sistem: ${errMsg}`;
+        }
+      } catch (err) {
+        cardLoading.classList.add('hidden');
+        cardInvalid.classList.remove('hidden');
+        document.getElementById('error-detail-text').innerText = `Gagal menghubungi server verifikasi: ${err.message}`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', jalankanVerifikasi);
+  </script>
+</body>
+</html>
