@@ -10,7 +10,7 @@ const OFFICIAL_TOKENS = [
     role: 'SUPER ADMIN',
     roleLabel: 'SUPER ADMIN • KANTOR PUSAT',
     displayRole: 'SUPER ADMIN • KANTOR PUSAT',
-    title: 'Super Admin Pusat (Direksi)',
+    title: 'Super Admin Pusat (Pemimpin Rekan)',
     wilayah: 'PUSAT',
     wilayahLabel: 'Kantor Pusat Jakarta',
     wilayahCode: 'PST',
