@@ -128,8 +128,8 @@ $OFFICIAL_TOKEN_HASHES = [
         'branch'            => 'PUSAT',
         'displayName'       => 'Deni Siswandi, S.T.',
         'role'              => 'REKAN',
-        'roleLabel'         => 'Rekan (Mengetahui)',
-        'title'             => 'Rekan Penilai',
+        'roleLabel'         => 'Rekan & Manager Teknik (Tingkat 1)',
+        'title'             => 'Manager Teknik',
         'wilayah'           => 'PUSAT',
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => '00',
@@ -147,8 +147,8 @@ $OFFICIAL_TOKEN_HASHES = [
         'branch'            => 'PUSAT',
         'displayName'       => 'Danny Taufik Hidayat, S.H.',
         'role'              => 'ADMIN_PUSAT',
-        'roleLabel'         => 'Verifikasi Administrasi & Legal',
-        'title'             => 'Verifikasi Administrasi',
+        'roleLabel'         => 'Manager Admin, Umum & Legal (Tingkat 1)',
+        'title'             => 'Manager Admin & Umum',
         'wilayah'           => 'PUSAT',
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => '00',
@@ -164,10 +164,10 @@ $OFFICIAL_TOKEN_HASHES = [
     'fc6ce762316126e791fa636c7b962f45cbd5efdd76839374a3fa4f825767e9e7' => [ // NSR-STAGE-KEU-44
         'sub'               => 'keuangan_milda',
         'branch'            => 'PUSAT',
-        'displayName'       => 'Milda H',
+        'displayName'       => 'Milda Hidayati Dewi, S.E.',
         'role'              => 'KEUANGAN',
-        'roleLabel'         => 'Divisi Keuangan & Anggaran (Menyetujui)',
-        'title'             => 'Divisi Keuangan Pusat',
+        'roleLabel'         => 'Manager Keuangan (Verifikasi Anggaran & Dokumen - Tingkat 2)',
+        'title'             => 'Manager Keuangan',
         'wilayah'           => 'PUSAT',
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => '00',
@@ -581,13 +581,14 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'         => 'PUSAT',
         'tokenHash'    => '9977faeecaba8f98d6639482a0d7160d66a3886f5af70be176de7f9632562b59'
     ],
-    // Keuangan Pusat (NSR-KEU-2026) -> Milda H
+    // Keuangan Pusat (NSR-KEU-2026) -> Milda Hidayati Dewi, S.E.
     '107ee87beefd50d3ecf4c3ea6716c22cbff5330505ee747ce5d800f77c94f32d' => [
         'sub'          => 'keuangan_pst',
         'branch'       => 'PUSAT',
-        'displayName'  => 'Milda H',
+        'displayName'  => 'Milda Hidayati Dewi, S.E.',
         'role'         => 'KEUANGAN',
-        'roleLabel'    => 'Bagian Keuangan & Kasir Pusat',
+        'roleLabel'    => 'Manager Keuangan (Tingkat 2)',
+        'title'        => 'Manager Keuangan',
         'wilayah'      => 'PUSAT',
         'wilayahCode'  => '00',
         'isSuperAdmin' => false,
@@ -599,9 +600,10 @@ $OFFICIAL_TOKEN_HASHES = [
     '57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0' => [
         'sub'          => 'keuangan_pst',
         'branch'       => 'PUSAT',
-        'displayName'  => 'Milda H',
+        'displayName'  => 'Milda Hidayati Dewi, S.E.',
         'role'         => 'KEUANGAN',
-        'roleLabel'    => 'Bagian Keuangan & Kasir Pusat',
+        'roleLabel'    => 'Manager Keuangan (Tingkat 2)',
+        'title'        => 'Manager Keuangan',
         'wilayah'      => 'PUSAT',
         'wilayahCode'  => '00',
         'isSuperAdmin' => false,
@@ -815,7 +817,7 @@ function generateContentDigest($doc) {
                ($doc['kodeKantor'] ?? '') . '|' .
                number_format((float)($doc['totalEstimasi'] ?? 0), 2, '.', '') . '|' .
                trim($doc['pemohon']['nama'] ?? '') . '|' .
-               trim($doc['tujuanKebutuhan'] ?? $doc['meeting']['agenda'] ?? $doc['survey']['lokasiObjek'] ?? $doc['umum']['maksudTujuan'] ?? '');
+               trim($doc['maksudTujuan'] ?? $doc['pemohon']['maksudTujuan'] ?? $doc['tujuanKebutuhan'] ?? $doc['meeting']['agenda'] ?? $doc['survey']['lokasiObjek'] ?? $doc['umum']['maksudTujuan'] ?? '');
     return hash('sha256', $coreStr);
 }
 
@@ -889,8 +891,164 @@ function generateNomorRegistrasi($records, $jenisOperasional, $kodeCabang, $tglP
 }
 
 // -------------------------------------------------------------
-// 6. DEFAULT 5-TIER APPROVAL TEMPLATE
+// 6. APPROVAL WORKFLOW GENERATOR (DYNAMIC 3-TIER & LEGACY 5-TIER)
 // -------------------------------------------------------------
+/**
+ * 3-Tingkat Sequential Approval Workflow Dinamis:
+ * Tingkat 1 — Persetujuan Manager Divisi:
+ *   - Deni Siswandi, S.T. (Manager Teknik)
+ *   - Danny Taufik Hidayat, S.H. (Manager Admin & Umum)
+ *   - Lintas Divisi: Deni + Danny
+ * Tingkat 2 — Verifikasi Manager Keuangan:
+ *   - Milda Hidayati Dewi, S.E. (Manager Keuangan)
+ * Tingkat 3 — Persetujuan Kepala Keuangan:
+ *   - Ir. Nanang Rahayu, M.Ec.Dev. (Kepala Keuangan)
+ */
+function buildDynamicApprovals($alur = 'TEKNIS', $pemohonNama = 'Pemohon', $pemohonJabatan = 'Staff', $pemohonDivisi = 'Teknik') {
+    $alur = strtoupper(trim($alur));
+    if ($alur === 'LINTAS_DIVISI' || $alur === 'LINTAS') {
+        return [
+            1 => [
+                'tier'       => 1,
+                'tingkat'    => 1,
+                'label'      => 'Persetujuan Manager Teknik',
+                'pejabat'    => 'Deni Siswandi, S.T.',
+                'jabatan'    => 'Manager Teknik',
+                'roleKey'    => 'TEKNIK',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ],
+            2 => [
+                'tier'       => 2,
+                'tingkat'    => 1,
+                'label'      => 'Persetujuan Manager Admin & Umum',
+                'pejabat'    => 'Danny Taufik Hidayat, S.H.',
+                'jabatan'    => 'Manager Admin & Umum',
+                'roleKey'    => 'ADMIN_UMUM',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ],
+            3 => [
+                'tier'       => 3,
+                'tingkat'    => 2,
+                'label'      => 'Verifikasi Manager Keuangan',
+                'pejabat'    => 'Milda Hidayati Dewi, S.E.',
+                'jabatan'    => 'Manager Keuangan',
+                'roleKey'    => 'KEUANGAN',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ],
+            4 => [
+                'tier'       => 4,
+                'tingkat'    => 3,
+                'label'      => 'Persetujuan Kepala Keuangan',
+                'pejabat'    => 'Ir. Nanang Rahayu, M.Ec.Dev.',
+                'jabatan'    => 'Kepala Keuangan',
+                'roleKey'    => 'KEPALA_KEUANGAN',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ]
+        ];
+    } elseif ($alur === 'ADMIN_UMUM' || $alur === 'ADMIN' || $alur === 'UMUM') {
+        return [
+            1 => [
+                'tier'       => 1,
+                'tingkat'    => 1,
+                'label'      => 'Persetujuan Manager Admin & Umum',
+                'pejabat'    => 'Danny Taufik Hidayat, S.H.',
+                'jabatan'    => 'Manager Admin & Umum',
+                'roleKey'    => 'ADMIN_UMUM',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ],
+            2 => [
+                'tier'       => 2,
+                'tingkat'    => 2,
+                'label'      => 'Verifikasi Manager Keuangan',
+                'pejabat'    => 'Milda Hidayati Dewi, S.E.',
+                'jabatan'    => 'Manager Keuangan',
+                'roleKey'    => 'KEUANGAN',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ],
+            3 => [
+                'tier'       => 3,
+                'tingkat'    => 3,
+                'label'      => 'Persetujuan Kepala Keuangan',
+                'pejabat'    => 'Ir. Nanang Rahayu, M.Ec.Dev.',
+                'jabatan'    => 'Kepala Keuangan',
+                'roleKey'    => 'KEPALA_KEUANGAN',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ]
+        ];
+    } else {
+        // Default: TEKNIS (Deni Siswandi, S.T. -> Milda Hidayati Dewi, S.E. -> Ir. Nanang Rahayu, M.Ec.Dev.)
+        return [
+            1 => [
+                'tier'       => 1,
+                'tingkat'    => 1,
+                'label'      => 'Persetujuan Manager Teknik',
+                'pejabat'    => 'Deni Siswandi, S.T.',
+                'jabatan'    => 'Manager Teknik',
+                'roleKey'    => 'TEKNIK',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ],
+            2 => [
+                'tier'       => 2,
+                'tingkat'    => 2,
+                'label'      => 'Verifikasi Manager Keuangan',
+                'pejabat'    => 'Milda Hidayati Dewi, S.E.',
+                'jabatan'    => 'Manager Keuangan',
+                'roleKey'    => 'KEUANGAN',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ],
+            3 => [
+                'tier'       => 3,
+                'tingkat'    => 3,
+                'label'      => 'Persetujuan Kepala Keuangan',
+                'pejabat'    => 'Ir. Nanang Rahayu, M.Ec.Dev.',
+                'jabatan'    => 'Kepala Keuangan',
+                'roleKey'    => 'KEPALA_KEUANGAN',
+                'approved'   => false,
+                'approvedAt' => null,
+                'approvedBy' => null,
+                'hmacHash'   => null,
+                'qrUrl'      => null
+            ]
+        ];
+    }
+}
+
 function buildDefaultApprovals($pemohonNama = 'Holik Kelana', $pemohonJabatan = 'Yang Mengajukan') {
     return [
         1 => [
@@ -929,7 +1087,7 @@ function buildDefaultApprovals($pemohonNama = 'Holik Kelana', $pemohonJabatan = 
         4 => [
             'tier'       => 4,
             'label'      => 'Menyetujui',
-            'pejabat'    => 'Milda H',
+            'pejabat'    => 'Milda Hidayati Dewi, S.E.',
             'jabatan'    => 'Menyetujui',
             'approved'   => false,
             'approvedAt' => null,
@@ -1122,22 +1280,40 @@ if ($action === 'verifyDocument') {
 
 // -------------------------------------------------------------
 // 9. SEMUA ACTION BERIKUTNYA WAJIB TERAUTENTIKASI (FAIL-CLOSED)
+// DAN EKSKLUSIF KANTOR PUSAT JAKARTA (403 FORBIDDEN UNTUK CABANG)
 // -------------------------------------------------------------
 $currentUser = resolveCurrentUser($OFFICIAL_TOKEN_HASHES);
 if (!$currentUser) {
     http_response_code(401);
     echo json_encode([
         'success'   => false,
-        'error'     => 'Otorisasi Gagal (401 Unauthorized): Sesi telah kedaluwarsa atau token tidak valid.',
+        'error'     => 'Akses Ditolak (401 Unauthorized): Sesi belum aktif atau token tidak valid.',
         'violation' => 'UNAUTHORIZED_ACCESS'
     ]);
     exit;
 }
 
-$userRole = strtoupper($currentUser['role'] ?? 'CABANG');
+$userBranch = strtoupper(trim($currentUser['branch'] ?? $currentUser['wilayah'] ?? $currentUser['wilayahCode'] ?? ''));
+$userRole   = strtoupper(trim($currentUser['role'] ?? ''));
+$isSuperAdmin = !empty($currentUser['isSuperAdmin']);
+$isCabang = !empty($currentUser['isCabang']) || in_array($userRole, ['CABANG', 'ADMIN_CABANG', 'KEUANGAN_CABANG'], true);
+$isPusat = in_array($userBranch, ['PUSAT', 'PST', '00', 'JAKARTA'], true) ||
+           in_array($userRole, ['SUPER ADMIN', 'SUPER_ADMIN', 'ADMIN_PUSAT', 'KEUANGAN', 'PEMIMPIN_REKAN', 'REKAN', 'REVIEWER', 'PENILAI', 'SURVEYOR', 'MARKETING'], true) ||
+           $isSuperAdmin;
+
+// PENEGAKAN KEAMANAN TINGKAT SERVER: CABANG DILARANG MENGAKSES e-OPERASIONAL
+if ($isCabang || !$isPusat) {
+    http_response_code(403);
+    echo json_encode([
+        'success'   => false,
+        'error'     => 'Akses Ditolak (403 Forbidden): Portal e-Operasional adalah aplikasi internal eksklusif Kantor Pusat (Jakarta). Pengguna Kantor Cabang tidak berwenang mengakses data atau modul ini.',
+        'violation' => 'BRANCH_ACCESS_DENIED'
+    ]);
+    exit;
+}
+
 $isMaster = !empty($currentUser['isMaster']) || (!empty($currentUser['isSuperAdmin']) && $userRole === 'SUPER ADMIN');
 $isSuperOrPusat = in_array($userRole, ['SUPER ADMIN', 'ADMIN_PUSAT', 'ADMIN'], true) || !empty($currentUser['isSuperAdmin']);
-$userBranch = trim($currentUser['branch'] ?? 'Pusat');
 $userDisplayName = $currentUser['displayName'] ?? ($currentUser['sub'] ?? 'Petugas Terverifikasi');
 
 // B. ACTION: lookupNolap (Mencari ID Penugasan dari nolap_database.json atau baseline)
@@ -1241,9 +1417,18 @@ if ($action === 'getPengajuanList') {
     });
 
     echo json_encode([
-        'success' => true,
-        'total'   => count($filtered),
-        'data'    => $filtered
+        'success'     => true,
+        'currentUser' => [
+            'displayName' => $currentUser['displayName'] ?? '',
+            'role'        => $userRole,
+            'roleLabel'   => $currentUser['roleLabel'] ?? '',
+            'title'       => $currentUser['title'] ?? '',
+            'branch'      => $userBranch,
+            'isMaster'    => $isMaster,
+            'isSuperAdmin'=> !empty($currentUser['isSuperAdmin'])
+        ],
+        'total'       => count($filtered),
+        'data'        => $filtered
     ]);
     exit;
 }
@@ -1473,19 +1658,52 @@ if ($action === 'simpanPengajuan') {
             $kodeKantor = $regInfo['kodeKantor'];
         }
 
-        // Susun Blok Otorisasi 5 Tier
-        $pemohonNama = trim($payload['pemohon']['nama'] ?? $currentUser['displayName'] ?? 'Holik Kelana');
-        $approvals = $existing ? $existing['approvals'] : buildDefaultApprovals($pemohonNama);
+        // Susun Blok Otorisasi Dinamis 3-Tingkat (atau 5-Tier untuk Dokumen Historis)
+        $namaPengaju = trim($payload['namaPengaju'] ?? $payload['pemohon']['nama'] ?? $currentUser['displayName'] ?? 'Staff Kantor Pusat');
+        $jabatanPengaju = trim($payload['jabatanPengaju'] ?? $payload['pemohon']['jabatan'] ?? 'Surveyor Lapangan');
+        $divisiPengaju = trim($payload['divisiPengaju'] ?? $payload['pemohon']['divisi'] ?? 'Teknik');
+        $maksudTujuan = trim($payload['maksudTujuan'] ?? $payload['pemohon']['maksudTujuan'] ?? $payload['catatanPemohon'] ?? $payload['umum']['maksudTujuan'] ?? $payload['meeting']['agenda'] ?? '');
 
-        // Jika revisi, batalkan / reset persetujuan tier 2-5
-        if ($isRevision) {
-            for ($t = 2; $t <= 5; $t++) {
-                $approvals[$t]['approved'] = false;
-                $approvals[$t]['approvedAt'] = null;
-                $approvals[$t]['approvedBy'] = null;
-                $approvals[$t]['hmacHash'] = null;
-                $approvals[$t]['qrUrl'] = null;
+        // Tentukan Alur Persetujuan Dinamis
+        $reqAlur = strtoupper(trim($payload['alur'] ?? ''));
+        if (in_array($reqAlur, ['TEKNIS', 'ADMIN_UMUM', 'LINTAS_DIVISI'], true)) {
+            $alur = $reqAlur;
+        } elseif (stripos($divisiPengaju, 'Lintas') !== false || stripos($maksudTujuan, 'Lintas Divisi') !== false) {
+            $alur = 'LINTAS_DIVISI';
+        } elseif (stripos($divisiPengaju, 'Admin') !== false || stripos($divisiPengaju, 'Umum') !== false || stripos($divisiPengaju, 'Legal') !== false || $jenisOperasional === 'OPR-UMM') {
+            $alur = 'ADMIN_UMUM';
+        } else {
+            $alur = 'TEKNIS';
+        }
+
+        $workflowSystem = $existing ? ($existing['workflowSystem'] ?? (count($existing['approvals'] ?? []) === 5 ? '5_TIER' : '3_TIER_DYNAMIC')) : '3_TIER_DYNAMIC';
+
+        if ($existing) {
+            $approvals = $existing['approvals'];
+            if ($isRevision) {
+                if ($workflowSystem === '5_TIER') {
+                    for ($t = 2; $t <= 5; $t++) {
+                        if (isset($approvals[$t])) {
+                            $approvals[$t]['approved'] = false;
+                            $approvals[$t]['approvedAt'] = null;
+                            $approvals[$t]['approvedBy'] = null;
+                            $approvals[$t]['hmacHash'] = null;
+                            $approvals[$t]['qrUrl'] = null;
+                        }
+                    }
+                } else {
+                    foreach ($approvals as &$app) {
+                        $app['approved'] = false;
+                        $app['approvedAt'] = null;
+                        $app['approvedBy'] = null;
+                        $app['hmacHash'] = null;
+                        $app['qrUrl'] = null;
+                    }
+                    unset($app);
+                }
             }
+        } else {
+            $approvals = buildDynamicApprovals($alur, $namaPengaju, $jabatanPengaju, $divisiPengaju);
         }
 
         // Status State Machine
@@ -1502,21 +1720,26 @@ if ($action === 'simpanPengajuan') {
             'noRegistrasi'     => $noReg,
             'jenisOperasional' => $jenisOperasional,
             'jenisLabel'       => $jenisLabel,
-            'kantor'           => $namaKantor,
-            'kodeCabang'       => $kodeCabang,
-            'kodeKantor'       => $kodeKantor,
+            'kantor'           => 'Kantor Pusat Jakarta',
+            'kodeCabang'       => '00',
+            'kodeKantor'       => $kodeKantor ?: '2.19.0160-00',
             'status'           => $newStatus,
             'versi'            => $versi,
+            'workflowSystem'   => $workflowSystem,
+            'alur'             => $alur,
+            'maksudTujuan'     => $maksudTujuan,
             'tglPengajuan'     => $existing['tglPengajuan'] ?? $today,
             'createdAt'        => $existing['createdAt'] ?? $now,
             'updatedAt'        => $now,
             'totalEstimasi'    => $totalEstimasi,
             'catatanPemohon'   => trim($payload['catatanPemohon'] ?? ''),
             'pemohon'          => [
-                'nama'    => $pemohonNama,
-                'jabatan' => trim($payload['pemohon']['jabatan'] ?? 'Surveyor Lapangan'),
-                'cabang'  => $namaKantor,
-                'sub'     => $currentUser['sub'] ?? 'pemohon'
+                'nama'         => $namaPengaju,
+                'jabatan'      => $jabatanPengaju,
+                'divisi'       => $divisiPengaju,
+                'cabang'       => 'Kantor Pusat Jakarta',
+                'sub'          => $currentUser['sub'] ?? 'pemohon',
+                'userLogin'    => $currentUser['displayName'] ?? 'Petugas Pusat'
             ],
             'survey'           => $surveyData,
             'meeting'          => $meetingData,
@@ -1531,41 +1754,47 @@ if ($action === 'simpanPengajuan') {
             'auditTrail'       => $auditTrail
         ];
 
-        // Jika diajukan (Bukan Draf), Tier 1 langsung disahkan oleh pengguna terautentikasi
         if (!$isDraft) {
-            $contentDigest = generateContentDigest($doc);
-            $tier1Hmac = generateTierHmac(
-                $doc['id'],
-                1,
-                $doc['versi'],
-                $contentDigest,
-                $pemohonNama,
-                'Yang Mengajukan',
-                $now,
-                $SERVER_SECRET
-            );
-            $tier1Qr = generateQrVerificationUrl($doc['noRegistrasi'] ?: $doc['id'], 1, $tier1Hmac);
+            if ($workflowSystem === '5_TIER') {
+                // Kompatibilitas Dokumen Historis 5-Tier
+                $contentDigest = generateContentDigest($doc);
+                $tier1Hmac = generateTierHmac(
+                    $doc['id'],
+                    1,
+                    $doc['versi'],
+                    $contentDigest,
+                    $namaPengaju,
+                    'Yang Mengajukan',
+                    $now,
+                    $SERVER_SECRET
+                );
+                $tier1Qr = generateQrVerificationUrl($doc['noRegistrasi'] ?: $doc['id'], 1, $tier1Hmac);
 
-            $doc['approvals'][1]['approved'] = true;
-            $doc['approvals'][1]['approvedAt'] = $now;
-            $doc['approvals'][1]['approvedBy'] = $pemohonNama;
-            $doc['approvals'][1]['pejabat'] = $pemohonNama;
-            $doc['approvals'][1]['hmacHash'] = $tier1Hmac;
-            $doc['approvals'][1]['qrUrl'] = $tier1Qr;
+                $doc['approvals'][1]['approved'] = true;
+                $doc['approvals'][1]['approvedAt'] = $now;
+                $doc['approvals'][1]['approvedBy'] = $namaPengaju;
+                $doc['approvals'][1]['pejabat'] = $namaPengaju;
+                $doc['approvals'][1]['hmacHash'] = $tier1Hmac;
+                $doc['approvals'][1]['qrUrl'] = $tier1Qr;
+            }
 
             $actionName = $isRevision ? 'SUBMIT_REVISI_V' . $versi : 'SUBMIT_PENGAJUAN';
+            $keteranganAudit = $isRevision
+                ? "Pengajuan revisi versi {$versi} dikirimkan dan menunggu Persetujuan Manager Divisi (Tingkat 1)."
+                : "Pengajuan operasional resmi dikirimkan dan masuk ke antrean Persetujuan Manager Divisi (Tingkat 1).";
+
             $doc['auditTrail'][] = [
                 'action'     => $actionName,
                 'timestamp'  => $now,
-                'user'       => $currentUser['displayName'] ?? $pemohonNama,
+                'user'       => $currentUser['displayName'] ?? $namaPengaju,
                 'role'       => $currentUser['role'] ?? 'PEMOHON',
-                'keterangan' => $isRevision ? ("Pengajuan revisi versi {$versi} dikirimkan dan Tier 1 disahkan kembali.") : "Pengajuan resmi dikirimkan dan Tier 1 disahkan."
+                'keterangan' => $keteranganAudit
             ];
         } else {
             $doc['auditTrail'][] = [
                 'action'     => $existing ? 'UPDATE_DRAFT' : 'CREATE_DRAFT',
                 'timestamp'  => $now,
-                'user'       => $currentUser['displayName'] ?? $pemohonNama,
+                'user'       => $currentUser['displayName'] ?? $namaPengaju,
                 'role'       => $currentUser['role'] ?? 'PEMOHON',
                 'keterangan' => 'Draf pengajuan operasional disimpan.'
             ];
@@ -1595,7 +1824,7 @@ if ($action === 'simpanPengajuan') {
     exit;
 }
 
-// F. ACTION: approveTier (Otorisasi Bertingkat Tier 2..5)
+// F. ACTION: approveTier (Otorisasi Bertingkat Dinamis)
 if ($action === 'approveTier') {
     $rawInput = file_get_contents('php://input');
     $payload = json_decode($rawInput, true);
@@ -1606,13 +1835,13 @@ if ($action === 'approveTier') {
     $id = trim($payload['id'] ?? '');
     $tier = (int)($payload['tier'] ?? 0);
 
-    if (!$id || $tier < 2 || $tier > 5) {
+    if (!$id || $tier < 1 || $tier > 5) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Parameter id dan tier (2..5) wajib diisi.']);
+        echo json_encode(['success' => false, 'error' => 'Parameter id dan tier (1..5) wajib diisi.']);
         exit;
     }
 
-    $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $tier, $currentUser, $userRole, $isSuperOrPusat, $isMaster, $SERVER_SECRET) {
+    $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $tier, $currentUser, $userRole, $userDisplayName, $isSuperOrPusat, $isMaster, $SERVER_SECRET) {
         $now = date('Y-m-d H:i:s');
         $targetIndex = -1;
 
@@ -1638,44 +1867,25 @@ if ($action === 'approveTier') {
             return ['success' => false, 'http_code' => 400, 'error' => 'Dokumen berstatus REJECTED. Pemohon harus mengajukan revisi sebelum otorisasi dapat dilanjutkan.'];
         }
         if ($status === 'APPROVED') {
-            return ['success' => false, 'http_code' => 400, 'error' => 'Dokumen sudah disetujui sepenuhnya (Tier 5 Selesai).'];
+            return ['success' => false, 'http_code' => 400, 'error' => 'Dokumen sudah disetujui sepenuhnya (Semua Tingkat Selesai).'];
         }
 
-        // ROLE-BASED AUTHORIZATION CHECK (STRICT SEPARATION OF DUTIES)
-        $authorized = false;
-        if ($tier === 2) {
-            // Tier 2: Mengetahui (Deni Siswandi, S.T. / Kepala Cabang / Reviewer)
-            $authorized = in_array($userRole, ['REVIEWER', 'ADMIN_CABANG', 'KEPALA_CABANG', 'CABANG'], true) || $isMaster;
-        } elseif ($tier === 3) {
-            // Tier 3: Verifikasi Administrasi (Danny Taufik Hidayat, S.H. / Admin Pusat / Legal)
-            $authorized = in_array($userRole, ['ADMIN_PUSAT', 'ADMIN', 'MANAGEMENT', 'LEGAL'], true) || $isMaster;
-        } elseif ($tier === 4) {
-            // Tier 4: Menyetujui (Milda H / Keuangan)
-            $authorized = in_array($userRole, ['KEUANGAN', 'KEUANGAN_PUSAT'], true) || $isMaster;
-        } elseif ($tier === 5) {
-            // Tier 5: Penanggung Jawab (Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) / Pemimpin Rekan)
-            // Hanya Super Admin Master (NSR8899) atau akun Pemimpin Rekan yang berwenang
-            $authorized = in_array($userRole, ['SUPER ADMIN', 'PEMIMPIN_REKAN'], true) && $isMaster;
-        }
-
-        if (!$authorized) {
-            return [
-                'success'   => false,
-                'http_code' => 403,
-                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki wewenang untuk mengesahkan Tier {$tier} atas nama pejabat berwenang."
-            ];
+        if (!isset($doc['approvals'][$tier])) {
+            return ['success' => false, 'http_code' => 400, 'error' => "Tahap otorisasi Tier {$tier} tidak terdapat pada alur dokumen ini."];
         }
 
         // PENEGAKAN URUTAN PERSATUAN (SEQUENTIAL ENFORCEMENT)
-        // Tier N hanya bisa disetujui jika Tier N-1 sudah disetujui!
-        $prevTier = $tier - 1;
-        $prevApproval = $doc['approvals'][$prevTier] ?? null;
-        if (!$prevApproval || empty($prevApproval['approved'])) {
-            return [
-                'success'   => false,
-                'http_code' => 409,
-                'error'     => "Persetujuan harus berurutan. Tier {$prevTier} (" . ($prevApproval['label'] ?? '') . ") belum disetujui."
-            ];
+        // Tahap N hanya bisa disetujui jika Tahap N-1 sudah disetujui!
+        if ($tier > 1) {
+            $prevTier = $tier - 1;
+            $prevApproval = $doc['approvals'][$prevTier] ?? null;
+            if (!$prevApproval || empty($prevApproval['approved'])) {
+                return [
+                    'success'   => false,
+                    'http_code' => 409,
+                    'error'     => "Persetujuan harus berurutan. Tahap {$prevTier} (" . ($prevApproval['label'] ?? '') . ") belum disetujui."
+                ];
+            }
         }
 
         // Periksa apakah Tier ini sudah disetujui sebelumnya
@@ -1683,10 +1893,57 @@ if ($action === 'approveTier') {
             return ['success' => false, 'http_code' => 400, 'error' => "Tier {$tier} sudah disetujui sebelumnya."];
         }
 
+        // ROLE-BASED AUTHORIZATION CHECK (STRICT SEPARATION OF DUTIES)
+        $authorized = false;
+        $isLegacy5Tier = (($doc['workflowSystem'] ?? '') === '5_TIER') || (count($doc['approvals'] ?? []) === 5 && !isset($doc['approvals'][1]['tingkat']));
+
+        if ($isLegacy5Tier) {
+            if ($tier === 2) {
+                // Tier 2 Mengetahui (Deni Siswandi, S.T.)
+                $authorized = in_array($userRole, ['REVIEWER', 'REKAN'], true) || $isMaster || stripos($userDisplayName, 'Deni') !== false;
+            } elseif ($tier === 3) {
+                // Tier 3 Verifikasi Admin (Danny Taufik Hidayat, S.H.)
+                $authorized = in_array($userRole, ['ADMIN_PUSAT', 'ADMIN', 'MANAGEMENT', 'LEGAL'], true) || $isMaster || stripos($userDisplayName, 'Danny') !== false;
+            } elseif ($tier === 4) {
+                // Tier 4 Menyetujui Keuangan (Milda Hidayati Dewi, S.E.)
+                $authorized = in_array($userRole, ['KEUANGAN', 'KEUANGAN_PUSAT'], true) || $isMaster || stripos($userDisplayName, 'Milda') !== false;
+            } elseif ($tier === 5) {
+                // Tier 5 Penanggung Jawab (Ir. Nanang Rahayu, M.Ec.Dev.)
+                $authorized = in_array($userRole, ['SUPER ADMIN', 'PEMIMPIN_REKAN'], true) && $isMaster;
+            }
+        } else {
+            // Workflow Dinamis 3-Tingkat
+            $step = $doc['approvals'][$tier] ?? [];
+            $roleKey = $step['roleKey'] ?? '';
+
+            if ($roleKey === 'TEKNIK') {
+                // Tingkat 1: Persetujuan Manager Teknik (Deni Siswandi, S.T.)
+                $authorized = $isMaster || in_array($userRole, ['REKAN', 'REVIEWER', 'TEKNIK', 'PENILAI'], true) || stripos($userDisplayName, 'Deni') !== false;
+            } elseif ($roleKey === 'ADMIN_UMUM') {
+                // Tingkat 1: Persetujuan Manager Admin & Umum (Danny Taufik Hidayat, S.H.)
+                $authorized = $isMaster || in_array($userRole, ['ADMIN_PUSAT', 'ADMIN', 'LEGAL', 'MANAGEMENT'], true) || stripos($userDisplayName, 'Danny') !== false;
+            } elseif ($roleKey === 'KEUANGAN') {
+                // Tingkat 2: Verifikasi Manager Keuangan (Milda Hidayati Dewi, S.E.)
+                $authorized = $isMaster || in_array($userRole, ['KEUANGAN', 'KEUANGAN_PUSAT'], true) || stripos($userDisplayName, 'Milda') !== false;
+            } elseif ($roleKey === 'KEPALA_KEUANGAN') {
+                // Tingkat 3: Persetujuan Kepala Keuangan (Ir. Nanang Rahayu, M.Ec.Dev.)
+                $authorized = $isMaster || in_array($userRole, ['SUPER ADMIN', 'PEMIMPIN_REKAN'], true) || stripos($userDisplayName, 'Nanang') !== false;
+            }
+        }
+
+        if (!$authorized) {
+            $labelTarget = $doc['approvals'][$tier]['label'] ?? "Tier {$tier}";
+            return [
+                'success'   => false,
+                'http_code' => 403,
+                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki wewenang untuk mengesahkan {$labelTarget} atas nama pejabat yang sah."
+            ];
+        }
+
         // Tentukan Nama Pejabat Otoritas
         $defaultPejabat = $doc['approvals'][$tier]['pejabat'] ?? 'Pejabat Berwenang';
         $pejabatNama = !empty($currentUser['displayName']) ? $currentUser['displayName'] : $defaultPejabat;
-        if ($isMaster && $tier < 5 && !empty($defaultPejabat)) {
+        if ($isMaster && !empty($defaultPejabat)) {
             $pejabatNama = $defaultPejabat;
         }
         $pejabatJabatan = $doc['approvals'][$tier]['jabatan'] ?? 'Pejabat';
@@ -1714,8 +1971,9 @@ if ($action === 'approveTier') {
         $doc['approvals'][$tier]['hmacHash'] = $hmac;
         $doc['approvals'][$tier]['qrUrl'] = $qrUrl;
 
-        // Update status dokumen
-        if ($tier === 5) {
+        // Update status dokumen (Jika semua tier selesai -> APPROVED)
+        $totalTiers = count($doc['approvals']);
+        if ($tier === $totalTiers) {
             $doc['status'] = 'APPROVED';
         } else {
             $doc['status'] = 'IN_REVIEW';
@@ -1727,7 +1985,7 @@ if ($action === 'approveTier') {
             'timestamp'  => $now,
             'user'       => $currentUser['displayName'] ?? $pejabatNama,
             'role'       => $userRole,
-            'keterangan' => "Tier {$tier} (" . ($doc['approvals'][$tier]['label'] ?? '') . ") disetujui secara sah."
+            'keterangan' => "Tier {$tier} (" . ($doc['approvals'][$tier]['label'] ?? '') . ") disetujui secara sah oleh {$pejabatNama}."
         ];
 
         $records[$targetIndex] = $doc;
@@ -1736,7 +1994,7 @@ if ($action === 'approveTier') {
             'success' => true,
             'records' => $records,
             'data'    => $doc,
-            'message' => "Persetujuan Tier {$tier} berhasil disahkan."
+            'message' => "Persetujuan Tier {$tier} (" . ($doc['approvals'][$tier]['label'] ?? '') . ") berhasil disahkan."
         ];
     });
 
