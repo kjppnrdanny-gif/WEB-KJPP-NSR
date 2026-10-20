@@ -1,0 +1,34 @@
+name: Deploy Staging ke cPanel (public_html/staging)
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+jobs:
+  staging-deploy:
+    name: Deploy Staging ke cPanel (public_html/staging)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Ambil Kode Repo (dev)
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Build Paket Staging Terisolasi
+        run: node scripts/build-staging-cpanel.mjs
+
+      - name: 📂 Sinkronisasi File Staging ke cPanel via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist-staging/
+          server-dir: public_html/staging/
+          dangerous-clean-slate: false

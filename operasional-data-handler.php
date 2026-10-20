@@ -82,6 +82,200 @@ if (session_status() === PHP_SESSION_NONE) {
 // 1. DATA TOKENS RESMI UNTUK VALIDASI API / BEARER / HEADER
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
+    // =============================================================
+    // TOKENS DEMO STAGING BARU (ISOLASI PREVIEW)
+    // =============================================================
+    '16f051a1bb53eb07ba314e472103186abcbe945520af2028688be64eb4fea42a' => [ // NSR-STAGE-MASTER-77
+        'sub'               => 'admin_master',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
+        'role'              => 'SUPER ADMIN',
+        'roleLabel'         => 'Pemimpin Rekan & Super Admin Master',
+        'title'             => 'Super Admin Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => '00',
+        'isSuperAdmin'      => true,
+        'isMaster'          => true,
+        'isCabang'          => false,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '16f051a1bb53eb07ba314e472103186abcbe945520af2028688be64eb4fea42a'
+    ],
+    '1be766a50d815d7334e8e3fa45ad415d2a408f37a2dc3a9ef66bb0157eaad4d8' => [ // NSR-STAGE-PR-55
+        'sub'               => 'partner_nanang',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
+        'role'              => 'PEMIMPIN_REKAN',
+        'roleLabel'         => 'Pemimpin Rekan (Penanggung Jawab)',
+        'title'             => 'Pemimpin Rekan',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => '00',
+        'isSuperAdmin'      => true,
+        'isMaster'          => true,
+        'isCabang'          => false,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '1be766a50d815d7334e8e3fa45ad415d2a408f37a2dc3a9ef66bb0157eaad4d8'
+    ],
+    '15a002e04ebcc16e23dc324af0e0cd5d85fec1eb83cf72f51834e930215d3d10' => [ // NSR-STAGE-REK-22
+        'sub'               => 'rekan_deni',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Deni Siswandi, S.T.',
+        'role'              => 'REKAN',
+        'roleLabel'         => 'Rekan (Mengetahui)',
+        'title'             => 'Rekan Penilai',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => '00',
+        'isSuperAdmin'      => false,
+        'isMaster'          => false,
+        'isCabang'          => false,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => '15a002e04ebcc16e23dc324af0e0cd5d85fec1eb83cf72f51834e930215d3d10'
+    ],
+    'd2440f745fd849aac4d73dde24c27a7cefcd85ae9e09611dafaa952bf09000ea' => [ // NSR-STAGE-ADM-33
+        'sub'               => 'admin_danny',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Danny Taufik Hidayat, S.H.',
+        'role'              => 'ADMIN_PUSAT',
+        'roleLabel'         => 'Verifikasi Administrasi & Legal',
+        'title'             => 'Verifikasi Administrasi',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => '00',
+        'isSuperAdmin'      => false,
+        'isMaster'          => false,
+        'isCabang'          => false,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'd2440f745fd849aac4d73dde24c27a7cefcd85ae9e09611dafaa952bf09000ea'
+    ],
+    'fc6ce762316126e791fa636c7b962f45cbd5efdd76839374a3fa4f825767e9e7' => [ // NSR-STAGE-KEU-44
+        'sub'               => 'keuangan_milda',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Milda H',
+        'role'              => 'KEUANGAN',
+        'roleLabel'         => 'Divisi Keuangan & Anggaran (Menyetujui)',
+        'title'             => 'Divisi Keuangan Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => '00',
+        'isSuperAdmin'      => false,
+        'isMaster'          => false,
+        'isCabang'          => false,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'fc6ce762316126e791fa636c7b962f45cbd5efdd76839374a3fa4f825767e9e7'
+    ],
+    'bd2866b4f8734fe13d5a7ae57e847de7bcb3a19d585ff928f70ea6cc0c81f07f' => [ // NSR-STAGE-SRV-11
+        'sub'               => 'surveyor_holik',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Holik Kelana',
+        'role'              => 'SURVEYOR',
+        'roleLabel'         => 'Surveyor Lapangan (Yang Mengajukan)',
+        'title'             => 'Surveyor Lapangan',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => '00',
+        'isSuperAdmin'      => false,
+        'isMaster'          => false,
+        'isCabang'          => false,
+        'canApprove'        => true,
+        'canAccessKwitansi' => false,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'tokenHash'         => 'bd2866b4f8734fe13d5a7ae57e847de7bcb3a19d585ff928f70ea6cc0c81f07f'
+    ],
+    '94a006da9c2e0ba0768fc37d6e17c96c718fe47c4119b7bb0b717d8a57b692ce' => [ // NSR-STAGE-PLB-03
+        'sub'               => 'cabang_plb',
+        'branch'            => 'Palembang',
+        'displayName'       => 'Kantor Cabang Palembang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Palembang',
+        'title'             => 'Admin Cabang Palembang',
+        'wilayah'           => 'Palembang',
+        'wilayahLabel'      => 'Kantor Cabang Palembang',
+        'wilayahCode'       => '03',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'kodeKemenkeu'      => '2.19.0160-03',
+        'tokenHash'         => '94a006da9c2e0ba0768fc37d6e17c96c718fe47c4119b7bb0b717d8a57b692ce'
+    ],
+    '291e2e008eccedbb76fa1e55534fb2bd7e96f56e4e47b2e615e7f88a734ac1ff' => [ // NSR-STAGE-MKS-02
+        'sub'               => 'cabang_mks',
+        'branch'            => 'Makassar',
+        'displayName'       => 'Kantor Cabang Makassar',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Makassar',
+        'title'             => 'Admin Cabang Makassar',
+        'wilayah'           => 'Makassar',
+        'wilayahLabel'      => 'Kantor Cabang Makassar',
+        'wilayahCode'       => '02',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'kodeKemenkeu'      => '2.19.0160-02',
+        'tokenHash'         => '291e2e008eccedbb76fa1e55534fb2bd7e96f56e4e47b2e615e7f88a734ac1ff'
+    ],
+    'a3eafd84b50efa1b7992bf278ef1621fa9bea60eadcb67edff62a6b92387633b' => [ // NSR-STAGE-PDG-01
+        'sub'               => 'cabang_pdg',
+        'branch'            => 'Padang',
+        'displayName'       => 'Kantor Cabang Padang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Padang',
+        'title'             => 'Admin Cabang Padang',
+        'wilayah'           => 'Padang',
+        'wilayahLabel'      => 'Kantor Cabang Padang',
+        'wilayahCode'       => '01',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'kodeKemenkeu'      => '2.19.0160-01',
+        'tokenHash'         => 'a3eafd84b50efa1b7992bf278ef1621fa9bea60eadcb67edff62a6b92387633b'
+    ],
+    '316c8000130d7798e0dff3cfc7053d661616598a7121d679f75a8d4d3d43625b' => [ // NSR-STAGE-BDG-04
+        'sub'               => 'cabang_bdg',
+        'branch'            => 'Bandung',
+        'displayName'       => 'Kantor Cabang Bandung',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Bandung',
+        'title'             => 'Admin Cabang Bandung',
+        'wilayah'           => 'Bandung',
+        'wilayahLabel'      => 'Kantor Cabang Bandung',
+        'wilayahCode'       => '04',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canApprove'        => true,
+        'canAccessKwitansi' => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'kodeKemenkeu'      => '2.19.0160-04',
+        'tokenHash'         => '316c8000130d7798e0dff3cfc7053d661616598a7121d679f75a8d4d3d43625b'
+    ],
+
     // Super Admin Master / Pemimpin Rekan (Ir. Nanang Rahayu)
     '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' => [
         'sub'          => 'admin_master',
@@ -632,7 +826,14 @@ function generateTierHmac($docId, $tier, $versi, $contentDigest, $pejabatNama, $
 }
 
 function generateQrVerificationUrl($noRegistrasi, $tier, $hmac) {
-    return 'https://kjppnanangrahayu.com/verifikasi-dokumen.html?doc=' . urlencode($noRegistrasi) . '&tier=' . (int)$tier . '&hash=' . urlencode($hmac);
+    $host = $_SERVER['HTTP_HOST'] ?? 'kjppnanangrahayu.com';
+    $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
+               (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+               (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+    $scheme = $isHttps ? 'https' : 'http';
+    $scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '');
+    $basePath = ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') ? '' : '/' . trim(str_replace('\\', '/', $scriptDir), '/');
+    return $scheme . '://' . $host . $basePath . '/verifikasi-dokumen.html?doc=' . urlencode($noRegistrasi) . '&tier=' . (int)$tier . '&hash=' . urlencode($hmac);
 }
 
 // -------------------------------------------------------------
