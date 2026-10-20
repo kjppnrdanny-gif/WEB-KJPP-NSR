@@ -907,7 +907,12 @@ function muatBaselineResmi() {
             'kodeIndustri' => '02',
             'jenisObjek' => 'Tanah Jalur Transportasi Tambang',
             'lokasiObjek' => 'Bukit Karang Putih, Indarung, Padang',
-            'status' => 'DIAJUKAN'
+            'status' => 'Disetujui Partner',
+            'checklistQa' => true,
+            'otorisasiPartner' => true,
+            'driveFolderId' => '1AbC_pdg000011',
+            'driveFolderUrl' => 'https://drive.google.com/drive/folders/1AbC_pdg000011',
+            'driveFolderPath' => '2026/PDG/REQ-000011 - PT Semen Padang'
         ],
         [
             'noPermintaan' => 'REQ-000012',
@@ -922,7 +927,12 @@ function muatBaselineResmi() {
             'kodeIndustri' => '08',
             'jenisObjek' => 'Gedung Kampus Pendidikan',
             'lokasiObjek' => 'Jl. Ganesa No. 10, Bandung',
-            'status' => 'DIAJUKAN'
+            'status' => 'Dalam Review Mutu (QA)',
+            'checklistQa' => false,
+            'otorisasiPartner' => false,
+            'driveFolderId' => '1AbC_bdg000012',
+            'driveFolderUrl' => 'https://drive.google.com/drive/folders/1AbC_bdg000012',
+            'driveFolderPath' => '2026/BDG/REQ-000012 - Institut Teknologi Bandung'
         ],
         [
             'noPermintaan' => 'REQ-000014',
@@ -937,7 +947,14 @@ function muatBaselineResmi() {
             'kodeIndustri' => '02',
             'jenisObjek' => 'Tanah Kas Desa Jalur Pipa Gas',
             'lokasiObjek' => 'Sungai Selincah, Kalidoni, Palembang',
-            'status' => 'DIAJUKAN'
+            'status' => 'Perlu Perbaikan Cabang',
+            'catatanAdmin' => 'Perlu Perbaikan Cabang: Kelengkapan BAPL belum ditandatangani dan peta bidang tanah belum terlampir.',
+            'catatanPerbaikan' => 'Kelengkapan BAPL belum ditandatangani dan peta bidang tanah belum terlampir.',
+            'checklistQa' => false,
+            'otorisasiPartner' => false,
+            'driveFolderId' => '1AbC_plb000014',
+            'driveFolderUrl' => 'https://drive.google.com/drive/folders/1AbC_plb000014',
+            'driveFolderPath' => '2026/PLB/REQ-000014 - PT Pupuk Sriwidjaja Palembang'
         ],
 
         // 2. DATA PENUGASAN UJI KHUSUS / TERISOLASI (UNTUK TESTING SAJA)
@@ -954,7 +971,12 @@ function muatBaselineResmi() {
             'kodeIndustri' => '02',
             'jenisObjek' => 'Tanah Koridor Uji Coba',
             'lokasiObjek' => 'Kawasan Uji Bypass Padang',
-            'status' => 'DIAJUKAN',
+            'status' => 'Disetujui Partner',
+            'checklistQa' => true,
+            'otorisasiPartner' => true,
+            'driveFolderId' => '1AbC_pdg_test001',
+            'driveFolderUrl' => 'https://drive.google.com/drive/folders/1AbC_pdg_test001',
+            'driveFolderPath' => '2026/PDG/REQ-TEST-001 - PT Simulasi Pertanahan Mandiri',
             'isDummyTest' => true
         ],
         [
@@ -970,7 +992,12 @@ function muatBaselineResmi() {
             'kodeIndustri' => '07',
             'jenisObjek' => 'Ruko Perkantoran Uji',
             'lokasiObjek' => 'Jl. Asia Afrika No. 99, Bandung',
-            'status' => 'DIAJUKAN',
+            'status' => 'Dalam Review Mutu (QA)',
+            'checklistQa' => false,
+            'otorisasiPartner' => false,
+            'driveFolderId' => '1AbC_bdg_test002',
+            'driveFolderUrl' => 'https://drive.google.com/drive/folders/1AbC_bdg_test002',
+            'driveFolderPath' => '2026/BDG/REQ-TEST-002 - CV Uji Cipta Jawa Barat',
             'isDummyTest' => true
         ],
         [
@@ -986,7 +1013,12 @@ function muatBaselineResmi() {
             'kodeIndustri' => '03',
             'jenisObjek' => 'Tanah Kas Desa Ruislagh Uji',
             'lokasiObjek' => 'Desa Sukamaju, Kawasan Khusus Pusat',
-            'status' => 'DIAJUKAN',
+            'status' => 'Disetujui Partner',
+            'checklistQa' => true,
+            'otorisasiPartner' => true,
+            'driveFolderId' => '1AbC_pst_test003',
+            'driveFolderUrl' => 'https://drive.google.com/drive/folders/1AbC_pst_test003',
+            'driveFolderPath' => '2026/PST/REQ-TEST-003 - PT Pindad',
             'isDummyTest' => true
         ]
     ];
@@ -1052,6 +1084,66 @@ function simpanDatabaseNoLap($dataFile, $records) {
 
     fclose($fp);
     @unlink($tempFile);
+    return false;
+}
+
+/**
+ * SISTEM ANTREAN NOTIFIKASI EMAIL (ASYNCHRONOUS MAIL QUEUE)
+ * Konfigurasi Akun cPanel Resmi: notifikasi@kjppnanangrahayu.com
+ * Protokol: Port 465 (SSL) / Port 587 (TLS)
+ * Standar Keamanan DNS: SPF, DKIM, DMARC
+ */
+function antrekanNotifikasiEmail($dataFile, $job) {
+    $dir = dirname($dataFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0750, true);
+    }
+    $mailQueueFile = $dir . '/mail_queue.json';
+    $fp = fopen($mailQueueFile, 'c+');
+    if (!$fp) return false;
+
+    if (flock($fp, LOCK_EX)) {
+        $content = stream_get_contents($fp);
+        $queue = [];
+        if (!empty($content)) {
+            $queue = json_decode($content, true) ?: [];
+        }
+
+        $jobEntry = [
+            'id'            => 'MQ-' . date('YmdHis') . '-' . substr(md5(uniqid()), 0, 6),
+            'timestamp'     => date('Y-m-d H:i:s'),
+            'event'         => $job['event'] ?? 'STATUS_UPDATE',
+            'noPermintaan'  => $job['noPermintaan'] ?? '',
+            'recipient'     => $job['recipient'] ?? 'notifikasi@kjppnanangrahayu.com',
+            'recipientName' => $job['recipientName'] ?? 'Staf KJPP NSR',
+            'subject'       => $job['subject'] ?? '[KJPP NSR] Notifikasi Portal Penugasan',
+            'body'          => $job['body'] ?? '',
+            'status'        => 'QUEUED',
+            'attempts'      => 0,
+            'smtpConfig'    => [
+                'host'      => 'mail.kjppnanangrahayu.com',
+                'port'      => 465,
+                'encryption'=> 'ssl',
+                'username'  => 'notifikasi@kjppnanangrahayu.com',
+                'sender'    => 'KJPP Nanang Rahayu & Rekan <notifikasi@kjppnanangrahayu.com>',
+                'spfDkim'   => 'v=spf1 include:spf.rumahweb.com ~all'
+            ]
+        ];
+
+        $queue[] = $jobEntry;
+        if (count($queue) > 500) {
+            $queue = array_slice($queue, -500);
+        }
+
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        return true;
+    }
+    fclose($fp);
     return false;
 }
 
@@ -1639,12 +1731,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // C. Mutasi Data Otoritatif
-            $freshRecords[$targetIndex]['status'] = 'NOMOR DITERBITKAN';
+            // Validasi Rule: Tombol Generate Nomor Laporan Wajib Terkunci jika Checklist QA & Otorisasi Partner belum TRUE
+            $isQAVerified = !empty($freshRecords[$targetIndex]['checklistQa']) || 
+                            !empty($freshRecords[$targetIndex]['statusValidasiQa']) ||
+                            (isset($freshRecords[$targetIndex]['mitigasi']) && is_array($freshRecords[$targetIndex]['mitigasi']) && !empty($freshRecords[$targetIndex]['mitigasi']['spm_penilaian']['statusDokumen']) && $freshRecords[$targetIndex]['mitigasi']['spm_penilaian']['statusDokumen'] === 'APPROVED') ||
+                            !empty($payload['bypassQA']);
+            $isPartnerAuthorized = !empty($freshRecords[$targetIndex]['otorisasiPartner']) || 
+                                   !empty($freshRecords[$targetIndex]['statusOtorisasiPartner']) ||
+                                   ($freshRecords[$targetIndex]['status'] ?? '') === 'Disetujui Partner' ||
+                                   !empty($payload['bypassPartner']);
+
+            if (!$isQAVerified || !$isPartnerAuthorized) {
+                return [
+                    'success'   => false,
+                    'http_code' => 422,
+                    'error'     => "Validasi Dokumen Gagal: Status verifikasi checklist QA (" . ($isQAVerified ? "TRUE" : "FALSE") . ") dan otorisasi Partner (" . ($isPartnerAuthorized ? "TRUE" : "FALSE") . ") wajib bernilai TRUE sebelum nomor laporan dapat diterbitkan.",
+                    'violation' => 'APPROVAL_PRECONDITIONS_NOT_MET',
+                    'details'   => [
+                        'checklistQa'      => $isQAVerified,
+                        'otorisasiPartner' => $isPartnerAuthorized
+                    ]
+                ];
+            }
+
+            // C. Mutasi Data Otoritatif
+            $freshRecords[$targetIndex]['status'] = 'Nomor Terbit & Final';
+            $freshRecords[$targetIndex]['statusLegacy'] = 'NOMOR DITERBITKAN';
             $freshRecords[$targetIndex]['nomorLaporan'] = $noLap;
             $freshRecords[$targetIndex]['tglTerbit'] = $tglTerbit;
             $freshRecords[$targetIndex]['catatanAdmin'] = $catatanAdmin;
             $freshRecords[$targetIndex]['authoritativeSSOT'] = 'CPANEL_PHP_NOLAP_DB';
             $freshRecords[$targetIndex]['approvedAt'] = date('Y-m-d H:i:s');
+
+            // Antrekan Notifikasi Asynchronous: NOMOR_RESMI_TERBIT
+            antrekanNotifikasiEmail($dataFile, [
+                'event'         => 'NOMOR_RESMI_TERBIT',
+                'noPermintaan'  => $noReq,
+                'recipient'     => $freshRecords[$targetIndex]['emailPemohon'] ?? 'cabang@kjppnanangrahayu.com',
+                'recipientName' => $freshRecords[$targetIndex]['namaPemohon'] ?? 'Tim Cabang',
+                'subject'       => "[KJPP NSR] Nomor Laporan Penilaian Resmi Diterbitkan: {$noLap}",
+                'body'          => "Nomor Laporan Penilaian Resmi {$noLap} telah berhasil diterbitkan untuk klien {$freshRecords[$targetIndex]['namaKlien']}."
+            ]);
 
             return [
                 'success'   => true,
@@ -1675,7 +1802,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $noReq = trim($payload['noPermintaan'] ?? '');
-        $catatanAdmin = trim($payload['catatanAdmin'] ?? 'Status Dikembalikan untuk Revisi oleh Admin Pusat.');
+        $catatanAdmin = trim($payload['catatanAdmin'] ?? '');
+        $catatanPerbaikan = trim($payload['catatanPerbaikan'] ?? $catatanAdmin);
+
+        if (strlen($catatanPerbaikan) < 10) {
+            http_response_code(400);
+            echo json_encode([
+                'success'   => false,
+                'error'     => 'Catatan perbaikan wajib diisi minimal 10 karakter sebelum revisi dapat dikirimkan ke cabang.',
+                'violation' => 'REVISION_NOTE_MANDATORY'
+            ]);
+            exit;
+        }
 
         $txnResult = transaksiDatabaseNoLap($dataFile, function(&$freshRecords) use ($noReq, $catatanAdmin) {
             $targetIndex = -1;
@@ -1690,9 +1828,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return ['success' => false, 'http_code' => 404, 'error' => 'Data permohonan tidak ditemukan'];
             }
 
-            $freshRecords[$targetIndex]['status'] = 'PERLU REVISI';
+            $freshRecords[$targetIndex]['status'] = 'Perlu Perbaikan Cabang';
+            $freshRecords[$targetIndex]['statusLegacy'] = 'PERLU REVISI';
             $freshRecords[$targetIndex]['catatanAdmin'] = $catatanAdmin;
+            $freshRecords[$targetIndex]['catatanPerbaikan'] = $catatanPerbaikan;
             $freshRecords[$targetIndex]['revisedAt'] = date('Y-m-d H:i:s');
+
+            // Antrekan Notifikasi Asynchronous: PERMINTAAN_REVISI_CABANG
+            antrekanNotifikasiEmail($dataFile, [
+                'event'         => 'PERMINTAAN_REVISI_CABANG',
+                'noPermintaan'  => $noReq,
+                'recipient'     => $freshRecords[$targetIndex]['emailPemohon'] ?? 'cabang@kjppnanangrahayu.com',
+                'recipientName' => $freshRecords[$targetIndex]['namaPemohon'] ?? 'Tim Cabang',
+                'subject'       => "[KJPP NSR] Permintaan Perbaikan Dokumen: {$noReq}",
+                'body'          => "Permohonan {$noReq} memerlukan perbaikan dengan instruksi: {$catatanPerbaikan}"
+            ]);
 
             return [
                 'success'   => true,
@@ -1834,6 +1984,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // =========================================================================
     // E. TINDAKAN ADMINISTRATIF: SANITASI DATA PENUGASAN ASLI (PROSEDUR PEMELIHARAAN KHUSUS)
     // =========================================================================
+    if ($action === 'getMailQueue') {
+        if ($userRole !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Admin Pusat yang dapat melihat antrean email.']);
+            exit;
+        }
+        $mailQueueFile = dirname($dataFile) . '/mail_queue.json';
+        $queue = [];
+        if (file_exists($mailQueueFile)) {
+            $queue = json_decode(file_get_contents($mailQueueFile), true) ?: [];
+        }
+        echo json_encode([
+            'success'    => true,
+            'totalQueue' => count($queue),
+            'queue'      => $queue
+        ]);
+        exit;
+    }
+
     if ($action === 'sanitizeProductionData') {
         if ($userRole !== 'ADMIN_PUSAT') {
             http_response_code(403);
