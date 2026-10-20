@@ -243,15 +243,82 @@
             <div id="status-tarik-kwitansi" class="hidden text-xs rounded-xl p-3"></div>
           </div>
 
+          <!-- ========================================================= -->
+          <!-- SWITCH ALUR DUAL MODE: MODE CABANG vs MODE PUSAT          -->
+          <!-- ========================================================= -->
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-700/80 shadow-xl space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-amber-300">Pilih Mode Penerbitan Kuitansi</span>
+              </div>
+              <span id="badge-mode-kwitansi-aktif" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                Mode Cabang Aktif
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Mode Cabang -->
+              <label id="card-mode-cabang" onclick="pilihModePenerbitan('cabang')" class="cursor-pointer relative flex items-start gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 bg-emerald-950/40 border-emerald-500 shadow-md shadow-emerald-950/30">
+                <input type="radio" name="mode_penerbitan" id="radio-mode-cabang" value="cabang" checked class="mt-1 text-emerald-500 focus:ring-emerald-400 cursor-pointer">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-white">🏢 [Mode Cabang]</span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/30 text-emerald-200">Mandiri</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 leading-snug">
+                    Kuitansi Titipan / Kasbon Operasional Mandiri Cabang.
+                  </p>
+                  <p class="text-[10px] text-emerald-400 font-mono font-medium">
+                    🔒 Otorisasi: PIN Token Cabang
+                  </p>
+                </div>
+              </label>
+
+              <!-- Mode Pusat -->
+              <label id="card-mode-pusat" onclick="pilihModePenerbitan('pusat')" class="cursor-pointer relative flex items-start gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 bg-slate-950/60 border-slate-700/80 hover:border-amber-500/60">
+                <input type="radio" name="mode_penerbitan" id="radio-mode-pusat" value="pusat" class="mt-1 text-amber-500 focus:ring-amber-400 cursor-pointer">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-slate-200">⭐ [Mode Pusat]</span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-400/20 text-amber-300">Resmi Rekan</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 leading-snug">
+                    Permohonan Kuitansi Resmi Penugasan Rekan.
+                  </p>
+                  <p class="text-[10px] text-amber-400 font-mono font-medium">
+                    📋 Otorisasi: Verifikasi &amp; Rilis No. Resmi Pusat
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Pilihan TTD Rekan (Aktif Khusus Mode Pusat) -->
+            <div id="panel-ttd-rekan-mode-pusat" class="hidden pt-3 border-t border-slate-800 space-y-2">
+              <label class="block text-xs font-semibold text-amber-300 flex items-center gap-1.5">
+                <span>✍️ Pilihan Penandatangan Rekan Resmi (Mode Pusat)</span>
+                <span class="text-rose-400">*</span>
+              </label>
+              <select id="pilihan-rekan-ttd-mode-pusat" onchange="saatPilihanRekanBerubah(this.value)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-amber-500/60 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                <option value="1" selected>Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) — Pemimpin Rekan</option>
+                <option value="2">Deni Siswandi, S.T., MAPPI (Cert.) — Rekan</option>
+              </select>
+              <p class="text-[10px] text-slate-400">
+                Kuitansi resmi penugasan akan disahkan oleh Kantor Pusat dengan tanda tangan pejabat Rekan yang dipilih.
+              </p>
+            </div>
+          </div>
+
           <!-- Baris 1: Cabang Pemohon & Tanggal -->
           <div class="grid sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Kantor Cabang Pengaju <span class="text-rose-400">*</span></label>
-              <select id="cabang-pengaju" required onchange="saatCabangBerubah(this.value)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
-                <option value="Cabang Bandung">Kantor Cabang Bandung</option>
+              <select id="cabang-pengaju" required onchange="saatCabangBerubah(this.value)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400 transition">
+                <option value="" disabled selected>-- Pilih Kantor Cabang Pengaju --</option>
+                <option value="Cabang Palembang">Kantor Cabang Palembang</option>
                 <option value="Cabang Padang">Kantor Cabang Padang</option>
                 <option value="Cabang Makassar">Kantor Cabang Makassar</option>
-                <option value="Cabang Palembang">Kantor Cabang Palembang</option>
+                <option value="Cabang Bandung">Kantor Cabang Bandung</option>
                 <option value="Kantor Pusat Jakarta">Kantor Pusat Jakarta</option>
               </select>
             </div>
@@ -415,24 +482,24 @@
             <p class="text-[10px] text-slate-400">Pilihan rekening bank operasional resmi KJPP NSR untuk penerimaan pembayaran transfer.</p>
           </div>
 
-          <!-- TOMBOL DUAL MODE PENERBITAN KWITANSI CABANG -->
+          <!-- TOMBOL DUAL MODE PENERBITAN KWITANSI -->
           <div class="pt-2 space-y-2.5">
-            <!-- Mode A: Draf Tagihan DP / Proforma (Marketing, Tanpa PIN) -->
+            <!-- Mode Cabang: Kwitansi Resmi Kasir Cabang (Otorisasi PIN Finance) -->
+            <button type="button" onclick="bukaModalPinFinanceCabang()" id="btn-terbit-resmi-cabang" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-emerald-900/30 transition flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+              <span>🏛️ Sahkan Kuitansi Cabang (PIN Otorisasi)</span>
+            </button>
+
+            <!-- Mode Cabang: Draf Tagihan DP / Proforma (Marketing, Tanpa PIN) -->
             <button type="button" onclick="terbitkanDrafMarketing()" id="btn-terbit-draf-dp" class="w-full py-3 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs tracking-wide border border-amber-400/40 shadow transition flex items-center justify-center gap-2 cursor-pointer">
               <svg class="w-4 h-4 text-amber-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
               <span>⚡ Terbitkan Draf Tagihan DP / Proforma (Tanpa PIN)</span>
             </button>
 
-            <!-- Mode B: Kwitansi Resmi Kasir Cabang (Otorisasi PIN Finance) -->
-            <button type="button" onclick="bukaModalPinFinanceCabang()" id="btn-terbit-resmi-cabang" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-emerald-900/30 transition flex items-center justify-center gap-2 cursor-pointer">
-              <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
-              <span>🏛️ Terbitkan Kwitansi Resmi Cabang (Otorisasi PIN Finance)</span>
-            </button>
-
-            <!-- Kirim Pengajuan Draf ke Keuangan Pusat (Alur Tradisional) -->
-            <button type="submit" id="btn-submit-pengajuan" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-[11px] border border-slate-700 transition flex items-center justify-center gap-2">
-              <svg class="w-3.5 h-3.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              <span>Kirim Pengajuan Draf Tagihan ke Keuangan Pusat &rarr;</span>
+            <!-- Mode Pusat: Ajukan Permohonan ke Pusat (Tanpa Popup PIN Finance Cabang) -->
+            <button type="submit" id="btn-submit-pengajuan" class="hidden w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-amber-500/20 hover:scale-[1.01] transition flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>📤 Ajukan Permohonan ke Pusat</span>
             </button>
           </div>
 
@@ -586,8 +653,9 @@
             </label>
             <select id="pilihan-pejabat-ttd" onchange="gantiPejabatTTD()" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
               <option value="1">Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) — Pemimpin Rekan</option>
-              <option value="2">Milda Hidayati Dewi, S.E. — Keuangan</option>
-              <option value="3">Ricca Noer Farikha, S.E. — Keuangan</option>
+              <option value="2">Deni Siswandi, S.T., MAPPI (Cert.) — Rekan</option>
+              <option value="3">Milda Hidayati Dewi, S.E. — Keuangan</option>
+              <option value="4">Ricca Noer Farikha, S.E. — Keuangan</option>
               <option value="custom">Kustom / Lainnya (Ketik Manual)</option>
             </select>
           </div>
@@ -1099,12 +1167,18 @@
         parafDefault: "Nanang Rahayu"
       },
       "2": {
+        nama: "Deni Siswandi, S.T., MAPPI (Cert.)",
+        jabatan: "Rekan",
+        subjabatan: "Rekan",
+        parafDefault: "Deni Siswandi"
+      },
+      "3": {
         nama: "Milda Hidayati Dewi, S.E.",
         jabatan: "Keuangan",
         subjabatan: "Keuangan",
         parafDefault: "Milda H. Dewi"
       },
-      "3": {
+      "4": {
         nama: "Ricca Noer Farikha, S.E.",
         jabatan: "Keuangan",
         subjabatan: "Keuangan",
@@ -1337,6 +1411,131 @@
         dataKwitansiAktif.banyaknya = teks;
         dataKwitansiAktif.statusFinansial = 'PIUTANG KONTRAK SAH (BAST)';
         perbaruiPreviewKwitansi();
+      }
+    }
+
+    // =============================================================
+    // DUAL MODE KWITANSI & NORMALISASI SESI LOGIN KANTOR CABANG
+    // =============================================================
+    let modeKwitansiAktif = 'cabang';
+
+    const KODE_CABANG_NORMALIZATION_MAP = {
+      'PLB': 'Cabang Palembang',
+      'PDG': 'Cabang Padang',
+      'MKS': 'Cabang Makassar',
+      'BDG': 'Cabang Bandung',
+      'PST': 'Kantor Pusat Jakarta',
+      '00':  'Kantor Pusat Jakarta',
+      '01':  'Cabang Padang',
+      '02':  'Cabang Makassar',
+      '03':  'Cabang Palembang',
+      '04':  'Cabang Bandung'
+    };
+
+    function getNormalizedCabangFromUser(user) {
+      if (!user) return '';
+      const code = String(user.wilayahCode || user.branch || '').toUpperCase().trim();
+      if (KODE_CABANG_NORMALIZATION_MAP[code]) {
+        return KODE_CABANG_NORMALIZATION_MAP[code];
+      }
+      const rawText = String(user.displayName || user.wilayah || user.cabang || user.branch || user.sub || '').toLowerCase();
+      if (rawText.includes('palembang') || rawText.includes('plb')) return 'Cabang Palembang';
+      if (rawText.includes('padang') || rawText.includes('pdg')) return 'Cabang Padang';
+      if (rawText.includes('makassar') || rawText.includes('mks')) return 'Cabang Makassar';
+      if (rawText.includes('bandung') || rawText.includes('bdg')) return 'Cabang Bandung';
+      if (rawText.includes('pusat') || rawText.includes('jakarta') || rawText.includes('pst')) return 'Kantor Pusat Jakarta';
+      return '';
+    }
+
+    function pilihModePenerbitan(mode) {
+      modeKwitansiAktif = mode;
+      const radioCabang = document.getElementById('radio-mode-cabang');
+      const radioPusat = document.getElementById('radio-mode-pusat');
+      const cardCabang = document.getElementById('card-mode-cabang');
+      const cardPusat = document.getElementById('card-mode-pusat');
+      const badgeAktif = document.getElementById('badge-mode-kwitansi-aktif');
+      const panelTtdRekan = document.getElementById('panel-ttd-rekan-mode-pusat');
+
+      const btnTerbitResmiCabang = document.getElementById('btn-terbit-resmi-cabang');
+      const btnTerbitDrafDp = document.getElementById('btn-terbit-draf-dp');
+      const btnSubmitPengajuan = document.getElementById('btn-submit-pengajuan');
+
+      if (mode === 'pusat') {
+        if (radioPusat) radioPusat.checked = true;
+        if (badgeAktif) {
+          badgeAktif.innerText = 'Mode Pusat Aktif';
+          badgeAktif.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        }
+        if (cardPusat) {
+          cardPusat.className = 'cursor-pointer relative flex items-start gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 bg-amber-950/40 border-amber-500 shadow-md shadow-amber-950/30';
+        }
+        if (cardCabang) {
+          cardCabang.className = 'cursor-pointer relative flex items-start gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 bg-slate-950/60 border-slate-700/80 hover:border-slate-600';
+        }
+        if (panelTtdRekan) panelTtdRekan.classList.remove('hidden');
+
+        // Mode Pusat: Hilangkan popup & tombol PIN Finance Cabang, tampilkan tombol Ajukan ke Pusat
+        if (btnTerbitResmiCabang) btnTerbitResmiCabang.classList.add('hidden');
+        if (btnTerbitDrafDp) btnTerbitDrafDp.classList.add('hidden');
+        if (btnSubmitPengajuan) {
+          btnSubmitPengajuan.classList.remove('hidden');
+          btnSubmitPengajuan.removeAttribute('style');
+        }
+
+        // Terapkan pilihan Rekan TTD ke preview
+        const valRekan = document.getElementById('pilihan-rekan-ttd-mode-pusat')?.value || '1';
+        saatPilihanRekanBerubah(valRekan);
+      } else {
+        // Mode Cabang
+        if (radioCabang) radioCabang.checked = true;
+        if (badgeAktif) {
+          badgeAktif.innerText = 'Mode Cabang Aktif';
+          badgeAktif.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        }
+        if (cardCabang) {
+          cardCabang.className = 'cursor-pointer relative flex items-start gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 bg-emerald-950/40 border-emerald-500 shadow-md shadow-emerald-950/30';
+        }
+        if (cardPusat) {
+          cardPusat.className = 'cursor-pointer relative flex items-start gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 bg-slate-950/60 border-slate-700/80 hover:border-slate-600';
+        }
+        if (panelTtdRekan) panelTtdRekan.classList.add('hidden');
+
+        // Mode Cabang: Aktifkan tombol Sahkan Cabang (PIN) & Draf DP, sembunyikan kirim ke pusat
+        if (btnTerbitResmiCabang) btnTerbitResmiCabang.classList.remove('hidden');
+        if (btnTerbitDrafDp) btnTerbitDrafDp.classList.remove('hidden');
+        if (btnSubmitPengajuan) btnSubmitPengajuan.classList.add('hidden');
+
+        // Kembalikan TTD default
+        gantiPejabatTTD();
+      }
+      perbaruiPreviewKwitansi();
+    }
+
+    function saatPilihanRekanBerubah(val) {
+      const p = DAFTAR_PEJABAT[val] || DAFTAR_PEJABAT["1"];
+      dataKwitansiAktif.idPejabat = val;
+      dataKwitansiAktif.namaPejabat = p.nama;
+      dataKwitansiAktif.jabatanPejabat = p.jabatan;
+      dataKwitansiAktif.subjabatanPejabat = p.subjabatan;
+      const elParaf = document.getElementById('print-ttd-nama-default');
+      if (elParaf) elParaf.innerText = p.parafDefault;
+      const elNama = document.getElementById('print-nama-pejabat');
+      if (elNama) elNama.innerText = p.nama;
+      const elJabatan = document.getElementById('print-jabatan-pejabat');
+      if (elJabatan) elJabatan.innerText = p.jabatan;
+      perbaruiPreviewKwitansi();
+    }
+
+    // Shortcut Verifikasi Cepat & Rilis Nomor Resmi oleh Keuangan Pusat
+    async function verifikasiCepatKwitansiPusat(idKwitansi) {
+      if (!currentUser || (currentUser.role !== 'KEUANGAN' && currentUser.role !== 'ADMIN_PUSAT' && currentUser.role !== 'ADMIN')) {
+        alert('Akses Ditolak: Hanya Bagian Keuangan Pusat yang berhak mengesahkan kwitansi resmi.');
+        return;
+      }
+      pilihDrafUntukVerifikasi(idKwitansi);
+      const konfirmasi = confirm(`Verifikasi dan rilis Nomor Kwitansi Resmi sekarang untuk draf ${idKwitansi}?`);
+      if (konfirmasi) {
+        await sahkanDanKunciKwitansi();
       }
     }
 
@@ -1795,6 +1994,8 @@
                 <td class="py-2.5 px-3">
                   <div class="font-bold text-white">${item.cabang || 'Pusat'}</div>
                   <div class="text-[10px] text-slate-400">${item.tglPengajuan || item.createdAt || '-'}</div>
+                  ${item.modePenerbitan === 'pusat' ? `<span class="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">⭐ Resmi Rekan</span>` : ''}
+                  ${item.namaPejabat && item.namaPejabat.includes('Deni') ? `<span class="block text-[8px] text-slate-400">TTD: Deni Siswandi, S.T.</span>` : ''}
                 </td>
                 <td class="py-2.5 px-3 max-w-xs">
                   <div class="truncate font-semibold text-slate-200" title="${item.klien}">${item.klien}</div>
@@ -1809,9 +2010,12 @@
                 <td class="py-2.5 px-3 text-center">
                   <div class="flex items-center justify-center gap-1.5">
                     <button type="button" onclick="pilihDrafUntukVerifikasi('${item.idKwitansi}')" class="px-2 py-1 rounded bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[10.5px] transition shadow cursor-pointer">
-                      🔍 Periksa &amp; Muat
+                      🔍 Periksa
                     </button>
                     ${!isApproved && !isVoid ? `
+                      <button type="button" onclick="verifikasiCepatKwitansiPusat('${item.idKwitansi}')" class="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10.5px] transition shadow cursor-pointer" title="Verifikasi dan rilis nomor resmi seketika">
+                        ✅ Rilis No.
+                      </button>
                       <button type="button" onclick="kembalikanDrafKwitansi('${item.idKwitansi}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 font-bold text-[10.5px] transition border border-slate-700 cursor-pointer" title="Kembalikan Draf ke Cabang">
                         ↩️ Tolak
                       </button>
@@ -1998,6 +2202,10 @@
       const tarifPpn = parseFloat(document.getElementById('tarif-ppn')?.value) || 0.11;
 
       try {
+        const isPusatMode = (modeKwitansiAktif === 'pusat');
+        const idRekan = isPusatMode ? (document.getElementById('pilihan-rekan-ttd-mode-pusat')?.value || '1') : '1';
+        const rekanObj = DAFTAR_PEJABAT[idRekan] || DAFTAR_PEJABAT["1"];
+
         const res = await fetch('/api/kwitansi-data-proxy', {
           method: 'POST',
           headers: getKwitansiAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -2006,6 +2214,11 @@
             action: 'submitDraft',
             payload: {
               cabang,
+              modePenerbitan: isPusatMode ? 'pusat' : 'cabang',
+              idPejabat: idRekan,
+              namaPejabat: rekanObj.nama,
+              jabatanPejabat: rekanObj.jabatan,
+              subjabatanPejabat: rekanObj.subjabatan,
               tglPengajuan: tgl,
               namaPengaju,
               waPengaju,
@@ -2054,7 +2267,9 @@
             fetch(GOOGLE_FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body: formData });
           } catch (e) {}
 
-          let pesanSukses = `✅ Draf kwitansi berhasil dikirim dan tersimpan di server terpusat!\nNomor Referensi Draf: ${data.idKwitansi}`;
+          let pesanSukses = isPusatMode 
+            ? `✅ Permohonan Kuitansi Resmi Penugasan Rekan BERHASIL DIAJUKAN KE PUSAT!\n\nNomor Referensi: ${data.idKwitansi}\nPenandatangan: ${rekanObj.nama}\n\nPermohonan telah masuk ke antrean verifikasi Akun Pusat (NSR-PST-2026 / NSR-KEU-2026) untuk verifikasi administrasi dan rilis nomor resmi.`
+            : `✅ Draf kuitansi operasional mandiri cabang berhasil diajukan dan tersimpan di server terpusat!\n\nNomor Referensi Draf: ${data.idKwitansi}`;
           if (data.isOverbilling) {
             pesanSukses += `\n\n⚠️ Peringatan Pagu: Total akumulasi tertagih melebihi nilai kontrak SPK. Tercatat di audit server untuk verifikasi Keuangan Pusat.`;
           }
@@ -2150,6 +2365,7 @@
     };
 
     function updateDefaultPengaju(cabangName) {
+      if (!cabangName) return;
       const data = KONTAK_NSR.cabang[cabangName];
       if (data) {
         const inpNama = document.getElementById('nama-staf-pengaju');
@@ -2168,6 +2384,21 @@
       const btnTextWa = document.getElementById('btn-text-wa-cabang');
       if (btnTextWa && data) {
         btnTextWa.innerText = `💬 WA ke ${data.picDefault} (${data.noWa})`;
+      }
+      
+      // Sinkronkan rekening bank operasional default sesuai wilayah cabang
+      const search = cabangName.toLowerCase();
+      let bankDefault = 'MANDIRI';
+      if (search.includes('bandung') || search.includes('bdg')) bankDefault = 'BJB';
+      else if (search.includes('padang') || search.includes('pdg')) bankDefault = 'BRI';
+      else if (search.includes('palembang') || search.includes('plb')) bankDefault = 'BTN';
+      else if (search.includes('makassar') || search.includes('mks')) bankDefault = 'MANDIRI';
+      
+      const selRek = document.getElementById('pilihan_rekening_tujuan');
+      if (selRek && (!selRek.value || selRek.dataset.autoSelected === "true" || selRek.value === "MANDIRI")) {
+        selRek.value = bankDefault;
+        selRek.dataset.autoSelected = "true";
+        if (typeof gantiRekeningTujuan === 'function') gantiRekeningTujuan('form');
       }
     }
 
@@ -2580,14 +2811,16 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
                 window.location.href = 'portal-penugasan-jo.html';
                 return;
               }
-              const isPusatKeuangan = auth.isSuperAdmin || auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER ADMIN' || auth.role === 'SUPER_ADMIN';
+              const isPusatKeuangan = Boolean(auth.isSuperAdmin) || auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER ADMIN' || auth.role === 'SUPER_ADMIN' || auth.role === 'KEUANGAN';
               const simUser = {
                 sub: isPusatKeuangan ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
                 role: isPusatKeuangan ? 'KEUANGAN' : 'CABANG',
-                branch: auth.wilayahCode,
+                branch: isPusatKeuangan ? 'PUSAT' : auth.wilayahCode,
                 displayName: auth.wilayahLabel || auth.wilayah,
                 token: auth.token || auth.tokenHash,
-                tokenHash: auth.tokenHash
+                tokenHash: auth.tokenHash,
+                isCabang: !isPusatKeuangan,
+                isSuperAdmin: Boolean(auth.isSuperAdmin)
               };
               terapkanSesiPengguna(simUser);
               return;
@@ -2655,12 +2888,15 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           return;
         } else {
           // Token Admin Resmi Diterima
+          const isPusatKeuangan = Boolean(auth.isSuperAdmin) || auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER ADMIN' || auth.role === 'SUPER_ADMIN' || auth.role === 'KEUANGAN';
           const simUser = {
-            sub: auth.role === 'ADMIN_PUSAT' ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
-            role: auth.role === 'ADMIN_PUSAT' ? 'KEUANGAN' : 'CABANG',
-            branch: auth.wilayahCode,
-            displayName: auth.wilayah,
-            token: auth.token
+            sub: isPusatKeuangan ? 'admin_pusat' : `admin_${auth.wilayahCode.toLowerCase()}`,
+            role: isPusatKeuangan ? 'KEUANGAN' : 'CABANG',
+            branch: isPusatKeuangan ? 'PUSAT' : auth.wilayahCode,
+            displayName: auth.wilayahLabel || auth.wilayah,
+            token: auth.token,
+            isCabang: !isPusatKeuangan,
+            isSuperAdmin: Boolean(auth.isSuperAdmin)
           };
           sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token);
           sessionStorage.setItem('kjpp_token_internal', JSON.stringify({
@@ -2781,68 +3017,59 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         labelVerified.innerText = isCabang ? `Cabang ${user.branch}` : `${user.displayName || user.sub} (${user.role})`;
       }
 
-      // Kunci pilihan dropdown jika role Cabang
+      // TAHAP 1: Inisialisasi Dropdown Kantor Cabang Pengaju Sesuai Sesi Login
       const selCabang = document.getElementById('cabang-pengaju');
-      if (selCabang && isCabang && user.branch) {
-        for (let i = 0; i < selCabang.options.length; i++) {
-          if (selCabang.options[i].value.toLowerCase().includes(user.branch.toLowerCase())) {
-            selCabang.selectedIndex = i;
-            break;
+      const targetCabang = getNormalizedCabangFromUser(user);
+
+      if (selCabang) {
+        if (targetCabang) {
+          selCabang.value = targetCabang;
+          saatCabangBerubah(targetCabang);
+        }
+        if (isCabang) {
+          // Kunci pilihan dropdown jika sesi Cabang
+          selCabang.disabled = true;
+          selCabang.classList.add('opacity-80', 'cursor-not-allowed');
+        } else {
+          // Buka pilihan jika sesi Pusat / Super Admin
+          selCabang.disabled = false;
+          selCabang.classList.remove('opacity-80', 'cursor-not-allowed');
+          if (!selCabang.value) {
+            selCabang.value = 'Kantor Pusat Jakarta';
+            saatCabangBerubah('Kantor Pusat Jakarta');
           }
         }
-        selCabang.disabled = true;
-      } else if (selCabang) {
-        selCabang.disabled = false;
       }
 
-      // Default buka tab cabang untuk submit draf
+      // Default buka tab cabang untuk formulir kwitansi
       document.getElementById('konten-form-cabang').classList.remove('hidden');
 
       if (isKeuangan) {
         document.getElementById('guard-akses-pusat-cabang').classList.add('hidden');
+        const tabBtnPusat = document.getElementById('tab-btn-pusat');
+        if (tabBtnPusat) {
+          tabBtnPusat.classList.remove('hidden');
+          tabBtnPusat.removeAttribute('style');
+        }
+        // Muat antrean verifikasi untuk Keuangan Pusat
+        muatDaftarKwitansi();
       }
 
-      perbaruiPreviewKwitansi();
-
-      // Sinkronisasi query param mode (?mode=pusat vs ?mode=mandiri) & Isolasi Cabang Mandiri
+      // TAHAP 2: Inisialisasi Alur Dual Mode (Mode Cabang vs Mode Pusat)
       try {
         const urlParamsKw = new URLSearchParams(window.location.search);
         const modeKw = urlParamsKw.get('mode');
-        const isCabangUser = Boolean(currentUser && (currentUser.role === 'CABANG' || currentUser.branch));
-        const isModeMandiriKw = (modeKw === 'mandiri') || (isCabangUser && modeKw !== 'pusat');
-
-        if (isModeMandiriKw) {
-          gantiTab('cabang');
-          
-          // Sembunyikan alur kirim pengajuan ke keuangan pusat & tab pusat
-          const btnSubmitPengajuan = document.getElementById('btn-submit-pengajuan');
-          if (btnSubmitPengajuan) {
-            btnSubmitPengajuan.classList.add('hidden');
-            btnSubmitPengajuan.setAttribute('style', 'display: none !important');
-          }
-          const tabBtnPusat = document.getElementById('tab-btn-pusat');
-          if (tabBtnPusat) {
-            tabBtnPusat.classList.add('hidden');
-            tabBtnPusat.setAttribute('style', 'display: none !important');
-          }
-
-          // Pilih rekening operasional cabang otomatis
-          const branchName = String(currentUser?.branch || currentUser?.displayName || document.getElementById('cabang-pengaju')?.value || '').toLowerCase();
-          let defaultBank = 'MANDIRI';
-          if (branchName.includes('bdg') || branchName.includes('bandung')) defaultBank = 'BJB';
-          else if (branchName.includes('pdg') || branchName.includes('padang')) defaultBank = 'BRI';
-          else if (branchName.includes('plb') || branchName.includes('palembang')) defaultBank = 'BTN';
-          else if (branchName.includes('mks') || branchName.includes('makassar')) defaultBank = 'MANDIRI';
-
-          const selRek = document.getElementById('pilihan_rekening_tujuan');
-          if (selRek) {
-            selRek.value = defaultBank;
-            gantiRekeningTujuan('form');
-          }
-        } else if (modeKw === 'pusat') {
-          gantiTab('pusat');
+        if (modeKw === 'pusat') {
+          pilihModePenerbitan('pusat');
+          if (isKeuangan) gantiTab('pusat');
+        } else {
+          pilihModePenerbitan('cabang');
         }
-      } catch (e) {}
+      } catch (e) {
+        pilihModePenerbitan('cabang');
+      }
+
+      perbaruiPreviewKwitansi();
     }
 
     // 20. Navigasi Antar Tab dengan Proteksi RBAC
@@ -3212,11 +3439,14 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
     };
 
     function getKodeCabangKwitansi(cabang) {
-      if (!cabang) return 'BDG';
-      for (const k in KODE_CABANG_MAP) {
-        if (cabang.toLowerCase().includes(k.toLowerCase())) return KODE_CABANG_MAP[k];
+      if (!cabang) {
+        const el = document.getElementById('cabang-pengaju');
+        cabang = el?.value || (currentUser ? getNormalizedCabangFromUser(currentUser) : '') || '';
       }
-      return 'BDG';
+      for (const k in KODE_CABANG_MAP) {
+        if (cabang && cabang.toLowerCase().includes(k.toLowerCase())) return KODE_CABANG_MAP[k];
+      }
+      return 'PST';
     }
 
     function terbitkanDrafMarketing() {
@@ -3254,8 +3484,18 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
     }
 
     function bukaModalPinFinanceCabang() {
+      if (modeKwitansiAktif === 'pusat') {
+        alert('Mode Pusat Aktif: Permohonan Kuitansi Resmi Penugasan Rekan tidak memerlukan PIN Cabang.\n\nSilakan klik tombol "📤 Ajukan Permohonan ke Pusat" untuk mengirimkan berkas verifikasi ke Kantor Pusat.');
+        return;
+      }
       hitungKwitansi();
-      const cabang = document.getElementById('cabang-pengaju')?.value || dataKwitansiAktif.cabang || 'Bandung';
+      const elCabang = document.getElementById('cabang-pengaju');
+      const cabang = elCabang?.value || dataKwitansiAktif.cabang || (currentUser ? getNormalizedCabangFromUser(currentUser) : '');
+      if (!cabang) {
+        alert('Silakan pilih Kantor Cabang Pengaju terlebih dahulu.');
+        if (elCabang) elCabang.focus();
+        return;
+      }
       const lblCabang = document.getElementById('label-cabang-modal-finance');
       if (lblCabang) lblCabang.innerText = `Cabang ${cabang.replace(/^Kantor\s+/i, '')}`;
 
@@ -3277,18 +3517,27 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
     }
 
     function verifikasiDanTerbitkanKwitansiResmiCabang() {
-      const cabang = document.getElementById('cabang-pengaju')?.value || dataKwitansiAktif.cabang || 'Bandung';
+      const elCabang = document.getElementById('cabang-pengaju');
+      const cabang = elCabang?.value || dataKwitansiAktif.cabang || (currentUser ? getNormalizedCabangFromUser(currentUser) : '');
       const inpPin = document.getElementById('input-pin-finance-cabang');
       const errPin = document.getElementById('pesan-error-pin-finance');
       const statusSelect = document.getElementById('pilihan-status-kwitansi-cabang');
       const pin = inpPin ? inpPin.value.trim() : '';
 
-      let cabangKey = 'Bandung';
+      let cabangKey = '';
       for (const k in PIN_FINANCE_CABANG) {
-        if (cabang.toLowerCase().includes(k.toLowerCase())) {
+        if (cabang && cabang.toLowerCase().includes(k.toLowerCase())) {
           cabangKey = k;
           break;
         }
+      }
+
+      if (!cabangKey) {
+        if (errPin) {
+          errPin.innerText = 'Cabang yang dipilih tidak valid atau belum terdaftar.';
+          errPin.classList.remove('hidden');
+        }
+        return;
       }
 
       const expectedPin = PIN_FINANCE_CABANG[cabangKey];

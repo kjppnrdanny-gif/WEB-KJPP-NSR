@@ -1168,6 +1168,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'noPermintaan'     => trim($payload['noPermintaan'] ?? ''),
                 'noSpk'            => $noSpk,
                 'cabang'           => $cabangPengaju,
+                'modePenerbitan'   => $payload['modePenerbitan'] ?? 'cabang',
+                'idPejabat'        => $payload['idPejabat'] ?? '1',
+                'namaPejabat'      => trim($payload['namaPejabat'] ?? 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)'),
+                'jabatanPejabat'   => trim($payload['jabatanPejabat'] ?? 'Pemimpin Rekan'),
+                'subjabatanPejabat'=> trim($payload['subjabatanPejabat'] ?? 'Pemimpin Rekan'),
                 'namaPengaju'      => trim($payload['namaPengaju'] ?? $userDisplayName),
                 'waPengaju'        => trim($payload['waPengaju'] ?? ''),
                 'klien'            => trim($payload['klien']),
@@ -1315,9 +1320,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $targetItem['noKwitansiResmi']  = $noResmi;
             $targetItem['tglSah']           = $payload['tglSah'] ?? date('Y-m-d');
             $targetItem['tempatSah']        = $payload['tempatSah'] ?? 'Jakarta';
-            $targetItem['namaPejabat']      = $payload['namaPejabat'] ?? 'Milda Hidayati Dewi, S.E.';
-            $targetItem['jabatanPejabat']   = $payload['jabatanPejabat'] ?? 'Keuangan';
-            $targetItem['subjabatanPejabat']= $payload['subjabatanPejabat'] ?? 'Bagian Keuangan';
+            $targetItem['namaPejabat']      = $payload['namaPejabat'] ?? ($targetItem['namaPejabat'] ?? 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)');
+            $targetItem['jabatanPejabat']   = $payload['jabatanPejabat'] ?? ($targetItem['jabatanPejabat'] ?? 'Pemimpin Rekan');
+            $targetItem['subjabatanPejabat']= $payload['subjabatanPejabat'] ?? ($targetItem['subjabatanPejabat'] ?? 'Pemimpin Rekan');
             $targetItem['approvedBy']       = $userDisplayName;
             $targetItem['approvedRole']     = $userRole;
             $targetItem['approvedAt']       = $serverTimestamp;

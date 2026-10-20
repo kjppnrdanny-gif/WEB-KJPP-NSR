@@ -304,6 +304,8 @@ export default async (req) => {
         nilaiKontrakSpk: nilaiKontrakSpk,
         timestamp: new Date().toISOString().replace("T", " ").slice(0, 19),
         cabang: cabangPengaju,
+        modePenerbitan: dataPayload.modePenerbitan || "cabang",
+        idPejabat: dataPayload.idPejabat || "1",
         namaPengaju: dataPayload.namaPengaju || user.displayName || user.sub,
         waPengaju: dataPayload.waPengaju || "",
         klien: String(klienNama).trim(),
@@ -324,9 +326,9 @@ export default async (req) => {
         noKwitansiResmi: "",
         tglSah: "",
         tempatTerbit: "Jakarta",
-        namaPejabat: "Milda Hidayati Dewi, S.E.",
-        jabatanPejabat: "Keuangan",
-        subjabatanPejabat: "Keuangan",
+        namaPejabat: dataPayload.namaPejabat || "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)",
+        jabatanPejabat: dataPayload.jabatanPejabat || "Pemimpin Rekan",
+        subjabatanPejabat: dataPayload.subjabatanPejabat || "Pemimpin Rekan",
         catatanKeuangan: ""
       };
 
