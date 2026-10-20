@@ -3066,6 +3066,8 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         }
         // Muat antrean verifikasi untuk Keuangan Pusat
         muatDaftarKwitansi();
+        // Otomatis arahkan Keuangan Pusat langsung ke Meja Verifikasi (Tab 2)
+        setTimeout(() => gantiTab('pusat'), 100);
       }
 
       // TAHAP 2: Inisialisasi Alur Dual Mode (Mode Cabang vs Mode Pusat)
@@ -3097,7 +3099,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       const pCabang = document.getElementById('panel-cabang');
       const pPusat = document.getElementById('panel-pusat');
 
-      const isKeuangan = currentUser.role === 'KEUANGAN' || currentUser.role === 'ADMIN_PUSAT' || currentUser.role === 'ADMIN';
+      const isKeuangan = currentUser && (currentUser.role === 'KEUANGAN' || currentUser.role === 'ADMIN_PUSAT' || currentUser.role === 'ADMIN' || currentUser.role === 'SUPER ADMIN' || currentUser.role === 'PEMIMPIN_REKAN' || Boolean(currentUser.isSuperAdmin));
 
       if (tab === 'cabang') {
         btnCabang.className = "py-3 px-4 sm:px-6 font-extrabold text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition";
