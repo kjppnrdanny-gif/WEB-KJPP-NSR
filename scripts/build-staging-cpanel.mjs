@@ -167,7 +167,7 @@ function makeQrUrl(docNo, tier, hash) {
 const hmac1_1 = computeHmac(docId1, 1, 1, digest1, 'Holik Kelana', ts1);
 const hmac1_2 = computeHmac(docId1, 2, 1, digest1, 'Deni Siswandi, S.T.', ts1);
 const hmac1_3 = computeHmac(docId1, 3, 1, digest1, 'Danny Taufik Hidayat, S.H.', ts1);
-const hmac1_4 = computeHmac(docId1, 4, 1, digest1, 'Milda H', ts1);
+const hmac1_4 = computeHmac(docId1, 4, 1, digest1, 'Milda Hidayati Dewi, S.E.', ts1);
 const hmac1_5 = computeHmac(docId1, 5, 1, digest1, 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', ts1);
 
 const operasionalSeed = [
@@ -206,14 +206,14 @@ const operasionalSeed = [
       1: { tier: 1, label: 'Yang Mengajukan', role: 'SURVEYOR', pejabat: 'Holik Kelana', jabatan: 'Surveyor Lapangan', approved: true, approvedAt: ts1, hmacHash: hmac1_1, qrUrl: makeQrUrl(noReg1, 1, hmac1_1) },
       2: { tier: 2, label: 'Mengetahui', role: 'REKAN', pejabat: 'Deni Siswandi, S.T.', jabatan: 'Rekan Penilai', approved: true, approvedAt: ts1, hmacHash: hmac1_2, qrUrl: makeQrUrl(noReg1, 2, hmac1_2) },
       3: { tier: 3, label: 'Verifikasi Administrasi', role: 'ADMIN_PUSAT', pejabat: 'Danny Taufik Hidayat, S.H.', jabatan: 'Verifikasi Administrasi & Legal', approved: true, approvedAt: ts1, hmacHash: hmac1_3, qrUrl: makeQrUrl(noReg1, 3, hmac1_3) },
-      4: { tier: 4, label: 'Menyetujui', role: 'KEUANGAN', pejabat: 'Milda H', jabatan: 'Divisi Keuangan & Anggaran', approved: true, approvedAt: ts1, hmacHash: hmac1_4, qrUrl: makeQrUrl(noReg1, 4, hmac1_4) },
+      4: { tier: 4, label: 'Menyetujui', role: 'KEUANGAN', pejabat: 'Milda Hidayati Dewi, S.E.', jabatan: 'Manager Keuangan', approved: true, approvedAt: ts1, hmacHash: hmac1_4, qrUrl: makeQrUrl(noReg1, 4, hmac1_4) },
       5: { tier: 5, label: 'Penanggung Jawab', role: 'PEMIMPIN_REKAN', pejabat: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', jabatan: 'Pemimpin Rekan', approved: true, approvedAt: ts1, hmacHash: hmac1_5, qrUrl: makeQrUrl(noReg1, 5, hmac1_5) }
     },
     auditTrail: [
       { action: 'SUBMIT', by: 'Holik Kelana', role: 'SURVEYOR', timestamp: '2026-10-21 08:00:00' },
       { action: 'APPROVE_TIER_2', by: 'Deni Siswandi, S.T.', role: 'REKAN', timestamp: '2026-10-21 08:30:00' },
       { action: 'APPROVE_TIER_3', by: 'Danny Taufik Hidayat, S.H.', role: 'ADMIN_PUSAT', timestamp: '2026-10-21 09:00:00' },
-      { action: 'APPROVE_TIER_4', by: 'Milda H', role: 'KEUANGAN', timestamp: '2026-10-21 09:30:00' },
+      { action: 'APPROVE_TIER_4', by: 'Milda Hidayati Dewi, S.E.', role: 'KEUANGAN', timestamp: '2026-10-21 09:30:00' },
       { action: 'APPROVE_TIER_5', by: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', role: 'PEMIMPIN_REKAN', timestamp: '2026-10-21 10:00:00' }
     ]
   },
@@ -247,7 +247,7 @@ const operasionalSeed = [
       1: { tier: 1, label: 'Yang Mengajukan', role: 'ADMIN_CABANG', pejabat: 'Dharma Priyanto, S.T.', jabatan: 'Admin Cabang Palembang', approved: true, approvedAt: '2026-10-21 10:15:00', hmacHash: 'stg_hash_t1', qrUrl: makeQrUrl('OPR-MTG/2.19.0160-03/X/2026/0002', 1, 'stg_hash_t1') },
       2: { tier: 2, label: 'Mengetahui', role: 'REKAN', pejabat: 'Deni Siswandi, S.T.', jabatan: 'Rekan Penilai', approved: true, approvedAt: '2026-10-21 10:30:00', hmacHash: 'stg_hash_t2', qrUrl: makeQrUrl('OPR-MTG/2.19.0160-03/X/2026/0002', 2, 'stg_hash_t2') },
       3: { tier: 3, label: 'Verifikasi Administrasi', role: 'ADMIN_PUSAT', pejabat: 'Danny Taufik Hidayat, S.H.', jabatan: 'Verifikasi Administrasi & Legal', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
-      4: { tier: 4, label: 'Menyetujui', role: 'KEUANGAN', pejabat: 'Milda H', jabatan: 'Divisi Keuangan & Anggaran', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
+      4: { tier: 4, label: 'Menyetujui', role: 'KEUANGAN', pejabat: 'Milda Hidayati Dewi, S.E.', jabatan: 'Manager Keuangan', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
       5: { tier: 5, label: 'Penanggung Jawab', role: 'PEMIMPIN_REKAN', pejabat: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', jabatan: 'Pemimpin Rekan', approved: false, approvedAt: null, hmacHash: null, qrUrl: null }
     },
     auditTrail: [
@@ -265,8 +265,8 @@ const operasionalSeed = [
     versi: 1,
     contentDigest: crypto.createHash('sha256').update('OPR-GEN-2026-0003-stg-draft').digest('hex'),
     tglPengajuan: '2026-10-21',
-    namaPengaju: 'Milda H',
-    rolePengaju: 'Divisi Keuangan Pusat',
+    namaPengaju: 'Milda Hidayati Dewi, S.E.',
+    rolePengaju: 'Manager Keuangan',
     keperluan: 'Pengadaan Perlengkapan Server & Toner Printer Laporan KJPP NSR',
     rincianUmum: {
       kategori: 'Perlengkapan Kantor & IT',
@@ -278,14 +278,14 @@ const operasionalSeed = [
       totalBiaya: 5175000
     },
     approvals: {
-      1: { tier: 1, label: 'Yang Mengajukan', role: 'KEUANGAN', pejabat: 'Milda H', jabatan: 'Divisi Keuangan', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
+      1: { tier: 1, label: 'Yang Mengajukan', role: 'KEUANGAN', pejabat: 'Milda Hidayati Dewi, S.E.', jabatan: 'Divisi Keuangan', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
       2: { tier: 2, label: 'Mengetahui', role: 'REKAN', pejabat: 'Deni Siswandi, S.T.', jabatan: 'Rekan Penilai', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
       3: { tier: 3, label: 'Verifikasi Administrasi', role: 'ADMIN_PUSAT', pejabat: 'Danny Taufik Hidayat, S.H.', jabatan: 'Verifikasi Administrasi & Legal', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
-      4: { tier: 4, label: 'Menyetujui', role: 'KEUANGAN', pejabat: 'Milda H', jabatan: 'Divisi Keuangan & Anggaran', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
+      4: { tier: 4, label: 'Menyetujui', role: 'KEUANGAN', pejabat: 'Milda Hidayati Dewi, S.E.', jabatan: 'Manager Keuangan', approved: false, approvedAt: null, hmacHash: null, qrUrl: null },
       5: { tier: 5, label: 'Penanggung Jawab', role: 'PEMIMPIN_REKAN', pejabat: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', jabatan: 'Pemimpin Rekan', approved: false, approvedAt: null, hmacHash: null, qrUrl: null }
     },
     auditTrail: [
-      { action: 'CREATE_DRAFT', by: 'Milda H', role: 'KEUANGAN', timestamp: '2026-10-21 11:00:00' }
+      { action: 'CREATE_DRAFT', by: 'Milda Hidayati Dewi, S.E.', role: 'KEUANGAN', timestamp: '2026-10-21 11:00:00' }
     ]
   }
 ];
