@@ -46,6 +46,7 @@ const ALLOWED_FILES = [
   "logo-nsr.png",
   "og-image.jpg",
   "og-image.png",
+  "company-profile-kjpp-nsr-2026.pdf",
   "Company Profile KJPP NSR 2026_S.pdf",
   "Company-Profile-KJPP-NSR-2026_S.pdf",
 
