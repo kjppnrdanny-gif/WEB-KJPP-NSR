@@ -2637,6 +2637,8 @@
     const SEED_PROJECTS = [
       {
         id: "NSR-2026-0415",
+        is_seed: true,
+        is_demo: true,
         status: "APPROVED",
         status_pekerjaan: "IN_PROGRESS",
         nomor_adm: "0415/JO/NSR/X/2026",
@@ -2720,6 +2722,8 @@
       },
       {
         id: "NSR-2026-0416",
+        is_seed: true,
+        is_demo: true,
         status: "APPROVED",
         status_pekerjaan: "IN_PROGRESS",
         nomor_adm: "0416/JO/NSR/X/2026",
@@ -2789,6 +2793,8 @@
       },
       {
         id: "NSR-2026-0414",
+        is_seed: true,
+        is_demo: true,
         status: "APPROVED",
         status_pekerjaan: "IN_PROGRESS",
         nomor_adm: "0414/JO/NSR/X/2026",
@@ -2858,6 +2864,8 @@
       },
       {
         id: "NSR-2026-0413",
+        is_seed: true,
+        is_demo: true,
         status: "SELESAI",
         status_pekerjaan: "SELESAI",
         nomor_adm: "0413/JO/NSR/X/2026",
@@ -2928,6 +2936,8 @@
       },
       {
         id: "NSR-2026-REQ-001",
+        is_seed: true,
+        is_demo: true,
         status: "WAITING_APPROVAL",
         status_pekerjaan: "IN_PROGRESS",
         nomor_adm: "Menunggu Otorisasi Pusat",
@@ -7200,8 +7210,8 @@
     }
 
     
-    // ==========================================================
-    // 9B. MODUL MONITORING PENUGASAN, SLA & DEADLINE (TAHAP 2)
+     // ==========================================================
+    // 9B. MODUL MONITORING PENUGASAN, SLA & DEADLINE (TAHAP 2 HARDENED)
     // ==========================================================
     let activeMonitoringFilter = null; // 'AKTIF' | 'DEADLINE_NEAR' | 'OVERDUE' | 'SELESAI' | null
 
@@ -7239,7 +7249,23 @@
     }
 
     /**
-     * Memeriksa apakah penugasan sudah purna/selesai
+     * Memeriksa apakah suatu item adalah data demo/simulasi awal
+     * Sesuai Poin 3: Data SEED/demo tidak boleh dihitung sebagai pekerjaan nyata
+     */
+    function isSeedOrDemo(p) {
+      if (!p) return false;
+      if (p.is_seed === true || p.is_demo === true || p._isSeed === true || p.isDummy === true) return true;
+      const idStr = String(p.id || '').toUpperCase();
+      const deb = String(p.debitur_nama || p.nama_debitur || '').toUpperCase();
+      const kln = String(p.pemberi_tugas_nama || p.pemberi_tugas || '').toUpperCase();
+      if (idStr.includes('SIMULASI') || idStr.includes('DEMO') || idStr.includes('DUMMY')) return true;
+      if (deb.includes('CONTOH') || deb.includes('SIMULASI') || deb.includes('DUMMY') || deb.includes('TESTING')) return true;
+      if (kln.includes('CONTOH') || kln.includes('SIMULASI') || kln.includes('DUMMY')) return true;
+      return false;
+    }
+
+    /**
+     * Memeriksa apakah penugasan sudah purna/selesai berdasarkan sumber resmi
      */
     function isProjectSelesai(p) {
       if (!p) return false;
@@ -7254,14 +7280,16 @@
     }
 
     /**
-     * Ekstraksi tanggal target penyelesaian riil tanpa rekayasa
+     * Ekstraksi tanggal target penyelesaian riil dari field resmi database
+     * Sesuai Poin 3: Target deadline harus berasal dari field resmi yang benar-benar tersimpan
      */
     function getProjectTargetDate(p) {
       if (!p) return null;
+      // Urutan prioritas field resmi tersimpan: Target_Selesai, Tgl_Target_Selesai, Deadline, Masa_Berlaku_LP
       const raw = p.target_selesai || p.tgl_target_selesai || p.deadline || p.Target_Selesai || p.Tgl_Target_Selesai || p.Deadline || p.masa_berlaku_lp || p.Masa_Berlaku_LP;
       if (!raw) return null;
       const str = String(raw).trim();
-      if (!str || str === '-' || str.toLowerCase() === 'belum ditentukan' || str.toLowerCase() === 'null') {
+      if (!str || str === '-' || str.toLowerCase() === 'belum ditentukan' || str.toLowerCase() === 'null' || str.toLowerCase() === 'undefined') {
         return null;
       }
       const m = str.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
@@ -7419,7 +7447,6 @@
         const elCard = document.getElementById(info.card);
         const elPill = document.getElementById(info.pill);
         if (elCard) {
-          // Bersihkan ring kelas lama
           info.ring.split(' ').forEach(cls => elCard.classList.remove(cls));
           if (activeStatus === k) {
             info.ring.split(' ').forEach(cls => elCard.classList.add(cls));
@@ -7445,35 +7472,8 @@
       renderDashboardTabel();
     }
 
-    /**
-     * Aksi Cepat: Tandai Selesai / Buka Kembali Status Penugasan
-     */
-    function toggleStatusSelesai(projectId, makeSelesai) {
-      const p = projectDatabase.find(item => item.id === projectId);
-      if (!p) return;
-
-      const pesan = makeSelesai
-        ? `Konfirmasi penyelesaian pekerjaan "\${p.id}" (${p.debitur_nama || 'Debitur'})?\n\nStatus akan diubah menjadi SELESAI dan laporan dinyatakan terbit.`
-        : `Buka kembali status penugasan "\${p.id}"?\n\nPenugasan akan kembali berstatus AKTIF (Berjalan).`;
-
-      if (!confirm(pesan)) return;
-
-      if (makeSelesai) {
-        p.status = 'SELESAI';
-        p.status_pekerjaan = 'SELESAI';
-        p.selesai_at = new Date().toISOString();
-      } else {
-        p.status = p.nomor_lp && p.nomor_lp !== 'Menunggu Otorisasi Pusat' ? 'APPROVED' : 'WAITING_APPROVAL';
-        p.status_pekerjaan = 'IN_PROGRESS';
-        delete p.selesai_at;
-      }
-
-      simpanDatabaseLokal();
-      renderDashboardTabel();
-    }
-
     // ==========================================================
-    // 10. RENDER TABEL DASHBOARD ANTREAN & MONITORING PENUGASAN (TAHAP 2)
+    // 10. RENDER TABEL DASHBOARD ANTREAN & MONITORING PENUGASAN (TAHAP 2 HARDENED)
     // ==========================================================
     function renderDashboardTabel() {
       // 1. Ambil sesi autentikasi aktif:
@@ -7508,11 +7508,11 @@
         }
       });
 
-      // 2. Jika sesi adalah KANTOR CABANG: terapkan isolasi data ketat
+      // 2. ISOLASI CABANG KETAT (RBAC): Cabang hanya boleh mengakses data miliknya
       let namaCabangSesi = '';
       if (auth && auth.isCabang) {
         const namaCabang = (auth.wilayahLabel || auth.wilayah || '').toLowerCase();
-        const kataKunci = namaCabang.replace('kantor cabang', '').trim();
+        const kataKunci = namaCabang.replace('kantor cabang', '').replace('kantor', '').trim();
         const kodeKemenkeu = (auth.kodeWilayah || auth.kode || auth.kodeKantor || '').toLowerCase();
         namaCabangSesi = kataKunci;
 
@@ -7530,7 +7530,14 @@
         });
       }
 
-      // 3. POPULASI FILTER PIC DINAMIS
+      // 3. ATURAN DATA RESMI (Poin 3): Data SEED/demo tidak boleh dihitung sebagai pekerjaan nyata
+      // Cek apakah mode demo aktif secara eksplisit via URL query (?demo=1)
+      const isDemoExplicit = (typeof window !== 'undefined' && window.location && new URLSearchParams(window.location.search).get('demo') === '1');
+      if (!isDemoExplicit) {
+        combined = combined.filter(p => !isSeedOrDemo(p));
+      }
+
+      // 4. POPULASI FILTER PIC DINAMIS DARI DATA AKTIF
       const selectPic = document.getElementById('filter_pic');
       if (selectPic) {
         const currentSelectedPic = selectPic.value || 'ALL';
@@ -7543,96 +7550,15 @@
         selectPic.innerHTML = optHtml.join('');
       }
 
-      // 4. HITUNG 4 METRIK MONITORING PENUGASAN (BERDASARKAN DATA SCOPE PENGGUNA)
+      // 5. PENYELARASAN METRIK KARTU & FILTER (Poin 3)
+      // Metrik dihitung dari basis data yang telah disaring kantor, PIC, periode, dan pencarian,
+      // sehingga angka pada kartu SELALU PERSIS SAMA dengan jumlah data di tabel saat difilter!
       const todayWIB = getTodayDateWIB();
-      let countAktif = 0;
-      let countNear = 0;
-      let countOverdue = 0;
-      let countSelesai = 0;
 
-      // Basis metrik: Jika pimpinan memilih cabang tertentu, hitung cabang tersebut. Jika ALL, hitung lintas kantor.
-      const baseForMetrics = (!isCabangUser && fWil !== 'ALL')
-        ? combined.filter(p => p.kantor_wilayah === fWil)
-        : combined;
-
-      baseForMetrics.forEach(p => {
-        const isSelesai = isProjectSelesai(p);
-        if (isSelesai) {
-          countSelesai++;
-        } else {
-          countAktif++;
-          const ev = evaluasiDeadlinePenugasan(p, todayWIB);
-          if (ev.kategori === 'DEADLINE_NEAR') countNear++;
-          else if (ev.kategori === 'OVERDUE') countOverdue++;
-        }
-      });
-
-      const elValAktif = document.getElementById('metric-val-aktif');
-      const elValNear = document.getElementById('metric-val-near');
-      const elValOverdue = document.getElementById('metric-val-overdue');
-      const elValSelesai = document.getElementById('metric-val-selesai');
-      if (elValAktif) elValAktif.textContent = countAktif;
-      if (elValNear) elValNear.textContent = countNear;
-      if (elValOverdue) elValOverdue.textContent = countOverdue;
-      if (elValSelesai) elValSelesai.textContent = countSelesai;
-
-      // Update highlight kartu aktif
-      perbaruiTampilanKartuAktif(fStatus);
-
-      // Tampilkan/sembunyikan tombol Reset Filter
-      const btnReset = document.getElementById('btn-reset-filter');
-      if (btnReset) {
-        const isAnyFilterActive = (fStatus !== 'ALL') || (!isCabangUser && fWil !== 'ALL') || (fPic !== 'ALL') || (fPeriode !== 'ALL') || Boolean(query);
-        if (isAnyFilterActive) btnReset.classList.remove('hidden');
-        else btnReset.classList.add('hidden');
-      }
-
-      // Update badge antrean count
-      const waitingCount = combined.filter(p => p.status === "WAITING_APPROVAL" || p.status === "WAITING_BRANCH_ADMIN").length;
-      const badgeCount = document.getElementById('badge-antrean-count');
-      if (badgeCount) {
-        if (isCabangUser) {
-          badgeCount.classList.add('hidden');
-        } else if (waitingCount > 0) {
-          badgeCount.textContent = waitingCount;
-          badgeCount.classList.remove('hidden');
-        } else {
-          badgeCount.classList.add('hidden');
-        }
-      }
-
-      // Counter Terakhir
-      const badgeCounter = document.getElementById('counter-val-badge');
-      if (badgeCounter) {
-        if (isCabangUser) {
-          badgeCounter.textContent = combined.length;
-        } else {
-          badgeCounter.textContent = serverCounter.LAST_NO_ADM_JO || 415;
-        }
-      }
-
-      // 5. SARING DATA SESUAI SELURUH FILTER AKTIF
-      let list = combined.filter(p => {
+      // Saring basis metrik sesuai filter non-status (Wilayah, PIC, Periode, Query)
+      const baseForMetrics = combined.filter(p => {
         // Filter Wilayah (hanya untuk pusat)
         if (!isCabangUser && fWil !== "ALL" && p.kantor_wilayah !== fWil) return false;
-
-        const isSelesai = isProjectSelesai(p);
-        const ev = evaluasiDeadlinePenugasan(p, todayWIB);
-
-        // Filter Status & Tenggat
-        if (fStatus === "AKTIF") {
-          if (isSelesai) return false;
-        } else if (fStatus === "DEADLINE_NEAR") {
-          if (isSelesai || ev.kategori !== "DEADLINE_NEAR") return false;
-        } else if (fStatus === "OVERDUE") {
-          if (isSelesai || ev.kategori !== "OVERDUE") return false;
-        } else if (fStatus === "SELESAI") {
-          if (!isSelesai) return false;
-        } else if (fStatus === "WAITING_APPROVAL") {
-          if (p.status !== "WAITING_APPROVAL" && p.status !== "WAITING_BRANCH_ADMIN") return false;
-        } else if (fStatus === "APPROVED") {
-          if (p.status !== "APPROVED" || isSelesai) return false;
-        }
 
         // Filter PIC & Tim Penilai
         if (fPic !== "ALL") {
@@ -7672,7 +7598,90 @@
         return true;
       });
 
-      // 6. TAMPILKAN EMPTY STATE JIKA BELUM ADA DATA COCOK
+      let countAktif = 0;
+      let countNear = 0;
+      let countOverdue = 0;
+      let countSelesai = 0;
+
+      baseForMetrics.forEach(p => {
+        const isSelesai = isProjectSelesai(p);
+        if (isSelesai) {
+          countSelesai++;
+        } else {
+          countAktif++;
+          const ev = evaluasiDeadlinePenugasan(p, todayWIB);
+          if (ev.kategori === 'DEADLINE_NEAR') countNear++;
+          else if (ev.kategori === 'OVERDUE') countOverdue++;
+        }
+      });
+
+      const elValAktif = document.getElementById('metric-val-aktif');
+      const elValNear = document.getElementById('metric-val-near');
+      const elValOverdue = document.getElementById('metric-val-overdue');
+      const elValSelesai = document.getElementById('metric-val-selesai');
+      if (elValAktif) elValAktif.textContent = countAktif;
+      if (elValNear) elValNear.textContent = countNear;
+      if (elValOverdue) elValOverdue.textContent = countOverdue;
+      if (elValSelesai) elValSelesai.textContent = countSelesai;
+
+      // Update highlight kartu aktif
+      perbaruiTampilanKartuAktif(fStatus);
+
+      // Tampilkan/sembunyikan tombol Reset Filter
+      const btnReset = document.getElementById('btn-reset-filter');
+      if (btnReset) {
+        const isAnyFilterActive = (fStatus !== 'ALL') || (!isCabangUser && fWil !== 'ALL') || (fPic !== 'ALL') || (fPeriode !== 'ALL') || Boolean(query);
+        if (isAnyFilterActive) btnReset.classList.remove('hidden');
+        else btnReset.classList.add('hidden');
+      }
+
+      // Update badge antrean count
+      const waitingCount = baseForMetrics.filter(p => p.status === "WAITING_APPROVAL" || p.status === "WAITING_BRANCH_ADMIN").length;
+      const badgeCount = document.getElementById('badge-antrean-count');
+      if (badgeCount) {
+        if (isCabangUser) {
+          badgeCount.classList.add('hidden');
+        } else if (waitingCount > 0) {
+          badgeCount.textContent = waitingCount;
+          badgeCount.classList.remove('hidden');
+        } else {
+          badgeCount.classList.add('hidden');
+        }
+      }
+
+      // Counter Terakhir
+      const badgeCounter = document.getElementById('counter-val-badge');
+      if (badgeCounter) {
+        if (isCabangUser) {
+          badgeCounter.textContent = combined.length;
+        } else {
+          badgeCounter.textContent = serverCounter.LAST_NO_ADM_JO || 415;
+        }
+      }
+
+      // 6. SARING TABEL BERDASARKAN STATUS
+      let list = baseForMetrics.filter(p => {
+        const isSelesai = isProjectSelesai(p);
+        const ev = evaluasiDeadlinePenugasan(p, todayWIB);
+
+        if (fStatus === "AKTIF") {
+          if (isSelesai) return false;
+        } else if (fStatus === "DEADLINE_NEAR") {
+          if (isSelesai || ev.kategori !== "DEADLINE_NEAR") return false;
+        } else if (fStatus === "OVERDUE") {
+          if (isSelesai || ev.kategori !== "OVERDUE") return false;
+        } else if (fStatus === "SELESAI") {
+          if (!isSelesai) return false;
+        } else if (fStatus === "WAITING_APPROVAL") {
+          if (p.status !== "WAITING_APPROVAL" && p.status !== "WAITING_BRANCH_ADMIN") return false;
+        } else if (fStatus === "APPROVED") {
+          if (p.status !== "APPROVED" || isSelesai) return false;
+        }
+
+        return true;
+      });
+
+      // 7. EMPTY STATE JIKA TIDAK ADA DATA
       if (list.length === 0) {
         if (auth && auth.isCabang) {
           tbody.innerHTML = `
@@ -7704,7 +7713,8 @@
         return;
       }
 
-      // 7. RENDER 9 KOLOM RESMI DAFTAR PENUGASAN & MONITORING DEADLINE
+      // 8. RENDER 9 KOLOM RESMI (DASHBOARD BACA-SAJA & MONITORING DEADLINE)
+      // Sesuai Poin 1: Aksi Selesai / Buka dinonaktifkan sementara agar monitoring tetap berfungsi murni baca-saja
       tbody.innerHTML = list.map(p => {
         const isApproved = (p.status === "APPROVED");
         const isSelesai = isProjectSelesai(p);
@@ -7717,7 +7727,7 @@
                🔒 MANDIRI CABANG
              </span>`;
         } else if (isSelesai) {
-          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9.5px] font-black uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9.5px] font-black uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
                ✔ SELESAI
              </span>`;
         } else if (isApproved) {
@@ -7812,21 +7822,10 @@
               ${statusBadge}
             </td>
 
-            <!-- 9. Aksi -->
+            <!-- 9. Aksi Resmi (Approval Pusat & Pratinjau Dokumen Cetak) -->
             <td class="py-3 px-3.5 text-right">
               <div class="inline-flex items-center gap-1.5 flex-wrap justify-end">
                 
-                <!-- Quick Toggle Selesai / Buka Kembali -->
-                ${!isSelesai ? `
-                  <button type="button" onclick="toggleStatusSelesai('${p.id}', true)" class="px-2 py-1 rounded-lg bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 font-bold text-[10.5px] transition shadow flex items-center gap-1 cursor-pointer" title="Tandai Penugasan Selesai">
-                    <span>✔ Selesai</span>
-                  </button>
-                ` : `
-                  <button type="button" onclick="toggleStatusSelesai('${p.id}', false)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10.5px] transition flex items-center gap-1 cursor-pointer" title="Buka Kembali Penugasan">
-                    <span>↩ Buka</span>
-                  </button>
-                `}
-
                 <!-- Tombol Approve untuk Admin Pusat -->
                 ${!isApproved && !p.is_private && (userSession.isSuperAdmin || userSession.role === "ADMIN_PUSAT" || userSession.role === "SUPER_ADMIN" || userSession.role === "SUPER ADMIN") ? `
                   <button type="button" onclick="approveProyekPusat('${p.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10.5px] transition shadow cursor-pointer" title="Approve &amp; Terbitkan Nomor Resmi">
@@ -7834,13 +7833,13 @@
                   </button>
                 ` : ''}
 
-                <!-- Cetak 9 Dokumen -->
+                <!-- Cetak 9 Dokumen Resmi -->
                 ${isApproved && p.metode_pengesahan === 'SCAN_BASAH' && p.berkas_scan_pdf ? `
                   <a href="${p.berkas_scan_pdf.file_url}" target="_blank" download="${p.berkas_scan_pdf.nama_file}" class="px-2 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[10.5px] transition shadow flex items-center gap-1" title="Unduh Berkas Scan Basah PDF">
                     Unduh Scan
                   </a>
                 ` : `
-                  <button type="button" onclick="bukaPratinjauProyek('${p.id}')" class="px-2 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10.5px] transition shadow cursor-pointer" title="Buka &amp; Cetak 9 Dokumen A4">
+                  <button type="button" onclick="bukaPratinjauProyek('${p.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10.5px] transition shadow cursor-pointer" title="Buka &amp; Cetak 9 Dokumen A4">
                     ${isApproved ? 'Pratinjau' : 'Cetak 9 Dok'}
                   </button>
                 `}

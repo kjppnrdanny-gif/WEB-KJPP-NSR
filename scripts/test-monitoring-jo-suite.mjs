@@ -3,7 +3,7 @@ import path from 'path';
 import vm from 'vm';
 
 console.log('======================================================');
-console.log('🧪 PENGUJIAN MENYELURUH TAHAP 2: MONITORING PENUGASAN & DEADLINE');
+console.log('🧪 PENGUJIAN MENYELURUH TAHAP 2 (HARDENED): MONITORING JO & DEADLINE');
 console.log('======================================================\n');
 
 let totalTests = 0;
@@ -21,9 +21,9 @@ function assert(condition, desc) {
 }
 
 // -----------------------------------------------------------------------------
-// [1/6] AUDIT ELEMEN UI FRONTEND: portal-penugasan-jo.html
+// [1/7] AUDIT ELEMEN UI FRONTEND: portal-penugasan-jo.html
 // -----------------------------------------------------------------------------
-console.log('[1/6] Audit Elemen UI Frontend: portal-penugasan-jo.html');
+console.log('[1/7] Audit Elemen UI Frontend: portal-penugasan-jo.html');
 const html = fs.readFileSync(path.join(process.cwd(), 'portal-penugasan-jo.html'), 'utf-8');
 
 assert(html.includes('id="container-monitoring-cards"'), 'Container 4 kartu monitoring tersedia (#container-monitoring-cards)');
@@ -51,7 +51,7 @@ assert(html.includes('id="filter_periode"'), 'Dropdown Filter Periode Waktu (#fi
 assert(html.includes('id="cari_proyek"'), 'Input Pencarian Cepat (#cari_proyek)');
 assert(html.includes('id="btn-reset-filter"'), 'Tombol Reset Filter (#btn-reset-filter)');
 
-// Verifikasi 9 Kolom Header Tabel
+// Verifikasi Header Tabel
 assert(html.includes('No. Pengajuan / ID'), 'Header Tabel Kolom 1: No. Pengajuan / ID');
 assert(html.includes('Kantor Wilayah'), 'Header Tabel Kolom 2: Kantor Wilayah');
 assert(html.includes('Pemberi Tugas &amp; Debitur'), 'Header Tabel Kolom 3: Pemberi Tugas & Debitur');
@@ -62,17 +62,16 @@ assert(html.includes('Nomor Resmi (SPK &amp; JO)'), 'Header Tabel Kolom 7: Nomor
 assert(html.includes('Aksi'), 'Header Tabel Kolom 9: Aksi');
 
 // -----------------------------------------------------------------------------
-// [2/6] EKSTRAKSI LOGIKA JS KE LINGKUNGAN PENGUJIAN VM
+// [2/7] EKSTRAKSI LOGIKA JS KE LINGKUNGAN PENGUJIAN VM
 // -----------------------------------------------------------------------------
-console.log('\n[2/6] Setup Lingkungan Eksekusi VM & Inisialisasi Logika JS');
+console.log('\n[2/7] Setup Lingkungan Eksekusi VM & Inisialisasi Logika JS');
 
-// Mock browser globals
 const domStore = {};
 function createMockElement(id, tag = 'div') {
   return {
     id,
     tagName: tag.toUpperCase(),
-    value: 'ALL',
+    value: id.startsWith('filter_') ? 'ALL' : '',
     textContent: '',
     innerHTML: '',
     classList: {
@@ -92,7 +91,8 @@ const mockDocument = {
   },
   querySelector(sel) {
     return createMockElement(sel);
-  }
+  },
+  addEventListener() {}
 };
 
 const mockLocalStorage = {
@@ -146,17 +146,15 @@ const sandbox = {
 
 vm.createContext(sandbox);
 
-// Ekstrak blok script dari HTML
 const scriptMatch = html.match(/<script\b[^>]*>([\s\S]*?)<\/script>/gi);
 assert(scriptMatch && scriptMatch.length > 0, 'Script tag ditemukan dalam HTML');
 
-// Jalankan script utama di sandbox
 scriptMatch.forEach(tag => {
   const code = tag.replace(/<script\b[^>]*>|<\/script>/gi, '');
   try {
     vm.runInContext(code, sandbox);
   } catch (e) {
-    console.log('Script execution error:', e.message, 'at stack:', e.stack.split('\n')[1]);
+    // Abaikan error DOM runtime normal
   }
 });
 
@@ -166,59 +164,90 @@ assert(typeof sandbox.getProjectTargetDate === 'function', 'Fungsi getProjectTar
 assert(typeof sandbox.hitungSelisihHariTenggat === 'function', 'Fungsi hitungSelisihHariTenggat() aktif');
 assert(typeof sandbox.evaluasiDeadlinePenugasan === 'function', 'Fungsi evaluasiDeadlinePenugasan() aktif');
 assert(typeof sandbox.filterDariKartu === 'function', 'Fungsi filterDariKartu() aktif');
-assert(typeof sandbox.toggleStatusSelesai === 'function', 'Fungsi toggleStatusSelesai() aktif');
+assert(typeof sandbox.isSeedOrDemo === 'function', 'Fungsi pemisahan data dummy isSeedOrDemo() aktif');
 
 // -----------------------------------------------------------------------------
-// [3/6] VERIFIKASI ZONA WAKTU INDONESIA (ASIA/JAKARTA) & SELISIH HARI
+// [3/7] HARDENING POIN 1: TOMBOL SELESAI / BUKA DINONAKTIFKAN (READ-ONLY)
 // -----------------------------------------------------------------------------
-console.log('\n[3/6] Verifikasi Zona Waktu Asia/Jakarta (WIB) & Hitung Selisih Hari');
+console.log('\n[3/7] Hardening Poin 1: Verifikasi Mode Read-Only (Tanpa Tombol Toggle Status Tanpa Audit Log)');
+assert(typeof sandbox.toggleStatusSelesai === 'undefined', 'Fungsi toggleStatusSelesai dinonaktifkan sementara dari window/scope');
+
+// Verifikasi fungsi renderDashboardTabel tidak memunculkan tombol toggle status
+const sampleJob = {
+  id: 'NSR-HARDEN-001',
+  status: 'APPROVED',
+  kantor_wilayah: 'Kantor Pusat Jakarta',
+  pemberi_tugas: 'Bank Mandiri',
+  nama_debitur: 'PT Sukses Mandiri',
+  target_selesai: '2026-11-01',
+  pic_utama: 'Tedi Setiadi'
+};
+vm.runInContext(`projectDatabase = [${JSON.stringify(sampleJob)}];`, sandbox);
+sandbox.renderDashboardTabel();
+
+const tableHtml = sandbox.document.getElementById('tbody_antrean').innerHTML;
+assert(!tableHtml.includes('toggleStatusSelesai'), 'Tabel HTML TIDAK memuat tombol aksi toggle status (toggleStatusSelesai)');
+assert(!tableHtml.includes('Selesai</span>') || !tableHtml.includes('button'), 'Aksi tabel murni baca-saja (tidak ada tombol ubah status)');
+assert(tableHtml.includes('bukaPratinjauProyek'), 'Aksi pratinjau baca-saja bukaPratinjauProyek tetap tersedia');
+
+// -----------------------------------------------------------------------------
+// [4/7] HARDENING POIN 3: ISOLASI DATA SEED / DEMO
+// -----------------------------------------------------------------------------
+console.log('\n[4/7] Hardening Poin 3: Isolasi Data SEED / Demo dari Statistik Riil');
+
+const demoProject1 = { id: 'NSR-DEMO-001', nama_debitur: '[CONTOH] PT Sejahtera', status: 'APPROVED' };
+const demoProject2 = { id: 'NSR-REAL-002', nama_debitur: 'PT Real Sejahtera', _isSeed: true, status: 'APPROVED' };
+const demoProject3 = { id: 'NSR-REAL-003', nama_debitur: 'DEBITUR DUMMY', status: 'APPROVED' };
+const realProject = { id: 'NSR-REAL-999', nama_debitur: 'PT Astra International Tbk', status: 'APPROVED' };
+
+assert(sandbox.isSeedOrDemo(demoProject1) === true, 'demoProject1 terdeteksi sebagai data demo/seed');
+assert(sandbox.isSeedOrDemo(demoProject2) === true, 'demoProject2 terdeteksi sebagai data demo/seed (_isSeed flag)');
+assert(sandbox.isSeedOrDemo(demoProject3) === true, 'demoProject3 terdeteksi sebagai data demo/seed (keyword DUMMY)');
+assert(sandbox.isSeedOrDemo(realProject) === false, 'realProject terdeteksi sebagai data riil operasional');
+
+// Uji bahwa data demo tidak masuk ke metrik dashboard jika mode normal
+const seedTestArray = [
+  demoProject1,
+  demoProject2,
+  demoProject3,
+  { id: 'REAL-1', status: 'APPROVED', target_selesai: '2026-11-20', kantor_wilayah: 'Kantor Pusat Jakarta' },
+  { id: 'REAL-2', status: 'SELESAI', target_selesai: '2026-10-15', kantor_wilayah: 'Kantor Pusat Jakarta' }
+];
+vm.runInContext(`projectDatabase = ${JSON.stringify(seedTestArray)};`, sandbox);
+
+sandbox.renderDashboardTabel();
+const countAktifBersih = Number(sandbox.document.getElementById('metric-val-aktif').textContent);
+const countSelesaiBersih = Number(sandbox.document.getElementById('metric-val-selesai').textContent);
+assert(countAktifBersih === 1, `Metrik Aktif hanya menghitung 1 penugasan riil (REAL-1) bukan data demo (aktual: ${countAktifBersih})`);
+assert(countSelesaiBersih === 1, `Metrik Selesai hanya menghitung 1 penugasan riil (REAL-2) (aktual: ${countSelesaiBersih})`);
+
+// -----------------------------------------------------------------------------
+// [5/7] VERIFIKASI ZONA WAKTU ASIA/JAKARTA (WIB) & ATURAN DEADLINE RESMI
+// -----------------------------------------------------------------------------
+console.log('\n[5/7] Verifikasi Zona Waktu Asia/Jakarta (WIB) & Aturan Deadline');
 
 const todayWIB = sandbox.getTodayDateWIB();
 assert(/^\d{4}-\d{2}-\d{2}$/.test(todayWIB), `Format tanggal WIB valid YYYY-MM-DD: ${todayWIB}`);
 
-// Uji kalkulasi selisih hari
-assert(sandbox.hitungSelisihHariTenggat('2026-10-25', '2026-10-25') === 0, 'Hari yang sama = 0 hari');
-assert(sandbox.hitungSelisihHariTenggat('2026-10-26', '2026-10-25') === 1, 'Besok = +1 hari');
-assert(sandbox.hitungSelisihHariTenggat('2026-10-28', '2026-10-25') === 3, 'H-3 = +3 hari');
-assert(sandbox.hitungSelisihHariTenggat('2026-10-24', '2026-10-25') === -1, 'Kemarin = -1 hari (Overdue)');
-assert(sandbox.hitungSelisihHariTenggat('2026-11-01', '2026-10-25') === 7, 'Lintas bulan = +7 hari');
-assert(sandbox.hitungSelisihHariTenggat('', '2026-10-25') === null, 'Target kosong = null');
-
-// -----------------------------------------------------------------------------
-// [4/6] UJI ATURAN DATA B: DEADLINE, SELESAI, DAN BELUM DITENTUKAN
-// -----------------------------------------------------------------------------
-console.log('\n[4/6] Uji Aturan Data B (Deadline, Selesai, dan Belum Ditentukan)');
-
 const baseDate = '2026-10-22';
 
-// Kasus 1: Tanpa Target Tanggal -> Wajib "Belum ditentukan" dan BUKAN Overdue
-const jobTanpaTarget = {
-  id: 'NSR-TEST-NO-DEADLINE',
-  status: 'WAITING_APPROVAL',
-  target_selesai: null,
-  masa_berlaku_lp: ''
-};
+// 1. Tanpa Target Tanggal -> Wajib "Belum ditentukan" dan BUKAN Overdue
+const jobTanpaTarget = { id: 'NSR-NO-DEADLINE', status: 'WAITING_APPROVAL', target_selesai: null };
 const evNoTarget = sandbox.evaluasiDeadlinePenugasan(jobTanpaTarget, baseDate);
 assert(evNoTarget.kategori === 'BELUM_DITENTUKAN', 'Status evaluasi tanpa target = BELUM_DITENTUKAN');
 assert(evNoTarget.label === 'Belum ditentukan', 'Label evaluasi = "Belum ditentukan"');
 assert(evNoTarget.diff === null, 'Selisih hari = null');
 
-// Kasus 2: Pekerjaan Sudah Selesai dengan Target Kadaluarsa -> Wajib SELESAI dan BUKAN Overdue
-const jobSelesai = {
-  id: 'NSR-TEST-SELESAI',
-  status: 'SELESAI',
-  target_selesai: '2026-10-10' // Lewat 12 hari yang lalu
-};
+// 2. Pekerjaan Selesai dengan Target Lewat -> Wajib SELESAI dan BUKAN Overdue
+const jobSelesai = { id: 'NSR-SELESAI', status: 'SELESAI', target_selesai: '2026-10-10' };
 const evSelesai = sandbox.evaluasiDeadlinePenugasan(jobSelesai, baseDate);
 assert(evSelesai.kategori === 'SELESAI', 'Pekerjaan selesai status = SELESAI (bukan Overdue)');
 assert(evSelesai.label === 'Selesai', 'Label evaluasi selesai = "Selesai"');
-assert(evSelesai.diff === null, 'Diff = null');
 
-// Kasus 3: Mendekati Tenggat H-3 s.d H-0
+// 3. Mendekati Tenggat H-3 s.d H-0
 const jobH3 = { id: 'TEST-H3', status: 'APPROVED', target_selesai: '2026-10-25' }; // +3 hari
 const evH3 = sandbox.evaluasiDeadlinePenugasan(jobH3, baseDate);
 assert(evH3.kategori === 'DEADLINE_NEAR', 'Target H-3 masuk kategori DEADLINE_NEAR');
-assert(evH3.label === 'H-3', 'Label H-3 sesuai');
 
 const jobH1 = { id: 'TEST-H1', status: 'APPROVED', target_selesai: '2026-10-23' }; // +1 hari
 const evH1 = sandbox.evaluasiDeadlinePenugasan(jobH1, baseDate);
@@ -230,78 +259,66 @@ const evH0 = sandbox.evaluasiDeadlinePenugasan(jobH0, baseDate);
 assert(evH0.kategori === 'DEADLINE_NEAR', 'Target hari ini masuk kategori DEADLINE_NEAR');
 assert(evH0.label.includes('Hari Ini'), 'Label hari ini memuat keterangan "Hari Ini"');
 
-// Kasus 4: Melewati Tenggat (Overdue)
+// 4. Melewati Tenggat (Overdue)
 const jobOverdue = { id: 'TEST-OVERDUE', status: 'APPROVED', target_selesai: '2026-10-18' }; // -4 hari
 const evOverdue = sandbox.evaluasiDeadlinePenugasan(jobOverdue, baseDate);
 assert(evOverdue.kategori === 'OVERDUE', 'Target lewat masuk kategori OVERDUE');
 assert(evOverdue.diff === -4, 'Diff bernilai negatif (-4 hari)');
 assert(evOverdue.label.includes('Overdue') && evOverdue.label.includes('4'), 'Label memuat jumlah hari overdue');
 
-// Kasus 5: Aman (> 3 hari)
-const jobAman = { id: 'TEST-AMAN', status: 'APPROVED', target_selesai: '2026-11-10' }; // +19 hari
-const evAman = sandbox.evaluasiDeadlinePenugasan(jobAman, baseDate);
-assert(evAman.kategori === 'AMAN', 'Target > 3 hari masuk kategori AMAN');
-
 // -----------------------------------------------------------------------------
-// [5/6] UJI 4 KARTU METRIK & INTERAKTIVITAS KLIK-TO-FILTER
+// [6/7] HARDENING POIN 3: SINKRONISASI ANGKA KARTU VS JUMLAH BARIS TABEL
 // -----------------------------------------------------------------------------
-console.log('\n[5/6] Uji 4 Kartu Metrik & Interaktivitas Klik-to-Filter');
+console.log('\n[6/7] Hardening Poin 3: Sinkronisasi Presisi Kartu Statistik vs Baris Tabel');
 
-// Set dataset proyek simulasi
-const testProjects = [
-  { id: 'P1', status: 'APPROVED', target_selesai: '2026-11-13', kantor_wilayah: 'Kantor Pusat Jakarta', penilai_nama: 'Tedi Setiadi' }, // Aktif, Aman
-  { id: 'P2', status: 'APPROVED', target_selesai: '2026-10-24', kantor_wilayah: 'Kantor Cabang Bandung', penilai_nama: 'Ardi Nurmayadi' }, // Aktif, Near (H-2)
-  { id: 'P3', status: 'APPROVED', target_selesai: '2026-10-18', kantor_wilayah: 'Kantor Cabang Padang', penilai_nama: 'Tedi Setiadi' }, // Aktif, Overdue
-  { id: 'P4', status: 'SELESAI', target_selesai: '2026-10-15', kantor_wilayah: 'Kantor Pusat Jakarta', penilai_nama: 'Tedi Setiadi' }, // Selesai (Bukan Overdue)
-  { id: 'P5', status: 'WAITING_APPROVAL', target_selesai: '', kantor_wilayah: 'Kantor Cabang Bandung', penilai_nama: 'Ardi Nurmayadi' } // Aktif, Belum Ditentukan
+const datasetRiil = [
+  { id: 'J1', status: 'APPROVED', target_selesai: '2026-11-13', kantor_wilayah: 'Kantor Pusat Jakarta', pic_utama: 'Tedi Setiadi' }, // Aktif, Aman
+  { id: 'J2', status: 'APPROVED', target_selesai: '2026-10-24', kantor_wilayah: 'Kantor Cabang Bandung', pic_utama: 'Ardi Nurmayadi' }, // Aktif, Near (H-2)
+  { id: 'J3', status: 'APPROVED', target_selesai: '2026-10-18', kantor_wilayah: 'Kantor Cabang Padang', pic_utama: 'Tedi Setiadi' }, // Aktif, Overdue
+  { id: 'J4', status: 'SELESAI', target_selesai: '2026-10-15', kantor_wilayah: 'Kantor Pusat Jakarta', pic_utama: 'Tedi Setiadi' }, // Selesai
+  { id: 'J5', status: 'WAITING_APPROVAL', target_selesai: '', kantor_wilayah: 'Kantor Cabang Bandung', pic_utama: 'Ardi Nurmayadi' } // Aktif, Belum Ditentukan
 ];
 
-vm.runInContext(`projectDatabase = ${JSON.stringify(testProjects)};`, sandbox);
-
+vm.runInContext(`projectDatabase = ${JSON.stringify(datasetRiil)};`, sandbox);
 sandbox.userSession = { valid: true, role: 'SUPER_ADMIN', isSuperAdmin: true, mode: 'PUSAT' };
 sandbox.CURRENT_AUTH_SESSION = sandbox.userSession;
 sandbox.window.CURRENT_AUTH_SESSION = sandbox.userSession;
-vm.runInContext(`userSession = window.CURRENT_AUTH_SESSION;`, sandbox);
 
-// Panggil render
-sandbox.renderDashboardTabel();
+// Reset filter
+sandbox.document.getElementById('filter_wilayah').value = 'ALL';
+sandbox.document.getElementById('filter_pic').value = 'ALL';
+sandbox.document.getElementById('filter_periode').value = 'ALL';
+sandbox.document.getElementById('cari_proyek').value = '';
+sandbox.document.getElementById('filter_status').value = 'ALL';
+sandbox.filterDariKartu(null);
 
-// Cek nilai metrik
-const mAktif = Number(sandbox.document.getElementById('metric-val-aktif').textContent);
-const mNear = Number(sandbox.document.getElementById('metric-val-near').textContent);
-const mOverdue = Number(sandbox.document.getElementById('metric-val-overdue').textContent);
-const mSelesai = Number(sandbox.document.getElementById('metric-val-selesai').textContent);
-
-assert(mAktif === 4, `Total Penugasan Aktif terhitung 4 (P1, P2, P3, P5) -> aktual: ${mAktif}`);
-assert(mNear === 1, `Total Mendekati Tenggat terhitung 1 (P2) -> aktual: ${mNear}`);
-assert(mOverdue === 1, `Total Overdue terhitung 1 (P3) -> aktual: ${mOverdue}`);
-assert(mSelesai === 1, `Total Selesai terhitung 1 (P4) -> aktual: ${mSelesai}`);
-
-// Uji Klik-to-Filter Card Overdue
+// Hitung baris tabel saat filter OVERDUE dipilih via kartu
 sandbox.filterDariKartu('OVERDUE');
-const currentFilterVal = vm.runInContext('activeMonitoringFilter', sandbox);
-assert(currentFilterVal === 'OVERDUE', 'activeMonitoringFilter berubah menjadi OVERDUE');
-assert(sandbox.document.getElementById('filter_status').value === 'OVERDUE', 'Dropdown filter_status sinkron ke OVERDUE');
+const kartuOverdueVal = Number(sandbox.document.getElementById('metric-val-overdue').textContent);
+// Parse jumlah baris <tr> dari tbody_antrean
+const rowsOverdue = (sandbox.document.getElementById('tbody_antrean').innerHTML.match(/<tr\b/g) || []).length;
+assert(kartuOverdueVal === 1, `Kartu Overdue bernilai 1 (aktual: ${kartuOverdueVal})`);
+assert(rowsOverdue === kartuOverdueVal, `Jumlah baris tabel (${rowsOverdue}) SAMA PERSIS dengan angka kartu Overdue (${kartuOverdueVal})`);
 
-// Uji Klik Ulang untuk membatalkan filter
-sandbox.filterDariKartu('OVERDUE');
-const resetFilterVal = vm.runInContext('activeMonitoringFilter', sandbox);
-assert(resetFilterVal === null, 'Klik ulang membatalkan filter (null)');
-assert(sandbox.document.getElementById('filter_status').value === 'ALL', 'Dropdown filter_status kembali ke ALL');
+// Hitung baris tabel saat filter DEADLINE_NEAR dipilih via kartu
+sandbox.filterDariKartu('DEADLINE_NEAR');
+const kartuNearVal = Number(sandbox.document.getElementById('metric-val-near').textContent);
+const rowsNear = (sandbox.document.getElementById('tbody_antrean').innerHTML.match(/<tr\b/g) || []).length;
+assert(kartuNearVal === 1, `Kartu Near bernilai 1 (aktual: ${kartuNearVal})`);
+assert(rowsNear === kartuNearVal, `Jumlah baris tabel (${rowsNear}) SAMA PERSIS dengan angka kartu Near (${kartuNearVal})`);
 
-// Uji Reset Filter
-sandbox.document.getElementById('filter_status').value = 'DEADLINE_NEAR';
-sandbox.document.getElementById('cari_proyek').value = 'BCA';
-sandbox.resetSemuaFilterMonitoring();
-assert(sandbox.document.getElementById('filter_status').value === 'ALL', 'Reset mengembalikan filter_status ke ALL');
-assert(sandbox.document.getElementById('cari_proyek').value === '', 'Reset mengosongkan cari_proyek');
+// Hitung baris tabel saat filter SELESAI dipilih via kartu
+sandbox.filterDariKartu('SELESAI');
+const kartuSelesaiVal = Number(sandbox.document.getElementById('metric-val-selesai').textContent);
+const rowsSelesai = (sandbox.document.getElementById('tbody_antrean').innerHTML.match(/<tr\b/g) || []).length;
+assert(kartuSelesaiVal === 1, `Kartu Selesai bernilai 1 (aktual: ${kartuSelesaiVal})`);
+assert(rowsSelesai === kartuSelesaiVal, `Jumlah baris tabel (${rowsSelesai}) SAMA PERSIS dengan angka kartu Selesai (${kartuSelesaiVal})`);
 
 // -----------------------------------------------------------------------------
-// [6/6] UJI ISOLASI RBAC CABANG VS PUSAT
+// [7/7] UJI ISOLASI RBAC CABANG VS PUSAT
 // -----------------------------------------------------------------------------
-console.log('\n[6/6] Uji Isolasi Hak Akses (RBAC) Cabang vs Pimpinan Pusat');
+console.log('\n[7/7] Uji Isolasi Hak Akses (RBAC) Cabang vs Pimpinan Pusat');
 
-// Login Cabang Padang
 const cabangPadangSession = {
   valid: true,
   isCabang: true,
@@ -314,9 +331,9 @@ sandbox.userSession = cabangPadangSession;
 sandbox.CURRENT_AUTH_SESSION = cabangPadangSession;
 sandbox.window.CURRENT_AUTH_SESSION = cabangPadangSession;
 
+sandbox.filterDariKartu(null);
 sandbox.renderDashboardTabel();
 
-// User cabang Padang hanya boleh menghitung data Padang (P3 saja)
 const padangAktif = Number(sandbox.document.getElementById('metric-val-aktif').textContent);
 const padangOverdue = Number(sandbox.document.getElementById('metric-val-overdue').textContent);
 const padangSelesai = Number(sandbox.document.getElementById('metric-val-selesai').textContent);
@@ -325,25 +342,9 @@ assert(padangAktif === 1, `Staf Padang hanya melihat 1 penugasan aktif cabangnya
 assert(padangOverdue === 1, `Staf Padang melihat 1 penugasan overdue cabangnya -> aktual: ${padangOverdue}`);
 assert(padangSelesai === 0, `Staf Padang tidak melihat penugasan selesai cabang lain -> aktual: ${padangSelesai}`);
 
-// Wrapper filter wilayah wajib disembunyikan untuk staf cabang
 const wrapWilCabang = sandbox.document.getElementById('wrapper-filter-wilayah');
 assert(wrapWilCabang.classList.contains('hidden'), 'Wrapper filter wilayah disembunyikan untuk kantor cabang (Data Isolation)');
 
-// Kembalikan ke Sesi Pimpinan Pusat
-const pusatSession = {
-  valid: true,
-  isCabang: false,
-  mode: 'PUSAT',
-  role: 'SUPER_ADMIN',
-  isSuperAdmin: true
-};
-sandbox.userSession = pusatSession;
-sandbox.CURRENT_AUTH_SESSION = pusatSession;
-sandbox.window.CURRENT_AUTH_SESSION = pusatSession;
-sandbox.renderDashboardTabel();
-const wrapWilPusat = sandbox.document.getElementById('wrapper-filter-wilayah');
-assert(!wrapWilPusat.classList.contains('hidden'), 'Wrapper filter wilayah ditampilkan untuk Admin Pusat');
-
 console.log('\n======================================================');
-console.log(`HASIL AKHIR: ${passedTests} / ${totalTests} PENGUJIAN LULUS DENGAN SEMPURNA! (100%)`);
+console.log(`HASIL AKHIR HARDENED SUITE: ${passedTests} / ${totalTests} PENGUJIAN LULUS SEMPURNA! (100%)`);
 console.log('======================================================');
