@@ -1390,6 +1390,186 @@ function buildDefaultApprovals($pemohonNama = 'Holik Kelana', $pemohonJabatan = 
 // -------------------------------------------------------------
 // 7. AUTENTIKASI PENGGUNA
 // -------------------------------------------------------------
+/**
+ * KJPP NSR — Evaluasi Status Persetujuan "Menunggu Tindakan Saya" (Pending On Me)
+ * Memetakan dokumen pengajuan terhadap wewenang (RBAC) dan urutan sequential pengguna saat ini.
+ *
+ * @param array $doc Dokumen pengajuan operasional
+ * @param array $user Data pengguna terautentikasi
+ * @return array Hasil evaluasi: isPending (bool), pendingTier (int|null), tierInfo (array|null), reason (string)
+ */
+function evaluatePengajuanPendingStatus($doc, $user) {
+    $status = strtoupper(trim($doc['status'] ?? 'DRAFT'));
+    $approvals = $doc['approvals'] ?? [];
+    $userPermissions = $user['permissions'] ?? [];
+    $userRole = strtoupper(trim($user['role'] ?? ''));
+    $userDisplayName = trim($user['displayName'] ?? '');
+    $userSub = trim($user['sub'] ?? '');
+
+    // 1. Dokumen APPROVED sudah sah sepenuhnya, tidak menunggu tindakan siapapun
+    if ($status === 'APPROVED') {
+        return [
+            'isPending'    => false,
+            'pendingTier'  => null,
+            'tierInfo'     => null,
+            'reason'       => 'SELESAI'
+        ];
+    }
+
+    // 2. Dokumen REJECTED: Menunggu revisi dari pemohon / pembuat dokumen
+    if ($status === 'REJECTED') {
+        $pemohonSub = trim($doc['pemohon']['sub'] ?? $doc['createdBy']['sub'] ?? '');
+        $pemohonNama = trim($doc['pemohon']['nama'] ?? $doc['createdBy']['userLogin'] ?? $doc['namaPengaju'] ?? '');
+        $isMyDoc = ($userSub && $pemohonSub && $userSub === $pemohonSub) ||
+                   ($userDisplayName && $pemohonNama && strcasecmp($userDisplayName, $pemohonNama) === 0) ||
+                   in_array($userRole, ['SURVEYOR', 'STAFF'], true) ||
+                   empty($user['canApprove']);
+
+        if ($isMyDoc) {
+            return [
+                'isPending'    => true,
+                'pendingTier'  => null,
+                'tierInfo'     => null,
+                'reason'       => 'REVISI_PEMOHON'
+            ];
+        }
+        return [
+            'isPending'    => false,
+            'pendingTier'  => null,
+            'tierInfo'     => null,
+            'reason'       => 'MENUNGGU_REVISI_PEMOHON'
+        ];
+    }
+
+    // 3. Dokumen DRAFT: Menunggu kirim resmi dari pemohon
+    if ($status === 'DRAFT') {
+        $pemohonSub = trim($doc['pemohon']['sub'] ?? $doc['createdBy']['sub'] ?? '');
+        $pemohonNama = trim($doc['pemohon']['nama'] ?? $doc['createdBy']['userLogin'] ?? $doc['namaPengaju'] ?? '');
+        $isMyDoc = ($userSub && $pemohonSub && $userSub === $pemohonSub) ||
+                   ($userDisplayName && $pemohonNama && strcasecmp($userDisplayName, $pemohonNama) === 0) ||
+                   empty($user['canApprove']);
+
+        if ($isMyDoc) {
+            return [
+                'isPending'    => true,
+                'pendingTier'  => null,
+                'tierInfo'     => null,
+                'reason'       => 'DRAFT_PEMOHON'
+            ];
+        }
+        return [
+            'isPending'    => false,
+            'pendingTier'  => null,
+            'tierInfo'     => null,
+            'reason'       => 'DRAFT_OTHER'
+        ];
+    }
+
+    // 4. Dokumen SUBMITTED / IN_REVIEW: Evaluasi alur berurutan (Sequential Enforcement)
+    if (in_array($status, ['SUBMITTED', 'IN_REVIEW'], true)) {
+        if (empty($user['canApprove']) || empty($userPermissions)) {
+            // Akun staf/surveyor biasa tidak memiliki wewenang approval
+            return [
+                'isPending'    => false,
+                'pendingTier'  => null,
+                'tierInfo'     => null,
+                'reason'       => 'DALAM_PROSES_REVIEW'
+            ];
+        }
+
+        $tierKeys = array_map('intval', array_keys($approvals));
+        sort($tierKeys);
+
+        $isLegacy5Tier = (($doc['workflowSystem'] ?? '') === '5_TIER') || (count($approvals) === 5 && !isset($approvals[1]['tingkat']));
+        $alurDoc = strtoupper(trim($doc['alur'] ?? ''));
+
+        $actionableTiers = [];
+
+        if (!$isLegacy5Tier && ($alurDoc === 'LINTAS_DIVISI' || $alurDoc === 'LINTAS')) {
+            // Lintas Divisi: Tingkat 1 (Teknik & Admin) dapat diproses bersamaan
+            $tier1Done = !empty($approvals[1]['approved']);
+            $tier2Done = !empty($approvals[2]['approved']);
+            $tier3Done = !empty($approvals[3]['approved']);
+            $tier4Done = !empty($approvals[4]['approved']);
+
+            if (!$tier1Done) $actionableTiers[] = 1;
+            if (!$tier2Done) $actionableTiers[] = 2;
+
+            if ($tier1Done && $tier2Done && !$tier3Done) {
+                $actionableTiers[] = 3;
+            }
+            if ($tier1Done && $tier2Done && $tier3Done && !$tier4Done) {
+                $actionableTiers[] = 4;
+            }
+        } else {
+            // Alur Linier (3-Tingkat Standar maupun Legacy 5-Tier)
+            foreach ($tierKeys as $t) {
+                if (empty($approvals[$t]['approved'])) {
+                    $prevDone = true;
+                    if ($t > 1) {
+                        for ($p = 1; $p < $t; $p++) {
+                            if (empty($approvals[$p]['approved'])) {
+                                $prevDone = false;
+                                break;
+                            }
+                        }
+                    }
+                    if ($prevDone) {
+                        $actionableTiers[] = $t;
+                    }
+                    break; // Hanya satu tier yang aktif pada alur linier
+                }
+            }
+        }
+
+        foreach ($actionableTiers as $actTier) {
+            $step = $approvals[$actTier] ?? [];
+            $roleKey = $step['roleKey'] ?? '';
+
+            $requiredPerm = null;
+            if ($roleKey === 'TEKNIK') {
+                $requiredPerm = 'APPROVE_TEKNIK';
+            } elseif ($roleKey === 'ADMIN_UMUM') {
+                $requiredPerm = 'APPROVE_ADMIN';
+            } elseif ($roleKey === 'KEUANGAN') {
+                $requiredPerm = 'APPROVE_KEUANGAN';
+            } elseif ($roleKey === 'KEPALA_KEUANGAN') {
+                $requiredPerm = 'APPROVE_KEPALA_KEUANGAN';
+            } elseif ($isLegacy5Tier) {
+                if ($actTier === 2) {
+                    $requiredPerm = 'APPROVE_TEKNIK';
+                } elseif ($actTier === 3) {
+                    $requiredPerm = 'APPROVE_ADMIN';
+                } elseif ($actTier === 4) {
+                    $requiredPerm = 'APPROVE_KEUANGAN';
+                } elseif ($actTier === 5) {
+                    $requiredPerm = 'APPROVE_KEPALA_KEUANGAN';
+                }
+            }
+
+            if ($requiredPerm && in_array($requiredPerm, $userPermissions, true)) {
+                return [
+                    'isPending'    => true,
+                    'pendingTier'  => $actTier,
+                    'tierInfo'     => $step,
+                    'requiredPerm' => $requiredPerm,
+                    'reason'       => 'WAITING_APPROVAL'
+                ];
+            }
+        }
+    }
+
+    return [
+        'isPending'    => false,
+        'pendingTier'  => null,
+        'tierInfo'     => null,
+        'reason'       => 'NOT_PENDING_ON_USER'
+    ];
+}
+
+// -------------------------------------------------------------
+// 7. AUTENTIKASI PENGGUNA
+// -------------------------------------------------------------
 function resolveCurrentUser($officialTokenHashes) {
     // A. Dari Sesi PHP
     if (isset($_SESSION['nsr_user']) && is_array($_SESSION['nsr_user'])) {
@@ -1679,16 +1859,36 @@ if ($action === 'lookupNolap') {
 if ($action === 'getPengajuanList') {
     $records = readDatabaseOperasional($dataFile, $lockFile);
 
-    $branchFilter = trim($_GET['branch'] ?? $_GET['cabang'] ?? '');
-    $statusFilter = trim($_GET['status'] ?? '');
-    $jenisFilter  = trim($_GET['jenis'] ?? '');
+    $branchFilter  = trim($_GET['branch'] ?? $_GET['cabang'] ?? '');
+    $statusFilter  = trim($_GET['status'] ?? '');
+    $jenisFilter   = trim($_GET['jenis'] ?? '');
+    $pendingFilter = trim($_GET['pendingOnMe'] ?? $_GET['pending_on_me'] ?? '');
+    $isPendingOnly = ($pendingFilter === 'true' || $pendingFilter === '1' || $statusFilter === 'PENDING_ON_ME');
 
+    $totalPendingOnMe = 0;
     $filtered = [];
+
     foreach ($records as $r) {
+        // Evaluasi status approval pending pada dokumen
+        $pendingEval = evaluatePengajuanPendingStatus($r, $currentUser);
+        $r['isPendingOnMe'] = $pendingEval['isPending'];
+        $r['pendingTier']   = $pendingEval['pendingTier'];
+        $r['pendingReason'] = $pendingEval['reason'];
+        $r['pendingInfo']   = $pendingEval['tierInfo'] ?? null;
+
+        if ($pendingEval['isPending']) {
+            $totalPendingOnMe++;
+        }
+
+        // Filter: Hanya yang Menunggu Tindakan Saya jika parameter pendingOnMe diaktifkan
+        if ($isPendingOnly && !$pendingEval['isPending']) {
+            continue;
+        }
+
         if ($branchFilter && !empty($r['kantor']) && strcasecmp($r['kantor'], $branchFilter) !== 0) {
             continue;
         }
-        if ($statusFilter && !empty($r['status']) && strcasecmp($r['status'], $statusFilter) !== 0) {
+        if ($statusFilter && $statusFilter !== 'PENDING_ON_ME' && !empty($r['status']) && strcasecmp($r['status'], $statusFilter) !== 0) {
             continue;
         }
         if ($jenisFilter && !empty($r['jenisOperasional']) && strcasecmp($r['jenisOperasional'], $jenisFilter) !== 0) {
@@ -1703,18 +1903,21 @@ if ($action === 'getPengajuanList') {
     });
 
     echo json_encode([
-        'success'     => true,
-        'currentUser' => [
+        'success'      => true,
+        'currentUser'  => [
             'displayName' => $currentUser['displayName'] ?? '',
             'role'        => $userRole,
             'roleLabel'   => $currentUser['roleLabel'] ?? '',
             'title'       => $currentUser['title'] ?? '',
             'branch'      => $userBranch,
             'isMaster'    => $isMaster,
-            'isSuperAdmin'=> !empty($currentUser['isSuperAdmin'])
+            'isSuperAdmin'=> !empty($currentUser['isSuperAdmin']),
+            'permissions' => $currentUser['permissions'] ?? [],
+            'canApprove'  => !empty($currentUser['canApprove'])
         ],
-        'total'       => count($filtered),
-        'data'        => $filtered
+        'pendingCount' => $totalPendingOnMe,
+        'total'        => count($filtered),
+        'data'         => $filtered
     ]);
     exit;
 }
@@ -1742,6 +1945,12 @@ if ($action === 'getPengajuanDetail') {
         echo json_encode(['success' => false, 'error' => 'Dokumen pengajuan operasional tidak ditemukan.']);
         exit;
     }
+
+    $pendingEval = evaluatePengajuanPendingStatus($found, $currentUser);
+    $found['isPendingOnMe'] = $pendingEval['isPending'];
+    $found['pendingTier']   = $pendingEval['pendingTier'];
+    $found['pendingReason'] = $pendingEval['reason'];
+    $found['pendingInfo']   = $pendingEval['tierInfo'] ?? null;
 
     echo json_encode([
         'success' => true,
