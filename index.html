@@ -4187,7 +4187,7 @@
                   <p class="text-[11px] sm:text-xs text-emerald-100 opacity-80 leading-normal line-clamp-1 mt-0.5">Presensi Kehadiran &amp; Koordinasi Kantor</p>
                 </div>
               </div>
-              <a id="link-portal-absen" href="javascript:void(0)" class="text-xs font-semibold py-1.5 px-3 rounded-lg whitespace-nowrap flex items-center gap-1 shadow-sm transition-all hover:scale-[1.02] active:scale-95 bg-white text-emerald-950 hover:bg-emerald-50 shrink-0 font-bold">
+              <a id="link-portal-absen" href="portal-presensi.html" class="text-xs font-semibold py-1.5 px-3 rounded-lg whitespace-nowrap flex items-center gap-1 shadow-sm transition-all hover:scale-[1.02] active:scale-95 bg-white text-emerald-950 hover:bg-emerald-50 shrink-0 font-bold">
                 <span>Buka Form &nearr;</span>
               </a>
             </div>
@@ -5804,13 +5804,7 @@
 
     function bukaAksesAbsen(e) {
       if (e) e.preventDefault();
-      const sess = dapatkanSesiTervalidasi();
-      if (!sess) {
-        bukaModalPortal('absen');
-        return;
-      }
-      const url = _dekripsiUrlAman(_ENC_URL_ABSENSI);
-      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+      window.location.href = 'portal-presensi.html';
     }
 
     function updateDynamicSmartCards(auth) {
@@ -5864,11 +5858,8 @@
       const linkAbsen = document.getElementById('link-portal-absen');
 
       if (linkAbsen) {
-        linkAbsen.onclick = (e) => {
-          if (e) e.preventDefault();
-          const url = _dekripsiUrlAman(_ENC_URL_ABSENSI);
-          if (url) window.open(url, '_blank', 'noopener,noreferrer');
-        };
+        linkAbsen.href = 'portal-presensi.html';
+        linkAbsen.onclick = null;
       }
 
       if (isCabang) {
@@ -6105,8 +6096,7 @@
                 return;
               }
               if (targetPortal === 'absen') {
-                const url = _dekripsiUrlAman(_ENC_URL_ABSENSI);
-                if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                window.location.href = 'portal-presensi.html';
                 return;
               }
 
@@ -6345,8 +6335,7 @@
       }
       if (window._targetPortal === 'absen') {
         tutupModalPortal();
-        const url = _dekripsiUrlAman(_ENC_URL_ABSENSI);
-        if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        window.location.href = 'portal-presensi.html';
         return;
       }
 
