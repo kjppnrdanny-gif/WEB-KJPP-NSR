@@ -1526,37 +1526,138 @@ if ($action === 'simpanPengajuan') {
         $umumData = [];
 
         if ($jenisOperasional === 'OPR-SRV') {
+            // Master Tarif Resmi Allowance NSR 2026
+            $MASTER_TARIF_NSR = [
+                'versi' => '2026.1',
+                'tanggalBerlaku' => '2026-01-01',
+                'zonasi' => [
+                    'JABODETABEK' => [
+                        'PEMIMPIN_REKAN' => 405000,
+                        'USP_EXPERT'     => 270000,
+                        'KADIV'          => 180000,
+                        'REVIEWER'       => 150000,
+                        'SURVEYOR'       => 110000,
+                        'DRIVER'         => 70000,
+                    ],
+                    'JAWA_BARAT' => [
+                        'PEMIMPIN_REKAN' => 675000,
+                        'USP_EXPERT'     => 450000,
+                        'KADIV'          => 360000,
+                        'REVIEWER'       => 260000,
+                        'SURVEYOR'       => 220000,
+                        'DRIVER'         => 160000,
+                    ],
+                    'WILAYAH_LAIN' => [
+                        'PEMIMPIN_REKAN' => 900000,
+                        'USP_EXPERT'     => 600000,
+                        'KADIV'          => 580000,
+                        'REVIEWER'       => 450000,
+                        'SURVEYOR'       => 430000,
+                        'DRIVER'         => 290000,
+                    ]
+                ],
+                'khusus' => [
+                    'TRANSPORTASI_BANDARA' => 570000,
+                    'RETAIL_FREELANCE'     => 150000,
+                    'RETAIL_TETAP'         => 100000,
+                ]
+            ];
+
+            $wilayahSurvey = strtoupper(trim($payload['survey']['wilayahSurvey'] ?? 'JABODETABEK'));
+            if (!in_array($wilayahSurvey, ['JABODETABEK', 'JAWA_BARAT', 'WILAYAH_LAIN'], true)) {
+                $wilayahSurvey = 'JABODETABEK';
+            }
+
             $personal = $payload['survey']['biayaPersonal'] ?? [];
             $kolektif = $payload['survey']['biayaKolektif'] ?? [];
             $subPersonal = 0;
             $subKolektif = 0;
+            $catatanAuditTarif = [];
 
+            // Evaluasi & Rekalkulasi Biaya Personal Sesuai Master Tarif NSR
             foreach ($personal as &$pItem) {
-                $vol = (float)($pItem['volume'] ?? 0);
-                $trf = (float)($pItem['tarif'] ?? 0);
-                if ($vol < 0 || $trf < 0) {
-                    return ['success' => false, 'http_code' => 400, 'error' => 'Alokasi biaya personal survey tidak boleh bernilai negatif.'];
+                $jabatan = strtoupper(trim($pItem['jabatan'] ?? 'SURVEYOR'));
+                $personel = max(1, (int)($pItem['jumlahPersonel'] ?? 1));
+                $durasi = max(0, (float)($pItem['durasi'] ?? $pItem['volume'] ?? 1));
+                $satuan = trim($pItem['satuan'] ?? 'Hari');
+                $isManual = !empty($pItem['isManual']) || $jabatan === 'MANUAL';
+                $alasanManual = trim($pItem['alasanManual'] ?? '');
+
+                if ($personel < 0 || $durasi < 0) {
+                    return ['success' => false, 'http_code' => 400, 'error' => 'Jumlah personel dan durasi allowance tidak boleh bernilai negatif.'];
                 }
-                $tot = $vol * $trf;
-                $pItem['total'] = $tot;
+
+                // Hitung tarif resmi dari Master Data
+                $tarifResmi = 0;
+                if (isset($MASTER_TARIF_NSR['khusus'][$jabatan])) {
+                    $tarifResmi = $MASTER_TARIF_NSR['khusus'][$jabatan];
+                    $satuan = 'Titik';
+                } elseif (isset($MASTER_TARIF_NSR['zonasi'][$wilayahSurvey][$jabatan])) {
+                    $tarifResmi = $MASTER_TARIF_NSR['zonasi'][$wilayahSurvey][$jabatan];
+                    $satuan = 'Hari';
+                }
+
+                if (!$isManual && $tarifResmi > 0) {
+                    // Penegakan tarif server: jangan percaya kiriman browser
+                    $trf = (float)$tarifResmi;
+                } else {
+                    // Manual rate: validasi otorisasi & alasan
+                    $trf = (float)($pItem['tarif'] ?? 0);
+                    if ($trf < 0) {
+                        return ['success' => false, 'http_code' => 400, 'error' => 'Nomor tarif biaya personal tidak boleh negatif.'];
+                    }
+                    if ($trf !== (float)$tarifResmi) {
+                        $catatanAuditTarif[] = "Pengecualian tarif manual [{$jabatan}]: Rp " . number_format($trf, 0, ',', '.') . " (Alasan: " . ($alasanManual ?: 'Penetapan khusus penugasan') . ")";
+                    }
+                }
+
+                $tot = $personel * $durasi * $trf;
+                $pItem['jumlahPersonel'] = $personel;
+                $pItem['durasi']         = $durasi;
+                $pItem['volume']         = $personel * $durasi;
+                $pItem['satuan']         = $satuan;
+                $pItem['tarif']          = $trf;
+                $pItem['total']          = $tot;
                 $subPersonal += $tot;
             }
             unset($pItem);
 
+            // Evaluasi & Rekalkulasi Biaya Kolektif (Termasuk Transportasi Bandara)
             foreach ($kolektif as &$kItem) {
-                $vol = (float)($kItem['volume'] ?? 0);
-                $trf = (float)($kItem['tarif'] ?? 0);
-                if ($vol < 0 || $trf < 0) {
-                    return ['success' => false, 'http_code' => 400, 'error' => 'Alokasi biaya kolektif survey tidak boleh bernilai negatif.'];
+                $uraian = trim($kItem['uraian'] ?? '');
+                $vol = max(0, (float)($kItem['volume'] ?? 1));
+                $satuan = trim($kItem['satuan'] ?? 'Paket');
+                $isBandara = !empty($kItem['isBandara']) || stripos($uraian, 'bandara') !== false;
+
+                if ($vol < 0) {
+                    return ['success' => false, 'http_code' => 400, 'error' => 'Volume biaya kolektif tidak boleh bernilai negatif.'];
                 }
+
+                if ($isBandara) {
+                    // Master tarif baku Rp 570.000
+                    $trf = 570000;
+                    $uraian = 'Transportasi Bandara';
+                } else {
+                    $trf = (float)($kItem['tarif'] ?? 0);
+                    if ($trf < 0) {
+                        return ['success' => false, 'http_code' => 400, 'error' => 'Tarif biaya kolektif tidak boleh bernilai negatif.'];
+                    }
+                }
+
                 $tot = $vol * $trf;
-                $kItem['total'] = $tot;
+                $kItem['uraian'] = $uraian;
+                $kItem['volume'] = $vol;
+                $kItem['satuan'] = $satuan;
+                $kItem['tarif']  = $trf;
+                $kItem['total']  = $tot;
                 $subKolektif += $tot;
             }
             unset($kItem);
 
             $totalEstimasi = $subPersonal + $subKolektif;
             $surveyData = [
+                'wilayahSurvey'     => $wilayahSurvey,
+                'wilayahSurveyLabel'=> $wilayahSurvey === 'JABODETABEK' ? 'Jabodetabek' : ($wilayahSurvey === 'JAWA_BARAT' ? 'Jawa Barat' : 'Wilayah Lain'),
                 'idPenugasan'       => trim($payload['survey']['idPenugasan'] ?? ''),
                 'nomorLaporan'      => trim($payload['survey']['nomorLaporan'] ?? ''),
                 'namaKlien'         => trim($payload['survey']['namaKlien'] ?? ''),
@@ -1567,7 +1668,15 @@ if ($action === 'simpanPengajuan') {
                 'biayaPersonal'     => $personal,
                 'biayaKolektif'     => $kolektif,
                 'subtotalPersonal'  => $subPersonal,
-                'subtotalKolektif'  => $subKolektif
+                'subtotalKolektif'  => $subKolektif,
+                'tarifSnapshot'     => [
+                    'versi'           => '2026.1',
+                    'tanggalBerlaku'  => '2026-01-01',
+                    'wilayahSurvey'   => $wilayahSurvey,
+                    'waktuPengajuan'  => $now,
+                    'masterTarifZonasi' => $MASTER_TARIF_NSR['zonasi'][$wilayahSurvey] ?? [],
+                    'tarifKhusus'     => $MASTER_TARIF_NSR['khusus'] ?? []
+                ]
             ];
         } elseif ($jenisOperasional === 'OPR-MTG') {
             $divisi = trim($payload['meeting']['divisi'] ?? 'Teknik');
@@ -1713,6 +1822,14 @@ if ($action === 'simpanPengajuan') {
         }
 
         $auditTrail = $existing['auditTrail'] ?? [];
+        if (!empty($catatanAuditTarif)) {
+            $auditTrail[] = [
+                'timestamp'  => $now,
+                'action'     => 'TARIF_EXCEPTION_RECORDED',
+                'user'       => $currentUser['displayName'] ?? 'Petugas Pusat',
+                'keterangan' => implode(' | ', $catatanAuditTarif)
+            ];
+        }
 
         // Buat atau perbarui dokumen
         $doc = [
