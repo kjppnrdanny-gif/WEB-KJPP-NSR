@@ -2203,7 +2203,39 @@ if ($action === 'approveTier') {
         exit;
     }
 
-    $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $tier, $currentUser, $userRole, $SERVER_SECRET) {
+    // 1. ISOLASI KREDENSIAL STAGING: Tolak token staging di environment produksi
+    if (!empty($currentUser['isStaging']) && !isStagingEnvironment()) {
+        http_response_code(403);
+        echo json_encode([
+            'success'   => false,
+            'error'     => 'Akses Ditolak (403 Forbidden): Kredensial staging/demo tidak diizinkan untuk melakukan otorisasi pada sistem produksi.'
+        ]);
+        exit;
+    }
+
+    // 2. BLOKIR SELURUH TOKEN STAF (FAIL-CLOSED)
+    $userCanApprove = !empty($currentUser['canApprove']);
+    $userPermissions = $currentUser['permissions'] ?? [];
+    if (!$userCanApprove || empty($userPermissions)) {
+        http_response_code(403);
+        echo json_encode([
+            'success'   => false,
+            'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) adalah akun staf dan tidak memiliki wewenang approval dokumen operasional."
+        ]);
+        exit;
+    }
+
+    // 3. FAST-FAIL RBAC: Jika user tidak memiliki izin sama sekali untuk tier ini
+    if ($tier === 1 && !in_array('APPROVE_TEKNIK', $userPermissions, true) && !in_array('APPROVE_ADMIN', $userPermissions, true)) {
+        http_response_code(403);
+        echo json_encode([
+            'success'   => false,
+            'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki izin APPROVE_TEKNIK atau APPROVE_ADMIN untuk mengesahkan Tingkat 1."
+        ]);
+        exit;
+    }
+
+    $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $tier, $currentUser, $userRole, $userPermissions, $SERVER_SECRET) {
         $now = date('Y-m-d H:i:s');
         $targetIndex = -1;
 
@@ -2241,28 +2273,7 @@ if ($action === 'approveTier') {
             return ['success' => false, 'http_code' => 400, 'error' => "Tier {$tier} sudah disetujui sebelumnya."];
         }
 
-        // 1. ISOLASI KREDENSIAL STAGING: Tolak token staging di environment produksi
-        if (!empty($currentUser['isStaging']) && !isStagingEnvironment()) {
-            return [
-                'success'   => false,
-                'http_code' => 403,
-                'error'     => 'Akses Ditolak (403 Forbidden): Kredensial staging/demo tidak diizinkan untuk melakukan otorisasi pada sistem produksi.'
-            ];
-        }
-
-        // 2. BLOKIR SELURUH TOKEN STAF (FAIL-CLOSED)
-        $userCanApprove = !empty($currentUser['canApprove']);
-        $userPermissions = $currentUser['permissions'] ?? [];
-        if (!$userCanApprove || empty($userPermissions)) {
-            return [
-                'success'   => false,
-                'http_code' => 403,
-                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) adalah akun staf dan tidak memiliki wewenang approval dokumen operasional."
-            ];
-        }
-
-        // 3. PEMETAAN HAK AKSES PER-TIER SECARA KETAT (STRICT SEPARATION OF DUTIES)
-        // Tidak ada peran superadmin otomatis yang melewati otorisasi per-tier!
+        // PEMETAAN HAK AKSES PER-TIER SECARA KETAT (STRICT SEPARATION OF DUTIES)
         $step = $doc['approvals'][$tier] ?? [];
         $roleKey = $step['roleKey'] ?? '';
         $labelTarget = $step['label'] ?? "Tier {$tier}";
@@ -2306,13 +2317,11 @@ if ($action === 'approveTier') {
             ];
         }
 
-        // 4. PENEGAKAN URUTAN PERSATUAN (SEQUENTIAL ENFORCEMENT)
-        // Tahapan approval yang belum memenuhi syarat harus ditolak.
+        // PENEGAKAN URUTAN PERSATUAN (SEQUENTIAL ENFORCEMENT)
         $alurDoc = strtoupper(trim($doc['alur'] ?? ''));
         $targetTingkat = $step['tingkat'] ?? $tier;
 
         if ($isLegacy5Tier) {
-            // Urutan linear ketat legacy 1 -> 2 -> 3 -> 4 -> 5
             if ($tier > 1) {
                 $prevTier = $tier - 1;
                 $prevApproval = $doc['approvals'][$prevTier] ?? null;
@@ -2325,8 +2334,6 @@ if ($action === 'approveTier') {
                 }
             }
         } elseif ($alurDoc === 'LINTAS_DIVISI' || $alurDoc === 'LINTAS') {
-            // JALUR LINTAS DIVISI:
-            // Tingkat 1 membutuhkan KEDUA approval (Tier 1: Manager Teknik & Tier 2: Manager Admin) sebelum lanjut ke Keuangan (Tier 3)!
             if ($targetTingkat === 2 || $tier === 3) {
                 $tier1Approved = !empty($doc['approvals'][1]['approved']);
                 $tier2Approved = !empty($doc['approvals'][2]['approved']);
@@ -2351,8 +2358,6 @@ if ($action === 'approveTier') {
                 }
             }
         } else {
-            // JALUR TEKNIS ATAU ADMIN_UMUM (Workflow 3-Tingkat Standar):
-            // Tingkat 2 (Keuangan) WAJIB menunggu Tingkat 1 (Manager Divisi) selesai
             if ($targetTingkat === 2 || $tier === 2) {
                 $prevApproval = $doc['approvals'][1] ?? null;
                 if (!$prevApproval || empty($prevApproval['approved'])) {
@@ -2363,7 +2368,6 @@ if ($action === 'approveTier') {
                     ];
                 }
             } elseif ($targetTingkat === 3 || $tier === 3) {
-                // Tingkat 3 (Kepala Keuangan) WAJIB menunggu Tingkat 2 (Manager Keuangan) selesai
                 $prevApproval = $doc['approvals'][2] ?? null;
                 if (!$prevApproval || empty($prevApproval['approved'])) {
                     return [
@@ -2375,11 +2379,11 @@ if ($action === 'approveTier') {
             }
         }
 
-        // 5. TENTUKAN NAMA & JABATAN PEJABAT RESMI
+        // TENTUKAN NAMA & JABATAN PEJABAT RESMI
         $pejabatNama = !empty($currentUser['displayName']) ? $currentUser['displayName'] : ($step['pejabat'] ?? 'Pejabat Berwenang');
         $pejabatJabatan = $step['jabatan'] ?? 'Pejabat';
 
-        // 6. HITUNG CRYPTOGRAPHIC HMAC TOKEN
+        // HITUNG CRYPTOGRAPHIC HMAC TOKEN
         $contentDigest = generateContentDigest($doc);
         $hmac = generateTierHmac(
             $doc['id'],
@@ -2394,7 +2398,7 @@ if ($action === 'approveTier') {
 
         $qrUrl = generateQrVerificationUrl($doc['noRegistrasi'] ?: $doc['id'], $tier, $hmac);
 
-        // 7. REKAM PERSETUJUAN
+        // REKAM PERSETUJUAN
         $doc['approvals'][$tier]['approved'] = true;
         $doc['approvals'][$tier]['approvedAt'] = $now;
         $doc['approvals'][$tier]['approvedBy'] = $pejabatNama;
@@ -2445,10 +2449,6 @@ if ($action === 'approveTier') {
     exit;
 }
 
-    echo json_encode($result);
-    exit;
-}
-
 // G. ACTION: rejectWithNote (Penolakan dengan Alasan Minimal 10 Karakter & RBAC Ketat)
 if ($action === 'rejectWithNote') {
     $rawInput = file_get_contents('php://input');
@@ -2476,7 +2476,29 @@ if ($action === 'rejectWithNote') {
         exit;
     }
 
-    $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $alasan, $tier, $currentUser, $userRole) {
+    // 1. ISOLASI KREDENSIAL STAGING: Tolak token staging di environment produksi
+    if (!empty($currentUser['isStaging']) && !isStagingEnvironment()) {
+        http_response_code(403);
+        echo json_encode([
+            'success'   => false,
+            'error'     => 'Akses Ditolak (403 Forbidden): Kredensial staging/demo tidak diizinkan untuk menolak dokumen pada sistem produksi.'
+        ]);
+        exit;
+    }
+
+    // 2. BLOKIR SELURUH TOKEN STAF (FAIL-CLOSED)
+    $userCanApprove = !empty($currentUser['canApprove']);
+    $userPermissions = $currentUser['permissions'] ?? [];
+    if (!$userCanApprove || empty($userPermissions)) {
+        http_response_code(403);
+        echo json_encode([
+            'success'   => false,
+            'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) adalah akun staf dan tidak memiliki hak wewenang otorisasi penolakan dokumen operasional."
+        ]);
+        exit;
+    }
+
+    $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $alasan, $tier, $currentUser, $userRole, $userPermissions) {
         $now = date('Y-m-d H:i:s');
         $targetIndex = -1;
 
@@ -2489,26 +2511,6 @@ if ($action === 'rejectWithNote') {
 
         if ($targetIndex < 0) {
             return ['success' => false, 'http_code' => 404, 'error' => 'Dokumen pengajuan tidak ditemukan.'];
-        }
-
-        // 1. ISOLASI KREDENSIAL STAGING: Tolak token staging di environment produksi
-        if (!empty($currentUser['isStaging']) && !isStagingEnvironment()) {
-            return [
-                'success'   => false,
-                'http_code' => 403,
-                'error'     => 'Akses Ditolak (403 Forbidden): Kredensial staging/demo tidak diizinkan untuk menolak dokumen pada sistem produksi.'
-            ];
-        }
-
-        // 2. BLOKIR SELURUH TOKEN STAF (FAIL-CLOSED)
-        $userCanApprove = !empty($currentUser['canApprove']);
-        $userPermissions = $currentUser['permissions'] ?? [];
-        if (!$userCanApprove || empty($userPermissions)) {
-            return [
-                'success'   => false,
-                'http_code' => 403,
-                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) adalah akun staf dan tidak memiliki hak wewenang otorisasi penolakan dokumen operasional."
-            ];
         }
 
         $doc = $records[$targetIndex];
@@ -2582,10 +2584,6 @@ if ($action === 'rejectWithNote') {
         echo json_encode($result);
         exit;
     }
-
-    echo json_encode($result);
-    exit;
-}
 
     echo json_encode($result);
     exit;
