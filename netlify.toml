@@ -39,6 +39,25 @@
   to = "/.netlify/functions/absensi-data-proxy"
   status = 200
 
+# Pengalihan URL PDF Lama ke Dokumen Resmi Terbaru (Cegah Dokumen Lama Pribadi Tersaji)
+[[redirects]]
+  from = "/Company%20Profile%20KJPP%20NSR%202026_S.pdf"
+  to = "/company-profile-kjpp-nsr-2026.pdf"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/Company-Profile-KJPP-NSR-2026_S.pdf"
+  to = "/company-profile-kjpp-nsr-2026.pdf"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/Company Profile KJPP NSR 2026_S.pdf"
+  to = "/company-profile-kjpp-nsr-2026.pdf"
+  status = 301
+  force = true
+
 # Proteksi Fallback Akses Internal
 [[redirects]]
   from = "/tests/*"
@@ -79,3 +98,8 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/company-profile-kjpp-nsr-2026.pdf"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
