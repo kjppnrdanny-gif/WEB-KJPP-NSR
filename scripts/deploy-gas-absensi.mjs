@@ -44,7 +44,7 @@ async function main() {
   const verRes = await script.projects.versions.create({
     scriptId: SCRIPT_ID,
     requestBody: {
-      description: 'Footer Presensi Interaktif: Modal Pemberitahuan Privasi Karyawan (UU PDP No. 27/2022), Tautan Resmi Kebijakan Privasi & Disclaimer Profesi'
+      description: 'Privacy First Gate: Popup Wajib Konfirmasi Privasi Karyawan (UU PDP No. 27/2022) sebelum akses presensi & OTP'
     }
   });
   const versionNumber = verRes.data.versionNumber;
@@ -59,7 +59,7 @@ async function main() {
         scriptId: SCRIPT_ID,
         versionNumber,
         manifestFileName: 'appsscript',
-        description: `Production Web App v${versionNumber} - Footer Presensi Interaktif UU PDP`
+        description: `Production Web App v${versionNumber} - Privacy First Gate UU PDP`
       }
     }
   });

@@ -89,9 +89,9 @@ function doPost(e) {
       const data = cekKaryawan(payload.nik);
       res = { status: 'success', success: true, data: data };
     } else if (action === 'mintaOTP') {
-      res = mintaOTP(payload.nik);
+      res = mintaOTP(payload.nik, payload.pdpNoticeVersion);
     } else if (action === 'verifikasiOTP') {
-      res = verifikasiOTP(payload.nik, payload.otp);
+      res = verifikasiOTP(payload.nik, payload.otp, payload.pdpNoticeVersion);
     } else if (action === 'simpanAbsensi') {
       res = simpanAbsensi(payload);
     } else if (action === 'simpanWFH') {
@@ -380,8 +380,11 @@ function getEmailKaryawanInternal_(nik) {
  * 2. MINTA KODE OTP GMAIL
  * Menghasilkan 6 digit OTP acak, menyimpan hash di cache, dan mengirim ke email karyawan.
  */
-function mintaOTP(nik) {
+function mintaOTP(nik, pdpNoticeVersion) {
   if (!nik) throw new Error('Harap cantumkan NIK Karyawan.');
+  if (!pdpNoticeVersion || String(pdpNoticeVersion).indexOf('PDP-NSR') === -1) {
+    throw new Error('Pemberitahuan Privasi Karyawan (UU PDP No. 27/2022) wajib dikonfirmasi sebelum meminta kode OTP.');
+  }
   const cleanNik = normalizeNikKey_(nik);
   
   // Pastikan skema produksi sudah tersinkronisasi
@@ -463,7 +466,7 @@ function mintaOTP(nik) {
 /**
  * 3. VERIFIKASI KODE OTP & PENERBITAN TOKEN SESI SERVER
  */
-function verifikasiOTP(nik, otpInput) {
+function verifikasiOTP(nik, otpInput, pdpNoticeVersion) {
   if (!nik || !otpInput) {
     throw new Error('Harap masukkan NIK dan 6-digit kode OTP.');
   }
@@ -507,7 +510,8 @@ function verifikasiOTP(nik, otpInput) {
   const sessionToken = hashString_(rawSession);
 
   // Simpan token sesi di server (valid 12 jam)
-  cache.put('sess_' + sessionToken, cleanNik, CONFIG.SESSION_EXPIRY_SECONDS);
+  const noticeVer = (pdpNoticeVersion && String(pdpNoticeVersion).trim()) || 'PDP-NSR-EMP-2026.10';
+  cache.put('sess_' + sessionToken, cleanNik + '|' + noticeVer, CONFIG.SESSION_EXPIRY_SECONDS);
 
   // Ambil profil karyawan lengkap
   const profil = cekKaryawan(cleanNik);
@@ -532,11 +536,14 @@ function validasiSesi_(sessionToken, nik) {
   }
   const cleanNik = normalizeNikKey_(nik);
   const cache = CacheService.getScriptCache();
-  const savedNik = cache.get('sess_' + String(sessionToken).trim());
+  const savedEntry = cache.get('sess_' + String(sessionToken).trim());
 
-  if (!savedNik) {
+  if (!savedEntry) {
     throw new Error('Sesi Anda telah kedaluwarsa atau tidak valid. Silakan verifikasi ulang NIK & OTP.');
   }
+
+  const parts = savedEntry.split('|');
+  const savedNik = parts[0];
 
   if (!isNikMatch_(savedNik, cleanNik)) {
     throw new Error('Akses tidak sah: Token sesi tidak sesuai dengan NIK yang diajukan.');
@@ -697,6 +704,11 @@ function simpanAbsensi(params) {
     // 1. KONTROL AUTENTIKASI: Wajib Sesi OTP Terverifikasi
     validasiSesi_(params.sessionToken, nik);
 
+    // Kepatuhan UU PDP No. 27/2022 (Pemberitahuan Privasi Karyawan)
+    if (!params.pdpNoticeVersion || String(params.pdpNoticeVersion).indexOf('PDP-NSR') === -1) {
+      throw new Error('Pemberitahuan Privasi Karyawan (UU PDP No. 27/2022) wajib dikonfirmasi sebelum menyimpan presensi.');
+    }
+
     // 2. Verifikasi Data Karyawan
     const profil = cekKaryawan(nik);
     if (!profil) {
@@ -843,8 +855,12 @@ function simpanWFH(params) {
 
     const nik = normalizeNikKey_(params.nik);
 
-    // Kontrol Sesi OTP
+    // Kontrol Sesi OTP & Kepatuhan UU PDP No. 27/2022
     validasiSesi_(params.sessionToken, nik);
+
+    if (!params.pdpNoticeVersion || String(params.pdpNoticeVersion).indexOf('PDP-NSR') === -1) {
+      throw new Error('Pemberitahuan Privasi Karyawan (UU PDP No. 27/2022) wajib dikonfirmasi sebelum mendaftarkan lokasi WFH.');
+    }
 
     const profil = cekKaryawan(nik);
     if (!profil) throw new Error('NIK [' + nik + '] tidak terdaftar di database.');
@@ -926,8 +942,12 @@ function simpanPengajuanCuti(params) {
 
     const nik = normalizeNikKey_(params.nik);
 
-    // Kontrol Sesi OTP
+    // Kontrol Sesi OTP & Kepatuhan UU PDP No. 27/2022
     validasiSesi_(params.sessionToken, nik);
+
+    if (!params.pdpNoticeVersion || String(params.pdpNoticeVersion).indexOf('PDP-NSR') === -1) {
+      throw new Error('Pemberitahuan Privasi Karyawan (UU PDP No. 27/2022) wajib dikonfirmasi sebelum mengajukan cuti/izin.');
+    }
 
     const profil = cekKaryawan(nik);
     if (!profil) throw new Error('NIK [' + nik + '] tidak terdaftar di database.');

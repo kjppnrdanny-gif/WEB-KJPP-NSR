@@ -136,7 +136,7 @@
                 title="Klik untuk menguji atau memperbarui izin GPS pada peramban"
                 class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10.5px] font-bold transition bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 btn-tactile cursor-pointer">
           <span id="gps-indicator-dot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-          <span id="gps-indicator-text">Mendeteksi GPS...</span>
+          <span id="gps-indicator-text">Siap Deteksi GPS</span>
         </button>
       </div>
 
@@ -326,22 +326,9 @@
       );
     }
 
-    // Jalankan tes GPS otomatis saat pertama kali dibuka untuk meminta izin peramban
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        if ('geolocation' in navigator && navigator.permissions) {
-          navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-            if (result.state === 'granted') {
-              testDeviceGps();
-            } else if (result.state === 'prompt') {
-              testDeviceGps();
-            }
-          }).catch(() => {
-            // Fallback untuk browser yang tidak mendukung Permissions API
-          });
-        }
-      }, 1000);
-    });
+    // Privacy First Policy (UU PDP No. 27/2022):
+    // GPS tidak diuji atau diminta secara otomatis pada saat halaman dibuka.
+    // Izin lokasi hanya diminta atas tindakan eksplisit pengguna pada formulir presensi.
   
     // 4. Real-time Connection Status Monitor
     function updateConnectionStatus() {

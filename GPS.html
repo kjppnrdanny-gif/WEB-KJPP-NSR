@@ -45,7 +45,7 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
 
   <!-- MAIN CONTAINER: Langsung Form Presensi & Autentikasi -->
-  <main class="flex-1 w-full max-w-xl mx-auto px-3 sm:px-4 py-2 sm:py-3 space-y-3.5">
+  <main id="main-presensi-content" class="flex-1 w-full max-w-xl mx-auto px-3 sm:px-4 py-2 sm:py-3 space-y-3.5 transition-all duration-300">
 
     <!-- GPS STATUS RADAR -->
     <div id="gps-radar-box" class="rounded-2xl p-3.5 border transition bg-slate-900/90 border-slate-800 shadow-md">
@@ -57,10 +57,10 @@
           </div>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span id="gps-status-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-400/10 text-amber-300 border border-amber-400/30">Mendeteksi GPS</span>
+              <span id="gps-status-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-400/10 text-amber-300 border border-amber-400/30">Siap Deteksi GPS</span>
               <span id="gps-accuracy-text" class="text-[10px] text-slate-400 font-mono">Akurasi: Menunggu</span>
             </div>
-            <p id="gps-coord-text" class="text-xs text-slate-200 font-mono mt-0.5 truncate">Mencari sinyal satelit GPS...</p>
+            <p id="gps-coord-text" class="text-xs text-slate-200 font-mono mt-0.5 truncate">Menunggu konfirmasi privasi karyawan...</p>
           </div>
         </div>
         <button type="button" onclick="ambilGPS()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0 border border-slate-700/60 btn-tactile" title="Segarkan GPS">
@@ -362,9 +362,12 @@
             🛡️
           </div>
           <div>
-            <h3 id="modal-privasi-title" class="text-sm sm:text-base font-extrabold text-white">
-              Pemberitahuan Privasi Karyawan
-            </h3>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h3 id="modal-privasi-title" class="text-sm sm:text-base font-extrabold text-white">
+                Pemberitahuan Privasi Karyawan
+              </h3>
+              <span id="badge-gate-wajib" class="hidden px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-400/20 text-amber-300 border border-amber-400/40">Wajib Dikonfirmasi</span>
+            </div>
             <p class="text-[10px] text-amber-400 font-semibold">KJPP Nanang Rahayu Sigit Paryanto dan Rekan</p>
           </div>
         </div>
@@ -416,7 +419,7 @@
             <span class="text-purple-400 font-mono">4.</span> Retensi &amp; Keamanan Data (UU PDP No. 27/2022)
           </h4>
           <p class="text-slate-300 text-[10.5px] sm:text-[11.5px]">
-            Seluruh data presensi dan lampiran surat tugas/izin/sakit disimpan secara aman di infrastruktur Google Workspace terenkripsi milik KJPP NSR. Retensi data mengikuti standar dokumentasi ketenagakerjaan dan Peraturan Kemenkeu RI No. 2.19.0160, serta tidak dibagikan kepada pihak ketiga komersial.
+            Seluruh data presensi dan lampiran surat tugas/izin/sakit disimpan secara aman di infrastruktur Google Workspace terenkripsi milik KJPP NSR. Retensi data mengikuti standar dokumentasi ketenagakerjaan dan kepatuhan ketentuan regulasi Penilai Publik (PMK No. 101/PMK.01/2014 jo. PMK No. 228/PMK.01/2019) serta Izin Usaha KJPP No. 2.19.0160, serta tidak dibagikan kepada pihak ketiga komersial.
           </p>
         </div>
 
@@ -442,10 +445,10 @@
           Kebijakan Privasi Umum &nearr;
         </a>
         <button type="button"
-                id="btn-tutup-privasi-bawah"
-                onclick="tutupModalPrivasiKaryawan()"
-                class="py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition border border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer">
-          Saya Mengerti
+                id="btn-konfirmasi-privasi"
+                onclick="konfirmasiPrivasiKaryawan()"
+                class="py-2.5 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs transition border border-emerald-400/40 focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer shadow-lg shadow-emerald-950/60 btn-tactile">
+          Saya Mengerti &amp; Lanjutkan
         </button>
       </div>
 
@@ -654,6 +657,11 @@
 
     // 1. MINTA KODE OTP GMAIL
     function eksekusiMintaOTP() {
+      if (!privasiConfirmed) {
+        tampilkanModalPrivasiGate();
+        bukaModalNotif("Persetujuan Diperlukan 🛡️", "Harap konfirmasi Pemberitahuan Privasi Karyawan terlebih dahulu sebelum meminta OTP.", false);
+        return;
+      }
       const input = document.getElementById('auth-nik-input');
       const btn = document.getElementById('btn-minta-otp');
       const resendBtn = document.getElementById('btn-resend-otp');
@@ -696,7 +704,7 @@
             btn.textContent = "Kirim OTP";
             bukaModalNotif("Permintaan OTP Gagal ❌", err.message || "Gagal mengirimkan kode OTP.", false);
           })
-          .mintaOTP(nik);
+          .mintaOTP(nik, PRIVACY_NOTICE_VERSION);
       } else {
         btn.disabled = false;
         btn.textContent = "Kirim OTP";
@@ -766,7 +774,7 @@
             btn.textContent = "Verifikasi";
             bukaModalNotif("Verifikasi Gagal ❌", err.message || "Kode OTP salah atau telah kedaluwarsa.", false);
           })
-          .verifikasiOTP(nik, otp);
+          .verifikasiOTP(nik, otp, PRIVACY_NOTICE_VERSION);
       } else {
         btn.disabled = false;
         btn.textContent = "Verifikasi";
@@ -816,6 +824,10 @@
 
     // 3. AMBIL KOORDINAT GPS SATELIT
     function ambilGPS() {
+      if (!privasiConfirmed) {
+        tampilkanModalPrivasiGate();
+        return;
+      }
       const badge = document.getElementById('gps-status-badge');
       const accText = document.getElementById('gps-accuracy-text');
       const coordText = document.getElementById('gps-coord-text');
@@ -856,10 +868,15 @@
         { enableHighAccuracy: true, timeout: 25000 }
       );
     }
-    ambilGPS();
+    // Privacy First: ambilGPS() hanya dipanggil setelah konfirmasi privasi karyawan
 
     // 4. KIRIM PRESENSI DENGAN TOKEN SESI SERVER & STATUS VALID / TIDAK VALID
     function kirimAbsensi() {
+      if (!privasiConfirmed) {
+        tampilkanModalPrivasiGate();
+        bukaModalNotif("Persetujuan Privasi Diperlukan 🛡️", "Harap konfirmasi Pemberitahuan Privasi Karyawan terlebih dahulu.", false);
+        return;
+      }
       const jenis = document.getElementById("jenis").value;
       const lokasi = document.getElementById("lokasi").value;
       const btn = document.getElementById("btnAbsen");
@@ -915,7 +932,9 @@
             jenis: jenis,
             lokasi: lokasi,
             gps: gpsUser,
-            sessionToken: sessionToken
+            sessionToken: sessionToken,
+            pdpNoticeVersion: PRIVACY_NOTICE_VERSION,
+            pdpConfirmedAt: privasiConfirmedAt
           });
       } else {
         btn.disabled = false;
@@ -960,7 +979,9 @@
             nik: sessionNik,
             alamat: alamat,
             gps: gpsUser,
-            sessionToken: sessionToken
+            sessionToken: sessionToken,
+            pdpNoticeVersion: PRIVACY_NOTICE_VERSION,
+            pdpConfirmedAt: privasiConfirmedAt
           });
       } else {
         btn.disabled = false;
@@ -997,7 +1018,9 @@
         alasan: alasan,
         fileData: null,
         fileName: null,
-        sessionToken: sessionToken
+        sessionToken: sessionToken,
+        pdpNoticeVersion: PRIVACY_NOTICE_VERSION,
+        pdpConfirmedAt: privasiConfirmedAt
       };
 
       btn.disabled = true;
@@ -1063,19 +1086,123 @@
   <!-- Modul Kepatuhan UU PDP & Disclaimer Profesi -->
   <script>
     // ----------------------------------------------------
-    // FOOTER LINKS & PRIVACY MODAL CONTROLLERS (UU PDP)
+    // PRIVACY FIRST GATE & KEPATUHAN UU PDP NO. 27/2022
     // ----------------------------------------------------
-    function bukaModalPrivasiKaryawan() {
+    const PRIVACY_NOTICE_VERSION = 'PDP-NSR-EMP-2026.10';
+    let isGateMode = true;
+    let privasiConfirmed = false;
+    let privasiConfirmedAt = '';
+
+    function kunciFormPresensi() {
+      var main = document.getElementById('main-presensi-content');
+      if (main) {
+        main.classList.add('pointer-events-none', 'opacity-30', 'select-none', 'filter', 'blur-[1px]');
+      }
+    }
+
+    function bukaKunciFormPresensi() {
+      var main = document.getElementById('main-presensi-content');
+      if (main) {
+        main.classList.remove('pointer-events-none', 'opacity-30', 'select-none', 'filter', 'blur-[1px]');
+      }
+    }
+
+    function periksaGatePrivasiAwal() {
+      try {
+        var savedVersion = sessionStorage.getItem('nsr_privasi_confirmed_version');
+        var savedAt = sessionStorage.getItem('nsr_privasi_confirmed_at');
+        if (savedVersion === PRIVACY_NOTICE_VERSION && savedAt) {
+          privasiConfirmed = true;
+          privasiConfirmedAt = savedAt;
+          isGateMode = false;
+          bukaKunciFormPresensi();
+          ambilGPS();
+          return;
+        }
+      } catch (e) {
+        // Fallback jika sessionStorage tidak diizinkan
+      }
+
+      // Default: Sesi Baru Presensi -> WAJIB GATE PRIVASI MUNCUL
+      isGateMode = true;
+      privasiConfirmed = false;
+      kunciFormPresensi();
+      tampilkanModalPrivasiGate();
+    }
+
+    function tampilkanModalPrivasiGate() {
+      isGateMode = true;
       var modal = document.getElementById('modal-privasi-karyawan');
+      var btnX = document.getElementById('btn-tutup-privasi-x');
+      var badgeWajib = document.getElementById('badge-gate-wajib');
+      var btnKonfirmasi = document.getElementById('btn-konfirmasi-privasi');
+
+      if (btnX) btnX.style.display = 'none'; // Sembunyikan X agar konfirmasi tidak dapat di-bypass
+      if (badgeWajib) badgeWajib.style.display = 'inline-flex';
+      if (btnKonfirmasi) {
+        btnKonfirmasi.textContent = 'Saya Mengerti & Lanjutkan';
+        btnKonfirmasi.onclick = konfirmasiPrivasiKaryawan;
+      }
+
       if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        var closeBtn = document.getElementById('btn-tutup-privasi-bawah');
-        if (closeBtn) closeBtn.focus();
+        if (btnKonfirmasi) btnKonfirmasi.focus();
+      }
+    }
+
+    function konfirmasiPrivasiKaryawan() {
+      privasiConfirmed = true;
+      privasiConfirmedAt = new Date().toISOString();
+      try {
+        sessionStorage.setItem('nsr_privasi_confirmed_version', PRIVACY_NOTICE_VERSION);
+        sessionStorage.setItem('nsr_privasi_confirmed_at', privasiConfirmedAt);
+      } catch (e) {}
+
+      isGateMode = false;
+      var modal = document.getElementById('modal-privasi-karyawan');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      bukaKunciFormPresensi();
+
+      // Minta izin GPS melalui peramban sekarang (setelah konfirmasi)
+      ambilGPS();
+
+      // Fokuskan karyawan pada input NIK
+      var nikInput = document.getElementById('auth-nik-input');
+      if (nikInput) nikInput.focus();
+    }
+
+    // Modal dibuka sukarela dari footer (Mode Baca / Review)
+    function bukaModalPrivasiKaryawan() {
+      isGateMode = false;
+      var modal = document.getElementById('modal-privasi-karyawan');
+      var btnX = document.getElementById('btn-tutup-privasi-x');
+      var badgeWajib = document.getElementById('badge-gate-wajib');
+      var btnKonfirmasi = document.getElementById('btn-konfirmasi-privasi');
+
+      if (btnX) btnX.style.display = ''; // Munculkan tombol X
+      if (badgeWajib) badgeWajib.style.display = 'none';
+      if (btnKonfirmasi) {
+        btnKonfirmasi.textContent = 'Saya Mengerti';
+        btnKonfirmasi.onclick = tutupModalPrivasiKaryawan;
+      }
+
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        if (btnKonfirmasi) btnKonfirmasi.focus();
       }
     }
 
     function tutupModalPrivasiKaryawan() {
+      // Jika masih dalam Gate Mode dan belum konfirmasi, blokir penutupan!
+      if (isGateMode && !privasiConfirmed) {
+        return;
+      }
       var modal = document.getElementById('modal-privasi-karyawan');
       if (modal) {
         modal.classList.add('hidden');
@@ -1087,7 +1214,7 @@
 
     function bukaTautanEksternal(e, url) {
       if (e && (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1)) {
-        return; // Izinkan shortcut new-tab default sistem operasi / browser
+        return; // Izinkan shortcut default tab baru
       }
       try {
         var win = window.open(url, '_blank', 'noopener,noreferrer');
@@ -1096,21 +1223,25 @@
           return;
         }
       } catch (err) {
-        // Fallback: biarkan event default tag <a> target="_blank" dijalankan browser
+        // Fallback default tag <a>
       }
     }
 
-    // Ekspor ke window global untuk memastikan aksesibilitas dalam scope HTML
+    // Ekspor global untuk onclick inline
     window.bukaModalPrivasiKaryawan = bukaModalPrivasiKaryawan;
     window.tutupModalPrivasiKaryawan = tutupModalPrivasiKaryawan;
+    window.konfirmasiPrivasiKaryawan = konfirmasiPrivasiKaryawan;
     window.bukaTautanEksternal = bukaTautanEksternal;
 
-    // Keyboard Accessibility: Escape key handler & backdrop click
+    // Keyboard Accessibility & Non-Bypass Enforcement
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape' || event.keyCode === 27) {
         var modalPrivasi = document.getElementById('modal-privasi-karyawan');
         if (modalPrivasi && !modalPrivasi.classList.contains('hidden')) {
-          tutupModalPrivasiKaryawan();
+          if (!isGateMode && privasiConfirmed) {
+            tutupModalPrivasiKaryawan();
+          }
+          // PADA GATE MODE: ESCAPE DIABAIKAN TOTAL!
         }
         var modalNotif = document.getElementById('modal-notif');
         if (modalNotif && !modalNotif.classList.contains('hidden')) {
@@ -1122,13 +1253,23 @@
     document.addEventListener('click', function(event) {
       var modalPrivasi = document.getElementById('modal-privasi-karyawan');
       if (modalPrivasi && event.target === modalPrivasi) {
-        tutupModalPrivasiKaryawan();
+        if (!isGateMode && privasiConfirmed) {
+          tutupModalPrivasiKaryawan();
+        }
+        // PADA GATE MODE: KLIK DI LUAR MODAL DIABAIKAN TOTAL!
       }
       var modalNotif = document.getElementById('modal-notif');
       if (modalNotif && event.target === modalNotif) {
         tutupModalNotif();
       }
     });
+
+    // Inisialisasi Otomatis Privacy Gate
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', periksaGatePrivasiAwal);
+    } else {
+      periksaGatePrivasiAwal();
+    }
   </script>
 
 </body>
