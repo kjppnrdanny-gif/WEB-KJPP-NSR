@@ -421,8 +421,8 @@ function mintaOTP(nik) {
   const pesanHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
       <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 20px;">
-        <h2 style="color: #0f172a; margin: 0; font-size: 18px; text-transform: uppercase;">KJPP NANANG RAHAYU & REKAN</h2>
-        <p style="color: #64748b; margin: 4px 0 0; font-size: 12px;">Sistem Presensi & Layanan Mandiri Karyawan</p>
+        <h2 style="color: #0f172a; margin: 0; font-size: 18px; text-transform: uppercase;">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
+        <p style="color: #64748b; margin: 4px 0 0; font-size: 12px;">Portal Presensi Kehadiran Online &bull; Verifikasi Lokasi &amp; OTP</p>
       </div>
       <p style="color: #334155; font-size: 14px; line-height: 1.5;">Halo Rekan KJPP NSR,</p>
       <p style="color: #334155; font-size: 14px; line-height: 1.5;">Berikut adalah kode verifikasi OTP resmi untuk mengakses portal absensi kehadiran (NIK: <strong>${cleanNik}</strong>):</p>
