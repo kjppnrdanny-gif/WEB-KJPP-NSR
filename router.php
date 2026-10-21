@@ -41,6 +41,11 @@ if ($uri === '/api/absensi-data-proxy') {
     exit;
 }
 
+if ($uri === '/api/status-terintegrasi-proxy') {
+    require __DIR__ . '/status-terintegrasi-handler.php';
+    exit;
+}
+
 if ($uri === '/api/auth-login' || $uri === '/api/auth-verify' || $uri === '/api/auth-logout' || $uri === '/api/auth-token') {
     require __DIR__ . '/auth-handler.php';
     exit;
