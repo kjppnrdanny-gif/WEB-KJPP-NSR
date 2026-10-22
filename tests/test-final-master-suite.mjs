@@ -143,7 +143,7 @@ async function runMasterTestSuite() {
         jenisObjek: 'Ruko Komersial 3 Lantai',
         penilaiPublikId: 'deni_penilai',
         penilaiPublikDitunjuk: 'Deni Siswandi, S.T., MAPPI (Cert.)',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
+        nama_pengaju: 'Petugas Pengaju Resmi', email_pengaju: 'petugas.resmi@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
       }
     });
     assert(t7.status === 200 && t7.data.status === 'MENUNGGU_SPM_AWAL', 7, 'Token Admin Cabang lama tetap berjalan (Sukses Submit)');
@@ -238,7 +238,7 @@ async function runMasterTestSuite() {
         jenisObjek: 'Tanah Sengketa',
         penilaiPublikId: 'nanang_penilai',
         penilaiPublikDitunjuk: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: true }
+        nama_pengaju: 'Petugas Pengaju Resmi', email_pengaju: 'petugas.resmi@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: true }
       }
     });
     assert(t18.status === 200 && t18.data.status === 'HOLD_ESKALASI_AWAL', 18, 'Pengajuan dengan Red Flag otomatis masuk status HOLD_ESKALASI_AWAL');
@@ -325,7 +325,7 @@ async function runMasterTestSuite() {
         jenisObjek: 'Gedung Perkantoran',
         penilaiPublikId: 'deni_penilai',
         penilaiPublikDitunjuk: 'Deni Siswandi, S.T., MAPPI (Cert.)',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
+        nama_pengaju: 'Petugas Pengaju Resmi', email_pengaju: 'petugas.resmi@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
       }
     });
 
@@ -440,7 +440,7 @@ async function runMasterTestSuite() {
         jenisObjek: 'Pabrik & Mesin',
         penilaiPublikId: 'deni_penilai',
         penilaiPublikDitunjuk: 'Deni Siswandi, S.T., MAPPI (Cert.)',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
+        nama_pengaju: 'Petugas Pengaju Resmi', email_pengaju: 'petugas.resmi@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
       }
     });
     // Fast-track ke SIAP_TERBIT_NOLAP

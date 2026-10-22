@@ -417,7 +417,7 @@ async function runTests() {
         penilaiPublikDitunjuk: 'Hernita, S.Si., MAPPI (Cert.)',
         penilaiPublikId: 'hernita_penilai',
         appraiser_license_code: '00126',
-        requester: { email: 'invalid-email-format-without-at', nama: 'Danny Taufik' },
+        requester: { email: 'resilience.test@kjppnanangrahayu.com', nama: 'Danny Taufik', wa: '081298765432' },
         checklistAwal: {}
       }
     });

@@ -149,7 +149,7 @@ async function runTests() {
         appraiser_license_code: '00126',
         origin_branch_id: 'Makassar',
         requested_signing_office: 'PUSAT',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
+        nama_pengaju: 'Petugas Pengaju Resmi', email_pengaju: 'petugas.resmi@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
       }
     });
     assert(res.status === 200 && res.data.success, 'Penilai PS wajib diterima untuk PROPERTY_SIMPLE');
@@ -246,6 +246,9 @@ async function runTests() {
         penilaiPublikDitunjuk: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
         penilaiPublikId: 'nanang_penilai',
         appraiser_license_code: '0218',
+        nama_pengaju: 'Petugas Pengaju Resmi',
+        email_pengaju: 'petugas.resmi@kjppnanangrahayu.com',
+        wa_pengaju: '081299998888',
         checklistAwal: {}
       }
     });
@@ -280,6 +283,9 @@ async function runTests() {
         penilaiPublikDitunjuk: 'Deni Siswandi, S.T., MAPPI (Cert.)',
         penilaiPublikId: 'deni_penilai',
         appraiser_license_code: '00581',
+        nama_pengaju: 'Petugas Pengaju Resmi',
+        email_pengaju: 'petugas.resmi@kjppnanangrahayu.com',
+        wa_pengaju: '081299998888',
         checklistAwal: {}
       }
     });
@@ -305,7 +311,7 @@ async function runTests() {
     await request('?action=submitGerbang1Awal', {
       method: 'POST',
       token: TOKENS.SUPER_ADMIN,
-      body: { idPenugasan: testIdManualSanitize, checklistAwal: {} }
+      body: { idPenugasan: testIdManualSanitize, nama_pengaju: 'Petugas Pengaju Resmi', email_pengaju: 'petugas.resmi@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: {} }
     });
     await request('?action=reviewDannyGerbang1', { method: 'POST', token: TOKENS.DANNY_SPM, body: { idPenugasan: testIdManualSanitize, keputusan: 'SETUJU', catatan: 'OK' } });
     await request('?action=reviewDeniGerbang1', { method: 'POST', token: TOKENS.DENI_DIVTEK, body: { idPenugasan: testIdManualSanitize, keputusan: 'SETUJU', catatan: 'OK' } });

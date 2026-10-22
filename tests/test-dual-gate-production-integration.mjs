@@ -90,7 +90,7 @@ async function runTests() {
         jenisObjek: 'Ruko 3 Lantai',
         penilaiPublikId: 'deni_penilai',
         penilaiPublikDitunjuk: 'Deni Siswandi, S.T., MAPPI (Cert.)',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
+        nama_pengaju: 'Petugas Pengaju Resmi', email_pengaju: 'petugas.resmi@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
       }
     });
     assert(t2.status === 200 && t2.data.status === 'MENUNGGU_SPM_AWAL', `Test 2: Submit Gerbang 1 normal berhasil -> status: ${t2.data?.status}`);
@@ -107,7 +107,7 @@ async function runTests() {
         jenisObjek: 'Tanah Sengketa Waris',
         penilaiPublikId: 'nanang_penilai',
         penilaiPublikDitunjuk: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: true }
+        nama_pengaju: 'Petugas Pengaju Resmi', email_pengaju: 'petugas.resmi@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: true }
       }
     });
     assert(t3.status === 200 && t3.data.status === 'HOLD_ESKALASI_AWAL', `Test 3: Red Flag terdeteksi -> status: ${t3.data?.status}`);

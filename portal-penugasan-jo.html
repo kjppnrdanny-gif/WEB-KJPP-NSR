@@ -488,7 +488,7 @@
 
       <form id="form-penugasan" onsubmit="handleFormSubmit(event)" class="space-y-6">
 
-        <!-- 0. IDENTITAS PENGAJU & SALURAN NOTIFIKASI RESMI (SSOT MASTER PERSONEL) -->
+        <!-- 0. IDENTITAS PENGAJU & SALURAN NOTIFIKASI RESMI (INPUT MANUAL WAJIB) -->
         <div id="card-identitas-pengaju" class="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-slate-700/80 rounded-2xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800">
             <div class="flex items-center gap-3">
@@ -497,43 +497,36 @@
               </span>
               <div>
                 <h3 class="text-sm font-black text-white flex items-center gap-2">
-                  <span>Identitas Pengaju &amp; Saluran Notifikasi Resmi</span>
-                  <span id="badge-status-pengaju" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    ✅ Terverifikasi Master Personel
-                  </span>
+                  <span>Identitas Petugas Pengaju &amp; Saluran Notifikasi</span>
                 </h3>
-                <p class="text-xs text-slate-400 mt-0.5">Seluruh status penugasan, approval Gerbang 1, dan QR Code eLSa akan dikirimkan otomatis ke kontak berikut.</p>
+                <p class="text-xs text-slate-400 mt-0.5">Wajib diisi lengkap secara manual untuk setiap permohonan baru. Notifikasi penugasan &amp; QR eLSa dikirimkan ke kontak ini.</p>
               </div>
             </div>
-            <button type="button" onclick="bukaModalRegistrasiPersonel()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 text-xs font-semibold border border-slate-700 flex items-center gap-1.5 transition self-start md:self-auto cursor-pointer">
-              <span>✏️ Pembaruan Kontak / Pegawai Baru</span>
-            </button>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
             <div>
-              <label class="block font-semibold text-slate-400 mb-1">Nama Petugas Pengaju</label>
-              <input type="text" id="pengaju_nama_display" readonly class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-bold focus:outline-none cursor-default" value="Memuat sesi...">
+              <label class="block font-semibold text-slate-300 mb-1">Nama Petugas Pengaju <span class="text-rose-400">*</span></label>
+              <input type="text" id="pengaju_nama_display" required placeholder="Nama lengkap petugas..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-bold focus:outline-none focus:border-amber-400">
             </div>
             <div>
-              <label class="block font-semibold text-slate-400 mb-1">NIK &amp; Kantor Asal</label>
-              <input type="text" id="pengaju_kantor_display" readonly class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-300 focus:outline-none cursor-default" value="-">
+              <label class="block font-semibold text-slate-300 mb-1">NIK / ID Personel <span class="text-rose-400">*</span></label>
+              <input type="text" id="pengaju_nik_input" required placeholder="Contoh: NSR-2024-001" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono focus:outline-none focus:border-amber-400">
             </div>
             <div>
-              <label class="block font-semibold text-slate-400 mb-1">Email Notifikasi Aktif</label>
-              <div class="relative">
-                <input type="email" id="pengaju_email_display" readonly class="w-full h-10 pl-3 pr-8 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none cursor-default" value="-">
-                <span class="absolute right-2.5 top-2.5 text-emerald-400 font-bold" title="Email Terverifikasi">✓</span>
-              </div>
+              <label class="block font-semibold text-slate-300 mb-1">Jabatan Petugas <span class="text-rose-400">*</span></label>
+              <input type="text" id="pengaju_jabatan_input" required placeholder="Contoh: Admin / Penilai Pratama" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:border-amber-400">
             </div>
             <div>
-              <label class="block font-semibold text-slate-400 mb-1">Nomor WhatsApp Aktif</label>
-              <div class="relative">
-                <input type="tel" id="pengaju_wa_display" readonly class="w-full h-10 pl-3 pr-8 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none cursor-default" value="-">
-                <span class="absolute right-2.5 top-2.5 text-emerald-400 font-bold" title="WhatsApp Terverifikasi">✓</span>
-              </div>
+              <label class="block font-semibold text-slate-300 mb-1">Email Notifikasi Aktif <span class="text-rose-400">*</span></label>
+              <input type="email" id="pengaju_email_display" required placeholder="nama@email.com" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none focus:border-amber-400">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Nomor WhatsApp Aktif <span class="text-rose-400">*</span></label>
+              <input type="tel" id="pengaju_wa_display" required placeholder="0812... / 628..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none focus:border-amber-400">
             </div>
           </div>
+        </div>
         </div>
 
         <!-- 1. IDENTITAS WILAYAH & NOMOR SURAT -->
@@ -4618,43 +4611,22 @@
     };
 
     function updateTampilanPengajuKontak(sesi) {
-      if (!sesi) return;
-      const subKey = (sesi.sub || sesi.role || '').toLowerCase();
-      let matched = MASTER_PERSONEL_LOOKUP[subKey];
-      if (!matched) {
-        for (const k in MASTER_PERSONEL_LOOKUP) {
-          if (subKey.includes(k) || (sesi.wilayah && MASTER_PERSONEL_LOOKUP[k].office.includes(sesi.wilayah))) {
-            matched = MASTER_PERSONEL_LOOKUP[k];
-            break;
-          }
-        }
-      }
-
-      const namaEl = document.getElementById('pengaju_nama_display');
-      const kantorEl = document.getElementById('pengaju_kantor_display');
-      const emailEl = document.getElementById('pengaju_email_display');
-      const waEl = document.getElementById('pengaju_wa_display');
-      const badgeEl = document.getElementById('badge-status-pengaju');
-
-      if (matched) {
-        if (namaEl) namaEl.value = sesi.nama || matched.nama;
-        if (kantorEl) kantorEl.value = (matched.nik ? ('[' + matched.nik + '] ') : '') + (sesi.wilayah || matched.office);
-        if (emailEl) emailEl.value = matched.email;
-        if (waEl) waEl.value = matched.wa;
-        if (badgeEl) {
-          badgeEl.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-          badgeEl.innerText = "✅ Terverifikasi Master Personel";
-        }
-      } else {
-        if (namaEl) namaEl.value = sesi.nama || 'Petugas Pengaju';
-        if (kantorEl) kantorEl.value = sesi.wilayah || 'Kantor Pusat Jakarta';
-        if (emailEl) emailEl.value = 'notifikasi@kjppnanangrahayu.com';
-        if (waEl) waEl.value = '081298765432';
-        if (badgeEl) {
-          badgeEl.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
-          badgeEl.innerText = "⚠️ Kontak Belum Lengkap (Perlu Update)";
-        }
-      }
+      // P0 HOTFIX: HAPUS TOTAL AUTOFILL KONTAK PENGAJU DARI MASTER PERSONEL / TOKEN SESI
+      // Sesuai keputusan resmi pemilik sistem:
+      // Setiap permohonan baru harus dimulai dengan seluruh field kontak pengaju KOSONG dan MANDATORY.
+      // Dilarang mengisi otomatis nama, NIK, jabatan, email, atau nomor WhatsApp dari master personel atau token login.
+      const elNama = document.getElementById('pengaju_nama_display');
+      const elNik = document.getElementById('pengaju_nik_input');
+      const elJabatan = document.getElementById('pengaju_jabatan_input');
+      const elEmail = document.getElementById('pengaju_email_display');
+      const elWa = document.getElementById('pengaju_wa_display');
+      
+      // Jika formulir sedang dalam mode input baru (bukan edit draft), biarkan tetap kosong
+      if (elNama && !elNama.dataset.editingDraft) elNama.value = elNama.value || '';
+      if (elNik && !elNik.dataset.editingDraft) elNik.value = elNik.value || '';
+      if (elJabatan && !elJabatan.dataset.editingDraft) elJabatan.value = elJabatan.value || '';
+      if (elEmail && !elEmail.dataset.editingDraft) elEmail.value = elEmail.value || '';
+      if (elWa && !elWa.dataset.editingDraft) elWa.value = elWa.value || '';
     }
 
     function bukaModalRegistrasiPersonel() {
@@ -7223,7 +7195,40 @@
     }
 
     function handleFormSubmit(event) {
-      event.preventDefault();
+      if (event && event.preventDefault) event.preventDefault();
+
+      // P0 HOTFIX: Validasi Mandatory Kontak Pengaju Manual (Anti-Autofill)
+      const pNama = (document.getElementById('pengaju_nama_display')?.value || '').trim();
+      const pNik = (document.getElementById('pengaju_nik_input')?.value || '').trim();
+      const pJabatan = (document.getElementById('pengaju_jabatan_input')?.value || '').trim();
+      const pEmail = (document.getElementById('pengaju_email_display')?.value || '').trim();
+      const pWa = (document.getElementById('pengaju_wa_display')?.value || '').trim();
+
+      if (!pNama) {
+        alert('⚠️ INPUT MANDATORY: Nama Petugas Pengaju wajib diisi secara manual.');
+        document.getElementById('pengaju_nama_display')?.focus();
+        return;
+      }
+      if (!pNik) {
+        alert('⚠️ INPUT MANDATORY: NIK / ID Personel Petugas Pengaju wajib diisi secara manual.');
+        document.getElementById('pengaju_nik_input')?.focus();
+        return;
+      }
+      if (!pJabatan) {
+        alert('⚠️ INPUT MANDATORY: Jabatan Petugas Pengaju wajib diisi secara manual.');
+        document.getElementById('pengaju_jabatan_input')?.focus();
+        return;
+      }
+      if (!pEmail || !pEmail.includes('@') || !pEmail.includes('.')) {
+        alert('⚠️ INPUT MANDATORY: Email Notifikasi Aktif wajib diisi dengan format email valid.');
+        document.getElementById('pengaju_email_display')?.focus();
+        return;
+      }
+      if (!pWa || pWa.replace(/\D/g, '').length < 8) {
+        alert('⚠️ INPUT MANDATORY: Nomor WhatsApp Aktif wajib diisi dengan nomor valid (minimal 8 digit).');
+        document.getElementById('pengaju_wa_display')?.focus();
+        return;
+      }
 
       // Guard: Penilai dan Reviewer tidak diizinkan membuat JO
       if (userSession.role === 'PENILAI' || userSession.role === 'REVIEWER') {
@@ -7400,17 +7405,28 @@
         catatanYuridisTanah = `[PENGADAAN TANAH: ${skalaPengadaan}] Danom:${noDanom} | Penlok:${noPenlok} (Tgl:${tglPenlok}) | RTRW/KKPR:${rtrwKkpr}`;
       }
 
+// (Validasi mandatory pengaju telah dijalankan di awal fungsi)
+
       const branchPartner = isPrivateCabang ? getRekanByWilayah(wilCabang) : null;
 
       const newProject = {
         id: projectId,
         pengaju_user_id: userSession.sub || userSession.role || 'staf',
-        pengaju_nama: document.getElementById('pengaju_nama_display')?.value || userSession.nama || 'Pengaju',
-        pengaju_kantor: document.getElementById('pengaju_kantor_display')?.value || userSession.wilayah || 'Kantor Pusat Jakarta',
-        pengaju_email: document.getElementById('pengaju_email_display')?.value || 'notifikasi@kjppnanangrahayu.com',
-        pengaju_wa: document.getElementById('pengaju_wa_display')?.value || '081298765432',
-        emailPemohon: document.getElementById('pengaju_email_display')?.value || 'notifikasi@kjppnanangrahayu.com',
-        waPemohon: document.getElementById('pengaju_wa_display')?.value || '081298765432',
+        login_user_id: userSession.sub || userSession.role || 'staf',
+        pengaju_nama: pNama,
+        pengaju_nik: pNik,
+        pengaju_jabatan: pJabatan,
+        pengaju_kantor: isPrivateCabang ? (wilCabang.startsWith('Kantor Cabang') ? wilCabang : `Kantor Cabang ${wilCabang}`) : document.getElementById('kantor_wilayah').value,
+        pengaju_email: pEmail,
+        pengaju_wa: pWa,
+        namaPemohon: pNama,
+        nikPemohon: pNik,
+        jabatanPemohon: pJabatan,
+        emailPemohon: pEmail,
+        waPemohon: pWa,
+        email_verified: false,
+        whatsapp_verified: false,
+        contact_status: 'MANUAL_APPLICANT_INPUT',
         status: isPrivateCabang ? (isCabangAdmin ? "APPROVED" : "WAITING_BRANCH_ADMIN") : projectStatus,
         status_approval: (isPrivateCabang && isCabangAdmin) ? 'APPROVED_CABANG' : ((isPusat && projectStatus === 'APPROVED') ? 'APPROVED' : 'WAITING_APPROVAL'),
         approved_by: (isPrivateCabang && isCabangAdmin) ? (auth.roleLabel || userSession.roleLabel || 'ADMIN CABANG') : (isPusat ? 'Admin Pusat' : null),
@@ -11862,6 +11878,16 @@
     function resetFormulir(skipConfirm = false) {
       if (!skipConfirm && !confirm("Kosongkan seluruh isian formulir?")) return;
       document.getElementById('form-penugasan').reset();
+      const _elNama = document.getElementById('pengaju_nama_display');
+      const _elNik = document.getElementById('pengaju_nik_input');
+      const _elJab = document.getElementById('pengaju_jabatan_input');
+      const _elMail = document.getElementById('pengaju_email_display');
+      const _elWa = document.getElementById('pengaju_wa_display');
+      if (_elNama) { _elNama.value = ''; delete _elNama.dataset.editingDraft; }
+      if (_elNik) { _elNik.value = ''; delete _elNik.dataset.editingDraft; }
+      if (_elJab) { _elJab.value = ''; delete _elJab.dataset.editingDraft; }
+      if (_elMail) { _elMail.value = ''; delete _elMail.dataset.editingDraft; }
+      if (_elWa) { _elWa.value = ''; delete _elWa.dataset.editingDraft; }
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('tanggal_surat').value = today;
       document.getElementById('tanggal_penilaian').value = today;
@@ -11954,6 +11980,18 @@
 
       await periksaSesiLogin();
       inisialisasiModeAksesDariUrl();
+
+      // P0 HOTFIX: Pastikan formulir permohonan baru selalu bersih/kosong dari kontak sesi
+      const _elNamaInit = document.getElementById('pengaju_nama_display');
+      const _elNikInit = document.getElementById('pengaju_nik_input');
+      const _elJabInit = document.getElementById('pengaju_jabatan_input');
+      const _elMailInit = document.getElementById('pengaju_email_display');
+      const _elWaInit = document.getElementById('pengaju_wa_display');
+      if (_elNamaInit && !_elNamaInit.dataset.editingDraft) _elNamaInit.value = '';
+      if (_elNikInit && !_elNikInit.dataset.editingDraft) _elNikInit.value = '';
+      if (_elJabInit && !_elJabInit.dataset.editingDraft) _elJabInit.value = '';
+      if (_elMailInit && !_elMailInit.dataset.editingDraft) _elMailInit.value = '';
+      if (_elWaInit && !_elWaInit.dataset.editingDraft) _elWaInit.value = '';
 
       // Sinkronisasi data live dari Google Spreadsheet di latar belakang
       sinkronisasiDataServer(true);

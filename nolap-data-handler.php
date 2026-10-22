@@ -3490,20 +3490,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         
-        // Resolusi Profil Pengaju & Kontak Notifikasi Terverifikasi
+        // P0 HOTFIX: Validasi Mandatory & Snapshot Kontak Pengaju Manual (Anti-Autofill)
         $reqInput = is_array($payload['pengaju'] ?? null) ? $payload['pengaju'] : (is_array($payload['requester'] ?? null) ? $payload['requester'] : []);
-        $reqProfile = cariPersonelKontak($mastersDir, $reqInput['email'] ?? ($currentUser['sub'] ?? ($currentUser['role'] ?? '')), $originBranchCode);
+        $reqNama = trim($reqInput['nama'] ?? ($payload['namaPemohon'] ?? ($payload['pengaju_nama'] ?? ($payload['nama_pengaju'] ?? ''))));
+        $reqNik = trim($reqInput['nik'] ?? ($reqInput['personnel_id'] ?? ($payload['nikPemohon'] ?? ($payload['pengaju_nik'] ?? ($payload['nik_pengaju'] ?? '')))));
+        $reqJabatan = trim($reqInput['jabatan'] ?? ($payload['jabatanPemohon'] ?? ($payload['pengaju_jabatan'] ?? ($payload['jabatan_pengaju'] ?? ''))));
+        $reqEmail = trim($reqInput['email'] ?? ($payload['emailPemohon'] ?? ($payload['pengaju_email'] ?? ($payload['email_pengaju'] ?? ''))));
+        $reqWa = trim($reqInput['whatsapp_number'] ?? ($reqInput['wa'] ?? ($payload['waPemohon'] ?? ($payload['pengaju_wa'] ?? ($payload['wa_pengaju'] ?? '')))));
+
+        if (empty($reqNama)) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Data Nama Petugas Pengaju wajib diisi secara manual untuk setiap permohonan baru.',
+                'violation' => 'MISSING_APPLICANT_NAME'
+            ]);
+            exit;
+        }
+        if (empty($reqEmail) || !filter_var($reqEmail, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Data Email Notifikasi Pengaju wajib diisi dengan format email valid.',
+                'violation' => 'INVALID_APPLICANT_EMAIL'
+            ]);
+            exit;
+        }
+        if (empty($reqWa) || strlen(preg_replace('/\D/', '', $reqWa)) < 8) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Data Nomor WhatsApp Pengaju wajib diisi dengan nomor valid (minimal 8 digit).',
+                'violation' => 'INVALID_APPLICANT_WHATSAPP'
+            ]);
+            exit;
+        }
+
         $pengajuSnapshot = [
-            'personnel_id'       => $reqInput['nik'] ?? ($reqProfile['personnel_id'] ?? ($currentUser['sub'] ?? 'NSR-STAF')),
-            'user_id'            => $reqProfile['user_id'] ?? ($currentUser['sub'] ?? 'staf'),
-            'nama'               => $reqInput['nama'] ?? ($currentUser['nama'] ?? ($reqProfile['nama'] ?? $userDisplayName)),
+            'personnel_id'       => $reqNik ?: ($currentUser['sub'] ?? 'NSR-STAF'),
+            'user_id'            => $currentUser['sub'] ?? ($currentUser['role'] ?? 'staf'),
+            'login_user_id'      => $currentUser['sub'] ?? ($currentUser['role'] ?? 'unknown_user'),
+            'nama'               => $reqNama,
+            'jabatan'            => $reqJabatan,
             'office_id'          => $originBranchCode,
             'office_name'        => $originBranchId,
-            'email'              => $reqInput['email'] ?? ($payload['emailPemohon'] ?? ($payload['emailPengaju'] ?? ($payload['pengaju_email'] ?? ($reqProfile['email'] ?? 'notifikasi@kjppnanangrahayu.com')))),
-            'email_verified'     => !empty($reqProfile['email_verified']),
-            'whatsapp_number'    => normalisasiNomorWhatsApp($reqInput['whatsapp_number'] ?? ($payload['waPemohon'] ?? ($payload['waPengaju'] ?? ($payload['pengaju_wa'] ?? ($reqProfile['whatsapp_number'] ?? '081298765432'))))),
-            'whatsapp_verified'  => !empty($reqProfile['whatsapp_verified']),
-            'contact_status'     => $reqProfile['contact_status'] ?? 'VERIFIED',
+            'email'              => $reqEmail,
+            'email_verified'     => false,
+            'whatsapp_number'    => normalisasiNomorWhatsApp($reqWa),
+            'whatsapp_verified'  => false,
+            'contact_status'     => 'MANUAL_APPLICANT_INPUT',
             'snapshot_timestamp' => $nowWib
         ];
 
@@ -3560,6 +3595,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'statusTandaTangan' => 'BELUM_TERBIT',
                 'statusAkhir' => 'DRAFT'
             ],
+            'pengaju_nama' => $reqNama,
+            'pengaju_nik' => $reqNik,
+            'pengaju_jabatan' => $reqJabatan,
+            'pengaju_email' => $reqEmail,
+            'pengaju_wa' => normalisasiNomorWhatsApp($reqWa),
+            'contact_status' => 'MANUAL_APPLICANT_INPUT',
+            'login_user_id' => $currentUser['sub'] ?? ($currentUser['role'] ?? 'unknown_user'),
+            'email_verified' => false,
+            'whatsapp_verified' => false,
             'pengaju' => $pengajuSnapshot
         ];
 
@@ -3592,6 +3636,7 @@ Mohon lakukan review kepatuhan melalui Portal OPINI NSR.
             'message' => 'Pengajuan Lingkup Penugasan & Mitigasi Awal berhasil didaftarkan.',
             'idPenugasan' => $idPenugasan,
             'status' => $statusAwal,
+            'data' => $newRecord,
             'emailNotification' => $mailJob ? 'ANTRIAN' : 'GAGAL',
             'waManualLink' => $waLink
         ]);
@@ -5081,9 +5126,34 @@ Audit Log ID: {$auditLogId}"
     // B. TINDAKAN SUBMIT PENGAJUAN BARU
     // =========================================================================
     if ($action === 'submitRequest') {
-        if (!isset($payload['namaKlien']) || empty(trim($payload['namaKlien']))) {
+        $namaKlien = trim($payload['namaKlien'] ?? ($payload['nama_klien'] ?? ''));
+        if (empty($namaKlien)) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Data pengajuan tidak lengkap']);
+            echo json_encode(['success' => false, 'error' => 'Data pengajuan tidak lengkap: Nama Klien wajib diisi']);
+            exit;
+        }
+        $payload['namaKlien'] = $namaKlien;
+
+        // P0 HOTFIX: Validasi Mandatory Kontak Pemohon Manual (Anti-Autofill)
+        $namaPemohon = trim($payload['namaPemohon'] ?? ($payload['pengaju_nama'] ?? ($payload['nama_pengaju'] ?? '')));
+        $emailPemohon = trim($payload['emailPemohon'] ?? ($payload['pengaju_email'] ?? ($payload['email_pengaju'] ?? '')));
+        $waPemohon = trim($payload['waPemohon'] ?? ($payload['pengaju_wa'] ?? ($payload['wa_pengaju'] ?? '')));
+        $nikPemohon = trim($payload['nikPemohon'] ?? ($payload['pengaju_nik'] ?? ($payload['nik_pengaju'] ?? '')));
+        $jabatanPemohon = trim($payload['jabatanPemohon'] ?? ($payload['pengaju_jabatan'] ?? ($payload['jabatan_pengaju'] ?? '')));
+
+        if (empty($namaPemohon)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Data Nama Pemohon (Petugas Pengaju) wajib diisi secara manual.']);
+            exit;
+        }
+        if (empty($emailPemohon) || !filter_var($emailPemohon, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Data Email Pemohon wajib diisi dengan format email valid.']);
+            exit;
+        }
+        if (empty($waPemohon) || strlen(preg_replace('/\D/', '', $waPemohon)) < 8) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Data Nomor WhatsApp Pemohon wajib diisi dengan nomor valid (minimal 8 digit).']);
             exit;
         }
 
@@ -5165,7 +5235,15 @@ Audit Log ID: {$auditLogId}"
             'request_status'               => (!empty($payload['isBooking']) || ($payload['modePengajuan'] ?? '') === 'BOOKING') ? 'BOOKING DIAJUKAN' : 'DIAJUKAN',
             'kewenanganTtd'                => $requestedSigningOffice,
             'kodeKantorTtd'                => $signingOfficeCode,
-            'namaPemohon'                  => $payload['namaPemohon'] ?? $userDisplayName,
+            'namaPemohon'                  => $namaPemohon,
+            'nikPemohon'                   => $nikPemohon,
+            'jabatanPemohon'               => $jabatanPemohon,
+            'emailPemohon'                 => $emailPemohon,
+            'waPemohon'                    => normalisasiNomorWhatsApp($waPemohon),
+            'email_verified'               => false,
+            'whatsapp_verified'            => false,
+            'contact_status'               => 'MANUAL_APPLICANT_INPUT',
+            'login_user_id'                => $currentUser['sub'] ?? ($currentUser['role'] ?? 'unknown_user'),
             'timestamp'                    => date('Y-m-d H:i:s'),
             'dpp'                          => $dpp,
             'nominalPpn'                   => $ppn,

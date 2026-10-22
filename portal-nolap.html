@@ -419,42 +419,40 @@
               </select>
             </div>
 
-            <!-- NOTIFIKASI & IDENTITAS PENGAJU (SSOT MASTER PERSONEL) -->
+            <!-- NOTIFIKASI & IDENTITAS PENGAJU (INPUT MANUAL WAJIB) -->
             <div class="col-span-1 sm:col-span-2 lg:col-span-3 p-3.5 bg-slate-900 border border-slate-700 rounded-xl mb-1 shadow-md">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-amber-400 font-bold text-base">👤</span>
-                  <div>
-                    <span class="text-xs font-bold text-white">Identitas Pengaju &amp; Saluran Notifikasi Resmi</span>
-                    <div id="badge-status-pengaju-nolap" class="mt-0.5 text-[10px] text-emerald-400 font-semibold">
-                      ✅ Terverifikasi Master Personel
-                    </div>
-                  </div>
+              <div class="flex items-center gap-2">
+                <span class="text-amber-400 font-bold text-base">👤</span>
+                <div>
+                  <span class="text-xs font-bold text-white">Identitas Petugas Pengaju Permohonan (Wajib Diisi Lengkap)</span>
+                  <p class="text-[10px] text-slate-400 mt-0.5">Wajib diisi secara manual untuk setiap permohonan baru. Notifikasi NoLap &amp; QR eLSa dikirimkan ke kontak ini.</p>
                 </div>
-                <button type="button" onclick="bukaModalRegistrasiPersonel()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-semibold cursor-pointer self-start sm:self-auto transition">
-                  ✏️ Pembaruan Kontak / Registrasi Personel
-                </button>
               </div>
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Nama Pemohon (Penilai/Staf) *</label>
-              <input type="text" id="f-pemohon" required placeholder="Contoh: Zahra / Tedi Setiadi" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <label class="block font-semibold text-slate-300 mb-1">Nama Pemohon (Penilai/Staf) <span class="text-rose-400">*</span></label>
+              <input type="text" id="f-pemohon" required placeholder="Nama lengkap pemohon..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Jabatan Pemohon *</label>
-              <input type="text" id="f-jabatan" required placeholder="Contoh: Admin / Penilai Muda" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <label class="block font-semibold text-slate-300 mb-1">NIK / ID Personel <span class="text-rose-400">*</span></label>
+              <input type="text" id="f-nik-pemohon" required placeholder="Contoh: NSR-2024-001" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono focus:outline-none focus:border-amber-400">
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Email Pemohon *</label>
-              <input type="email" id="f-email-pemohon" required placeholder="email@kjppnanangrahayu.com" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <label class="block font-semibold text-slate-300 mb-1">Jabatan Pemohon <span class="text-rose-400">*</span></label>
+              <input type="text" id="f-jabatan" required placeholder="Contoh: Admin / Penilai Pratama" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Email Pemohon <span class="text-rose-400">*</span></label>
+              <input type="email" id="f-email-pemohon" required placeholder="nama@email.com" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-400">
             </div>
 
             <div class="col-span-1 sm:col-span-2 lg:col-span-3">
-              <label class="block font-semibold text-slate-300 mb-1">WhatsApp Pemohon *</label>
-              <input type="tel" id="f-wa-pemohon" required placeholder="0812... / 628..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+              <label class="block font-semibold text-slate-300 mb-1">WhatsApp Pemohon <span class="text-rose-400">*</span></label>
+              <input type="tel" id="f-wa-pemohon" required placeholder="0812... / 628..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-400">
             </div>
 
             <!-- BANNER PERINGATAN EKSKLUSIVITAS PENILAI HARIAN (P2PK COMPLIANCE) -->
@@ -14476,42 +14474,18 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
         onCabangChange();
       }
 
-      const subKey = (sesi.sub || sesi.role || sesi.username || '').toLowerCase();
-      let matched = typeof MASTER_PERSONEL_LOOKUP !== 'undefined' ? MASTER_PERSONEL_LOOKUP[subKey] : null;
-      if (!matched && typeof MASTER_PERSONEL_LOOKUP !== 'undefined') {
-        for (const k in MASTER_PERSONEL_LOOKUP) {
-          if (subKey.includes(k) || (sesi.wilayah && MASTER_PERSONEL_LOOKUP[k].office.includes(sesi.wilayah)) || (sesi.cabang && MASTER_PERSONEL_LOOKUP[k].office.includes(sesi.cabang))) {
-            matched = MASTER_PERSONEL_LOOKUP[k];
-            break;
-          }
-        }
-      }
-
+      // P0 HOTFIX: HAPUS TOTAL AUTOFILL KONTAK PENGAJU DARI MASTER PERSONEL / TOKEN SESI
       const elPemohon = document.getElementById('f-pemohon');
+      const elNik = document.getElementById('f-nik-pemohon');
       const elJabatan = document.getElementById('f-jabatan');
       const elEmail = document.getElementById('f-email-pemohon');
       const elWa = document.getElementById('f-wa-pemohon');
-      const badgePengaju = document.getElementById('badge-status-pengaju-nolap');
 
-      if (matched) {
-        if (elPemohon) elPemohon.value = sesi.nama || matched.nama;
-        if (elJabatan) elJabatan.value = sesi.jabatan || 'Staf Operasional';
-        if (elEmail) elEmail.value = matched.email;
-        if (elWa) elWa.value = matched.wa;
-        if (badgePengaju) {
-          badgePengaju.className = "mt-0.5 text-[10px] text-emerald-400 font-semibold";
-          badgePengaju.innerText = "✅ Terverifikasi Master Personel (" + matched.email + " | " + matched.wa + ")";
-        }
-      } else {
-        if (elPemohon && sesi.nama) elPemohon.value = sesi.nama;
-        if (elJabatan && sesi.jabatan) elJabatan.value = sesi.jabatan;
-        if (elEmail && !elEmail.value) elEmail.value = 'notifikasi@kjppnanangrahayu.com';
-        if (elWa && !elWa.value) elWa.value = '081298765432';
-        if (badgePengaju) {
-          badgePengaju.className = "mt-0.5 text-[10px] text-amber-400 font-semibold";
-          badgePengaju.innerText = "⚠️ Kontak Belum Lengkap (Perlu Pembaruan)";
-        }
-      }
+      if (elPemohon && !elPemohon.dataset.editingDraft) elPemohon.value = '';
+      if (elNik && !elNik.dataset.editingDraft) elNik.value = '';
+      if (elJabatan && !elJabatan.dataset.editingDraft) elJabatan.value = '';
+      if (elEmail && !elEmail.dataset.editingDraft) elEmail.value = '';
+      if (elWa && !elWa.dataset.editingDraft) elWa.value = '';
     }
 
     function aktifkanPanelUtama() {
@@ -14561,15 +14535,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       // Sinkronisasi identitas sesi pengguna & kewenangan TTD
       inisialisasiSesiPengguna(sesiAktif);
 
-      // Auto-prefill data pemohon jika ada dari identitas NIK karyawan
-      const elPemohon = document.getElementById('f-pemohon');
-      const elJabatan = document.getElementById('f-jabatan');
-      if (elPemohon && sesiAktif.nama && !elPemohon.value) {
-        elPemohon.value = sesiAktif.nama;
-      }
-      if (elJabatan && sesiAktif.jabatan && !elJabatan.value) {
-        elJabatan.value = sesiAktif.jabatan;
-      }
+      // P0 HOTFIX: Double prefill pemohon dihapus total - formulir tetap kosong
 
       muatUlangTabel();
       updateLivePreview();
@@ -15261,12 +15227,48 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
     }
 
     async function ajukanPermohonanNoLap(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
 
       const btn = document.getElementById('btn-submit-pengajuan');
-      const textOriginal = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerText = 'Memproses Pengajuan...';
+      const textOriginal = btn ? btn.innerHTML : 'Kirim Permohonan NoLap';
+
+      // P0 HOTFIX: Validasi Mandatory Kontak Pemohon Manual (Anti-Autofill)
+      const pemohon = (document.getElementById('f-pemohon')?.value || '').trim();
+      const nikPemohon = (document.getElementById('f-nik-pemohon')?.value || '').trim();
+      const jabatan = (document.getElementById('f-jabatan')?.value || '').trim();
+      const emailPemohon = (document.getElementById('f-email-pemohon')?.value || '').trim();
+      const waPemohon = (document.getElementById('f-wa-pemohon')?.value || '').trim();
+
+      if (!pemohon) {
+        alert('⚠️ INPUT MANDATORY: Nama Pemohon (Penilai/Staf) wajib diisi secara manual.');
+        document.getElementById('f-pemohon')?.focus();
+        return;
+      }
+      if (!nikPemohon) {
+        alert('⚠️ INPUT MANDATORY: NIK / ID Personel Pemohon wajib diisi secara manual.');
+        document.getElementById('f-nik-pemohon')?.focus();
+        return;
+      }
+      if (!jabatan) {
+        alert('⚠️ INPUT MANDATORY: Jabatan Pemohon wajib diisi secara manual.');
+        document.getElementById('f-jabatan')?.focus();
+        return;
+      }
+      if (!emailPemohon || !emailPemohon.includes('@') || !emailPemohon.includes('.')) {
+        alert('⚠️ INPUT MANDATORY: Email Pemohon wajib diisi dengan format email yang valid.');
+        document.getElementById('f-email-pemohon')?.focus();
+        return;
+      }
+      if (!waPemohon || waPemohon.replace(/\D/g, '').length < 8) {
+        alert('⚠️ INPUT MANDATORY: WhatsApp Pemohon wajib diisi dengan nomor yang valid (minimal 8 digit).');
+        document.getElementById('f-wa-pemohon')?.focus();
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Memproses Pengajuan...';
+      }
 
       // Pastikan perhitungan finansial up to date
       hitungFinansialNoLap();
@@ -15290,10 +15292,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       const signingOfficeCode = optKewenangan?.getAttribute('data-kode') || (requestedSigningOffice === 'PUSAT' ? '2.0160-00' : originBranchCode);
       const cabang = originBranchId;
 
-      const pemohon = document.getElementById('f-pemohon').value.trim();
-      const jabatan = document.getElementById('f-jabatan').value.trim();
-      const emailPemohon = document.getElementById('f-email-pemohon').value.trim();
-      const waPemohon = document.getElementById('f-wa-pemohon').value.trim();
+// (Validasi mandatory pemohon telah dijalankan di awal fungsi)
       const klien = document.getElementById('f-klien').value.trim();
       const statusKlien = document.getElementById('f-status-klien').value;
       const alamatKlien = document.getElementById('f-alamat-klien').value.trim();
@@ -15404,9 +15403,14 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
         idempotencyKey: idempotencyKey,
         cabang: cabang,
         namaPemohon: pemohon,
+        nikPemohon: nikPemohon,
         jabatanPemohon: jabatan,
         emailPemohon: emailPemohon,
         waPemohon: waPemohon,
+        email_verified: false,
+        whatsapp_verified: false,
+        contact_status: 'MANUAL_APPLICANT_INPUT',
+        login_user_id: (currentUser && (currentUser.sub || currentUser.role)) || 'staf',
         pengaju_user_id: sesiAktif?.sub || sesiAktif?.role || 'staf',
         pengaju_nama: pemohon,
         pengaju_kantor: originBranchId,

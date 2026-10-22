@@ -168,7 +168,7 @@ async function runMasterSuite() {
         penilaiPublikId: 'nanang_penilai',
         penilaiPublikDitunjuk: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
         appraiser_license_code: '0218',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
+        nama_pengaju: 'Petugas Pengaju Makassar', email_pengaju: 'pengaju.mks@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
       }
     });
     assert(tSubmit.status === 200 && tSubmit.data.status === 'MENUNGGU_SPM_AWAL', 'Gerbang 1 didaftarkan');
@@ -238,7 +238,7 @@ async function runMasterSuite() {
         penilaiPublikId: 'nanang_penilai',
         penilaiPublikDitunjuk: 'Ir. Nanang Rahayu',
         appraiser_license_code: '0218',
-        checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
+        nama_pengaju: 'Petugas Pengaju Makassar', email_pengaju: 'pengaju.mks@kjppnanangrahayu.com', wa_pengaju: '081299998888', checklistAwal: { konflikKepentingan: false, redFlagLegalitas: false }
       }
     });
     await request('?action=reviewDannyGerbang1', { method: 'POST', token: TOKENS.SPM, body: { idPenugasan: testIdDup, keputusan: 'SETUJU', catatan: 'OK' } });
