@@ -927,6 +927,78 @@ $OFFICIAL_TOKEN_HASHES = [
         'permissions'       => ['report.sign', 'opr.view']
     ],
     // Token Header: NSR-PENILAI-DENI-2026 (Alias Kompatibilitas)
+        // Token Header: NSR-PENILAI-HERNITA-2026 (Penilai Publik - Hernita Cabang Padang)
+    '502ff145897ce4c1914314d46ce3b16a048b893e434d07c9b79b4398aa4857d3' => [
+        'sub'               => 'hernita_penilai',
+        'branch'            => 'Padang',
+        'displayName'       => 'Hernita, S.Si., MAPPI (Cert.)',
+        'nama'              => 'Hernita, S.Si., MAPPI (Cert.)',
+        'email'             => 'hernita@kjppnanangrahayu.com',
+        'izinMenkeu'        => 'PS-1.15.00046',
+        'mappi'             => '09-S-02262',
+        'role'              => 'PENILAI_PUBLIK',
+        'roleLabel'         => 'Rekan / Pimpinan Cabang Padang',
+        'wilayah'           => 'Padang',
+        'wilayahLabel'      => 'Kantor Cabang Padang',
+        'wilayahCode'       => 'PDG',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'permissions'       => ['report.sign', 'opr.view']
+    ],
+    // Token Header: NSR-PENILAI-AMIN-2026 (Penilai Publik - Muhammad Amin Sade Cabang Makassar)
+    '3842087eaf02e72c7508189b4175be5f73e239bdb7a16dbd79e3e54c7e0e02b3' => [
+        'sub'               => 'amin_penilai',
+        'branch'            => 'Makassar',
+        'displayName'       => 'Muhammad Amin Sade, S.M., MAPPI (Cert.)',
+        'nama'              => 'Muhammad Amin Sade, S.M., MAPPI (Cert.)',
+        'email'             => 'amin.sade@kjppnanangrahayu.com',
+        'izinMenkeu'        => 'PS-1.16.00126',
+        'mappi'             => '09-S-02425',
+        'role'              => 'PENILAI_PUBLIK',
+        'roleLabel'         => 'Rekan / Pimpinan Cabang Makassar',
+        'wilayah'           => 'Makassar',
+        'wilayahLabel'      => 'Kantor Cabang Makassar',
+        'wilayahCode'       => 'MKS',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'permissions'       => ['report.sign', 'opr.view']
+    ],
+    // Token Header: NSR-PENILAI-DHARMA-2026 (Penilai Publik - Dharma Priyanto Cabang Palembang)
+    '7b1f205166447b1b859c91a7ec60b458d98adf5e5dd2448df7f23fdd93b2f3ab' => [
+        'sub'               => 'dharma_penilai',
+        'branch'            => 'Palembang',
+        'displayName'       => 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)',
+        'nama'              => 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)',
+        'email'             => 'dharma.priyanto@kjppnanangrahayu.com',
+        'izinMenkeu'        => 'PS-1.19.00249',
+        'mappi'             => '16-S-06984',
+        'role'              => 'PENILAI_PUBLIK',
+        'roleLabel'         => 'Rekan / Pimpinan Cabang Palembang',
+        'wilayah'           => 'Palembang',
+        'wilayahLabel'      => 'Kantor Cabang Palembang',
+        'wilayahCode'       => 'PLB',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'permissions'       => ['report.sign', 'opr.view']
+    ],
     '8b5420d9942829d62967b099a1049a1f36e05d173eac6cd6217fbfe403004c96' => [
         'sub'               => 'deni_penilai',
         'branch'            => 'PUSAT',
@@ -974,6 +1046,72 @@ $OFFICIAL_TOKEN_HASHES = [
         'permissions'       => ['lp.issue', 'nolap.issue', 'opr.view', 'opr.submit']
     ],
     // Token Header: NSR-ADMIN-BDG-2026 (Admin Cabang Bandung)
+        // Token Header: NSR-ADMIN-PDG-2026 (Admin Cabang Padang)
+    'f63bdd87f28f4056a4908dce3af971bacacd9f30c01bed71937c2d3e07c5802f' => [
+        'sub'               => 'admin_cabang_pdg',
+        'branch'            => 'Padang',
+        'displayName'       => 'Admin Kantor Cabang Padang',
+        'nama'              => 'Admin Kantor Cabang Padang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Padang',
+        'wilayah'           => 'Padang',
+        'wilayahLabel'      => 'Kantor Cabang Padang',
+        'wilayahCode'       => 'PDG',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'kodeKemenkeu'      => '2.0160-02',
+        'permissions'       => ['branch.submit', 'branch.view', 'opr.view', 'opr.submit']
+    ],
+    // Token Header: NSR-ADMIN-MKS-2026 (Admin Cabang Makassar)
+    'a42251700723119e220d38ac7d4c4eb4326024b700ed16f67a5c277e91b4e84b' => [
+        'sub'               => 'admin_cabang_mks',
+        'branch'            => 'Makassar',
+        'displayName'       => 'Admin Kantor Cabang Makassar',
+        'nama'              => 'Admin Kantor Cabang Makassar',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Makassar',
+        'wilayah'           => 'Makassar',
+        'wilayahLabel'      => 'Kantor Cabang Makassar',
+        'wilayahCode'       => 'MKS',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'kodeKemenkeu'      => '2.0160-03',
+        'permissions'       => ['branch.submit', 'branch.view', 'opr.view', 'opr.submit']
+    ],
+    // Token Header: NSR-ADMIN-PLB-2026 (Admin Cabang Palembang)
+    '1372dacd912b7b01c3261d4cc5acdc24ec7c78aba808a2eae105ec9052cf3a79' => [
+        'sub'               => 'admin_cabang_plb',
+        'branch'            => 'Palembang',
+        'displayName'       => 'Admin Kantor Cabang Palembang',
+        'nama'              => 'Admin Kantor Cabang Palembang',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Palembang',
+        'wilayah'           => 'Palembang',
+        'wilayahLabel'      => 'Kantor Cabang Palembang',
+        'wilayahCode'       => 'PLB',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'kodeKemenkeu'      => '2.0160-05',
+        'permissions'       => ['branch.submit', 'branch.view', 'opr.view', 'opr.submit']
+    ],
     'abbb9d2669adcecef0d82399492141940292dd0eaf358066adacacfb1d0c3545' => [
         'sub'               => 'admin_cabang_bdg',
         'branch'            => 'Bandung',
@@ -1100,6 +1238,7 @@ if (!file_exists($dualGateDbFile) && file_exists(__DIR__ . '/dual_gate_database.
     $dualGateDbFile = __DIR__ . '/dual_gate_database.json';
 }
 $mailQueueFile = $dataDir . '/mail_queue.json';
+$mastersDir = $dataDir . '/masters';
 
 // P0 Addendum: Master Kode Kantor & Cabang Resmi Kemenkeu RI (PPPK)
 $OFFICIAL_BRANCH_CODES = [
@@ -1180,6 +1319,44 @@ function muatMasterLegalRegulations($mastersDir) {
 function muatMasterDualGateConsistency($mastersDir) {
     $f = $mastersDir . '/master_dual_gate_consistency.json';
     return file_exists($f) ? (json_decode(file_get_contents($f), true) ?: []) : [];
+}
+
+function muatMasterPenilaiPublik($mastersDir) {
+    $f = $mastersDir . '/master_penilai_publik.json';
+    return file_exists($f) ? (json_decode(file_get_contents($f), true) ?: []) : [];
+}
+
+function cariMasterPenilaiPublik($mastersDir, $identifier) {
+    $penilais = muatMasterPenilaiPublik($mastersDir);
+    if (empty($penilais)) {
+        $penilais = [
+            ['id' => 'nanang_penilai', 'nama' => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', 'izin_segmen' => '0218', 'klasifikasi' => 'P', 'email' => 'nanang.rahayu@kjppnanangrahayu.com'],
+            ['id' => 'deni_penilai', 'nama' => 'Deni Siswandi, S.T., MAPPI (Cert.)', 'izin_segmen' => '00581', 'klasifikasi' => 'P', 'email' => 'deni.siswandi@kjppnanangrahayu.com'],
+            ['id' => 'hernita_penilai', 'nama' => 'Hernita, S.Si., MAPPI (Cert.)', 'izin_segmen' => '00046', 'klasifikasi' => 'PS', 'email' => 'hernita@kjppnanangrahayu.com'],
+            ['id' => 'amin_penilai', 'nama' => 'Muhammad Amin Sade, S.M., MAPPI (Cert.)', 'izin_segmen' => '00126', 'klasifikasi' => 'PS', 'email' => 'amin.sade@kjppnanangrahayu.com'],
+            ['id' => 'dharma_penilai', 'nama' => 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)', 'izin_segmen' => '00249', 'klasifikasi' => 'PS', 'email' => 'dharma.priyanto@kjppnanangrahayu.com']
+        ];
+    }
+    $cleanId = strtolower(trim((string)$identifier));
+    if (empty($cleanId)) return $penilais[1]; // default deni_penilai
+
+    foreach ($penilais as $p) {
+        $pid = strtolower($p['id'] ?? '');
+        $pnm = strtolower($p['nama'] ?? '');
+        $palt = strtolower($p['nama_alt'] ?? '');
+        $psng = strtolower($p['nama_singkat'] ?? '');
+        $piz = strtolower($p['izin_segmen'] ?? '');
+
+        if ($pid === $cleanId || $pnm === $cleanId || $palt === $cleanId || $psng === $cleanId || $piz === $cleanId) {
+            return $p;
+        }
+        if (strpos($cleanId, 'nanang') !== false && strpos($pid, 'nanang') !== false) return $p;
+        if (strpos($cleanId, 'deni') !== false && strpos($pid, 'deni') !== false) return $p;
+        if (strpos($cleanId, 'hernita') !== false && strpos($pid, 'hernita') !== false) return $p;
+        if (strpos($cleanId, 'amin') !== false && strpos($pid, 'amin') !== false) return $p;
+        if (strpos($cleanId, 'dharma') !== false && strpos($pid, 'dharma') !== false) return $p;
+    }
+    return $penilais[1];
 }
 
 function muatMasterGoogleDrive($mastersDir) {
@@ -2007,7 +2184,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'riskRegister' => muatMasterRiskRegister($mastersDir),
                 'spiKepiCompliance' => muatMasterSpiKepi($mastersDir),
                 'legalRegulations' => muatMasterLegalRegulations($mastersDir),
-                'dualGateConsistency' => muatMasterDualGateConsistency($mastersDir)
+                'dualGateConsistency' => muatMasterDualGateConsistency($mastersDir),
+                'penilaiPublik' => muatMasterPenilaiPublik($mastersDir)
             ]
         ]);
         exit;
@@ -2331,8 +2509,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tujuan = $payload['tujuanPenilaian'] ?? 'Agunan Perbankan';
         $objek = $payload['jenisObjek'] ?? 'Tanah dan Bangunan';
         $klien = $payload['namaKlien'] ?? 'Bank Rekanan';
-        $penilaiDitunjuk = $payload['penilaiPublikDitunjuk'] ?? 'Deni Siswandi, S.T., MAPPI (Cert.)';
-        $penilaiId = $payload['penilaiPublikId'] ?? 'deni_penilai';
+        $penilaiId = $payload['penilaiPublikId'] ?? '';
+        $rawDitunjuk = $payload['penilaiPublikDitunjuk'] ?? '';
+        $pObj = cariMasterPenilaiPublik($mastersDir, $penilaiId ?: $rawDitunjuk);
+        $penilaiId = $pObj['id'] ?? 'deni_penilai';
+        $penilaiDitunjuk = $payload['penilaiPublikDitunjuk'] ?? ($pObj['nama'] ?? 'Deni Siswandi, S.T., MAPPI (Cert.)');
         $checklist = $payload['checklistAwal'] ?? [];
 
         // Evaluasi Red Flag & Konflik Kepentingan
@@ -2346,7 +2527,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $originBranchCode = $payload['origin_branch_code'] ?? ($OFFICIAL_BRANCH_CODES[$originBranchId] ?? '2.0160-00');
         $requestedSigningOffice = strtoupper(trim($payload['requested_signing_office'] ?? ($originBranchId === 'Pusat' ? 'PUSAT' : 'PUSAT')));
         $signingOfficeCode = ($requestedSigningOffice === 'PUSAT') ? '2.0160-00' : ($payload['signing_office_code'] ?? ($OFFICIAL_BRANCH_CODES[$originBranchId] ?? '2.0160-00'));
-        $appraiserLicenseCode = $payload['appraiser_license_code'] ?? (($penilaiId === 'nanang_penilai') ? '0218' : '00581');
+        $appraiserLicenseCode = $payload['appraiser_license_code'] ?? ($pObj['izin_segmen'] ?? '00581');
 
         $newRecord = [
             'idPenugasan' => $idPenugasan,
@@ -2784,6 +2965,52 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
             exit;
         }
 
+        // Audit & Verifikasi Kesesuaian Penilai Publik Gerbang 1 vs Gerbang 2
+        $penilaiBaruId = trim($payload['penilaiPublikId'] ?? '');
+        $assignedG1PenilaiId = $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '';
+        $isPenilaiChanged = (!empty($penilaiBaruId) && $penilaiBaruId !== $assignedG1PenilaiId);
+
+        if ($isPenilaiChanged) {
+            $alasanPerubahan = trim($payload['alasanPerubahanPJ'] ?? $payload['justifikasiPerubahanPJ'] ?? '');
+            if (empty($alasanPerubahan)) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Perubahan Penilai Publik Penanggung Jawab wajib menyertakan alasan justifikasi profesional dan dicatat ke audit trail.',
+                    'violation' => 'UNJUSTIFIED_APPRAISER_CHANGE'
+                ]);
+                exit;
+            }
+
+            $pBaruObj = cariMasterPenilaiPublik($mastersDir, $penilaiBaruId);
+            $objekPenilaian = $dgRecords[$targetIdx]['jenisObjek'] ?? '';
+            $isObjekSederhana = (stripos($objekPenilaian, 'sederhana') !== false || stripos($objekPenilaian, 'rumah tinggal') !== false);
+            if (($pBaruObj['klasifikasi'] ?? '') === 'PS' && !$isObjekSederhana && (stripos($objekPenilaian, 'komersial') !== false || stripos($objekPenilaian, 'industri') !== false)) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error' => "Ketidaksesuaian Klasifikasi Izin: Penilai Publik {$pBaruObj['nama']} memiliki izin PS (Properti Sederhana) yang tidak berwenang untuk objek {$objekPenilaian}.",
+                    'violation' => 'INVALID_APPRAISER_CLASSIFICATION'
+                ]);
+                exit;
+            }
+
+            $dgRecords[$targetIdx]['perubahanPenanggungJawabHistory'][] = [
+                'waktu' => $nowWib,
+                'actor' => $currentUser['nama'] ?? $userDisplayName,
+                'penilaiLamaId' => $assignedG1PenilaiId,
+                'penilaiLamaNama' => $dgRecords[$targetIdx]['penugasan']['penilaiPublikDitunjuk'] ?? '',
+                'penilaiBaruId' => $pBaruObj['id'],
+                'penilaiBaruNama' => $pBaruObj['nama'],
+                'alasan' => $alasanPerubahan
+            ];
+
+            $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] = $pBaruObj['id'];
+            $dgRecords[$targetIdx]['penugasan']['penilaiPublikDitunjuk'] = $pBaruObj['nama'];
+            $dgRecords[$targetIdx]['penugasan']['appraiserLicenseCode'] = $pBaruObj['izin_segmen'];
+            $dgRecords[$targetIdx]['penugasan']['penilaiKlasifikasi'] = $pBaruObj['klasifikasi'];
+        }
+
         $checklistAkhir = $payload['checklistAkhir'] ?? [];
         $deltaAnalysis = $payload['deltaAnalysis'] ?? [];
 
@@ -3086,7 +3313,9 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
             }
             $seq = $candidateSeq;
             $romawiBulan = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][(int)date('n') - 1];
-            $penilaiIzin = $dgRecords[$targetIdx]['penugasan']['appraiserLicenseCode'] ?? ((($dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '') === 'nanang_penilai') ? '0218' : '00581');
+            $targetPenilaiId = $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '';
+            $pObjResolved = cariMasterPenilaiPublik($mastersDir, $targetPenilaiId);
+            $penilaiIzin = $dgRecords[$targetIdx]['penugasan']['appraiserLicenseCode'] ?? ($pObjResolved['izin_segmen'] ?? '00581');
             $noDefinitif = "{$seq}/{$signingCode}/PI/07/{$penilaiIzin}/1/{$romawiBulan}/" . date('Y');
         }
 
@@ -3162,7 +3391,8 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
 
         // Notifikasi ke Penilai Publik yang Ditugaskan
         $penilaiSub = $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '';
-        $emailPenilai = ($penilaiSub === 'nanang_penilai') ? 'nanang.rahayu@kjppnanangrahayu.com' : 'deni.siswandi@kjppnanangrahayu.com';
+        $pObjSub = cariMasterPenilaiPublik($mastersDir, $penilaiSub);
+        $emailPenilai = $pObjSub['email'] ?? (($penilaiSub === 'nanang_penilai') ? 'nanang.rahayu@kjppnanangrahayu.com' : 'deni.siswandi@kjppnanangrahayu.com');
         antrekanEmailDualGate($mailQueueFile, [
             'event'         => 'NOLAP_ISSUED_READY_SIGN',
             'idPenugasan'   => $idPenugasan,
