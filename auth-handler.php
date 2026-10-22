@@ -256,7 +256,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'canAccessKwitansi' => true,
         'seeFee'            => true,
         'mode'              => 'CABANG',
-        'kodeKemenkeu'      => '2.19.0160-03',
+        'kodeKemenkeu'      => '2.0160-05',
         'tokenHash'         => '94a006da9c2e0ba0768fc37d6e17c96c718fe47c4119b7bb0b717d8a57b692ce'
     ],
     '291e2e008eccedbb76fa1e55534fb2bd7e96f56e4e47b2e615e7f88a734ac1ff' => [ // NSR-STAGE-MKS-02
@@ -275,7 +275,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'canAccessKwitansi' => true,
         'seeFee'            => true,
         'mode'              => 'CABANG',
-        'kodeKemenkeu'      => '2.19.0160-02',
+        'kodeKemenkeu'      => '2.0160-05',
         'tokenHash'         => '291e2e008eccedbb76fa1e55534fb2bd7e96f56e4e47b2e615e7f88a734ac1ff'
     ],
     'a3eafd84b50efa1b7992bf278ef1621fa9bea60eadcb67edff62a6b92387633b' => [ // NSR-STAGE-PDG-01
@@ -294,7 +294,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'canAccessKwitansi' => true,
         'seeFee'            => true,
         'mode'              => 'CABANG',
-        'kodeKemenkeu'      => '2.19.0160-01',
+        'kodeKemenkeu'      => '2.0160-05',
         'tokenHash'         => 'a3eafd84b50efa1b7992bf278ef1621fa9bea60eadcb67edff62a6b92387633b'
     ],
     '316c8000130d7798e0dff3cfc7053d661616598a7121d679f75a8d4d3d43625b' => [ // NSR-STAGE-BDG-04
@@ -704,7 +704,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'db6da2b4cde952d408263966d2106faebe6ff26c5df15656961d5c1e64ab0495',
-        'kodeKemenkeu'      => '2.0160-01'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     'db6da2b4cde952d408263966d2106faebe6ff26c5df15656961d5c1e64ab0495' => [
         'sub'               => 'cabang_pdg',
@@ -724,7 +724,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'db6da2b4cde952d408263966d2106faebe6ff26c5df15656961d5c1e64ab0495',
-        'kodeKemenkeu'      => '2.0160-01'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     'a9df00e327795467cd60fad518eee698a0d82730f5c940816c07f176bf77f2c3' => [
         'sub'               => 'cabang_pdg',
@@ -744,7 +744,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'e8abc5817053f821e6b38767d7f72456d150295007b9969e7f4bf946e0b38e0f',
-        'kodeKemenkeu'      => '2.0160-01'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     'e8abc5817053f821e6b38767d7f72456d150295007b9969e7f4bf946e0b38e0f' => [
         'sub'               => 'cabang_pdg',
@@ -764,7 +764,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'e8abc5817053f821e6b38767d7f72456d150295007b9969e7f4bf946e0b38e0f',
-        'kodeKemenkeu'      => '2.0160-01'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     '26b296fa1352b67bae6d91added689f695fe52d2500aa9d58f7cbf91826e613e' => [
         'sub'               => 'cabang_mks',
@@ -784,7 +784,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'f5aadfecaf3ab9a3440cf6e0886514d80a7ea78925e9e8eaa9e303f7f0474569',
-        'kodeKemenkeu'      => '2.0160-02'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     'f5aadfecaf3ab9a3440cf6e0886514d80a7ea78925e9e8eaa9e303f7f0474569' => [
         'sub'               => 'cabang_mks',
@@ -804,7 +804,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'f5aadfecaf3ab9a3440cf6e0886514d80a7ea78925e9e8eaa9e303f7f0474569',
-        'kodeKemenkeu'      => '2.0160-02'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     '05080f9dc585d39a2234f19ba420a83162249731bfea9e3ca0e733953d5efd95' => [
         'sub'               => 'cabang_mks',
@@ -824,7 +824,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'b3102a30c374eb0726ef2ba4ef6a9e0d324ee99e775b83683182eb9117bfd1c6',
-        'kodeKemenkeu'      => '2.0160-02'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     'b3102a30c374eb0726ef2ba4ef6a9e0d324ee99e775b83683182eb9117bfd1c6' => [
         'sub'               => 'cabang_mks',
@@ -844,7 +844,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'b3102a30c374eb0726ef2ba4ef6a9e0d324ee99e775b83683182eb9117bfd1c6',
-        'kodeKemenkeu'      => '2.0160-02'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     '1a3789dcc80802cfeeee3436a5297f946f88fd5e0e576de39849a3bffc0af31b' => [
         'sub'               => 'cabang_plb',
@@ -864,7 +864,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'e5298836aaaed72f1974a3191d5a23d59bb3990003ca7a288f9a41b2045d9827',
-        'kodeKemenkeu'      => '2.0160-03'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     'e5298836aaaed72f1974a3191d5a23d59bb3990003ca7a288f9a41b2045d9827' => [
         'sub'               => 'cabang_plb',
@@ -884,7 +884,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'e5298836aaaed72f1974a3191d5a23d59bb3990003ca7a288f9a41b2045d9827',
-        'kodeKemenkeu'      => '2.0160-03'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     '4ea09485c491d4b43e42ebf0b64f912fcfa9608b5ceecd8b413f6b349298fadb' => [
         'sub'               => 'cabang_plb',
@@ -904,7 +904,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'd54abce9045452c4900da5ab86ce8cd17051d7b24c3d42a1cc764c029c91db97',
-        'kodeKemenkeu'      => '2.0160-03'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     'd54abce9045452c4900da5ab86ce8cd17051d7b24c3d42a1cc764c029c91db97' => [
         'sub'               => 'cabang_plb',
@@ -924,7 +924,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'seeFee'            => true,
         'mode'              => 'CABANG',
         'tokenHash'         => 'd54abce9045452c4900da5ab86ce8cd17051d7b24c3d42a1cc764c029c91db97',
-        'kodeKemenkeu'      => '2.0160-03'
+        'kodeKemenkeu'      => '2.0160-05'
     ],
     '336c1d03b83f9a89f3f1fc33cc42192345b435f6e72f8e72ad43aaaaae6310fe' => [
         'sub'               => 'marketing_pst',

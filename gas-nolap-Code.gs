@@ -839,9 +839,9 @@ function handleIssueCabangDefinitiveNoLap(data) {
   // 2. Konfigurasi Rekan Cabang & Exclusivity Guard
   const CABANG_CONFIG_GAS = {
     'Bandung': { kodeKemenkeu: '2.0160-04', kodeCabang: 'BDG', izin: '00581', rekan: 'Deni Siswandi, S.T., MAPPI (Cert.)' },
-    'Padang': { kodeKemenkeu: '2.0160-01', kodeCabang: 'PDG', izin: 'PS.0046', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
+    'Padang': { kodeKemenkeu: '2.0160-02', kodeCabang: 'PDG', izin: 'PS.0046', rekan: 'Hernita, S.E., MAPPI (Cert.)' },
     'Makassar': { kodeKemenkeu: '2.0160-03', kodeCabang: 'MKS', izin: 'PS.0126', rekan: 'M. Amin Sade, S.T., MAPPI (Cert.)' },
-    'Palembang': { kodeKemenkeu: '2.0160-02', kodeCabang: 'PLB', izin: 'PS.0249', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' }
+    'Palembang': { kodeKemenkeu: '2.0160-05', kodeCabang: 'PLB', izin: 'PS.0249', rekan: 'Dharma Priyanto, S.T., MAPPI (Cert.)' }
   };
 
   const conf = CABANG_CONFIG_GAS[cabang] || CABANG_CONFIG_GAS['Bandung'];

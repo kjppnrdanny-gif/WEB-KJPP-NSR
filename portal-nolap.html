@@ -160,6 +160,9 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
+          <button onclick="bukaModalPengaturanRegister()" id="btn-kelola-register" title="Pengaturan Register Nomor Resmi OPINI NSR" class="px-3 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 font-semibold transition border border-indigo-700/50 flex items-center gap-1.5 cursor-pointer">
+            <span>🏛️ Register Resmi</span>
+          </button>
           <button onclick="sinkronkanDariSpreadsheetLive()" id="btn-sync-gsheet" title="Tarik data transaksi & master terbaru langsung dari Google Spreadsheet" class="px-3 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 font-semibold transition border border-emerald-700/50 flex items-center gap-1.5">
             <span id="dot-sync-live" class="w-2 h-2 rounded-full bg-emerald-400"></span>
             <span id="label-sync-text">🔄 Sinkron GSheet</span>
@@ -261,7 +264,7 @@
               <strong id="seg-penilai" class="text-purple-300 font-mono">00581</strong>
             </div>
             <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
-              <span class="text-slate-400 block text-[10px]">6. NPWP</span>
+              <span class="text-slate-400 block text-[10px]">6. NPWP (1/0)</span>
               <strong id="seg-npwp" class="text-rose-300 font-mono">1</strong>
             </div>
             <div class="p-2 rounded-lg bg-slate-950 border border-slate-800 col-span-2 sm:col-span-1">
@@ -386,10 +389,10 @@
               <label class="block font-semibold text-slate-300 mb-1">Asal Kantor Permohonan *</label>
               <select id="f-cabang" onchange="onAsalCabangChange()" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
                 <option value="Pusat" data-kode="2.0160-00">Kantor Pusat Jakarta (2.0160-00)</option>
-                <option value="Padang" data-kode="2.0160-01">Kantor Cabang Padang (2.0160-01)</option>
-                <option value="Makassar" data-kode="2.0160-02">Kantor Cabang Makassar (2.0160-02)</option>
+                <option value="Padang" data-kode="2.0160-02">Kantor Cabang Padang (2.0160-02)</option>
+                <option value="Makassar" data-kode="2.0160-03">Kantor Cabang Makassar (2.0160-03)</option>
                 <option value="Bandung" data-kode="2.0160-04">Kantor Cabang Bandung (2.0160-04)</option>
-                <option value="Palembang" data-kode="2.0160-03">Kantor Cabang Palembang (2.0160-03)</option>
+                <option value="Palembang" data-kode="2.0160-05">Kantor Cabang Palembang (2.0160-05)</option>
               </select>
               <div id="badge-asal-cabang-lock" class="hidden w-full h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-amber-300 flex items-center justify-between text-xs font-semibold">
                 <span id="text-asal-cabang-lock">Kantor Cabang Makassar</span>
@@ -13277,6 +13280,185 @@
   </div>
 
   <!-- ==================== MODAL PENERBITAN NOLAP MANUAL (ADMIN PUSAT / MASTER AKSES) ==================== -->
+
+  <!-- =========================================================================
+       MODAL: PENGATURAN REGISTER NOMOR RESMI OPINI NSR (GO-LIVE READY)
+       ========================================================================= -->
+  <div id="modal-pengaturan-register" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-indigo-500/30 rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+      
+      <!-- HEADER MODAL -->
+      <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-lg">
+            🏛️
+          </div>
+          <div>
+            <h3 class="text-sm sm:text-base font-black text-white flex items-center gap-2">
+              PENGATURAN REGISTER NOMOR RESMI OPINI NSR
+              <span class="px-2 py-0.5 rounded text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold uppercase" id="badge-register-role">SUPER ADMIN</span>
+            </h3>
+            <p class="text-[11px] text-slate-400">Pusat Administrasi & Penetapan Saldo Awal Nomor Resmi (Pusat & 4 Cabang Kemenkeu RI)</p>
+          </div>
+        </div>
+        <button onclick="tutupModalPengaturanRegister()" class="text-slate-400 hover:text-white p-1 text-base">&times;</button>
+      </div>
+
+      <!-- TAB PILIHAN SUB-MODUL -->
+      <div class="flex border-b border-slate-800 gap-2">
+        <button id="tab-reg-btn-daftar" onclick="gantiTabRegister('daftar')" class="py-2 px-3 font-bold border-b-2 border-indigo-400 text-indigo-300 transition">
+          📋 1. Saldo & Daftar Register Aktif
+        </button>
+        <button id="tab-reg-btn-form" onclick="gantiTabRegister('form')" class="py-2 px-3 font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+          ✏️ 2. Input / Penyesuaian Saldo Awal
+        </button>
+        <button id="tab-reg-btn-audit" onclick="gantiTabRegister('audit')" class="py-2 px-3 font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+          📜 3. Riwayat Perubahan (Audit Log)
+        </button>
+        <button id="tab-reg-btn-template" onclick="gantiTabRegister('template')" class="py-2 px-3 font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+          📥 4. Template Rekonsiliasi Cabang
+        </button>
+      </div>
+
+      <!-- KONTEN TAB 1: DAFTAR REGISTER -->
+      <div id="tab-reg-content-daftar" class="space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-slate-300">Posisi saldo nomor administrasi resmi yang terdaftar di basis data sistem:</p>
+          <button onclick="muatDataRegisterResmi()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] flex items-center gap-1 font-semibold">
+            🔄 Muat Ulang Register
+          </button>
+        </div>
+        <div class="overflow-x-auto border border-slate-800 rounded-xl">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-950/80 text-[11px] text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <th class="p-2.5">Kantor Wilayah</th>
+                <th class="p-2.5">Kode Segmen</th>
+                <th class="p-2.5">Jenis Register</th>
+                <th class="p-2.5">Saldo Nomor Terakhir</th>
+                <th class="p-2.5">Kandidat Berikutnya</th>
+                <th class="p-2.5">Status</th>
+                <th class="p-2.5">Bukti Administrasi</th>
+                <th class="p-2.5 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-register-daftar" class="divide-y divide-slate-800 text-[11px]">
+              <tr><td colspan="8" class="p-4 text-center text-slate-500">Memuat data register resmi...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KONTEN TAB 2: FORM PENYESUAIAN -->
+      <div id="tab-reg-content-form" class="hidden space-y-4">
+        <div class="bg-indigo-950/20 border border-indigo-800/40 rounded-xl p-3 text-indigo-300 text-[11px]">
+          ℹ️ <strong>Catatan Pengaturan Saldo:</strong> Penyesuaian saldo awal nomor operasional hanya dapat dilakukan oleh SUPER ADMIN KING atau Admin Pusat dengan mencantumkan sumber buku fisik dan alasan yang sah. Sistem akan menyarankan nomor berikutnya secara otomatis.
+        </div>
+        <form id="form-edit-register" onsubmit="simpanPenyesuaianRegister(event)" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Kantor / Kewenangan Register *</label>
+            <select id="reg-kantor" required onchange="updateRegisterFormPreview()" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200">
+              <option value="Pusat">Kantor Pusat Jakarta (2.0160-00)</option>
+              <option value="Padang">Kantor Cabang Padang (2.0160-02)</option>
+              <option value="Makassar">Kantor Cabang Makassar (2.0160-03)</option>
+              <option value="Bandung">Kantor Cabang Bandung (2.0160-04)</option>
+              <option value="Palembang">Kantor Cabang Palembang (2.0160-05)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Jenis Register Dokumen *</label>
+            <select id="reg-jenis" required onchange="updateRegisterFormPreview()" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200">
+              <option value="NoLap">NoLap — Nomor Laporan Penilaian Definitif</option>
+              <option value="LP_SPK">LP_SPK — Nomor Lingkup Penugasan / SPK</option>
+              <option value="JO">JO — Nomor Administrasi Job Order</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Periode / Tahun *</label>
+            <input type="text" id="reg-periode" required value="2026" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Nomor Terakhir Buku Register Fisik *</label>
+            <input type="number" id="reg-nomor-terakhir" required min="0" placeholder="Contoh: 127" oninput="updateRegisterFormPreview()" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 font-mono font-bold">
+            <span class="text-[10px] text-slate-400">Masukkan angka desimal terakhir (Sistem akan memformat 5 digit: <span id="reg-preview-5digit" class="font-bold text-amber-400">00000</span>).</span>
+          </div>
+          <div class="md:col-span-2">
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <span class="text-slate-400 text-[11px] block">Kandidat Nomor Berikutnya yang Akan Disarankan:</span>
+                <strong id="reg-kandidat-preview" class="text-emerald-400 text-sm font-mono font-black">00001</strong>
+              </div>
+              <span class="text-[11px] text-slate-500">Otomatis Terkalkulasi (Saldo Terakhir + 1)</span>
+            </div>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block font-semibold text-slate-300 mb-1">Sumber Dokumen / Buku Register Fisik *</label>
+            <input type="text" id="reg-sumber-bukti" required placeholder="Contoh: Buku Register Fisik NoLap Pusat 2026 Halaman 45" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block font-semibold text-slate-300 mb-1">Alasan Penyesuaian / Rekonsiliasi *</label>
+            <textarea id="reg-alasan" required rows="2" placeholder="Jelaskan dasar rekonsiliasi nomor awal operasional..." class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200"></textarea>
+          </div>
+          <div class="md:col-span-2 flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <button type="button" onclick="tutupModalPengaturanRegister()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 transition">
+              Batal
+            </button>
+            <button type="submit" id="btn-simpan-register" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition shadow-lg shadow-indigo-600/30">
+              💾 Simpan Saldo Register Resmi
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- KONTEN TAB 3: AUDIT LOG RIWAYAT -->
+      <div id="tab-reg-content-audit" class="hidden space-y-3">
+        <p class="text-slate-300">Jejak audit perubahan saldo register yang terekam permanen:</p>
+        <div class="overflow-x-auto border border-slate-800 rounded-xl">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-950/80 text-[11px] text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <th class="p-2.5">Waktu (WIB)</th>
+                <th class="p-2.5">Petugas</th>
+                <th class="p-2.5">Kantor & Dokumen</th>
+                <th class="p-2.5">Saldo Lama &rarr; Baru</th>
+                <th class="p-2.5">Kandidat Berikutnya</th>
+                <th class="p-2.5">Sumber Bukti</th>
+                <th class="p-2.5">Alasan</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-register-audit" class="divide-y divide-slate-800 text-[11px]">
+              <tr><td colspan="7" class="p-4 text-center text-slate-500">Belum ada riwayat perubahan register.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KONTEN TAB 4: TEMPLATE REKONSILIASI CABANG -->
+      <div id="tab-reg-content-template" class="hidden space-y-3">
+        <p class="text-slate-300">Gunakan format tabel berikut untuk meminta data register nomor resmi dari Admin Pusat dan seluruh Kepala Cabang:</p>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <pre id="pre-template-rekonsiliasi" class="text-[11px] text-emerald-400 font-mono overflow-x-auto whitespace-pre">
+Kantor | Kode Kantor | Jenis Register | Nomor Terakhir Digunakan | Kandidat Nomor Berikutnya | Periode | Sumber Buku Administrasi | Penanggung Jawab
+Kantor Pusat Jakarta | 2.0160-00 | NoLap | [Diisi Admin Pusat] | [Diisi Admin Pusat] | 2026 | Buku Register NoLap Pusat | Deni Siswandi / Danny Taufik
+Kantor Pusat Jakarta | 2.0160-00 | LP_SPK | [Diisi Admin Pusat] | [Diisi Admin Pusat] | 2026 | Buku Register SPK Pusat | Admin Pusat
+Kantor Pusat Jakarta | 2.0160-00 | JO | [Diisi Admin Pusat] | [Diisi Admin Pusat] | 2026 | Buku Register JO Pusat | Admin Pusat
+Kantor Cabang Padang | 2.0160-02 | NoLap | [Diisi Cabang Padang] | [Diisi Cabang Padang] | 2026 | Buku Register Padang | Admin Cabang Padang
+Kantor Cabang Padang | 2.0160-02 | LP_SPK | [Diisi Cabang Padang] | [Diisi Cabang Padang] | 2026 | Buku Register Padang | Admin Cabang Padang
+Kantor Cabang Makassar | 2.0160-03 | NoLap | [Diisi Cabang Makassar] | [Diisi Cabang Makassar] | 2026 | Buku Register Makassar | Admin Cabang Makassar
+Kantor Cabang Makassar | 2.0160-03 | LP_SPK | [Diisi Cabang Makassar] | [Diisi Cabang Makassar] | 2026 | Buku Register Makassar | Admin Cabang Makassar
+Kantor Cabang Bandung | 2.0160-04 | NoLap | [Diisi Cabang Bandung] | [Diisi Cabang Bandung] | 2026 | Buku Register Bandung | Admin Cabang Bandung
+Kantor Cabang Bandung | 2.0160-04 | LP_SPK | [Diisi Cabang Bandung] | [Diisi Cabang Bandung] | 2026 | Buku Register Bandung | Admin Cabang Bandung
+Kantor Cabang Palembang | 2.0160-05 | NoLap | [Diisi Cabang Palembang] | [Diisi Cabang Palembang] | 2026 | Buku Register Palembang | Admin Cabang Palembang
+Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi Cabang Palembang] | 2026 | Buku Register Palembang | Admin Cabang Palembang</pre>
+        </div>
+        <button onclick="salinTemplateRekonsiliasi()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 transition">
+          📋 Salin Template Rekonsiliasi ke Clipboard
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <div id="modal-terbitkan-nolap-manual" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto no-print">
     <div class="bg-slate-900 border-2 border-amber-400/50 rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl relative text-xs space-y-4 my-8">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -13616,163 +13798,7 @@
     };
 
     // Pre-loaded Transaksi Bersih (Sinkronisasi dari Audit Log & Spreadsheet Terverifikasi)
-    const DATABASE_AWAL_RESMI = [
-      {
-        noPermintaan: "REQ-000006",
-        timestamp: "2026-09-23 16:40:55",
-        cabang: "Pusat",
-        namaPemohon: "Zahra",
-        jabatanPemohon: "Admin",
-        emailPemohon: "kjppnsr.adm2@gmail.com",
-        waPemohon: "0895391057740",
-        namaKlien: "PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. GEMILANG SAKTI PROPERTINDO",
-        statusKlien: "Bank",
-        alamatKlien: "Kp. Babakan RT.03 RW.02, Satria Jaya, Tambun Utara, Bekasi, Jawa Barat",
-        kontakKlien: "081314489587",
-        klasifikasiJasa: "PI",
-        kodeIndustri: "07",
-        tujuanPenilaian: "Penjaminan Utang",
-        jenisObjek: "Tanah dan Bangunan Rumah Tinggal",
-        lokasiObjek: "Perumahan Green Lavender Sukamekar Blok F4 No. 15, Sukamekar, Sukawangi, Bekasi",
-        deadline: "2026-09-23",
-        penilai: "Deni Siswandi",
-        izinPenilai: "00581",
-        npwp: "86.456.757.3-435.000",
-        kodeNpwp: "1",
-        penggunaLaporan: "PT Bank Tabungan Negara (Persero) Tbk",
-        status: "NOMOR DITERBITKAN",
-        nomorLaporan: "00523/2.0160-00/PI/07/00581/1/IX/2026", // KOREKSI: Segmen NPWP disesuaikan dari '7' menjadi '1', Sektor '07' Bank
-        tglTerbit: "2026-09-23",
-        statusElsa: "BELUM INPUT",
-        linkElsa: "",
-        linkDrive: "",
-        catatanAdmin: "Disetujui. Sesuai Sektor 07 Bank BTN."
-      },
-      {
-        noPermintaan: "REQ-000007",
-        timestamp: "2026-09-23 16:50:06",
-        cabang: "Pusat",
-        namaPemohon: "Zahra",
-        jabatanPemohon: "Admin",
-        emailPemohon: "kjppnsr.adm2@gmail.com",
-        waPemohon: "0895391057740",
-        namaKlien: "PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. IVANDER PUTRA SUKSES",
-        statusKlien: "Bank",
-        alamatKlien: "Kp. Bojong RT.01 RW.15, Sarimukti, Cibitung, Bekasi, Jawa Barat",
-        kontakKlien: "081314489587",
-        klasifikasiJasa: "PI",
-        kodeIndustri: "07",
-        tujuanPenilaian: "Penjaminan Utang",
-        jenisObjek: "Tanah dan Bangunan Rumah Tinggal",
-        lokasiObjek: "Perumahan Permata Harapan Sarimukti Blok D8-6 & D11-21, Sarimukti, Cibitung, Bekasi",
-        deadline: "2026-09-23",
-        penilai: "Deni Siswandi",
-        izinPenilai: "00581",
-        npwp: "42.258.163.7-435.000",
-        kodeNpwp: "1",
-        penggunaLaporan: "PT Bank Tabungan Negara (Persero) Tbk",
-        status: "NOMOR DITERBITKAN",
-        nomorLaporan: "00525/2.0160-00/PI/07/00581/1/IX/2026", // SINKRONISASI: Mengikuti penetapan resmi Audit Log (07 Bank)
-        tglTerbit: "2026-09-24",
-        statusElsa: "BELUM INPUT",
-        linkElsa: "",
-        linkDrive: "",
-        catatanAdmin: "OK diterbitkan."
-      },
-      {
-        noPermintaan: "REQ-000008",
-        timestamp: "2026-09-23 16:54:47",
-        cabang: "Pusat",
-        namaPemohon: "Zahra",
-        jabatanPemohon: "Admin",
-        emailPemohon: "kjppnsr.adm2@gmail.com",
-        waPemohon: "0895391057740",
-        namaKlien: "PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. IVANDER PUTRA SUKSES",
-        statusKlien: "Bank",
-        alamatKlien: "Kp. Bojong RT.01 RW.15, Sarimukti, Cibitung, Bekasi, Jawa Barat",
-        kontakKlien: "081314489587",
-        klasifikasiJasa: "PI",
-        kodeIndustri: "07",
-        tujuanPenilaian: "Penjaminan Utang",
-        jenisObjek: "Tanah dan Bangunan Rumah Tinggal",
-        lokasiObjek: "Perumahan Permata Harapan Sarimukti Blok B2-24, D5-2, D6-14, D6-17, D8-3, D10-10, D11-14",
-        deadline: "2026-09-23",
-        penilai: "Deni Siswandi",
-        izinPenilai: "00581",
-        npwp: "42.258.163.7-435.000",
-        kodeNpwp: "1",
-        penggunaLaporan: "PT Bank Tabungan Negara (Persero) Tbk",
-        status: "NOMOR DITERBITKAN",
-        nomorLaporan: "00529/2.0160-00/PI/07/00581/1/X/2026", // SINKRONISASI: Penilai Deni Siswandi (00581), Sektor 07 Bank
-        tglTerbit: "2026-10-08",
-        statusElsa: "BELUM INPUT",
-        linkElsa: "",
-        linkDrive: "",
-        catatanAdmin: "Telah direvisi dan disetujui."
-      },
-      {
-        noPermintaan: "REQ-000009",
-        timestamp: "2026-09-23 16:59:58",
-        cabang: "Pusat",
-        namaPemohon: "Zahra",
-        jabatanPemohon: "Admin",
-        emailPemohon: "kjppnsr.adm2@gmail.com",
-        waPemohon: "0895391057740",
-        namaKlien: "PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. SOUBER WIJAYA SAKTI",
-        statusKlien: "Bank",
-        alamatKlien: "Jl. Wijaya Kusuma Blok C10 No. 15 Bekasi Jaya, Bekasi Timur",
-        kontakKlien: "081314489587",
-        klasifikasiJasa: "PI",
-        kodeIndustri: "07",
-        tujuanPenilaian: "Penjaminan Utang",
-        jenisObjek: "Tanah dan Bangunan Rumah Tinggal",
-        lokasiObjek: "Perumahan Sukamekar Regency Blok F1-10 & F3-1, Sukamekar, Sukawangi, Bekasi",
-        deadline: "2026-09-23",
-        penilai: "Deni Siswandi",
-        izinPenilai: "00581",
-        npwp: "07.139.777.6-740.700",
-        kodeNpwp: "1",
-        penggunaLaporan: "PT Bank Tabungan Negara (Persero) Tbk",
-        status: "NOMOR DITERBITKAN",
-        nomorLaporan: "00530/2.0160-00/PI/07/00581/1/X/2026",
-        tglTerbit: "2026-10-08",
-        statusElsa: "BELUM INPUT",
-        linkElsa: "",
-        linkDrive: "",
-        catatanAdmin: "Disetujui."
-      },
-      {
-        noPermintaan: "REQ-000010",
-        timestamp: "2026-09-24 10:06:06",
-        cabang: "Pusat",
-        namaPemohon: "Zahra",
-        jabatanPemohon: "Admin",
-        emailPemohon: "kjppnsr.adm2@gmail.com",
-        waPemohon: "0895391057740",
-        namaKlien: "PT. Ivander Putra Sukses",
-        statusKlien: "Swasta",
-        alamatKlien: "Kp. Bojong RT.01 RW.15, Sarimukti, Cibitung, Bekasi",
-        kontakKlien: "081314489587",
-        klasifikasiJasa: "PI",
-        kodeIndustri: "03",
-        tujuanPenilaian: "Penjaminan Utang",
-        jenisObjek: "Tanah dan Bangunan Rumah Tinggal",
-        lokasiObjek: "Perumahan Permata Harapan Sarimukti Blok B2-24, D5-2, D6-14, Cibitung, Bekasi",
-        deadline: "2026-09-23",
-        penilai: "Deni Siswandi",
-        izinPenilai: "00581",
-        npwp: "42.258.163.7-435.000",
-        kodeNpwp: "1",
-        penggunaLaporan: "Bank BTN",
-        status: "NOMOR DITERBITKAN",
-        nomorLaporan: "00524/2.0160-00/PI/03/00581/1/IX/2026",
-        tglTerbit: "2026-09-24",
-        statusElsa: "BELUM INPUT",
-        linkElsa: "",
-        linkDrive: "",
-        catatanAdmin: "Diterbitkan."
-      }
-    ];
+    const DATABASE_AWAL_RESMI = [];
 
     // Variabel Sesi Aktif
     let sesiAktif = null;
@@ -13799,17 +13825,26 @@
 
     async function inisialisasiSistem() {
       perbaruiIdempotencyKey();
-      // Muat database lokal jika ada, atau gunakan master awal
-      const savedData = localStorage.getItem('nsr_nolap_database');
-      if (savedData) {
-        try {
-          daftarPermohonan = JSON.parse(savedData);
-        } catch (e) {
-          daftarPermohonan = [...DATABASE_AWAL_RESMI];
-        }
-      } else {
-        daftarPermohonan = [...DATABASE_AWAL_RESMI];
+      // Auto-purge data simulasi pra-golive untuk memastikan dashboard 0 transaksi bersih
+      const dataVer = localStorage.getItem('nsr_nolap_data_version');
+      if (dataVer !== '2026.10.GO_LIVE_CLEAN') {
+        localStorage.removeItem('nsr_nolap_database');
+        localStorage.setItem('nsr_nolap_data_version', '2026.10.GO_LIVE_CLEAN');
+        daftarPermohonan = [];
         simpanDatabaseLokal();
+      } else {
+        const savedData = localStorage.getItem('nsr_nolap_database');
+        if (savedData) {
+          try {
+            daftarPermohonan = JSON.parse(savedData);
+            if (!Array.isArray(daftarPermohonan)) daftarPermohonan = [];
+          } catch (e) {
+            daftarPermohonan = [];
+          }
+        } else {
+          daftarPermohonan = [];
+          simpanDatabaseLokal();
+        }
       }
 
       // Set tanggal default hari ini pada form
