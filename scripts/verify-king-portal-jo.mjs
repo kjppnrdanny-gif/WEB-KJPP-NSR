@@ -4,12 +4,12 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 const ARTIFACT_DIR = 'C:\\Users\\HP\\.gemini\\antigravity\\brain\\5aa9abf1-bae3-4edf-b938-adfbb1b9bf9d';
-const PORT = 8899;
+const PORT = 8905;
 const CHROME_PORT = 9540;
 
 async function run() {
   console.log('🚀 Memulai pengujian & verifikasi browser headless untuk KING pada Portal JO...');
-  const php = spawn('php', ['-S', `127.0.0.1:${PORT}`, 'router.php'], { stdio: 'ignore' });
+  const php = spawn('php', ['-S', `127.0.0.1:${PORT}`, 'router.php'], { stdio: ['ignore', 'ignore', 'pipe'] });
   await new Promise(r => setTimeout(r, 1000));
 
   const tmpProfile = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-king-verify-'));
@@ -75,13 +75,25 @@ async function run() {
     }
   });
 
+  let loadFired = false;
+  ws.addEventListener('message', (e) => {
+    const m = JSON.parse(e.data);
+    if (m.method === 'Page.loadEventFired') {
+      loadFired = true;
+    }
+  });
+
   await send('Runtime.enable');
   await send('Page.enable');
   await send('DOM.enable');
 
   const pageUrl = `http://127.0.0.1:${PORT}/portal-penugasan-jo.html`;
   await send('Page.navigate', { url: pageUrl });
-  await new Promise(r => setTimeout(r, 3500));
+  for (let i = 0; i < 40; i++) {
+    if (loadFired) break;
+    await new Promise(r => setTimeout(r, 250));
+  }
+  await new Promise(r => setTimeout(r, 1200));
 
   console.log('🔑 Melakukan login KING dengan token NSR8899...');
   const evalRaw = await send('Runtime.evaluate', {

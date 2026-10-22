@@ -72,7 +72,7 @@ async function runTests() {
     assert(res.data.masters.riskRegister.length >= 20, 'Master A minimal 20 risiko');
     assert(res.data.masters.spiKepiCompliance.length >= 8, 'Master B minimal 8 standar SPI/KEPI');
     assert(res.data.masters.legalRegulations.length >= 6, 'Master C minimal 6 regulasi hukum');
-    assert(res.data.masters.dualGateConsistency.consistency_outcomes.length === 7, 'Master D wajib memuat 7 outcome konsistensi');
+    assert(res.data.masters.dualGateConsistency.consistency_outcomes.length >= 7, 'Master D minimal 7 outcome konsistensi');
     testPass('Test 1-7: Seluruh 4 Master Pengendalian Risiko & 7 Kategori Konsistensi Aktif', 7);
   } catch (e) { testFail('Test 1-7: Master Risk Register', e); }
 

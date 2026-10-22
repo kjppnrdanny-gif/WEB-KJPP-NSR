@@ -3491,7 +3491,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         
         // Resolusi Profil Pengaju & Kontak Notifikasi Terverifikasi
-        $reqInput = is_array($payload['pengaju'] ?? null) ? $payload['pengaju'] : [];
+        $reqInput = is_array($payload['pengaju'] ?? null) ? $payload['pengaju'] : (is_array($payload['requester'] ?? null) ? $payload['requester'] : []);
         $reqProfile = cariPersonelKontak($mastersDir, $reqInput['email'] ?? ($currentUser['sub'] ?? ($currentUser['role'] ?? '')), $originBranchCode);
         $pengajuSnapshot = [
             'personnel_id'       => $reqInput['nik'] ?? ($reqProfile['personnel_id'] ?? ($currentUser['sub'] ?? 'NSR-STAF')),
