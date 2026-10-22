@@ -334,9 +334,9 @@
       <!-- User Session & Navigation Controls -->
       <div class="flex items-center gap-2 sm:gap-3">
         <!-- Session Role Badge -->
-        <div id="session-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 shadow-inner">
+        <div id="session-badge" data-testid="jo-session-status" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 shadow-inner">
           <span id="session-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-          <span id="session-label" class="font-bold">Memuat Sesi...</span>
+          <span id="session-label" data-testid="jo-current-role" class="font-bold">Memuat Sesi...</span>
         </div>
 
         <!-- Live Cloud Sync Badge -->
@@ -390,18 +390,18 @@
     
     <!-- Tab Navigasi Utama -->
     <div class="flex border-b border-slate-800 mb-6 gap-2 sm:gap-4 overflow-x-auto">
-      <button id="btn-tab-form" onclick="gantiTab(1)" class="py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap">
+      <button id="btn-tab-form" onclick="gantiTab(1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gantiTab(1);}" class="py-3 px-4 sm:px-6 font-black text-xs sm:text-sm border-b-2 border-amber-400 text-amber-400 flex items-center gap-2 transition whitespace-nowrap">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         <span>1. Input Penugasan &amp; JO Baru</span>
       </button>
 
-      <button id="btn-tab-dashboard" data-alias="tab-btn-2" onclick="gantiTab(2)" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
+      <button id="btn-tab-dashboard" data-testid="jo-tab-approval" data-alias="tab-btn-2" onclick="gantiTab(2)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gantiTab(2);}" tabindex="0" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
         <span>2. Dashboard &amp; Antrean Approval</span>
         <span id="badge-antrean-count" class="ml-1 px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black hidden">0</span>
       </button>
 
-      <button id="btn-tab-preview" onclick="gantiTab(3)" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap opacity-60 cursor-not-allowed">
+      <button id="btn-tab-preview" data-testid="jo-tab-print" onclick="gantiTab(3)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gantiTab(3);}" tabindex="0" class="py-3 px-4 sm:px-6 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap opacity-60 cursor-not-allowed">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         <span>🔒 3. Pratinjau &amp; Cetak (Terkunci)</span>
       </button>
@@ -1283,7 +1283,7 @@
     <!-- ========================================================
          TAB 2: DASHBOARD ANTREAN VERIFIKASI & APPROVAL PUSAT
          ======================================================== -->
-    <div id="tab-content-dashboard" class="hidden space-y-6">
+    <div id="tab-content-dashboard" data-testid="jo-approval-panel" class="hidden space-y-6">
       
       <!-- 4 KARTU RINGKASAN MONITORING PENUGASAN & DEADLINE (TAHAP 2) -->
       <div id="container-monitoring-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -1471,7 +1471,7 @@
     <!-- ========================================================
          TAB 3: MESIN PRATINJAU & CETAK DOKUMEN A4 (PRINT ENGINE)
          ======================================================== -->
-    <div id="tab-3" data-alias="tab-content-preview" class="hidden space-y-6">
+    <div id="tab-3" data-testid="jo-print-panel" data-alias="tab-content-preview" class="hidden space-y-6">
       
       <!-- Kontrol Pratinjau Dokumen -->
       <div id="toolbar-cetak-dokumen" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
@@ -1533,7 +1533,7 @@
       </div>
 
       <!-- Lock Screen Overlay Tab 3 (Quality Gate Lock) -->
-      <div id="tab3-lock-screen" class="hidden flex-col items-center justify-center p-12 text-center bg-slate-900/90 border border-amber-500/30 rounded-2xl my-6">
+      <div id="tab3-lock-screen" data-testid="jo-print-lock-reason" class="hidden flex-col items-center justify-center p-12 text-center bg-slate-900/90 border border-amber-500/30 rounded-2xl my-6">
         <div class="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center text-3xl mb-4 border border-amber-500/20">
           🔒
         </div>
@@ -1852,6 +1852,37 @@
         <button type="button" onclick="tutupModalStatusTerintegrasi()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition cursor-pointer">
           Tutup
         </button>
+      </div>
+    </div>
+  </div>
+
+<!-- MODAL REVIEW GERBANG 1: SPM (DANNY) & DIVTEK (DENI) -->
+  <div id="modal-review-gerbang1" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 id="modal-g1-title" class="text-sm font-black text-amber-400 uppercase tracking-wide">Review Lingkup Penugasan &amp; Mitigasi Awal</h3>
+          <p id="modal-g1-subtitle" class="text-[11px] text-slate-400 mt-0.5">ID: - &bull; Klien: -</p>
+        </div>
+        <button type="button" onclick="tutupModalReviewGerbang1()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+      </div>
+
+      <div id="modal-g1-body" class="space-y-3">
+        <!-- Render detail dinamis -->
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-300 mb-1">Catatan Telaah Evaluasi Resmi <span class="text-rose-400">*</span></label>
+        <textarea id="modal-g1-catatan" rows="3" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400" placeholder="Ketik catatan evaluasi kepatuhan/metodologi di sini..."></textarea>
+      </div>
+
+      <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800">
+        <button type="button" onclick="tutupModalReviewGerbang1()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">Batal</button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="eksekusiReviewGerbang1Submit('REVISI')" class="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold transition">Minta Revisi</button>
+          <button type="button" onclick="eksekusiReviewGerbang1Submit('TOLAK')" class="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold transition">Tolak</button>
+          <button type="button" onclick="eksekusiReviewGerbang1Submit('SETUJU')" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg transition">Setujui Mitigasi</button>
+        </div>
       </div>
     </div>
   </div>
@@ -3525,7 +3556,16 @@
         sess.expiresAt || sess.loginTime,
         sess.isSuperAdmin
       );
-      if (sess.sessionChecksum && sess.sessionChecksum === expectedChecksum) return true;
+      const backendChecksum = sha256Hex([
+        'NSR_SESSION_INTEGRITY_2026_x7k9::',
+        sess.tokenHash || '',
+        sess.role || '',
+        sess.wilayah || '',
+        sess.expiresAt || sess.loginTime || '',
+        sess.isSuperAdmin ? 'TRUE' : 'FALSE',
+        'NSR_ZERO_TRUST_SIG_2026_9x4m'
+      ].join('::'));
+      if (sess.sessionChecksum && (sess.sessionChecksum === expectedChecksum || sess.sessionChecksum === backendChecksum)) return true;
       if (sess.sig) {
         const legacyExpected = sha256Hex(String(sess.tokenHash || '') + ':' + String(sess.loginTime || sess.expiresAt || '') + ':' + String(sess.role || '') + ':' + (sess.isSuperAdmin ? '1' : '0') + ':' + NSR_SEC_SALT);
         if (sess.sig === legacyExpected) return true;
@@ -3621,8 +3661,8 @@
       '107ee87beefd50d3ecf4c3ea6716c22cbff5330505ee747ce5d800f77c94f32d': {"valid":true,"role":"KEUANGAN","roleLabel":"Keuangan Pusat","displayRole":"Divisi Keuangan & Kasir Pusat","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","cabang":"Pusat","label":"Kantor Pusat Jakarta (Keuangan Pusat)","jabatan":"Divisi Keuangan & Kasir Pusat","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":false,"feeMaskText":"","tokenHash":"57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0"},
       'a9a08ee5cc8f8f8281a4f846624a35ed29a8af6ea20614089e8b64cfb01d32e9': {"valid":true,"role":"KEUANGAN_CABANG","roleLabel":"Keuangan Cabang","displayRole":"Kasir & Keuangan Cabang","wilayah":"CABANG","wilayahLabel":"Kantor Cabang Operasional","wilayahResmi":"Kantor Cabang Operasional","wilayahCode":"CAB","nama":"Kantor Cabang Operasional","kantor":"Kantor Cabang Operasional","namaKantor":"Kantor Cabang Operasional","cabang":"Cabang","label":"Kantor Cabang Operasional (Keuangan Cabang)","jabatan":"Kasir & Keuangan Cabang","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false,"feeMaskText":"","tokenHash":"a9a08ee5cc8f8f8281a4f846624a35ed29a8af6ea20614089e8b64cfb01d32e9"},
       'a01d6024094ea8618268233f1e73d79e400c76d36abb144b2d087896f2e3a6ca': {"valid":true,"role":"KEUANGAN_CABANG","roleLabel":"Keuangan Cabang","displayRole":"Kasir & Keuangan Cabang","wilayah":"CABANG","wilayahLabel":"Kantor Cabang Operasional","wilayahResmi":"Kantor Cabang Operasional","wilayahCode":"CAB","nama":"Kantor Cabang Operasional","kantor":"Kantor Cabang Operasional","namaKantor":"Kantor Cabang Operasional","cabang":"Cabang","label":"Kantor Cabang Operasional (Keuangan Cabang)","jabatan":"Kasir & Keuangan Cabang","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false,"feeMaskText":"","tokenHash":"a9a08ee5cc8f8f8281a4f846624a35ed29a8af6ea20614089e8b64cfb01d32e9"},
-      '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Super Admin)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f"},
-      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Super Admin)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f"},
+      '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f': {"valid":true,"role":"SUPER_ADMIN","roleLabel":"SUPER ADMIN • KING","displayRole":"SUPER ADMIN • KANTOR PUSAT","isKing":true,"isSuperAdmin":true,"canApprove":true,"canApprovePusat":true,"mode":"PUSAT","permissions":["spm.review","divtek.review","lp.issue","nolap.issue","system.emergency_override","opr.view","opr.submit","admin.all"],"roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Super Admin)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f"},
+      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': {"valid":true,"role":"SUPER_ADMIN","roleLabel":"SUPER ADMIN • KING","displayRole":"SUPER ADMIN • KANTOR PUSAT","isKing":true,"isSuperAdmin":true,"canApprove":true,"canApprovePusat":true,"mode":"PUSAT","permissions":["spm.review","divtek.review","lp.issue","nolap.issue","system.emergency_override","opr.view","opr.submit","admin.all"],"roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Super Admin)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f"},
       '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Super Admin)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c"},
       '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Super Admin)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c"},
       'c1def53c9c35c3e150d4f070fd2387a16f5e0ca57f6ca9fe23f368769ee4bc2f': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Super Admin)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"c1def53c9c35c3e150d4f070fd2387a16f5e0ca57f6ca9fe23f368769ee4bc2f"},
@@ -4112,7 +4152,19 @@
     }
 
     function inisialisasiModeAksesDariUrl() {
-      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin();
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const isSuper = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT' || auth.isKing));
+      if (isSuper) {
+        currentModeAlur = 'CENTRAL_APPROVAL';
+        const containerDualMode = document.getElementById('container-dual-mode');
+        if (containerDualMode) {
+          containerDualMode.style.display = 'none';
+          containerDualMode.classList.add('hidden');
+        }
+        perbaruiIndikatorTab3(window.DATA_PROYEK_TERPILIH || null);
+        return;
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const paramMode = urlParams.get('mode');
 
@@ -4156,15 +4208,15 @@
           vlookupRekan();
         }
 
-        // C. Render Banner Hijau Mandiri Cabang:
+        // C. Render Banner Hijau Mandiri Cabang (Preserving mode-title & mode-desc IDs):
         const bannerMode = document.getElementById('banner-mode-akses') || document.getElementById('form-mode-banner');
         if (bannerMode) {
           bannerMode.className = 'p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 text-emerald-300 mb-6 flex items-start gap-3';
           bannerMode.innerHTML = `
             <span class="text-2xl">⚡</span>
             <div>
-              <div class="font-bold text-sm text-emerald-200">Mode Akses: Penerbitan Mandiri ${(auth && auth.wilayahLabel) || 'Cabang'}</div>
-              <div class="text-xs text-emerald-400/90 mt-0.5">
+              <div id="mode-title" class="font-bold text-sm text-emerald-200">Mode Akses: Penerbitan Mandiri ${(auth && auth.wilayahLabel) || 'Cabang'}</div>
+              <div id="mode-desc" class="text-xs text-emerald-400/90 mt-0.5">
                 Kewenangan Penuh Rekan Pemimpin Cabang (${(auth && auth.rekanNama) || 'Rekan Cabang'}). Nomor SPK & JO terbit instan dari buku register cabang tanpa antrean Kantor Pusat.
               </div>
             </div>
@@ -4176,8 +4228,8 @@
           btnSubmit.textContent = "Simpan & Cetak Instan (Mandiri Cabang)";
         }
 
-        // D. Input Nomor SPK & JO LANGSUNG TERISI (BUKAN "Menunggu Input & Otorisasi"):
-        updateNomorOtomatisPreview(); // Terbit instan format [NOMOR]/NSR-[KODE]/PN-APP/...
+        // D. Input Nomor SPK & JO LANGSUNG TERISI:
+        updateNomorOtomatisPreview();
       } else {
         // Mode Pusat
         if (labelPrivate) {
@@ -4206,8 +4258,8 @@
           bannerMode.innerHTML = `
             <span class="text-2xl">🏛️</span>
             <div>
-              <div class="font-bold text-sm text-amber-200">Mode Akses: Pengajuan ke Kantor Pusat ${(auth && auth.wilayahLabel) ? '(' + auth.wilayahLabel + ')' : ''}</div>
-              <div class="text-xs text-amber-400/90 mt-0.5">
+              <div id="mode-title" class="font-bold text-sm text-amber-200">Mode Akses: Pengajuan ke Kantor Pusat ${(auth && auth.wilayahLabel) ? '(' + auth.wilayahLabel + ')' : ''}</div>
+              <div id="mode-desc" class="text-xs text-amber-400/90 mt-0.5">
                 Pengajuan nomor register SPK/JO resmi dan penandatanganan Kantor Pusat (Ir. Nanang Rahayu / Deni Siswandi). Penugasan akan masuk ke antrean approval Kantor Pusat.
               </div>
             </div>
@@ -4332,6 +4384,7 @@
       document.getElementById('gerbang-otorisasi')?.classList.add('hidden');
     }
 
+    window.verifikasiTokenLogin = verifikasiTokenLogin;
     async function verifikasiTokenLogin(event) {
       if (event) event.preventDefault();
       const rawInput = document.getElementById('input_token_auth').value.trim().toUpperCase();
@@ -4386,7 +4439,9 @@
         wilayahResmi: info.wilayahResmi || info.wilayah,
         wilayahCode: info.wilayahCode,
         isCabang: info.isCabang,
-        isSuperAdmin: info.isSuperAdmin,
+        isSuperAdmin: Boolean(info.isSuperAdmin || info.isKing || info.role === "SUPER_ADMIN"),
+        isKing: Boolean(info.isKing || info.role === "SUPER_ADMIN"),
+        permissions: info.permissions || [],
         aksesApproval: info.aksesApproval,
         aksesKwitansi: info.aksesKwitansi,
         aksesFee: info.aksesFee,
@@ -4440,7 +4495,9 @@
           wilayahResmi: auth.wilayahResmi || auth.wilayah,
           wilayahCode: auth.wilayahCode,
           isCabang: auth.isCabang,
-          isSuperAdmin: auth.isSuperAdmin,
+          isSuperAdmin: Boolean(auth.isSuperAdmin || auth.isKing || auth.role === "SUPER_ADMIN"),
+          isKing: Boolean(auth.isKing || auth.role === "SUPER_ADMIN"),
+          permissions: auth.permissions || [],
           aksesApproval: auth.aksesApproval,
           aksesKwitansi: auth.aksesKwitansi,
           aksesFee: auth.aksesFee,
@@ -4492,13 +4549,17 @@
       const roleTitle = roleDisplayMap[userSession.role] || userSession.role;
       const kwStatusText = userSession.canAccessKwitansi ? 'Akses Kwitansi: Aktif' : 'Akses Kwitansi: Dibatasi (Khusus Admin)';
       const kwColorClass = userSession.canAccessKwitansi ? 'text-emerald-400 font-bold' : 'text-slate-400';
-      const wilShort = userSession.wilayah.replace('Kantor ', '');
+      const wilShort = userSession.wilayah ? userSession.wilayah.replace('Kantor ', '') : 'Pusat';
 
-      // 1. Update Header Role Badge
-      badgeDot.className = (userSession.role === 'ADMIN_PUSAT' || userSession.role === 'SUPER_ADMIN') 
-        ? "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" 
-        : (userSession.role === 'ADMIN_CABANG' ? "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" : "w-2.5 h-2.5 rounded-full bg-sky-400");
-      badgeLabel.innerHTML = `ROLE: <strong class="text-white">${roleTitle}</strong> &bull; ${wilShort} &bull; <span class="${kwColorClass}">${kwStatusText}</span>`;
+      // 1. Update Header Role Badge (Safe Null Checks)
+      if (badgeDot) {
+        badgeDot.className = (userSession.role === 'ADMIN_PUSAT' || userSession.role === 'SUPER_ADMIN') 
+          ? "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" 
+          : (userSession.role === 'ADMIN_CABANG' ? "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" : "w-2.5 h-2.5 rounded-full bg-sky-400");
+      }
+      if (badgeLabel) {
+        badgeLabel.innerHTML = `ROLE: <strong class="text-white">${roleTitle}</strong> &bull; ${wilShort} &bull; <span class="${kwColorClass}">${kwStatusText}</span>`;
+      }
 
       // 2. Proteksi & Sembunyikan Navigasi Cepat Kwitansi di Header jika Non-Admin
       if (navLinkKwitansi) {
@@ -4549,8 +4610,39 @@
 
         if (userSession.role === 'ADMIN_PUSAT' || userSession.role === 'SUPER_ADMIN') {
           if (containerDualMode) containerDualMode.classList.add('hidden');
-          modeTitle.textContent = "Mode Akses: Kantor Pusat / Master Admin (Otorisasi Penuh)";
-          modeDesc.innerHTML = "Staf Admin Pusat dapat menginput langsung dan menekan tombol <strong class='text-emerald-400'>'Simpan &amp; Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)'</strong>.";
+          const mTitle = document.getElementById('mode-title');
+          const mDesc = document.getElementById('mode-desc');
+          if (mTitle) {
+            mTitle.textContent = "Mode Akses: Kantor Pusat / Master Admin (Otorisasi Penuh)";
+          }
+          if (mDesc) {
+            mDesc.innerHTML = "Staf Admin Pusat dapat menginput langsung dan menekan tombol <strong class='text-emerald-400'>'Simpan &amp; Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)'</strong>.";
+          }
+          if (formModeBanner) {
+            formModeBanner.classList.remove('hidden');
+            formModeBanner.className = 'p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-900 border border-emerald-500/40 flex flex-wrap items-center justify-between gap-4 shadow-xl';
+            if (!mTitle) {
+              formModeBanner.innerHTML = `
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </div>
+                  <div>
+                    <h2 id="mode-title" class="text-sm font-extrabold text-white">Mode Akses: Kantor Pusat / Master Admin (Otorisasi Penuh)</h2>
+                    <p id="mode-desc" class="text-xs text-slate-300">Staf Admin Pusat dapat menginput langsung dan menekan tombol <strong class='text-emerald-400'>'Simpan &amp; Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)'</strong>.</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="isiContohData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold border border-slate-700 transition">
+                    ⚡ Isi Contoh Data Proyek
+                  </button>
+                  <button type="button" onclick="resetFormulir()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition">
+                    🔄 Kosongkan Form
+                  </button>
+                </div>
+              `;
+            }
+          }
           if (btnSubmit) btnSubmit.textContent = "Simpan & Langsung Terbitkan Nomor Resmi (Otorisasi Pusat)";
           setWilayahDropdown(userSession.wilayah);
           inisialisasiDropdownPersonil();
@@ -4592,7 +4684,6 @@
       pasangListenerModeAlurRadio();
       updateFilterDokumenByRole();
 
-      
       // Proteksi UI Tab 2 (Filter Wilayah & Opsi Wilayah untuk Sesi Cabang)
       const wrapFilterWil = document.getElementById('wrapper-filter-wilayah');
       const selectWilayah = document.getElementById('filter_wilayah') || document.getElementById('filter-kantor-wilayah');
@@ -4627,18 +4718,23 @@
         }
       }
 
-      // 2. Perbarui Teks & Badge Tab 2 untuk Cabang:
-      if (auth && auth.isCabang) {
-        const tab2Btn = document.querySelector('button[onclick*="gantiTab(2)"]') || 
-                        document.getElementById('tab-btn-2') || 
-                        document.getElementById('btn-tab-dashboard') || 
-                        document.querySelector('button[onclick*="dashboard"]');
-        if (tab2Btn) {
+      // 2. Perbarui Teks & Badge Tab 2:
+      const tab2Btn = document.querySelector('button[onclick*="gantiTab(2)"]') || 
+                      document.getElementById('btn-tab-dashboard') || 
+                      document.getElementById('tab-btn-2') || 
+                      document.querySelector('[data-testid="jo-tab-approval"]');
+      if (tab2Btn) {
+        if (auth && auth.isCabang) {
           tab2Btn.innerHTML = `📋 2. Buku Register & Riwayat Cabang`;
+          const badgePending = tab2Btn.querySelector('.badge-pending, span.bg-amber-500, #badge-antrean-count');
+          if (badgePending) badgePending.remove();
+        } else {
+          tab2Btn.innerHTML = `
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            <span>2. Dashboard &amp; Antrean Approval</span>
+            <span id="badge-antrean-count" class="ml-1 px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black hidden">0</span>
+          `;
         }
-        // Hapus badge antrean kuning
-        const badgePending = tab2Btn?.querySelector('.badge-pending, span.bg-amber-500, #badge-antrean-count');
-        if (badgePending) badgePending.remove();
       }
 
       // 3. Perbarui Indikator Kunci Mutlak Tab 3 (Quality Gate Lock)
@@ -4764,7 +4860,7 @@
     function perbaruiIndikatorTab3(proyek) {
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
-      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT'));
+      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'SUPER ADMIN' || auth.role === 'ADMIN_PUSAT' || auth.isKing));
       const proyekAktif = proyek || window.DATA_PROYEK_TERPILIH || activeProjectData || null;
 
       // Deteksi Status Dokumen Pengajuan Pusat
@@ -4879,7 +4975,7 @@
 
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
-      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT'));
+      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'SUPER ADMIN' || auth.role === 'ADMIN_PUSAT' || auth.isKing));
       const proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData || null;
 
       if (tabIdx === 3) {
@@ -4989,7 +5085,7 @@
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       let proyekAktif = window.DATA_PROYEK_TERPILIH || activeProjectData || null;
       const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
-      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT'));
+      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'SUPER ADMIN' || auth.role === 'ADMIN_PUSAT' || auth.isKing));
 
       const isPengajuanPusat = (currentModeAlur === 'PUSAT' || currentModeAlur === 'CENTRAL_APPROVAL') || 
                                (proyekAktif && (proyekAktif.alur === 'PUSAT' || proyekAktif.target === 'PUSAT' || proyekAktif.mode_alur === 'CENTRAL_APPROVAL' || proyekAktif.mode_pengaju === 'PUSAT' || proyekAktif.status === 'WAITING_APPROVAL'));
@@ -8586,7 +8682,7 @@
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
       let p = window.DATA_PROYEK_TERPILIH || activeProjectData;
       const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
-      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT'));
+      const isSuperAdmin = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'SUPER ADMIN' || auth.role === 'ADMIN_PUSAT' || auth.isKing));
 
       const isPengajuanPusat = (currentModeAlur === 'PUSAT' || currentModeAlur === 'CENTRAL_APPROVAL') || 
                                (p && (p.alur === 'PUSAT' || p.target === 'PUSAT' || p.mode_alur === 'CENTRAL_APPROVAL' || p.mode_pengaju === 'PUSAT' || p.status === 'WAITING_APPROVAL'));
@@ -8637,9 +8733,9 @@
       if (!p) {
         if (renderedArea) {
           renderedArea.innerHTML = `
-            <div class="text-center py-16 text-slate-400">
-              <p class="text-sm">Belum ada proyek yang dipilih untuk pratinjau.</p>
-              <p class="text-xs mt-1">Silakan input data di Tab 1 atau pilih proyek di Tab 2 (Dashboard).</p>
+            <div class="text-center py-16 text-slate-400" data-testid="jo-print-lock-reason">
+              <p class="text-sm font-bold text-amber-300">Belum ada proyek yang dipilih untuk pratinjau.</p>
+              <p class="text-xs mt-1">Silakan input data di Tab 1 atau pilih proyek di Tab 2 (Dashboard & Antrean Approval).</p>
             </div>
           `;
         }
@@ -10786,44 +10882,25 @@
     </tr>
   </table>
 </div>
+</body>
+</html>
+      `.trim();
 
-  <!-- MODAL REVIEW GERBANG 1: SPM (DANNY) & DIVTEK (DENI) -->
-  <div id="modal-review-gerbang1" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl text-xs">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div>
-          <h3 id="modal-g1-title" class="text-sm font-black text-amber-400 uppercase tracking-wide">Review Lingkup Penugasan &amp; Mitigasi Awal</h3>
-          <p id="modal-g1-subtitle" class="text-[11px] text-slate-400 mt-0.5">ID: - &bull; Klien: -</p>
-        </div>
-        <button type="button" onclick="tutupModalReviewGerbang1()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
-      </div>
+      const blob = new Blob(['\ufeff' + wordHtml], { type: 'application/msword;charset=utf-8' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 1500);
+    }
 
-      <div id="modal-g1-body" class="space-y-3">
-        <!-- Render detail dinamis -->
-      </div>
-
-      <div>
-        <label class="block font-semibold text-slate-300 mb-1">Catatan Telaah Evaluasi Resmi <span class="text-rose-400">*</span></label>
-        <textarea id="modal-g1-catatan" rows="3" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400" placeholder="Ketik catatan evaluasi kepatuhan/metodologi di sini..."></textarea>
-      </div>
-
-      <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800">
-        <button type="button" onclick="tutupModalReviewGerbang1()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">Batal</button>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="eksekusiReviewGerbang1Submit('REVISI')" class="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold transition">Minta Revisi</button>
-          <button type="button" onclick="eksekusiReviewGerbang1Submit('TOLAK')" class="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold transition">Tolak</button>
-          <button type="button" onclick="eksekusiReviewGerbang1Submit('SETUJU')" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg transition">Setujui Mitigasi</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <script>
     // =========================================================================
     // DUAL SMART MITIGATION GATE ENGINE (GERBANG 1 FRONTEND LOGIC)
     // =========================================================================
-
+    
     const DUAL_GATE_API_URL = '/api/nolap-data-proxy';
     let g1ActiveReviewItem = null;
     let g1ActiveReviewRole = null;
@@ -10966,24 +11043,8 @@
         alert('Terjadi kesalahan jaringan: ' + err);
       }
     }
-  </script>
 
-</body>
-</html>
-      `.trim();
-
-      const blob = new Blob(['\ufeff' + wordHtml], { type: 'application/msword;charset=utf-8' });
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(downloadUrl), 1500);
-    }
-
-    // ==========================================================
+      // ==========================================================
     // 12. STORAGE LOKAL & SINKRONISASI SERVER GAS
     // ==========================================================
     function muatDatabaseLokal() {
