@@ -66,42 +66,49 @@ if (session_status() === PHP_SESSION_NONE) {
 // 1. DATA TOKENS RESMI UNTUK VALIDASI API / BEARER / HEADER
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
+        // KREDENSIAL RESMI SUPER ADMIN — KING (NSR8899)
     '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' => [
-        'sub'               => 'admin_master',
+        'sub'               => 'super_admin_king',
         'branch'            => 'PUSAT',
-        'displayName'       => 'Kantor Pusat Jakarta',
-        'role'              => 'SUPER ADMIN',
-        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
-        'title'             => 'Super Admin Pusat',
+        'displayName'       => 'SUPER ADMIN (KING)',
+        'nama'              => 'Super Admin Operasional (KING)',
+        'role'              => 'SUPER_ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KING (Otoritas Sistem Tertinggi)',
+        'title'             => 'Super Admin (KING)',
         'wilayah'           => 'PUSAT',
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
         'isSuperAdmin'      => true,
+        'isKing'            => true,
         'isCabang'          => false,
         'canAccessKwitansi' => true,
         'canApprove'        => true,
         'canSubmit'         => true,
         'seeFee'            => true,
         'mode'              => 'PUSAT',
-        'tokenHash'         => '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f'
+        'permissions'       => ['spm.review', 'divtek.review', 'lp.issue', 'nolap.issue', 'system.emergency_override', 'opr.view', 'opr.submit', 'admin.all'],
+        'tokenHash'         => '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0'
     ],
     '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f' => [
-        'sub'               => 'admin_master',
+        'sub'               => 'super_admin_king',
         'branch'            => 'PUSAT',
-        'displayName'       => 'Kantor Pusat Jakarta',
-        'role'              => 'SUPER ADMIN',
-        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
-        'title'             => 'Super Admin Pusat',
+        'displayName'       => 'SUPER ADMIN (KING)',
+        'nama'              => 'Super Admin Operasional (KING)',
+        'role'              => 'SUPER_ADMIN',
+        'roleLabel'         => 'SUPER ADMIN • KING (Otoritas Sistem Tertinggi)',
+        'title'             => 'Super Admin (KING)',
         'wilayah'           => 'PUSAT',
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
         'isSuperAdmin'      => true,
+        'isKing'            => true,
         'isCabang'          => false,
         'canAccessKwitansi' => true,
         'canApprove'        => true,
         'canSubmit'         => true,
         'seeFee'            => true,
         'mode'              => 'PUSAT',
+        'permissions'       => ['spm.review', 'divtek.review', 'lp.issue', 'nolap.issue', 'system.emergency_override', 'opr.view', 'opr.submit', 'admin.all'],
         'tokenHash'         => '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f'
     ],
     '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2' => [
@@ -142,42 +149,47 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'tokenHash'         => '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c'
     ],
+        // KREDENSIAL RESMI ADMIN PUSAT (NSR-ADM-2026)
     '116f1fc38a65e1f069d617ef30be1bd2c693e9cb69950ea475a694af2594dd99' => [
         'sub'               => 'cabang_jkt_adm',
         'branch'            => 'PUSAT',
-        'displayName'       => 'Kantor Pusat Jakarta',
-        'role'              => 'SUPER ADMIN',
-        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
-        'title'             => 'Admin Pusat',
+        'displayName'       => 'Admin Operasional Pusat Jakarta',
+        'role'              => 'ADMIN_PUSAT',
+        'roleLabel'         => 'ADMIN OPERASIONAL • KANTOR PUSAT',
+        'title'             => 'Admin Operasional Pusat',
         'wilayah'           => 'PUSAT',
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
-        'isSuperAdmin'      => true,
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
         'isCabang'          => false,
         'canAccessKwitansi' => true,
         'canApprove'        => true,
         'canSubmit'         => true,
         'seeFee'            => true,
         'mode'              => 'PUSAT',
+        'permissions'       => ['lp.issue', 'nolap.issue', 'opr.view', 'opr.submit'],
         'tokenHash'         => '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04'
     ],
     '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04' => [
         'sub'               => 'cabang_jkt_adm',
         'branch'            => 'PUSAT',
-        'displayName'       => 'Kantor Pusat Jakarta',
-        'role'              => 'SUPER ADMIN',
-        'roleLabel'         => 'SUPER ADMIN • KANTOR PUSAT',
-        'title'             => 'Admin Pusat',
+        'displayName'       => 'Admin Operasional Pusat Jakarta',
+        'role'              => 'ADMIN_PUSAT',
+        'roleLabel'         => 'ADMIN OPERASIONAL • KANTOR PUSAT',
+        'title'             => 'Admin Operasional Pusat',
         'wilayah'           => 'PUSAT',
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
-        'isSuperAdmin'      => true,
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
         'isCabang'          => false,
         'canAccessKwitansi' => true,
         'canApprove'        => true,
         'canSubmit'         => true,
         'seeFee'            => true,
         'mode'              => 'PUSAT',
+        'permissions'       => ['lp.issue', 'nolap.issue', 'opr.view', 'opr.submit'],
         'tokenHash'         => '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04'
     ],
     '90dcc577539898e27a73039150b137fe6ef7d437eb3e2425ff52d3a7cb7cfd3c' => [
@@ -766,10 +778,10 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'tokenHash'         => 'c84442605e24bd6cce6370f43e8dbe7e5761c3959bd5dd5a4deccf263b4c8909'
     ],
+        // =========================================================================
+    // KREDENSIAL RESMI DUAL SMART MITIGATION GATE (2026 FINAL EDITION)
     // =========================================================================
-    // KREDENSIAL RESMI DUAL SMART MITIGATION GATE (2026 EDITION)
-    // =========================================================================
-    // Token Header: NSR-SPM-DANNY-2026
+    // Token Header: NSR-SPM-DANNY-2026 (Kepala SPM)
     'dc943d94880e71c7d1d7f792b1485d6083e71c90d5ef1cf4d19b6446577612a9' => [
         'sub'               => 'danny_spm',
         'branch'            => 'PUSAT',
@@ -783,14 +795,41 @@ $OFFICIAL_TOKEN_HASHES = [
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
         'isSuperAdmin'      => false,
+        'isKing'            => false,
         'isCabang'          => false,
         'canAccessKwitansi' => false,
-        'canApprove'        => true,
+        'canApprove'        => false, // Pencabutan hak approval generik (Cegah eskalasi Admin Pusat)
+        'canApproveSPM'     => true,
         'canSubmit'         => true,
         'seeFee'            => false,
-        'mode'              => 'PUSAT'
+        'mode'              => 'PUSAT',
+        'permissions'       => ['spm.review', 'opr.view']
     ],
-    // Token Header: NSR-DIVTEK-DENI-2026
+    // Token Header: NSR-DIVTEK-2026 (Kepala Divisi Teknik - Deni Siswandi)
+    'dd978492a43a62cdfaf0526c90957ae6443be71f7459a6dbcb4014ed3e4c24fb' => [
+        'sub'               => 'deni_divtek',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Deni Siswandi, S.T.',
+        'nama'              => 'Deni Siswandi, S.T.',
+        'email'             => 'deni.siswandi@kjppnanangrahayu.com',
+        'wa'                => '081381909504',
+        'role'              => 'KEPALA_DIVTEK',
+        'roleLabel'         => 'Kepala Divisi Teknik',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => false, // Pencabutan hak approval generik
+        'canApproveDivtek'  => true,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT',
+        'permissions'       => ['divtek.review', 'opr.view']
+    ],
+    // Token Header: NSR-DIVTEK-DENI-2026 (Alias Kompatibilitas Transisi)
     '718d4e13ec07cd7c24c605c78bd0cb9485f0e199b9d79711a5c2557b10ca6c25' => [
         'sub'               => 'deni_divtek',
         'branch'            => 'PUSAT',
@@ -804,14 +843,41 @@ $OFFICIAL_TOKEN_HASHES = [
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
         'isSuperAdmin'      => false,
+        'isKing'            => false,
         'isCabang'          => false,
         'canAccessKwitansi' => false,
-        'canApprove'        => true,
+        'canApprove'        => false,
+        'canApproveDivtek'  => true,
         'canSubmit'         => true,
         'seeFee'            => false,
-        'mode'              => 'PUSAT'
+        'mode'              => 'PUSAT',
+        'permissions'       => ['divtek.review', 'opr.view']
     ],
-    // Token Header: NSR-PENILAI-NANANG-2026
+    // Token Header: NSR-NARA-2026 (Penilai Publik - Ir. Nanang Rahayu)
+    '4bb9bd103f256473cb840ba504388c65150d01ffec55ddc58ae12c6bbf67199f' => [
+        'sub'               => 'nanang_penilai',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
+        'nama'              => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
+        'email'             => 'nanang.rahayu@kjppnanangrahayu.com',
+        'izinMenkeu'        => '0218',
+        'mappi'             => '96-S-00812',
+        'role'              => 'PENILAI_PUBLIK',
+        'roleLabel'         => 'Rekan Pemimpin / Penilai Publik Rekan',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'permissions'       => ['report.sign', 'opr.view']
+    ],
+    // Token Header: NSR-PENILAI-NANANG-2026 (Alias Kompatibilitas)
     'bf4963975e153a898bf6547f5528383dce9969a058146311141c9a41f969ada6' => [
         'sub'               => 'nanang_penilai',
         'branch'            => 'PUSAT',
@@ -826,14 +892,41 @@ $OFFICIAL_TOKEN_HASHES = [
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
         'isSuperAdmin'      => false,
+        'isKing'            => false,
         'isCabang'          => false,
         'canAccessKwitansi' => true,
         'canApprove'        => false,
         'canSubmit'         => true,
         'seeFee'            => true,
-        'mode'              => 'PUSAT'
+        'mode'              => 'PUSAT',
+        'permissions'       => ['report.sign', 'opr.view']
     ],
-    // Token Header: NSR-PENILAI-DENI-2026 (Terpisah dari Divtek!)
+    // Token Header: NSR-DUS-2026 (Penilai Publik - Deni Siswandi, Terpisah dari Divtek!)
+    '7b4f2d04563cc945fa87efa81644f7d577b30803c62518d70a237d35d2fe1b9a' => [
+        'sub'               => 'deni_penilai',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Deni Siswandi, S.T., MAPPI (Cert.)',
+        'nama'              => 'Deni Siswandi, S.T., MAPPI (Cert.)',
+        'email'             => 'deni.siswandi@kjppnanangrahayu.com',
+        'wa'                => '081381909504',
+        'izinMenkeu'        => 'P-1.20.00581',
+        'mappi'             => '06-S-02013',
+        'role'              => 'PENILAI_PUBLIK',
+        'roleLabel'         => 'Rekan / Penilai Publik Penanggung Jawab',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT',
+        'permissions'       => ['report.sign', 'opr.view']
+    ],
+    // Token Header: NSR-PENILAI-DENI-2026 (Alias Kompatibilitas)
     '8b5420d9942829d62967b099a1049a1f36e05d173eac6cd6217fbfe403004c96' => [
         'sub'               => 'deni_penilai',
         'branch'            => 'PUSAT',
@@ -849,12 +942,14 @@ $OFFICIAL_TOKEN_HASHES = [
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
         'isSuperAdmin'      => false,
+        'isKing'            => false,
         'isCabang'          => false,
         'canAccessKwitansi' => true,
         'canApprove'        => false,
         'canSubmit'         => true,
         'seeFee'            => true,
-        'mode'              => 'PUSAT'
+        'mode'              => 'PUSAT',
+        'permissions'       => ['report.sign', 'opr.view']
     ],
     // Token Header: NSR-ADMIN-PUSAT-2026
     '40c8327a62d48967dc80b016c3762216e1f31093aa78e915e4c68499675a5b36' => [
@@ -868,15 +963,17 @@ $OFFICIAL_TOKEN_HASHES = [
         'wilayah'           => 'PUSAT',
         'wilayahLabel'      => 'Kantor Pusat Jakarta',
         'wilayahCode'       => 'PST',
-        'isSuperAdmin'      => true,
+        'isSuperAdmin'      => false,
+        'isKing'            => false,
         'isCabang'          => false,
         'canAccessKwitansi' => true,
         'canApprove'        => true,
         'canSubmit'         => true,
         'seeFee'            => true,
-        'mode'              => 'PUSAT'
+        'mode'              => 'PUSAT',
+        'permissions'       => ['lp.issue', 'nolap.issue', 'opr.view', 'opr.submit']
     ],
-    // Token Header: NSR-ADMIN-BDG-2026
+    // Token Header: NSR-ADMIN-BDG-2026 (Admin Cabang Bandung)
     'abbb9d2669adcecef0d82399492141940292dd0eaf358066adacacfb1d0c3545' => [
         'sub'               => 'admin_cabang_bdg',
         'branch'            => 'Bandung',
@@ -888,13 +985,15 @@ $OFFICIAL_TOKEN_HASHES = [
         'wilayahLabel'      => 'Kantor Cabang Bandung',
         'wilayahCode'       => 'BDG',
         'isSuperAdmin'      => false,
+        'isKing'            => false,
         'isCabang'          => true,
         'canAccessKwitansi' => true,
         'canApprove'        => false,
         'canSubmit'         => true,
         'seeFee'            => true,
         'mode'              => 'CABANG',
-        'kodeKemenkeu'      => '2.0160-04'
+        'kodeKemenkeu'      => '2.0160-04',
+        'permissions'       => ['branch.submit', 'branch.view', 'opr.view', 'opr.submit']
     ],
 
 ];
@@ -949,13 +1048,34 @@ if (!$currentUser) {
     exit;
 }
 
-// Normalisasi role pengguna untuk konsistensi RBAC backend
-$rawRole = $currentUser['role'] ?? 'CABANG';
-$isSuperOrPusat = in_array(strtoupper($rawRole), ['ADMIN_PUSAT', 'SUPER ADMIN', 'SUPER_ADMIN'], true) || !empty($currentUser['isSuperAdmin']) || !empty($currentUser['canApprove']);
-$isCabangRole = in_array(strtoupper($rawRole), ['CABANG', 'ADMIN_CABANG'], true) || !empty($currentUser['isCabang']);
-$userRole = $isSuperOrPusat ? 'ADMIN_PUSAT' : ($isCabangRole ? 'CABANG' : $rawRole);
+// Normalisasi role pengguna untuk konsistensi RBAC backend (Strict Separation of Duties)
+$rawRole = strtoupper(trim($currentUser['role'] ?? 'CABANG'));
+if (in_array($rawRole, ['SUPER_ADMIN', 'SUPER ADMIN'], true) || !empty($currentUser['isKing'])) {
+    $userRole = 'SUPER_ADMIN';
+} elseif (in_array($rawRole, ['KEPALA_SPM', 'SPM'], true)) {
+    $userRole = 'KEPALA_SPM';
+} elseif (in_array($rawRole, ['KEPALA_DIVTEK', 'MANAGER_TEKNIK', 'DIVTEK'], true)) {
+    $userRole = 'KEPALA_DIVTEK';
+} elseif (in_array($rawRole, ['PENILAI_PUBLIK', 'PENILAI'], true)) {
+    $userRole = 'PENILAI_PUBLIK';
+} elseif (in_array($rawRole, ['ADMIN_PUSAT', 'PUSAT'], true)) {
+    $userRole = 'ADMIN_PUSAT';
+} elseif (in_array($rawRole, ['ADMIN_CABANG', 'CABANG'], true) || !empty($currentUser['isCabang'])) {
+    $userRole = 'ADMIN_CABANG';
+} else {
+    $userRole = $rawRole;
+}
 $userBranch = trim($currentUser['branch'] ?? 'Pusat');
 $userDisplayName = $currentUser['displayName'] ?? $currentUser['sub'] ?? 'Staf NSR';
+
+// Helper izin granular eksplisit (Deny by default)
+function userHasPermission($user, $permission) {
+    if (!$user || !is_array($user)) return false;
+    $perms = $user['permissions'] ?? [];
+    if (!is_array($perms)) return false;
+    if (in_array('admin.all', $perms, true)) return true;
+    return in_array($permission, $perms, true);
+}
 
 // -------------------------------------------------------------
 // 3. PERSISTENT STORAGE, DIRECTORY PROTECTION & CONCURRENCY
@@ -1534,6 +1654,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
 
+
+    if ($actionGet === 'getQueueSuperAdmin') {
+        if ($userRole !== 'SUPER_ADMIN' && empty($currentUser['isKing'])) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Khusus SUPER ADMIN (KING).']);
+            exit;
+        }
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        echo json_encode(['success' => true, 'role' => 'SUPER_ADMIN', 'total' => count($dgRecords), 'records' => array_values($dgRecords)]);
+        exit;
+    }
+
     if ($actionGet === 'getQueueAdminPusat') {
         $dgRecords = muatDatabaseDualGate($dualGateDbFile);
         $queue = array_filter($dgRecords, function($r) {
@@ -1766,11 +1898,14 @@ Mohon lakukan review kepatuhan melalui Portal OPINI NSR.
 
     // 2. REVIEW DANNY TAUFIK (KEPALA SPM) PADA GERBANG 1
     if ($action === 'reviewDannyGerbang1') {
-        if ($currentUser['role'] !== 'KEPALA_SPM') {
+        if ($userRole !== 'KEPALA_SPM' && $userRole !== 'SUPER_ADMIN') {
             http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Danny Taufik (Kepala SPM) yang berwenang mengeksekusi review ini.']);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Danny Taufik (Kepala SPM) atau SUPER ADMIN (KING) yang berwenang mengeksekusi review ini.']);
             exit;
         }
+        $isKingAction = ($userRole === 'SUPER_ADMIN');
+        $reviewerDisplayName = $isKingAction ? 'SUPER ADMIN (KING)' : ($currentUser['nama'] ?? 'Danny Taufik, S.H.');
+        $reviewerRoleName = $isKingAction ? 'SUPER_ADMIN' : 'KEPALA_SPM';
 
         $idPenugasan = $payload['idPenugasan'] ?? '';
         $keputusan = strtoupper(trim($payload['keputusan'] ?? ''));
@@ -1859,11 +1994,14 @@ Mohon kesediaan Bapak mereview aspek metodologi dan susunan tim teknis di Portal
 
     // 3. REVIEW DENI SISWANDI (KEPALA DIVTEK) PADA GERBANG 1 (STRICT GUARD!)
     if ($action === 'reviewDeniGerbang1') {
-        if ($currentUser['role'] !== 'KEPALA_DIVTEK') {
+        if ($userRole !== 'KEPALA_DIVTEK' && $userRole !== 'SUPER_ADMIN') {
             http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Deni Siswandi (Kepala Divisi Teknik) yang berwenang mengeksekusi review ini.']);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Deni Siswandi (Kepala Divisi Teknik) atau SUPER ADMIN (KING) yang berwenang mengeksekusi review ini.']);
             exit;
         }
+        $isKingAction = ($userRole === 'SUPER_ADMIN');
+        $reviewerDisplayName = $isKingAction ? 'SUPER ADMIN (KING)' : ($currentUser['nama'] ?? 'Deni Siswandi, S.T.');
+        $reviewerRoleName = $isKingAction ? 'SUPER_ADMIN' : 'KEPALA_DIVTEK';
 
         $idPenugasan = $payload['idPenugasan'] ?? '';
         $keputusan = strtoupper(trim($payload['keputusan'] ?? ''));
@@ -1939,11 +2077,11 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         exit;
     }
 
-    // 4. PENERBITAN NOMOR LINGKUP PENUGASAN RESMI OLEH ADMIN PUSAT
+    // 4. PENERBITAN NOMOR LINGKUP PENUGASAN RESMI OLEH ADMIN PUSAT / SUPER ADMIN
     if ($action === 'publishOfficialLP') {
-        if ($userRole !== 'ADMIN_PUSAT') {
+        if (!in_array($userRole, ['ADMIN_PUSAT', 'SUPER_ADMIN'], true)) {
             http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Penerbitan nomor Lingkup Penugasan resmi mutlak wewenang Admin Kantor Pusat.']);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Penerbitan nomor Lingkup Penugasan resmi mutlak wewenang Admin Kantor Pusat atau SUPER ADMIN.']);
             exit;
         }
 
@@ -1957,6 +2095,19 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         if ($targetIdx < 0) {
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        // Idempotency: Jika nomor LP resmi sudah ada, kembalikan nomor yang sama
+        if (!empty($dgRecords[$targetIdx]['gerbang1']['nomorLpResmi']) && ($dgRecords[$targetIdx]['gerbang1']['status'] ?? '') === 'LP_DITERBITKAN') {
+            echo json_encode([
+                'success' => true,
+                'alreadyIssued' => true,
+                'message' => 'Nomor Lingkup Penugasan resmi sudah diterbitkan sebelumnya.',
+                'idPenugasan' => $idPenugasan,
+                'nomorLpResmi' => $dgRecords[$targetIdx]['gerbang1']['nomorLpResmi'],
+                'status' => 'LP_DITERBITKAN'
+            ]);
             exit;
         }
 
@@ -2144,11 +2295,14 @@ Mohon kesediaan Bapak mereview kertas kerja dan kesesuaian nilai akhir."
 
     // 7. REVIEW DENI SISWANDI (KEPALA DIVTEK) PADA GERBANG 2 (STRICT GUARD!)
     if ($action === 'reviewDeniGerbang2') {
-        if ($currentUser['role'] !== 'KEPALA_DIVTEK') {
+        if ($userRole !== 'KEPALA_DIVTEK' && $userRole !== 'SUPER_ADMIN') {
             http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Deni Siswandi (Kepala Divisi Teknik) yang berwenang mengeksekusi review ini.']);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Deni Siswandi (Kepala Divisi Teknik) atau SUPER ADMIN (KING) yang berwenang mengeksekusi review ini.']);
             exit;
         }
+        $isKingAction = ($userRole === 'SUPER_ADMIN');
+        $reviewerDisplayName = $isKingAction ? 'SUPER ADMIN (KING)' : ($currentUser['nama'] ?? 'Deni Siswandi, S.T.');
+        $reviewerRoleName = $isKingAction ? 'SUPER_ADMIN' : 'KEPALA_DIVTEK';
 
         $idPenugasan = $payload['idPenugasan'] ?? '';
         $keputusan = strtoupper(trim($payload['keputusan'] ?? ''));
@@ -2224,23 +2378,47 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
         exit;
     }
 
-    // 8. PENERBITAN NOMOR LAPORAN DEFINITIF OLEH ADMIN PUSAT (STRICT GUARD!)
+    // 8. PENERBITAN NOMOR LAPORAN DEFINITIF OLEH ADMIN PUSAT / SUPER ADMIN (ATOMIC CONCURRENCY GUARD)
     if ($action === 'issueDefinitiveNoLap') {
-        if ($userRole !== 'ADMIN_PUSAT') {
+        if (!in_array($userRole, ['ADMIN_PUSAT', 'SUPER_ADMIN'], true)) {
             http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Wewenang penerbitan NoLap definitif resmi mutlak milik Admin Kantor Pusat.']);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Wewenang penerbitan NoLap definitif resmi mutlak milik Admin Kantor Pusat atau SUPER ADMIN.']);
             exit;
         }
 
         $idPenugasan = $payload['idPenugasan'] ?? '';
+        $lockFile = $dataDir . '/nolap_allocator.lock';
+        $fpLock = fopen($lockFile, 'c+');
+        if ($fpLock && !flock($fpLock, LOCK_EX)) {
+            http_response_code(503);
+            echo json_encode(['success' => false, 'error' => 'Server sibuk memproses alokasi nomor lain. Silakan coba kembali.']);
+            exit;
+        }
+
         $dgRecords = muatDatabaseDualGate($dualGateDbFile);
         $targetIdx = -1;
         foreach ($dgRecords as $i => $r) {
             if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
         }
         if ($targetIdx < 0) {
+            if ($fpLock) { flock($fpLock, LOCK_UN); fclose($fpLock); }
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        // Idempotency: Jika NoLap sudah diterbitkan sebelumnya, kembalikan nomor yang ada tanpa membuat baru
+        if (!empty($dgRecords[$targetIdx]['finalisasi']['nomorLaporanDefinitif'])) {
+            $existingNo = $dgRecords[$targetIdx]['finalisasi']['nomorLaporanDefinitif'];
+            if ($fpLock) { flock($fpLock, LOCK_UN); fclose($fpLock); }
+            echo json_encode([
+                'success' => true,
+                'alreadyIssued' => true,
+                'message' => 'Nomor Laporan Definitif resmi sudah diterbitkan sebelumnya.',
+                'idPenugasan' => $idPenugasan,
+                'nomorDefinitif' => $existingNo,
+                'statusTandaTangan' => $dgRecords[$targetIdx]['finalisasi']['statusTandaTangan'] ?? 'MENUNGGU_TTD_PENILAI'
+            ]);
             exit;
         }
 
@@ -2273,6 +2451,7 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
         $dgRecords[$targetIdx]['finalisasi']['statusAkhir'] = 'NOMOR_DITERBITKAN';
 
         simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+        if (isset($fpLock) && $fpLock) { flock($fpLock, LOCK_UN); fclose($fpLock); }
 
         // Notifikasi ke Penilai Publik yang Ditugaskan
         $penilaiSub = $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '';
@@ -2295,6 +2474,146 @@ Mohon melakukan pemeriksaan dokumen final dan membubuhkan tanda tangan resmi di 
             'idPenugasan' => $idPenugasan,
             'nomorDefinitif' => $noDefinitif,
             'statusTandaTangan' => 'MENUNGGU_TTD_PENILAI'
+        ]);
+        exit;
+    }
+
+
+    // =========================================================================
+    // 10. EMERGENCY OVERRIDE SUPER ADMIN (KING AUTHORITY)
+    // =========================================================================
+    if ($action === 'emergencyOverrideGate') {
+        if ($userRole !== 'SUPER_ADMIN' && empty($currentUser['isKing'])) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Akses Ditolak: Emergency Override merupakan hak eksklusif SUPER ADMIN (KING).'
+            ]);
+            exit;
+        }
+
+        // Secondary Re-Authentication / Confirmation MFA Key check
+        $reauthKey = trim($payload['reauthKey'] ?? $_SERVER['HTTP_X_NSR_OVERRIDE_KEY'] ?? '');
+        $allowedKeys = ['NSR8899', 'KING-OVERRIDE-SECURE-2026', 'NSR-OVERRIDE-2026'];
+        if (empty($reauthKey) || !in_array($reauthKey, $allowedKeys, true)) {
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Otorisasi Gagal: Kunci Re-Autentikasi (MFA) SUPER ADMIN tidak valid atau tidak disertakan.'
+            ]);
+            exit;
+        }
+
+        $idPenugasan = trim($payload['idPenugasan'] ?? '');
+        $targetStatus = trim($payload['targetStatus'] ?? '');
+        $alasanOverride = trim($payload['alasanOverride'] ?? '');
+
+        if (empty($idPenugasan)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan wajib diisi.']);
+            exit;
+        }
+        if (empty($alasanOverride) || strlen($alasanOverride) < 15) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Alasan Emergency Override wajib diisi secara substantif (minimal 15 karakter).']);
+            exit;
+        }
+
+        $allowedTargetStatuses = [
+            'MENUNGGU_SPM_AWAL', 'MENUNGGU_DIVTEK_AWAL', 'SIAP_TERBIT_LP', 'LP_DITERBITKAN',
+            'MENUNGGU_SPM_AKHIR', 'MENUNGGU_DIVTEK_AKHIR', 'SIAP_TERBIT_NOLAP', 'HOLD_RESOLVED'
+        ];
+        if (!in_array($targetStatus, $allowedTargetStatuses, true)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => "Target status '{$targetStatus}' tidak valid untuk emergency override."]);
+            exit;
+        }
+
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        $nowWib = date('c');
+        $ipCaller = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $uaCaller = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+
+        // Tentukan gate target dan rekam statusSebelum
+        $st1 = $dgRecords[$targetIdx]['gerbang1']['status'] ?? '';
+        $st2 = $dgRecords[$targetIdx]['gerbang2']['status'] ?? '';
+        $isGate1Target = in_array($targetStatus, ['MENUNGGU_SPM_AWAL', 'MENUNGGU_DIVTEK_AWAL', 'SIAP_TERBIT_LP', 'LP_DITERBITKAN'], true);
+        $statusSebelum = $isGate1Target ? $st1 : ($st2 ?: $st1);
+
+        if ($isGate1Target) {
+            $dgRecords[$targetIdx]['gerbang1']['status'] = $targetStatus;
+            $dgRecords[$targetIdx]['gerbang1']['overridden'] = true;
+        } else {
+            $dgRecords[$targetIdx]['gerbang2']['status'] = $targetStatus;
+            $dgRecords[$targetIdx]['gerbang2']['overridden'] = true;
+        }
+
+        $auditLogId = 'OVR-' . date('YmdHis') . '-' . substr(md5(uniqid()), 0, 6);
+        $overrideRecord = [
+            'auditLogId'        => $auditLogId,
+            'idPenugasan'       => $idPenugasan,
+            'aktor'             => 'SUPER_ADMIN',
+            'actorName'         => 'SUPER ADMIN (KING)',
+            'timestampWIB'      => $nowWib,
+            'ipAddress'         => $ipCaller,
+            'userAgent'         => $uaCaller,
+            'statusSebelum'     => $statusSebelum,
+            'statusSesudah'     => $targetStatus,
+            'alasanOverride'    => $alasanOverride,
+            'flag'              => 'EMERGENCY_OVERRIDE_BY_KING'
+        ];
+
+        $dgRecords[$targetIdx]['emergencyOverrides'][] = $overrideRecord;
+        $dgRecords[$targetIdx]['auditTrail'][] = $overrideRecord;
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        // Append ke log audit permanen data/emergency_override_logs.json
+        $overrideLogFile = $dataDir . '/emergency_override_logs.json';
+        $existingLogs = [];
+        if (file_exists($overrideLogFile)) {
+            $rawLogs = @file_get_contents($overrideLogFile);
+            $existingLogs = json_decode($rawLogs, true) ?: [];
+        }
+        $existingLogs[] = $overrideRecord;
+        @file_put_contents($overrideLogFile, json_encode($existingLogs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        // Enqueue email audit alert
+        antrekanEmailDualGate($mailQueueFile, [
+            'event'         => 'EMERGENCY_OVERRIDE_EXECUTED',
+            'idPenugasan'   => $idPenugasan,
+            'recipient'     => 'admin.operasional@kjppnanangrahayu.com',
+            'recipientName' => 'Dewan Pengawas & SPM KJPP NSR',
+            'subject'       => "[OPINI NSR - AUDIT ALERT] Emergency Override Dieksekusi: {$idPenugasan}",
+            'body'          => "PEMBERITAHUAN AUDIT SISTEM:
+
+SUPER ADMIN (KING) telah mengeksekusi Emergency Override.
+ID Penugasan: {$idPenugasan}
+Status Sebelum: {$statusSebelum}
+Status Sesudah: {$targetStatus}
+Alasan: {$alasanOverride}
+Waktu: {$nowWib}
+IP: {$ipCaller}
+Audit Log ID: {$auditLogId}"
+        ]);
+
+        echo json_encode([
+            'success'       => true,
+            'message'       => 'Emergency Override berhasil dieksekusi oleh SUPER ADMIN (KING).',
+            'auditLogId'    => $auditLogId,
+            'idPenugasan'   => $idPenugasan,
+            'statusSebelum' => $statusSebelum,
+            'statusSesudah' => $targetStatus
         ]);
         exit;
     }

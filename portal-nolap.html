@@ -19753,6 +19753,164 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
     </div>
   </div>
 
+  <!-- ==================== MODAL PENGAJUAN GERBANG 2: NOLAP & SMART MITIGASI AKHIR ==================== -->
+  <div id="modal-submit-gerbang2" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-sm font-black text-amber-400 uppercase tracking-wide">Pengajuan NoLap &amp; Smart Mitigasi Akhir (Gerbang 2)</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Tautkan Lingkup Penugasan terverifikasi dan lengkapi bukti draf laporan.</p>
+        </div>
+        <button type="button" onclick="tutupModalSubmitGerbang2()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+      </div>
+
+      <form id="form-modal-g2" onsubmit="eksekusiSubmitGerbang2Modal(event)" class="space-y-3">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">ID Penugasan Resmi (Gerbang 1 Terverifikasi) <span class="text-rose-400">*</span></label>
+          <input type="text" id="g2-id-penugasan" required placeholder="Contoh: NSR-2026-BDG-0012" class="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold text-xs focus:outline-none focus:border-amber-400">
+          <p class="text-[10px] text-slate-400 mt-1">Hanya penugasan yang telah lulus verifikasi Gerbang 1 (SIAP_TERBIT_LP / LP_DITERBITKAN) yang dapat diproses.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">URL Draf Laporan Penilaian (Google Drive) <span class="text-rose-400">*</span></label>
+            <input type="url" id="g2-url-draf" required placeholder="https://drive.google.com/..." class="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">URL Berita Acara Inspeksi / BAI (PDF) <span class="text-rose-400">*</span></label>
+            <input type="url" id="g2-url-bai" required placeholder="https://drive.google.com/..." class="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400">
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-800">
+          <label class="block font-semibold text-slate-300 mb-2">Checklist Smart Mitigasi Akhir (QC &amp; Kertas Kerja):</label>
+          <div class="space-y-2">
+            <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+              <input type="checkbox" id="g2-ceklis-geotag" checked required class="mt-0.5 accent-teal-400 rounded">
+              <span class="text-slate-300">Foto objek lengkap dengan koordinat geotagging valid &amp; tanggal survei riil.</span>
+            </label>
+            <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+              <input type="checkbox" id="g2-ceklis-pembanding" checked required class="mt-0.5 accent-teal-400 rounded">
+              <span class="text-slate-300">Minimal 3 data pembanding terkonfirmasi dengan narasumber independen.</span>
+            </label>
+            <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+              <input type="checkbox" id="g2-ceklis-kertas-kerja" checked required class="mt-0.5 accent-teal-400 rounded">
+              <span class="text-slate-300">Kertas kerja perhitungan nilai telah diperiksa silang (cross-checked).</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-800">
+          <label class="block font-semibold text-slate-300 mb-1">Delta Analysis (Kesesuaian Fisik vs Yuridis &amp; Deviasi Luas):</label>
+          <label class="flex items-start gap-2 p-2 rounded-xl bg-rose-950/20 border border-rose-900/50 mb-2 cursor-pointer">
+            <input type="checkbox" id="g2-delta-deviasi" class="mt-0.5 accent-rose-500 rounded">
+            <div>
+              <strong class="text-rose-300 block font-bold">Terdapat Deviasi Material Tanpa Justifikasi</strong>
+              <span class="text-[10px] text-slate-400 block">Perbedaan luas fisik &gt;10% dibanding sertifikat tanpa penjelasan BPN (Memicu HOLD ESKALASI).</span>
+            </div>
+          </label>
+          <textarea id="g2-delta-keterangan" rows="2" placeholder="Keterangan hasil rekonsiliasi luas fisik vs yuridis dan penjelasan asumsi khusus jika ada..." class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400"></textarea>
+        </div>
+
+        <div class="pt-3 flex items-center justify-between gap-3 border-t border-slate-800">
+          <button type="button" onclick="tutupModalSubmitGerbang2()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">Batal</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-lg transition">Kirim ke Kepala SPM (Danny Taufik)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL REVIEW GERBANG 2: SPM & DIVTEK ==================== -->
+  <div id="modal-review-gerbang2" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 id="modal-g2-title" class="text-sm font-black text-amber-400 uppercase tracking-wide">Review NoLap &amp; Mitigasi Akhir</h3>
+          <p id="modal-g2-subtitle" class="text-[11px] text-slate-400 mt-0.5">ID: -</p>
+        </div>
+        <button type="button" onclick="tutupModalReviewGerbang2()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+      </div>
+
+      <div id="modal-g2-body" class="space-y-3">
+        <!-- Render detail dinamis -->
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-300 mb-1">Catatan Telaah Evaluasi Akhir <span class="text-rose-400">*</span></label>
+        <textarea id="modal-g2-catatan" rows="3" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400" placeholder="Ketik catatan evaluasi hasil penilaian akhir..."></textarea>
+      </div>
+
+      <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800">
+        <button type="button" onclick="tutupModalReviewGerbang2()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">Batal</button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="eksekusiReviewGerbang2Submit('REVISI')" class="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold transition">Minta Revisi</button>
+          <button type="button" onclick="eksekusiReviewGerbang2Submit('TOLAK')" class="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold transition">Tolak</button>
+          <button type="button" onclick="eksekusiReviewGerbang2Submit('SETUJU')" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg transition">Setujui Mitigasi Akhir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL EMERGENCY OVERRIDE SUPER ADMIN (KING) ==================== -->
+  <div id="modal-emergency-override" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border-2 border-amber-500/80 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl my-8 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-amber-400 animate-ping"></span>
+          <h3 class="text-sm font-black text-amber-400 uppercase tracking-wider">⚠️ Emergency Override SUPER ADMIN (KING)</h3>
+        </div>
+        <button type="button" onclick="tutupModalEmergencyOverride()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+      </div>
+
+      <div class="p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-200 text-[11px] leading-relaxed">
+        <strong>PENTING:</strong> Tindakan ini mencatat audit trail permanen atas nama <code>SUPER_ADMIN</code>. Emergency override digunakan khusus untuk mengintervensi status macet/eskalasi (HOLD) tanpa memalsukan tanda tangan Penilai Publik.
+      </div>
+
+      <form id="form-emergency-override" onsubmit="eksekusiEmergencyOverrideSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">ID Penugasan / Tiket <span class="text-rose-400">*</span></label>
+          <input type="text" id="override-id-penugasan" required readonly class="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Status Saat Ini</label>
+            <input type="text" id="override-status-sebelum" readonly class="w-full h-9 px-3 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-400 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Target Status Intervensi <span class="text-rose-400">*</span></label>
+            <select id="override-status-sesudah" required class="w-full h-9 px-2 rounded-xl bg-slate-950 border border-amber-500/60 text-amber-300 font-semibold focus:outline-none">
+              <option value="MENUNGGU_SPM_AWAL">MENUNGGU_SPM_AWAL (Buka Eskalasi Gerbang 1)</option>
+              <option value="MENUNGGU_DIVTEK_AWAL">MENUNGGU_DIVTEK_AWAL (Bypass SPM Gerbang 1)</option>
+              <option value="SIAP_TERBIT_LP">SIAP_TERBIT_LP (Selesaikan Gerbang 1)</option>
+              <option value="MENUNGGU_SPM_AKHIR">MENUNGGU_SPM_AKHIR (Buka Eskalasi Gerbang 2)</option>
+              <option value="MENUNGGU_DIVTEK_AKHIR">MENUNGGU_DIVTEK_AKHIR (Bypass SPM Gerbang 2)</option>
+              <option value="SIAP_TERBIT_NOLAP">SIAP_TERBIT_NOLAP (Selesaikan Gerbang 2)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Alasan Substantif Emergency Override <span class="text-rose-400">* (Min. 15 Karakter)</span></label>
+          <textarea id="override-alasan" rows="3" required minlength="15" placeholder="Ketik alasan operasional/legal intervensi darurat secara komprehensif..." class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:border-amber-400"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Kunci Konfirmasi Re-Autentikasi KING <span class="text-rose-400">*</span></label>
+          <input type="password" id="override-reauth-key" required placeholder="Masukkan Kunci Konfirmasi Otorisasi..." class="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono tracking-wider focus:outline-none focus:border-amber-400">
+          <p class="text-[10px] text-slate-400 mt-1">Gunakan kunci otorisasi darurat KING (contoh: <code>Kunci Rahasia KING</code> atau secondary override pass).</p>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+          <button type="button" onclick="tutupModalEmergencyOverride()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">Batal</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black shadow-lg transition">
+            ⚡ Eksekusi Emergency Override
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modul Kepatuhan UU PDP & Disclaimer Profesi -->
   <script src="lib/privacy-consent.js"></script>
   <script>
@@ -20713,107 +20871,15 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
             <button onclick="window.print()" style="padding: 8px 18px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">🖨️ Cetak / Simpan PDF</button>
           </div>
           <div class="print-card">${htmlContent}</div>
-        
-  <!-- MODAL PENGAJUAN GERBANG 2: NOLAP & SMART MITIGASI AKHIR -->
-  <div id="modal-submit-gerbang2" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl text-xs">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div>
-          <h3 class="text-sm font-black text-amber-400 uppercase tracking-wide">Pengajuan NoLap &amp; Smart Mitigasi Akhir (Gerbang 2)</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Tautkan Lingkup Penugasan terverifikasi dan lengkapi bukti draf laporan.</p>
-        </div>
-        <button type="button" onclick="tutupModalSubmitGerbang2()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
-      </div>
+        </body>\n<\/html>
+      `);
+      win.document.close();
+    }
 
-      <form id="form-modal-g2" onsubmit="eksekusiSubmitGerbang2Modal(event)" class="space-y-3">
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">ID Penugasan Resmi (Gerbang 1 Terverifikasi) <span class="text-rose-400">*</span></label>
-          <input type="text" id="g2-id-penugasan" required placeholder="Contoh: NSR-2026-BDG-0012" class="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold text-xs focus:outline-none focus:border-amber-400">
-          <p class="text-[10px] text-slate-400 mt-1">Hanya penugasan yang telah lulus verifikasi Gerbang 1 (SIAP_TERBIT_LP / LP_DITERBITKAN) yang dapat diproses.</p>
-        </div>
+    function cetakSuratTugas(noReq) { cetakDokumenOtomatis(noReq, 'SURAT_TUGAS'); }
+    function cetakLembarKendaliMutu(noReq) { cetakDokumenOtomatis(noReq, 'QA_CHECKLIST'); }
+    function cetakTandaTerima(noReq) { cetakDokumenOtomatis(noReq, 'TANDA_TERIMA'); }
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">URL Draf Laporan Penilaian (Google Drive) <span class="text-rose-400">*</span></label>
-            <input type="url" id="g2-url-draf" required placeholder="https://drive.google.com/..." class="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">URL Berita Acara Inspeksi / BAI (PDF) <span class="text-rose-400">*</span></label>
-            <input type="url" id="g2-url-bai" required placeholder="https://drive.google.com/..." class="w-full h-9 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400">
-          </div>
-        </div>
-
-        <div class="pt-2 border-t border-slate-800">
-          <label class="block font-semibold text-slate-300 mb-2">Checklist Smart Mitigasi Akhir (QC &amp; Kertas Kerja):</label>
-          <div class="space-y-2">
-            <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="g2-ceklis-geotag" checked required class="mt-0.5 accent-teal-400 rounded">
-              <span class="text-slate-300">Foto objek lengkap dengan koordinat geotagging valid &amp; tanggal survei riil.</span>
-            </label>
-            <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="g2-ceklis-pembanding" checked required class="mt-0.5 accent-teal-400 rounded">
-              <span class="text-slate-300">Minimal 3 data pembanding terkonfirmasi dengan narasumber independen.</span>
-            </label>
-            <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="g2-ceklis-kertas-kerja" checked required class="mt-0.5 accent-teal-400 rounded">
-              <span class="text-slate-300">Kertas kerja perhitungan nilai telah diperiksa silang (cross-checked).</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="pt-2 border-t border-slate-800">
-          <label class="block font-semibold text-slate-300 mb-1">Delta Analysis (Kesesuaian Fisik vs Yuridis &amp; Deviasi Luas):</label>
-          <label class="flex items-start gap-2 p-2 rounded-xl bg-rose-950/20 border border-rose-900/50 mb-2 cursor-pointer">
-            <input type="checkbox" id="g2-delta-deviasi" class="mt-0.5 accent-rose-500 rounded">
-            <div>
-              <strong class="text-rose-300 block font-bold">Terdapat Deviasi Material Tanpa Justifikasi</strong>
-              <span class="text-[10px] text-slate-400 block">Perbedaan luas fisik &gt;10% dibanding sertifikat tanpa penjelasan BPN (Memicu HOLD ESKALASI).</span>
-            </div>
-          </label>
-          <textarea id="g2-delta-keterangan" rows="2" placeholder="Keterangan hasil rekonsiliasi luas fisik vs yuridis dan penjelasan asumsi khusus jika ada..." class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400"></textarea>
-        </div>
-
-        <div class="pt-3 flex items-center justify-between gap-3 border-t border-slate-800">
-          <button type="button" onclick="tutupModalSubmitGerbang2()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">Batal</button>
-          <button type="submit" class="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-lg transition">Kirim ke Kepala SPM (Danny Taufik)</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL REVIEW GERBANG 2: SPM & DIVTEK -->
-  <div id="modal-review-gerbang2" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl text-xs">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div>
-          <h3 id="modal-g2-title" class="text-sm font-black text-amber-400 uppercase tracking-wide">Review NoLap &amp; Mitigasi Akhir</h3>
-          <p id="modal-g2-subtitle" class="text-[11px] text-slate-400 mt-0.5">ID: -</p>
-        </div>
-        <button type="button" onclick="tutupModalReviewGerbang2()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
-      </div>
-
-      <div id="modal-g2-body" class="space-y-3">
-        <!-- Render detail dinamis -->
-      </div>
-
-      <div>
-        <label class="block font-semibold text-slate-300 mb-1">Catatan Telaah Evaluasi Akhir <span class="text-rose-400">*</span></label>
-        <textarea id="modal-g2-catatan" rows="3" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400" placeholder="Ketik catatan evaluasi hasil penilaian akhir..."></textarea>
-      </div>
-
-      <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800">
-        <button type="button" onclick="tutupModalReviewGerbang2()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">Batal</button>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="eksekusiReviewGerbang2Submit('REVISI')" class="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold transition">Minta Revisi</button>
-          <button type="button" onclick="eksekusiReviewGerbang2Submit('TOLAK')" class="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold transition">Tolak</button>
-          <button type="button" onclick="eksekusiReviewGerbang2Submit('SETUJU')" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg transition">Setujui Mitigasi Akhir</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <script>
     // =========================================================================
     // DUAL SMART MITIGATION GATE ENGINE (GERBANG 2 FRONTEND LOGIC)
     // =========================================================================
@@ -20826,7 +20892,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       if (idPenugasan) {
         document.getElementById('g2-id-penugasan').value = idPenugasan;
       }
-      document.getElementById('modal-submit-gerbang2').classList.remove('hidden');
+      document.getElementById('modal-submit-gerbang2')?.classList.remove('hidden');
     }
 
     function tutupModalSubmitGerbang2() {
@@ -20862,7 +20928,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || 'NSR-ADMIN-PUSAT-2026'
+            'X-NSR-Token': auth?.token || auth?.sessionToken || ''
           },
           body: JSON.stringify(payload)
         });
@@ -20888,7 +20954,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       g2ActiveReviewRole = role || auth?.role;
 
       fetch(`${DUAL_GATE_NOLAP_API}?action=getDualGateDetail&idPenugasan=${encodeURIComponent(idPenugasan)}`, {
-        headers: { 'X-NSR-Token': auth?.token || auth?.sessionToken || 'NSR-ADMIN-PUSAT-2026' }
+        headers: { 'X-NSR-Token': auth?.token || auth?.sessionToken || '' }
       })
       .then(res => res.json())
       .then(json => {
@@ -20898,7 +20964,11 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
         }
         g2ActiveReviewItem = json.record;
 
-        const roleTitle = (g2ActiveReviewRole === 'KEPALA_SPM') ? 'Review SPM Akhir (Danny Taufik, S.H.)' : 'Review Divtek Akhir (Deni Siswandi, S.T.)';
+        let roleTitle = 'Review NoLap & Mitigasi Akhir';
+        if (g2ActiveReviewRole === 'KEPALA_SPM') roleTitle = 'Review SPM Akhir (Danny Taufik, S.H.)';
+        else if (g2ActiveReviewRole === 'KEPALA_DIVTEK') roleTitle = 'Review Divtek Akhir (Deni Siswandi, S.T.)';
+        else if (g2ActiveReviewRole === 'SUPER_ADMIN') roleTitle = 'Review Mitigasi Akhir — SUPER ADMIN (KING)';
+
         document.getElementById('modal-g2-title').textContent = roleTitle;
         document.getElementById('modal-g2-subtitle').textContent = `ID: ${g2ActiveReviewItem.idPenugasan} • Klien: ${g2ActiveReviewItem.namaKlien}`;
 
@@ -20913,13 +20983,14 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
             ${g2ActiveReviewItem.gerbang2?.baiUrl ? `<div><a href="${g2ActiveReviewItem.gerbang2.baiUrl}" target="_blank" class="text-teal-400 underline font-semibold">&bull; Buka Berita Acara Inspeksi (BAI)</a></div>` : ''}
             ${g2ActiveReviewItem.gerbang2?.deltaAnalysis ? `<div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800">Delta Analysis: "${g2ActiveReviewItem.gerbang2.deltaAnalysis.keterangan || '-'}"</div>` : ''}
             ${g2ActiveReviewItem.gerbang2?.reviewDanny ? `<div class="text-[11px] text-indigo-300 pt-1 border-t border-slate-800">Review Danny (SPM): ${g2ActiveReviewItem.gerbang2.reviewDanny.keputusan} - "${g2ActiveReviewItem.gerbang2.reviewDanny.catatan}"</div>` : ''}
+            ${g2ActiveReviewItem.gerbang2?.reviewDeni ? `<div class="text-[11px] text-sky-300 pt-1 border-t border-slate-800">Review Deni (Divtek): ${g2ActiveReviewItem.gerbang2.reviewDeni.keputusan} - "${g2ActiveReviewItem.gerbang2.reviewDeni.catatan}"</div>` : ''}
           </div>
         `;
 
         document.getElementById('modal-g2-catatan').value = (g2ActiveReviewRole === 'KEPALA_SPM') ? 
           'Kelengkapan QC draf laporan, kertas kerja, dan bukti geotag telah diperiksa memadai.' : 
           'Kalkulasi nilai pasar telah diverifikasi akurat dan sesuai SPI 2024.';
-        document.getElementById('modal-review-gerbang2').classList.remove('hidden');
+        document.getElementById('modal-review-gerbang2')?.classList.remove('hidden');
       })
       .catch(err => {
         alert('Gagal mengambil data review Gerbang 2: ' + err);
@@ -20940,14 +21011,15 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       }
 
       const isDanny = (g2ActiveReviewRole === 'KEPALA_SPM' || (auth && auth.sub === 'danny_spm'));
-      const actionName = isDanny ? 'reviewDannyGerbang2' : 'reviewDeniGerbang2';
+      const isKing = (g2ActiveReviewRole === 'SUPER_ADMIN' || (auth && (auth.role === 'SUPER_ADMIN' || auth.role === 'SUPER ADMIN')));
+      const actionName = (isDanny && !isKing) ? 'reviewDannyGerbang2' : (isKing ? 'reviewKingGerbang2' : 'reviewDeniGerbang2');
 
       try {
         const res = await fetch(`${DUAL_GATE_NOLAP_API}?action=${actionName}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || (isDanny ? 'NSR-SPM-DANNY-2026' : 'NSR-DIVTEK-DENI-2026')
+            'X-NSR-Token': auth?.token || auth?.sessionToken || ''
           },
           body: JSON.stringify({
             idPenugasan: g2ActiveReviewItem.idPenugasan,
@@ -20971,7 +21043,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       }
     }
 
-    // Aksi Penerbitan NoLap Definitif (Admin Pusat)
+    // Aksi Penerbitan NoLap Definitif (Admin Pusat / SUPER ADMIN)
     async function eksekusiTerbitNoLapDualGate(idPenugasan) {
       const auth = window.CURRENT_AUTH_SESSION || (typeof dapatkanSesiLogin === 'function' ? dapatkanSesiLogin() : null) || userSession;
       if (!confirm(`Terbitkan Nomor Laporan Definitif 7 Segmen Kemenkeu untuk penugasan ${idPenugasan}?`)) return;
@@ -20981,7 +21053,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || 'NSR-ADMIN-PUSAT-2026'
+            'X-NSR-Token': auth?.token || auth?.sessionToken || ''
           },
           body: JSON.stringify({ idPenugasan: idPenugasan })
         });
@@ -20997,7 +21069,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       }
     }
 
-    // Aksi Tanda Tangan Penilai Publik (Nanang Rahayu / Deni Siswandi)
+    // Aksi Tanda Tangan Penilai Publik (Ir. Nanang Rahayu / Deni Siswandi)
     async function eksekusiTtdPenilaiDualGate(idPenugasan) {
       const auth = window.CURRENT_AUTH_SESSION || (typeof dapatkanSesiLogin === 'function' ? dapatkanSesiLogin() : null) || userSession;
       if (!confirm(`Konfirmasi Tanda Tangan Resmi Penilai Publik untuk penugasan ${idPenugasan}?`)) return;
@@ -21007,7 +21079,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || 'NSR-PENILAI-DENI-2026'
+            'X-NSR-Token': auth?.token || auth?.sessionToken || ''
           },
           body: JSON.stringify({ idPenugasan: idPenugasan, metodeTandaTangan: 'DIGITAL_VERIFIED' })
         });
@@ -21022,19 +21094,72 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
         alert('Kesalahan jaringan: ' + err);
       }
     }
-  </script>
 
-</body>
-        </html>
-      `);
-      win.document.close();
+    // =========================================================================
+    // EMERGENCY OVERRIDE SUPER ADMIN (KING) FRONTEND HANDLERS
+    // =========================================================================
+
+    function bukaModalEmergencyOverride(idPenugasan, statusSaatIni = '') {
+      document.getElementById('override-id-penugasan').value = idPenugasan || '';
+      document.getElementById('override-status-sebelum').value = statusSaatIni || 'HOLD / TERTUNDA';
+      document.getElementById('override-alasan').value = '';
+      document.getElementById('override-reauth-key').value = '';
+      document.getElementById('modal-emergency-override')?.classList.remove('hidden');
     }
 
-    function cetakSuratTugas(noReq) { cetakDokumenOtomatis(noReq, 'SURAT_TUGAS'); }
-    function cetakLembarKendaliMutu(noReq) { cetakDokumenOtomatis(noReq, 'QA_CHECKLIST'); }
-    function cetakTandaTerima(noReq) { cetakDokumenOtomatis(noReq, 'TANDA_TERIMA'); }
-  
-</script>
+    function tutupModalEmergencyOverride() {
+      document.getElementById('modal-emergency-override')?.classList.add('hidden');
+    }
+
+    async function eksekusiEmergencyOverrideSubmit(e) {
+      e.preventDefault();
+      const auth = window.CURRENT_AUTH_SESSION || (typeof dapatkanSesiLogin === 'function' ? dapatkanSesiLogin() : null) || userSession;
+      const idPenugasan = document.getElementById('override-id-penugasan').value.trim();
+      const statusSesudah = document.getElementById('override-status-sesudah').value;
+      const alasan = document.getElementById('override-alasan').value.trim();
+      const reauthKey = document.getElementById('override-reauth-key').value.trim();
+
+      if (!alasan || alasan.length < 15) {
+        alert('Alasan Emergency Override wajib diisi secara jelas (minimal 15 karakter).');
+        return;
+      }
+      if (!reauthKey) {
+        alert('Kunci Konfirmasi Re-Autentikasi SUPER ADMIN wajib diisi.');
+        return;
+      }
+
+      if (!confirm(`PERINGATAN: Anda akan mengeksekusi EMERGENCY OVERRIDE untuk ID: ${idPenugasan} menuju status ${statusSesudah}.\nTindakan ini dicatat permanen dalam audit log.\n\nLanjutkan?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${DUAL_GATE_NOLAP_API}?action=emergencyOverrideGate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-NSR-Token': auth?.token || auth?.sessionToken || reauthKey,
+            'X-NSR-Override-Key': reauthKey
+          },
+          body: JSON.stringify({
+            idPenugasan: idPenugasan,
+            targetStatus: statusSesudah,
+            alasanOverride: alasan,
+            reauthKey: reauthKey
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert(`EMERGENCY OVERRIDE BERHASIL DIEKSEKUSI!\nID: ${idPenugasan}\nStatus Baru: ${json.statusSesudah}\nAudit Log ID: ${json.auditLogId}`);
+          tutupModalEmergencyOverride();
+          if (typeof muatUlangTabel === 'function') muatUlangTabel();
+        } else {
+          alert('Gagal Eksekusi Override: ' + json.error);
+        }
+      } catch (err) {
+        alert('Kesalahan jaringan: ' + err);
+      }
+    }
+  </script>
 
 </body>
 </html>
