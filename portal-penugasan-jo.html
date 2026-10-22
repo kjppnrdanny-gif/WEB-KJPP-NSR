@@ -10523,46 +10523,81 @@
     let g1ActiveReviewItem = null;
     let g1ActiveReviewRole = null;
 
-    // Generator Checklist Dinamis Berdasarkan Maksud & Tujuan Penilaian
-    function renderChecklistMitigasiAwal(tujuan) {
+    // Generator Checklist Dinamis Berdasarkan Maksud & Tujuan Penilaian (Integrated Smart Risk Mitigation)
+    async function renderChecklistMitigasiAwal(tujuan) {
       const container = document.getElementById('g1-checklist-container');
       const badge = document.getElementById('g1-kategori-badge');
       if (!container) return;
 
       const t = String(tujuan || '').toLowerCase();
       let labelKategori = 'Agunan Bank';
-      let items = [
-        { id: 'c_bebas_konflik', label: 'Bebas benturan kepentingan finansial atau hubungan afiliasi dengan debitur/klien.' },
-        { id: 'c_izin_aktif', label: 'Kesesuaian izin Penilai Publik (P/PS) dan ketiadaan pembekuan izin Kemenkeu.' },
-        { id: 'c_sla_wajar', label: 'Jadwal penyelesaian wajar dan tidak dipaksakan oleh klien.' }
-      ];
-
       if (t.includes('pengadaan tanah') || t.includes('spi 204') || t.includes('ganti kerugian')) {
         labelKategori = 'Pengadaan Tanah (SPI 204)';
-        items.push({ id: 'c_spi204', label: 'Kepatuhan SPI 204 dan kelengkapan Dokumen Perencanaan Pengadaan Tanah (DPPT).' });
-        items.push({ id: 'c_penlok', label: 'Kesesuaian SK Penetapan Lokasi (Penlok) dan validitas peta bidang BPN.' });
       } else if (t.includes('laporan keuangan') || t.includes('psak') || t.includes('revaluasi')) {
         labelKategori = 'Lapkeu PSAK';
-        items.push({ id: 'c_psak', label: 'Kesesuaian Standar Akuntansi Keuangan (PSAK 216 / PSAK 240 Nilai Wajar).' });
-        items.push({ id: 'c_kebijakan_akuntansi', label: 'Kesesuaian model revaluasi dengan kebijakan akuntansi entitas pelapor.' });
       } else if (t.includes('jual beli') || t.includes('transaksi')) {
         labelKategori = 'Jual Beli';
-        items.push({ id: 'c_verif_pasar', label: 'Verifikasi kondisi fisik & yuridis serta ketiadaan paksaan harga para pihak.' });
       } else if (t.includes('mesin') || t.includes('peralatan') || t.includes('industri')) {
         labelKategori = 'Mesin Industri';
-        items.push({ id: 'c_nameplate', label: 'Verifikasi pelat nama (nameplate), kondisi operasional, dan riwayat pemeliharaan.' });
-      } else {
-        labelKategori = 'Agunan Bank';
-        items.push({ id: 'c_pojk', label: 'Kepatuhan kriteria agunan POJK dan kelayakan pasar sekunder.' });
+      }
+      if (badge) badge.textContent = labelKategori;
+
+      // Coba panggil API checklist dinamis dari nolap-data-handler.php
+      let items = [];
+      try {
+        const selObjek = document.getElementById('jenis_objek')?.value || 'Tanah dan Bangunan';
+        const res = await fetch(`/nolap-data-handler.php?action=getDynamicRiskChecklist&tujuanPenilaian=${encodeURIComponent(tujuan)}&jenisObjek=${encodeURIComponent(selObjek)}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.checklist) && json.checklist.length > 0) {
+            items = json.checklist;
+          }
+        }
+      } catch (_) {}
+
+      // Fallback jika offline atau endpoint belum selesai memuat
+      if (!items || items.length === 0) {
+        items = [
+          { risk_id: 'R1-IND-01', risk_name: 'Bebas Benturan Kepentingan', severity: 'CRITICAL', question: 'Tim penilai bebas dari benturan kepentingan finansial atau hubungan afiliasi.', spi_kepi_ref: { code: 'KEPI Butir 3.1 & 3.2' }, legal_ref: { code: 'PMK 101/2014 Pasal 30' }, allowed_answers: ['YA', 'TIDAK', 'BELUM DIVERIFIKASI', 'TIDAK RELEVAN'], default_answer: 'YA' },
+          { risk_id: 'R1-COMP-03', risk_name: 'Kesesuaian Izin Penilai', severity: 'CRITICAL', question: 'Penilai Publik berizin aktif sesuai klasifikasi (PS/P) dan tidak dalam pembekuan.', spi_kepi_ref: { code: 'KEPI Butir 3.3' }, legal_ref: { code: 'PMK 101/2014 Pasal 27' }, allowed_answers: ['YA', 'TIDAK', 'BELUM DIVERIFIKASI', 'TIDAK RELEVAN'], default_answer: 'YA' },
+          { risk_id: 'R3-TUJ-01', risk_name: 'Kesesuaian Maksud & Tujuan', severity: 'HIGH', question: 'Maksud dan tujuan penilaian ditetapkan spesifik sesuai batasan hukum dan SPI 103.', spi_kepi_ref: { code: 'SPI 103 Klausul 5.1' }, legal_ref: { code: 'POJK 40/2019' }, allowed_answers: ['YA', 'TIDAK', 'BELUM DIVERIFIKASI', 'TIDAK RELEVAN'], default_answer: 'YA' },
+          { risk_id: 'R4-DATA-01', risk_name: 'Kecukupan Akses Data & Survei', severity: 'HIGH', question: 'Klien berkomitmen menyediakan dokumen legalitas dan akses inspeksi fisik lapangan.', spi_kepi_ref: { code: 'SPI 104 Klausul 5.2' }, legal_ref: { code: 'PMK 101/2014' }, allowed_answers: ['YA', 'TIDAK', 'BELUM DIVERIFIKASI', 'TIDAK RELEVAN'], default_answer: 'YA' }
+        ];
       }
 
-      if (badge) badge.textContent = labelKategori;
-      container.innerHTML = items.map(it => `
-        <label class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition cursor-pointer">
-          <input type="checkbox" id="${it.id}" checked class="mt-0.5 rounded accent-teal-400">
-          <span class="text-slate-300 leading-snug">${it.label}</span>
-        </label>
-      `).join('');
+      container.innerHTML = items.map((it, idx) => {
+        const sevColor = it.severity === 'CRITICAL' ? 'bg-rose-950/40 text-rose-300 border-rose-800/50' : (it.severity === 'HIGH' ? 'bg-amber-950/40 text-amber-300 border-amber-800/50' : 'bg-sky-950/40 text-sky-300 border-sky-800/50');
+        const spiText = it.spi_kepi_ref?.code ? `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-teal-300 border border-teal-500/30">📜 ${it.spi_kepi_ref.code}</span>` : '';
+        const legalText = it.legal_ref?.code || it.legal_ref?.title ? `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-amber-300 border border-amber-500/30">⚖️ ${it.legal_ref.code || it.legal_ref.title}</span>` : '';
+
+        return `
+          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 hover:border-slate-700 transition">
+            <div class="flex flex-wrap items-center justify-between gap-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">${it.risk_id}</span>
+                <strong class="text-white text-xs">${it.risk_name}</strong>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border ${sevColor}">${it.severity}</span>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-snug">${it.question || it.objective}</p>
+            <div class="flex flex-wrap items-center gap-1.5 pt-1">
+              ${spiText}
+              ${legalText}
+            </div>
+            <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-slate-800/60 text-[11px]">
+              <label class="flex items-center gap-1 text-emerald-400 cursor-pointer">
+                <input type="radio" name="g1_ans_${it.risk_id}" value="YA" checked class="accent-emerald-400"> YA (Aman)
+              </label>
+              <label class="flex items-center gap-1 text-rose-400 cursor-pointer">
+                <input type="radio" name="g1_ans_${it.risk_id}" value="TIDAK" class="accent-rose-400"> TIDAK (Tinggi)
+              </label>
+              <label class="flex items-center gap-1 text-amber-400 cursor-pointer">
+                <input type="radio" name="g1_ans_${it.risk_id}" value="BELUM DIVERIFIKASI" class="accent-amber-400"> BELUM DIVERIFIKASI
+              </label>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     // Inisialisasi saat form dimuat

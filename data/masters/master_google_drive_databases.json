@@ -1,0 +1,188 @@
+{
+  "system": "OPINI NSR — Google Drive & Google Apps Script Database Inventory",
+  "account_owner": "kjppnr.danny@gmail.com",
+  "gas_rekap_endpoint": "https://script.google.com/macros/s/AKfycbwp15BykI7yuUeSTn2VHs_aZvIUIQIzirrzqJ2yVG7CvmeLbmVEOrLyDkGIQimtFIMG/exec",
+  "databases": [
+    {
+      "name": "Pengajuan Nomor Laporan v1",
+      "spreadsheet_id": "1q1KpKRrNvvT_nD8D0y9dgZzuz8CpCFCNi6oQtoz7sc4",
+      "function_category": "PENGAJUAN_NOLAP_DAN_MITIGASI_AKHIR",
+      "sheets": [
+        {
+          "sheet_name": "PENGAJUAN",
+          "total_columns": 53,
+          "column_range": "A:BA",
+          "critical_columns": {
+            "no_permintaan": "Kolom A",
+            "timestamp": "Kolom B",
+            "cabang": "Kolom C",
+            "nama_klien": "Kolom I",
+            "status_approval": "Kolom W",
+            "nomor_laporan_definitif": "Kolom X",
+            "link_file_laporan": "Kolom AY (51)",
+            "link_file_pembanding": "Kolom AZ (52)",
+            "link_file_bai": "Kolom BA (53)"
+          }
+        },
+        { "sheet_name": "AUDIT_LOG", "description": "Riwayat perubahan status dan approval" },
+        { "sheet_name": "MASTER_USER", "description": "Daftar pengguna dan role administratif" },
+        { "sheet_name": "MASTER_TOKEN", "description": "Kamus token otorisasi lama" }
+      ],
+      "bound_script_id": "gas-nolap-Code.gs",
+      "associated_portals": ["portal-nolap.html", "portal-nolap-cabang.html"],
+      "associated_handlers": ["nolap-data-handler.php"],
+      "single_source_of_truth": {
+        "status_mitigasi": "OPINI_NSR_BACKEND (Dual Smart Mitigation Gate)",
+        "nomor_laporan_definitif": "OPINI_NSR_BACKEND (Admin Approval & Official Register)",
+        "tanda_tangan_penilai": "OPINI_NSR_BACKEND (Penilai Publik Token Auth)",
+        "rekap_administratif": "GOOGLE_SHEETS (PENGAJUAN Tab)"
+      },
+      "sync_direction": "TWO_WAY_CONTROLLED",
+      "access_control": {
+        "admin_pusat": "FULL_READ_WRITE",
+        "admin_cabang": "BRANCH_ISOLATED_READ_WRITE",
+        "public": "NO_ACCESS"
+      }
+    },
+    {
+      "name": "DB_PENUGASAN_JO_NSR",
+      "spreadsheet_id": "1unkr20gOGZDyoM-FuHwZ2n6DDbLQf8ETICQaNoXSUrg",
+      "function_category": "PENUGASAN_JO_DAN_MITIGASI_AWAL",
+      "sheets": [
+        {
+          "sheet_name": "Data_Penugasan",
+          "description": "Database utama Job Order dan Lingkup Penugasan",
+          "critical_columns": {
+            "id_penugasan": "Kolom A (Primary Key)",
+            "nomor_jo": "Nomor Job Order Resmi",
+            "nomor_lp": "Nomor Lingkup Penugasan Resmi",
+            "kantor_cabang": "Kantor Asal",
+            "nama_klien": "Identitas Klien / Pemberi Tugas",
+            "status_pekerjaan": "IN_PROGRESS / COMPLETED",
+            "penilai_publik": "Penilai Publik Ditunjuk",
+            "status_mitigasi_g1": "Status Gerbang 1"
+          }
+        },
+        { "sheet_name": "Config_Counter", "description": "Counter penomoran JO dan LP" },
+        { "sheet_name": "Master_Personil", "description": "Katalog penilai, staf, dan reviewer" },
+        { "sheet_name": "Log_Aktivitas", "description": "Audit trail perubahan record" }
+      ],
+      "bound_script_id": "1fEabBtkeN2D4O9C2efEKZKePIHqBSaGUN6BgiMtVh2s_9MYtf1gLwa_l",
+      "web_app_url": "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec",
+      "associated_portals": ["portal-penugasan-jo.html"],
+      "associated_handlers": ["nolap-data-handler.php", "Code.gs"],
+      "single_source_of_truth": {
+        "approval_mitigasi_g1": "OPINI_NSR_BACKEND (SPM Danny -> Divtek Deni)",
+        "penerbitan_lp_resmi": "OPINI_NSR_BACKEND (Admin Pusat)",
+        "rekap_proyek_jo": "GOOGLE_SHEETS (Data_Penugasan Tab)"
+      },
+      "sync_direction": "TWO_WAY_CONTROLLED"
+    },
+    {
+      "name": "KJPP NSR - Buku Agenda Surat Umum",
+      "spreadsheet_id": "1VJW4nrzc1884kxepxZ2p8zNUcHrCWEqodQQcjeXXg_g",
+      "function_category": "AGENDA_SURAT_KELUAR_MASUK",
+      "sheets": [
+        {
+          "sheet_name": "Buku_Surat_Umum",
+          "critical_columns": {
+            "no_agenda": "Nomor Urut Agenda",
+            "no_surat": "Nomor Surat Keluar Resmi",
+            "tgl_surat": "Tanggal Surat",
+            "tujuan_surat": "Penerima Surat",
+            "perihal": "Perihal Surat",
+            "asal_kantor": "Kantor Pengirim (Pusat/Cabang)",
+            "file_pdf": "Tautan Arsip Dokumen di Google Drive"
+          }
+        }
+      ],
+      "bound_script_id": "1GEPR7ZVUBMnlWi3ks9dAJzoqKA47phzwLYpk_IgDt1b43EUD7ykWiWFh",
+      "associated_portals": ["portal-surat-umum.html"],
+      "associated_handlers": ["surat-umum-data-handler.php"],
+      "single_source_of_truth": {
+        "nomor_surat_resmi": "OPINI_NSR_BACKEND & GOOGLE_SHEETS",
+        "arsip_dokumen": "GOOGLE_DRIVE (ARSIP_SURAT_UMUM_NSR)"
+      },
+      "sync_direction": "TWO_WAY_CONTROLLED"
+    },
+    {
+      "name": "Form Pengajuan Kwitansi Cabang - KJPP NSR (Jawaban)",
+      "spreadsheet_id": "GOOGLE_FORM_RESPONSE_SHEET",
+      "form_edit_url": "https://docs.google.com/forms/d/1bRZSARGB9S0xnlh3qMboCObg8xa5zHbc5Hhxh9Vb99c/edit",
+      "form_action_url": "https://docs.google.com/forms/d/e/1FAIpQLSdxWPUHQrXvMpXI-pSD8vUY_YBtCOgLvdPm7Jo4TaHrpEE4tQ/formResponse",
+      "function_category": "PERMINTAAN_KWITANSI_CABANG",
+      "sheets": [
+        {
+          "sheet_name": "Form Responses 1",
+          "critical_columns": {
+            "timestamp": "Waktu Pengajuan",
+            "cabang": "Kantor Pemohon",
+            "nama_klien": "Nama Klien / Pembayar",
+            "nominal": "Nominal Pembayaran (Rp)",
+            "keperluan": "Keperluan Pembayaran",
+            "status_verifikasi": "Status Approval Keuangan Pusat"
+          }
+        }
+      ],
+      "associated_portals": ["portal-kwitansi.html"],
+      "associated_handlers": ["kwitansi-data-handler.php"],
+      "single_source_of_truth": {
+        "status_pengesahan_kwitansi": "OPINI_NSR_BACKEND (Keuangan Pusat Jakarta)",
+        "antrean_input": "GOOGLE_FORMS / GOOGLE_SHEETS"
+      },
+      "sync_direction": "TWO_WAY_CONTROLLED",
+      "privacy_rule": "Informasi keuangan dan fee dibatasi eksklusif untuk Admin Keuangan Pusat; diisolasi total dari portal publik dan surveyor."
+    },
+    {
+      "name": "DATABASE ABSENSI KARYAWAN - KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN",
+      "spreadsheet_id": "12gf52mLEAizuFvP03DiGddxX6HiYqD6UO5CF0Cl_C3E",
+      "function_category": "PRESENSI_DAN_KEPEGAWAIAN",
+      "sheets": [
+        { "sheet_name": "MASTER_KARYAWAN", "description": "Data NIK, nama, email, kantor cabang" },
+        { "sheet_name": "ABSENSI", "description": "Log kehadiran harian, koordinat GPS, validitas geofencing" },
+        { "sheet_name": "MASTER_WFH", "description": "Izin WFH terjadwal" },
+        { "sheet_name": "PENGAJUAN_CUTI", "description": "Permohonan cuti dan izin kerja" },
+        { "sheet_name": "SETTING", "description": "Konfigurasi jam kerja dan toleransi radius" }
+      ],
+      "bound_script_id": "gas-absensi-Code.gs",
+      "associated_portals": ["index.html (Modal Presensi)"],
+      "associated_handlers": ["absensi-data-handler.php", "netlify/functions/absensi-data-proxy.mjs"],
+      "single_source_of_truth": {
+        "status_kehadiran": "GOOGLE_SHEETS (ABSENSI Tab)",
+        "verifikasi_geofence": "OPINI_NSR_BACKEND / GAS"
+      },
+      "sync_direction": "TWO_WAY_CONTROLLED",
+      "privacy_rule": "Data kehadiran hanya digunakan untuk verifikasi ketersediaan personil dalam penugasan; rincian personal dan riwayat cuti terlindungi privat."
+    }
+  ],
+  "authoritative_data_matrix": {
+    "NOMOR_LAPORAN_DEFINITIF": {
+      "authoritative_source": "OPINI_NSR_BACKEND",
+      "storage_file": "data/dual_gate_database.json",
+      "register_file": "data/official_register_config.json",
+      "replicated_to": ["Pengajuan Nomor Laporan v1 (Kolom X)"],
+      "rule": "Google Sheets dilarang mengesahkan NoLap tanpa validasi register dan approval backend."
+    },
+    "NOMOR_LINGKUP_PENUGASAN": {
+      "authoritative_source": "OPINI_NSR_BACKEND",
+      "storage_file": "data/dual_gate_database.json",
+      "register_file": "data/official_register_config.json",
+      "replicated_to": ["DB_PENUGASAN_JO_NSR (Data_Penugasan Tab)"],
+      "rule": "Penerbitan LP mutlak melalui status SIAP_TERBIT_LP setelah approval berjenjang SPM -> Divtek."
+    },
+    "APPROVAL_DUAL_SMART_MITIGASI": {
+      "authoritative_source": "OPINI_NSR_BACKEND",
+      "storage_file": "data/dual_gate_database.json",
+      "actors": ["Danny Taufik (SPM)", "Deni Siswandi (Divtek)", "SUPER ADMIN KING"],
+      "replicated_to": ["Pengajuan Nomor Laporan v1 (Kolom W)", "DB_PENUGASAN_JO_NSR"],
+      "rule": "Perubahan langsung pada Google Sheets berstatus REQUEST_UPDATE yang membutuhkan validasi backend."
+    },
+    "TANDA_TANGAN_PENILAI_PUBLIK": {
+      "authoritative_source": "OPINI_NSR_BACKEND",
+      "storage_file": "data/dual_gate_database.json",
+      "actors": ["Penilai Publik Berlisensi Sah (Nanang Rahayu / Deni Siswandi)"],
+      "replicated_to": ["Pengajuan Nomor Laporan v1"],
+      "rule": "Tanda tangan dilindungi otentikasi token Penilai Publik, dilarang dipalsukan atau diisi otomatis oleh bot."
+    }
+  }
+}

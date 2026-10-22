@@ -244,6 +244,21 @@ export function buildProduction(options = {}) {
         console.log(`✓ Menyalin direktori aset: ${d}/`);
       }
     }
+
+    if (isCpanel) {
+      const srcMasters = path.join(ROOT_DIR, 'data', 'masters');
+      const destMasters = path.join(DIST_DIR, 'data', 'masters');
+      if (fs.existsSync(srcMasters)) {
+        copyDirRecursive(srcMasters, destMasters);
+        console.log('✓ Menyalin direktori data master resmi: data/masters/');
+      }
+      const srcRegister = path.join(ROOT_DIR, 'data', 'official_register_config.json');
+      const destRegister = path.join(DIST_DIR, 'data', 'official_register_config.json');
+      if (fs.existsSync(srcRegister)) {
+        fs.copyFileSync(srcRegister, destRegister);
+        console.log('✓ Menyalin berkas register resmi: data/official_register_config.json');
+      }
+    }
   }
 
   // 3. Audit Keamanan & Anti-Kebocoran

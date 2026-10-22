@@ -1,0 +1,135 @@
+{
+  "matrix_version": "2026.1",
+  "system_title": "OPINI NSR — Dual Gate Consistency & Decision Matrix",
+  "baseline_principles": [
+    "Jawaban awal dan akhir TIDAK harus identik, yang dinilai adalah konsistensi penalaran, bukti, penanganan risiko, dan keputusan profesional.",
+    "Status BELUM DIVERIFIKASI pada Gerbang 1 atau Living Register tidak boleh diperlakukan sebagai risiko aman.",
+    "Deviasi fisik vs yuridis (contoh: 1.000 m² sertifikat vs 920 m² fisik) bukan otomatis pelanggaran, melainkan memicu delta analysis, justifikasi teknis, pengungkapan laporan, dan konfirmasi Penilai Publik.",
+    "Persyaratan Gerbang 2 wajib membaca baseline Gerbang 1 dari ID penugasan yang sama."
+  ],
+  "consistency_outcomes": [
+    {
+      "code": "CONSISTENT_AND_VERIFIED",
+      "label": "Konsisten & Terverifikasi Penuh",
+      "description": "Kondisi fisik dan yuridis objek di lapangan sesuai dengan asumsi awal; seluruh bukti wajib (foto geotag, 3 pembanding, BAI) lengkap dan terverifikasi.",
+      "allow_nolap_issuance": true,
+      "escalation_level": "NORMAL"
+    },
+    {
+      "code": "RESOLVED_WITH_EVIDENCE",
+      "label": "Terselesaikan dengan Bukti Sah",
+      "description": "Terdapat perbedaan atau temuan baru di lapangan, namun telah dianalisis dampaknya, didukung bukti tertulis yang memadai, dan diungkapkan dalam draf laporan.",
+      "allow_nolap_issuance": true,
+      "escalation_level": "NORMAL_WITH_DISCLOSURE"
+    },
+    {
+      "code": "MATERIAL_CHANGE_REVIEW",
+      "label": "Perubahan Material Memerlukan Review Ulang LP",
+      "description": "Ditemukan perubahan material terhadap objek, luas (>15%), hak kepemilikan, atau maksud/tujuan yang memerlukan peninjauan ulang Lingkup Penugasan dan persetujuan pemberi tugas.",
+      "allow_nolap_issuance": false,
+      "escalation_level": "MANDATORY_LP_REVISION"
+    },
+    {
+      "code": "NEW_RISK_IDENTIFIED",
+      "label": "Risiko Baru Teridentifikasi",
+      "description": "Ditemukan risiko baru saat inspeksi (misal sengketa batas, pembebanan hak tanggungan ganda, kerusakan struktural parah) yang belum dimitigasi.",
+      "allow_nolap_issuance": false,
+      "escalation_level": "HOLD_FOR_MITIGATION"
+    },
+    {
+      "code": "UNRESOLVED_RISK",
+      "label": "Risiko Belum Terselesaikan",
+      "description": "Rencana tindakan mitigasi yang disyaratkan pada Gerbang 1 belum dilaksanakan atau belum tuntas.",
+      "allow_nolap_issuance": false,
+      "escalation_level": "HOLD_PENDING_ACTION"
+    },
+    {
+      "code": "INSUFFICIENT_EVIDENCE",
+      "label": "Bukti Pengendalian Tidak Memadai",
+      "description": "Dokumen pendukung kritis tidak tersedia (misal foto tidak memiliki geotag koordinat GPS atau data pembanding kurang dari 3 unit).",
+      "allow_nolap_issuance": false,
+      "escalation_level": "HOLD_PENDING_EVIDENCE"
+    },
+    {
+      "code": "NON_COMPLIANT",
+      "label": "Ketidakpatuhan Standar / Regulasi",
+      "description": "Penugasan bertentangan dengan prinsip KEPI, standar teknis SPI, atau peraturan perundang-undangan yang berlaku.",
+      "allow_nolap_issuance": false,
+      "escalation_level": "REJECT_OR_HARD_HOLD"
+    }
+  ],
+  "delta_analysis_rules": {
+    "deviation_physical_vs_legal_area": {
+      "threshold_minor": 0.05,
+      "threshold_material": 0.15,
+      "rules": [
+        {
+          "range": "<= 5%",
+          "outcome": "CONSISTENT_AND_VERIFIED",
+          "action": "Dapat menggunakan luas fisik dengan pengungkapan catatan kaki pada laporan penilaian."
+        },
+        {
+          "range": "> 5% dan <= 15%",
+          "outcome": "RESOLVED_WITH_EVIDENCE",
+          "action": "Wajib melampirkan sketsa ukur lapangan, Berita Acara Klarifikasi dengan debitur/pemilik, dan penjelasan dampak nilai pada bab pengungkapan."
+        },
+        {
+          "range": "> 15%",
+          "outcome": "MATERIAL_CHANGE_REVIEW",
+          "action": "Deviasi material wajib dilaporkan tertulis ke pemberi tugas, memicu review ulang Lingkup Penugasan oleh Kepala Divtek dan Penilai Publik."
+        }
+      ]
+    }
+  },
+  "review_hierarchy": [
+    {
+      "stage": "GERBANG_1",
+      "order": 1,
+      "role": "KEPALA_SPM",
+      "actor_name": "Danny Taufik, S.H.",
+      "focus": "Review integritas, independensi tim, keabsahan pemberi tugas, ketiadaan benturan kepentingan, dan kelengkapan 14 klausul Lingkup Penugasan."
+    },
+    {
+      "stage": "GERBANG_1",
+      "order": 2,
+      "role": "KEPALA_DIVTEK",
+      "actor_name": "Deni Siswandi, S.T., MAPPI (Cert.)",
+      "focus": "Review kelayakan teknis, kompetensi penilai yang ditunjuk, metodologi yang direncanakan, dan estimasi waktu pelaksanaan."
+    },
+    {
+      "stage": "GERBANG_1_ISSUANCE",
+      "order": 3,
+      "role": "ADMIN_PUSAT",
+      "actor_name": "Admin Kantor Pusat / SUPER ADMIN KING",
+      "focus": "Penerbitan dokumen resmi Lingkup Penugasan (LP) bertandatangan setelah disetujui berjenjang oleh SPM dan Divtek."
+    },
+    {
+      "stage": "GERBANG_2",
+      "order": 1,
+      "role": "KEPALA_SPM",
+      "actor_name": "Danny Taufik, S.H.",
+      "focus": "Quality Control kelengkapan draf laporan, verifikasi bukti foto geotag, BAI, lembar kendali mutu, dan ketiadaan pelanggaran kode etik."
+    },
+    {
+      "stage": "GERBANG_2",
+      "order": 2,
+      "role": "KEPALA_DIVTEK",
+      "actor_name": "Deni Siswandi, S.T., MAPPI (Cert.)",
+      "focus": "Review teknis kertas kerja (KKP), verifikasi 3 data pembanding, analisis delta (luas fisik vs yuridis), kepatuhan SPI 106, dan kewajaran kesimpulan nilai."
+    },
+    {
+      "stage": "GERBANG_2_NOLAP",
+      "order": 3,
+      "role": "ADMIN_PUSAT",
+      "actor_name": "Admin Kantor Pusat / SUPER ADMIN KING",
+      "focus": "Penerbitan Nomor Laporan Definitif 7 Segmen resmi dengan validasi terhadap Register Resmi kantor penandatangan."
+    },
+    {
+      "stage": "GERBANG_2_SIGNING",
+      "order": 4,
+      "role": "PENILAI_PUBLIK",
+      "actor_name": "Penilai Publik Penanggung Jawab Sah (Ir. Nanang Rahayu / Deni Siswandi / Hernita / Muhammad Amin Sade / Dharma Priyanto sesuai mandat & klasifikasi izin)",
+      "focus": "Penandatanganan elektronik / basah laporan penilaian final. Tanggung jawab profesional melekat mutlak pada Penilai Publik berlisensi."
+    }
+  ]
+}

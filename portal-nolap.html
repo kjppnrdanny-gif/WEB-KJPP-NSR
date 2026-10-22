@@ -19957,16 +19957,32 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           </div>
         </div>
 
-        <div class="pt-2 border-t border-slate-800">
-          <label class="block font-semibold text-slate-300 mb-1">Delta Analysis (Kesesuaian Fisik vs Yuridis &amp; Deviasi Luas):</label>
-          <label class="flex items-start gap-2 p-2 rounded-xl bg-rose-950/20 border border-rose-900/50 mb-2 cursor-pointer">
+        <div class="pt-2 border-t border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block font-semibold text-slate-300 text-xs">Delta Analysis — Uji Deviasi Luas Fisik vs Yuridis (SPI 105 &amp; Master D):</label>
+            <span id="g2-delta-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">Deviasi: 0%</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Luas Yuridis Sertifikat (m²):</label>
+              <input type="number" step="0.01" id="g2-luas-yuridis" value="1000" oninput="hitungDeviasiLuasGerbang2()" class="w-full h-8 px-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Luas Fisik Hasil Ukur (m²):</label>
+              <input type="number" step="0.01" id="g2-luas-fisik" value="1000" oninput="hitungDeviasiLuasGerbang2()" class="w-full h-8 px-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400">
+            </div>
+          </div>
+          <div id="g2-delta-alert-box" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-300">
+            ℹ️ <span id="g2-delta-alert-text">Luas fisik sesuai dokumen yuridis. Evaluasi konsistensi normal.</span>
+          </div>
+          <label class="flex items-start gap-2 p-2 rounded-xl bg-rose-950/20 border border-rose-900/50 cursor-pointer">
             <input type="checkbox" id="g2-delta-deviasi" class="mt-0.5 accent-rose-500 rounded">
             <div>
-              <strong class="text-rose-300 block font-bold">Terdapat Deviasi Material Tanpa Justifikasi</strong>
-              <span class="text-[10px] text-slate-400 block">Perbedaan luas fisik &gt;10% dibanding sertifikat tanpa penjelasan BPN (Memicu HOLD ESKALASI).</span>
+              <strong class="text-rose-300 block font-bold text-xs">Terdapat Deviasi Material Tanpa Justifikasi</strong>
+              <span class="text-[10px] text-slate-400 block">Centang apabila terdapat temuan material yang belum didukung BAI atau penjelasan BPN.</span>
             </div>
           </label>
-          <textarea id="g2-delta-keterangan" rows="2" placeholder="Keterangan hasil rekonsiliasi luas fisik vs yuridis dan penjelasan asumsi khusus jika ada..." class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400"></textarea>
+          <textarea id="g2-delta-keterangan" rows="2" placeholder="Penjelasan rekonsiliasi luas fisik vs yuridis, dampak terhadap nilai pasar, dan klausul pengungkapan draf laporan..." class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-400"></textarea>
         </div>
 
         <div class="pt-3 flex items-center justify-between gap-3 border-t border-slate-800">
@@ -21056,7 +21072,39 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       document.getElementById('modal-submit-gerbang2')?.classList.add('hidden');
     }
 
-    async function eksekusiSubmitGerbang2Modal(e) {
+    async function hitungDeviasiLuasGerbang2() {
+      const y = parseFloat(document.getElementById('g2-luas-yuridis')?.value) || 0;
+      const f = parseFloat(document.getElementById('g2-luas-fisik')?.value) || 0;
+      const badge = document.getElementById('g2-delta-badge');
+      const alertBox = document.getElementById('g2-delta-alert-box');
+      const alertText = document.getElementById('g2-delta-alert-text');
+      const devCheck = document.getElementById('g2-delta-deviasi');
+      if (!badge || !alertBox || !alertText) return;
+
+      if (y <= 0 || f <= 0) {
+        badge.textContent = 'Deviasi: -';
+        return;
+      }
+      const persen = Math.round((Math.abs(f - y) / y) * 10000) / 100;
+      badge.textContent = 'Deviasi: ' + persen + '%';
+
+      if (persen <= 5) {
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800/60';
+        alertBox.className = 'p-2 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-[11px] text-emerald-300';
+        alertText.innerHTML = '✔ <strong>Konsisten (Deviasi <= 5%):</strong> Perbedaan dalam batas wajar toleransi ukur. Cantumkan catatan kaki pada laporan.';
+        if (devCheck) devCheck.checked = false;
+      } else if (persen <= 15) {
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-950/60 text-amber-300 border border-amber-800/60';
+        alertBox.className = 'p-2 rounded-xl bg-amber-950/30 border border-amber-700/50 text-[11px] text-amber-300';
+        alertText.innerHTML = '⚠️ <strong>Deviasi Sedang (' + persen + '%):</strong> Sesuai SPI 105 & Master D, wajib melampirkan Berita Acara Inspeksi (BAI) dan penjelasan pengungkapan nilai.';
+      } else {
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-950/60 text-rose-300 border border-rose-800/60';
+        alertBox.className = 'p-2 rounded-xl bg-rose-950/40 border border-rose-700/60 text-[11px] text-rose-300';
+        alertText.innerHTML = '🚨 <strong>DEVIASI MATERIAL (' + persen + '% > 15%):</strong> Memerlukan peninjauan ulang Lingkup Penugasan (SPI 103 Klausul 5.1). Sistem akan memicu status HOLD_MATERIAL_CHANGE.';
+        if (devCheck) devCheck.checked = true;
+      }
+    }
+    function eksekusiSubmitGerbang2Modal(e) {
       e.preventDefault();
       const auth = window.CURRENT_AUTH_SESSION || (typeof dapatkanSesiLogin === 'function' ? dapatkanSesiLogin() : null) || userSession;
       const idPenugasan = document.getElementById('g2-id-penugasan').value.trim();
