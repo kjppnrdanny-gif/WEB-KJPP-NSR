@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import { spawn } from 'child_process';
 import {
   createSessionToken,
+  getJwtSecret,
   ROLES
 } from '../netlify/functions/lib/auth-core.mjs';
 import { handler as netlifyStatusHandler } from '../netlify/functions/status-terintegrasi-proxy.mjs';
@@ -166,6 +167,7 @@ const phpServer = spawn('php', ['-S', `127.0.0.1:${TEST_PORT}`, 'router.php'], {
   env: {
     ...process.env,
     NSR_TEST_MODE: '1',
+    NSR_JWT_SECRET: getJwtSecret(),
     NSR_TEST_SYNTHETIC_REGISTRY: JSON.stringify(synthTestRegistry)
   }
 });
@@ -226,7 +228,41 @@ try {
   });
   assert(resSubstringPenilai.status === 401, 'Token dengan substring peran ditolak HTTP 401 (Tidak ada parsing substring)');
 
-  // 8. Request dengan token yang dikirim melalui URL Query String (Percobaan token via query)
+  // 8. Percobaan bypass menggunakan HASH PENYIMPAN langsung (Anti-Stored-Hash Login Bypass)
+  const resHashBypass = await apiRequest('/api/status-terintegrasi-proxy?id=NSR-2026-0415', {
+    headers: { 'Authorization': `Bearer ${synthPusatHash}` }
+  });
+  assert(resHashBypass.status === 401, 'Nilai hash penyimpan DITOLAK sebagai kredensial login (Anti-Hash-Bypass Protection)');
+
+  // 9. Permintaan dengan token JWT sah langsung ke backend PHP
+  const validDirectJwt = createSessionToken({
+    sub: 'synth_jwt_admin',
+    role: 'SUPER ADMIN',
+    branch: 'PUSAT',
+    seeFee: true
+  });
+  const resPhpJwt = await apiRequest('/api/status-terintegrasi-proxy?id=0415/LP/NSR/X/2026&noSpk=0415/LP/NSR/X/2026', {
+    headers: { 'Authorization': `Bearer ${validDirectJwt}` }
+  });
+  assert(resPhpJwt.status === 200, 'Backend PHP berhasil memverifikasi token JWT secara langsung (Interoperabilitas Netlify-PHP)');
+  assert(resPhpJwt.data.aksesPengguna.role === 'SUPER ADMIN', 'Identitas pengguna JWT dikenali dengan benar oleh backend PHP');
+
+  // 10. Permintaan server-to-server terotentikasi (X-NSR-Server-Secret)
+  const userCtxBase64 = Buffer.from(JSON.stringify({
+    sub: 's2s_admin',
+    role: 'SUPER ADMIN',
+    branch: 'PUSAT',
+    seeFee: true
+  })).toString('base64');
+  const resS2S = await apiRequest('/api/status-terintegrasi-proxy?id=0415/LP/NSR/X/2026&noSpk=0415/LP/NSR/X/2026', {
+    headers: {
+      'X-NSR-Server-Secret': getJwtSecret(),
+      'X-NSR-User-Context': userCtxBase64
+    }
+  });
+  assert(resS2S.status === 200, 'Backend PHP berhasil memvalidasi komunikasi server-to-server (X-NSR-Server-Secret)');
+
+  // 11. Request dengan token yang dikirim melalui URL Query String (Percobaan token via query)
   const resQueryParamToken = await apiRequest(`/api/status-terintegrasi-proxy?id=0415/LP/NSR/X/2026&token=${synthPusatToken}`);
   assert(resQueryParamToken.status === 401, 'Token via URL query string ditolak HTTP 401 (Wajib menggunakan Header Otorisasi)');
 
@@ -425,6 +461,19 @@ try {
   assert(netlifyDefaultDeny.statusCode === 200, 'Netlify function memproses peran non-finansial (HTTP 200)');
   const netlifyDefaultDenyBody = JSON.parse(netlifyDefaultDeny.body);
   assert(netlifyDefaultDenyBody.aksesPengguna.canSeeFee === false, 'RBAC Default Deny aktif: canSeeFee = false untuk role non-finansial');
+
+  // 8. Uji Anti-Loopback Netlify: request dengan origin netlify-proxy tidak memanggil upstream secara berulang
+  const netlifyLoopback = await netlifyStatusHandler({
+    httpMethod: 'GET',
+    headers: {
+      authorization: `Bearer ${validStaffJwt}`,
+      'x-nsr-proxy-origin': 'netlify-proxy'
+    },
+    queryStringParameters: { id: '0415/LP/NSR/X/2026', noSpk: '0415/LP/NSR/X/2026' }
+  });
+  assert(netlifyLoopback.statusCode === 200, 'Netlify menangani kondisi loopback proxy tanpa recursion (HTTP 200)');
+  const netlifyLoopbackBody = JSON.parse(netlifyLoopback.body);
+  assert(netlifyLoopbackBody.nolap.statusKoneksi === 'SUMBER_TIDAK_TERSEDIA', 'Loopback diproteksi dan melaporkan status jujur');
 
   console.log('\n======================================================================');
   console.log(`🎉 SEMUA PENGUJIAN P0 SECURITY AUDIT LULUS SEMPURNA: ${passedTests} / ${totalTests} (100%)`);

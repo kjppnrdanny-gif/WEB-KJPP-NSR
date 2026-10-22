@@ -214,8 +214,41 @@ export async function handler(event, context) {
   const localAvailable = nolapSource.available || oprSource.available || kwSource.available;
 
   // Jika berkas lokal tidak ada (seperti saat berjalan di Netlify Cloud), hubungkan server-to-server ke backend resmi
-  if (!localAvailable && (process.env.NETLIFY === "true" || process.env.CONTEXT === "production" || process.env.NSR_OFFICIAL_API_BASE)) {
-    const upstreamBase = process.env.NSR_OFFICIAL_API_BASE || process.env.NSR_CPANEL_URL || 'https://kjppnanangrahayu.com';
+  if (!localAvailable && (process.env.NETLIFY === "true" || process.env.CONTEXT === "production" || process.env.NSR_OFFICIAL_API_BASE || process.env.NSR_CPANEL_URL || process.env.NSR_CPANEL_UPSTREAM_URL)) {
+    const upstreamBase = (
+      process.env.NSR_CPANEL_UPSTREAM_URL || 
+      process.env.NSR_CPANEL_URL || 
+      process.env.NSR_OFFICIAL_API_BASE || 
+      'https://kjppnanangrahayu.com'
+    ).replace(/\/+$/, '');
+
+    const incomingHost = (event.headers.host || '').toLowerCase();
+    let upstreamHost = '';
+    try {
+      upstreamHost = new URL(upstreamBase).host.toLowerCase();
+    } catch (e) {}
+
+    const isLoopbackCall = (
+      event.headers['x-nsr-proxy-origin'] === 'netlify-proxy' ||
+      (incomingHost && upstreamHost && incomingHost === upstreamHost) ||
+      event.headers['x-loop-control'] === 'nsr-loop'
+    );
+
+    if (isLoopbackCall) {
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          success: true,
+          aksesPengguna: { role: userRole, kantor: userBranch, canSeeFee },
+          penugasan: { id: projectId, noSpk, noJo, kantorWilayah: userBranch, statusResmi: 'Terdaftar di Portal JO' },
+          nolap: { terhubung: false, statusKoneksi: 'SUMBER_TIDAK_TERSEDIA', statusUtama: 'Sumber Data Tidak Tersedia', keterangan: 'Koneksi ditangguhkan untuk mencegah loopback proxy.', total: 0, items: [] },
+          operasional: { terhubung: false, statusKoneksi: 'SUMBER_TIDAK_TERSEDIA', statusUtama: 'Sumber Data Tidak Tersedia', keterangan: 'Koneksi ditangguhkan untuk mencegah loopback proxy.', total: 0, items: [] },
+          kwitansi: { terhubung: false, statusKoneksi: 'SUMBER_TIDAK_TERSEDIA', statusUtama: 'Sumber Data Tidak Tersedia', keterangan: 'Koneksi ditangguhkan untuk mencegah loopback proxy.', total: 0, items: [] }
+        })
+      };
+    }
+
     try {
       const qParams = new URLSearchParams({
         id: projectId,
@@ -227,13 +260,32 @@ export async function handler(event, context) {
         headers: {
           'Authorization': `Bearer ${token}`,
           'X-NSR-Token': token,
+          'X-NSR-Server-Secret': getJwtSecret(),
+          'X-NSR-User-Context': Buffer.from(JSON.stringify(authUser)).toString('base64'),
+          'X-NSR-Proxy-Origin': 'netlify-proxy',
           'Accept': 'application/json'
         },
-        signal: AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined
+        signal: AbortSignal.timeout ? AbortSignal.timeout(4500) : undefined
       });
 
       if (upstreamRes.ok) {
         const upstreamData = await upstreamRes.json();
+        if (!canSeeFee) {
+          if (upstreamData.kwitansi && Array.isArray(upstreamData.kwitansi.items)) {
+            upstreamData.kwitansi.items.forEach(it => {
+              delete it.totalBayar;
+              delete it.nilaiKontrakSpk;
+              it.totalBayarFormatted = '[Disensor: Penilai / Non-Finansial]';
+              it.nilaiKontrakFormatted = '[Disensor: Penilai / Non-Finansial]';
+            });
+          }
+          if (upstreamData.operasional && Array.isArray(upstreamData.operasional.items)) {
+            upstreamData.operasional.items.forEach(it => {
+              delete it.nominalPengajuan;
+              it.nominalFormatted = '[Disensor: Penilai / Non-Finansial]';
+            });
+          }
+        }
         return {
           statusCode: 200,
           headers: {

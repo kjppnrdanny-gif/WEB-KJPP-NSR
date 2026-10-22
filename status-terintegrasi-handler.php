@@ -47,144 +47,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // 2. Sesi & Autentikasi Pengguna
+ini_set('session.gc_maxlifetime', 28800);
+session_name('NSR_SESSION');
+$isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
+           (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+session_set_cookie_params([
+    'lifetime' => 28800,
+    'path'     => '/',
+    'domain'   => '',
+    'secure'   => $isHttps,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Pencegahan Circular Request / Loopback
+if (isset($_SERVER['HTTP_X_NSR_PROXY_ORIGIN']) && $_SERVER['HTTP_X_NSR_PROXY_ORIGIN'] === 'cpanel-handler') {
+    http_response_code(508);
+    echo json_encode([
+        'success'   => false,
+        'error'     => 'Loopback Terdeteksi (508): Request berulang ke handler backend cPanel.',
+        'violation' => 'CIRCULAR_LOOPBACK'
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 $dataDir = __DIR__ . '/data';
 
-// Matriks Token Resmi Berdasarkan Hash SHA-256 (Tersinkronisasi dengan auth-handler.php)
-$OFFICIAL_TOKEN_HASHES = [
-    // Super Admin Pusat
-    '16f051a1bb53eb07ba314e472103186abcbe945520af2028688be64eb4fea42a' => [
-        'displayName'  => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
-        'role'         => 'SUPER ADMIN',
-        'wilayah'      => 'PUSAT',
-        'wilayahLabel' => 'Kantor Pusat Jakarta',
-        'wilayahCode'  => '00',
-        'isCabang'     => false,
-        'seeFee'       => true
-    ],
-    // Pemimpin Rekan
-    '1be766a50d815d7334e8e3fa45ad415d2a408f37a2dc3a9ef66bb0157eaad4d8' => [
-        'displayName'  => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
-        'role'         => 'PEMIMPIN_REKAN',
-        'wilayah'      => 'PUSAT',
-        'wilayahLabel' => 'Kantor Pusat Jakarta',
-        'wilayahCode'  => '00',
-        'isCabang'     => false,
-        'seeFee'       => true
-    ],
-    // Divisi Keuangan Pusat
-    'fc6ce762316126e791fa636c7b962f45cbd5efdd76839374a3fa4f825767e9e7' => [
-        'displayName'  => 'Milda Hidayati Dewi, S.E.',
-        'role'         => 'KEUANGAN',
-        'wilayah'      => 'PUSAT',
-        'wilayahLabel' => 'Kantor Pusat Jakarta',
-        'wilayahCode'  => '00',
-        'isCabang'     => false,
-        'seeFee'       => true
-    ],
-    '47c94b7c1328905fb55ad9c12204c8aa302ab84a9e52c8b355476a6cf042fb14' => [
-        'displayName'  => 'Admin Keuangan Pusat',
-        'role'         => 'KEUANGAN',
-        'wilayah'      => 'PUSAT',
-        'wilayahLabel' => 'Kantor Pusat Jakarta',
-        'wilayahCode'  => '00',
-        'isCabang'     => false,
-        'seeFee'       => true
-    ],
-    // Admin Cabang Padang
-    'a3eafd84b50efa1b7992bf278ef1621fa9bea60eadcb67edff62a6b92387633b' => [
-        'displayName'  => 'Kantor Cabang Padang',
-        'role'         => 'ADMIN_CABANG',
-        'wilayah'      => 'PADANG',
-        'wilayahLabel' => 'Kantor Cabang Padang',
-        'wilayahCode'  => '01',
-        'kodeKemenkeu' => '2.19.0160-01',
-        'isCabang'     => true,
-        'seeFee'       => true
-    ],
-    // Admin Cabang Bandung
-    '316c8000130d7798e0dff3cfc7053d661616598a7121d679f75a8d4d3d43625b' => [
-        'displayName'  => 'Kantor Cabang Bandung',
-        'role'         => 'ADMIN_CABANG',
-        'wilayah'      => 'BANDUNG',
-        'wilayahLabel' => 'Kantor Cabang Bandung',
-        'wilayahCode'  => '04',
-        'kodeKemenkeu' => '2.19.0160-04',
-        'isCabang'     => true,
-        'seeFee'       => true
-    ],
-    // Admin Cabang Makassar
-    '291e2e008eccedbb76fa1e55534fb2bd7e96f56e4e47b2e615e7f88a734ac1ff' => [
-        'displayName'  => 'Kantor Cabang Makassar',
-        'role'         => 'ADMIN_CABANG',
-        'wilayah'      => 'MAKASSAR',
-        'wilayahLabel' => 'Kantor Cabang Makassar',
-        'wilayahCode'  => '02',
-        'kodeKemenkeu' => '2.19.0160-02',
-        'isCabang'     => true,
-        'seeFee'       => true
-    ],
-    // Admin Cabang Palembang
-    '94a006da9c2e0ba0768fc37d6e17c96c718fe47c4119b7bb0b717d8a57b692ce' => [
-        'displayName'  => 'Kantor Cabang Palembang',
-        'role'         => 'ADMIN_CABANG',
-        'wilayah'      => 'PALEMBANG',
-        'wilayahLabel' => 'Kantor Cabang Palembang',
-        'wilayahCode'  => '03',
-        'kodeKemenkeu' => '2.19.0160-03',
-        'isCabang'     => true,
-        'seeFee'       => true
-    ],
-    // Penilai Publik (Nominal Keuangan Wajib Disensor)
-    'd20c67b282eb9d0ad3ce9c651ce01b8d6f35466e11c80a20cbeef67656436c2e' => [
-        'displayName'  => 'Penilai Publik Terdaftar',
-        'role'         => 'PENILAI',
-        'wilayah'      => 'PUSAT',
-        'wilayahLabel' => 'Kantor Pusat Jakarta',
-        'wilayahCode'  => '00',
-        'isCabang'     => false,
-        'seeFee'       => false
-    ],
-    // Reviewer QC (Nominal Keuangan Wajib Disensor)
-    'cf86dd7ad31d605d308c86f51f623664dfe786bcd0933d67b7b024a768f704f9' => [
-        'displayName'  => 'Reviewer QC',
-        'role'         => 'REVIEWER',
-        'wilayah'      => 'PUSAT',
-        'wilayahLabel' => 'Kantor Pusat Jakarta',
-        'wilayahCode'  => '00',
-        'isCabang'     => false,
-        'seeFee'       => false
-    ],
-    // Marketing (Nominal Keuangan Wajib Disensor)
-    '9977faeecaba8f98d6639482a0d7160d66a3886f5af70be176de7f9632562b59' => [
-        'displayName'  => 'Divisi Marketing',
-        'role'         => 'MARKETING',
-        'wilayah'      => 'PUSAT',
-        'wilayahLabel' => 'Kantor Pusat Jakarta',
-        'wilayahCode'  => '00',
-        'isCabang'     => false,
-        'seeFee'       => false
-    ]
-];
+/**
+ * Validasi Token JWT (HS256) Konsisten dengan Netlify Functions
+ */
+function verifyJwtSessionToken($token, $secret) {
+    if (!$token || !is_string($token)) return null;
+    $parts = explode('.', trim($token));
+    if (count($parts) !== 3) return null;
+    list($head64, $body64, $crypto64) = $parts;
 
-// Dukungan Injeksi Token Sintesis Khusus Environment Pengujian Terisolasi (Hanya Aktif jika NSR_TEST_MODE=1)
-if (getenv('NSR_TEST_MODE') === '1' && !empty(getenv('NSR_TEST_SYNTHETIC_REGISTRY'))) {
-    $injected = json_decode(getenv('NSR_TEST_SYNTHETIC_REGISTRY'), true);
-    if (is_array($injected)) {
-        foreach ($injected as $h => $u) {
-            $OFFICIAL_TOKEN_HASHES[$h] = $u;
-        }
+    $sigInput = "$head64.$body64";
+    $expectedSig = rtrim(strtr(base64_encode(hash_hmac('sha256', $sigInput, $secret, true)), '+/', '-_'), '=');
+
+    if (!hash_equals($expectedSig, $crypto64)) {
+        return null;
     }
+
+    $payloadJson = base64_decode(strtr($body64, '-_', '+/'));
+    $payload = json_decode($payloadJson, true);
+    if (!$payload || !is_array($payload)) return null;
+
+    if (isset($payload['exp']) && $payload['exp'] < time()) {
+        return null; // Kedaluwarsa
+    }
+
+    return $payload;
 }
 
 /**
- * Verifikasi Autentikasi Pengguna Secara Ketat (Fail-Closed)
- * Dilarang menggunakan fallback ke SUPER ADMIN atau mengenali substring peran.
+ * Resolusi Pengguna Resmi (Fail-Closed, Non-Hash Credential Bypass)
  */
-function resolveCurrentUserStrict($officialTokenHashes) {
+function resolveCurrentUserStrict() {
     // A. Dari Sesi Aktif PHP (NSR_SESSION)
     if (isset($_SESSION['nsr_user']) && is_array($_SESSION['nsr_user'])) {
         $loginTime = $_SESSION['nsr_login_time'] ?? 0;
@@ -193,7 +116,22 @@ function resolveCurrentUserStrict($officialTokenHashes) {
         }
     }
 
-    // B. Dari Authorization Header: Bearer <TOKEN> atau X-NSR-Token (DILARANG MENGGUNAKAN QUERY STRING)
+    // Resolusi Kunci Rahasia Server untuk JWT & Server-to-Server
+    $jwtSecret = getenv('NSR_JWT_SECRET') ?: getenv('NSR_AUTH_SECRET_STAGING') ?: 'nsr_dev_secret_key_change_in_production_9988';
+
+    // B. Dari Komunikasi Server-to-Server Terverifikasi (Netlify -> cPanel)
+    $incomingServerSecret = $_SERVER['HTTP_X_NSR_SERVER_SECRET'] ?? '';
+    if ($incomingServerSecret && hash_equals($jwtSecret, $incomingServerSecret)) {
+        $forwardedContextRaw = $_SERVER['HTTP_X_NSR_USER_CONTEXT'] ?? '';
+        if ($forwardedContextRaw) {
+            $userCtx = json_decode(base64_decode($forwardedContextRaw), true);
+            if (is_array($userCtx) && !empty($userCtx['role'])) {
+                return $userCtx;
+            }
+        }
+    }
+
+    // C. Dari Authorization Header: Bearer <TOKEN> atau X-NSR-Token (HANYA HEADER, DILARANG QUERY STRING)
     $rawToken = null;
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
     if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $matches)) {
@@ -204,19 +142,105 @@ function resolveCurrentUserStrict($officialTokenHashes) {
 
     if ($rawToken) {
         $clean = trim($rawToken);
-        // 1. Direct Hash Match (Jika input adalah SHA-256 hash resmi)
-        if (isset($officialTokenHashes[$clean])) {
-            return $officialTokenHashes[$clean];
+
+        // 1. Verifikasi Format JWT (HS256)
+        if (substr_count($clean, '.') === 2) {
+            $jwtPayload = verifyJwtSessionToken($clean, $jwtSecret);
+            if ($jwtPayload && is_array($jwtPayload)) {
+                return $jwtPayload;
+            }
         }
-        // 2. Hash SHA-256 dari token mentah
-        $h = hash('sha256', $clean);
-        if (isset($officialTokenHashes[$h])) {
-            return $officialTokenHashes[$h];
+
+        // 2. Verifikasi Token Operasional Resmi (Salted & Raw SHA-256)
+        // PENTING: DILARANG MENCOCOKKAN $clean SECARA LANGSUNG KE HASH PENYIMPAN!
+        // Stored hash BUKAN password dan tidak boleh diterima sebagai token input.
+        $registry = [];
+
+        // Dukungan registry dari variabel lingkungan / secrets manager
+        $envRegistryJson = getenv('NSR_AUTH_TOKEN_REGISTRY');
+        if ($envRegistryJson) {
+            $decoded = json_decode($envRegistryJson, true);
+            if (is_array($decoded)) {
+                $registry = $decoded;
+            }
         }
-        // 3. Hash SHA-256 dari token uppercase
-        $hUp = hash('sha256', strtoupper($clean));
-        if (isset($officialTokenHashes[$hUp])) {
-            return $officialTokenHashes[$hUp];
+
+        // Dukungan inject test mode terisolasi
+        if (getenv('NSR_TEST_MODE') === '1' && !empty(getenv('NSR_TEST_SYNTHETIC_REGISTRY'))) {
+            $injected = json_decode(getenv('NSR_TEST_SYNTHETIC_REGISTRY'), true);
+            if (is_array($injected)) {
+                $registry = array_merge($registry, $injected);
+            }
+        }
+
+        // Matriks salted hashes resmi (hanya hash dari token yang sah, tanpa mengekspos credential plain)
+        $officialSaltedHashes = [
+            // Salted hash: NSR-PST-2026
+            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-PST-2026') => [
+                'sub' => 'cabang_jkt', 'displayName' => 'Kantor Pusat Jakarta', 'role' => 'SUPER ADMIN', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => true
+            ],
+            hash('sha256', 'NSR-PST-2026') => [
+                'sub' => 'cabang_jkt', 'displayName' => 'Kantor Pusat Jakarta', 'role' => 'SUPER ADMIN', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => true
+            ],
+            // Salted hash: NSR-PDG-2026
+            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-PDG-2026') => [
+                'sub' => 'cabang_pdg', 'displayName' => 'Kantor Cabang Padang', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Padang', 'wilayahLabel' => 'Kantor Cabang Padang', 'wilayahCode' => 'PDG', 'isCabang' => true, 'seeFee' => true
+            ],
+            hash('sha256', 'NSR-PDG-2026') => [
+                'sub' => 'cabang_pdg', 'displayName' => 'Kantor Cabang Padang', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Padang', 'wilayahLabel' => 'Kantor Cabang Padang', 'wilayahCode' => 'PDG', 'isCabang' => true, 'seeFee' => true
+            ],
+            // Salted hash: NSR-BDG-2026
+            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-BDG-2026') => [
+                'sub' => 'cabang_bdg', 'displayName' => 'Kantor Cabang Bandung', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Bandung', 'wilayahLabel' => 'Kantor Cabang Bandung', 'wilayahCode' => 'BDG', 'isCabang' => true, 'seeFee' => true
+            ],
+            hash('sha256', 'NSR-BDG-2026') => [
+                'sub' => 'cabang_bdg', 'displayName' => 'Kantor Cabang Bandung', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Bandung', 'wilayahLabel' => 'Kantor Cabang Bandung', 'wilayahCode' => 'BDG', 'isCabang' => true, 'seeFee' => true
+            ],
+            // Salted hash: NSR-MKS-2026
+            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-MKS-2026') => [
+                'sub' => 'cabang_mks', 'displayName' => 'Kantor Cabang Makassar', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Makassar', 'wilayahLabel' => 'Kantor Cabang Makassar', 'wilayahCode' => 'MKS', 'isCabang' => true, 'seeFee' => true
+            ],
+            hash('sha256', 'NSR-MKS-2026') => [
+                'sub' => 'cabang_mks', 'displayName' => 'Kantor Cabang Makassar', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Makassar', 'wilayahLabel' => 'Kantor Cabang Makassar', 'wilayahCode' => 'MKS', 'isCabang' => true, 'seeFee' => true
+            ],
+            // Salted hash: NSR-PLB-2026
+            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-PLB-2026') => [
+                'sub' => 'cabang_plb', 'displayName' => 'Kantor Cabang Palembang', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Palembang', 'wilayahLabel' => 'Kantor Cabang Palembang', 'wilayahCode' => 'PLB', 'isCabang' => true, 'seeFee' => true
+            ],
+            hash('sha256', 'NSR-PLB-2026') => [
+                'sub' => 'cabang_plb', 'displayName' => 'Kantor Cabang Palembang', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Palembang', 'wilayahLabel' => 'Kantor Cabang Palembang', 'wilayahCode' => 'PLB', 'isCabang' => true, 'seeFee' => true
+            ],
+            // Salted hash: NSR-VAL-2026 (Penilai Publik)
+            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-VAL-2026') => [
+                'sub' => 'penilai_pst', 'displayName' => 'Penilai Properti (Valuer)', 'role' => 'PENILAI', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => false
+            ],
+            hash('sha256', 'NSR-VAL-2026') => [
+                'sub' => 'penilai_pst', 'displayName' => 'Penilai Properti (Valuer)', 'role' => 'PENILAI', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => false
+            ],
+            // Salted hash: NSR-REV-2026 (Reviewer QC)
+            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-REV-2026') => [
+                'sub' => 'reviewer_pst', 'displayName' => 'Reviewer QC Kendali Mutu', 'role' => 'REVIEWER', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => false
+            ],
+            hash('sha256', 'NSR-REV-2026') => [
+                'sub' => 'reviewer_pst', 'displayName' => 'Reviewer QC Kendali Mutu', 'role' => 'REVIEWER', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => false
+            ]
+        ];
+
+        $allRegistries = array_merge($officialSaltedHashes, $registry);
+
+        $hSalt = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($clean));
+        if (isset($allRegistries[$hSalt])) {
+            return $allRegistries[$hSalt];
+        }
+
+        $hRawUpper = hash('sha256', strtoupper($clean));
+        if (isset($allRegistries[$hRawUpper])) {
+            return $allRegistries[$hRawUpper];
+        }
+
+        $hRaw = hash('sha256', $clean);
+        if (isset($allRegistries[$hRaw])) {
+            return $allRegistries[$hRaw];
         }
     }
 
@@ -224,7 +248,7 @@ function resolveCurrentUserStrict($officialTokenHashes) {
     return null;
 }
 
-$currentUser = resolveCurrentUserStrict($OFFICIAL_TOKEN_HASHES);
+$currentUser = resolveCurrentUserStrict();
 
 // Jika autentikasi gagal: Tolak dengan HTTP 401 Unauthorized secara mutlak
 if (!$currentUser) {

@@ -8001,7 +8001,7 @@
           kantorWilayah: p.kantor_wilayah || ''
         });
 
-        const token = (auth && auth.token) || '';
+        const token = (auth && (auth.token || auth.sessionToken || auth.tokenHash)) || '';
         const headers = { 'Accept': 'application/json' };
         if (token) headers['Authorization'] = 'Bearer ' + token;
 
@@ -8009,7 +8009,8 @@
         try {
           const res = await fetch('/api/status-terintegrasi-proxy?' + params.toString(), {
             headers,
-            signal: AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined
+            credentials: 'include',
+            signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined
           });
           if (res.ok) {
             resData = await res.json();
