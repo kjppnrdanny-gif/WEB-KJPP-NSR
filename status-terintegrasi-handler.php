@@ -117,11 +117,23 @@ function resolveCurrentUserStrict() {
     }
 
     // Resolusi Kunci Rahasia Server untuk JWT & Server-to-Server
-    $jwtSecret = getenv('NSR_JWT_SECRET') ?: getenv('NSR_AUTH_SECRET_STAGING') ?: 'nsr_dev_secret_key_change_in_production_9988';
+    // Di lingkungan produksi, rahasia server WAJIB berasal dari environment dan menolak fallback development
+    $isProd = (getenv('NSR_ENV') === 'production') || 
+              (!empty($_SERVER['SERVER_NAME']) && strpos($_SERVER['SERVER_NAME'], 'kjppnanangrahayu.com') !== false);
+
+    $jwtSecret = getenv('NSR_JWT_SECRET') ?: getenv('NSR_AUTH_SECRET_PRODUCTION');
+    if (!$jwtSecret) {
+        if ($isProd) {
+            // Fail-closed di lingkungan produksi jika kunci belum disetel di server environment
+            $jwtSecret = null;
+        } else {
+            $jwtSecret = getenv('NSR_AUTH_SECRET_STAGING') ?: getenv('NSR_TEST_SECRET') ?: 'nsr_dev_secret_key_change_in_production_9988';
+        }
+    }
 
     // B. Dari Komunikasi Server-to-Server Terverifikasi (Netlify -> cPanel)
     $incomingServerSecret = $_SERVER['HTTP_X_NSR_SERVER_SECRET'] ?? '';
-    if ($incomingServerSecret && hash_equals($jwtSecret, $incomingServerSecret)) {
+    if ($jwtSecret && $incomingServerSecret && hash_equals($jwtSecret, $incomingServerSecret)) {
         $forwardedContextRaw = $_SERVER['HTTP_X_NSR_USER_CONTEXT'] ?? '';
         if ($forwardedContextRaw) {
             $userCtx = json_decode(base64_decode($forwardedContextRaw), true);
@@ -144,19 +156,18 @@ function resolveCurrentUserStrict() {
         $clean = trim($rawToken);
 
         // 1. Verifikasi Format JWT (HS256)
-        if (substr_count($clean, '.') === 2) {
+        if ($jwtSecret && substr_count($clean, '.') === 2) {
             $jwtPayload = verifyJwtSessionToken($clean, $jwtSecret);
             if ($jwtPayload && is_array($jwtPayload)) {
                 return $jwtPayload;
             }
         }
 
-        // 2. Verifikasi Token Operasional Resmi (Salted & Raw SHA-256)
-        // PENTING: DILARANG MENCOCOKKAN $clean SECARA LANGSUNG KE HASH PENYIMPAN!
-        // Stored hash BUKAN password dan tidak boleh diterima sebagai token input.
+        // 2. Verifikasi Token Operasional Resmi dari Secret Store / Environment
+        // DILARANG KERAS MENYIMPAN KREDENSIAL ATAU HASH HARDCODED DALAM FILE KODE SUMBER
         $registry = [];
 
-        // Dukungan registry dari variabel lingkungan / secrets manager
+        // Dukungan registry dari variabel lingkungan / secrets manager resmi
         $envRegistryJson = getenv('NSR_AUTH_TOKEN_REGISTRY');
         if ($envRegistryJson) {
             $decoded = json_decode($envRegistryJson, true);
@@ -165,7 +176,7 @@ function resolveCurrentUserStrict() {
             }
         }
 
-        // Dukungan inject test mode terisolasi
+        // Dukungan inject test mode terisolasi (HANYA AKTIF SAAT NSR_TEST_MODE=1)
         if (getenv('NSR_TEST_MODE') === '1' && !empty(getenv('NSR_TEST_SYNTHETIC_REGISTRY'))) {
             $injected = json_decode(getenv('NSR_TEST_SYNTHETIC_REGISTRY'), true);
             if (is_array($injected)) {
@@ -173,74 +184,21 @@ function resolveCurrentUserStrict() {
             }
         }
 
-        // Matriks salted hashes resmi (hanya hash dari token yang sah, tanpa mengekspos credential plain)
-        $officialSaltedHashes = [
-            // Salted hash: NSR-PST-2026
-            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-PST-2026') => [
-                'sub' => 'cabang_jkt', 'displayName' => 'Kantor Pusat Jakarta', 'role' => 'SUPER ADMIN', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => true
-            ],
-            hash('sha256', 'NSR-PST-2026') => [
-                'sub' => 'cabang_jkt', 'displayName' => 'Kantor Pusat Jakarta', 'role' => 'SUPER ADMIN', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => true
-            ],
-            // Salted hash: NSR-PDG-2026
-            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-PDG-2026') => [
-                'sub' => 'cabang_pdg', 'displayName' => 'Kantor Cabang Padang', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Padang', 'wilayahLabel' => 'Kantor Cabang Padang', 'wilayahCode' => 'PDG', 'isCabang' => true, 'seeFee' => true
-            ],
-            hash('sha256', 'NSR-PDG-2026') => [
-                'sub' => 'cabang_pdg', 'displayName' => 'Kantor Cabang Padang', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Padang', 'wilayahLabel' => 'Kantor Cabang Padang', 'wilayahCode' => 'PDG', 'isCabang' => true, 'seeFee' => true
-            ],
-            // Salted hash: NSR-BDG-2026
-            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-BDG-2026') => [
-                'sub' => 'cabang_bdg', 'displayName' => 'Kantor Cabang Bandung', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Bandung', 'wilayahLabel' => 'Kantor Cabang Bandung', 'wilayahCode' => 'BDG', 'isCabang' => true, 'seeFee' => true
-            ],
-            hash('sha256', 'NSR-BDG-2026') => [
-                'sub' => 'cabang_bdg', 'displayName' => 'Kantor Cabang Bandung', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Bandung', 'wilayahLabel' => 'Kantor Cabang Bandung', 'wilayahCode' => 'BDG', 'isCabang' => true, 'seeFee' => true
-            ],
-            // Salted hash: NSR-MKS-2026
-            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-MKS-2026') => [
-                'sub' => 'cabang_mks', 'displayName' => 'Kantor Cabang Makassar', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Makassar', 'wilayahLabel' => 'Kantor Cabang Makassar', 'wilayahCode' => 'MKS', 'isCabang' => true, 'seeFee' => true
-            ],
-            hash('sha256', 'NSR-MKS-2026') => [
-                'sub' => 'cabang_mks', 'displayName' => 'Kantor Cabang Makassar', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Makassar', 'wilayahLabel' => 'Kantor Cabang Makassar', 'wilayahCode' => 'MKS', 'isCabang' => true, 'seeFee' => true
-            ],
-            // Salted hash: NSR-PLB-2026
-            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-PLB-2026') => [
-                'sub' => 'cabang_plb', 'displayName' => 'Kantor Cabang Palembang', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Palembang', 'wilayahLabel' => 'Kantor Cabang Palembang', 'wilayahCode' => 'PLB', 'isCabang' => true, 'seeFee' => true
-            ],
-            hash('sha256', 'NSR-PLB-2026') => [
-                'sub' => 'cabang_plb', 'displayName' => 'Kantor Cabang Palembang', 'role' => 'ADMIN_CABANG', 'wilayah' => 'Palembang', 'wilayahLabel' => 'Kantor Cabang Palembang', 'wilayahCode' => 'PLB', 'isCabang' => true, 'seeFee' => true
-            ],
-            // Salted hash: NSR-VAL-2026 (Penilai Publik)
-            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-VAL-2026') => [
-                'sub' => 'penilai_pst', 'displayName' => 'Penilai Properti (Valuer)', 'role' => 'PENILAI', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => false
-            ],
-            hash('sha256', 'NSR-VAL-2026') => [
-                'sub' => 'penilai_pst', 'displayName' => 'Penilai Properti (Valuer)', 'role' => 'PENILAI', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => false
-            ],
-            // Salted hash: NSR-REV-2026 (Reviewer QC)
-            hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::NSR-REV-2026') => [
-                'sub' => 'reviewer_pst', 'displayName' => 'Reviewer QC Kendali Mutu', 'role' => 'REVIEWER', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => false
-            ],
-            hash('sha256', 'NSR-REV-2026') => [
-                'sub' => 'reviewer_pst', 'displayName' => 'Reviewer QC Kendali Mutu', 'role' => 'REVIEWER', 'wilayah' => 'PUSAT', 'wilayahLabel' => 'Kantor Pusat Jakarta', 'wilayahCode' => 'PST', 'isCabang' => false, 'seeFee' => false
-            ]
-        ];
+        if (!empty($registry)) {
+            $hSalt = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($clean));
+            if (isset($registry[$hSalt])) {
+                return $registry[$hSalt];
+            }
 
-        $allRegistries = array_merge($officialSaltedHashes, $registry);
+            $hRawUpper = hash('sha256', strtoupper($clean));
+            if (isset($registry[$hRawUpper])) {
+                return $registry[$hRawUpper];
+            }
 
-        $hSalt = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($clean));
-        if (isset($allRegistries[$hSalt])) {
-            return $allRegistries[$hSalt];
-        }
-
-        $hRawUpper = hash('sha256', strtoupper($clean));
-        if (isset($allRegistries[$hRawUpper])) {
-            return $allRegistries[$hRawUpper];
-        }
-
-        $hRaw = hash('sha256', $clean);
-        if (isset($allRegistries[$hRaw])) {
-            return $allRegistries[$hRaw];
+            $hRaw = hash('sha256', $clean);
+            if (isset($registry[$hRaw])) {
+                return $registry[$hRaw];
+            }
         }
     }
 

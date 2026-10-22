@@ -23,16 +23,26 @@ import {
  * Mencegah penggunaan fallback acak otomatis antar-instance.
  */
 export function getJwtSecret() {
-  const secret = process.env.NSR_AUTH_SECRET_STAGING || process.env.NSR_JWT_SECRET;
-  const isCloudRuntime = process.env.NETLIFY === "true" || process.env.NSR_ENV === "staging" || (process.env.NODE_ENV === "production" && !process.env.IS_LOCAL_TEST);
+  const isCloudRuntime = process.env.NETLIFY === "true" || process.env.NSR_ENV === "production" || process.env.CONTEXT === "production";
+  const isStaging = process.env.NSR_ENV === "staging" || process.env.CONTEXT === "deploy-preview" || process.env.CONTEXT === "branch-deploy";
 
-  if (!secret) {
-    if (isCloudRuntime) {
-      throw new Error("[FAIL_CLOSED_HALT] Kunci rahasia NSR_AUTH_SECRET_STAGING / NSR_JWT_SECRET wajib dikonfigurasi di Netlify Environment Variables. Inisialisasi cloud ditolak.");
+  if (isCloudRuntime && !isStaging) {
+    const prodSecret = process.env.NSR_AUTH_SECRET_PRODUCTION || process.env.NSR_JWT_SECRET;
+    if (!prodSecret) {
+      throw new Error("[FAIL_CLOSED_HALT] Kunci rahasia NSR_JWT_SECRET / NSR_AUTH_SECRET_PRODUCTION wajib dikonfigurasi di Netlify Environment Variables produksi. Fallback development ditolak.");
     }
-    return "nsr_dev_secret_key_change_in_production_9988";
+    return prodSecret;
   }
-  return secret;
+
+  if (isStaging) {
+    const stagingSecret = process.env.NSR_AUTH_SECRET_STAGING;
+    if (!stagingSecret) {
+      throw new Error("[FAIL_CLOSED_HALT] Kunci rahasia NSR_AUTH_SECRET_STAGING wajib dikonfigurasi untuk lingkungan staging.");
+    }
+    return stagingSecret;
+  }
+
+  return process.env.NSR_TEST_SECRET || "nsr_dev_secret_key_change_in_production_9988";
 }
 
 const SESSION_TTL_SECONDS = 8 * 60 * 60; // 8 Jam kerja
