@@ -223,7 +223,7 @@ async function runTests() {
     const tLP = await request('?action=publishOfficialLP', {
       method: 'POST',
       token: TOKENS.ADMIN_PUSAT,
-      body: { idPenugasan: testIdNormal, nomorLpResmi: 'LP/001/MKS/2026' }
+      body: { idPenugasan: testIdNormal, nomorLpResmi: `LP/${Date.now().toString().slice(-4)}/MKS/2026` }
     });
     assert(tLP.status === 200 && (tLP.data.newStatus === 'LP_DITERBITKAN' || tLP.data.status === 'LP_DITERBITKAN'));
     testPass('Test 16-18: Review Berjenjang Gerbang 1 (SPM Danny -> Divtek Deni -> Terbit LP Resmi) Berhasil Penuh', 3);

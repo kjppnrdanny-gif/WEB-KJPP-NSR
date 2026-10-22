@@ -3097,6 +3097,8 @@
       p.nomor_lp = finalLp;
       p.nomor_adm = finalAdm;
       p.jenis_laporan = finalJenis;
+      p.kantor_wilayah = document.getElementById('appr-kantor-wilayah')?.value || p.kantor_wilayah || 'Kantor Pusat Jakarta';
+      p.tanggal_surat = document.getElementById('appr-tanggal-surat')?.value || p.tanggal_surat || new Date().toISOString().split('T')[0];
 
       const finalRekKode = document.getElementById('pilihan_rekening_tujuan')?.value || 'MANDIRI';
       const rekObj = DAFTAR_REKENING_NSR[finalRekKode] || DAFTAR_REKENING_NSR.MANDIRI;
@@ -3107,7 +3109,8 @@
       p.status_approval = "APPROVED";
       p.approved_at = new Date().toISOString();
       p.approved_by = 'ADMIN_PUSAT';
-      p.disetujui_oleh = `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})`;
+      const isKing = Boolean(auth && (auth.isKing || auth.isSuperAdmin || auth.role === 'SUPER_ADMIN'));
+      p.disetujui_oleh = isKing ? `SUPER ADMIN (KING) (${userSession.token || 'OTORISASI_KING'})` : `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})`;
       p.nomor_spk_pusat = finalLp;
 
       const isMetodeScanAktif = (approvalMetodeAktif === 'SCAN_BASAH');
@@ -3138,16 +3141,16 @@
         delete p.berkas_scan_pdf;
       }
 
-      const usedSeq = extractSeqNumber(finalAdm) || extractSeqNumber(finalLp);
-      if (usedSeq > 0) {
-        const cLp = parseInt(String(serverCounter.LAST_NO_LP_SPK || 415).trim(), 10) || 415;
-        const cAdm = parseInt(String(serverCounter.LAST_NO_ADM_JO || 415).trim(), 10) || 415;
-        const maxVal = Math.max(cLp, cAdm, usedSeq);
-        serverCounter.LAST_NO_ADM_JO = maxVal;
-        serverCounter.LAST_NO_LP_SPK = maxVal;
-        const badgeCounter = document.getElementById('counter-val-badge');
-        if (badgeCounter) badgeCounter.textContent = maxVal;
+      const usedSeqLp = extractSeqNumber(finalLp);
+      const usedSeqAdm = extractSeqNumber(finalAdm);
+      if (usedSeqLp > 0) {
+        serverCounter.LAST_NO_LP_SPK = Math.max(serverCounter.LAST_NO_LP_SPK || 415, usedSeqLp);
       }
+      if (usedSeqAdm > 0) {
+        serverCounter.LAST_NO_ADM_JO = Math.max(serverCounter.LAST_NO_ADM_JO || 415, usedSeqAdm);
+      }
+      const badgeCounter = document.getElementById('counter-val-badge');
+      if (badgeCounter) badgeCounter.textContent = serverCounter.LAST_NO_ADM_JO || 415;
 
       simpanDatabaseLokal();
       activeProjectData = p;
@@ -4063,6 +4066,14 @@
       const modeTitle = document.getElementById('mode-title');
       const banner = document.getElementById('banner-mode-akses') || document.getElementById('form-mode-banner');
 
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const isSuper = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT' || auth.isKing));
+
+      const helperBox = document.getElementById('helper-nomor-terakhir');
+      const subWil = document.getElementById('sub-wilayah-info');
+      const subTgl = document.getElementById('sub-tanggal-info');
+      const selWil = document.getElementById('kantor_wilayah');
+
       if (mode === 'PRIVATE_CABANG') {
         if (radioPrivate) radioPrivate.checked = true;
         if (radioCentral) radioCentral.checked = false;
@@ -4073,7 +4084,12 @@
           labelCentral.className = "flex items-start gap-3 p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 hover:border-slate-600 cursor-pointer transition opacity-70";
         }
 
-        // Buka kunci input nomor SPK dan JO agar bebas diisi manual / counter cabang
+        if (helperBox) helperBox.classList.remove('hidden');
+        if (subWil) subWil.classList.add('hidden');
+        if (subTgl) subTgl.classList.add('hidden');
+        if (selWil) selWil.disabled = false;
+
+        // Buka kunci input nomor SPK dan JO agar bebas diisi manual / counter cabang mandiri
         if (noLpInput) {
           noLpInput.readOnly = false;
           noLpInput.disabled = false;
@@ -4101,13 +4117,13 @@
 
         if (noLpInput) {
           noLpInput.placeholder = `Bebas / Auto: ${autoLp}`;
-          if (noLpInput.dataset.manualEdited !== "true" || !noLpInput.value || noLpInput.value.includes('Menunggu')) {
+          if (noLpInput.dataset.manualEdited !== "true" || !noLpInput.value || noLpInput.value.includes('Menunggu') || noLpInput.value.includes('[Ditetapkan')) {
             noLpInput.value = autoLp;
           }
         }
         if (noAdmInput) {
           noAdmInput.placeholder = `Bebas / Auto: ${autoAdm}`;
-          if (noAdmInput.dataset.manualEdited !== "true" || !noAdmInput.value || noAdmInput.value.includes('Menunggu')) {
+          if (noAdmInput.dataset.manualEdited !== "true" || !noAdmInput.value || noAdmInput.value.includes('Menunggu') || noAdmInput.value.includes('[Ditetapkan')) {
             noAdmInput.value = autoAdm;
           }
         }
@@ -4147,23 +4163,37 @@
           labelPrivate.className = "flex items-start gap-3 p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 hover:border-slate-600 cursor-pointer transition opacity-70";
         }
 
-        if (noLpInput) {
-          noLpInput.readOnly = true;
-          noLpInput.disabled = false;
-          noLpInput.classList.add('bg-slate-950/80');
-          noLpInput.classList.remove('bg-slate-950');
-          noLpInput.value = "Menunggu Input & Otorisasi Admin Pusat";
-          noLpInput.placeholder = "Otomatis dari Otorisasi Pusat";
-          delete noLpInput.dataset.manualEdited;
-        }
-        if (noAdmInput) {
-          noAdmInput.readOnly = true;
-          noAdmInput.disabled = false;
-          noAdmInput.classList.add('bg-slate-950/80');
-          noAdmInput.classList.remove('bg-slate-950');
-          noAdmInput.value = "Menunggu Input & Otorisasi Admin Pusat";
-          noAdmInput.placeholder = "Otomatis dari Otorisasi Pusat";
-          delete noAdmInput.dataset.manualEdited;
+        if (!isSuper) {
+          // ALUR PENGAJU CABANG KE PUSAT: Sembunyikan counter, nomor terakhir, saran, dan kunci nomor SPK/JO
+          if (helperBox) helperBox.classList.add('hidden');
+          if (subWil) subWil.classList.remove('hidden');
+          if (subTgl) subTgl.classList.remove('hidden');
+          if (selWil) selWil.disabled = true;
+
+          if (noLpInput) {
+            noLpInput.readOnly = true;
+            noLpInput.disabled = false;
+            noLpInput.classList.add('bg-slate-950/80', 'cursor-not-allowed');
+            noLpInput.classList.remove('bg-slate-950');
+            noLpInput.value = "";
+            noLpInput.placeholder = "[Ditetapkan oleh Admin Pusat saat Approval]";
+            delete noLpInput.dataset.manualEdited;
+          }
+          if (noAdmInput) {
+            noAdmInput.readOnly = true;
+            noAdmInput.disabled = false;
+            noAdmInput.classList.add('bg-slate-950/80', 'cursor-not-allowed');
+            noAdmInput.classList.remove('bg-slate-950');
+            noAdmInput.value = "";
+            noAdmInput.placeholder = "[Ditetapkan oleh Admin Pusat saat Approval]";
+            delete noAdmInput.dataset.manualEdited;
+          }
+        } else {
+          // Admin Pusat / SUPER ADMIN KING: Tampilkan kontrol lengkap
+          if (helperBox) helperBox.classList.remove('hidden');
+          if (subWil) subWil.classList.add('hidden');
+          if (subTgl) subTgl.classList.add('hidden');
+          if (selWil) selWil.disabled = false;
         }
 
         if (banner) {
@@ -6918,8 +6948,42 @@
       const elAdm = getElAdm();
 
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
-      const isCabang = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
-      const isCabangMandiri = isCabang || (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI');
+      const isSuper = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER_ADMIN' || auth.role === 'ADMIN_PUSAT' || auth.isKing));
+      const isCabangMandiri = (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI');
+      const isBranchSubmittingPusat = (!isSuper && (currentModeAlur === 'CENTRAL_APPROVAL' || currentModeAlur === 'PUSAT'));
+
+      const helperBox = document.getElementById('helper-nomor-terakhir');
+      const subWil = document.getElementById('sub-wilayah-info');
+      const subTgl = document.getElementById('sub-tanggal-info');
+      const selWil = document.getElementById('kantor_wilayah');
+
+      if (isBranchSubmittingPusat) {
+        if (helperBox) helperBox.classList.add('hidden');
+        if (subWil) subWil.classList.remove('hidden');
+        if (subTgl) subTgl.classList.remove('hidden');
+        if (selWil) selWil.disabled = true;
+
+        if (elLp) {
+          elLp.readOnly = true;
+          elLp.disabled = false;
+          elLp.classList.add('bg-slate-950/80', 'cursor-not-allowed');
+          elLp.classList.remove('bg-slate-950');
+          elLp.value = "";
+          elLp.placeholder = "[Ditetapkan oleh Admin Pusat saat Approval]";
+          delete elLp.dataset.manualEdited;
+        }
+        if (elAdm) {
+          elAdm.readOnly = true;
+          elAdm.disabled = false;
+          elAdm.classList.add('bg-slate-950/80', 'cursor-not-allowed');
+          elAdm.classList.remove('bg-slate-950');
+          elAdm.value = "";
+          elAdm.placeholder = "[Ditetapkan oleh Admin Pusat saat Approval]";
+          delete elAdm.dataset.manualEdited;
+        }
+        validasiDuplikatLive();
+        return;
+      }
 
       if ((userSession.mode === "PUSAT" || userSession.role === "ADMIN_PUSAT" || userSession.role === "SUPER_ADMIN") && !isCabangMandiri) {
         // Ambil counter tertinggi antara serverCounter (baseline 415) dan projectDatabase
@@ -7195,9 +7259,9 @@
       const kodeLap = (jenisLap === 'RTL') ? 'PN-RTL' : 'PN-APP';
 
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
-      const isPusat = (userSession.mode === "PUSAT" || (auth && (auth.isSuperAdmin || auth.role === 'ADMIN_PUSAT')));
+      const isPusat = (userSession.mode === "PUSAT" || (auth && (auth.isSuperAdmin || auth.role === 'ADMIN_PUSAT' || auth.isKing)));
       const isCabangAdmin = Boolean(auth && (auth.isCabang || auth.role === 'ADMIN_CABANG'));
-      const isPrivateCabang = (!isPusat && (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI' || isCabangAdmin));
+      const isPrivateCabang = (!isPusat && (currentModeAlur === 'PRIVATE_CABANG' || currentModeAlur === 'MANDIRI'));
       const wilCabang = (auth && (auth.wilayahLabel || auth.wilayah)) || userSession.wilayah || 'Padang';
 
       let isApproved = isPusat || (isPrivateCabang && isCabangAdmin);
@@ -7280,9 +7344,9 @@
 
         projectId = `NSR-${code}-${thn}-${seq}`;
       } else {
-        // ALUR 1: CENTRAL_APPROVAL
-        noAdm = "Menunggu Input & Otorisasi Admin Pusat";
-        noLp = "Menunggu Input & Otorisasi Admin Pusat";
+        // ALUR 1: CENTRAL_APPROVAL (Pengajuan Cabang ke Pusat)
+        noAdm = "MENUNGGU_PENETAPAN_PUSAT";
+        noLp = "MENUNGGU_PENETAPAN_PUSAT";
         projectId = `NSR-${thn}-REQ-${Date.now().toString().slice(-4)}`;
       }
 
@@ -7551,27 +7615,25 @@
       const romawi = getBulanRomawi(d);
       const thn = d.getFullYear() || 2026;
 
-      // Cari counter tertinggi approved
-      const cLp = parseInt(String(serverCounter.LAST_NO_LP_SPK || 415).trim(), 10);
-      const cAdm = parseInt(String(serverCounter.LAST_NO_ADM_JO || 415).trim(), 10);
-      let maxCounter = Math.max(isNaN(cLp) ? 415 : cLp, isNaN(cAdm) ? 415 : cAdm);
-      if (maxCounter >= 100000) maxCounter = 415;
+      // Pemisahan Register SPK dan Register JO Secara Mandiri (Smart Register NSR 2026)
+      let maxSpk = parseInt(String(serverCounter.LAST_NO_LP_SPK || 415).trim(), 10) || 415;
+      let maxJo = parseInt(String(serverCounter.LAST_NO_ADM_JO || 415).trim(), 10) || 415;
+      if (maxSpk >= 100000) maxSpk = 415;
+      if (maxJo >= 100000) maxJo = 415;
 
       projectDatabase.forEach(item => {
         if (item.status === "APPROVED" || item.mode_pengaju === "PUSAT") {
-          const numAdm = extractSeqNumber(item.nomor_adm);
-          if (numAdm > maxCounter) maxCounter = numAdm;
-          const numLp = extractSeqNumber(item.nomor_lp);
-          if (numLp > maxCounter) maxCounter = numLp;
-          if (item.id && !item.id.includes('REQ') && !item.id.includes('BDG') && !item.id.includes('PDG') && !item.id.includes('MKS') && !item.id.includes('PLB') && !item.id.includes('PLM')) {
-            const numId = extractSeqNumber(item.id);
-            if (numId > maxCounter) maxCounter = numId;
-          }
+          const sLp = extractSeqNumber(item.nomor_lp);
+          if (sLp > maxSpk && sLp < 100000) maxSpk = sLp;
+          const sAdm = extractSeqNumber(item.nomor_adm);
+          if (sAdm > maxJo && sAdm < 100000) maxJo = sAdm;
         }
       });
 
-      const nextVal = maxCounter + 1;
-      const nextNum = nextVal.toString().padStart(4, '0');
+      const nextSpk = maxSpk + 1;
+      const nextSpkNum = nextSpk.toString().padStart(4, '0');
+      const nextJo = maxJo + 1;
+      const nextJoNum = nextJo.toString().padStart(4, '0');
 
       let defaultJenis = 'APP';
       if (p.jenis_laporan === 'RTL' || (p.nomor_lp && p.nomor_lp.includes('PN-RTL'))) {
@@ -7584,19 +7646,55 @@
         document.getElementById('appr-target-project-id').value = p.id;
         document.getElementById('appr-info-id').textContent = p.id;
         document.getElementById('appr-info-debitur').textContent = p.debitur_nama || p.Nama_Debitur_Utama || '-';
-        document.getElementById('appr-info-wilayah').textContent = p.kantor_wilayah || p.Kantor_Wilayah || '-';
+        document.getElementById('appr-info-wilayah').textContent = p.kantor_wilayah || p.Kantor_Wilayah || 'Kantor Pusat Jakarta';
         document.getElementById('appr-info-tanggal').textContent = formatTanggalIndo(p.tanggal_surat || p.tgl_dibuat);
 
+        // Section 01: 1. Kantor Wilayah Operasional
+        const elWil = document.getElementById('appr-kantor-wilayah');
+        if (elWil) elWil.value = p.kantor_wilayah || p.Kantor_Wilayah || 'Kantor Pusat Jakarta';
+
+        // Section 01: 2. Tanggal Surat / SPK
+        const elTgl = document.getElementById('appr-tanggal-surat');
+        if (elTgl) {
+          const tglVal = (p.tanggal_surat || p.tgl_dibuat || new Date().toISOString().split('T')[0]).split('T')[0];
+          elTgl.value = tglVal;
+        }
+
+        // Section 01: 3. Jenis Laporan
         const elJenis = document.getElementById('appr-jenis-laporan');
         if (elJenis) elJenis.value = defaultJenis;
 
-        const elSaran = document.getElementById('appr-saran-seq');
-        if (elSaran) elSaran.textContent = nextNum;
-
+        // Section 01: 4. Smart Register SPK
+        const elSpkLast = document.getElementById('appr-spk-last');
+        const elSpkSaran = document.getElementById('appr-spk-saran');
+        const elSpkSeq = document.getElementById('appr-spk-seq');
         const elApprLp = document.getElementById('appr-nomor-lp');
+        if (elSpkLast) elSpkLast.textContent = String(maxSpk).padStart(4, '0');
+        if (elSpkSaran) elSpkSaran.textContent = nextSpkNum;
+
+        if (p.nomor_lp && !p.nomor_lp.includes('MENUNGGU') && !p.nomor_lp.includes('Menunggu')) {
+          if (elApprLp) elApprLp.value = p.nomor_lp;
+          if (elSpkSeq) elSpkSeq.value = extractSeqNumber(p.nomor_lp) || nextSpk;
+        } else {
+          if (elSpkSeq) elSpkSeq.value = nextSpk;
+          if (elApprLp) elApprLp.value = `${nextSpkNum}/NSR/${kodeLap}/${romawi}/${thn}`;
+        }
+
+        // Section 01: 5. Smart Register JO
+        const elJoLast = document.getElementById('appr-jo-last');
+        const elJoSaran = document.getElementById('appr-jo-saran');
+        const elJoSeq = document.getElementById('appr-jo-seq');
         const elApprAdm = document.getElementById('appr-nomor-adm');
-        if (elApprLp) elApprLp.value = p.nomor_lp || `${nextNum}/NSR/${kodeLap}/${romawi}/${thn}`;
-        if (elApprAdm) elApprAdm.value = p.nomor_adm || `${nextNum}/JO/NSR/${romawi}/${thn}`;
+        if (elJoLast) elJoLast.textContent = String(maxJo).padStart(4, '0');
+        if (elJoSaran) elJoSaran.textContent = nextJoNum;
+
+        if (p.nomor_adm && !p.nomor_adm.includes('MENUNGGU') && !p.nomor_adm.includes('Menunggu')) {
+          if (elApprAdm) elApprAdm.value = p.nomor_adm;
+          if (elJoSeq) elJoSeq.value = extractSeqNumber(p.nomor_adm) || nextJo;
+        } else {
+          if (elJoSeq) elJoSeq.value = nextJo;
+          if (elApprAdm) elApprAdm.value = `${nextJoNum}/JO/NSR/${romawi}/${thn}`;
+        }
 
         const elRekTujuan = document.getElementById('pilihan_rekening_tujuan');
         if (elRekTujuan) {
