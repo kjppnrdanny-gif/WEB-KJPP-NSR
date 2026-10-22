@@ -5,11 +5,11 @@
  * Standar Keamanan & Integritas:
  * - Anti-Celah Autentikasi: Token diverifikasi secara asinkron (await verifySessionToken).
  * - Tanpa Fallback: Tidak ada fallback otomatis ke SUPER ADMIN jika token salah/kedaluwarsa.
- * - Anti-Bypass String / Substring: Dilarang menebak peran dari teks token atau substring.
+ * - Anti-Bypass Header-Only: Token DILARANG diterima melalui query string / URL (Hanya Header).
  * - Strict Server-Side RBAC: Cabang penugasan ditentukan oleh backend (bukan parameter client).
+ * - RBAC Default Deny: Nilai nominal tertutup secara default, hanya terbuka untuk role yang diizinkan eksplisit.
  * - Fail-Closed: Jika cabang penugasan tidak dapat dipastikan secara resmi, tolak (HTTP 403).
- * - Sensor Kerahasiaan (Fee Masking): Nominal disensor untuk Penilai, Reviewer, dan Marketing.
- * - Pembedaan Kegagalan Sumber Data: Bedakan data tidak tersedia vs dokumen belum terhubung.
+ * - Reliabilitas Data Produksi: Akses server-to-server ke cPanel resmi; jika offline laporkan secara jujur tanpa data palsu.
  */
 
 import fs from 'node:fs';
@@ -113,7 +113,7 @@ export async function handler(event, context) {
     };
   }
 
-  // 1. Ekstraksi Token Autentikasi
+  // 1. Ekstraksi Token Autentikasi (DILARANG DARI QUERY PARAMETER URL)
   let token = null;
   const authHeader = event.headers.authorization || event.headers.Authorization || '';
   if (authHeader.startsWith('Bearer ')) {
@@ -122,28 +122,15 @@ export async function handler(event, context) {
     token = String(event.headers['x-nsr-token']).trim();
   }
 
-  let body = {};
-  if (event.body) {
-    try {
-      body = JSON.parse(event.body);
-    } catch (e) {}
-  }
-  if (!token && body.token) {
-    token = String(body.token).trim();
-  }
-  if (!token && event.queryStringParameters && event.queryStringParameters.token) {
-    token = String(event.queryStringParameters.token).trim();
-  }
-
-  // Jika token tidak ada sama sekali -> HTTP 401
+  // Jika token tidak ada pada Header -> HTTP 401
   if (!token) {
     return {
       statusCode: 401,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         success: false,
-        error: "Autentikasi Ditolak (401 Unauthorized): Token autentikasi tidak disertakan.",
-        violation: "MISSING_TOKEN"
+        error: "Autentikasi Ditolak (401 Unauthorized): Token autentikasi wajib disertakan melalui header Authorization atau X-NSR-Token.",
+        violation: "MISSING_AUTH_HEADER"
       })
     };
   }
@@ -165,12 +152,43 @@ export async function handler(event, context) {
   // Dapatkan profil pengguna RESMI dari payload token
   const authUser = authRes.payload;
   const userRole = String(authUser.role || '').toUpperCase();
-  const isCabang = Boolean(authUser.isCabang || userRole === 'CABANG' || userRole === 'ADMIN_CABANG' || userRole === 'KEUANGAN_CABANG');
+  
+  // Variasi Lengkap Role Cabang
+  const isCabang = Boolean(
+    authUser.isCabang ||
+    ['CABANG', 'ADMIN_CABANG', 'KEUANGAN_CABANG', 'STAF_CABANG', 'KASIR_CABANG', 'OPERATOR_CABANG'].includes(userRole) ||
+    authUser.mode === 'CABANG' ||
+    ['01', '02', '03', '04', 'PDG', 'MKS', 'PLB', 'BDG', 'PKU'].includes(String(authUser.wilayahCode || '').toUpperCase())
+  );
   const userBranch = normalizeBranchCode(authUser.branch || authUser.wilayah || authUser.wilayahCode || '');
-  const canSeeFee = Boolean(authUser.seeFee !== false && !['PENILAI', 'REVIEWER', 'MARKETING', 'SURVEYOR'].includes(userRole));
 
-  // 2. Parse Parameter Pencarian
+  // 2. DEFAULT DENY: Hak Akses Nominal Finansial
+  let canSeeFee = false;
+  const EXPLICIT_FINANCIAL_ROLES = [
+    'SUPER ADMIN',
+    'SUPER_ADMIN',
+    'PEMIMPIN_REKAN',
+    'KEUANGAN',
+    'ADMIN_PUSAT',
+    'KEPALA_KEUANGAN',
+    'MANAGER_KEUANGAN'
+  ];
+
+  if (authUser.seeFee === true && EXPLICIT_FINANCIAL_ROLES.includes(userRole)) {
+    canSeeFee = true;
+  } else if (isCabang && authUser.seeFee === true && ['ADMIN_CABANG', 'KEUANGAN_CABANG'].includes(userRole)) {
+    canSeeFee = true;
+  }
+
+  // 3. Parse Parameter Pencarian
   const q = event.queryStringParameters || {};
+  let body = {};
+  if (event.body) {
+    try {
+      body = JSON.parse(event.body);
+    } catch (e) {}
+  }
+
   const projectId = String(q.id || body.id || body.projectId || body.ID_Penugasan || '').trim();
   const noSpk = String(q.noSpk || body.noSpk || body.nomor_lp || body.No_Lingkup_Penugasan || '').trim();
   const noJo = String(q.noJo || body.noJo || body.nomor_adm || body.No_Adm_JO || '').trim();
@@ -189,12 +207,95 @@ export async function handler(event, context) {
 
   const candidateIds = [projectId, noSpk, noJo].filter(Boolean).map(s => s.toLowerCase());
 
-  // 3. Baca Sumber Data
+  // 4. Periksa Ketersediaan Sumber Data Lokal vs Server-to-Server
   const nolapSource = readDatabaseSafe('data/nolap_database.json');
   const oprSource = readDatabaseSafe('data/operasional_database.json');
   const kwSource = readDatabaseSafe('data/kwitansi_database.json');
+  const localAvailable = nolapSource.available || oprSource.available || kwSource.available;
 
-  // 4. Penentuan Cabang Penugasan dari Basis Data Resmi & Pola ID (Bukan Parameter Client)
+  // Jika berkas lokal tidak ada (seperti saat berjalan di Netlify Cloud), hubungkan server-to-server ke backend resmi
+  if (!localAvailable && (process.env.NETLIFY === "true" || process.env.CONTEXT === "production" || process.env.NSR_OFFICIAL_API_BASE)) {
+    const upstreamBase = process.env.NSR_OFFICIAL_API_BASE || process.env.NSR_CPANEL_URL || 'https://kjppnanangrahayu.com';
+    try {
+      const qParams = new URLSearchParams({
+        id: projectId,
+        noSpk: noSpk,
+        noJo: noJo
+      });
+      const upstreamRes = await fetch(`${upstreamBase}/api/status-terintegrasi-proxy?${qParams.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-NSR-Token': token,
+          'Accept': 'application/json'
+        },
+        signal: AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined
+      });
+
+      if (upstreamRes.ok) {
+        const upstreamData = await upstreamRes.json();
+        return {
+          statusCode: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true"
+          },
+          body: JSON.stringify(upstreamData)
+        };
+      } else if (upstreamRes.status === 401 || upstreamRes.status === 403) {
+        const errData = await upstreamRes.json().catch(() => ({}));
+        return {
+          statusCode: upstreamRes.status,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(errData)
+        };
+      }
+    } catch (upstreamErr) {
+      // Upstream server-to-server tidak dapat dijangkau
+    }
+
+    // Jika upstream gagal dan lokal tidak tersedia: Laporkan status offline secara transparan (Tanpa Data Palsu)
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": "true"
+      },
+      body: JSON.stringify({
+        success: true,
+        query: { id: projectId, noSpk, noJo, resolvedOffice: 'TIDAK_DAPAT_DIPASTIKAN' },
+        aksesPengguna: { role: userRole, isCabang, wilayah: authUser.wilayahLabel || 'Pusat', canSeeFee },
+        nolap: {
+          terhubung: false,
+          statusKoneksi: 'SUMBER_TIDAK_TERSEDIA',
+          statusUtama: 'Sumber Data Tidak Tersedia',
+          keterangan: 'Koneksi server-to-server ke basis data NoLap sedang offline atau tidak dapat dijangkau.',
+          total: 0,
+          items: []
+        },
+        operasional: {
+          terhubung: false,
+          statusKoneksi: 'SUMBER_TIDAK_TERSEDIA',
+          statusUtama: 'Sumber Data Tidak Tersedia',
+          keterangan: 'Koneksi server-to-server ke basis data e-Operasional sedang offline atau tidak dapat dijangkau.',
+          total: 0,
+          items: []
+        },
+        kwitansi: {
+          terhubung: false,
+          statusKoneksi: 'SUMBER_TIDAK_TERSEDIA',
+          statusUtama: 'Sumber Data Tidak Tersedia',
+          keterangan: 'Koneksi server-to-server ke basis data Kwitansi sedang offline atau tidak dapat dijangkau.',
+          total: 0,
+          items: []
+        }
+      })
+    };
+  }
+
+  // 5. Penentuan Cabang Penugasan dari Basis Data Resmi & Pola ID (Bukan Parameter Client)
   const resolvedJobBranch = resolveJobBranchStrict(
     candidateIds,
     nolapSource.data,
@@ -230,7 +331,7 @@ export async function handler(event, context) {
     }
   }
 
-  // 5. Pencocokan Ketat NoLap
+  // 6. Pencocokan Ketat NoLap
   const matchedNolap = [];
   if (nolapSource.available) {
     nolapSource.data.forEach(item => {
@@ -263,7 +364,7 @@ export async function handler(event, context) {
     });
   }
 
-  // 6. Pencocokan Ketat e-Operasional
+  // 7. Pencocokan Ketat e-Operasional
   const matchedOperasional = [];
   if (oprSource.available) {
     oprSource.data.forEach(opr => {
@@ -301,7 +402,7 @@ export async function handler(event, context) {
     });
   }
 
-  // 7. Pencocokan Ketat Kwitansi
+  // 8. Pencocokan Ketat Kwitansi
   const matchedKwitansi = [];
   if (kwSource.available) {
     kwSource.data.forEach(kw => {

@@ -193,15 +193,13 @@ function resolveCurrentUserStrict($officialTokenHashes) {
         }
     }
 
-    // B. Dari Authorization Header: Bearer <TOKEN> atau X-NSR-Token
+    // B. Dari Authorization Header: Bearer <TOKEN> atau X-NSR-Token (DILARANG MENGGUNAKAN QUERY STRING)
     $rawToken = null;
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
     if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $matches)) {
         $rawToken = trim($matches[1]);
     } elseif (isset($_SERVER['HTTP_X_NSR_TOKEN'])) {
         $rawToken = trim($_SERVER['HTTP_X_NSR_TOKEN']);
-    } elseif (isset($_GET['token'])) {
-        $rawToken = trim($_GET['token']);
     }
 
     if ($rawToken) {
@@ -390,7 +388,10 @@ function resolveJobBranchStrict($candidateIds, $nolapList, $operasionalList, $kw
 
 // 6. Penegakan Hak Akses Cabang (RBAC Data Isolation)
 $userRole = strtoupper($currentUser['role'] ?? '');
-$isCabang = !empty($currentUser['isCabang']) || in_array($userRole, ['CABANG', 'ADMIN_CABANG', 'KEUANGAN_CABANG'], true);
+$isCabang = !empty($currentUser['isCabang']) ||
+            in_array($userRole, ['CABANG', 'ADMIN_CABANG', 'KEUANGAN_CABANG', 'STAF_CABANG', 'KASIR_CABANG', 'OPERATOR_CABANG'], true) ||
+            ($currentUser['mode'] ?? '') === 'CABANG' ||
+            (isset($currentUser['wilayahCode']) && in_array($currentUser['wilayahCode'], ['01', '02', '03', '04', 'PDG', 'MKS', 'PLB', 'BDG', 'PKU'], true));
 $userBranch = normalizeBranchCode($currentUser['branch'] ?? $currentUser['wilayah'] ?? $currentUser['wilayahCode'] ?? '');
 
 $resolvedJobBranch = resolveJobBranchStrict($candidateIds, $nolapList, $operasionalList, $kwitansiList);
@@ -419,8 +420,25 @@ if ($isCabang) {
     }
 }
 
-// 7. Penegakan Kerahasiaan Nilai Finansial (Fee Masking)
-$canSeeFinancialFee = ($currentUser['seeFee'] ?? true) && !in_array($userRole, ['PENILAI', 'REVIEWER', 'MARKETING', 'SURVEYOR'], true);
+// 7. Penegakan Kerahasiaan Nilai Finansial (DEFAULT DENY)
+// Nilai nominal finansial HANYA terbuka jika role terdaftar eksplisit dan seeFee bernilai true
+$canSeeFinancialFee = false;
+$EXPLICIT_AUTHORIZED_FEE_ROLES = [
+    'SUPER ADMIN',
+    'SUPER_ADMIN',
+    'PEMIMPIN_REKAN',
+    'KEUANGAN',
+    'ADMIN_PUSAT',
+    'KEPALA_KEUANGAN',
+    'MANAGER_KEUANGAN'
+];
+
+if (!empty($currentUser['seeFee']) && in_array($userRole, $EXPLICIT_AUTHORIZED_FEE_ROLES, true)) {
+    $canSeeFinancialFee = true;
+} elseif ($isCabang && !empty($currentUser['seeFee']) && in_array($userRole, ['ADMIN_CABANG', 'KEUANGAN_CABANG'], true)) {
+    // Akun cabang berwenang hanya dapat melihat nominal penugasan cabangnya sendiri
+    $canSeeFinancialFee = true;
+}
 
 // 8. Pencocokan Ketat: NoLap
 $matchedNolap = [];

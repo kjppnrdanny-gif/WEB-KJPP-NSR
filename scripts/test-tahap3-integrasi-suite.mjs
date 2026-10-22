@@ -226,6 +226,10 @@ try {
   });
   assert(resSubstringPenilai.status === 401, 'Token dengan substring peran ditolak HTTP 401 (Tidak ada parsing substring)');
 
+  // 8. Request dengan token yang dikirim melalui URL Query String (Percobaan token via query)
+  const resQueryParamToken = await apiRequest(`/api/status-terintegrasi-proxy?id=0415/LP/NSR/X/2026&token=${synthPusatToken}`);
+  assert(resQueryParamToken.status === 401, 'Token via URL query string ditolak HTTP 401 (Wajib menggunakan Header Otorisasi)');
+
   // ---------------------------------------------------------------------------
   // [5/8] P0: PENGUJIAN SERVER-SIDE RBAC ISOLASI ANTAR-CABANG
   // ---------------------------------------------------------------------------
@@ -348,6 +352,14 @@ try {
   });
   assert(netlifyBypassAttempt.statusCode === 401, 'Netlify function menolak string "SUPER_ADMIN" dengan HTTP 401');
 
+  // 3B. Uji token via query string ditolak di Netlify Function (Wajib Header)
+  const netlifyQueryTokenAttempt = await netlifyStatusHandler({
+    httpMethod: 'GET',
+    headers: {},
+    queryStringParameters: { id: '0415/LP/NSR/X/2026', token: 'SOME_TOKEN' }
+  });
+  assert(netlifyQueryTokenAttempt.statusCode === 401, 'Netlify function menolak token via query string dengan HTTP 401 (Wajib Header)');
+
   // 4. Uji token sesi kriptografis sah (Admin Pusat)
   const validPusatJwt = createSessionToken({
     sub: 'nanang_rahayu',
@@ -396,6 +408,23 @@ try {
   assert(netlifyPenilai.statusCode === 200, 'Netlify function mengizinkan akses Penilai (HTTP 200)');
   const netlifyPenilaiBody = JSON.parse(netlifyPenilai.body);
   assert(netlifyPenilaiBody.aksesPengguna.canSeeFee === false, 'Netlify function menyetel canSeeFee = false untuk Penilai');
+
+  // 7. Uji RBAC Default Deny pada role non-finansial
+  const validStaffJwt = createSessionToken({
+    sub: 'staf_lapangan',
+    role: 'STAF_OPERATOR',
+    branch: 'PUSAT',
+    seeFee: true // Role STAF_OPERATOR tidak terdaftar di allowlist finansial
+  });
+
+  const netlifyDefaultDeny = await netlifyStatusHandler({
+    httpMethod: 'GET',
+    headers: { authorization: `Bearer ${validStaffJwt}` },
+    queryStringParameters: { id: '0415/LP/NSR/X/2026', noSpk: '0415/LP/NSR/X/2026' }
+  });
+  assert(netlifyDefaultDeny.statusCode === 200, 'Netlify function memproses peran non-finansial (HTTP 200)');
+  const netlifyDefaultDenyBody = JSON.parse(netlifyDefaultDeny.body);
+  assert(netlifyDefaultDenyBody.aksesPengguna.canSeeFee === false, 'RBAC Default Deny aktif: canSeeFee = false untuk role non-finansial');
 
   console.log('\n======================================================================');
   console.log(`🎉 SEMUA PENGUJIAN P0 SECURITY AUDIT LULUS SEMPURNA: ${passedTests} / ${totalTests} (100%)`);
