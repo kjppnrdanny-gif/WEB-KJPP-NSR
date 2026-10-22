@@ -8013,9 +8013,18 @@
           });
           if (res.ok) {
             resData = await res.json();
+          } else if (res.status === 403) {
+            const errJson = await res.json().catch(() => ({}));
+            alert(errJson.error || 'Akses Ditolak: Anda tidak berwenang mengakses status penugasan kantor lain.');
+            tutupModalStatusTerintegrasi();
+            return;
+          } else if (res.status === 401) {
+            alert('Autentikasi Ditolak: Sesi Anda telah berakhir. Silakan login kembali.');
+            tutupModalStatusTerintegrasi();
+            return;
           }
         } catch (fetchErr) {
-          // Fallback lokal jika server offline atau preview lokal
+          // Jaringan / offline handling
         }
 
         if (!resData || !resData.success) {
@@ -8096,9 +8105,12 @@
       const el = document.getElementById('card-status-nolap');
       if (!el) return;
 
+      const isUnavailable = Boolean(nolapData && nolapData.statusKoneksi === 'SUMBER_TIDAK_TERSEDIA');
       const isConnected = Boolean(nolapData && nolapData.terhubung && nolapData.items && nolapData.items.length > 0);
       let badge = '';
-      if (!isConnected) {
+      if (isUnavailable) {
+        badge = '<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9.5px]">Sumber Data Offline</span>';
+      } else if (!isConnected) {
         badge = '<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[9.5px]">Belum Terhubung</span>';
       } else {
         const primary = nolapData.items[0];
@@ -8112,7 +8124,15 @@
       }
 
       let contentHtml = '';
-      if (!isConnected) {
+      if (isUnavailable) {
+        contentHtml = `
+          <div class="py-2.5 text-center text-amber-400/90 space-y-1">
+            <span class="text-lg">⚠️</span>
+            <p class="text-[11px] text-amber-300 font-semibold">Sumber Data Tidak Tersedia</p>
+            <p class="text-[10px] text-slate-400">Database modul NoLap sedang tidak dapat diakses atau berkas tidak tersedia.</p>
+          </div>
+        `;
+      } else if (!isConnected) {
         contentHtml = `
           <div class="py-2.5 text-center text-slate-400 space-y-1">
             <span class="text-lg opacity-60">📑</span>
@@ -8157,9 +8177,12 @@
       const el = document.getElementById('card-status-operasional');
       if (!el) return;
 
+      const isUnavailable = Boolean(oprData && oprData.statusKoneksi === 'SUMBER_TIDAK_TERSEDIA');
       const isConnected = Boolean(oprData && oprData.terhubung && oprData.items && oprData.items.length > 0);
       let badge = '';
-      if (!isConnected) {
+      if (isUnavailable) {
+        badge = '<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9.5px]">Sumber Data Offline</span>';
+      } else if (!isConnected) {
         badge = '<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[9.5px]">Belum Ada Pengajuan</span>';
       } else {
         const primary = oprData.items[0];
@@ -8173,7 +8196,15 @@
       }
 
       let contentHtml = '';
-      if (!isConnected) {
+      if (isUnavailable) {
+        contentHtml = `
+          <div class="py-2.5 text-center text-amber-400/90 space-y-1">
+            <span class="text-lg">⚠️</span>
+            <p class="text-[11px] text-amber-300 font-semibold">Sumber Data Tidak Tersedia</p>
+            <p class="text-[10px] text-slate-400">Database modul e-Operasional sedang tidak dapat diakses atau berkas tidak tersedia.</p>
+          </div>
+        `;
+      } else if (!isConnected) {
         contentHtml = `
           <div class="py-2.5 text-center text-slate-400 space-y-1">
             <span class="text-lg opacity-60">💰</span>
@@ -8217,9 +8248,12 @@
       const el = document.getElementById('card-status-kwitansi');
       if (!el) return;
 
+      const isUnavailable = Boolean(kwData && kwData.statusKoneksi === 'SUMBER_TIDAK_TERSEDIA');
       const isConnected = Boolean(kwData && kwData.terhubung && kwData.items && kwData.items.length > 0);
       let badge = '';
-      if (!isConnected) {
+      if (isUnavailable) {
+        badge = '<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9.5px]">Sumber Data Offline</span>';
+      } else if (!isConnected) {
         badge = '<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[9.5px]">Belum Ada Kwitansi</span>';
       } else {
         const primary = kwData.items[0];
@@ -8231,7 +8265,15 @@
       }
 
       let contentHtml = '';
-      if (!isConnected) {
+      if (isUnavailable) {
+        contentHtml = `
+          <div class="py-2.5 text-center text-amber-400/90 space-y-1">
+            <span class="text-lg">⚠️</span>
+            <p class="text-[11px] text-amber-300 font-semibold">Sumber Data Tidak Tersedia</p>
+            <p class="text-[10px] text-slate-400">Database modul Kwitansi sedang tidak dapat diakses atau berkas tidak tersedia.</p>
+          </div>
+        `;
+      } else if (!isConnected) {
         contentHtml = `
           <div class="py-2.5 text-center text-slate-400 space-y-1">
             <span class="text-lg opacity-60">🧾</span>
@@ -8281,7 +8323,7 @@
      */
     function resolveLocalIntegratedStatus(p, auth = {}) {
       const userRole = String(auth.role || '').toUpperCase();
-      const canSeeFee = (auth.seeFee !== false) && !['PENILAI', 'REVIEWER', 'MARKETING'].includes(userRole);
+      const canSeeFee = (auth.seeFee !== false) && !['PENILAI', 'REVIEWER', 'MARKETING', 'SURVEYOR'].includes(userRole);
 
       const candidateIds = [
         p.id,
@@ -8292,66 +8334,73 @@
         p.no_spk
       ].filter(Boolean).map(s => String(s).toLowerCase().trim());
 
-      // 1. NoLap Local Matching (jika ada cache lokal)
+      // 1. NoLap Local Cache Matching
       let matchedNolap = [];
-      const dummyNolapList = [
-        { noPermintaan: 'REQ-000011', noSpk: '0415/LP/NSR/X/2026', nomorLaporan: '00523/2.0160-00/PI/07/00581/1/IX/2026', status: 'NOMOR DITERBITKAN', tglTerbit: '2026-09-23', penilai: 'Hernita' },
-        { noPermintaan: 'REQ-000012', noSpk: '0416/LP/NSR/X/2026', nomorLaporan: '00525/2.0160-00/PI/07/00581/1/IX/2026', status: 'NOMOR DITERBITKAN', tglTerbit: '2026-10-02', penilai: 'Deni Siswandi' }
-      ];
-      dummyNolapList.forEach(item => {
+      const localNolapList = Array.isArray(window.LOCAL_NOLAP_CACHE) ? window.LOCAL_NOLAP_CACHE : [];
+      const hasNolapCache = localNolapList.length > 0;
+      localNolapList.forEach(item => {
         const spk = (item.noSpk || '').toLowerCase().trim();
-        if (candidateIds.includes(spk)) {
+        const jo  = (item.noJo || item.idPenugasan || '').toLowerCase().trim();
+        const req = (item.noPermintaan || '').toLowerCase().trim();
+        const lap = (item.nomorLaporan || '').toLowerCase().trim();
+        if (candidateIds.some(cId => cId && (spk === cId || jo === cId || req === cId || lap === cId))) {
           matchedNolap.push({
-            noPermintaan: item.noPermintaan,
-            nomorLaporan: item.nomorLaporan,
-            status: item.status,
-            statusLabel: 'Nomor Laporan Diterbitkan',
-            tglTerbit: item.tglTerbit,
-            penilai: item.penilai
+            noPermintaan: item.noPermintaan || '-',
+            nomorLaporan: item.nomorLaporan || 'Belum Diterbitkan',
+            status: item.status || 'DIAJUKAN',
+            statusLabel: item.statusLabel || 'Nomor Laporan Diterbitkan',
+            tglTerbit: item.tglTerbit || '-',
+            penilai: item.penilai || '-'
           });
         }
       });
 
-      // 2. Operasional Local Matching
+      // 2. Operasional Local Cache Matching
       let matchedOperasional = [];
-      const dummyOprList = [
-        { idPenugasan: '0416/LP/NSR/X/2026', noRegistrasi: 'OPR-2026-0001', jenisLabel: 'Biaya Survey Lapangan', totalEstimasi: 5250000, status: 'APPROVED', statusLabel: 'Disetujui Final', tglPengajuan: '2026-10-22' }
-      ];
-      dummyOprList.forEach(opr => {
-        const targetId = (opr.idPenugasan || '').toLowerCase().trim();
-        if (candidateIds.includes(targetId)) {
+      const localOprList = Array.isArray(window.LOCAL_OPERASIONAL_CACHE) ? window.LOCAL_OPERASIONAL_CACHE : [];
+      const hasOprCache = localOprList.length > 0;
+      localOprList.forEach(opr => {
+        const targetId = ((opr.survey && opr.survey.idPenugasan) || opr.idPenugasan || '').toLowerCase().trim();
+        const targetLap = ((opr.survey && opr.survey.nomorLaporan) || '').toLowerCase().trim();
+        if (candidateIds.some(cId => cId && (targetId === cId || targetLap === cId))) {
+          const tot = opr.totalEstimasi || opr.nominalTotal || 0;
           const totFormatted = canSeeFee
-            ? 'Rp ' + Number(opr.totalEstimasi).toLocaleString('id-ID') + ',-'
+            ? 'Rp ' + Number(tot).toLocaleString('id-ID') + ',-'
             : '[Akses Terbatas: Sesuai Kebijakan Peran]';
           matchedOperasional.push({
-            noRegistrasi: opr.noRegistrasi,
-            jenisLabel: opr.jenisLabel,
-            status: opr.status,
-            statusLabel: opr.statusLabel,
+            noRegistrasi: opr.noRegistrasi || opr.id || '-',
+            jenisLabel: opr.jenisLabel || 'Biaya Operasional Lapangan',
+            status: opr.status || 'SUBMITTED',
+            statusLabel: opr.statusLabel || 'Menunggu Persetujuan',
             totalEstimasi: totFormatted,
-            tglPengajuan: opr.tglPengajuan
+            tglPengajuan: opr.tglPengajuan || '-',
+            isFeeMasked: !canSeeFee
           });
         }
       });
 
-      // 3. Kwitansi Local Matching
+      // 3. Kwitansi Local Cache Matching
       let matchedKwitansi = [];
-      const dummyKwList = [
-        { noSpk: '0415/LP/NSR/X/2026', noKwitansiResmi: '001/KW-PLB/X/2026', totalBayar: 2500000, status: 'DISAHKAN', statusLabel: 'Kwitansi Resmi Diterbitkan', tglSah: '2026-10-21' }
-      ];
-      dummyKwList.forEach(kw => {
+      const localKwList = Array.isArray(window.LOCAL_KWITANSI_CACHE) ? window.LOCAL_KWITANSI_CACHE : [];
+      const hasKwCache = localKwList.length > 0;
+      localKwList.forEach(kw => {
         const spk = (kw.noSpk || '').toLowerCase().trim();
-        if (candidateIds.includes(spk)) {
+        const req = (kw.noPermintaan || '').toLowerCase().trim();
+        const id  = (kw.idKwitansi || '').toLowerCase().trim();
+        const noRes = (kw.noKwitansiResmi || '').toLowerCase().trim();
+        if (candidateIds.some(cId => cId && (spk === cId || req === cId || id === cId || noRes === cId))) {
+          const tot = kw.totalBayar || kw.sejumlahUang || 0;
           const totFormatted = canSeeFee
-            ? 'Rp ' + Number(kw.totalBayar).toLocaleString('id-ID') + ',-'
+            ? 'Rp ' + Number(tot).toLocaleString('id-ID') + ',-'
             : '[Akses Terbatas: Sesuai Kebijakan Peran]';
           matchedKwitansi.push({
-            noKwitansiResmi: kw.noKwitansiResmi,
+            noKwitansiResmi: kw.noKwitansiResmi || 'DRAFT',
             totalBayar: totFormatted,
-            status: kw.status,
-            statusLabel: kw.statusLabel,
-            statusPembayaran: 'Menunggu Konfirmasi Rekening / Pelunasan',
-            tglSah: kw.tglSah
+            status: kw.status || 'DRAFT',
+            statusLabel: kw.statusLabel || 'Draf Kwitansi',
+            statusPembayaran: kw.statusPembayaran || 'Menunggu Konfirmasi Rekening / Pelunasan',
+            tglSah: kw.tglSah || kw.tglPengajuan || '-',
+            isFeeMasked: !canSeeFee
           });
         }
       });
@@ -8360,20 +8409,29 @@
         success: true,
         nolap: {
           terhubung: matchedNolap.length > 0,
+          statusKoneksi: hasNolapCache ? 'TERHUBUNG_AKTIF' : 'SUMBER_TIDAK_TERSEDIA',
+          statusUtama: hasNolapCache
+            ? (matchedNolap.length > 0 ? matchedNolap[0].statusLabel : 'Belum Terhubung')
+            : 'Sumber Data Offline',
           total: matchedNolap.length,
-          statusUtama: matchedNolap.length > 0 ? matchedNolap[0].statusLabel : 'Belum Terhubung',
           items: matchedNolap
         },
         operasional: {
           terhubung: matchedOperasional.length > 0,
+          statusKoneksi: hasOprCache ? 'TERHUBUNG_AKTIF' : 'SUMBER_TIDAK_TERSEDIA',
+          statusUtama: hasOprCache
+            ? (matchedOperasional.length > 0 ? matchedOperasional[0].statusLabel : 'Belum Ada Pengajuan Biaya')
+            : 'Sumber Data Offline',
           total: matchedOperasional.length,
-          statusUtama: matchedOperasional.length > 0 ? matchedOperasional[0].statusLabel : 'Belum Ada Pengajuan Biaya',
           items: matchedOperasional
         },
         kwitansi: {
           terhubung: matchedKwitansi.length > 0,
+          statusKoneksi: hasKwCache ? 'TERHUBUNG_AKTIF' : 'SUMBER_TIDAK_TERSEDIA',
+          statusUtama: hasKwCache
+            ? (matchedKwitansi.length > 0 ? matchedKwitansi[0].statusLabel : 'Belum Ada Kwitansi')
+            : 'Sumber Data Offline',
           total: matchedKwitansi.length,
-          statusUtama: matchedKwitansi.length > 0 ? matchedKwitansi[0].statusLabel : 'Belum Ada Kwitansi',
           items: matchedKwitansi
         }
       };

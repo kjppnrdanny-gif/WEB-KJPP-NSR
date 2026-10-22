@@ -73,6 +73,7 @@ const ALLOWED_FILES = [
   "surat-umum-data-handler.php",
   "absensi-data-handler.php",
   "operasional-data-handler.php",
+  "status-terintegrasi-handler.php",
   "data/.htaccess"
 ];
 

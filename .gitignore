@@ -1,19 +1,43 @@
-# Data pengunjung real-time (dihasilkan runtime PHP)
-visitor-data.json
+# KJPP NSR — .gitignore (Security & Confidentiality Filter)
 
-# File sistem & OS
+# 1. Database Operasional & Data Transaksi Internal (Sensitif)
+data/*.json
+!data/.gitkeep
+data/backups/
+data/lampiran_cuti/
+data/*.lock
+data/.*.lock
+data/*.secret
+data/.*_secret
+data/.operasional_secret
+visitor-data.json
+data/mail_queue.json
+data/absensi_database.json
+data/surat_umum_database.json
+
+# 2. File Sistem & OS
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Dependencies
+# 3. Dependencies
 node_modules/
 
-# File temporary / logs
+# 4. Berkas Temporary, Logs & Backup
 *.log
 *.tmp
+*.bak
+*.bak-*
+*.bak.*
+.tmp_*
+backups/
+backup_server_production/
+*.zip
+evidence_final/
+evidence_ringkas/
+bukti_final_kjpp_nsr/
 
-# Berkas Hasil Build & File Sementara (Anti-Kebocoran Deployment)
+# 5. Berkas Hasil Build & File Pengujian Sementara
 dist/
 dist-staging/
 screenshots/
@@ -23,22 +47,11 @@ test-*.html
 test-*.txt
 staging-*
 *-dev.html
-backups/
-backup_server_production/
-*.zip
-evidence_final/
-bukti_final_kjpp_nsr/
-.tmp_*
 
-# Kredensial & Berkas Import cPanel (Sensitif - Anti-Kebocoran Akun)
+# 6. Kredensial, Rahasia Lingkungan & Berkas Import (Sensitif)
+.env
+.env.*
+*.secret
 cpanel_accounts.csv
 cpanel_*.csv
 *.csv
-
-# Kunci Rahasia Server & Lock Files
-data/.*_secret
-data/*.secret
-*.secret
-data/.*.lock
-data/*.lock
-data/.operasional_secret
