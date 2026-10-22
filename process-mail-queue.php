@@ -154,7 +154,7 @@ try {
         if ($processed >= $batchLimit) break;
 
         $status = $job['status'] ?? 'QUEUED';
-        if ($status !== 'QUEUED' && $status !== 'RETRY') {
+        if ($status !== 'QUEUED' && $status !== 'RETRY' && $status !== 'ANTRIAN') {
             continue;
         }
 

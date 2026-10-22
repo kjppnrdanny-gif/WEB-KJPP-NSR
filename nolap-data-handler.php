@@ -1364,6 +1364,58 @@ function muatMasterGoogleDrive($mastersDir) {
     return file_exists($f) ? (json_decode(file_get_contents($f), true) ?: []) : [];
 }
 
+function muatMasterServiceClassifications($mastersDir) {
+    $f = $mastersDir . '/master_service_classifications.json';
+    return file_exists($f) ? (json_decode(file_get_contents($f), true) ?: []) : [];
+}
+
+function resolveReportServiceCode($classificationInput) {
+    $val = strtoupper(trim((string)$classificationInput));
+    if ($val === 'PROPERTY_SIMPLE' || $val === 'PS' || strpos($val, 'SEDERHANA') !== false) {
+        return 'PI'; // Sesuai P0 & SE-6/PPPK/2018: Wajib PI pada segmen 3 nomor laporan!
+    }
+    if ($val === 'PROPERTY' || $val === 'PI' || strpos($val, 'PROPERTI') !== false) {
+        return 'PI';
+    }
+    if ($val === 'BUSINESS' || $val === 'BS' || strpos($val, 'BISNIS') !== false) {
+        return 'BS';
+    }
+    if ($val === 'PERSONAL_PROPERTY' || $val === 'PP' || strpos($val, 'PERSONAL') !== false) {
+        return 'PP';
+    }
+    return 'PI';
+}
+
+function resolveServiceClassificationDetails($rawInput) {
+    $val = strtoupper(trim((string)$rawInput));
+    if ($val === 'PROPERTY_SIMPLE' || $val === 'PS' || strpos($val, 'SEDERHANA') !== false) {
+        return [
+            'service_classification_id' => 'PROPERTY_SIMPLE',
+            'service_classification_name' => 'Penilaian Properti Sederhana',
+            'report_service_code' => 'PI'
+        ];
+    }
+    if ($val === 'BUSINESS' || $val === 'BS' || strpos($val, 'BISNIS') !== false) {
+        return [
+            'service_classification_id' => 'BUSINESS',
+            'service_classification_name' => 'Penilaian Bisnis',
+            'report_service_code' => 'BS'
+        ];
+    }
+    if ($val === 'PERSONAL_PROPERTY' || $val === 'PP' || strpos($val, 'PERSONAL') !== false) {
+        return [
+            'service_classification_id' => 'PERSONAL_PROPERTY',
+            'service_classification_name' => 'Penilaian Personal Properti',
+            'report_service_code' => 'PP'
+        ];
+    }
+    return [
+        'service_classification_id' => 'PROPERTY',
+        'service_classification_name' => 'Penilaian Properti',
+        'report_service_code' => 'PI'
+    ];
+}
+
 function generateDynamicRiskChecklist($mastersDir, $tujuan, $objek, $sektor, $kondisi) {
     $risks = muatMasterRiskRegister($mastersDir);
     $spis = muatMasterSpiKepi($mastersDir);
@@ -1623,6 +1675,251 @@ function generateWhatsAppNotificationLink($noHp, $pesan) {
     return 'https://wa.me/' . $cleanHp . '?text=' . rawurlencode($pesan);
 }
 
+function muatMasterPersonelKontak($mastersDir) {
+    $f = $mastersDir . '/master_personel_kontak.json';
+    if (!file_exists($f)) return [];
+    $data = json_decode(file_get_contents($f), true);
+    return $data['personel'] ?? [];
+}
+
+function normalisasiNomorWhatsApp($rawPhone) {
+    if (!$rawPhone) return '';
+    $clean = preg_replace('/[^0-9]/', '', (string)$rawPhone);
+    if (strpos($clean, '08') === 0) {
+        $clean = '62' . substr($clean, 1);
+    } elseif (strpos($clean, '8') === 0) {
+        $clean = '62' . $clean;
+    }
+    return $clean;
+}
+
+function cariPersonelKontak($mastersDir, $identifier, $fallbackOfficeId = '2.0160-00') {
+    $list = muatMasterPersonelKontak($mastersDir);
+    $clean = strtolower(trim((string)$identifier));
+    
+    if (!empty($clean)) {
+        foreach ($list as $p) {
+            $uid = strtolower($p['user_id'] ?? '');
+            $pid = strtolower($p['personnel_id'] ?? '');
+            $nik = strtolower($p['nik'] ?? '');
+            $em  = strtolower($p['email'] ?? '');
+            $nm  = strtolower($p['nama'] ?? '');
+            $wa  = preg_replace('/[^0-9]/', '', $p['whatsapp_number'] ?? '');
+            $clWa = preg_replace('/[^0-9]/', '', $clean);
+
+            if ($uid === $clean || $pid === $clean || $nik === $clean || $em === $clean || $nm === $clean) {
+                return $p;
+            }
+            if (!empty($clWa) && strlen($clWa) >= 9 && strpos($wa, substr($clWa, -8)) !== false) {
+                return $p;
+            }
+            if (strpos($clean, 'danny') !== false && strpos($uid, 'danny') !== false) return $p;
+            if (strpos($clean, 'nanang') !== false && strpos($uid, 'nanang') !== false) return $p;
+            if (strpos($clean, 'deni') !== false && (strpos($uid, 'deni') !== false || strpos($uid, 'bdg') !== false)) return $p;
+            if (strpos($clean, 'hernita') !== false && strpos($uid, 'hernita') !== false) return $p;
+            if (strpos($clean, 'amin') !== false && strpos($uid, 'amin') !== false) return $p;
+            if (strpos($clean, 'dharma') !== false && strpos($uid, 'dharma') !== false) return $p;
+            if (strpos($clean, 'fauzi') !== false && strpos($uid, 'bdg') !== false) return $p;
+            if (strpos($clean, 'siti') !== false && strpos($uid, 'pdg') !== false) return $p;
+            if ((strpos($clean, 'mks') !== false || strpos($clean, 'makassar') !== false) && (($p['office_id'] ?? '') === '2.0160-04' || strpos($uid, 'mks') !== false || strpos($uid, 'amin') !== false)) return $p;
+            if ((strpos($clean, 'bdg') !== false || strpos($clean, 'bandung') !== false) && (($p['office_id'] ?? '') === '2.0160-01' || strpos($uid, 'bdg') !== false)) return $p;
+            if ((strpos($clean, 'pdg') !== false || strpos($clean, 'padang') !== false) && (($p['office_id'] ?? '') === '2.0160-03' || strpos($uid, 'pdg') !== false)) return $p;
+            if ((strpos($clean, 'plb') !== false || strpos($clean, 'palembang') !== false) && (($p['office_id'] ?? '') === '2.0160-05' || strpos($uid, 'plb') !== false)) return $p;
+        }
+    }
+
+    $cleanOffice = trim($fallbackOfficeId);
+    $officeMap = [
+        'BDG' => '2.0160-01',
+        'PDG' => '2.0160-03',
+        'MKS' => '2.0160-04',
+        'PLB' => '2.0160-05',
+        'PST' => '2.0160-00',
+        'Bandung' => '2.0160-01',
+        'Padang' => '2.0160-03',
+        'Makassar' => '2.0160-04',
+        'Palembang' => '2.0160-05',
+        'Pusat' => '2.0160-00'
+    ];
+    if (isset($officeMap[$cleanOffice])) {
+        $cleanOffice = $officeMap[$cleanOffice];
+    }
+    foreach ($list as $p) {
+        if (($p['office_id'] ?? '') === $cleanOffice) {
+            return $p;
+        }
+    }
+    return $list[0] ?? [
+        'personnel_id' => 'NSR-2019-005',
+        'user_id' => 'super_admin_king',
+        'nama' => 'Danny Taufik Hidayat, S.E.',
+        'office_id' => '2.0160-00',
+        'office_name' => 'Kantor Pusat Jakarta',
+        'email' => 'kjppnr.danny@gmail.com',
+        'email_verified' => true,
+        'whatsapp_number' => '081298765432',
+        'whatsapp_verified' => true,
+        'contact_status' => 'VERIFIED',
+        'role' => 'SUPER_ADMIN'
+    ];
+}
+
+function formatPesanWhatsApp($eventType, $requesterName, $idPenugasan, $noPermintaan, $details = []) {
+    $judulEvent = [
+        'PENGAJUAN_JO_DITERIMA'    => 'Pengajuan Penugasan / JO Diterima',
+        'APPROVAL_GERBANG_1'       => 'Pemberitahuan Hasil Review Gerbang 1',
+        'PENERBITAN_LP'            => 'Lingkup Penugasan (LP) Resmi Diterbitkan',
+        'PENGAJUAN_NOLAP_DITERIMA' => 'Pengajuan Nomor Laporan Diterima di Gerbang 2',
+        'APPROVAL_GERBANG_2'       => 'Pemberitahuan Hasil Review Akhir Gerbang 2',
+        'PENERBITAN_NOLAP'         => 'Nomor Laporan Definitif 7 Segmen Diterbitkan',
+        'QR_ELSA_TERVERIFIKASI'    => 'Verifikasi QR Code eLSa-PK Selesai',
+        'LAPORAN_FINAL_SIAP'       => 'Laporan Penilaian Final Siap Unduh'
+    ][$eventType] ?? 'Pemberitahuan Status OPINI NSR';
+
+    $klien = $details['namaKlien'] ?? '-';
+    $nomor = $details['nomorLaporan'] ?? ($details['nomorLp'] ?? ($details['noPermintaan'] ?? $idPenugasan));
+    $status = $details['status'] ?? 'TERVERIFIKASI';
+    $catatan = $details['catatan'] ?? 'Proses administrasi berjalan sesuai SOP OPINI NSR.';
+    $linkElsa = $details['linkElsa'] ?? '';
+
+    $msg = "Yth. Rekan Penilai / Admin Pengaju *{$requesterName}*,\n\n";
+    $msg .= "🔔 *[OPINI NSR] {$judulEvent}*\n";
+    $msg .= "--------------------------------------\n";
+    $msg .= "• ID Penugasan : *{$idPenugasan}*\n";
+    if ($noPermintaan && $noPermintaan !== $idPenugasan) {
+        $msg .= "• No. Permintaan: *{$noPermintaan}*\n";
+    }
+    $msg .= "• Debitur / Klien: {$klien}\n";
+    $msg .= "• Nomor Dokumen: *{$nomor}*\n";
+    $msg .= "• Status Sistem: *{$status}*\n";
+    if (!empty($linkElsa)) {
+        $msg .= "• Tautan QR eLSa: {$linkElsa}\n";
+    }
+    $msg .= "• Keterangan    : {$catatan}\n";
+    $msg .= "--------------------------------------\n";
+    $msg .= "Akses berkas lengkap melalui portal resmi berautentikasi:\n";
+    $msg .= "https://kjppnanangrahayu.com/portal-nolap.html\n\n";
+    $msg .= "Salam hormat,\n_Sekretariat & Administrasi Penugasan KJPP NSR_";
+
+    return $msg;
+}
+
+function kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $requesterInfo, $details, $dataDir) {
+    $nowWib = date('c');
+    $notifLogsFile = $dataDir . '/notification_logs.json';
+    $mailQueueFile = $dataDir . '/mail_queue.json';
+
+    $logs = file_exists($notifLogsFile) ? (json_decode(file_get_contents($notifLogsFile), true) ?: []) : [];
+
+    $idempotencyKey = $eventType . '_' . $idPenugasan . '_' . ($details['status'] ?? '');
+    foreach ($logs as $l) {
+        if (($l['idempotency_key'] ?? '') === $idempotencyKey) {
+            $timeDiff = strtotime($nowWib) - strtotime($l['notification_timestamp'] ?? '1970-01-01');
+            if ($timeDiff < 300) {
+                return [
+                    'success' => true,
+                    'duplicate_prevented' => true,
+                    'event_id' => $l['notification_event_id'] ?? '',
+                    'email_status' => $l['email_delivery_status'] ?? 'QUEUED',
+                    'whatsapp_url' => $l['whatsapp_url'] ?? '',
+                    'message' => 'Notifikasi serupa telah dicatat sebelumnya (Anti-Duplikasi).'
+                ];
+            }
+        }
+    }
+
+    $eventId = 'EVT-' . date('Ymd-His') . '-' . substr(md5(uniqid()), 0, 6);
+    $recipientEmail = trim($requesterInfo['email'] ?? '');
+    $requesterName = trim($requesterInfo['nama'] ?? 'Rekan Penilai');
+    $rawWa = trim($requesterInfo['whatsapp_number'] ?? '');
+    $normalizedWa = normalisasiNomorWhatsApp($rawWa);
+
+    $waText = formatPesanWhatsApp($eventType, $requesterName, $idPenugasan, $noPermintaan, $details);
+    $waUrl = !empty($normalizedWa) ? ('https://wa.me/' . $normalizedWa . '?text=' . rawurlencode($waText)) : '';
+
+    $emailQueued = false;
+    if (!empty($recipientEmail) && filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
+        $subject = '[OPINI NSR] ' . ($details['judulNotif'] ?? ('Pemberitahuan Status ' . $idPenugasan));
+        $bodyHtml = "
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;'>
+            <div style='background-color: #0f172a; padding: 20px; color: #f8fafc; text-align: center;'>
+                <h2 style='margin:0; color: #f59e0b;'>KJPP NANANG RAHAYU & REKAN</h2>
+                <p style='margin: 4px 0 0; font-size: 13px; color: #94a3b8;'>Sistem Manajemen Penugasan Terintegrasi — OPINI NSR</p>
+            </div>
+            <div style='padding: 24px; color: #1e293b; line-height: 1.6;'>
+                <p>Yth. <strong>" . htmlspecialchars($requesterName) . "</strong>,</p>
+                <p>Status permohonan penugasan Anda telah diperbarui pada sistem:</p>
+                <table style='width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px;'>
+                    <tr><td style='padding: 6px 0; color: #64748b; width: 35%;'>ID Penugasan:</td><td style='font-weight: bold;'>" . htmlspecialchars($idPenugasan) . "</td></tr>
+                    " . ($noPermintaan ? "<tr><td style='padding: 6px 0; color: #64748b;'>No. Permintaan:</td><td style='font-weight: bold;'>" . htmlspecialchars($noPermintaan) . "</td></tr>" : "") . "
+                    <tr><td style='padding: 6px 0; color: #64748b;'>Debitur / Klien:</td><td>" . htmlspecialchars($details['namaKlien'] ?? '-') . "</td></tr>
+                    <tr><td style='padding: 6px 0; color: #64748b;'>Status Terkini:</td><td><span style='background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>" . htmlspecialchars($details['status'] ?? '-') . "</span></td></tr>
+                    " . (!empty($details['nomorLaporan']) ? "<tr><td style='padding: 6px 0; color: #64748b;'>No. Laporan:</td><td style='font-weight: bold; color: #0284c7;'>" . htmlspecialchars($details['nomorLaporan']) . "</td></tr>" : "") . "
+                    " . (!empty($details['nomorLp']) ? "<tr><td style='padding: 6px 0; color: #64748b;'>No. LP Resmi:</td><td style='font-weight: bold; color: #059669;'>" . htmlspecialchars($details['nomorLp']) . "</td></tr>" : "") . "
+                    " . (!empty($details['linkElsa']) ? "<tr><td style='padding: 6px 0; color: #64748b;'>Status eLSa-PK:</td><td style='font-weight: bold; color: #16a34a;'>TERVERIFIKASI QR RESMI</td></tr>" : "") . "
+                </table>
+                <p style='font-size: 13px; background: #f8fafc; border-left: 4px solid #f59e0b; padding: 10px; margin: 16px 0;'>
+                    <strong>Catatan:</strong> " . htmlspecialchars($details['catatan'] ?? 'Silakan login ke portal resmi untuk mengunduh dokumen atau memeriksa riwayat mitigasi.') . "
+                </p>
+                <div style='text-align: center; margin: 24px 0;'>
+                    <a href='https://kjppnanangrahayu.com/portal-nolap.html' style='background: #0f172a; color: #fbbf24; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;'>Buka Portal OPINI NSR</a>
+                </div>
+            </div>
+            <div style='background-color: #f1f5f9; padding: 12px; text-align: center; font-size: 11px; color: #64748b;'>
+                Pesan otomatis terenkripsi dari Server OPINI NSR. Harap tidak membalas email ini secara langsung.
+            </div>
+        </div>";
+
+        $mailItem = [
+            'id' => 'mail_' . $eventId,
+            'recipient' => $recipientEmail,
+            'subject' => $subject,
+            'body' => $bodyHtml,
+            'status' => 'QUEUED',
+            'attempts' => 0,
+            'created_at' => $nowWib
+        ];
+
+        $currentQueue = file_exists($mailQueueFile) ? (json_decode(file_get_contents($mailQueueFile), true) ?: []) : [];
+        $currentQueue[] = $mailItem;
+        @file_put_contents($mailQueueFile, json_encode($currentQueue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $emailQueued = true;
+    }
+
+    $logEntry = [
+        'notification_event_id' => $eventId,
+        'idempotency_key'       => $idempotencyKey,
+        'event_type'            => $eventType,
+        'id_penugasan'          => $idPenugasan,
+        'no_permintaan'         => $noPermintaan,
+        'requester_user_id'     => $requesterInfo['user_id'] ?? '',
+        'requester_name'        => $requesterName,
+        'office_id'             => $requesterInfo['office_id'] ?? '',
+        'email'                 => $recipientEmail,
+        'email_verified'        => !empty($requesterInfo['email_verified']),
+        'email_delivery_status' => $emailQueued ? 'EMAIL_QUEUED' : 'EMAIL_SKIPPED',
+        'whatsapp_number'       => $normalizedWa,
+        'whatsapp_verified'     => !empty($requesterInfo['whatsapp_verified']),
+        'whatsapp_ready_status' => !empty($waUrl) ? 'WHATSAPP_READY' : 'WHATSAPP_SKIPPED',
+        'whatsapp_url'          => $waUrl,
+        'notification_timestamp'=> $nowWib,
+        'retry_count'           => 0
+    ];
+
+    $logs[] = $logEntry;
+    @file_put_contents($notifLogsFile, json_encode($logs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+    return [
+        'success' => true,
+        'event_id' => $eventId,
+        'email_status' => $emailQueued ? 'QUEUED' : 'SKIPPED',
+        'whatsapp_url' => $waUrl,
+        'recipient' => $recipientEmail,
+        'requester' => $requesterName
+    ];
+}
+
+
 function muatBaselineResmi() {
     return [
         // 1. DATA PENUGASAN ASLI RESMI (BERSIH DARI SIMULASI)
@@ -1700,7 +1997,10 @@ function muatBaselineResmi() {
             'izinPenilai' => '00581',
             'namaKlien' => 'Institut Teknologi Bandung',
             'statusKlien' => 'Pemerintah',
-            'klasifikasiJasa' => 'PS',
+            'service_classification_id' => 'PROPERTY_SIMPLE',
+            'service_classification_name' => 'Penilaian Properti Sederhana',
+            'report_service_code' => 'PI',
+            'klasifikasiJasa' => 'PI',
             'kodeIndustri' => '08',
             'jenisObjek' => 'Gedung Kampus Pendidikan',
             'lokasiObjek' => 'Jl. Ganesa No. 10, Bandung',
@@ -1786,7 +2086,10 @@ function muatBaselineResmi() {
             'izinPenilai' => '0218',
             'namaKlien' => 'PT. Uji Bangun Nusantara (Uji Pusat)',
             'statusKlien' => 'BUMN',
-            'klasifikasiJasa' => 'PS',
+            'service_classification_id' => 'PROPERTY_SIMPLE',
+            'service_classification_name' => 'Penilaian Properti Sederhana',
+            'report_service_code' => 'PI',
+            'klasifikasiJasa' => 'PI',
             'kodeIndustri' => '03',
             'jenisObjek' => 'Tanah Kas Desa Ruislagh Uji',
             'lokasiObjek' => 'Desa Sukamaju, Kawasan Khusus Pusat',
@@ -2176,6 +2479,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
 
+    
+    if ($actionGet === 'getPersonelDirectory') {
+        $mastersDir = $dataDir . '/masters';
+        $list = muatMasterPersonelKontak($mastersDir);
+        $sanitized = array_map(function($p) {
+            return [
+                'personnel_id'       => $p['personnel_id'] ?? '',
+                'user_id'            => $p['user_id'] ?? '',
+                'nama'               => $p['nama'] ?? '',
+                'alias'              => $p['alias'] ?? '',
+                'office_id'          => $p['office_id'] ?? '',
+                'office_name'        => $p['office_name'] ?? '',
+                'jabatan'            => $p['jabatan'] ?? '',
+                'divisi'             => $p['divisi'] ?? '',
+                'email'              => $p['email'] ?? '',
+                'email_verified'     => !empty($p['email_verified']),
+                'whatsapp_number'    => $p['whatsapp_number'] ?? '',
+                'whatsapp_verified'  => !empty($p['whatsapp_verified']),
+                'contact_status'     => $p['contact_status'] ?? 'VERIFIED',
+                'status_kepegawaian' => $p['status_kepegawaian'] ?? 'AKTIF',
+                'role'               => $p['role'] ?? 'STAF'
+            ];
+        }, $list);
+        echo json_encode(['success' => true, 'total' => count($sanitized), 'personel' => $sanitized]);
+        exit;
+    }
+
+    if ($actionGet === 'getRequesterContactProfile') {
+        $mastersDir = $dataDir . '/masters';
+        $sub = $currentUser['sub'] ?? ($currentUser['role'] ?? '');
+        $profile = cariPersonelKontak($mastersDir, $sub, $currentUser['wilayahCode'] ?? '2.0160-00');
+        echo json_encode([
+            'success' => true,
+            'profile' => [
+                'personnel_id'      => $profile['personnel_id'] ?? $sub,
+                'user_id'           => $profile['user_id'] ?? $sub,
+                'nama'              => $currentUser['nama'] ?? ($profile['nama'] ?? $userDisplayName),
+                'office_id'         => $profile['office_id'] ?? ($currentUser['wilayahCode'] ?? '2.0160-00'),
+                'office_name'       => $profile['office_name'] ?? ($currentUser['wilayah'] ?? 'Kantor Pusat Jakarta'),
+                'jabatan'           => $profile['jabatan'] ?? ($currentUser['title'] ?? 'Staf Operasional'),
+                'email'             => $profile['email'] ?? '',
+                'email_verified'    => !empty($profile['email_verified']),
+                'whatsapp_number'   => $profile['whatsapp_number'] ?? '',
+                'whatsapp_verified' => !empty($profile['whatsapp_verified']),
+                'wa_normalized'     => normalisasiNomorWhatsApp($profile['whatsapp_number'] ?? ''),
+                'contact_status'    => $profile['contact_status'] ?? 'INCOMPLETE'
+            ]
+        ]);
+        exit;
+    }
+
+    if ($actionGet === 'getNotificationLogs') {
+        $notifLogsFile = $dataDir . '/notification_logs.json';
+        $logs = file_exists($notifLogsFile) ? (json_decode(file_get_contents($notifLogsFile), true) ?: []) : [];
+
+        $filtered = [];
+        $isSuper = !empty($currentUser['isSuperAdmin']) || ($currentUser['role'] ?? '') === 'SUPER_ADMIN' || ($currentUser['role'] ?? '') === 'ADMIN_PUSAT';
+        $userSub = strtolower($currentUser['sub'] ?? '');
+        $userWilayahCode = $currentUser['kodeKemenkeu'] ?? ($currentUser['wilayahCode'] ?? '');
+        $officeMap = [
+            'BDG' => '2.0160-01',
+            'PDG' => '2.0160-03',
+            'MKS' => '2.0160-04',
+            'PLB' => '2.0160-05',
+            'PST' => '2.0160-00'
+        ];
+        if (isset($officeMap[$userWilayahCode])) {
+            $userWilayahCode = $officeMap[$userWilayahCode];
+        }
+
+        foreach (array_reverse($logs) as $l) {
+            if ($isSuper) {
+                $filtered[] = $l;
+            } else {
+                $reqSub = strtolower($l['requester_user_id'] ?? '');
+                $reqOffice = $l['office_id'] ?? '';
+                if ($reqSub === $userSub || ($userWilayahCode && $reqOffice === $userWilayahCode) || (strpos($userSub, 'mks') !== false && $reqOffice === '2.0160-04') || (strpos($userSub, 'bdg') !== false && $reqOffice === '2.0160-01')) {
+                    $filtered[] = $l;
+                }
+            }
+        }
+
+        echo json_encode([
+            'success' => true,
+            'total' => count($filtered),
+            'logs' => array_slice($filtered, 0, 50)
+        ]);
+        exit;
+    }
+
+    if ($actionGet === 'getRegistrasiPersonelQueue') {
+        if (!empty($currentUser['isCabang']) && empty($currentUser['isSuperAdmin']) && ($currentUser['role'] ?? '') !== 'SUPER_ADMIN' && ($currentUser['role'] ?? '') !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Akses ditolak: Hanya Admin Pusat yang berhak meninjau antrean pendaftaran personel.'
+            ]);
+            exit;
+        }
+
+        $queueFile = $dataDir . '/registrasi_personel_antrean.json';
+        $queue = file_exists($queueFile) ? (json_decode(file_get_contents($queueFile), true) ?: []) : [];
+        echo json_encode([
+            'success' => true,
+            'total' => count($queue),
+            'queue' => array_reverse($queue),
+            'antrean' => array_reverse($queue)
+        ]);
+        exit;
+    }
+
     if ($actionGet === 'getRiskMasters') {
         $mastersDir = $dataDir . '/masters';
         echo json_encode([
@@ -2185,9 +2599,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'spiKepiCompliance' => muatMasterSpiKepi($mastersDir),
                 'legalRegulations' => muatMasterLegalRegulations($mastersDir),
                 'dualGateConsistency' => muatMasterDualGateConsistency($mastersDir),
-                'penilaiPublik' => muatMasterPenilaiPublik($mastersDir)
+                'penilaiPublik' => muatMasterPenilaiPublik($mastersDir),
+                'serviceClassifications' => muatMasterServiceClassifications($mastersDir)
             ]
         ]);
+        exit;
+    }
+
+    if ($actionGet === 'getServiceClassifications') {
+        $mastersDir = $dataDir . '/masters';
+        $services = muatMasterServiceClassifications($mastersDir);
+        echo json_encode(['success' => true, 'total' => count($services), 'serviceClassifications' => $services]);
         exit;
     }
 
@@ -2384,6 +2806,429 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // =========================================================================
 
     // 1. SUBMIT GERBANG 1 (LINGKUP PENUGASAN & SMART MITIGASI AWAL)
+    
+    if ($action === 'submitRegistrasiPersonel') {
+        $nama = trim($payload['nama'] ?? '');
+        $email = trim($payload['email'] ?? '');
+        $wa = trim($payload['whatsapp_number'] ?? ($payload['wa'] ?? ''));
+        $officeId = trim($payload['office_id'] ?? '2.0160-00');
+        $jabatan = trim($payload['jabatan'] ?? 'Staf Penilai');
+        $divisi = trim($payload['divisi'] ?? 'Operasional Penilaian');
+        $nik = trim($payload['nik'] ?? '');
+        $alasan = trim($payload['alasan_pengajuan'] ?? '');
+
+        if (empty($nama) || empty($email) || empty($wa)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Data tidak lengkap. Nama, email aktif, dan nomor WhatsApp wajib diisi.']);
+            exit;
+        }
+
+        $queueFile = $dataDir . '/registrasi_personel_antrean.json';
+        $queue = file_exists($queueFile) ? (json_decode(file_get_contents($queueFile), true) ?: []) : [];
+
+        $regId = 'REG-PERS-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 5));
+        $entry = [
+            'registration_id'       => $regId,
+            'submitted_at'          => date('c'),
+            'submitted_by'          => $currentUser['nama'] ?? $userDisplayName,
+            'submitted_by_sub'      => $currentUser['sub'] ?? '',
+            'nama'                  => $nama,
+            'nik'                   => $nik ?: ('CALON-' . substr(md5($email), 0, 6)),
+            'office_id'             => $officeId,
+            'office_name'           => $OFFICIAL_BRANCH_NAMES[$officeId] ?? 'Kantor Pusat Jakarta',
+            'jabatan'               => $jabatan,
+            'divisi'                => $divisi,
+            'email'                 => $email,
+            'email_verified'        => false,
+            'whatsapp_number'       => normalisasiNomorWhatsApp($wa),
+            'whatsapp_verified'     => false,
+            'contact_status'        => 'PENDING_VERIFIKASI_ADMIN',
+            'status'                => 'PENDING_VERIFIKASI_ADMIN',
+            'alasan_pengajuan'      => $alasan,
+            'assigned_role'         => null,
+            'verified_by'           => null,
+            'verified_at'           => null,
+            'verification_notes'    => null
+        ];
+
+        $queue[] = $entry;
+        @file_put_contents($queueFile, json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        $logFile = $dataDir . '/perubahan_kontak_logs.json';
+        $changeLogs = file_exists($logFile) ? (json_decode(file_get_contents($logFile), true) ?: []) : [];
+        $changeLogs[] = [
+            'event'           => 'REGISTRASI_DIAJUKAN',
+            'registration_id' => $regId,
+            'nama'            => $nama,
+            'email'           => $email,
+            'whatsapp_number' => normalisasiNomorWhatsApp($wa),
+            'timestamp'       => date('c'),
+            'actor'           => $currentUser['nama'] ?? $userDisplayName
+        ];
+        @file_put_contents($logFile, json_encode($changeLogs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        echo json_encode([
+            'success' => true,
+            'registration_id' => $regId,
+            'message' => 'Permohonan pendaftaran personel berhasil dikirimkan dan menunggu verifikasi administratif Admin Pusat.',
+            'status' => 'PENDING_VERIFIKASI_ADMIN'
+        ]);
+        exit;
+    }
+
+    if ($action === 'approveRegistrasiPersonel') {
+        if (empty($currentUser['isSuperAdmin']) && ($currentUser['role'] ?? '') !== 'SUPER_ADMIN' && ($currentUser['role'] ?? '') !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses ditolak: Persetujuan pendaftaran personel memerlukan otoritas Admin Pusat atau Super Admin.']);
+            exit;
+        }
+
+        $regId = trim($payload['registration_id'] ?? '');
+        $decision = strtoupper(trim($payload['decision'] ?? 'APPROVE'));
+        $notes = trim($payload['notes'] ?? 'Diverifikasi secara administratif sesuai identitas kepegawaian.');
+        $assignedRole = trim($payload['role'] ?? 'PENILAI');
+
+        $queueFile = $dataDir . '/registrasi_personel_antrean.json';
+        $queue = file_exists($queueFile) ? (json_decode(file_get_contents($queueFile), true) ?: []) : [];
+
+        $targetIdx = -1;
+        foreach ($queue as $idx => $q) {
+            if (($q['registration_id'] ?? '') === $regId) {
+                $targetIdx = $idx;
+                break;
+            }
+        }
+
+        if ($targetIdx === -1) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Permohonan pendaftaran tidak ditemukan.']);
+            exit;
+        }
+
+        $nowWib = date('c');
+        $actor = $currentUser['nama'] ?? $userDisplayName;
+
+        if ($decision === 'APPROVE') {
+            $queue[$targetIdx]['status'] = 'DISETUJUI';
+            $queue[$targetIdx]['contact_status'] = 'VERIFIED';
+            $queue[$targetIdx]['email_verified'] = true;
+            $queue[$targetIdx]['whatsapp_verified'] = true;
+            $queue[$targetIdx]['verified_by'] = $actor;
+            $queue[$targetIdx]['verified_at'] = $nowWib;
+            $queue[$targetIdx]['verification_notes'] = $notes;
+            $queue[$targetIdx]['assigned_role'] = $assignedRole;
+
+            $mastersFile = $mastersDir . '/master_personel_kontak.json';
+            $masterData = file_exists($mastersFile) ? (json_decode(file_get_contents($mastersFile), true) ?: []) : [];
+            if (!isset($masterData['personel'])) $masterData['personel'] = [];
+
+            $newPersonnelId = 'NSR-' . date('Y') . '-' . sprintf('%03d', count($masterData['personel']) + 1);
+            $cleanSub = 'pers_' . strtolower(preg_replace('/[^a-z0-9]/', '', $queue[$targetIdx]['nama']));
+
+            $newPersonEntry = [
+                'personnel_id'       => $newPersonnelId,
+                'user_id'            => $cleanSub,
+                'nik'                => $queue[$targetIdx]['nik'] ?? $newPersonnelId,
+                'nama'               => $queue[$targetIdx]['nama'],
+                'alias'              => $queue[$targetIdx]['nama'],
+                'office_id'          => $queue[$targetIdx]['office_id'],
+                'office_name'        => $queue[$targetIdx]['office_name'],
+                'jabatan'            => $queue[$targetIdx]['jabatan'],
+                'divisi'             => $queue[$targetIdx]['divisi'],
+                'email'              => $queue[$targetIdx]['email'],
+                'email_verified'     => true,
+                'whatsapp_number'    => $queue[$targetIdx]['whatsapp_number'],
+                'whatsapp_verified'  => true,
+                'contact_status'     => 'VERIFIED',
+                'status_kepegawaian' => 'AKTIF',
+                'role'               => $assignedRole,
+                'can_submit'         => true,
+                'can_approve'        => false
+            ];
+
+            $masterData['personel'][] = $newPersonEntry;
+            @file_put_contents($mastersFile, json_encode($masterData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            $logFile = $dataDir . '/perubahan_kontak_logs.json';
+            $changeLogs = file_exists($logFile) ? (json_decode(file_get_contents($logFile), true) ?: []) : [];
+            $changeLogs[] = [
+                'event'           => 'REGISTRASI_DISETUJUI',
+                'registration_id' => $regId,
+                'personnel_id'    => $newPersonnelId,
+                'nama'            => $queue[$targetIdx]['nama'],
+                'email'           => $queue[$targetIdx]['email'],
+                'role'            => $assignedRole,
+                'timestamp'       => $nowWib,
+                'actor'           => $actor
+            ];
+            @file_put_contents($logFile, json_encode($changeLogs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        } else {
+            $queue[$targetIdx]['status'] = 'DITOLAK';
+            $queue[$targetIdx]['contact_status'] = 'REJECTED';
+            $queue[$targetIdx]['verified_by'] = $actor;
+            $queue[$targetIdx]['verified_at'] = $nowWib;
+            $queue[$targetIdx]['verification_notes'] = $notes;
+        }
+
+        @file_put_contents($queueFile, json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        echo json_encode([
+            'success' => true,
+            'registration_id' => $regId,
+            'status' => $queue[$targetIdx]['status'],
+            'message' => "Permohonan pendaftaran {$regId} berhasil diproses dengan status: {$queue[$targetIdx]['status']}."
+        ]);
+        exit;
+    }
+
+    if ($action === 'updateKontakPersonel') {
+        $emailBaru = trim($payload['email'] ?? '');
+        $waBaru = trim($payload['whatsapp_number'] ?? ($payload['wa'] ?? ''));
+        $userTargetSub = trim($payload['user_id'] ?? ($currentUser['sub'] ?? ''));
+
+        $isSuper = !empty($currentUser['isSuperAdmin']) || ($currentUser['role'] ?? '') === 'SUPER_ADMIN' || ($currentUser['role'] ?? '') === 'ADMIN_PUSAT';
+        if (!$isSuper && strtolower($userTargetSub) !== strtolower($currentUser['sub'] ?? '')) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses ditolak: Anda hanya dapat memperbarui data kontak akun Anda sendiri.']);
+            exit;
+        }
+
+        if (empty($emailBaru) && empty($waBaru)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Email baru atau nomor WhatsApp baru wajib diisi.']);
+            exit;
+        }
+
+        $mastersFile = $mastersDir . '/master_personel_kontak.json';
+        $masterData = file_exists($mastersFile) ? (json_decode(file_get_contents($mastersFile), true) ?: []) : [];
+        $personels = $masterData['personel'] ?? [];
+
+        $foundIdx = -1;
+        foreach ($personels as $idx => $p) {
+            if (strtolower($p['user_id'] ?? '') === strtolower($userTargetSub) || strtolower($p['personnel_id'] ?? '') === strtolower($userTargetSub)) {
+                $foundIdx = $idx;
+                break;
+            }
+        }
+
+        if ($foundIdx === -1) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Profil personel tidak ditemukan dalam Master Personel.']);
+            exit;
+        }
+
+        $oldEmail = $personels[$foundIdx]['email'] ?? '';
+        $oldWa = $personels[$foundIdx]['whatsapp_number'] ?? '';
+
+        if (!empty($emailBaru)) {
+            $personels[$foundIdx]['email'] = $emailBaru;
+            $personels[$foundIdx]['email_verified'] = true;
+        }
+        if (!empty($waBaru)) {
+            $personels[$foundIdx]['whatsapp_number'] = normalisasiNomorWhatsApp($waBaru);
+            $personels[$foundIdx]['whatsapp_verified'] = true;
+        }
+        $personels[$foundIdx]['contact_status'] = 'VERIFIED';
+        $masterData['personel'] = $personels;
+        @file_put_contents($mastersFile, json_encode($masterData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        $logFile = $dataDir . '/perubahan_kontak_logs.json';
+        $changeLogs = file_exists($logFile) ? (json_decode(file_get_contents($logFile), true) ?: []) : [];
+        $changeLogs[] = [
+            'event'           => 'PEMBARUAN_KONTAK',
+            'user_id'         => $userTargetSub,
+            'old_email'       => $oldEmail,
+            'new_email'       => $emailBaru ?: $oldEmail,
+            'old_whatsapp'    => $oldWa,
+            'new_whatsapp'    => normalisasiNomorWhatsApp($waBaru ?: $oldWa),
+            'timestamp'       => date('c'),
+            'actor'           => $currentUser['nama'] ?? $userDisplayName
+        ];
+        @file_put_contents($logFile, json_encode($changeLogs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Data kontak resmi berhasil diperbarui.',
+            'updated_profile' => $personels[$foundIdx]
+        ]);
+        exit;
+    }
+
+    if ($action === 'verifyElsaQrReport') {
+        if (!empty($currentUser['isCabang']) && empty($currentUser['isSuperAdmin']) && ($currentUser['role'] ?? '') !== 'SUPER_ADMIN' && ($currentUser['role'] ?? '') !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses ditolak: Verifikasi QR Code eLSa hanya dapat dilakukan oleh Admin Pusat atau Super Admin.']);
+            exit;
+        }
+
+        $noPermintaan = trim($payload['noPermintaan'] ?? '');
+        $idPenugasan = trim($payload['idPenugasan'] ?? '');
+        $linkElsa = trim($payload['linkElsa'] ?? ($payload['linkQr'] ?? ''));
+        $statusElsa = trim($payload['statusElsa'] ?? 'TERVERIFIKASI QR RESMI');
+        $catatan = trim($payload['catatan'] ?? 'QR Code eLSa-PK telah dicatatkan dan diverifikasi kecocokannya dengan laporan penilaian resmi.');
+
+        if (empty($noPermintaan) && empty($idPenugasan)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Parameter noPermintaan atau idPenugasan wajib disertakan.']);
+            exit;
+        }
+        if (empty($linkElsa)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Tautan / URL QR Code eLSa wajib diisi.']);
+            exit;
+        }
+
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $foundDgIndex = -1;
+        $targetDgRecord = null;
+        foreach ($dgRecords as $idx => $r) {
+            if ((!empty($noPermintaan) && ($r['noPermintaan'] ?? '') === $noPermintaan) ||
+                (!empty($idPenugasan) && ($r['idPenugasan'] ?? '') === $idPenugasan)) {
+                $foundDgIndex = $idx;
+                $targetDgRecord = $r;
+                break;
+            }
+        }
+
+        $nowWib = date('c');
+        $verifiedBy = $currentUser['nama'] ?? $userDisplayName;
+
+        if ($foundDgIndex !== -1) {
+            $dgRecords[$foundDgIndex]['linkElsa'] = $linkElsa;
+            $dgRecords[$foundDgIndex]['statusElsa'] = $statusElsa;
+            $dgRecords[$foundDgIndex]['elsaVerifiedAt'] = $nowWib;
+            $dgRecords[$foundDgIndex]['elsaVerifiedBy'] = $verifiedBy;
+            simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+            $targetDgRecord = $dgRecords[$foundDgIndex];
+        }
+
+        $nolapRecords = muatDatabaseNoLap($dataFile);
+        $foundNolapIndex = -1;
+        foreach ($nolapRecords as $idx => $nr) {
+            if ((!empty($noPermintaan) && ($nr['noPermintaan'] ?? '') === $noPermintaan) ||
+                (!empty($idPenugasan) && ($nr['idPenugasan'] ?? '') === $idPenugasan)) {
+                $foundNolapIndex = $idx;
+                $nolapRecords[$idx]['linkElsa'] = $linkElsa;
+                $nolapRecords[$idx]['statusElsa'] = $statusElsa;
+                $nolapRecords[$idx]['elsaVerifiedAt'] = $nowWib;
+                $nolapRecords[$idx]['elsaVerifiedBy'] = $verifiedBy;
+                break;
+            }
+        }
+        if ($foundNolapIndex !== -1) {
+            simpanDatabaseNoLap($dataFile, $nolapRecords);
+        }
+
+        $requesterInfo = null;
+        if ($targetDgRecord && !empty($targetDgRecord['pengaju'])) {
+            $requesterInfo = $targetDgRecord['pengaju'];
+        } elseif ($foundNolapIndex !== -1) {
+            $nr = $nolapRecords[$foundNolapIndex];
+            $requesterInfo = [
+                'user_id' => $nr['pengaju_user_id'] ?? ($nr['cabang'] ?? ''),
+                'nama' => $nr['namaPemohon'] ?? ($nr['pemohon'] ?? 'Rekan Cabang'),
+                'email' => $nr['emailPemohon'] ?? ($nr['email'] ?? ''),
+                'whatsapp_number' => $nr['waPemohon'] ?? ($nr['wa'] ?? ''),
+                'office_id' => $nr['origin_branch_code'] ?? '2.0160-00'
+            ];
+        }
+
+        if (empty($requesterInfo['email']) || empty($requesterInfo['whatsapp_number'])) {
+            $branchCode = $targetDgRecord['origin_branch_code'] ?? ($nolapRecords[$foundNolapIndex]['origin_branch_code'] ?? '2.0160-00');
+            $resolved = cariPersonelKontak($mastersDir, $targetDgRecord['createdBy'] ?? ($targetDgRecord['origin_branch_id'] ?? ''), $branchCode);
+            $requesterInfo = [
+                'user_id' => $resolved['user_id'] ?? 'staf_cabang',
+                'nama' => $resolved['nama'] ?? ($targetDgRecord['createdBy'] ?? 'Rekan Cabang'),
+                'email' => $resolved['email'] ?? 'notifikasi@kjppnanangrahayu.com',
+                'whatsapp_number' => $resolved['whatsapp_number'] ?? '081298765432',
+                'office_id' => $branchCode,
+                'email_verified' => true,
+                'whatsapp_verified' => true
+            ];
+        }
+
+        $nomorLaporan = $targetDgRecord['finalisasi']['nomorLaporanDefinitif'] ?? ($nolapRecords[$foundNolapIndex]['nomorLaporan'] ?? ($noPermintaan ?: $idPenugasan));
+        $namaKlien = $targetDgRecord['namaKlien'] ?? ($nolapRecords[$foundNolapIndex]['namaKlien'] ?? 'Klien Rekanan');
+
+        $notifRes = kirimNotifikasiWorkflow(
+            'QR_ELSA_TERVERIFIKASI',
+            $idPenugasan ?: ($targetDgRecord['idPenugasan'] ?? $noPermintaan),
+            $noPermintaan ?: ($targetDgRecord['noPermintaan'] ?? $idPenugasan),
+            $requesterInfo,
+            [
+                'status' => 'TERVERIFIKASI QR RESMI',
+                'nomorLaporan' => $nomorLaporan,
+                'namaKlien' => $namaKlien,
+                'linkElsa' => $linkElsa,
+                'catatan' => $catatan,
+                'judulNotif' => "QR Code eLSa Terverifikasi - No. Laporan {$nomorLaporan}"
+            ],
+            $dataDir
+        );
+
+        echo json_encode([
+            'success' => true,
+            'message' => "QR Code eLSa untuk permohonan '{$noPermintaan}' berhasil diverifikasi dan notifikasi telah dikirimkan.",
+            'linkElsa' => $linkElsa,
+            'statusElsa' => $statusElsa,
+            'requester' => $requesterInfo['nama'] ?? 'Pengaju',
+            'email_status' => $notifRes['email_status'] ?? 'QUEUED',
+            'whatsapp_url' => $notifRes['whatsapp_url'] ?? '',
+            'wa_url' => $notifRes['whatsapp_url'] ?? '',
+            'notification_id' => $notifRes['event_id'] ?? '',
+            'event_id' => $notifRes['event_id'] ?? ''
+        ]);
+        exit;
+    }
+
+    if ($action === 'resendNotification') {
+        $eventId = trim($payload['notification_event_id'] ?? '');
+        $notifLogsFile = $dataDir . '/notification_logs.json';
+        $logs = file_exists($notifLogsFile) ? (json_decode(file_get_contents($notifLogsFile), true) ?: []) : [];
+
+        $targetLogIndex = -1;
+        foreach ($logs as $idx => $l) {
+            if (($l['notification_event_id'] ?? '') === $eventId) {
+                $targetLogIndex = $idx;
+                break;
+            }
+        }
+
+        if ($targetLogIndex === -1) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Log notifikasi tidak ditemukan.']);
+            exit;
+        }
+
+        $log = $logs[$targetLogIndex];
+        $mailQueueFile = $dataDir . '/mail_queue.json';
+        $currentQueue = file_exists($mailQueueFile) ? (json_decode(file_get_contents($mailQueueFile), true) ?: []) : [];
+        $newMailId = 'mail_resend_' . $eventId . '_' . uniqid();
+        
+        $currentQueue[] = [
+            'id' => $newMailId,
+            'recipient' => $log['email'],
+            'subject' => '[KIRIM ULANG - OPINI NSR] Pemberitahuan Status Penugasan ' . ($log['id_penugasan'] ?? ''),
+            'body' => "Pemberitahuan kirim ulang untuk penugasan {$log['id_penugasan']} (Event: {$log['event_type']}). Silakan akses portal di https://kjppnanangrahayu.com/portal-nolap.html",
+            'status' => 'QUEUED',
+            'attempts' => 0,
+            'created_at' => date('c')
+        ];
+        @file_put_contents($mailQueueFile, json_encode($currentQueue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        $logs[$targetLogIndex]['retry_count'] = ($logs[$targetLogIndex]['retry_count'] ?? 0) + 1;
+        $logs[$targetLogIndex]['last_resend_at'] = date('c');
+        @file_put_contents($notifLogsFile, json_encode($logs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Notifikasi #{$eventId} berhasil diantrekan ulang untuk dikirimkan.",
+            'retry_count' => $logs[$targetLogIndex]['retry_count'],
+            'whatsapp_url' => $log['whatsapp_url'] ?? ''
+        ]);
+        exit;
+    }
+
     if ($action === 'saveOfficialRegister') {
         if (!in_array($userRole, ['SUPER_ADMIN', 'ADMIN_PUSAT'], true)) {
             http_response_code(403);
@@ -2529,6 +3374,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $signingOfficeCode = ($requestedSigningOffice === 'PUSAT') ? '2.0160-00' : ($payload['signing_office_code'] ?? ($OFFICIAL_BRANCH_CODES[$originBranchId] ?? '2.0160-00'));
         $appraiserLicenseCode = $payload['appraiser_license_code'] ?? ($pObj['izin_segmen'] ?? '00581');
 
+        // Resolusi Klasifikasi Jasa Penilaian & Kode Laporan Resmi (P0 Compliance)
+        $rawServiceInput = $payload['service_classification_id'] ?? $payload['klasifikasiJasa'] ?? '';
+        if (empty($rawServiceInput)) {
+            if (($pObj['klasifikasi'] ?? '') === 'PS' || (stripos($objek, 'sederhana') !== false)) {
+                $rawServiceInput = 'PS';
+            } else {
+                $rawServiceInput = 'PROPERTY';
+            }
+        }
+        $serviceDetails = resolveServiceClassificationDetails($rawServiceInput);
+        $serviceClassId = $serviceDetails['service_classification_id'];
+        $serviceClassName = $serviceDetails['service_classification_name'];
+        $reportServiceCode = $serviceDetails['report_service_code'];
+
+        // Validasi Kualifikasi Izin Penilai Publik terhadap Klasifikasi Jasa
+        if (($pObj['klasifikasi'] ?? '') === 'PS' && $serviceClassId === 'PROPERTY') {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'error' => "Ketidaksesuaian Klasifikasi Izin: Penilai Publik {$penilaiDitunjuk} memiliki izin PS (Properti Sederhana) yang dibatasi untuk aset residensial/sederhana. Untuk klasifikasi Penilaian Properti Komprehensif (non-sederhana), wajib ditugaskan Penilai Publik berizin P (Ir. Nanang Rahayu / Deni Siswandi).",
+                'violation' => 'INVALID_APPRAISER_CLASSIFICATION'
+            ]);
+            exit;
+        }
+
+        
+        // Resolusi Profil Pengaju & Kontak Notifikasi Terverifikasi
+        $reqInput = is_array($payload['pengaju'] ?? null) ? $payload['pengaju'] : [];
+        $reqProfile = cariPersonelKontak($mastersDir, $reqInput['email'] ?? ($currentUser['sub'] ?? ($currentUser['role'] ?? '')), $originBranchCode);
+        $pengajuSnapshot = [
+            'personnel_id'       => $reqInput['nik'] ?? ($reqProfile['personnel_id'] ?? ($currentUser['sub'] ?? 'NSR-STAF')),
+            'user_id'            => $reqProfile['user_id'] ?? ($currentUser['sub'] ?? 'staf'),
+            'nama'               => $reqInput['nama'] ?? ($currentUser['nama'] ?? ($reqProfile['nama'] ?? $userDisplayName)),
+            'office_id'          => $originBranchCode,
+            'office_name'        => $originBranchId,
+            'email'              => $reqInput['email'] ?? ($payload['emailPemohon'] ?? ($payload['emailPengaju'] ?? ($payload['pengaju_email'] ?? ($reqProfile['email'] ?? 'notifikasi@kjppnanangrahayu.com')))),
+            'email_verified'     => !empty($reqProfile['email_verified']),
+            'whatsapp_number'    => normalisasiNomorWhatsApp($reqInput['whatsapp_number'] ?? ($payload['waPemohon'] ?? ($payload['waPengaju'] ?? ($payload['pengaju_wa'] ?? ($reqProfile['whatsapp_number'] ?? '081298765432'))))),
+            'whatsapp_verified'  => !empty($reqProfile['whatsapp_verified']),
+            'contact_status'     => $reqProfile['contact_status'] ?? 'VERIFIED',
+            'snapshot_timestamp' => $nowWib
+        ];
+
         $newRecord = [
             'idPenugasan' => $idPenugasan,
             'noPermintaan' => $payload['noPermintaan'] ?? ('REQ-' . date('Ymd') . '-' . substr(md5($idPenugasan), 0, 4)),
@@ -2543,10 +3431,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'tujuanPenilaian' => $tujuan,
             'jenisObjek' => $objek,
             'namaKlien' => $klien,
+            'service_classification_id' => $serviceClassId,
+            'service_classification_name' => $serviceClassName,
+            'report_service_code' => $reportServiceCode,
+            'klasifikasiJasa' => $reportServiceCode,
             'penugasan' => [
                 'penilaiPublikDitunjuk' => $penilaiDitunjuk,
                 'penilaiPublikId' => $penilaiId,
                 'appraiserLicenseCode' => $appraiserLicenseCode,
+                'service_classification_id' => $serviceClassId,
+                'service_classification_name' => $serviceClassName,
+                'report_service_code' => $reportServiceCode,
+                'klasifikasiJasa' => $reportServiceCode,
                 'requestedSigningOffice' => $requestedSigningOffice,
                 'signingOfficeCode' => $signingOfficeCode,
                 'originBranchId' => $originBranchId,
@@ -2573,7 +3469,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'nomorLaporanDefinitif' => null,
                 'statusTandaTangan' => 'BELUM_TERBIT',
                 'statusAkhir' => 'DRAFT'
-            ]
+            ],
+            'pengaju' => $pengajuSnapshot
         ];
 
         $dgRecords = muatDatabaseDualGate($dualGateDbFile);
@@ -2676,6 +3573,20 @@ Mohon lakukan review kepatuhan melalui Portal OPINI NSR.
         ];
 
         simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+        if (!empty($dgRecords[$targetIdx]['pengaju'])) {
+            kirimNotifikasiWorkflow(
+                'APPROVAL_GERBANG_1',
+                $idPenugasan,
+                $dgRecords[$targetIdx]['noPermintaan'] ?? $idPenugasan,
+                $dgRecords[$targetIdx]['pengaju'],
+                [
+                    'status' => $newStatus,
+                    'namaKlien' => $dgRecords[$targetIdx]['namaKlien'] ?? '-',
+                    'catatan' => "Review SPM (Danny Taufik): {$keputusan}. {$catatan}"
+                ],
+                $dataDir
+            );
+        }
 
         // Jika SETUJU: Kirim notifikasi tindakan otomatis ke Deni Siswandi
         $waLinkDeni = null;
@@ -2766,6 +3677,20 @@ Mohon kesediaan Bapak mereview aspek metodologi dan susunan tim teknis di Portal
         ];
 
         simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+        if (!empty($dgRecords[$targetIdx]['pengaju'])) {
+            kirimNotifikasiWorkflow(
+                'APPROVAL_GERBANG_1',
+                $idPenugasan,
+                $dgRecords[$targetIdx]['noPermintaan'] ?? $idPenugasan,
+                $dgRecords[$targetIdx]['pengaju'],
+                [
+                    'status' => $newStatus,
+                    'namaKlien' => $dgRecords[$targetIdx]['namaKlien'] ?? '-',
+                    'catatan' => "Review Divtek (Deni Siswandi): {$keputusan}. {$catatan}"
+                ],
+                $dataDir
+            );
+        }
 
         // Jika SETUJU: Notifikasi hasil ke Admin Pusat & Pengaju
         if ($keputusan === 'SETUJU') {
@@ -2840,6 +3765,21 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         $dgRecords[$targetIdx]['gerbang1']['diterbitkanOleh'] = $currentUser['nama'] ?? $userDisplayName;
 
         simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+        if (!empty($dgRecords[$targetIdx]['pengaju'])) {
+            kirimNotifikasiWorkflow(
+                'PENERBITAN_LP',
+                $idPenugasan,
+                $dgRecords[$targetIdx]['noPermintaan'] ?? $idPenugasan,
+                $dgRecords[$targetIdx]['pengaju'],
+                [
+                    'status' => 'LP_DITERBITKAN',
+                    'nomorLp' => $nomorLpResmi,
+                    'namaKlien' => $dgRecords[$targetIdx]['namaKlien'] ?? '-',
+                    'catatan' => "Nomor Lingkup Penugasan (LP) resmi ({$nomorLpResmi}) telah diterbitkan oleh Admin Pusat."
+                ],
+                $dataDir
+            );
+        }
 
         echo json_encode([
             'success' => true,
@@ -3020,8 +3960,27 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         $nowWib = date('c');
 
         $versiG2 = ($dgRecords[$targetIdx]['gerbang2']['versi'] ?? 0) + 1;
+        if (empty($dgRecords[$targetIdx]['pengaju'])) {
+            $reqProfileG2 = cariPersonelKontak($mastersDir, $currentUser['sub'] ?? ($currentUser['role'] ?? ''), $dgRecords[$targetIdx]['origin_branch_code'] ?? '2.0160-00');
+            $dgRecords[$targetIdx]['pengaju'] = [
+                'personnel_id'       => $reqProfileG2['personnel_id'] ?? ($currentUser['sub'] ?? 'NSR-STAF'),
+                'user_id'            => $reqProfileG2['user_id'] ?? ($currentUser['sub'] ?? 'staf'),
+                'nama'               => $currentUser['nama'] ?? ($reqProfileG2['nama'] ?? $userDisplayName),
+                'office_id'          => $dgRecords[$targetIdx]['origin_branch_code'] ?? '2.0160-00',
+                'office_name'        => $dgRecords[$targetIdx]['kantorAsal'] ?? 'Kantor Pusat Jakarta',
+                'email'              => $payload['emailPemohon'] ?? ($reqProfileG2['email'] ?? 'notifikasi@kjppnanangrahayu.com'),
+                'email_verified'     => true,
+                'whatsapp_number'    => normalisasiNomorWhatsApp($payload['waPemohon'] ?? ($reqProfileG2['whatsapp_number'] ?? '081298765432')),
+                'whatsapp_verified'  => true,
+                'contact_status'     => 'VERIFIED',
+                'snapshot_timestamp' => $nowWib
+            ];
+        }
         $dgRecords[$targetIdx]['gerbang2'] = [
             'status' => $statusAkhir,
+            'service_classification_id' => $dgRecords[$targetIdx]['penugasan']['service_classification_id'] ?? 'PROPERTY',
+            'service_classification_name' => $dgRecords[$targetIdx]['penugasan']['service_classification_name'] ?? 'Penilaian Properti',
+            'report_service_code' => $dgRecords[$targetIdx]['penugasan']['report_service_code'] ?? 'PI',
             'versi' => $versiG2,
             'submittedAt' => $nowWib,
             'submittedBy' => $currentUser['nama'] ?? $userDisplayName,
@@ -3035,6 +3994,20 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         ];
 
         simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+        if (!empty($dgRecords[$targetIdx]['pengaju'])) {
+            kirimNotifikasiWorkflow(
+                'PENGAJUAN_NOLAP_DITERIMA',
+                $idPenugasan,
+                $dgRecords[$targetIdx]['noPermintaan'] ?? $idPenugasan,
+                $dgRecords[$targetIdx]['pengaju'],
+                [
+                    'status' => $statusAkhir,
+                    'namaKlien' => $dgRecords[$targetIdx]['namaKlien'] ?? '-',
+                    'catatan' => 'Draf Laporan & Mitigasi Akhir (Gerbang 2) telah didaftarkan dan dalam antrean telaah SPM.'
+                ],
+                $dataDir
+            );
+        }
 
         // Antrekan Email ke Danny Taufik (Kepala SPM)
         antrekanEmailDualGate($mailQueueFile, [
@@ -3102,6 +4075,20 @@ Mohon memeriksa kelengkapan QC, BAI, dan ketiadaan deviasi material di Portal OP
             'diverifikasiPada' => $nowWib,
             'pejabat' => $currentUser['nama'] ?? 'Danny Taufik, S.H.'
         ];
+        if (!empty($dgRecords[$targetIdx]['pengaju'])) {
+            kirimNotifikasiWorkflow(
+                'APPROVAL_GERBANG_2',
+                $idPenugasan,
+                $dgRecords[$targetIdx]['noPermintaan'] ?? $idPenugasan,
+                $dgRecords[$targetIdx]['pengaju'],
+                [
+                    'status' => $newStatus,
+                    'namaKlien' => $dgRecords[$targetIdx]['namaKlien'] ?? '-',
+                    'catatan' => "Review Akhir SPM (Danny Taufik): {$keputusan}. {$catatan}"
+                ],
+                $dataDir
+            );
+        }
         $dgRecords[$targetIdx]['gerbang2']['history'][] = [
             'versi' => $dgRecords[$targetIdx]['gerbang2']['versi'] ?? 1,
             'waktu' => $nowWib,
@@ -3190,6 +4177,20 @@ Mohon kesediaan Bapak mereview kertas kerja dan kesesuaian nilai akhir."
             'diverifikasiPada' => $nowWib,
             'pejabat' => $currentUser['nama'] ?? 'Deni Siswandi, S.T.'
         ];
+        if (!empty($dgRecords[$targetIdx]['pengaju'])) {
+            kirimNotifikasiWorkflow(
+                'APPROVAL_GERBANG_2',
+                $idPenugasan,
+                $dgRecords[$targetIdx]['noPermintaan'] ?? $idPenugasan,
+                $dgRecords[$targetIdx]['pengaju'],
+                [
+                    'status' => $newStatus,
+                    'namaKlien' => $dgRecords[$targetIdx]['namaKlien'] ?? '-',
+                    'catatan' => "Review Akhir Divtek (Deni Siswandi): {$keputusan}. {$catatan}"
+                ],
+                $dataDir
+            );
+        }
         $dgRecords[$targetIdx]['gerbang2']['history'][] = [
             'versi' => $dgRecords[$targetIdx]['gerbang2']['versi'] ?? 1,
             'waktu' => $nowWib,
@@ -3291,7 +4292,16 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
         }
 
         // Tentukan nomor definitif: Gunakan nomor yang disediakan atau generate unik 7 segmen berbasis register
+        $isManualNumber = !empty(trim($payload['nomorLaporan'] ?? ''));
         $noDefinitif = trim($payload['nomorLaporan'] ?? '');
+        if (!empty($noDefinitif)) {
+            // P0 AUDIT: Dilarang menggunakan PS pada segmen 3 nomor laporan resmi
+            $segs = explode('/', $noDefinitif);
+            if (count($segs) >= 3 && strtoupper($segs[2]) === 'PS') {
+                $segs[2] = 'PI';
+                $noDefinitif = implode('/', $segs);
+            }
+        }
         if (empty($noDefinitif)) {
             $regListForSeq = muatRegisterConfig($registerConfigFile);
             $candidateSeq = '';
@@ -3316,7 +4326,12 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
             $targetPenilaiId = $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '';
             $pObjResolved = cariMasterPenilaiPublik($mastersDir, $targetPenilaiId);
             $penilaiIzin = $dgRecords[$targetIdx]['penugasan']['appraiserLicenseCode'] ?? ($pObjResolved['izin_segmen'] ?? '00581');
-            $noDefinitif = "{$seq}/{$signingCode}/PI/07/{$penilaiIzin}/1/{$romawiBulan}/" . date('Y');
+            $targetServiceInput = $dgRecords[$targetIdx]['penugasan']['service_classification_id'] ?? $dgRecords[$targetIdx]['penugasan']['klasifikasiJasa'] ?? 'PROPERTY';
+            $reportServiceCode = resolveReportServiceCode($targetServiceInput);
+            $targetSektor = $dgRecords[$targetIdx]['penugasan']['kodeIndustri'] ?? '07';
+            // P0 COMPLIANCE: Segmen 3 HANYA boleh PI, BS, atau PP (Dilarang keras PS!)
+            if ($reportServiceCode === 'PS') { $reportServiceCode = 'PI'; }
+            $noDefinitif = "{$seq}/{$signingCode}/{$reportServiceCode}/{$targetSektor}/{$penilaiIzin}/1/{$romawiBulan}/" . date('Y');
         }
 
         $nowWib = date('c');
@@ -3372,9 +4387,15 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
             }
             $regList[$foundRegIdx]['nomorTerpakai'][] = $seqNomor;
             $intSeq = (int)$seqNomor;
-            if ($intSeq > (int)($regList[$foundRegIdx]['nomorTerakhir'] ?? 0)) {
-                $regList[$foundRegIdx]['nomorTerakhir'] = $intSeq;
-                $regList[$foundRegIdx]['kandidatBerikutnya'] = str_pad($intSeq + 1, 5, '0', STR_PAD_LEFT);
+            if (!$isManualNumber || $intSeq === (int)($regList[$foundRegIdx]['kandidatBerikutnya'] ?? 1)) {
+                if ($intSeq > (int)($regList[$foundRegIdx]['nomorTerakhir'] ?? 0)) {
+                    $regList[$foundRegIdx]['nomorTerakhir'] = $intSeq;
+                }
+                $nextCandidateSeq = (int)($regList[$foundRegIdx]['kandidatBerikutnya'] ?? 1);
+                while (in_array(str_pad($nextCandidateSeq, 5, '0', STR_PAD_LEFT), $regList[$foundRegIdx]['nomorTerpakai'] ?? [], true)) {
+                    $nextCandidateSeq++;
+                }
+                $regList[$foundRegIdx]['kandidatBerikutnya'] = str_pad($nextCandidateSeq, 5, '0', STR_PAD_LEFT);
             }
             $regList[$foundRegIdx]['updatedAt'] = date('c');
             simpanRegisterConfig($registerConfigFile, $regList);
@@ -3388,6 +4409,21 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
 
         simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
         if (isset($fpLock) && $fpLock) { flock($fpLock, LOCK_UN); fclose($fpLock); }
+        if (!empty($dgRecords[$targetIdx]['pengaju'])) {
+            kirimNotifikasiWorkflow(
+                'PENERBITAN_NOLAP',
+                $idPenugasan,
+                $dgRecords[$targetIdx]['noPermintaan'] ?? $idPenugasan,
+                $dgRecords[$targetIdx]['pengaju'],
+                [
+                    'status' => 'MENUNGGU_TTD_PENILAI',
+                    'nomorLaporan' => $noDefinitif,
+                    'namaKlien' => $dgRecords[$targetIdx]['namaKlien'] ?? '-',
+                    'catatan' => "Nomor Laporan Definitif 7 Segmen ({$noDefinitif}) telah resmi diterbitkan oleh Admin Pusat."
+                ],
+                $dataDir
+            );
+        }
 
         // Notifikasi ke Penilai Publik yang Ditugaskan
         $penilaiSub = $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '';
@@ -3604,6 +4640,21 @@ Audit Log ID: {$auditLogId}"
         $dgRecords[$targetIdx]['gerbang2']['status'] = 'LAPORAN_FINAL';
 
         simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+        if (!empty($dgRecords[$targetIdx]['pengaju'])) {
+            kirimNotifikasiWorkflow(
+                'LAPORAN_FINAL_SIAP',
+                $idPenugasan,
+                $dgRecords[$targetIdx]['noPermintaan'] ?? $idPenugasan,
+                $dgRecords[$targetIdx]['pengaju'],
+                [
+                    'status' => 'LAPORAN_FINAL',
+                    'nomorLaporan' => $dgRecords[$targetIdx]['finalisasi']['nomorLaporanDefinitif'] ?? '',
+                    'namaKlien' => $dgRecords[$targetIdx]['namaKlien'] ?? '-',
+                    'catatan' => "Laporan penilaian telah resmi ditandatangani oleh " . ($currentUser['nama'] ?? 'Penilai Publik') . " dan berstatus LAPORAN_FINAL."
+                ],
+                $dataDir
+            );
+        }
 
         echo json_encode([
             'success' => true,
