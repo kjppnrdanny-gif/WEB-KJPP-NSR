@@ -766,6 +766,137 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'tokenHash'         => 'c84442605e24bd6cce6370f43e8dbe7e5761c3959bd5dd5a4deccf263b4c8909'
     ],
+    // =========================================================================
+    // KREDENSIAL RESMI DUAL SMART MITIGATION GATE (2026 EDITION)
+    // =========================================================================
+    // Token Header: NSR-SPM-DANNY-2026
+    'dc943d94880e71c7d1d7f792b1485d6083e71c90d5ef1cf4d19b6446577612a9' => [
+        'sub'               => 'danny_spm',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Danny Taufik, S.H.',
+        'nama'              => 'Danny Taufik, S.H.',
+        'email'             => 'danny.taufik@kjppnanangrahayu.com',
+        'wa'                => '081280445731',
+        'role'              => 'KEPALA_SPM',
+        'roleLabel'         => 'Kepala SPM (Sistem Pengendalian Mutu)',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT'
+    ],
+    // Token Header: NSR-DIVTEK-DENI-2026
+    '718d4e13ec07cd7c24c605c78bd0cb9485f0e199b9d79711a5c2557b10ca6c25' => [
+        'sub'               => 'deni_divtek',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Deni Siswandi, S.T.',
+        'nama'              => 'Deni Siswandi, S.T.',
+        'email'             => 'deni.siswandi@kjppnanangrahayu.com',
+        'wa'                => '081381909504',
+        'role'              => 'KEPALA_DIVTEK',
+        'roleLabel'         => 'Kepala Divisi Teknik',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => false,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => false,
+        'mode'              => 'PUSAT'
+    ],
+    // Token Header: NSR-PENILAI-NANANG-2026
+    'bf4963975e153a898bf6547f5528383dce9969a058146311141c9a41f969ada6' => [
+        'sub'               => 'nanang_penilai',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
+        'nama'              => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
+        'email'             => 'nanang.rahayu@kjppnanangrahayu.com',
+        'izinMenkeu'        => '0218',
+        'mappi'             => '96-S-00812',
+        'role'              => 'PENILAI_PUBLIK',
+        'roleLabel'         => 'Rekan Pemimpin / Penilai Publik Rekan',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT'
+    ],
+    // Token Header: NSR-PENILAI-DENI-2026 (Terpisah dari Divtek!)
+    '8b5420d9942829d62967b099a1049a1f36e05d173eac6cd6217fbfe403004c96' => [
+        'sub'               => 'deni_penilai',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Deni Siswandi, S.T., MAPPI (Cert.)',
+        'nama'              => 'Deni Siswandi, S.T., MAPPI (Cert.)',
+        'email'             => 'deni.siswandi@kjppnanangrahayu.com',
+        'wa'                => '081381909504',
+        'izinMenkeu'        => 'P-1.20.00581',
+        'mappi'             => '06-S-02013',
+        'role'              => 'PENILAI_PUBLIK',
+        'roleLabel'         => 'Rekan / Penilai Publik Penanggung Jawab',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => false,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT'
+    ],
+    // Token Header: NSR-ADMIN-PUSAT-2026
+    '40c8327a62d48967dc80b016c3762216e1f31093aa78e915e4c68499675a5b36' => [
+        'sub'               => 'admin_pusat',
+        'branch'            => 'PUSAT',
+        'displayName'       => 'Admin Operasional Pusat Jakarta',
+        'nama'              => 'Admin Operasional Pusat Jakarta',
+        'email'             => 'admin.operasional@kjppnanangrahayu.com',
+        'role'              => 'ADMIN_PUSAT',
+        'roleLabel'         => 'Admin Kantor Pusat',
+        'wilayah'           => 'PUSAT',
+        'wilayahLabel'      => 'Kantor Pusat Jakarta',
+        'wilayahCode'       => 'PST',
+        'isSuperAdmin'      => true,
+        'isCabang'          => false,
+        'canAccessKwitansi' => true,
+        'canApprove'        => true,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'PUSAT'
+    ],
+    // Token Header: NSR-ADMIN-BDG-2026
+    'abbb9d2669adcecef0d82399492141940292dd0eaf358066adacacfb1d0c3545' => [
+        'sub'               => 'admin_cabang_bdg',
+        'branch'            => 'Bandung',
+        'displayName'       => 'Admin Kantor Cabang Bandung',
+        'nama'              => 'Admin Kantor Cabang Bandung',
+        'role'              => 'ADMIN_CABANG',
+        'roleLabel'         => 'Admin Cabang Bandung',
+        'wilayah'           => 'Bandung',
+        'wilayahLabel'      => 'Kantor Cabang Bandung',
+        'wilayahCode'       => 'BDG',
+        'isSuperAdmin'      => false,
+        'isCabang'          => true,
+        'canAccessKwitansi' => true,
+        'canApprove'        => false,
+        'canSubmit'         => true,
+        'seeFee'            => true,
+        'mode'              => 'CABANG',
+        'kodeKemenkeu'      => '2.0160-04'
+    ],
+
 ];
 
 // -------------------------------------------------------------
@@ -798,14 +929,11 @@ if (!$currentUser) {
     $customToken = $_SERVER['HTTP_X_NSR_TOKEN'] ?? '';
     if ($customToken) {
         $trimmed = trim($customToken);
-        // Cek langsung jika input sudah berbentuk SHA-256 hash resmi
-        if (isset($OFFICIAL_TOKEN_HASHES[$trimmed])) {
-            $currentUser = $OFFICIAL_TOKEN_HASHES[$trimmed];
-        } else {
-            $tHash = hash('sha256', strtoupper($trimmed));
-            if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
-                $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
-            }
+        // AUDIT KEAMANAN GAP ANALYSIS 2026: Hanya menerima secret token mentah, lalu di-hash di server.
+        // DILARANG menerima string hash SHA-256 langsung sebagai kredensial autentikasi!
+        $tHash = hash('sha256', strtoupper($trimmed));
+        if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
+            $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
         }
     }
 }
@@ -847,6 +975,104 @@ $dataFile = $dataDir . '/nolap_database.json';
 if (!file_exists($dataFile) && file_exists(__DIR__ . '/nolap-data.json')) {
     $dataFile = __DIR__ . '/nolap-data.json';
 }
+$dualGateDbFile = $dataDir . '/dual_gate_database.json';
+if (!file_exists($dualGateDbFile) && file_exists(__DIR__ . '/dual_gate_database.json')) {
+    $dualGateDbFile = __DIR__ . '/dual_gate_database.json';
+}
+$mailQueueFile = $dataDir . '/mail_queue.json';
+
+
+function muatDatabaseDualGate($dbFile) {
+    if (!file_exists($dbFile)) return [];
+    $raw = @file_get_contents($dbFile);
+    return json_decode($raw, true) ?: [];
+}
+
+function simpanDatabaseDualGate($dbFile, $records) {
+    $dir = dirname($dbFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0750, true);
+    }
+    $fp = fopen($dbFile, 'c+');
+    if (!$fp) return false;
+    if (flock($fp, LOCK_EX)) {
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($records, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        return true;
+    }
+    fclose($fp);
+    return false;
+}
+
+function antrekanEmailDualGate($mailQueueFile, $payload) {
+    $dir = dirname($mailQueueFile);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0750, true);
+    }
+    $fp = fopen($mailQueueFile, 'c+');
+    if (!$fp) return false;
+    if (flock($fp, LOCK_EX)) {
+        $raw = stream_get_contents($fp);
+        $queue = !empty($raw) ? json_decode($raw, true) : [];
+        if (!is_array($queue)) $queue = [];
+
+        $entry = [
+            'mailId'        => 'MQ-' . date('YmdHis') . '-' . substr(md5(uniqid()), 0, 4),
+            'timestampWIB'  => date('Y-m-d H:i:s'),
+            'event'         => $payload['event'] ?? 'NOTIFICATION',
+            'idPenugasan'   => $payload['idPenugasan'] ?? '',
+            'recipient'     => $payload['recipient'] ?? '',
+            'recipientName' => $payload['recipientName'] ?? '',
+            'subject'       => $payload['subject'] ?? '',
+            'body'          => $payload['body'] ?? '',
+            'status'        => 'ANTRIAN',
+            'attempts'      => 0,
+            'smtpConfig'    => [
+                'host'      => 'mail.kjppnanangrahayu.com',
+                'port'      => 465,
+                'encryption'=> 'ssl',
+                'username'  => 'notifikasi@kjppnanangrahayu.com'
+            ]
+        ];
+
+        // Anti-duplikasi antrean identik dalam 5 menit terakhir
+        $isDuplicate = false;
+        foreach ($queue as $q) {
+            if (($q['idPenugasan'] ?? '') === $entry['idPenugasan'] &&
+                ($q['event'] ?? '') === $entry['event'] &&
+                ($q['recipient'] ?? '') === $entry['recipient'] &&
+                ($q['status'] ?? '') === 'ANTRIAN') {
+                $isDuplicate = true;
+                break;
+            }
+        }
+
+        if (!$isDuplicate) {
+            $queue[] = $entry;
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            fflush($fp);
+        }
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        return $entry;
+    }
+    fclose($fp);
+    return false;
+}
+
+function generateWhatsAppNotificationLink($noHp, $pesan) {
+    $cleanHp = preg_replace('/[^0-9]/', '', $noHp);
+    if (substr($cleanHp, 0, 1) === '0') {
+        $cleanHp = '62' . substr($cleanHp, 1);
+    }
+    return 'https://wa.me/' . $cleanHp . '?text=' . rawurlencode($pesan);
+}
 
 function muatBaselineResmi() {
     return [
@@ -857,21 +1083,21 @@ function muatBaselineResmi() {
             'cabang' => 'Pusat',
             'namaPemohon' => 'Zahra',
             'jabatanPemohon' => 'Admin',
-            'emailPemohon' => 'kjppnsr.adm2@gmail.com',
-            'waPemohon' => '0895391057740',
-            'namaKlien' => 'PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. GEMILANG SAKTI PROPERTINDO',
+            'emailPemohon' => 'admin.operasional@kjppnanangrahayu.com',
+            'waPemohon' => '0895-XXXX-XXXX',
+            'namaKlien' => 'PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. Debitur Mitra Pengembang',
             'statusKlien' => 'Bank',
-            'alamatKlien' => 'Kp. Babakan RT.03 RW.02, Satria Jaya, Tambun Utara, Bekasi, Jawa Barat',
-            'kontakKlien' => '081314489587',
+            'alamatKlien' => 'Kp. Babakan RT.03 RW.02, Bekasi, Jawa Barat (Disamarkan - Privasi Nasabah)',
+            'kontakKlien' => '0813-XXXX-XXXX',
             'klasifikasiJasa' => 'PI',
             'kodeIndustri' => '07',
             'tujuanPenilaian' => 'Penjaminan Utang',
             'jenisObjek' => 'Tanah dan Bangunan Rumah Tinggal',
-            'lokasiObjek' => 'Perumahan Green Lavender Sukamekar Blok F4 No. 15, Sukamekar, Sukawangi, Bekasi',
+            'lokasiObjek' => 'Perumahan Grand Sukamekar Blok F4, Bekasi (Disamarkan)',
             'deadline' => '2026-09-23',
             'penilai' => 'Deni Siswandi',
             'izinPenilai' => '00581',
-            'npwp' => '86.456.757.3-435.000',
+            'npwp' => '86.456.XXX.X-XXX.000',
             'kodeNpwp' => '1',
             'penggunaLaporan' => 'PT Bank Tabungan Negara (Persero) Tbk',
             'status' => 'NOMOR DITERBITKAN',
@@ -887,12 +1113,12 @@ function muatBaselineResmi() {
             'penilai' => 'Deni Siswandi',
             'izinPenilai' => '00581',
             'jabatanPemohon' => 'Admin',
-            'namaKlien' => 'PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. PT. IVANDER PUTRA SUKSES',
+            'namaKlien' => 'PT. BANK TABUNGAN NEGARA (PERSERO), Tbk KC BEKASI q.q. Debitur Mitra Sarimukti',
             'statusKlien' => 'Bank',
             'klasifikasiJasa' => 'PI',
             'kodeIndustri' => '07',
             'jenisObjek' => 'Tanah dan Bangunan Rumah Tinggal',
-            'lokasiObjek' => 'Perumahan Permata Harapan Sarimukti Blok D11-21, Sarimukti, Cibitung, Bekasi',
+            'lokasiObjek' => 'Perumahan Grand Sarimukti Blok D11, Cibitung, Bekasi (Disamarkan)',
             'status' => 'NOMOR DITERBITKAN',
             'nomorLaporan' => '00525/2.0160-00/PI/07/00581/1/IX/2026'
         ],
@@ -1265,6 +1491,92 @@ $records = muatDatabaseNoLap($dataFile);
 // 4. METODE GET: PEMBACAAN DATA NOLAP & MITIGASI TERLINDUNGI
 // -------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+    // =========================================================================
+    // DUAL SMART MITIGATION GATE: GET ACTIONS & ANTRIAN PERAN
+    // =========================================================================
+    $actionGet = $_GET['action'] ?? null;
+    if ($actionGet === 'listAllDualGate' || $actionGet === 'listAll') {
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        echo json_encode([
+            'success'     => true,
+            'currentUser' => [
+                'nama'      => $currentUser['nama'] ?? $userDisplayName,
+                'role'      => $currentUser['role'],
+                'roleLabel' => $currentUser['roleLabel'] ?? $currentUser['role']
+            ],
+            'total'       => count($dgRecords),
+            'records'     => $dgRecords
+        ]);
+        exit;
+    }
+
+    if ($actionGet === 'getQueueDanny') {
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $queue = array_filter($dgRecords, function($r) {
+            $st1 = $r['gerbang1']['status'] ?? '';
+            $st2 = $r['gerbang2']['status'] ?? '';
+            return in_array($st1, ['MENUNGGU_SPM_AWAL', 'HOLD_ESKALASI_AWAL']) || 
+                   in_array($st2, ['MENUNGGU_SPM_AKHIR', 'HOLD_ESKALASI_AKHIR']);
+        });
+        echo json_encode(['success' => true, 'role' => 'KEPALA_SPM', 'total' => count($queue), 'queue' => array_values($queue)]);
+        exit;
+    }
+
+    if ($actionGet === 'getQueueDeni') {
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $queue = array_filter($dgRecords, function($r) {
+            $st1 = $r['gerbang1']['status'] ?? '';
+            $st2 = $r['gerbang2']['status'] ?? '';
+            return $st1 === 'MENUNGGU_DIVTEK_AWAL' || $st2 === 'MENUNGGU_DIVTEK_AKHIR';
+        });
+        echo json_encode(['success' => true, 'role' => 'KEPALA_DIVTEK', 'total' => count($queue), 'queue' => array_values($queue)]);
+        exit;
+    }
+
+    if ($actionGet === 'getQueueAdminPusat') {
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $queue = array_filter($dgRecords, function($r) {
+            return ($r['gerbang2']['status'] ?? '') === 'SIAP_TERBIT_NOLAP' && 
+                   empty($r['finalisasi']['nomorLaporanDefinitif']);
+        });
+        echo json_encode(['success' => true, 'role' => 'ADMIN_PUSAT', 'total' => count($queue), 'queue' => array_values($queue)]);
+        exit;
+    }
+
+    if ($actionGet === 'getQueuePenilaiPublik') {
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $penilaiSub = $currentUser['sub'] ?? '';
+        $queue = array_filter($dgRecords, function($r) use ($penilaiSub) {
+            $isDitugaskan = ($r['penugasan']['penilaiPublikId'] ?? '') === $penilaiSub;
+            $sudahTerbit = !empty($r['finalisasi']['nomorLaporanDefinitif']);
+            $belumTtd = ($r['finalisasi']['statusTandaTangan'] ?? '') !== 'SIGNED';
+            return $isDitugaskan && $sudahTerbit && $belumTtd;
+        });
+        echo json_encode(['success' => true, 'role' => 'PENILAI_PUBLIK', 'total' => count($queue), 'queue' => array_values($queue)]);
+        exit;
+    }
+
+    if ($actionGet === 'getDualGateDetail') {
+        $idPenugasan = trim($_GET['idPenugasan'] ?? '');
+        $noReq = trim($_GET['noPermintaan'] ?? '');
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $found = null;
+        foreach ($dgRecords as $r) {
+            if (($idPenugasan && ($r['idPenugasan'] ?? '') === $idPenugasan) || ($noReq && ($r['noPermintaan'] ?? '') === $noReq)) {
+                $found = $r;
+                break;
+            }
+        }
+        if ($found) {
+            echo json_encode(['success' => true, 'record' => $found]);
+        } else {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Data dual gate tidak ditemukan.']);
+        }
+        exit;
+    }
+
     $targetNoReq = $_GET['noPermintaan'] ?? null;
 
     if ($targetNoReq) {
@@ -1350,12 +1662,702 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $action = $body['action'] ?? null;
-    $payload = $body['payload'] ?? null;
+    $action = $_GET['action'] ?? $body['action'] ?? null;
+    $payload = (isset($body['payload']) && is_array($body['payload'])) ? $body['payload'] : $body;
+    if (!is_array($payload)) $payload = [];
 
     // =========================================================================
     // A. TINDAKAN SIMPAN / REVISI / APPROVAL MITIGASI (DENGAN KONTROL VERSI)
     // =========================================================================
+    
+    // =========================================================================
+    // DUAL SMART MITIGATION GATE: WORKFLOW ENGINE ACTIONS
+    // =========================================================================
+
+    // 1. SUBMIT GERBANG 1 (LINGKUP PENUGASAN & SMART MITIGASI AWAL)
+    if ($action === 'submitGerbang1Awal') {
+        $idPenugasan = trim($payload['idPenugasan'] ?? ('NSR-' . date('Y') . '-' . strtoupper(substr(md5(uniqid()), 0, 6))));
+        $tujuan = $payload['tujuanPenilaian'] ?? 'Agunan Perbankan';
+        $objek = $payload['jenisObjek'] ?? 'Tanah dan Bangunan';
+        $klien = $payload['namaKlien'] ?? 'Bank Rekanan';
+        $penilaiDitunjuk = $payload['penilaiPublikDitunjuk'] ?? 'Deni Siswandi, S.T., MAPPI (Cert.)';
+        $penilaiId = $payload['penilaiPublikId'] ?? 'deni_penilai';
+        $checklist = $payload['checklistAwal'] ?? [];
+
+        // Evaluasi Red Flag & Konflik Kepentingan
+        $hasConflict = !empty($checklist['konflikKepentingan']) && $checklist['konflikKepentingan'] === true;
+        $hasRedFlag = !empty($checklist['redFlagLegalitas']) && $checklist['redFlagLegalitas'] === true;
+
+        $statusAwal = ($hasConflict || $hasRedFlag) ? 'HOLD_ESKALASI_AWAL' : 'MENUNGGU_SPM_AWAL';
+        $nowWib = date('c');
+
+        $newRecord = [
+            'idPenugasan' => $idPenugasan,
+            'noPermintaan' => $payload['noPermintaan'] ?? ('REQ-' . date('Ymd') . '-' . substr(md5($idPenugasan), 0, 4)),
+            'createdAt' => $nowWib,
+            'createdBy' => $currentUser['nama'] ?? $userDisplayName,
+            'createdRole' => $currentUser['role'],
+            'kantorAsal' => $currentUser['wilayah'] ?? $userBranch ?? 'Pusat',
+            'tujuanPenilaian' => $tujuan,
+            'jenisObjek' => $objek,
+            'namaKlien' => $klien,
+            'penugasan' => [
+                'penilaiPublikDitunjuk' => $penilaiDitunjuk,
+                'penilaiPublikId' => $penilaiId,
+                'alasanPenunjukan' => $payload['alasanPenunjukan'] ?? 'Sesuai bidang kompetensi dan ketersediaan jadwal.'
+            ],
+            'gerbang1' => [
+                'status' => $statusAwal,
+                'versi' => 1,
+                'submittedAt' => $nowWib,
+                'submittedBy' => $currentUser['nama'] ?? $userDisplayName,
+                'checklistData' => $checklist,
+                'catatanPengaju' => $payload['catatanPengaju'] ?? '',
+                'history' => [
+                    ['versi' => 1, 'waktu' => $nowWib, 'event' => 'SUBMIT_AWAL', 'status' => $statusAwal, 'actor' => $currentUser['nama'] ?? $userDisplayName]
+                ]
+            ],
+            'gerbang2' => [
+                'status' => 'BELUM_DIAJUKAN',
+                'versi' => 0,
+                'history' => []
+            ],
+            'finalisasi' => [
+                'nomorLaporanDefinitif' => null,
+                'statusTandaTangan' => 'BELUM_TERBIT',
+                'statusAkhir' => 'DRAFT'
+            ]
+        ];
+
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $dgRecords[] = $newRecord;
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        // Antrekan Notifikasi Email ke Danny Taufik (Kepala SPM)
+        $mailJob = antrekanEmailDualGate($mailQueueFile, [
+            'event'         => 'GERBANG1_SUBMITTED',
+            'idPenugasan'   => $idPenugasan,
+            'recipient'     => 'danny.taufik@kjppnanangrahayu.com',
+            'recipientName' => 'Danny Taufik, S.H. (Kepala SPM)',
+            'subject'       => "[OPINI NSR] Permintaan Review Mitigasi Awal - ID: {$idPenugasan}",
+            'body'          => "Yth. Bpk. Danny Taufik (Kepala SPM),
+
+Telah diajukan permohonan Lingkup Penugasan & Smart Mitigasi Awal untuk ID: {$idPenugasan}.
+Tujuan: {$tujuan}
+Pengaju: " . ($currentUser['nama'] ?? $userDisplayName) . "
+
+Mohon lakukan review kepatuhan melalui Portal OPINI NSR.
+(Tembusan info otomatis: Deni Siswandi - Kepala Divtek)."
+        ]);
+
+        $waPesan = "Halo Pak Danny (Kepala SPM), mohon izin menginformasikan pengajuan Mitigasi Awal OPINI NSR Nomor {$idPenugasan} telah dikirimkan. Mohon kesediaan Bapak untuk mereview. Terima kasih.";
+        $waLink = generateWhatsAppNotificationLink('081280445731', $waPesan);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Pengajuan Lingkup Penugasan & Mitigasi Awal berhasil didaftarkan.',
+            'idPenugasan' => $idPenugasan,
+            'status' => $statusAwal,
+            'emailNotification' => $mailJob ? 'ANTRIAN' : 'GAGAL',
+            'waManualLink' => $waLink
+        ]);
+        exit;
+    }
+
+    // 2. REVIEW DANNY TAUFIK (KEPALA SPM) PADA GERBANG 1
+    if ($action === 'reviewDannyGerbang1') {
+        if ($currentUser['role'] !== 'KEPALA_SPM') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Danny Taufik (Kepala SPM) yang berwenang mengeksekusi review ini.']);
+            exit;
+        }
+
+        $idPenugasan = $payload['idPenugasan'] ?? '';
+        $keputusan = strtoupper(trim($payload['keputusan'] ?? ''));
+        $catatan = trim($payload['catatan'] ?? '');
+
+        if (!in_array($keputusan, ['SETUJU', 'REVISI', 'TOLAK'], true)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => "Keputusan wajib bernilai 'SETUJU', 'REVISI', atau 'TOLAK'."]);
+            exit;
+        }
+        if (empty($catatan)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Catatan telaah wajib dicantumkan oleh Kepala SPM.']);
+            exit;
+        }
+
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        $currentStatus = $dgRecords[$targetIdx]['gerbang1']['status'] ?? '';
+        if (!in_array($currentStatus, ['MENUNGGU_SPM_AWAL', 'HOLD_ESKALASI_AWAL'], true)) {
+            http_response_code(409);
+            echo json_encode(['success' => false, 'error' => "Tahapan tidak valid: Status saat ini '{$currentStatus}'."]);
+            exit;
+        }
+
+        $newStatus = ($keputusan === 'SETUJU') ? 'MENUNGGU_DIVTEK_AWAL' : (($keputusan === 'REVISI') ? 'REVISI_SPM_AWAL' : 'DITOLAK_AWAL');
+        $nowWib = date('c');
+
+        $dgRecords[$targetIdx]['gerbang1']['status'] = $newStatus;
+        $dgRecords[$targetIdx]['gerbang1']['reviewDanny'] = [
+            'keputusan' => $keputusan,
+            'catatan' => $catatan,
+            'diverifikasiPada' => $nowWib,
+            'pejabat' => $currentUser['nama'] ?? 'Danny Taufik, S.H.'
+        ];
+        $dgRecords[$targetIdx]['gerbang1']['history'][] = [
+            'versi' => $dgRecords[$targetIdx]['gerbang1']['versi'] ?? 1,
+            'waktu' => $nowWib,
+            'event' => 'REVIEW_SPM_AWAL',
+            'keputusan' => $keputusan,
+            'status' => $newStatus,
+            'actor' => $currentUser['nama'] ?? 'Danny Taufik, S.H.',
+            'catatan' => $catatan
+        ];
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        // Jika SETUJU: Kirim notifikasi tindakan otomatis ke Deni Siswandi
+        $waLinkDeni = null;
+        if ($keputusan === 'SETUJU') {
+            antrekanEmailDualGate($mailQueueFile, [
+                'event'         => 'GERBANG1_SPM_APPROVED',
+                'idPenugasan'   => $idPenugasan,
+                'recipient'     => 'deni.siswandi@kjppnanangrahayu.com',
+                'recipientName' => 'Deni Siswandi, S.T. (Kepala Divisi Teknik)',
+                'subject'       => "[OPINI NSR - TINDAKAN] Permintaan Review Teknis Awal - ID: {$idPenugasan}",
+                'body'          => "Yth. Bpk. Deni Siswandi (Kepala Divisi Teknik),
+
+Pengajuan Lingkup Penugasan & Mitigasi Awal ID: {$idPenugasan} telah DISETUJUI oleh Kepala SPM (Bpk. Danny Taufik).
+Catatan SPM: {$catatan}
+
+Mohon kesediaan Bapak mereview aspek metodologi dan susunan tim teknis di Portal OPINI NSR."
+            ]);
+            $waPesan = "Halo Pak Deni (Kepala Divtek), mohon izin menginformasikan pengajuan Mitigasi Awal OPINI NSR Nomor {$idPenugasan} telah disetujui SPM dan siap untuk review teknis Bapak. Terima kasih.";
+            $waLinkDeni = generateWhatsAppNotificationLink('081381909504', $waPesan);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Review Kepala SPM berhasil disimpan: Keputusan '{$keputusan}'.",
+            'idPenugasan' => $idPenugasan,
+            'newStatus' => $newStatus,
+            'waManualLink' => $waLinkDeni
+        ]);
+        exit;
+    }
+
+    // 3. REVIEW DENI SISWANDI (KEPALA DIVTEK) PADA GERBANG 1 (STRICT GUARD!)
+    if ($action === 'reviewDeniGerbang1') {
+        if ($currentUser['role'] !== 'KEPALA_DIVTEK') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Deni Siswandi (Kepala Divisi Teknik) yang berwenang mengeksekusi review ini.']);
+            exit;
+        }
+
+        $idPenugasan = $payload['idPenugasan'] ?? '';
+        $keputusan = strtoupper(trim($payload['keputusan'] ?? ''));
+        $catatan = trim($payload['catatan'] ?? '');
+
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        // PENGAMAN MUTLAK: Deni HANYA BOLEH review jika Danny Taufik sudah SETUJU!
+        $currentStatus = $dgRecords[$targetIdx]['gerbang1']['status'] ?? '';
+        if ($currentStatus !== 'MENUNGGU_DIVTEK_AWAL') {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => "Pelanggaran Alur Kerja: Kepala Divisi Teknik tidak dapat memberikan review sebelum Kepala SPM memberi persetujuan (Status saat ini: '{$currentStatus}').",
+                'violation' => 'OUT_OF_ORDER_APPROVAL_ATTEMPT'
+            ]);
+            exit;
+        }
+
+        $newStatus = ($keputusan === 'SETUJU') ? 'SIAP_TERBIT_LP' : (($keputusan === 'REVISI') ? 'REVISI_DIVTEK_AWAL' : 'DITOLAK_AWAL');
+        $nowWib = date('c');
+
+        $dgRecords[$targetIdx]['gerbang1']['status'] = $newStatus;
+        $dgRecords[$targetIdx]['gerbang1']['reviewDeni'] = [
+            'keputusan' => $keputusan,
+            'catatan' => $catatan,
+            'diverifikasiPada' => $nowWib,
+            'pejabat' => $currentUser['nama'] ?? 'Deni Siswandi, S.T.'
+        ];
+        $dgRecords[$targetIdx]['gerbang1']['history'][] = [
+            'versi' => $dgRecords[$targetIdx]['gerbang1']['versi'] ?? 1,
+            'waktu' => $nowWib,
+            'event' => 'REVIEW_DIVTEK_AWAL',
+            'keputusan' => $keputusan,
+            'status' => $newStatus,
+            'actor' => $currentUser['nama'] ?? 'Deni Siswandi, S.T.',
+            'catatan' => $catatan
+        ];
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        // Jika SETUJU: Notifikasi hasil ke Admin Pusat & Pengaju
+        if ($keputusan === 'SETUJU') {
+            antrekanEmailDualGate($mailQueueFile, [
+                'event'         => 'GERBANG1_COMPLETED',
+                'idPenugasan'   => $idPenugasan,
+                'recipient'     => 'admin.operasional@kjppnanangrahayu.com',
+                'recipientName' => 'Admin Operasional KJPP NSR',
+                'subject'       => "[OPINI NSR - RESMI] Lingkup Penugasan & Mitigasi Awal Terverifikasi - ID: {$idPenugasan}",
+                'body'          => "Yth. Tim Operasional & Pengaju,
+
+Lingkup Penugasan ID: {$idPenugasan} telah disahkan oleh Kepala SPM dan Kepala Divisi Teknik.
+Status: SIAP_TERBIT_LP.
+Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
+            ]);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Review Kepala Divisi Teknik berhasil disimpan: Keputusan '{$keputusan}'.",
+            'idPenugasan' => $idPenugasan,
+            'newStatus' => $newStatus
+        ]);
+        exit;
+    }
+
+    // 4. PENERBITAN NOMOR LINGKUP PENUGASAN RESMI OLEH ADMIN PUSAT
+    if ($action === 'publishOfficialLP') {
+        if ($userRole !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Penerbitan nomor Lingkup Penugasan resmi mutlak wewenang Admin Kantor Pusat.']);
+            exit;
+        }
+
+        $idPenugasan = $payload['idPenugasan'] ?? '';
+        $nomorLpResmi = trim($payload['nomorLpResmi'] ?? '');
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        $currentStatus = $dgRecords[$targetIdx]['gerbang1']['status'] ?? '';
+        if (!in_array($currentStatus, ['SIAP_TERBIT_LP', 'LP_TERVERIFIKASI'], true)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => "Akses Ditolak: Lingkup Penugasan belum lengkap disetujui (Status: '{$currentStatus}')."]);
+            exit;
+        }
+
+        $nowWib = date('c');
+        $dgRecords[$targetIdx]['gerbang1']['status'] = 'LP_DITERBITKAN';
+        $dgRecords[$targetIdx]['gerbang1']['nomorLpResmi'] = $nomorLpResmi;
+        $dgRecords[$targetIdx]['gerbang1']['diterbitkanPada'] = $nowWib;
+        $dgRecords[$targetIdx]['gerbang1']['diterbitkanOleh'] = $currentUser['nama'] ?? $userDisplayName;
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Nomor Lingkup Penugasan resmi berhasil diterbitkan.',
+            'idPenugasan' => $idPenugasan,
+            'status' => 'LP_DITERBITKAN',
+            'nomorLpResmi' => $nomorLpResmi
+        ]);
+        exit;
+    }
+
+    // 5. SUBMIT PENGAJUAN NOLAP & SMART MITIGASI AKHIR (GERBANG 2)
+    if ($action === 'submitGerbang2Akhir') {
+        $idPenugasan = trim($payload['idPenugasan'] ?? '');
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        // PENGAMAN MUTLAK: NoLap tidak dapat diajukan jika Gerbang 1 belum sah!
+        $statusG1 = $dgRecords[$targetIdx]['gerbang1']['status'] ?? '';
+        if (!in_array($statusG1, ['SIAP_TERBIT_LP', 'LP_DITERBITKAN', 'LP_TERVERIFIKASI'], true)) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => "Prasyarat Tidak Terpenuhi: Pengajuan NoLap wajib terhubung dengan Lingkup Penugasan & Mitigasi Awal yang telah sah (Status saat ini: '{$statusG1}').",
+                'violation' => 'UNVERIFIED_LP_SUBMISSION_ATTEMPT'
+            ]);
+            exit;
+        }
+
+        $checklistAkhir = $payload['checklistAkhir'] ?? [];
+        $deltaAnalysis = $payload['deltaAnalysis'] ?? [];
+
+        // Evaluasi Red Flag Baru / Deviasi Material yang Belum Terjustifikasi
+        $hasUnjustifiedDeviation = !empty($deltaAnalysis['deviasiMaterialTanpaJustifikasi']) && $deltaAnalysis['deviasiMaterialTanpaJustifikasi'] === true;
+        $statusAkhir = $hasUnjustifiedDeviation ? 'HOLD_ESKALASI_AKHIR' : 'MENUNGGU_SPM_AKHIR';
+        $nowWib = date('c');
+
+        $versiG2 = ($dgRecords[$targetIdx]['gerbang2']['versi'] ?? 0) + 1;
+        $dgRecords[$targetIdx]['gerbang2'] = [
+            'status' => $statusAkhir,
+            'versi' => $versiG2,
+            'submittedAt' => $nowWib,
+            'submittedBy' => $currentUser['nama'] ?? $userDisplayName,
+            'checklistData' => $checklistAkhir,
+            'deltaAnalysis' => $deltaAnalysis,
+            'drafLaporanUrl' => $payload['drafLaporanUrl'] ?? '',
+            'baiUrl' => $payload['baiUrl'] ?? '',
+            'history' => array_merge($dgRecords[$targetIdx]['gerbang2']['history'] ?? [], [
+                ['versi' => $versiG2, 'waktu' => $nowWib, 'event' => 'SUBMIT_AKHIR', 'status' => $statusAkhir, 'actor' => $currentUser['nama'] ?? $userDisplayName]
+            ])
+        ];
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        // Antrekan Email ke Danny Taufik (Kepala SPM)
+        antrekanEmailDualGate($mailQueueFile, [
+            'event'         => 'GERBANG2_SUBMITTED',
+            'idPenugasan'   => $idPenugasan,
+            'recipient'     => 'danny.taufik@kjppnanangrahayu.com',
+            'recipientName' => 'Danny Taufik, S.H. (Kepala SPM)',
+            'subject'       => "[OPINI NSR] Permintaan Review NoLap & Mitigasi Akhir - ID: {$idPenugasan}",
+            'body'          => "Yth. Bpk. Danny Taufik (Kepala SPM),
+
+Draf Laporan & Smart Mitigasi Akhir telah diajukan untuk ID: {$idPenugasan}.
+Mohon memeriksa kelengkapan QC, BAI, dan ketiadaan deviasi material di Portal OPINI NSR."
+        ]);
+
+        $waPesan = "Halo Pak Danny (Kepala SPM), mohon izin menginformasikan pengajuan NoLap & Mitigasi Akhir OPINI NSR Nomor {$idPenugasan} telah diajukan. Mohon kesediaan Bapak untuk mereview. Terima kasih.";
+        $waLink = generateWhatsAppNotificationLink('081280445731', $waPesan);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Pengajuan NoLap & Smart Mitigasi Akhir berhasil didaftarkan.',
+            'idPenugasan' => $idPenugasan,
+            'status' => $statusAkhir,
+            'waManualLink' => $waLink
+        ]);
+        exit;
+    }
+
+    // 6. REVIEW DANNY TAUFIK (KEPALA SPM) PADA GERBANG 2
+    if ($action === 'reviewDannyGerbang2') {
+        if ($currentUser['role'] !== 'KEPALA_SPM') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Danny Taufik (Kepala SPM) yang berwenang mengeksekusi review ini.']);
+            exit;
+        }
+
+        $idPenugasan = $payload['idPenugasan'] ?? '';
+        $keputusan = strtoupper(trim($payload['keputusan'] ?? ''));
+        $catatan = trim($payload['catatan'] ?? '');
+
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        $currentStatus = $dgRecords[$targetIdx]['gerbang2']['status'] ?? '';
+        if (!in_array($currentStatus, ['MENUNGGU_SPM_AKHIR', 'HOLD_ESKALASI_AKHIR'], true)) {
+            http_response_code(409);
+            echo json_encode(['success' => false, 'error' => "Tahapan tidak valid: Status saat ini '{$currentStatus}'."]);
+            exit;
+        }
+
+        $newStatus = ($keputusan === 'SETUJU') ? 'MENUNGGU_DIVTEK_AKHIR' : (($keputusan === 'REVISI') ? 'REVISI_SPM_AKHIR' : 'DITOLAK_AKHIR');
+        $nowWib = date('c');
+
+        $dgRecords[$targetIdx]['gerbang2']['status'] = $newStatus;
+        $dgRecords[$targetIdx]['gerbang2']['reviewDanny'] = [
+            'keputusan' => $keputusan,
+            'catatan' => $catatan,
+            'diverifikasiPada' => $nowWib,
+            'pejabat' => $currentUser['nama'] ?? 'Danny Taufik, S.H.'
+        ];
+        $dgRecords[$targetIdx]['gerbang2']['history'][] = [
+            'versi' => $dgRecords[$targetIdx]['gerbang2']['versi'] ?? 1,
+            'waktu' => $nowWib,
+            'event' => 'REVIEW_SPM_AKHIR',
+            'keputusan' => $keputusan,
+            'status' => $newStatus,
+            'actor' => $currentUser['nama'] ?? 'Danny Taufik, S.H.',
+            'catatan' => $catatan
+        ];
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        // Notifikasi ke Deni jika SETUJU
+        $waLinkDeni = null;
+        if ($keputusan === 'SETUJU') {
+            antrekanEmailDualGate($mailQueueFile, [
+                'event'         => 'GERBANG2_SPM_APPROVED',
+                'idPenugasan'   => $idPenugasan,
+                'recipient'     => 'deni.siswandi@kjppnanangrahayu.com',
+                'recipientName' => 'Deni Siswandi, S.T. (Kepala Divisi Teknik)',
+                'subject'       => "[OPINI NSR - TINDAKAN] Permintaan Review Teknis NoLap Akhir - ID: {$idPenugasan}",
+                'body'          => "Yth. Bpk. Deni Siswandi (Kepala Divisi Teknik),
+
+Mitigasi Akhir NoLap ID: {$idPenugasan} telah DISETUJUI oleh Kepala SPM.
+Mohon kesediaan Bapak mereview kertas kerja dan kesesuaian nilai akhir."
+            ]);
+            $waPesan = "Halo Pak Deni (Kepala Divtek), mohon izin menginformasikan pengajuan NoLap OPINI NSR Nomor {$idPenugasan} telah disetujui SPM dan siap untuk review teknis akhir Bapak. Terima kasih.";
+            $waLinkDeni = generateWhatsAppNotificationLink('081381909504', $waPesan);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Review SPM Akhir berhasil disimpan: Keputusan '{$keputusan}'.",
+            'idPenugasan' => $idPenugasan,
+            'newStatus' => $newStatus,
+            'waManualLink' => $waLinkDeni
+        ]);
+        exit;
+    }
+
+    // 7. REVIEW DENI SISWANDI (KEPALA DIVTEK) PADA GERBANG 2 (STRICT GUARD!)
+    if ($action === 'reviewDeniGerbang2') {
+        if ($currentUser['role'] !== 'KEPALA_DIVTEK') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Deni Siswandi (Kepala Divisi Teknik) yang berwenang mengeksekusi review ini.']);
+            exit;
+        }
+
+        $idPenugasan = $payload['idPenugasan'] ?? '';
+        $keputusan = strtoupper(trim($payload['keputusan'] ?? ''));
+        $catatan = trim($payload['catatan'] ?? '');
+
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        // PENGAMAN MUTLAK: Deni hanya bisa review jika Danny sudah SETUJU!
+        $currentStatus = $dgRecords[$targetIdx]['gerbang2']['status'] ?? '';
+        if ($currentStatus !== 'MENUNGGU_DIVTEK_AKHIR') {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => "Pelanggaran Alur Kerja: Review Divisi Teknik Akhir tidak dapat dilakukan sebelum Kepala SPM memberi persetujuan (Status saat ini: '{$currentStatus}').",
+                'violation' => 'OUT_OF_ORDER_APPROVAL_ATTEMPT'
+            ]);
+            exit;
+        }
+
+        $newStatus = ($keputusan === 'SETUJU') ? 'SIAP_TERBIT_NOLAP' : (($keputusan === 'REVISI') ? 'REVISI_DIVTEK_AKHIR' : 'DITOLAK_AKHIR');
+        $nowWib = date('c');
+
+        $dgRecords[$targetIdx]['gerbang2']['status'] = $newStatus;
+        $dgRecords[$targetIdx]['gerbang2']['reviewDeni'] = [
+            'keputusan' => $keputusan,
+            'catatan' => $catatan,
+            'diverifikasiPada' => $nowWib,
+            'pejabat' => $currentUser['nama'] ?? 'Deni Siswandi, S.T.'
+        ];
+        $dgRecords[$targetIdx]['gerbang2']['history'][] = [
+            'versi' => $dgRecords[$targetIdx]['gerbang2']['versi'] ?? 1,
+            'waktu' => $nowWib,
+            'event' => 'REVIEW_DIVTEK_AKHIR',
+            'keputusan' => $keputusan,
+            'status' => $newStatus,
+            'actor' => $currentUser['nama'] ?? 'Deni Siswandi, S.T.',
+            'catatan' => $catatan
+        ];
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        // Jika SETUJU: Notifikasi ke Admin Pusat bahwa NoLap Siap Diterbitkan
+        if ($keputusan === 'SETUJU') {
+            antrekanEmailDualGate($mailQueueFile, [
+                'event'         => 'GERBANG2_COMPLETED',
+                'idPenugasan'   => $idPenugasan,
+                'recipient'     => 'admin.operasional@kjppnanangrahayu.com',
+                'recipientName' => 'Admin Pusat Jakarta',
+                'subject'       => "[OPINI NSR - SIAP TERBIT] Kedua Gerbang Mitigasi Disetujui - ID: {$idPenugasan}",
+                'body'          => "Yth. Admin Pusat,
+
+Kedua gerbang mitigasi untuk ID: {$idPenugasan} telah LENGKAP DISETUJUI oleh Kepala SPM & Kepala Divisi Teknik.
+Status: SIAP_TERBIT_NOLAP.
+Silakan menerbitkan Nomor Laporan Definitif resmi."
+            ]);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Review Divisi Teknik Akhir berhasil disimpan: Keputusan '{$keputusan}'.",
+            'idPenugasan' => $idPenugasan,
+            'newStatus' => $newStatus
+        ]);
+        exit;
+    }
+
+    // 8. PENERBITAN NOMOR LAPORAN DEFINITIF OLEH ADMIN PUSAT (STRICT GUARD!)
+    if ($action === 'issueDefinitiveNoLap') {
+        if ($userRole !== 'ADMIN_PUSAT') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Wewenang penerbitan NoLap definitif resmi mutlak milik Admin Kantor Pusat.']);
+            exit;
+        }
+
+        $idPenugasan = $payload['idPenugasan'] ?? '';
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        // PENGAMAN MUTLAK: NoLap TIDAK DAPAT DITERBITKAN jika belum SIAP_TERBIT_NOLAP!
+        $statusG2 = $dgRecords[$targetIdx]['gerbang2']['status'] ?? '';
+        if ($statusG2 !== 'SIAP_TERBIT_NOLAP') {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => "Akses Ditolak: Nomor Laporan Definitif hanya dapat diterbitkan jika kedua gerbang mitigasi telah berstatus 'SIAP_TERBIT_NOLAP' (Status saat ini: '{$statusG2}').",
+                'violation' => 'UNAPPROVED_NOLAP_ISSUANCE_ATTEMPT'
+            ]);
+            exit;
+        }
+
+        // Tentukan nomor definitif: Gunakan nomor yang disediakan atau generate unik 7 segmen
+        $noDefinitif = trim($payload['nomorLaporan'] ?? '');
+        if (empty($noDefinitif)) {
+            $seq = str_pad(count($dgRecords) + 530, 5, '0', STR_PAD_LEFT);
+            $romawiBulan = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][(int)date('n') - 1];
+            $penilaiIzin = (($dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '') === 'nanang_penilai') ? '0218' : '00581';
+            $noDefinitif = "{$seq}/2.0160-00/PI/07/{$penilaiIzin}/1/{$romawiBulan}/" . date('Y');
+        }
+
+        $nowWib = date('c');
+        $dgRecords[$targetIdx]['finalisasi']['nomorLaporanDefinitif'] = $noDefinitif;
+        $dgRecords[$targetIdx]['finalisasi']['diterbitkanPada'] = $nowWib;
+        $dgRecords[$targetIdx]['finalisasi']['diterbitkanOleh'] = $currentUser['nama'] ?? $userDisplayName;
+        $dgRecords[$targetIdx]['finalisasi']['statusTandaTangan'] = 'MENUNGGU_TTD_PENILAI';
+        $dgRecords[$targetIdx]['finalisasi']['statusAkhir'] = 'NOMOR_DITERBITKAN';
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        // Notifikasi ke Penilai Publik yang Ditugaskan
+        $penilaiSub = $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '';
+        $emailPenilai = ($penilaiSub === 'nanang_penilai') ? 'nanang.rahayu@kjppnanangrahayu.com' : 'deni.siswandi@kjppnanangrahayu.com';
+        antrekanEmailDualGate($mailQueueFile, [
+            'event'         => 'NOLAP_ISSUED_READY_SIGN',
+            'idPenugasan'   => $idPenugasan,
+            'recipient'     => $emailPenilai,
+            'recipientName' => $dgRecords[$targetIdx]['penugasan']['penilaiPublikDitunjuk'] ?? 'Penilai Publik',
+            'subject'       => "[OPINI NSR] Nomor Laporan Diterbitkan - Menunggu Tanda Tangan: {$noDefinitif}",
+            'body'          => "Yth. Penilai Publik Penanggung Jawab,
+
+Nomor Laporan Definitif telah resmi diterbitkan oleh Admin Pusat: {$noDefinitif}.
+Mohon melakukan pemeriksaan dokumen final dan membubuhkan tanda tangan resmi di Portal OPINI NSR."
+        ]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Nomor Laporan Definitif resmi berhasil diterbitkan.',
+            'idPenugasan' => $idPenugasan,
+            'nomorDefinitif' => $noDefinitif,
+            'statusTandaTangan' => 'MENUNGGU_TTD_PENILAI'
+        ]);
+        exit;
+    }
+
+    // 9. TANDA TANGAN RESMI PENILAI PUBLIK (TERPISAH DARI DIVTEK!)
+    if ($action === 'signLaporanPenilaiPublik') {
+        if ($currentUser['role'] !== 'PENILAI_PUBLIK') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Penilai Publik penanggung jawab berizin yang berwenang menandatangani laporan.']);
+            exit;
+        }
+
+        $idPenugasan = $payload['idPenugasan'] ?? '';
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $targetIdx = -1;
+        foreach ($dgRecords as $i => $r) {
+            if (($r['idPenugasan'] ?? '') === $idPenugasan) { $targetIdx = $i; break; }
+        }
+        if ($targetIdx < 0) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        // PENGAMAN MUTLAK: Hanya Penilai Publik yang DITUGASKAN yang boleh tanda tangan!
+        $assignedPenilaiId = $dgRecords[$targetIdx]['penugasan']['penilaiPublikId'] ?? '';
+        if ($currentUser['sub'] !== $assignedPenilaiId) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => "Pelanggaran Otoritas Penilai Publik: Penugasan ini terdaftar atas nama penanggung jawab '{$dgRecords[$targetIdx]['penugasan']['penilaiPublikDitunjuk']}'. Akun Anda ('{$currentUser['nama']}') tidak memiliki hak menandatangani penugasan ini.",
+                'violation' => 'UNASSIGNED_PARTNER_SIGN_ATTEMPT'
+            ]);
+            exit;
+        }
+
+        // Pastikan NoLap sudah terbit
+        if (empty($dgRecords[$targetIdx]['finalisasi']['nomorLaporanDefinitif'])) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Laporan belum memiliki Nomor Laporan Definitif resmi.']);
+            exit;
+        }
+
+        $nowWib = date('c');
+        $dgRecords[$targetIdx]['finalisasi']['statusTandaTangan'] = 'SIGNED';
+        $dgRecords[$targetIdx]['finalisasi']['penilaiPenandatangan'] = $currentUser['nama'] ?? $userDisplayName;
+        $dgRecords[$targetIdx]['finalisasi']['izinPenandatangan'] = $currentUser['izinMenkeu'] ?? '-';
+        $dgRecords[$targetIdx]['finalisasi']['metodeTandaTangan'] = $payload['metodeTandaTangan'] ?? 'DIGITAL_VERIFIED';
+        $dgRecords[$targetIdx]['finalisasi']['ditandatanganiPada'] = $nowWib;
+        $dgRecords[$targetIdx]['finalisasi']['statusAkhir'] = 'LAPORAN_FINAL';
+
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Laporan penilaian resmi berhasil ditandatangani oleh Penilai Publik Penanggung Jawab.',
+            'idPenugasan' => $idPenugasan,
+            'statusAkhir' => 'LAPORAN_FINAL',
+            'penilaiPenandatangan' => $currentUser['nama'] ?? $userDisplayName
+        ]);
+        exit;
+    }
+
     if ($action === 'saveMitigasi') {
         $noReq = $payload['noPermintaan'] ?? null;
         $tipe = $payload['tipeMitigasi'] ?? null;
@@ -2178,7 +3180,7 @@ if ($action === 'getMailQueue') {
         // AUDIT KEAMANAN: Memerlukan otorisasi darurat khusus dan konfirmasi formal
         $confirmMaint = $payload['confirmMaintenance'] ?? '';
         $maintKey = $_SERVER['HTTP_X_NSR_MAINTENANCE_KEY'] ?? ($payload['maintenanceKey'] ?? '');
-        $isKeyValid = (hash('sha256', trim($maintKey)) === 'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91' || $maintKey === 'NSR-MAINTENANCE-EMERGENCY-2026');
+        $isKeyValid = (hash('sha256', trim($maintKey)) === 'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91' );
 
         if ($confirmMaint !== 'AUTHORIZE_SPECIAL_MAINTENANCE_2026' || !$isKeyValid) {
             http_response_code(403);

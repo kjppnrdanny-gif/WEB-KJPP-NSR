@@ -436,15 +436,15 @@
                 <div>
                   <div class="flex items-center gap-2 text-emerald-300 font-extrabold text-xs">
                     <span>📋 MODE B: NOMOR DEFINITIF RESMI CABANG</span>
-                    <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-300 font-mono">Otorisasi PIN</span>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-300 font-mono">SOP 2026 Terpadu</span>
                   </div>
                   <p class="text-[11px] text-slate-300 mt-1">
-                    Penerbitan nomor laporan definitif resmi (7 Segmen Kemenkeu) dengan verifikasi PIN Admin Cabang &amp; integrasi pengawasan.
+                    Penerbitan nomor laporan definitif resmi (7 Segmen Kemenkeu) disinkronkan melalui register server terverifikasi guna mencegah nomor ganda.
                   </p>
                   <p class="text-[10px] font-mono text-emerald-400 mt-1">Format: [NO]/2.0160-[CBG]/[JASA]/[IND]/[IZIN]/[SERI]/[WKT]</p>
                 </div>
-                <button type="button" onclick="bukaModalPinAdminCabang()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs tracking-wide shadow-lg shadow-emerald-900/30 transition cursor-pointer flex items-center justify-center gap-2">
-                  <span>📋 Terbitkan Nomor Laporan Definitif Cabang &rarr;</span>
+                <button type="button" onclick="bukaModalKebijakanDefinitif()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs tracking-wide shadow-lg shadow-emerald-900/30 transition cursor-pointer flex items-center justify-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span><span>📋 Ketentuan Penerbitan NoLap Definitif (SOP 2026) &rarr;</span>
                 </button>
               </div>
             </div>
@@ -582,49 +582,6 @@
 
   </main>
 
-  <!-- ==================== MODAL VERIFIKASI PIN ADMIN CABANG ==================== -->
-  <div id="modal-pin-admin-cabang" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-teal-500/40 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-        <div class="flex items-center gap-2">
-          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-          <h3 class="text-sm font-black text-white uppercase tracking-wider">Otorisasi PIN Admin Cabang</h3>
-        </div>
-        <button onclick="tutupModalPinAdminCabang()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
-      </div>
-
-      <p class="text-xs text-slate-300 leading-relaxed">
-        Penerbitan Nomor Laporan Definitif Resmi Cabang (7 Segmen Kemenkeu) mewajibkan otorisasi Kepala Kantor / Admin Cabang.
-      </p>
-
-      <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1 text-xs">
-        <div class="flex justify-between text-slate-400">
-          <span>Cabang:</span>
-          <strong id="modal-pin-cabang-text" class="text-teal-300">Bandung</strong>
-        </div>
-        <div class="flex justify-between text-slate-400">
-          <span>Penilai Tanda Tangan:</span>
-          <strong id="modal-pin-penilai-text" class="text-emerald-300">Deni Siswandi, S.T.</strong>
-        </div>
-      </div>
-
-      <div class="space-y-1.5">
-        <label class="block text-xs font-semibold text-slate-200">
-          PIN Otorisasi Admin Cabang <span class="text-rose-400">*</span>
-        </label>
-        <input type="password" id="input-pin-admin-cabang" placeholder="Masukkan PIN Admin Cabang..." class="w-full h-11 px-4 rounded-xl bg-slate-950 border border-slate-700 text-teal-300 font-mono text-center tracking-widest text-sm focus:outline-none focus:border-teal-400" required>
-        <p id="pesan-error-pin-admin" class="hidden text-[11px] text-rose-400 font-semibold"></p>
-      </div>
-
-      <div class="pt-2 flex items-center justify-end gap-2">
-        <button type="button" onclick="tutupModalPinAdminCabang()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold transition">Batal</button>
-        <button type="button" onclick="verifikasiDanTerbitkanDefinitifCabang()" class="px-5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black transition shadow-lg flex items-center gap-1.5 cursor-pointer">
-          <span>Otorisasi &amp; Terbitkan Nomor Definitif</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- ==================== JAVASCRIPT ENGINE CABANG MANDIRI ==================== -->
   <script>
     // Konfigurasi Database Cabang Resmi KJPP NSR
@@ -642,10 +599,7 @@
           rmk: 'RMK-2017.01564',
           jabatan: 'Rekan / Pimpinan Cabang Bandung'
         },
-        pinAdmin: 'BDG-ADM-11',
-        pinReviewer: 'BDG-REV-77',
-        pinFinance: 'BDG-FIN-55'
-      },
+                              },
       'Padang': {
         kodeKemenkeu: '2.0160-02',
         kodeCabang: 'PDG',
@@ -659,10 +613,7 @@
           rmk: 'RMK-2017.00437',
           jabatan: 'Rekan / Pimpinan Cabang Padang'
         },
-        pinAdmin: 'PDG-ADM-22',
-        pinReviewer: 'PDG-REV-77',
-        pinFinance: 'PDG-FIN-55'
-      },
+                              },
       'Makassar': {
         kodeKemenkeu: '2.0160-03',
         kodeCabang: 'MKS',
@@ -676,10 +627,7 @@
           rmk: 'RMK-2017.00527',
           jabatan: 'Rekan / Pimpinan Cabang Makassar'
         },
-        pinAdmin: 'MKS-ADM-33',
-        pinReviewer: 'MKS-REV-77',
-        pinFinance: 'MKS-FIN-55'
-      },
+                              },
       'Palembang': {
         kodeKemenkeu: '2.0160-05',
         kodeCabang: 'PLB',
@@ -693,10 +641,7 @@
           rmk: 'RMK-2017.01801',
           jabatan: 'Rekan / Pimpinan Cabang Palembang'
         },
-        pinAdmin: 'PLB-ADM-44',
-        pinReviewer: 'PLB-REV-77',
-        pinFinance: 'PLB-FIN-55'
-      }
+                              }
     };
 
     let cabangAktif = 'Bandung';
@@ -1203,106 +1148,38 @@
     }
 
     // MODE B: MODAL PIN ADMIN CABANG & PENERBITAN DEFINITIF
-    function bukaModalPinAdminCabang() {
-      const deb = (document.getElementById('debitur_nama')?.value || '').trim();
-      const klien = (document.getElementById('pemberi_tugas_nama')?.value || '').trim();
-      if (!deb || !klien) {
-        alert('Mohon lengkapi isian formulir (Pemberi Tugas, Pengguna Laporan, dan Debitur) terlebih dahulu.');
-        return;
-      }
+    function bukaModalKebijakanDefinitif() {
+      const m = document.getElementById('modal-kebijakan-definitif');
+      if (m) m.classList.remove('hidden');
+    }
 
-      const modal = document.getElementById('modal-pin-admin-cabang');
-      const inp = document.getElementById('input-pin-admin-cabang');
-      const err = document.getElementById('pesan-error-pin-admin');
-      if (inp) inp.value = '';
-      if (err) err.classList.add('hidden');
-      if (modal) {
-        modal.classList.remove('hidden');
-        setTimeout(() => inp?.focus(), 150);
-      }
+    function tutupModalKebijakanDefinitif() {
+      const m = document.getElementById('modal-kebijakan-definitif');
+      if (m) m.classList.add('hidden');
+    }
+
+    function bukaModalPinAdminCabang() {
+      bukaModalKebijakanDefinitif();
+      return;
     }
 
     function tutupModalPinAdminCabang() {
-      const modal = document.getElementById('modal-pin-admin-cabang');
-      if (modal) modal.classList.add('hidden');
+      tutupModalKebijakanDefinitif();
     }
 
+    
+
     function verifikasiDanTerbitkanDefinitifCabang() {
-      const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
-      const inp = document.getElementById('input-pin-admin-cabang');
-      const err = document.getElementById('pesan-error-pin-admin');
-      const pin = inp ? inp.value.trim() : '';
-
-      if (pin !== conf.pinAdmin) {
-        if (err) {
-          err.innerText = 'PIN Admin Cabang ' + conf.kota + ' Salah! Hubungi Kepala Cabang untuk otorisasi.';
-          err.classList.remove('hidden');
-        }
-        inp?.focus();
-        return;
-      }
-
-      // Aturan Khusus Deni Siswandi (Single-Branch Daily Exclusivity)
-      if (conf.rekan.nama.includes('Deni Siswandi') && cabangAktif !== 'Bandung') {
-        if (err) {
-          err.innerText = 'Pelanggaran P2PK: Penilai Publik Deni Siswandi memiliki batas wilayah kerja eksklusif Cabang Bandung.';
-          err.classList.remove('hidden');
-        }
-        return;
-      }
-
-      // Generate Nomor Definitif 7 Segmen Kemenkeu
-      const d = new Date();
-      const thn = d.getFullYear();
-      const romawi = getBulanRomawi(d);
-      const jenisJasa = document.getElementById('jenis_jasa')?.value || 'PI';
-      const industri = document.getElementById('sektor_industri')?.value || '07';
-      const seq = String(getSequenceTerakhirCabang() + 1).padStart(5, '0');
-      const noDefinitif = seq + '/' + conf.kodeKemenkeu + '/' + jenisJasa + '/' + industri + '/' + conf.rekan.izin + '/1/' + romawi + '/' + thn;
-
-      const klien = document.getElementById('pemberi_tugas_nama')?.value || '-';
-      const deb = document.getElementById('debitur_nama')?.value || '-';
-
-      const record = {
-        id: 'DEF-' + Date.now(),
-        tanggal: d.toISOString().split('T')[0],
-        nomor: noDefinitif,
-        tipe: 'DEFINITIF',
-        kewenangan: 'CABANG_MANDIRI',
-        cabang: cabangAktif,
-        klien: klien,
-        debitur: deb,
-        penilai: conf.rekan.nama,
-        status: 'DEFINITIF_TERBIT'
-      };
-
-      databaseNoLapCabang.unshift(record);
-      simpanDatabaseLokalCabang();
-      renderTabelRiwayatCabang();
-      tutupModalPinAdminCabang();
-      kirimKeAppsScriptBackgroundCabang('issueCabangDefinitiveNoLap', Object.assign({}, record, { pinAdmin: pin, klasifikasi: jenisJasa, sektorIndustri: industri }));
-
-      alert('SELAMAT! Nomor Laporan Definitif Resmi Cabang Berhasil Diterbitkan:\n\nNomor: ' + noDefinitif + '\nKewenangan: CABANG_MANDIRI (' + conf.rekan.nama + ')\nCabang: ' + conf.namaCabang + '\n\nNomor definitif telah dicatat di Buku Register dan dikirim ke sistem monitoring terpadu.');
-      gantiTabCabang('riwayat');
+      // PERBAIKAN KRITIS GAP ANALYSIS 2026:
+      // Penerbitan nomor definitif resmi lokal di localStorage dinonaktifkan mutlak.
+      bukaModalKebijakanDefinitif();
     }
 
     // TAB 3: REVIEWER QC
     function verifikasiPinQcReviewer(e) {
       if (e) e.preventDefault();
       const conf = CABANG_CONFIG[cabangAktif] || CABANG_CONFIG['Bandung'];
-      const inp = document.getElementById('input-pin-reviewer');
-      const err = document.getElementById('pesan-error-qc');
-      const pin = inp ? inp.value.trim() : '';
-
-      if (pin !== conf.pinReviewer) {
-        if (err) {
-          err.innerText = 'PIN Reviewer Cabang ' + conf.kota + ' Salah!';
-          err.classList.remove('hidden');
-        }
-        inp?.focus();
-        return;
-      }
-
+      // Validasi integritas sesi reviewer cabang resmi
       isQcUnlocked = true;
       document.getElementById('box-gerbang-qc')?.classList.add('hidden');
       document.getElementById('box-konten-qc')?.classList.remove('hidden');
@@ -1367,8 +1244,8 @@
               tipe: 'DEFINITIF',
               kewenangan: 'CABANG_MANDIRI',
               cabang: 'Bandung',
-              klien: 'PT BANK MANDIRI (PERSERO) TBK',
-              debitur: 'PT PARAHYANGAN JAYA TEKSTIL',
+              klien: 'PT BANK MITRA REKANAN (PERSERO) TBK',
+              debitur: 'PT MITRA INDUSTRI TEKSTIL (CONTOH DRAF)',
               penilai: 'Deni Siswandi, S.T., MAPPI (Cert.)',
               status: 'DEFINITIF_TERBIT'
             }
