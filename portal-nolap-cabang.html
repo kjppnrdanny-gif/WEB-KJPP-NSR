@@ -379,9 +379,10 @@
               <div>
                 <label class="block text-xs font-semibold text-slate-300 mb-1">Jenis Jasa Penilaian (Segmen 3)</label>
                 <select id="jenis_jasa" onchange="sinkronkanSegmenLive()" class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-teal-400">
-                  <option value="PI" selected>PI - Penilaian Properti Komersial / Industri</option>
-                  <option value="PS">PS - Penilaian Properti Sederhana (Residensial / Ruko)</option>
-                  <option value="PP">PP - Penilaian Personal Properti (Mesin &amp; Alat Berat)</option>
+                  <option value="PROPERTY" data-report-code="PI" selected>PI - Penilaian Properti (Komersial / Industri / Lahan)</option>
+                  <option value="PROPERTY_SIMPLE" data-report-code="PI">PI - Penilaian Properti Sederhana (Residensial / Ruko)</option>
+                  <option value="BUSINESS" data-report-code="BS">BS - Penilaian Bisnis</option>
+                  <option value="PERSONAL_PROPERTY" data-report-code="PP">PP - Penilaian Personal Properti (Mesin &amp; Alat Berat)</option>
                 </select>
               </div>
 
@@ -1023,7 +1024,11 @@
       const thn = d.getFullYear() || 2026;
       const romawi = getBulanRomawi(d);
 
-      const jenisJasa = document.getElementById('jenis_jasa')?.value || 'PI';
+      const elJenisJasa = document.getElementById('jenis_jasa');
+      const optJenisJasa = elJenisJasa?.options[elJenisJasa.selectedIndex];
+      const rawJasaVal = elJenisJasa?.value || 'PROPERTY';
+      // P0 SE-6/PPPK/2018: Segmen 3 HANYA boleh PI, BS, atau PP (Dilarang keras PS!)
+      const jenisJasa = optJenisJasa?.getAttribute('data-report-code') || ((rawJasaVal === 'PS' || rawJasaVal === 'PROPERTY_SIMPLE' || rawJasaVal.indexOf('SEDERHANA') !== -1) ? 'PI' : ((rawJasaVal === 'BS' || rawJasaVal === 'BUSINESS') ? 'BS' : ((rawJasaVal === 'PP' || rawJasaVal === 'PERSONAL_PROPERTY') ? 'PP' : 'PI')));
       const industri = document.getElementById('sektor_industri')?.value || '07';
       const izinRekan = conf.rekan.izin;
       const kodeKantor = conf.kodeKemenkeu;

@@ -255,7 +255,7 @@ function handleSubmitPengajuanNoLap(data) {
   row[8]  = data.alamatKlien || '';                         // 9 (I): Alamat Lengkap Pemberi Tugas
   row[9]  = data.emailKlien || data.emailPemberiTugas || '';// 10 (J): Email Pemberi Tugas
   row[10] = data.kontakKlien || data.nomorKontakKlien || '';// 11 (K): Nomor Kontak Klien
-  row[11] = data.klasifikasiJasa || data.klasifikasiObjek || ''; // 12 (L): Klasifikasi Objek
+  row[11] = data.service_classification_name || data.service_classification_id || data.klasifikasiJasa || data.klasifikasiObjek || 'Penilaian Properti'; // 12 (L): Klasifikasi Objek
   row[12] = data.tujuanPenilaian || '';                     // 13 (M): Tujuan Penilaian
   row[13] = data.jenisObjek || '';                          // 14 (N): Jenis Objek
   row[14] = data.lokasiObjek || '';                         // 15 (O): Lokasi Objek
@@ -913,11 +913,13 @@ function handleIssueCabangDefinitiveNoLap(data) {
   const thn = Utilities.formatDate(now, "Asia/Jakarta", "yyyy");
   const blnIndex = now.getMonth();
   const romawiBln = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][blnIndex] || 'X';
-  const klasifikasi = (data.klasifikasi || data.jenisJasa || 'PI').toString().trim();
+  const rawJasa = (data.report_service_code || data.service_classification_id || data.klasifikasi || data.jenisJasa || 'PI').toString().trim().toUpperCase();
+  // P0 GUARD & SE-6/PPPK/2018: Segmen 3 HANYA PI, BS, atau PP (DILARANG PS!)
+  const reportCode = (rawJasa === 'PS' || rawJasa === 'PROPERTY_SIMPLE' || rawJasa.indexOf('SEDERHANA') !== -1) ? 'PI' : ((rawJasa === 'BS' || rawJasa === 'BUSINESS') ? 'BS' : ((rawJasa === 'PP' || rawJasa === 'PERSONAL_PROPERTY') ? 'PP' : 'PI'));
   const sektor = (data.sektorIndustri || data.kodeIndustri || '07').toString().trim();
 
-  // 7 Segmen Format: 00045/2.0160-04/PI/07/00581/1/X/2026
-  const noDefinitif = `${nextSeqStr}/${conf.kodeKemenkeu}/${klasifikasi}/${sektor}/${conf.izin}/1/${romawiBln}/${thn}`;
+  // 7 Segmen Format Resmi: 00045/2.0160-04/PI/07/00581/1/X/2026
+  const noDefinitif = `${nextSeqStr}/${conf.kodeKemenkeu}/${reportCode}/${sektor}/${conf.izin}/1/${romawiBln}/${thn}`;
 
   // 4. Catat ke sheet PENGAJUAN
   const lastCol = Math.max(sheet.getLastColumn(), 53);
