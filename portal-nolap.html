@@ -13503,15 +13503,22 @@
           tabBtnPengajuan.style.removeProperty('display');
           tabBtnPengajuan.innerHTML = '<span>📁 1. Form Pengajuan NoLap</span>';
         }
+        if (tabBtnSpm) {
+          tabBtnSpm.classList.remove('hidden');
+          tabBtnSpm.style.removeProperty('display');
+          tabBtnSpm.style.display = 'flex';
+          tabBtnSpm.removeAttribute('hidden');
+          tabBtnSpm.innerHTML = '<span>🛡️ 2. Smart Mitigasi &amp; SPM</span>';
+        }
         if (tabBtnRiwayat) {
           tabBtnRiwayat.classList.remove('hidden');
           tabBtnRiwayat.style.removeProperty('display');
           const cabangNama = (activeUser && activeUser.cabang) ? activeUser.cabang : 'Cabang';
-          tabBtnRiwayat.innerHTML = `<span>📋 2. Riwayat Permohonan Cabang (${cabangNama})</span>`;
+          tabBtnRiwayat.innerHTML = `<span>📋 3. Riwayat Permohonan Cabang (${cabangNama})</span>`;
         }
 
-        // SEMBUNYIKAN SEPENUHNYA DARI BILAH TAB (Tab 3 Approval, Tab 4 eLSa, Tab 5 SPM, Tab 6 Monitoring)
-        [tabBtnSpm, tabBtnApproval, tabBtnElsa, tabBtnMonitoring].forEach(tab => {
+        // SEMBUNYIKAN HANYA TAB KHUSUS PUSAT (Tab 3 Approval Pusat, Tab 4 eLSa, Tab 6 Monitoring)
+        [tabBtnApproval, tabBtnElsa, tabBtnMonitoring].forEach(tab => {
           if (tab) {
             tab.classList.add('hidden');
             tab.classList.remove('flex');
@@ -13520,7 +13527,7 @@
           }
         });
 
-        // Auto-filter pada Tab 2 Riwayat Permohonan Cabang
+        // Auto-filter pada Tab 3 Riwayat Permohonan Cabang
         if (activeUser && activeUser.cabang) {
           const selFilter = document.getElementById('filter-cabang');
           if (selFilter) {
@@ -13533,8 +13540,8 @@
           }
         }
 
-        // Pastikan cabang tidak tertahan di panel terlarang
-        const isHiddenPanelActive = ['spm', 'approval', 'elsa', 'monitoring'].some(k => {
+        // Pastikan cabang tidak tertahan di panel terlarang (khusus Meja Pusat)
+        const isHiddenPanelActive = ['approval', 'elsa', 'monitoring'].some(k => {
           const p = document.getElementById('panel-' + k);
           return p && !p.classList.contains('hidden') && p.style.display !== 'none';
         });
@@ -14058,6 +14065,7 @@
         tokenHash: saltedHash
       };
     }
+    window.resolveUnifiedTokenNoLap = resolveUnifiedTokenNoLap;
 
     async function periksaSesiServer() {
       // 0. Cek session tersimpan dengan verifikasi kriptografis anti-tampering
@@ -14072,6 +14080,7 @@
             window.currentUser = sesiAktif;
             currentUser = sesiAktif;
             aktifkanPanelUtama();
+            inisialisasiSesiPengguna(sesiAktif);
             applyRBAC(sesiAktif);
             return;
           }
@@ -14107,6 +14116,7 @@
             sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token || auth.tokenHash);
             sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
             aktifkanPanelUtama();
+            inisialisasiSesiPengguna(sesiAktif);
             applyRBAC(sesiAktif);
             return;
           }
@@ -14139,6 +14149,7 @@
             };
             sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
             aktifkanPanelUtama();
+            inisialisasiSesiPengguna(sesiAktif);
             applyRBAC(sesiAktif);
             return;
           }
@@ -14190,6 +14201,7 @@
         sessionStorage.setItem('NSR_AUTH_TOKEN', tokenAuth.token || tokenAuth.tokenHash);
         sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
         aktifkanPanelUtama();
+        inisialisasiSesiPengguna(sesiAktif);
         applyRBAC(sesiAktif);
         return;
       }
@@ -14257,6 +14269,25 @@
       }
     }
 
+    function inisialisasiSesiPengguna(sesi) {
+      if (!sesi) return;
+      const selectCabang = document.getElementById('f-cabang');
+      if (selectCabang && sesi.cabang && sesi.cabang !== 'Pusat') {
+        selectCabang.value = sesi.cabang;
+      }
+      if (typeof onCabangChange === 'function') {
+        onCabangChange();
+      }
+      const elPemohon = document.getElementById('f-pemohon');
+      const elJabatan = document.getElementById('f-jabatan');
+      if (elPemohon && sesi.nama && !elPemohon.value) {
+        elPemohon.value = sesi.nama;
+      }
+      if (elJabatan && sesi.jabatan && !elJabatan.value) {
+        elJabatan.value = sesi.jabatan;
+      }
+    }
+
     function aktifkanPanelUtama() {
       if (!sesiAktif) return;
       document.getElementById('box-auth-token').classList.add('hidden');
@@ -14303,8 +14334,11 @@
 
       // Set cabang otomatis pada form sesuai sesi staf jika bukan admin
       const selectCabang = document.getElementById('f-cabang');
-      if (selectCabang && sesiAktif.cabang !== 'Pusat') {
+      if (selectCabang && sesiAktif.cabang && sesiAktif.cabang !== 'Pusat') {
         selectCabang.value = sesiAktif.cabang;
+      }
+      if (typeof onCabangChange === 'function') {
+        onCabangChange();
       }
 
       // Auto-prefill data pemohon jika ada dari identitas NIK karyawan
@@ -14495,6 +14529,25 @@
     }
 
     function onCabangChange() {
+      const elCabang = document.getElementById('f-cabang');
+      const elPenilai = document.getElementById('f-penilai');
+      const valCabang = elCabang?.value;
+
+      // Otomatis sinkronkan Rekan Penilai Publik penandatangan sesuai cabang
+      if (elPenilai && valCabang) {
+        if (valCabang === 'Makassar') {
+          elPenilai.value = 'Muhammad Amin Sade';
+        } else if (valCabang === 'Bandung') {
+          elPenilai.value = 'Deni Siswandi';
+        } else if (valCabang === 'Padang') {
+          elPenilai.value = 'Hernita';
+        } else if (valCabang === 'Palembang') {
+          elPenilai.value = 'Dharma Priyanto Sih Budi Susilo';
+        } else if (valCabang === 'Pusat') {
+          elPenilai.value = 'Nanang Rahayu';
+        }
+      }
+
       validasiKetersediaanPenilaiHarian(false);
       updateLivePreview();
     }
@@ -19386,8 +19439,9 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       if (tabKey === 'register') tabKey = 'riwayat';
       if (tabKey === 'laporan') tabKey = 'elsa';
 
-      // Proteksi Akses Ketat: Tab 3 (Approval), Tab 4 (eLSa), Tab 5 (SPM), Tab 6 (Monitoring) HANYA untuk Admin Pusat!
-      if (['approval', 'elsa', 'spm', 'monitoring'].includes(tabKey) && !isSuperOrAdminPusat()) {
+      // Proteksi Akses Ketat: Tab Approval, Tab eLSa, Tab Monitoring HANYA untuk Admin Pusat!
+      // Tab Pengajuan, Tab Mitigasi SPM (Draf & Pengajuan), dan Riwayat Cabang terbuka untuk Cabang
+      if (['approval', 'elsa', 'monitoring'].includes(tabKey) && !isSuperOrAdminPusat()) {
         alert('🔒 Akses Dibatasi: Modul ' + tabKey.toUpperCase() + ' hanya dapat diakses oleh Admin Kantor Pusat.');
         return;
       }
@@ -20511,8 +20565,8 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
         if (c.includes('padang')) { penilai = 'Hernita, S.E., M.Si.'; izin = 'PS.0046'; }
         else if (c.includes('bandung')) { penilai = 'Deni Siswandi, S.T., M.Ec.Dev.'; izin = '00581'; }
         else if (c.includes('palembang')) { penilai = 'Dharma Priyanto Sih Budi Susilo'; izin = 'PS.0249'; }
-        else if (c.includes('makassar')) { penilai = 'Muhammad Amin Sade, S.T.'; izin = '00581'; }
-        else { penilai = 'Ir. Nanang Rahayu Junaedi, M.Sc.'; izin = '00581'; }
+        else if (c.includes('makassar')) { penilai = 'Muhammad Amin Sade, S.M., MAPPI (Cert.)'; izin = 'PS.0126'; }
+        else { penilai = 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)'; izin = '0218'; }
       }
 
       return {
