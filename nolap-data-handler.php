@@ -1537,7 +1537,7 @@ function evaluasiKonsistensiGerbang2Engine($record, $payloadAkhir) {
     $tigaPembandingTersedia = !empty($checklistAkhir['tigaPembandingTersedia']);
     $hasUnjustifiedDev = !empty($deltaAnalysis['deviasiMaterialTanpaJustifikasi']) && $deltaAnalysis['deviasiMaterialTanpaJustifikasi'] === true;
 
-    // Evaluasi Luas Fisik vs Yuridis
+    // Evaluasi Luas Fisik vs Yuridis (Kalkulator Diagnostik Faktual Internal KJPP NSR)
     $luasYuridis = (float)($deltaAnalysis['luasYuridis'] ?? 0);
     $luasFisik = (float)($deltaAnalysis['luasFisik'] ?? 0);
     $persenDeviasi = 0;
@@ -1549,35 +1549,68 @@ function evaluasiKonsistensiGerbang2Engine($record, $payloadAkhir) {
     $escalationLevel = 'NORMAL';
     $reasons = [];
 
-    if ($hasUnjustifiedDev || $persenDeviasi > 15) {
-        $outcome = 'MATERIAL_CHANGE_REVIEW';
-        $escalationLevel = 'MANDATORY_LP_REVISION';
-        $reasons[] = 'Terjadi deviasi luas material (> 15% atau tanpa justifikasi tertulis). Memerlukan peninjauan ulang Lingkup Penugasan.';
-    } elseif ($persenDeviasi > 5 && $persenDeviasi <= 15) {
-        if (!empty($deltaAnalysis['keterangan']) || !empty($payloadAkhir['baiUrl'])) {
-            $outcome = 'RESOLVED_WITH_EVIDENCE';
-            $escalationLevel = 'NORMAL_WITH_DISCLOSURE';
-            $reasons[] = 'Terdapat deviasi luas ' . $persenDeviasi . '%, namun telah didukung Berita Acara Inspeksi dan penjelasan pengungkapan.';
-        } else {
-            $outcome = 'INSUFFICIENT_EVIDENCE';
-            $escalationLevel = 'HOLD_PENDING_EVIDENCE';
-            $reasons[] = 'Terdapat deviasi luas ' . $persenDeviasi . '% tetapi belum dilengkapi penjelasan atau BAI.';
+    // 1. Audit Red Flag Legalitas (Sengketa, Sita, Pemblokiran BPN, atau Perkara Yuridis)
+    // Sesuai prinsip hukum, risiko legalitas memicu HOLD secara mandiri terlepas dari persentase deviasi luas fisik.
+    $redFlagLegalitas = !empty($checklistAkhir['redFlagLegalitas']) || 
+                        !empty($deltaAnalysis['redFlagLegalitas']) ||
+                        !empty($deltaAnalysis['isSengketa']) ||
+                        !empty($deltaAnalysis['isSitaBlokir']);
+
+    if ($redFlagLegalitas) {
+        $outcome = 'HOLD_LEGAL_ISSUE';
+        $escalationLevel = 'HOLD_PENDING_MITIGATION';
+        $reasons[] = 'Terdeteksi Red Flag Legalitas (sengketa kepemilikan/blokir BPN/sita eksekusi/perkara hukum). Penugasan wajib di-HOLD untuk mitigasi risiko hukum sesuai prinsip SPI 103 & 105.';
+    }
+
+    // 2. Evaluasi Materialitas Deviasi Luas (Kalkulator Faktual & Pertimbangan Profesional KPUP 14)
+    $hasJustifikasi = !empty($deltaAnalysis['justifikasiPenilai']) || !empty($deltaAnalysis['keterangan']) || !empty($payloadAkhir['baiUrl']) || !empty($deltaAnalysis['baiUrl']);
+
+    if (!$redFlagLegalitas) {
+        if ($persenDeviasi > 15) {
+            if ($hasJustifikasi) {
+                // Deviasi luas > 15% dengan justifikasi tertulis dan BAI diselesaikan secara profesional
+                $outcome = 'RESOLVED_WITH_EVIDENCE';
+                $escalationLevel = 'NORMAL_WITH_DISCLOSURE';
+                $reasons[] = 'Teridentifikasi deviasi luas ' . $persenDeviasi . '% (skrining internal > 15%), namun telah dijustifikasi secara tertulis oleh Penilai Publik dan didukung Berita Acara Inspeksi (BAI) sesuai pertimbangan materialitas KPUP 14 & SPI 104.';
+            } else {
+                // Belum ada justifikasi tertulis/BAI: minta konfirmasi dan pertimbangan profesional Penilai
+                $outcome = 'MATERIAL_CHANGE_REVIEW';
+                $escalationLevel = 'ADVISORY_JUSTIFICATION_REQUIRED';
+                $reasons[] = 'Teridentifikasi deviasi luas ' . $persenDeviasi . '% (> 15% batas skrining internal) tanpa justifikasi tertulis atau BAI. Memerlukan konfirmasi profesional Penilai Publik dan telaah perubahan Lingkup Penugasan (SPI 103 Klausul 5.5).';
+            }
+        } elseif ($persenDeviasi > 5 && $persenDeviasi <= 15) {
+            if ($hasJustifikasi) {
+                $outcome = 'RESOLVED_WITH_EVIDENCE';
+                $escalationLevel = 'NORMAL_WITH_DISCLOSURE';
+                $reasons[] = 'Terdapat deviasi luas ' . $persenDeviasi . '%, telah didukung Berita Acara Inspeksi dan penjelasan pengungkapan profesional.';
+            } else {
+                $outcome = 'INSUFFICIENT_EVIDENCE';
+                $escalationLevel = 'HOLD_PENDING_EVIDENCE';
+                $reasons[] = 'Terdapat deviasi luas ' . $persenDeviasi . '% tetapi belum dilengkapi penjelasan tertulis atau BAI.';
+            }
+        } elseif ($persenDeviasi > 0 && $persenDeviasi <= 5) {
+            $outcome = 'CONSISTENT_AND_VERIFIED';
+            $escalationLevel = 'NORMAL';
+            $reasons[] = 'Deviasi luas fisik vs yuridis sebesar ' . $persenDeviasi . '% berada dalam batas toleransi wajar (<= 5%) dan diungkapkan dalam catatan laporan.';
         }
     }
 
+    // 3. Verifikasi Bukti Wajib Pengendalian (Foto Geotag & 3 Pembanding Pasar)
     if (!$fotoGeotagLengkap || !$tigaPembandingTersedia) {
         $outcome = 'INSUFFICIENT_EVIDENCE';
         $escalationLevel = 'HOLD_PENDING_EVIDENCE';
         $reasons[] = 'Bukti foto geotag atau minimal 3 data pembanding belum lengkap memenuhi standar SPI 104.';
     }
 
-    $allowNolap = in_array($outcome, ['CONSISTENT_AND_VERIFIED', 'RESOLVED_WITH_EVIDENCE'], true);
+    // Nomor Laporan diizinkan terbit HANYA jika status CONSISTENT_AND_VERIFIED atau RESOLVED_WITH_EVIDENCE dan TIDAK ADA Red Flag Legalitas
+    $allowNolap = in_array($outcome, ['CONSISTENT_AND_VERIFIED', 'RESOLVED_WITH_EVIDENCE'], true) && !$redFlagLegalitas;
 
     return [
         'outcome' => $outcome,
         'escalationLevel' => $escalationLevel,
         'allowNolap' => $allowNolap,
         'persenDeviasi' => $persenDeviasi,
+        'redFlagLegalitas' => $redFlagLegalitas,
         'reasons' => $reasons,
         'evaluatedAt' => date('c')
     ];
@@ -1675,8 +1708,22 @@ function generateWhatsAppNotificationLink($noHp, $pesan) {
     return 'https://wa.me/' . $cleanHp . '?text=' . rawurlencode($pesan);
 }
 
+function resolveMasterPersonelKontakPath($mastersDir) {
+    $candidates = [
+        getenv('OPINI_PROTECTED_DATA_DIR') ? getenv('OPINI_PROTECTED_DATA_DIR') . '/master_personel_kontak.json' : null,
+        dirname(__DIR__) . '/data_private/master_personel_kontak.json',
+        dirname(__DIR__) . '/data/masters/master_personel_kontak.json',
+        $mastersDir . '/master_personel_kontak.json',
+        __DIR__ . '/data/masters/master_personel_kontak.json'
+    ];
+    foreach ($candidates as $c) {
+        if ($c && file_exists($c)) return $c;
+    }
+    return $mastersDir . '/master_personel_kontak.json';
+}
+
 function muatMasterPersonelKontak($mastersDir) {
-    $f = $mastersDir . '/master_personel_kontak.json';
+    $f = resolveMasterPersonelKontakPath($mastersDir);
     if (!file_exists($f)) return [];
     $data = json_decode(file_get_contents($f), true);
     return $data['personel'] ?? [];
@@ -1777,6 +1824,8 @@ function formatPesanWhatsApp($eventType, $requesterName, $idPenugasan, $noPermin
     ][$eventType] ?? 'Pemberitahuan Status OPINI NSR';
 
     $klien = $details['namaKlien'] ?? '-';
+    $isBooking = ($eventType === 'BOOKING_NOLAP') || (!empty($details['is_booking'])) || (($details['modePengajuan'] ?? '') === 'BOOKING');
+    $bookingBanner = $isBooking ? "⚠️ *[PERHATIAN - ALOKASI BOOKING]*\n_Nomor Laporan Ini Merupakan Alokasi Booking / Pencadangan Resmi Pemerintah/BUMN. Dokumen Ini BUKAN Laporan Final dan Belum Memiliki Pengesahan Definitif._\n--------------------------------------\n" : "";
     $nomor = $details['nomorLaporan'] ?? ($details['nomorLp'] ?? ($details['noPermintaan'] ?? $idPenugasan));
     $status = $details['status'] ?? 'TERVERIFIKASI';
     $catatan = $details['catatan'] ?? 'Proses administrasi berjalan sesuai SOP OPINI NSR.';
@@ -1785,6 +1834,7 @@ function formatPesanWhatsApp($eventType, $requesterName, $idPenugasan, $noPermin
     $msg = "Yth. Rekan Penilai / Admin Pengaju *{$requesterName}*,\n\n";
     $msg .= "🔔 *[OPINI NSR] {$judulEvent}*\n";
     $msg .= "--------------------------------------\n";
+    $msg .= $bookingBanner;
     $msg .= "• ID Penugasan : *{$idPenugasan}*\n";
     if ($noPermintaan && $noPermintaan !== $idPenugasan) {
         $msg .= "• No. Permintaan: *{$noPermintaan}*\n";
@@ -1811,20 +1861,34 @@ function kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $reque
 
     $logs = file_exists($notifLogsFile) ? (json_decode(file_get_contents($notifLogsFile), true) ?: []) : [];
 
-    $idempotencyKey = $eventType . '_' . $idPenugasan . '_' . ($details['status'] ?? '');
+    $recipientEmail = trim($requesterInfo['email'] ?? '');
+    $requesterName = trim($requesterInfo['nama'] ?? 'Rekan Penilai');
+    $rawWa = trim($requesterInfo['whatsapp_number'] ?? '');
+    $normalizedWa = normalisasiNomorWhatsApp($rawWa);
+    $targetId = !empty($idPenugasan) ? $idPenugasan : ($noPermintaan ?: 'UNASSIGNED');
+    $statusCurrent = trim((string)($details['status'] ?? 'UPDATE'));
+    $notificationVersion = trim((string)($details['notification_version'] ?? ($details['version'] ?? '1')));
+    $channel = trim((string)($details['channel'] ?? 'ALL'));
+
+    // P0 IDEMPOTENSI PERMANEN: Deterministic SHA256 Hash menghubungkan ID Permohonan, Event, Status, Versi, Penerima, dan Kanal
+    $permanentDigest = hash('sha256', "{$targetId}|{$eventType}|{$statusCurrent}|{$notificationVersion}|{$recipientEmail}|{$normalizedWa}|{$channel}");
+    $idempotencyKey = "{$eventType}_{$targetId}_{$statusCurrent}_v{$notificationVersion}";
+
     foreach ($logs as $l) {
-        if (($l['idempotency_key'] ?? '') === $idempotencyKey) {
-            $timeDiff = strtotime($nowWib) - strtotime($l['notification_timestamp'] ?? '1970-01-01');
-            if ($timeDiff < 300) {
-                return [
-                    'success' => true,
-                    'duplicate_prevented' => true,
-                    'event_id' => $l['notification_event_id'] ?? '',
-                    'email_status' => $l['email_delivery_status'] ?? 'QUEUED',
-                    'whatsapp_url' => $l['whatsapp_url'] ?? '',
-                    'message' => 'Notifikasi serupa telah dicatat sebelumnya (Anti-Duplikasi).'
-                ];
-            }
+        // Blokir PERMANEN jika digest yang sama sudah ada (tanpa batas waktu cooldown)
+        if (($l['idempotency_digest'] ?? '') === $permanentDigest ||
+            (($l['idempotency_key'] ?? '') === $idempotencyKey && ($l['notification_version'] ?? '1') === $notificationVersion)) {
+            return [
+                'success' => true,
+                'duplicate_prevented' => true,
+                'reason' => 'PERMANENT_IDEMPOTENCY_MATCH',
+                'event_id' => $l['notification_event_id'] ?? '',
+                'email_status' => $l['email_delivery_status'] ?? 'QUEUED',
+                'whatsapp_url' => $l['whatsapp_url'] ?? '',
+                'notification_version' => $l['notification_version'] ?? '1',
+                'first_sent_at' => $l['notification_timestamp'] ?? '',
+                'message' => 'Pemberitahuan telah terkirim sebelumnya dan terlindungi secara permanen oleh Anti-Duplikasi Idempoten.'
+            ];
         }
     }
 
@@ -1888,7 +1952,11 @@ function kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $reque
 
     $logEntry = [
         'notification_event_id' => $eventId,
-        'idempotency_key'       => $idempotencyKey,
+        'idempotency_key'           => $idempotencyKey,
+        'idempotency_digest'        => $permanentDigest,
+        'notification_version'      => $notificationVersion,
+        'audit_parent_id'           => $details['audit_parent_id'] ?? null,
+        'is_revision'               => !empty($details['audit_parent_id']) || $notificationVersion !== '1',
         'event_type'            => $eventType,
         'id_penugasan'          => $idPenugasan,
         'no_permintaan'         => $noPermintaan,
@@ -1912,6 +1980,8 @@ function kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $reque
     return [
         'success' => true,
         'event_id' => $eventId,
+        'notification_version' => $notificationVersion,
+        'idempotency_digest' => $permanentDigest,
         'email_status' => $emailQueued ? 'QUEUED' : 'SKIPPED',
         'whatsapp_url' => $waUrl,
         'recipient' => $recipientEmail,
@@ -3229,6 +3299,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'testDispatchNotification') {
+        if (!in_array($userRole, ['SUPER_ADMIN', 'ADMIN_PUSAT'], true)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Akses ditolak: Hanya Super Admin / Admin Pusat yang dapat memicu notifikasi uji coba.']);
+            exit;
+        }
+        $eventType = trim($payload['eventType'] ?? 'UPDATE_STATUS');
+        $idPenugasan = trim($payload['idPenugasan'] ?? '');
+        $noPermintaan = trim($payload['noPermintaan'] ?? $idPenugasan);
+        $requesterInfo = $payload['requesterInfo'] ?? [
+            'email' => 'kjppnr.danny@gmail.com',
+            'nama' => 'Danny Taufik Hidayat',
+            'whatsapp_number' => '081298765432'
+        ];
+        $details = $payload['details'] ?? [];
+        $res = kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $requesterInfo, $details, $dataDir);
+        echo json_encode(array_merge(['success' => true], $res));
+        exit;
+    }
+
     if ($action === 'saveOfficialRegister') {
         if (!in_array($userRole, ['SUPER_ADMIN', 'ADMIN_PUSAT'], true)) {
             http_response_code(403);
@@ -3955,8 +4045,12 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         $deltaAnalysis = $payload['deltaAnalysis'] ?? [];
 
         // Evaluasi Red Flag Baru / Deviasi Material yang Belum Terjustifikasi
+        $hasRedFlagLegal = !empty($checklistAkhir['redFlagLegalitas']) || 
+                           !empty($deltaAnalysis['redFlagLegalitas']) ||
+                           !empty($deltaAnalysis['isSengketa']) ||
+                           !empty($deltaAnalysis['isSitaBlokir']);
         $hasUnjustifiedDeviation = !empty($deltaAnalysis['deviasiMaterialTanpaJustifikasi']) && $deltaAnalysis['deviasiMaterialTanpaJustifikasi'] === true;
-        $statusAkhir = $hasUnjustifiedDeviation ? 'HOLD_ESKALASI_AKHIR' : 'MENUNGGU_SPM_AKHIR';
+        $statusAkhir = ($hasRedFlagLegal || $hasUnjustifiedDeviation) ? 'HOLD_ESKALASI_AKHIR' : 'MENUNGGU_SPM_AKHIR';
         $nowWib = date('c');
 
         $versiG2 = ($dgRecords[$targetIdx]['gerbang2']['versi'] ?? 0) + 1;

@@ -74,8 +74,7 @@ const ALLOWED_FILES = [
   "surat-umum-data-handler.php",
   "absensi-data-handler.php",
   "operasional-data-handler.php",
-  "status-terintegrasi-handler.php",
-  "data/.htaccess"
+  "status-terintegrasi-handler.php"
 ];
 
 // 2. ALLOWLIST DIREKTORI PUBLIK
@@ -97,6 +96,9 @@ const FORBIDDEN_PATTERNS = [
   /\.mjs$/i,
   /package.*\.json$/i,
   /netlify\/functions/i,
+  /master_personel_kontak\.json$/i,
+  /(?:^|[\/\\])data(?:[\/\\]|$)/i,
+  /registrasi_personel_antrean\.json$/i,
   /\.git/i
 ];
 
@@ -245,20 +247,8 @@ export function buildProduction(options = {}) {
       }
     }
 
-    if (isCpanel) {
-      const srcMasters = path.join(ROOT_DIR, 'data', 'masters');
-      const destMasters = path.join(DIST_DIR, 'data', 'masters');
-      if (fs.existsSync(srcMasters)) {
-        copyDirRecursive(srcMasters, destMasters);
-        console.log('✓ Menyalin direktori data master resmi: data/masters/');
-      }
-      const srcRegister = path.join(ROOT_DIR, 'data', 'official_register_config.json');
-      const destRegister = path.join(DIST_DIR, 'data', 'official_register_config.json');
-      if (fs.existsSync(srcRegister)) {
-        fs.copyFileSync(srcRegister, destRegister);
-        console.log('✓ Menyalin berkas register resmi: data/official_register_config.json');
-      }
-    }
+    // KEAMANAN P0: Direktori data/ dan berkas master backend HANYA untuk konsumsi server PHP / backend internal.
+    // JANGAN PERNAH menyalin direktori data/ ke paket distribusi publik dist/.
   }
 
   // 3. Audit Keamanan & Anti-Kebocoran

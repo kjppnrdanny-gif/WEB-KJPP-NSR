@@ -1,10 +1,21 @@
 {
-  "matrix_version": "2026.1",
+  "matrix_version": "2026.2",
   "system_title": "OPINI NSR — Dual Gate Consistency & Decision Matrix",
+  "formal_standards_basis": {
+    "standard_framework": "Standar Penilaian Indonesia (SPI) Edisi VII Tahun 2018 & Kode Etik Penilai Indonesia (KEPI)",
+    "kpup_clause_14": "Materialitas adalah pertimbangan profesional (professional judgment) mengenai apakah suatu kelalaian, salah saji, atau ketidaksesuaian informasi dapat secara wajar mempengaruhi keputusan ekonomi pengguna laporan penilaian. SPI tidak menetapkan angka kuantitatif universal mutlak untuk deviasi luas.",
+    "spi_103_clause_5_5": "Perubahan Lingkup Penugasan: Apabila terjadi perubahan fakta, asumsi, atau kondisi mendasar objek penilaian di lapangan, Penilai dan Pemberi Tugas wajib menyepakati perubahan Lingkup Penugasan secara tertulis.",
+    "spi_104_clause_5_3_and_5_5": "Investigasi dan Pengumpulan Data: Penilai wajib mengumpulkan data fisik dan yuridis objek secara seksama, membandingkan dokumen kepemilikan dengan kondisi riil di lapangan, serta mendokumentasikan setiap ketidaksesuaian.",
+    "spi_105_clause_5_1_and_5_3": "Pelaporan Penilaian: Laporan penilaian wajib memuat asumsi khusus, kondisi pembatas, dan pengungkapan secara transparan atas setiap deviasi fisik vs yuridis yang dapat mempengaruhi nilai.",
+    "legal_red_flags_principle": "Red flag legalitas (sengketa kepemilikan, blokir BPN, sita eksekusi pengadilan, atau gugatan hukum aktif) memicu status HOLD secara independen terlepas dari persentase deviasi luas."
+  },
   "baseline_principles": [
-    "Jawaban awal dan akhir TIDAK harus identik, yang dinilai adalah konsistensi penalaran, bukti, penanganan risiko, dan keputusan profesional.",
+    "Jawaban awal dan akhir TIDAK harus identik, yang dinilai adalah konsistensi penalaran, kecukupan bukti, penanganan risiko, dan pertimbangan profesional Penilai Publik.",
     "Status BELUM DIVERIFIKASI pada Gerbang 1 atau Living Register tidak boleh diperlakukan sebagai risiko aman.",
-    "Deviasi fisik vs yuridis (contoh: 1.000 m² sertifikat vs 920 m² fisik) bukan otomatis pelanggaran, melainkan memicu delta analysis, justifikasi teknis, pengungkapan laporan, dan konfirmasi Penilai Publik.",
+    "Kalkulator deviasi luas fisik vs yuridis adalah instrumen skrining diagnostik internal KJPP NSR untuk membantu Penilai Publik mendeteksi anomali, BUKAN aturan universal SPI yang menggantikan keputusan profesional Penilai Publik.",
+    "Evaluasi materialitas wajib mempertimbangkan maksud/tujuan penilaian, karakteristik objek, bukti inspeksi (BAI & sketsa ukur), dampak terhadap kesimpulan nilai, dan justifikasi tertulis Penilai Publik.",
+    "Deviasi luas > 15% yang telah dianalisis dampaknya, didukung Berita Acara Inspeksi (BAI), dan diberikan justifikasi profesional tertulis oleh Penilai Publik diselesaikan sebagai RESOLVED_WITH_EVIDENCE (Eskalasi: NORMAL_WITH_DISCLOSURE), tanpa automatic reject/hold kaku.",
+    "Red flag legalitas (sengketa kepemilikan, sita, perkara hukum, pemblokiran sertifikat) secara mandiri memicu HOLD rekomendasi mitigasi tanpa memandang besaran deviasi fisik.",
     "Persyaratan Gerbang 2 wajib membaca baseline Gerbang 1 dari ID penugasan yang sama."
   ],
   "consistency_outcomes": [
@@ -17,22 +28,29 @@
     },
     {
       "code": "RESOLVED_WITH_EVIDENCE",
-      "label": "Terselesaikan dengan Bukti Sah",
-      "description": "Terdapat perbedaan atau temuan baru di lapangan, namun telah dianalisis dampaknya, didukung bukti tertulis yang memadai, dan diungkapkan dalam draf laporan.",
+      "label": "Terselesaikan dengan Bukti Sah & Pengungkapan Profesional",
+      "description": "Terdapat deviasi atau temuan baru di lapangan, namun telah dianalisis dampaknya, didukung Berita Acara Inspeksi (BAI) serta justifikasi profesional tertulis Penilai Publik, dan diungkapkan dalam laporan penilaian sesuai KPUP 14 & SPI 105.",
       "allow_nolap_issuance": true,
       "escalation_level": "NORMAL_WITH_DISCLOSURE"
     },
     {
       "code": "MATERIAL_CHANGE_REVIEW",
-      "label": "Perubahan Material Memerlukan Review Ulang LP",
-      "description": "Ditemukan perubahan material terhadap objek, luas (>15%), hak kepemilikan, atau maksud/tujuan yang memerlukan peninjauan ulang Lingkup Penugasan dan persetujuan pemberi tugas.",
+      "label": "Perubahan Material Memerlukan Konfirmasi & Justifikasi Penilai",
+      "description": "Ditemukan deviasi luas signifikan (>15% skrining internal) atau perbedaan hak tanpa justifikasi tertulis dan Berita Acara Inspeksi. Memerlukan konfirmasi Penilai Publik dan telaah apakah perlu addendum Lingkup Penugasan (SPI 103 Klausul 5.5).",
       "allow_nolap_issuance": false,
-      "escalation_level": "MANDATORY_LP_REVISION"
+      "escalation_level": "ADVISORY_JUSTIFICATION_REQUIRED"
+    },
+    {
+      "code": "HOLD_LEGAL_ISSUE",
+      "label": "Red Flag Legalitas Terdeteksi (Risiko Yuridis Kritis)",
+      "description": "Ditemukan sengketa kepemilikan aktif, pemblokiran sertifikat oleh BPN, sita eksekusi pengadilan, atau gugatan perdata/pidana. Wajib di-HOLD untuk klarifikasi yuridis independen dari deviasi fisik objek.",
+      "allow_nolap_issuance": false,
+      "escalation_level": "HOLD_PENDING_MITIGATION"
     },
     {
       "code": "NEW_RISK_IDENTIFIED",
       "label": "Risiko Baru Teridentifikasi",
-      "description": "Ditemukan risiko baru saat inspeksi (misal sengketa batas, pembebanan hak tanggungan ganda, kerusakan struktural parah) yang belum dimitigasi.",
+      "description": "Ditemukan risiko baru saat inspeksi (misal kerusakan struktural berat, perubahan zonasi tata ruang, akses jalan terputus) yang belum dimitigasi.",
       "allow_nolap_issuance": false,
       "escalation_level": "HOLD_FOR_MITIGATION"
     },
@@ -46,7 +64,7 @@
     {
       "code": "INSUFFICIENT_EVIDENCE",
       "label": "Bukti Pengendalian Tidak Memadai",
-      "description": "Dokumen pendukung kritis tidak tersedia (misal foto tidak memiliki geotag koordinat GPS atau data pembanding kurang dari 3 unit).",
+      "description": "Dokumen pendukung kritis tidak tersedia (misal foto tidak memiliki geotag koordinat GPS atau data pembanding pasar kurang dari 3 unit sesuai SPI 104).",
       "allow_nolap_issuance": false,
       "escalation_level": "HOLD_PENDING_EVIDENCE"
     },
@@ -59,27 +77,59 @@
     }
   ],
   "delta_analysis_rules": {
+    "system_role": "Kalkulator Diagnostik Faktual & Indikator Skrining Risiko Internal KJPP NSR",
+    "disclaimer": "Persentase deviasi luas adalah batas toleransi internal KJPP NSR untuk memicu telaah verifikasi, BUKAN aturan universal SPI/hukum. Materialitas akhir ditentukan oleh pertimbangan profesional Penilai Publik berdasarkan bukti Berita Acara Inspeksi, jenis objek, tujuan penilaian, dan dampak nilai.",
     "deviation_physical_vs_legal_area": {
       "threshold_minor": 0.05,
       "threshold_material": 0.15,
       "rules": [
         {
           "range": "<= 5%",
+          "risk_tier": "Deviasi Minor Lapangan (Toleransi Pengukuran Normal)",
           "outcome": "CONSISTENT_AND_VERIFIED",
-          "action": "Dapat menggunakan luas fisik dengan pengungkapan catatan kaki pada laporan penilaian."
+          "action": "Dapat menggunakan luas fisik dengan pengungkapan catatan kaki pada laporan penilaian sesuai SPI 105.",
+          "requires_bai": false,
+          "requires_written_justification": false
         },
         {
           "range": "> 5% dan <= 15%",
+          "risk_tier": "Deviasi Moderat (Perlu Pembuktian Fisik Lapangan)",
           "outcome": "RESOLVED_WITH_EVIDENCE",
-          "action": "Wajib melampirkan sketsa ukur lapangan, Berita Acara Klarifikasi dengan debitur/pemilik, dan penjelasan dampak nilai pada bab pengungkapan."
+          "action": "Wajib melampirkan sketsa ukur lapangan, Berita Acara Inspeksi (BAI) bersama pihak pendamping, dan pengungkapan dampak nilai pada asumsi khusus laporan.",
+          "requires_bai": true,
+          "requires_written_justification": true
         },
         {
           "range": "> 15%",
-          "outcome": "MATERIAL_CHANGE_REVIEW",
-          "action": "Deviasi material wajib dilaporkan tertulis ke pemberi tugas, memicu review ulang Lingkup Penugasan oleh Kepala Divtek dan Penilai Publik."
+          "risk_tier": "Deviasi Signifikan (Skrining Risiko Tinggi Internal)",
+          "outcome_with_justification": "RESOLVED_WITH_EVIDENCE",
+          "outcome_without_justification": "MATERIAL_CHANGE_REVIEW",
+          "action": "Kalkulator menandai deviasi luas > 15%. Penilai Publik wajib mengevaluasi materialitas berdasarkan KPUP 14: jika didukung BAI terinci dan justifikasi tertulis dampak nilai, status diselesaikan sebagai RESOLVED_WITH_EVIDENCE (NoLap dapat terbit dengan pengungkapan). Jika belum ada justifikasi dan BAI, memicu telaah konfirmasi dan addendum Lingkup Penugasan (SPI 103 Klausul 5.5).",
+          "requires_bai": true,
+          "requires_written_justification": true
         }
       ]
-    }
+    },
+    "legal_red_flags_rules": [
+      {
+        "flag_type": "SENGKETA_ATAU_PERKARA_HUKUM",
+        "description": "Terdapat sengketa kepemilikan, klaim pihak ketiga, atau gugatan di pengadilan.",
+        "outcome": "HOLD_LEGAL_ISSUE",
+        "action": "HOLD penugasan. Penilai wajib meminta bukti penyelesaian yuridis atau pembatasan lingkup penugasan tertulis sebelum melanjutkan."
+      },
+      {
+        "flag_type": "SITA_ATAU_BLOKIR_BPN",
+        "description": "Sertifikat berstatus sita eksekusi pengadilan atau diblokir resmi oleh Kantor Pertanahan ATR/BPN.",
+        "outcome": "HOLD_LEGAL_ISSUE",
+        "action": "HOLD penugasan. Penilai tidak dapat mengasumsikan properti bebas beban tanpa bukti resmi pencabutan blokir/sita."
+      },
+      {
+        "flag_type": "HAK_TANAH_KEDALUWARSA",
+        "description": "Jangka waktu hak atas tanah (HGB/HGU/Hak Pakai) telah berakhir tanpa bukti permohonan perpanjangan.",
+        "outcome": "HOLD_LEGAL_ISSUE",
+        "action": "HOLD penugasan atau wajib menerapkan Asumsi Khusus / Asumsi Luar Biasa (Hypothetical Condition) yang disetujui pemberi tugas sesuai SPI 103 & 105."
+      }
+    ]
   },
   "review_hierarchy": [
     {
@@ -108,14 +158,14 @@
       "order": 1,
       "role": "KEPALA_SPM",
       "actor_name": "Danny Taufik, S.H.",
-      "focus": "Quality Control kelengkapan draf laporan, verifikasi bukti foto geotag, BAI, lembar kendali mutu, dan ketiadaan pelanggaran kode etik."
+      "focus": "Quality Control kelengkapan draf laporan, verifikasi bukti foto geotag, BAI, lembar kendali mutu, ketiadaan red flag legalitas, dan kepatuhan kode etik KEPI."
     },
     {
       "stage": "GERBANG_2",
       "order": 2,
       "role": "KEPALA_DIVTEK",
       "actor_name": "Deni Siswandi, S.T., MAPPI (Cert.)",
-      "focus": "Review teknis kertas kerja (KKP), verifikasi 3 data pembanding, analisis delta (luas fisik vs yuridis), kepatuhan SPI 106, dan kewajaran kesimpulan nilai."
+      "focus": "Review teknis kertas kerja (KKP), verifikasi 3 data pembanding, analisis diagnostik deviasi luas, pertimbangan materialitas KPUP 14, kepatuhan SPI 106, dan kewajaran kesimpulan nilai."
     },
     {
       "stage": "GERBANG_2_NOLAP",
