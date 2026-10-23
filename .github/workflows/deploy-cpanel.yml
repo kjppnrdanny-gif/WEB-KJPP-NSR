@@ -41,6 +41,7 @@ jobs:
           retention-days: 30
 
       - name: 📥 Cadangkan public_html/index.html langsung dari Filesystem cPanel via FTPS
+        continue-on-error: true
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -66,6 +67,7 @@ jobs:
           "
 
       - name: 💾 Upload Backup Filesystem cPanel ke Artifacts
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: cpanel-filesystem-backup-${{ github.sha }}
