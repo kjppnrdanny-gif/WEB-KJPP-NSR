@@ -1350,6 +1350,11 @@ function cariMasterPenilaiPublik($mastersDir, $identifier) {
         if ($pid === $cleanId || $pnm === $cleanId || $palt === $cleanId || $psng === $cleanId || $piz === $cleanId) {
             return $p;
         }
+        $last4_piz = strlen($piz) >= 4 ? substr($piz, -4) : $piz;
+        $last4_clean = strlen($cleanId) >= 4 ? substr($cleanId, -4) : $cleanId;
+        if ($last4_piz !== '' && $last4_piz === $last4_clean && is_numeric($last4_piz)) {
+            return $p;
+        }
         if (strpos($cleanId, 'nanang') !== false && strpos($pid, 'nanang') !== false) return $p;
         if (strpos($cleanId, 'deni') !== false && strpos($pid, 'deni') !== false) return $p;
         if (strpos($cleanId, 'hernita') !== false && strpos($pid, 'hernita') !== false) return $p;
@@ -5339,6 +5344,21 @@ Audit Log ID: {$auditLogId}"
             exit;
         }
 
+        // Validasi Kepatuhan SE-6/PPPK/2018: Segmen ke-6 HANYA boleh bernilai '0' atau '1' (Kode NPWP Klien)
+        $segsNoLap = explode('/', $noLap);
+        if (count($segsNoLap) >= 7) {
+            $seg6 = trim($segsNoLap[5] ?? '');
+            if ($seg6 !== '0' && $seg6 !== '1') {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'error' => "Format nomor laporan '{$noLap}' tidak memenuhi SE-6/PPPK/2018: Segmen ke-6 adalah Kode NPWP Klien dan HANYA boleh bernilai '1' (Ber-NPWP) atau '0' (Non-NPWP). Penggunaan huruf 'B' atau kode status booking dilarang keras pada nomor resmi Kemenkeu.",
+                    'violation' => 'INVALID_SEGMENT_6_NPWP_CODE'
+                ]);
+                exit;
+            }
+        }
+
         // Eksekusi transaksi atomik terproteksi lock file eksklusif (flock LOCK_EX)
         $txnResult = transaksiDatabaseNoLap($dataFile, function(&$freshRecords) use ($noReq, $noLap, $tglTerbit, $catatanAdmin) {
             $targetIndex = -1;
@@ -5420,8 +5440,19 @@ Audit Log ID: {$auditLogId}"
             }
 
             // C. Mutasi Data Otoritatif
-            $freshRecords[$targetIndex]['status'] = 'Nomor Terbit & Final';
-            $freshRecords[$targetIndex]['statusLegacy'] = 'NOMOR DITERBITKAN';
+            $isBooking = !empty($freshRecords[$targetIndex]['isBooking']) || 
+                         (($freshRecords[$targetIndex]['modePengajuan'] ?? '') === 'BOOKING') || 
+                         !empty($payload['isBooking']);
+            if ($isBooking) {
+                $freshRecords[$targetIndex]['status'] = 'NOMOR DIBOOKING';
+                $freshRecords[$targetIndex]['statusLegacy'] = 'NOMOR DIBOOKING';
+                $freshRecords[$targetIndex]['isBooking'] = true;
+                $freshRecords[$targetIndex]['statusElsa'] = 'TERKUNCI (MENUNGGU BERKAS FINAL)';
+            } else {
+                $freshRecords[$targetIndex]['status'] = 'Nomor Terbit & Final';
+                $freshRecords[$targetIndex]['statusLegacy'] = 'NOMOR DITERBITKAN';
+                $freshRecords[$targetIndex]['statusElsa'] = 'SIAP INPUT';
+            }
             $freshRecords[$targetIndex]['nomorLaporan'] = $noLap;
             $freshRecords[$targetIndex]['tglTerbit'] = $tglTerbit;
             $freshRecords[$targetIndex]['catatanAdmin'] = $catatanAdmin;

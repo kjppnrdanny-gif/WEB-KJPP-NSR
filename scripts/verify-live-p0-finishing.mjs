@@ -355,6 +355,35 @@ async function main() {
     })()`
   });
 
+  // Uji Tolak Huruf B pada Segmen 6 (Live)
+  console.log('\n--- UJI PENOLAKAN HURUF B PADA SEGMEN 6 (LIVE) ---');
+  const rejectBRes = await send('Runtime.evaluate', {
+    expression: `(() => {
+      const inputNoLap = document.getElementById('input-manual-nolap');
+      inputNoLap.value = '13229/2.0160-00/PI/07/00581/B/X/2026';
+      validasiManualNoLapInput();
+      const warnEl = document.getElementById('manual-warning-duplikat');
+      const warnText = document.getElementById('manual-warning-duplikat-text')?.innerText;
+      const btnSubmit = document.getElementById('btn-submit-terbit-nolap');
+      return JSON.stringify({
+        warningVisible: warnEl && !warnEl.classList.contains('hidden'),
+        warningText: warnText,
+        btnDisabled: Boolean(btnSubmit && btnSubmit.disabled)
+      });
+    })()`,
+    returnByValue: true
+  });
+  const rbState = JSON.parse(rejectBRes.result?.value || '{}');
+  console.log('Hasil Uji Penolakan Huruf B (Live):', rbState);
+  if (!rbState.warningVisible || !rbState.btnDisabled) {
+    throw new Error('FAILED: Server live tidak menolak huruf B pada segmen ke-6!');
+  }
+  console.log('✅ Server Live Terbukti Menolak Huruf B pada Segmen 6.');
+  const ssRejectB = await send('Page.captureScreenshot', { format: 'png' });
+  const ssRejectBPath = path.join(ARTIFACT_DIR, 'bukti_live_nolap_tolak_huruf_b.png');
+  fs.writeFileSync(ssRejectBPath, Buffer.from(ssRejectB.data, 'base64'));
+  console.log('📸 Screenshot Penolakan Huruf B Live tersimpan:', ssRejectBPath);
+
   // Tangkapan Layar Meja Approval Smart Register Live
   const ssApproval = await send('Page.captureScreenshot', { format: 'png' });
   const ssApprovalPath = path.join(ARTIFACT_DIR, 'bukti_live_nolap_tab3_approval_smart_register.png');
@@ -414,6 +443,8 @@ async function main() {
         kodeIndustri: '07',
         namaPenilai: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
         izinPenilai: '00581',
+        isPemerintahBumn: true,
+        kodeNpwp: '1',
         checklistQa: false,
         otorisasiPartner: false,
         status: 'BOOKING_DIAJUKAN',
@@ -441,6 +472,7 @@ async function main() {
         generatedNoLap: generated,
         finalStatus: updated?.status,
         finalNomor: updated?.nomorLaporan,
+        statusElsa: updated?.statusElsa,
         modeBadge: document.getElementById('manual-req-mode')?.innerText
       });
     })()`,
@@ -448,13 +480,17 @@ async function main() {
   });
   const bkRes = JSON.parse(bookingRes.result?.value || '{}');
   console.log('Hasil Mode Booking (Live):', bkRes);
-  if (!bkRes.generatedNoLap.includes('/B/')) {
-    throw new Error('FAILED: Mode Booking tidak menghasilkan segmen nomor "B"!');
+  const segsLiveB = (bkRes.generatedNoLap || '').split('/');
+  if (segsLiveB.length < 7 || segsLiveB[5] !== '1') {
+    throw new Error('FAILED: Mode Booking Pemerintah/BUMN ber-NPWP segmen 6 harus "1"! Didapat: ' + bkRes.generatedNoLap);
+  }
+  if (bkRes.generatedNoLap.includes('/B/')) {
+    throw new Error('FAILED: DILARANG menggunakan huruf B pada nomor laporan Kemenkeu! Didapat: ' + bkRes.generatedNoLap);
   }
   if (bkRes.finalStatus !== 'NOMOR DIBOOKING') {
     throw new Error('FAILED: Status akhir alokasi booking bukan NOMOR DIBOOKING: ' + bkRes.finalStatus);
   }
-  console.log('✅ Mode Booking Alokasi Segmen "B" Sah:', bkRes.finalNomor, 'Status:', bkRes.finalStatus);
+  console.log('✅ Mode Booking Alokasi Segmen 6 (NPWP = 1) Sah:', bkRes.finalNomor, 'Status:', bkRes.finalStatus, 'eLSa:', bkRes.statusElsa);
 
   const ssBooking = await send('Page.captureScreenshot', { format: 'png' });
   const ssBookingPath = path.join(ARTIFACT_DIR, 'bukti_live_nolap_tab3_booking_allocated.png');
