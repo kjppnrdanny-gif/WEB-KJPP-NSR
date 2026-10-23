@@ -5,7 +5,7 @@ console.log('=== TEST SUITE: VERIFIKASI 12 TOKEN SISTEM KJPP NSR ===\n');
 
 const TOKENS_TO_TEST = [
   { token: 'NSR8899', expectedRole: 'SUPER_ADMIN', expectedTitle: 'Super Admin Pusat', isMaster: true },
-  { token: 'NSR-PST-2026', expectedRole: 'SUPER_ADMIN', expectedTitle: 'Admin Operasional Pusat' },
+  { token: 'NSR-PST-2026', expectedRole: 'ADMIN_PUSAT', expectedTitle: 'Admin Operasional Pusat' },
   { token: 'NSR-BDG-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Bandung' },
   { token: 'NSR-PDG-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Padang' },
   { token: 'NSR-MKS-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Makassar' },

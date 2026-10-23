@@ -13484,60 +13484,120 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
   </div>
 
   <div id="modal-terbitkan-nolap-manual" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto no-print">
-    <div class="bg-slate-900 border-2 border-amber-400/50 rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl relative text-xs space-y-4 my-8">
+    <div class="bg-slate-900 border-2 border-amber-400/50 rounded-2xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl relative text-xs space-y-4 my-8 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div class="flex items-center gap-2">
           <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-          <h3 class="text-sm font-black text-white uppercase tracking-wider">Kewenangan Admin Pusat &amp; Master Akses</h3>
+          <div>
+            <h3 class="text-sm font-black text-white uppercase tracking-wider">Meja Approval &amp; Smart Register NoLap OPINI NSR</h3>
+            <p class="text-[11px] text-slate-400">Penetapan Nomor Urut Manual, Format 7 Segmen, &amp; Kontrol Duplikasi</p>
+          </div>
         </div>
         <button onclick="tutupModalTerbitkanManual()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold">✕</button>
       </div>
 
-      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
-        <div class="flex justify-between items-center text-[11px]">
-          <span class="text-slate-400">Nomor Permintaan:</span>
+      <!-- Info Identitas Permohonan Lengkap -->
+      <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2 text-slate-300 text-[11px]">
+        <div class="flex flex-wrap items-center justify-between gap-1">
+          <span class="text-slate-400">No. Permintaan:</span>
           <strong id="manual-req-id" class="text-amber-400 font-mono text-xs">REQ-000000</strong>
         </div>
-        <div class="flex justify-between items-center text-[11px]">
-          <span class="text-slate-400">Pemberi Tugas / Klien:</span>
+        <div class="flex flex-wrap items-center justify-between gap-1">
+          <span class="text-slate-400">Debitur / Klien:</span>
           <strong id="manual-req-klien" class="text-white line-clamp-1">PT ...</strong>
         </div>
-        <div class="flex justify-between items-center text-[11px]">
-          <span class="text-slate-400">Kewenangan Ttd:</span>
-          <span id="manual-req-kantor" class="text-sky-300 font-semibold">Pusat (2.0160-00)</span>
-        </div>
-        <div class="flex justify-between items-center text-[11px]">
-          <span class="text-slate-400">Penilai Penandatangan:</span>
-          <span id="manual-req-penilai" class="text-slate-200">Nanang Rahayu</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-800">
+          <div>
+            <span class="text-slate-400 block text-[10px]">Kantor Pengaju:</span>
+            <span id="manual-req-kantor-asal" class="text-slate-200 font-semibold">-</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Kewenangan TTD:</span>
+            <span id="manual-req-kantor" class="text-sky-300 font-semibold">Pusat (2.0160-00)</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Penilai Penandatangan:</span>
+            <span id="manual-req-penilai" class="text-slate-200 font-semibold">-</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Mode Alur:</span>
+            <span id="manual-req-mode" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">REGULER</span>
+          </div>
         </div>
       </div>
 
-      <div class="space-y-3">
+      <!-- SECTION 01: SMART REGISTER NOLAP & PENETAPAN MANUAL -->
+      <div class="p-3.5 rounded-xl bg-slate-950/90 border border-amber-500/30 space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+          <h4 class="font-black text-amber-400 text-xs flex items-center gap-2">
+            <span class="w-5 h-5 rounded bg-amber-400/20 text-amber-300 flex items-center justify-center text-[10px] font-bold">01</span>
+            <span>Smart Register Saldo &amp; Nomor Urut Manual</span>
+          </h4>
+          <button type="button" onclick="bukaModalPengaturanRegister()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono border border-slate-700 flex items-center gap-1 transition">
+            <span>📜 History Register</span>
+          </button>
+        </div>
+
+        <!-- Baris Rekomendasi Register -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Nomor Terakhir Terbit:</span>
+            <span id="manual-last-nolap" class="font-mono font-bold text-slate-200">-</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Rekomendasi Berikutnya:</span>
+            <button type="button" id="btn-gunakan-saran-nolap" onclick="gunakanSaranNoLap()" class="px-2.5 py-0.5 rounded bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 font-mono font-bold transition flex items-center gap-1">
+              <span>💡 Saran: <strong id="manual-suggest-nolap">-</strong></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Baris Input Sequence Manual & Tanggal -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1 text-[11px]">Nomor Urut Laporan (Sequence 5 Digit) <span class="text-rose-400">*</span></label>
+            <input type="number" id="input-manual-seq" min="1" max="99999" oninput="sinkronkanSeqKeNoLap()" placeholder="Contoh: 13228" class="w-full h-9 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-mono font-bold text-xs focus:outline-none focus:border-amber-400">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1 text-[11px]">Tanggal Terbit Resmi <span class="text-rose-400">*</span></label>
+            <input type="date" id="input-manual-tgl-terbit" onchange="sinkronkanSeqKeNoLap()" required class="w-full h-9 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-400">
+          </div>
+        </div>
+
+        <!-- Format Baku 7 Segmen -->
         <div>
-          <label class="block font-bold text-amber-300 mb-1 flex items-center justify-between">
-            <span>Nomor Laporan Resmi (Ditetapkan Manual) *</span>
-            <span class="text-[10px] text-slate-400 font-normal">Kewenangan Penuh Master Akses</span>
+          <label class="block font-bold text-amber-300 mb-1 text-[11px] flex items-center justify-between">
+            <span>Nomor Laporan Definitif 7 Segmen Baku Kemenkeu <span class="text-rose-400">*</span></span>
+            <span class="text-[10px] text-slate-400 font-normal">Kewenangan Master Akses</span>
           </label>
-          <input type="text" id="input-manual-nolap" required placeholder="Ketik / sesuaikan Nomor Laporan resmi..." class="w-full h-11 px-3 rounded-xl bg-slate-950 border-2 border-amber-400/80 text-amber-400 font-mono font-bold text-sm sm:text-base tracking-wide focus:outline-none focus:ring-2 focus:ring-amber-400 uppercase select-all">
-          <p class="text-[10.5px] text-slate-400 mt-1">Format baku 7 segmen disediakan sebagai referensi dasar. Admin Pusat / Master Akses berwenang mengedit, mengubah, atau menetapkan nomor ini secara manual.</p>
+          <input type="text" id="input-manual-nolap" oninput="validasiManualNoLapInput()" required placeholder="[Urut]/[Kantor]/[Jasa]/[Bulan]/[Izin]/[Revisi]/[Tahun]" class="w-full h-11 px-3 rounded-xl bg-slate-950 border-2 border-amber-400/80 text-amber-400 font-mono font-bold text-sm tracking-wide focus:outline-none focus:ring-2 focus:ring-amber-400 uppercase select-all">
+          <p class="text-[10px] text-slate-400 mt-1">Struktur: Segmen 1 (Urut 5 Digit) / Segmen 2 (Kode Kantor) / Segmen 3 (Jenis Jasa PI/BS/PP) / Segmen 4 (Bulan Romawi) / Segmen 5 (Izin Penilai) / Segmen 6 (Revisi/Booking) / Segmen 7 (Tahun).</p>
         </div>
 
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Tanggal Terbit Resmi *</label>
-          <input type="date" id="input-manual-tgl-terbit" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono focus:outline-none focus:border-amber-400">
+        <!-- Peringatan Loncatan Nomor -->
+        <div id="manual-warning-loncatan" class="hidden p-2.5 rounded-lg bg-amber-950/80 border border-amber-500/80 text-amber-200 text-[11px] flex items-start gap-2">
+          <span>⚠️</span>
+          <span id="manual-warning-loncatan-text">Peringatan: Nomor urut melompati urutan terakhir! Pastikan urutan sebelumnya tidak tertinggal.</span>
         </div>
 
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Catatan / Keterangan Admin Pusat (Opsional)</label>
-          <textarea id="input-manual-catatan" rows="2" placeholder="Catatan approval penetapan nomor laporan..." class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400"></textarea>
+        <!-- Peringatan Duplikat Nomor (Hard Block) -->
+        <div id="manual-warning-duplikat" class="hidden p-2.5 rounded-lg bg-rose-950/90 border border-rose-500 text-rose-200 text-[11px] flex items-start gap-2">
+          <span>⛔</span>
+          <span id="manual-warning-duplikat-text">NOMOR DUPLIKAT TERDETEKSI: Nomor ini sudah terdaftar dalam buku register resmi! Penerbitan nomor ganda dilarang keras.</span>
         </div>
+      </div>
+
+      <!-- Catatan Admin -->
+      <div>
+        <label class="block font-semibold text-slate-300 mb-1 text-[11px]">Catatan / Keterangan Penetapan (Opsional)</label>
+        <textarea id="input-manual-catatan" rows="2" placeholder="Catatan approval penetapan nomor laporan..." class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-400"></textarea>
       </div>
 
       <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-800">
         <button type="button" onclick="tutupModalTerbitkanManual()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
           Batal
         </button>
-        <button type="button" onclick="simpanPenerbitanManual()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/20">
+        <button type="button" id="btn-submit-terbit-nolap" onclick="simpanPenerbitanManual()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/20 disabled:opacity-40 disabled:cursor-not-allowed">
           ✓ Tetapkan &amp; Terbitkan NoLap
         </button>
       </div>
@@ -13698,14 +13758,14 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
     const MASTER_KANTOR = {
       "Pusat": { kode: "2.19.0160", kodeSegmen: "2.0160-00", nama: "Kantor Pusat Jakarta" },
       "PUSAT": { kode: "2.19.0160", kodeSegmen: "2.0160-00", nama: "Kantor Pusat Jakarta" },
-      "Padang": { kode: "2.0160-01", kodeSegmen: "2.0160-01", nama: "Kantor Cabang Padang" },
-      "PADANG": { kode: "2.0160-01", kodeSegmen: "2.0160-01", nama: "Kantor Cabang Padang" },
-      "Makassar": { kode: "2.0160-02", kodeSegmen: "2.0160-02", nama: "Kantor Cabang Makassar" },
-      "MAKASSAR": { kode: "2.0160-02", kodeSegmen: "2.0160-02", nama: "Kantor Cabang Makassar" },
+      "Padang": { kode: "2.0160-02", kodeSegmen: "2.0160-02", nama: "Kantor Cabang Padang" },
+      "PADANG": { kode: "2.0160-02", kodeSegmen: "2.0160-02", nama: "Kantor Cabang Padang" },
+      "Makassar": { kode: "2.0160-03", kodeSegmen: "2.0160-03", nama: "Kantor Cabang Makassar" },
+      "MAKASSAR": { kode: "2.0160-03", kodeSegmen: "2.0160-03", nama: "Kantor Cabang Makassar" },
       "Bandung": { kode: "2.0160-04", kodeSegmen: "2.0160-04", nama: "Kantor Cabang Bandung" },
       "BANDUNG": { kode: "2.0160-04", kodeSegmen: "2.0160-04", nama: "Kantor Cabang Bandung" },
-      "Palembang": { kode: "2.0160-03", kodeSegmen: "2.0160-03", nama: "Kantor Cabang Palembang" },
-      "PALEMBANG": { kode: "2.0160-03", kodeSegmen: "2.0160-03", nama: "Kantor Cabang Palembang" }
+      "Palembang": { kode: "2.0160-05", kodeSegmen: "2.0160-05", nama: "Kantor Cabang Palembang" },
+      "PALEMBANG": { kode: "2.0160-05", kodeSegmen: "2.0160-05", nama: "Kantor Cabang Palembang" }
     };
 
     const REKAN_CABANG_CONFIG = {
@@ -14146,10 +14206,10 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       '107ee87beefd50d3ecf4c3ea6716c22cbff5330505ee747ce5d800f77c94f32d': {"valid":true,"role":"KEUANGAN","roleLabel":"Keuangan Pusat","displayRole":"Divisi Keuangan & Kasir Pusat","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","cabang":"Pusat","label":"Kantor Pusat Jakarta (Keuangan Pusat)","jabatan":"Divisi Keuangan & Kasir Pusat","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":false,"feeMaskText":"","tokenHash":"57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0"},
       'a9a08ee5cc8f8f8281a4f846624a35ed29a8af6ea20614089e8b64cfb01d32e9': {"valid":true,"role":"KEUANGAN_CABANG","roleLabel":"Keuangan Cabang","displayRole":"Kasir & Keuangan Cabang","wilayah":"CABANG","wilayahLabel":"Kantor Cabang Operasional","wilayahResmi":"Kantor Cabang Operasional","wilayahCode":"CAB","nama":"Kantor Cabang Operasional","kantor":"Kantor Cabang Operasional","namaKantor":"Kantor Cabang Operasional","cabang":"Cabang","label":"Kantor Cabang Operasional (Keuangan Cabang)","jabatan":"Kasir & Keuangan Cabang","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false,"feeMaskText":"","tokenHash":"a9a08ee5cc8f8f8281a4f846624a35ed29a8af6ea20614089e8b64cfb01d32e9"},
       'a01d6024094ea8618268233f1e73d79e400c76d36abb144b2d087896f2e3a6ca': {"valid":true,"role":"KEUANGAN_CABANG","roleLabel":"Keuangan Cabang","displayRole":"Kasir & Keuangan Cabang","wilayah":"CABANG","wilayahLabel":"Kantor Cabang Operasional","wilayahResmi":"Kantor Cabang Operasional","wilayahCode":"CAB","nama":"Kantor Cabang Operasional","kantor":"Kantor Cabang Operasional","namaKantor":"Kantor Cabang Operasional","cabang":"Cabang","label":"Kantor Cabang Operasional (Keuangan Cabang)","jabatan":"Kasir & Keuangan Cabang","isCabang":true,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":true,"aksesFee":true,"mode":"CABANG","canAccessKwitansi":true,"seeFee":true,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":true,"canManageSU":false,"feeMaskText":"","tokenHash":"a9a08ee5cc8f8f8281a4f846624a35ed29a8af6ea20614089e8b64cfb01d32e9"},
-      '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KANTOR PUSAT)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f"},
-      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KANTOR PUSAT)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f"},
-      '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KANTOR PUSAT)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c"},
-      '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KANTOR PUSAT)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c"},
+      '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KING","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KING)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"isKing":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f"},
+      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KING","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KING)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"isKing":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f"},
+      '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c': {"valid":true,"role":"ADMIN_PUSAT","roleLabel":"ADMIN OPERASIONAL PUSAT","displayRole":"ADMIN OPERASIONAL PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Admin Operasional Pusat)","jabatan":"Admin Operasional Kantor Pusat","isCabang":false,"isSuperAdmin":false,"isKing":false,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c"},
+      '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': {"valid":true,"role":"ADMIN_PUSAT","roleLabel":"ADMIN OPERASIONAL PUSAT","displayRole":"ADMIN OPERASIONAL PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Admin Operasional Pusat)","jabatan":"Admin Operasional Kantor Pusat","isCabang":false,"isSuperAdmin":false,"isKing":false,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c"},
       'c1def53c9c35c3e150d4f070fd2387a16f5e0ca57f6ca9fe23f368769ee4bc2f': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KANTOR PUSAT)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"c1def53c9c35c3e150d4f070fd2387a16f5e0ca57f6ca9fe23f368769ee4bc2f"},
       'c8a385e623ccc15d78c5c7d3632f07f089a873de23b1098cbafb2c21415f2b91': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KANTOR PUSAT)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"c1def53c9c35c3e150d4f070fd2387a16f5e0ca57f6ca9fe23f368769ee4bc2f"},
       '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (SUPER ADMIN • KANTOR PUSAT)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04"},
@@ -15798,6 +15858,10 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       if (s === 'PERLU REVISI' || s === 'Perlu Perbaikan Cabang' || s === 'VOID' || s === 'DIBATALKAN') {
         return false;
       }
+      // Mode Booking Pemerintah/BUMN: Hak alokasi nomor diizinkan melalui Admin
+      if (p.modePengajuan === 'BOOKING' || p.isBooking === true || s === 'BOOKING_DIAJUKAN' || s === 'BOOKING_DISETUJUI') {
+        return true;
+      }
       if (s === 'Disetujui Partner') return true;
 
       const hasQaPassed = Boolean(
@@ -15972,6 +16036,30 @@ function resolveIzinPenilaiDisplay(p) {
        7. AKSI APPROVAL & PENERBITAN NOMOR RESMI (MANUAL ADMIN PUSAT / MASTER AKSES)
        ========================================================================= */
     let currentReqToApprove = null;
+    let nolapLastSeqCache = 0;
+    let nolapSuggestSeqCache = 0;
+
+    function cariNomorUrutTerakhir() {
+      let maxUrut = 530;
+      daftarPermohonan.forEach(p => {
+        if (p.nomorLaporan && p.status !== 'VOID' && p.status !== 'DIBATALKAN') {
+          const match = p.nomorLaporan.match(/^(\d{5})\//);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxUrut) maxUrut = num;
+          }
+        }
+      });
+      try {
+        const rawCfg = localStorage.getItem('OFFICIAL_REGISTER_CONFIG_2026');
+        if (rawCfg) {
+          const cfgs = JSON.parse(rawCfg);
+          const pCfg = cfgs.find(c => c.kantor === 'Pusat' && c.jenisDokumen === 'NoLap');
+          if (pCfg && pCfg.nomorTerakhir > maxUrut) maxUrut = pCfg.nomorTerakhir;
+        }
+      } catch (_) {}
+      return maxUrut;
+    }
 
     function bukaModalTerbitkanManual(noReq) {
       if (!isSuperOrAdminPusat()) {
@@ -15998,47 +16086,211 @@ function resolveIzinPenilaiDisplay(p) {
 
       currentReqToApprove = item;
 
-      // Hitung Nomor Urut & Template Formula 7 Segmen Kemenkeu sebagai Referensi Dasar
-      const nextNum = cariNomorUrutTerakhir();
-      const strUrut = String(nextNum).padStart(5, '0');
-      const kodeKantor = item.signing_office_code || item.kodeKantorTtd || (item.requested_signing_office === 'PUSAT' ? '2.0160-00' : (MASTER_KANTOR[item.cabang]?.kodeSegmen || MASTER_KANTOR[item.cabang]?.kode || "2.0160-00"));
-      const kodeJasa = item.report_service_code || resolveReportServiceCode(item.service_classification_id || item.klasifikasiJasa) || "PI";
-      const kodeIndustri = String(item.kodeIndustri).padStart(2, '0');
+      // Hitung Nomor Urut Saldo & Suggestion
+      nolapLastSeqCache = cariNomorUrutTerakhir();
+      nolapSuggestSeqCache = nolapLastSeqCache + 1;
+
+      // Tampilkan Identitas
+      document.getElementById('manual-req-id').innerText = item.noPermintaan;
+      document.getElementById('manual-req-klien').innerText = item.namaKlien || '-';
+      document.getElementById('manual-req-kantor-asal').innerText = `${item.cabang || item.origin_branch_id || 'Pusat'} (Kode: ${item.origin_branch_code || MASTER_KANTOR[item.cabang]?.kodeSegmen || '2.0160-00'})`;
+      const kodeKantor = item.signing_office_code || item.kodeKantorTtd || (item.requested_signing_office === 'PUSAT' ? '2.0160-00' : (MASTER_KANTOR[item.cabang]?.kodeSegmen || '2.0160-00'));
+      document.getElementById('manual-req-kantor').innerText = `${item.requested_signing_office || 'PUSAT'} (Kode Segmen: ${kodeKantor})`;
       const penilaiResolved = resolveNamaPenilaiDisplay(item);
       const izinPenilai = item.izinPenilai || resolveIzinPenilaiDisplay(item) || "00581";
-      const kodeNpwp = item.kodeNpwp || "1";
-
-      const refDate = item.tglPenilaian ? new Date(item.tglPenilaian) : new Date();
-      const bulanRomawi = BULAN_ROMAWI[refDate.getMonth()];
-      const tahun = refDate.getFullYear();
-      const strWaktu = `${bulanRomawi}/${tahun}`;
-
-      const nomorDraft = item.nomorLaporan || `${strUrut}/${kodeKantor}/${kodeJasa}/${kodeIndustri}/${izinPenilai}/${kodeNpwp}/${strWaktu}`;
-
-      document.getElementById('manual-req-id').innerText = item.noPermintaan;
-      document.getElementById('manual-req-klien').innerText = item.namaKlien;
-      document.getElementById('manual-req-kantor').innerText = `${item.cabang || item.origin_branch_id || 'Pusat'} [Asal] → ${item.requested_signing_office || 'PUSAT'} [TTD: ${kodeKantor}]`;
       document.getElementById('manual-req-penilai').innerText = `${penilaiResolved} (Izin: ${izinPenilai})`;
-
-      const inputNoLap = document.getElementById('input-manual-nolap');
-      if (inputNoLap) {
-        inputNoLap.value = nomorDraft;
-        setTimeout(() => inputNoLap.select(), 100);
+      
+      const isBooking = Boolean(item.modePengajuan === 'BOOKING' || item.isBooking === true);
+      const elMode = document.getElementById('manual-req-mode');
+      if (elMode) {
+        elMode.innerText = isBooking ? '⚡ BOOKING PEMERINTAH/BUMN' : 'REGULER (BERKAS LENGKAP)';
+        elMode.className = isBooking ? 'px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30';
       }
 
+      // Smart Register Bar Display
+      const elLast = document.getElementById('manual-last-nolap');
+      if (elLast) elLast.innerText = String(nolapLastSeqCache).padStart(5, '0');
+      const elSuggest = document.getElementById('manual-suggest-nolap');
+      if (elSuggest) elSuggest.innerText = String(nolapSuggestSeqCache).padStart(5, '0');
+
+      // Set input sequence ke sequence suggestion
+      const elSeq = document.getElementById('input-manual-seq');
+      if (elSeq) elSeq.value = nolapSuggestSeqCache;
+
+      // Set tanggal
       const inputTgl = document.getElementById('input-manual-tgl-terbit');
       if (inputTgl) inputTgl.value = item.tglTerbit || new Date().toISOString().split('T')[0];
 
+      // Catatan
       const inputCatatan = document.getElementById('input-manual-catatan');
-      if (inputCatatan) inputCatatan.value = item.catatanAdmin || 'Disetujui dan ditetapkan resmi secara manual.';
+      if (inputCatatan) inputCatatan.value = item.catatanAdmin || (isBooking ? 'Alokasi nomor laporan booking resmi (Pemerintah/BUMN).' : 'Disetujui dan ditetapkan resmi secara manual.');
 
-      document.getElementById('modal-terbitkan-nolap-manual').classList.remove('hidden');
+      // Sinkronkan ke Nomor Laporan 7 Segmen
+      sinkronkanSeqKeNoLap();
+
+      const modal = document.getElementById('modal-terbitkan-nolap-manual');
+      if (modal) modal.classList.remove('hidden');
     }
 
     function tutupModalTerbitkanManual() {
-      document.getElementById('modal-terbitkan-nolap-manual').classList.add('hidden');
+      const modal = document.getElementById('modal-terbitkan-nolap-manual');
+      if (modal) modal.classList.add('hidden');
       currentReqToApprove = null;
     }
+
+    function sinkronkanSeqKeNoLap() {
+      if (!currentReqToApprove) return;
+      const elSeq = document.getElementById('input-manual-seq');
+      const seqVal = parseInt(elSeq?.value, 10) || 0;
+      const strUrut = String(seqVal).padStart(5, '0');
+
+      const item = currentReqToApprove;
+      const kodeKantor = item.signing_office_code || item.kodeKantorTtd || (item.requested_signing_office === 'PUSAT' ? '2.0160-00' : (MASTER_KANTOR[item.cabang]?.kodeSegmen || '2.0160-00'));
+      const kodeJasa = item.report_service_code || resolveReportServiceCode(item.service_classification_id || item.klasifikasiJasa) || "PI";
+      const kodeIndustri = String(item.kodeIndustri || '07').padStart(2, '0');
+      const izinPenilai = item.izinPenilai || resolveIzinPenilaiDisplay(item) || "00581";
+      const isBooking = Boolean(item.modePengajuan === 'BOOKING' || item.isBooking === true);
+      const kodeRevisiBooking = isBooking ? 'B' : '0';
+
+      const inputTgl = document.getElementById('input-manual-tgl-terbit');
+      const refDate = inputTgl?.value ? new Date(inputTgl.value) : (item.tglPenilaian ? new Date(item.tglPenilaian) : new Date());
+      const bulanRomawi = BULAN_ROMAWI[refDate.getMonth()] || 'X';
+      const tahun = refDate.getFullYear() || 2026;
+      const strWaktu = `${bulanRomawi}/${tahun}`;
+
+      // Format 7 Segmen Baku
+      const fullNo = `${strUrut}/${kodeKantor}/${kodeJasa}/${kodeIndustri}/${izinPenilai}/${kodeRevisiBooking}/${strWaktu}`;
+      const inputNoLap = document.getElementById('input-manual-nolap');
+      if (inputNoLap) inputNoLap.value = fullNo;
+
+      // 1. Deteksi Loncatan Nomor
+      const warnLoncatan = document.getElementById('manual-warning-loncatan');
+      const warnLoncatanText = document.getElementById('manual-warning-loncatan-text');
+      if (seqVal > (nolapLastSeqCache + 1)) {
+        if (warnLoncatan) warnLoncatan.classList.remove('hidden');
+        if (warnLoncatanText) warnLoncatanText.textContent = `⚠️ Peringatan: Nomor urut melompati saldo terakhir (Saldo: ${String(nolapLastSeqCache).padStart(5, '0')}, Input: ${strUrut}). Pastikan nomor di antaranya tidak tertinggal!`;
+      } else {
+        if (warnLoncatan) warnLoncatan.classList.add('hidden');
+      }
+
+      // 2. Validasi Anti-Duplikasi Nomor Laporan & Tombol Submit
+      validasiManualNoLapInput();
+    }
+
+    function gunakanSaranNoLap() {
+      const elSeq = document.getElementById('input-manual-seq');
+      if (elSeq) {
+        elSeq.value = nolapSuggestSeqCache;
+        sinkronkanSeqKeNoLap();
+      }
+    }
+
+    function validasiManualNoLapInput() {
+      const inputNoLap = document.getElementById('input-manual-nolap')?.value.trim();
+      const warnDuplikat = document.getElementById('manual-warning-duplikat');
+      const btnSubmit = document.getElementById('btn-submit-terbit-nolap');
+
+      if (!inputNoLap) return;
+
+      const duplikat = daftarPermohonan.find(p => 
+        p.nomorLaporan && 
+        p.nomorLaporan.toLowerCase().trim() === inputNoLap.toLowerCase().trim() && 
+        (!currentReqToApprove || p.noPermintaan !== currentReqToApprove.noPermintaan) &&
+        p.status !== 'VOID' && p.status !== 'DIBATALKAN'
+      );
+
+      if (duplikat) {
+        if (warnDuplikat) {
+          warnDuplikat.classList.remove('hidden');
+          const warnText = document.getElementById('manual-warning-duplikat-text');
+          if (warnText) warnText.textContent = `⛔ NOMOR DUPLIKAT TERDETEKSI: Nomor "${inputNoLap}" sudah digunakan oleh permohonan ${duplikat.noPermintaan} (${duplikat.namaKlien || '-'}). Penerbitan nomor ganda dilarang!`;
+        }
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.classList.add('opacity-40', 'cursor-not-allowed');
+        }
+      } else {
+        if (warnDuplikat) warnDuplikat.classList.add('hidden');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-40', 'cursor-not-allowed');
+        }
+      }
+    }
+
+    // PENGATURAN REGISTER MODAL FUNCTIONS
+    function bukaModalPengaturanRegister() {
+      const modal = document.getElementById('modal-pengaturan-register');
+      if (modal) {
+        modal.classList.remove('hidden');
+        muatDataRegisterResmi();
+      }
+    }
+
+    function tutupModalPengaturanRegister() {
+      const modal = document.getElementById('modal-pengaturan-register');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function gantiTabRegister(tabKey) {
+      const tabs = ['daftar', 'form', 'audit', 'template'];
+      tabs.forEach(t => {
+        const contentEl = document.getElementById(`tab-reg-content-${t}`);
+        const btnEl = document.getElementById(`tab-reg-btn-${t}`);
+        if (contentEl) contentEl.classList.toggle('hidden', t !== tabKey);
+        if (btnEl) {
+          if (t === tabKey) {
+            btnEl.className = "py-2 px-3 font-bold border-b-2 border-indigo-400 text-indigo-300 transition";
+          } else {
+            btnEl.className = "py-2 px-3 font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+          }
+        }
+      });
+    }
+
+    async function muatDataRegisterResmi() {
+      const tbody = document.getElementById('tbody-register-list') || document.querySelector('#tab-reg-content-daftar tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">Memuat data register resmi...</td></tr>';
+      try {
+        let list = null;
+        try {
+          const resp = await fetch('/api/official-register-config');
+          if (resp.ok) list = await resp.json();
+        } catch (_) {}
+        if (!list || !Array.isArray(list)) {
+          list = [
+            { id: 'reg_pusat_nolap_2026', kantor: 'Pusat', kodeKantor: '2.0160-00', jenisDokumen: 'NoLap', labelDokumen: 'Nomor Laporan Penilaian Definitif', periode: '2026', nomorTerakhir: 13227, kandidatBerikutnya: '13228', status: 'AKTIF' },
+            { id: 'reg_pusat_lp_spk_2026', kantor: 'Pusat', kodeKantor: '2.0160-00', jenisDokumen: 'LP_SPK', labelDokumen: 'Nomor Lingkup Penugasan / SPK', periode: '2026', nomorTerakhir: 417, kandidatBerikutnya: '0418', status: 'AKTIF' },
+            { id: 'reg_pusat_jo_2026', kantor: 'Pusat', kodeKantor: '2.0160-00', jenisDokumen: 'JO', labelDokumen: 'Nomor Administrasi Job Order', periode: '2026', nomorTerakhir: 415, kandidatBerikutnya: '0416', status: 'AKTIF' },
+            { id: 'reg_padang_nolap_2026', kantor: 'Padang', kodeKantor: '2.0160-02', jenisDokumen: 'NoLap', labelDokumen: 'Nomor Laporan Penilaian Definitif', periode: '2026', nomorTerakhir: 0, kandidatBerikutnya: 'MENUNGGU_REKONSILIASI', status: 'MENUNGGU_REKONSILIASI' },
+            { id: 'reg_makassar_nolap_2026', kantor: 'Makassar', kodeKantor: '2.0160-03', jenisDokumen: 'NoLap', labelDokumen: 'Nomor Laporan Penilaian Definitif', periode: '2026', nomorTerakhir: 0, kandidatBerikutnya: 'MENUNGGU_REKONSILIASI', status: 'MENUNGGU_REKONSILIASI' },
+            { id: 'reg_bandung_nolap_2026', kantor: 'Bandung', kodeKantor: '2.0160-04', jenisDokumen: 'NoLap', labelDokumen: 'Nomor Laporan Penilaian Definitif', periode: '2026', nomorTerakhir: 0, kandidatBerikutnya: 'MENUNGGU_REKONSILIASI', status: 'MENUNGGU_REKONSILIASI' },
+            { id: 'reg_palembang_nolap_2026', kantor: 'Palembang', kodeKantor: '2.0160-05', jenisDokumen: 'NoLap', labelDokumen: 'Nomor Laporan Penilaian Definitif', periode: '2026', nomorTerakhir: 0, kandidatBerikutnya: 'MENUNGGU_REKONSILIASI', status: 'MENUNGGU_REKONSILIASI' }
+          ];
+        }
+        tbody.innerHTML = list.map(r => `
+          <tr class="hover:bg-slate-800/40 border-b border-slate-800 text-[11px]">
+            <td class="p-2.5 font-bold text-white">${r.kantor} (${r.kodeKantor})</td>
+            <td class="p-2.5 text-slate-300">${r.labelDokumen}</td>
+            <td class="p-2.5 font-mono text-amber-300 font-bold">${r.nomorTerakhir}</td>
+            <td class="p-2.5 font-mono text-emerald-300 font-bold">${r.kandidatBerikutnya}</td>
+            <td class="p-2.5 text-slate-400">${r.periode}</td>
+            <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.status === 'AKTIF' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">${r.status}</span></td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-rose-400">Gagal memuat data register.</td></tr>';
+      }
+    }
+
+    window.bukaModalPengaturanRegister = bukaModalPengaturanRegister;
+    window.tutupModalPengaturanRegister = tutupModalPengaturanRegister;
+    window.gantiTabRegister = gantiTabRegister;
+    window.muatDataRegisterResmi = muatDataRegisterResmi;
+    window.sinkronkanSeqKeNoLap = sinkronkanSeqKeNoLap;
+    window.gunakanSaranNoLap = gunakanSaranNoLap;
+    window.validasiManualNoLapInput = validasiManualNoLapInput;
 
     async function simpanPenerbitanManual() {
       if (!currentReqToApprove) return;
@@ -16051,7 +16303,7 @@ function resolveIzinPenilaiDisplay(p) {
         return;
       }
 
-      // Validasi Anti-Duplikasi Nomor Laporan Resmi
+      // Validasi Anti-Duplikasi Nomor Laporan Resmi (Hard Block)
       const duplikat = daftarPermohonan.find(p => 
         p.nomorLaporan && 
         p.nomorLaporan.toLowerCase().trim() === inputNoLap.toLowerCase().trim() && 
@@ -16064,9 +16316,15 @@ function resolveIzinPenilaiDisplay(p) {
       }
 
       const tglTerbit = inputTgl || new Date().toISOString().split('T')[0];
-      const catatanAdmin = inputCatatan || 'Disetujui dan ditetapkan secara manual oleh Admin Pusat (Master Akses).';
+      const isBooking = Boolean(currentReqToApprove.modePengajuan === 'BOOKING' || currentReqToApprove.isBooking === true);
+      const catatanAdmin = inputCatatan || (isBooking ? 'Alokasi nomor laporan booking resmi Pemerintah/BUMN oleh Admin Pusat.' : 'Disetujui dan ditetapkan secara manual oleh Admin Pusat (Master Akses).');
 
-      currentReqToApprove.status = "NOMOR DITERBITKAN";
+      if (isBooking) {
+        currentReqToApprove.status = "NOMOR DIBOOKING";
+        currentReqToApprove.isBooking = true;
+      } else {
+        currentReqToApprove.status = "NOMOR DITERBITKAN";
+      }
       currentReqToApprove.nomorLaporan = inputNoLap;
       currentReqToApprove.tglTerbit = tglTerbit;
       currentReqToApprove.catatanAdmin = catatanAdmin;
