@@ -1463,21 +1463,13 @@ function resolveCurrentUser($officialTokenHashes) {
 
     if ($rawToken) {
         $trimmed = trim($rawToken);
-        $tokenHash = hash('sha256', $trimmed);
-        if (isset($officialTokenHashes[$tokenHash])) {
-            return $officialTokenHashes[$tokenHash];
-        }
-        $upperHash = hash('sha256', strtoupper($trimmed));
-        if (isset($officialTokenHashes[$upperHash])) {
-            return $officialTokenHashes[$upperHash];
+        // Tolak mutlak hash langsung (anti pass-the-hash)
+        if (strlen($trimmed) === 64 && ctype_xdigit($trimmed)) {
+            return null;
         }
         $saltedUpperHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($trimmed));
         if (isset($officialTokenHashes[$saltedUpperHash])) {
             return $officialTokenHashes[$saltedUpperHash];
-        }
-        $saltedRawHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . $trimmed);
-        if (isset($officialTokenHashes[$saltedRawHash])) {
-            return $officialTokenHashes[$saltedRawHash];
         }
     }
 

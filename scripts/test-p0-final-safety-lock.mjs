@@ -8,11 +8,16 @@ console.log('🧪 P0 SAFETY LOCK & LIVE VERIFICATION SUITE');
 console.log('===============================================================');
 
 // Jalankan PHP Built-in server lokal untuk pengujian backend
-const PORT = 8092;
-const phpServer = spawn('php', ['-S', `127.0.0.1:${PORT}`, '-t', '.']);
-
-// Beri waktu 1 detik agar server siap
-await new Promise(r => setTimeout(r, 1200));
+const PORT = 8400 + Math.floor(Math.random() * 500);
+const phpServer = spawn('php', ['-S', '127.0.0.1:' + PORT, '-t', '.']);
+for (let i = 0; i < 20; i++) {
+  try {
+    const p = await fetch('http://127.0.0.1:' + PORT + '/index.html');
+    if (p.status) break;
+  } catch (e) {
+    await new Promise(r => setTimeout(r, 200));
+  }
+}
 
 async function api(path, options = {}) {
   const url = `http://127.0.0.1:${PORT}${path}`;
