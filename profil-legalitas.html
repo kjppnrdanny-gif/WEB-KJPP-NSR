@@ -2616,6 +2616,9 @@
       let auth = null;
 
       // 1. Validasi Otoritatif Server-Side (PHP cPanel Zero-Trust Endpoint)
+      let backendRejectionReason = null;
+      let serverContacted = false;
+
       try {
         const resp = await fetch('/api/auth-login', {
           method: 'POST',
@@ -2623,26 +2626,33 @@
           body: JSON.stringify({ token: input }),
           credentials: 'include'
         });
-        if (resp.ok) {
-          const srv = await resp.json();
-          if (srv && srv.authenticated && srv.user) {
-            auth = {
-              ...srv.user,
-              valid: true,
-              token: input,
-              tokenHash: srv.tokenHash || computeTokenHashSync(input),
-              sessionChecksum: srv.sessionChecksum,
-              expiresAt: srv.expiresAt || (Date.now() + (8 * 3600 * 1000))
-            };
-          }
+        serverContacted = true;
+        const srv = await resp.json().catch(() => null);
+        if (resp.ok && srv && srv.authenticated && srv.user) {
+          auth = {
+            ...srv.user,
+            valid: true,
+            token: input,
+            tokenHash: srv.tokenHash || computeTokenHashSync(input),
+            sessionChecksum: srv.sessionChecksum,
+            expiresAt: srv.expiresAt || (Date.now() + (8 * 3600 * 1000))
+          };
+        } else {
+          // Server merespons namun menolak token (HTTP 401 / 403 / non-auth)
+          backendRejectionReason = (srv && srv.error) ? srv.error : 'Akses Ditolak: Token otorisasi tidak valid.';
         }
       } catch (_) {
-        // Offline / mode berkas statis
+        // Jika berada di protokol HTTP/HTTPS web, kegagalan fetch adalah kegagalan koneksi backend
+        if (window.location.protocol.startsWith('http')) {
+          serverContacted = true;
+          backendRejectionReason = 'Gagal menghubungi server autentikasi resmi. Akses ditolak.';
+        }
       }
 
-      // 2. Fallback Resolver jika lingkungan serverless/offline
-      if (!auth) {
-        auth = window.resolveUnifiedToken(input);
+      // 2. Fallback Resolver: HANYA jika murni mode file statis offline lokal tanpa web server (file:///)
+      // Di hosting web/cPanel (http/https), wajib diverifikasi backend. Dilarang login via fallback browser!
+      if (!auth && !serverContacted && window.location.protocol === 'file:') {
+        auth = typeof window.resolveUnifiedToken === 'function' ? window.resolveUnifiedToken(input) : null;
       }
 
       if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = '<span id="btn-submit-text">Verifikasi &amp; Masuk</span> <svg class="w-4 h-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>'; }
