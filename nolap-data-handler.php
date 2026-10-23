@@ -1973,6 +1973,31 @@ function formatPesanWhatsApp($eventType, $requesterName, $idPenugasan, $noPermin
     $catatan = $details['catatan'] ?? 'Proses administrasi berjalan sesuai SOP OPINI NSR.';
     $linkElsa = $details['linkElsa'] ?? '';
 
+    if ($eventType === 'PENERBITAN_LP') {
+        $portalUrl = "https://kjppnanangrahayu.com/portal-penugasan-jo.html";
+        $cabang = $details['kantorCabang'] ?? '-';
+        $tglAppr = $details['tanggalApproval'] ?? date('d/m/Y');
+        $msg = "Yth. Rekan Penilai / Admin Pengaju *{$requesterName}*,\n\n";
+        $msg .= "🔔 *[OPINI NSR] Pemberitahuan Penerbitan Nomor SPK & Job Order (JO) Resmi*\n";
+        $msg .= "--------------------------------------\n";
+        $msg .= "Permohonan Lingkup Penugasan & Job Order Anda telah *DISETUJUI* oleh Kantor Pusat.\n\n";
+        $msg .= "• ID Penugasan : *{$idPenugasan}*\n";
+        $msg .= "• Kantor Cabang: {$cabang}\n";
+        $msg .= "• Penugasan    : {$klien}\n";
+        $msg .= "• No. SPK Resmi: *{$nomor}*\n";
+        if (!empty($details['nomorAdm'])) {
+            $msg .= "• No. JO Resmi : *{$details['nomorAdm']}*\n";
+        }
+        $msg .= "• Tgl Disetujui: {$tglAppr}\n";
+        $msg .= "• Status       : *DISETUJUI*\n";
+        $msg .= "• Keterangan   : {$catatan}\n";
+        $msg .= "--------------------------------------\n";
+        $msg .= "Silakan buka Portal Penugasan & JO resmi untuk mencetak dan mengunduh berkas lengkap:\n";
+        $msg .= "{$portalUrl}\n\n";
+        $msg .= "Salam hormat,\n_Sekretariat & Administrasi Penugasan KJPP NSR_";
+        return $msg;
+    }
+
     $msg = "Yth. Rekan Penilai / Admin Pengaju *{$requesterName}*,\n\n";
     $msg .= "🔔 *[OPINI NSR] {$judulEvent}*\n";
     $msg .= "--------------------------------------\n";
@@ -2057,9 +2082,11 @@ function kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $reque
                 <p>Status permohonan penugasan Anda telah diperbarui pada sistem:</p>
                 <table style='width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px;'>
                     <tr><td style='padding: 6px 0; color: #64748b; width: 35%;'>ID Penugasan:</td><td style='font-weight: bold;'>" . htmlspecialchars($idPenugasan) . "</td></tr>
-                    " . ($noPermintaan ? "<tr><td style='padding: 6px 0; color: #64748b;'>No. Permintaan:</td><td style='font-weight: bold;'>" . htmlspecialchars($noPermintaan) . "</td></tr>" : "") . "
+                    " . (!empty($details['kantorCabang']) ? "<tr><td style='padding: 6px 0; color: #64748b;'>Kantor Cabang:</td><td style='font-weight: bold;'>" . htmlspecialchars($details['kantorCabang']) . "</td></tr>" : "") . "
+                    " . ($noPermintaan ? "<tr><td style='padding: 6px 0; color: #64748b;'>No. Permintaan / SPK:</td><td style='font-weight: bold;'>" . htmlspecialchars($noPermintaan) . "</td></tr>" : "") . "
+                    " . (!empty($details['nomorAdm']) ? "<tr><td style='padding: 6px 0; color: #64748b;'>No. JO Resmi:</td><td style='font-weight: bold; color: #0284c7;'>" . htmlspecialchars($details['nomorAdm']) . "</td></tr>" : "") . "
                     <tr><td style='padding: 6px 0; color: #64748b;'>Debitur / Klien:</td><td>" . htmlspecialchars($details['namaKlien'] ?? '-') . "</td></tr>
-                    <tr><td style='padding: 6px 0; color: #64748b;'>Status Terkini:</td><td><span style='background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>" . htmlspecialchars($details['status'] ?? '-') . "</span></td></tr>
+                    <tr><td style='padding: 6px 0; color: #64748b;'>Status Terkini:</td><td><span style='background: " . (($details['status'] ?? '') === 'DISETUJUI' ? '#dcfce7; color: #15803d;' : '#fef3c7; color: #92400e;') . " padding: 2px 8px; border-radius: 4px; font-weight: bold;'>" . htmlspecialchars($details['status'] ?? '-') . "</span></td></tr>
                     " . (!empty($details['nomorLaporan']) ? "<tr><td style='padding: 6px 0; color: #64748b;'>No. Laporan:</td><td style='font-weight: bold; color: #0284c7;'>" . htmlspecialchars($details['nomorLaporan']) . "</td></tr>" : "") . "
                     " . (!empty($details['nomorLp']) ? "<tr><td style='padding: 6px 0; color: #64748b;'>No. LP Resmi:</td><td style='font-weight: bold; color: #059669;'>" . htmlspecialchars($details['nomorLp']) . "</td></tr>" : "") . "
                     " . (!empty($details['linkElsa']) ? "<tr><td style='padding: 6px 0; color: #64748b;'>Status eLSa-PK:</td><td style='font-weight: bold; color: #16a34a;'>TERVERIFIKASI QR RESMI</td></tr>" : "") . "
@@ -2068,7 +2095,7 @@ function kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $reque
                     <strong>Catatan:</strong> " . htmlspecialchars($details['catatan'] ?? 'Silakan login ke portal resmi untuk mengunduh dokumen atau memeriksa riwayat mitigasi.') . "
                 </p>
                 <div style='text-align: center; margin: 24px 0;'>
-                    <a href='https://kjppnanangrahayu.com/portal-nolap.html' style='background: #0f172a; color: #fbbf24; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;'>Buka Portal OPINI NSR</a>
+                    <a href='" . ($eventType === 'PENERBITAN_LP' ? 'https://kjppnanangrahayu.com/portal-penugasan-jo.html' : 'https://kjppnanangrahayu.com/portal-nolap.html') . "' style='background: #0f172a; color: #fbbf24; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;'>" . ($eventType === 'PENERBITAN_LP' ? 'Buka Portal Lingkup Penugasan & JO' : 'Buka Portal OPINI NSR') . "</a>
                 </div>
             </div>
             <div style='background-color: #f1f5f9; padding: 12px; text-align: center; font-size: 11px; color: #64748b;'>
@@ -3458,6 +3485,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $details = $payload['details'] ?? [];
         $res = kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $requesterInfo, $details, $dataDir);
         echo json_encode(array_merge(['success' => true], $res));
+        exit;
+    }
+
+    if ($action === 'kirimNotifikasiApprovalJo') {
+        if (!in_array($userRole, ['SUPER_ADMIN', 'ADMIN_PUSAT'], true)) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Akses Ditolak (403 Forbidden): Hanya Admin Pusat atau SUPER ADMIN yang berwenang mengirimkan notifikasi approval SPK/JO.',
+                'violation' => 'UNAUTHORIZED_NOTIFICATION_DISPATCH'
+            ]);
+            exit;
+        }
+
+        $idPenugasan = trim($payload['idPenugasan'] ?? ($payload['id'] ?? ''));
+        $nomorLp = trim($payload['nomorLp'] ?? ($payload['nomor_lp'] ?? ''));
+        $nomorAdm = trim($payload['nomorAdm'] ?? ($payload['nomor_adm'] ?? ''));
+        $kantorCabang = trim($payload['kantorCabang'] ?? ($payload['kantor_wilayah'] ?? ''));
+        $namaPenugasan = trim($payload['namaPenugasan'] ?? ($payload['pemberi_tugas_nama'] ?? ($payload['debitur_nama'] ?? '-')));
+        $tanggalApproval = trim($payload['tanggalApproval'] ?? ($payload['approved_at'] ?? date('d/m/Y')));
+
+        $requesterInfo = [
+            'nama' => trim($payload['pengajuNama'] ?? ($payload['pengaju_nama'] ?? 'Rekan Penilai')),
+            'email' => trim($payload['pengajuEmail'] ?? ($payload['pengaju_email'] ?? '')),
+            'whatsapp_number' => trim($payload['pengajuWa'] ?? ($payload['pengaju_wa'] ?? '')),
+            'office_id' => $kantorCabang,
+            'email_verified' => !empty($payload['email_verified']),
+            'whatsapp_verified' => !empty($payload['whatsapp_verified'])
+        ];
+
+        if (empty($idPenugasan) || empty($nomorLp)) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'error' => 'ID Penugasan dan Nomor SPK/JO resmi wajib disertakan.'
+            ]);
+            exit;
+        }
+
+        $details = [
+            'status' => 'DISETUJUI',
+            'namaKlien' => $namaPenugasan,
+            'nomorLp' => $nomorLp,
+            'nomorAdm' => $nomorAdm,
+            'kantorCabang' => $kantorCabang,
+            'tanggalApproval' => $tanggalApproval,
+            'catatan' => 'Nomor SPK & Job Order resmi telah disetujui dan diterbitkan oleh Kantor Pusat Jakarta. Berkas siap dicetak dan dilaksanakan.',
+            'judulNotif' => "Penerbitan Nomor SPK & JO Resmi ({$nomorLp})"
+        ];
+
+        $res = kirimNotifikasiWorkflow('PENERBITAN_LP', $idPenugasan, $nomorLp, $requesterInfo, $details, $dataDir);
+        echo json_encode(array_merge([
+            'success' => true,
+            'message' => "Notifikasi persetujuan SPK/JO {$nomorLp} berhasil diproses.",
+            'nomor_lp' => $nomorLp,
+            'nomor_adm' => $nomorAdm
+        ], $res));
         exit;
     }
 

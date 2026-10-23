@@ -1642,6 +1642,13 @@
             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span id="label-tab3-otorisasi">Otorisasi / Setujui Draft</span>
           </button>
+          <button type="button" 
+                  id="btn-tab3-notif-wa" 
+                  onclick="kirimNotifikasiWaPengajuAktif()" 
+                  class="hidden items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition cursor-pointer" 
+                  title="Kirim Notifikasi Persetujuan via WhatsApp ke Pengaju">
+            <span>💬 Notifikasi WA Pengaju</span>
+          </button>
           <button type="button" onclick="exportDataJSON()" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 transition" title="Export JSON Proyek">
             Ekspor JSON
           </button>
@@ -1963,6 +1970,109 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- ========================================================
+       MODAL NOTIFIKASI APPROVAL SPK/JO RESMI (EMAIL & WHATSAPP)
+       ======================================================== -->
+  <div id="modal-notifikasi-approval-jo" class="fixed inset-0 z-50 bg-slate-950/85 flex items-center justify-center p-4 backdrop-blur-sm hidden" role="dialog" aria-modal="true">
+    <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl max-w-lg w-full shadow-2xl text-xs flex flex-col overflow-hidden animate-scale-up">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-950/60">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 font-bold text-lg">
+            📢
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white">Notifikasi Persetujuan SPK/JO</h3>
+            <p class="text-[11px] text-slate-400">Pemberitahuan resmi nomor terbit kepada Pengaju Cabang.</p>
+          </div>
+        </div>
+        <button type="button" onclick="tutupModalNotifikasiApprovalJo()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 space-y-4">
+        <!-- Card Status Approval -->
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-slate-300">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Status Penugasan:</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-black border border-emerald-500/40 text-[10.5px]">✔ DISETUJUI &amp; TERBIT</span>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-slate-850">
+            <span class="text-slate-400">No. SPK Resmi:</span>
+            <span id="notif-jo-spk" class="font-mono font-bold text-amber-300 text-[11.5px]">-</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">No. JO Resmi:</span>
+            <span id="notif-jo-adm" class="font-mono font-bold text-sky-300 text-[11.5px]">-</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Kantor Cabang:</span>
+            <span id="notif-jo-wilayah" class="font-semibold text-slate-200">-</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Nama Penugasan / Klien:</span>
+            <span id="notif-jo-klien" class="font-bold text-white truncate max-w-[220px]">-</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Petugas Pengaju:</span>
+            <span id="notif-jo-pengaju" class="font-semibold text-amber-200">-</span>
+          </div>
+        </div>
+
+        <!-- Status Saluran Notifikasi -->
+        <div class="space-y-2.5">
+          <!-- Saluran 1: Email Resmi -->
+          <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 text-base">
+              ✉️
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <p class="font-bold text-slate-200 text-xs">Email Notifikasi Resmi</p>
+                <span id="notif-jo-email-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-700">QUEUED</span>
+              </div>
+              <p id="notif-jo-email-target" class="text-[11px] text-slate-400 font-mono truncate mt-0.5">-</p>
+              <p id="notif-jo-email-desc" class="text-[10px] text-slate-500 mt-1">Notifikasi otomatis diantrekan ke server mail resmi KJPP NSR.</p>
+            </div>
+          </div>
+
+          <!-- Saluran 2: WhatsApp (wa.me) -->
+          <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-base">
+                💬
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <p class="font-bold text-slate-200 text-xs">WhatsApp Pengaju</p>
+                  <span id="notif-jo-wa-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">SIAP KIRIM</span>
+                </div>
+                <p id="notif-jo-wa-target" class="text-[11px] text-slate-400 font-mono truncate mt-0.5">-</p>
+              </div>
+            </div>
+
+            <!-- Tombol Kirim WA -->
+            <a id="btn-modal-kirim-wa" href="#" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition">
+              <span>📲 Kirim Notifikasi WA ke Pengaju (Buka wa.me)</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-5 py-3.5 border-t border-slate-800 bg-slate-950/40 flex items-center justify-between gap-3">
+        <span id="notif-jo-timestamp" class="text-[10px] font-mono text-slate-500">Tercatat: -</span>
+        <button type="button" onclick="tutupModalNotifikasiApprovalJo(true)" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow flex items-center gap-1.5 cursor-pointer">
+          <span>Buka Pratinjau Dokumen (Tab 3) &rarr;</span>
+        </button>
       </div>
     </div>
   </div>
@@ -3167,10 +3277,9 @@
         if (labelAppr) labelAppr.textContent = origApprText;
       }
 
-      const metodePesan = p.metode_pengesahan === 'SCAN_BASAH'
-        ? '• Metode: Upload Scan Basah PDF\n• File: ' + (p.berkas_scan_pdf ? p.berkas_scan_pdf.nama_file : '-')
-        : '• Metode: Injeksi Digital (TTD & Stempel PNG)';
-      alert(`Nomor Resmi Berhasil Diterbitkan!\n\n• No. SPK: ${p.nomor_lp}\n• No. Adm JO: ${p.nomor_adm}\n• Status: APPROVED\n${metodePesan}`);
+      // P0 NOTIFIKASI APPROVAL SPK/JO RESMI: Pemicu Email Server & Dialog WhatsApp Pengaju
+      kirimNotifikasiApprovalJoServer(p);
+      bukaModalNotifikasiApprovalJo(p);
       resetApprovalDualMethodState();
     }
 
@@ -5127,6 +5236,8 @@
               btnTab3Otorisasi.className = 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-700 text-emerald-100 font-semibold text-xs border border-emerald-500/40 transition cursor-pointer';
               if (labelTab3Otorisasi) labelTab3Otorisasi.textContent = '✓ Dokumen Telah Diotorisasi';
               btnTab3Otorisasi.disabled = false;
+              const btnTab3WaEl = document.getElementById('btn-tab3-notif-wa');
+              if (btnTab3WaEl) { btnTab3WaEl.classList.remove('hidden'); btnTab3WaEl.style.display = 'inline-flex'; }
             } else {
               btnTab3Otorisasi.className = 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition cursor-pointer';
               if (labelTab3Otorisasi) labelTab3Otorisasi.textContent = 'Otorisasi / Setujui Draft';
@@ -8393,6 +8504,13 @@
                 ${!isApproved && !p.is_private && (userSession.isSuperAdmin || userSession.role === "ADMIN_PUSAT" || userSession.role === "SUPER_ADMIN" || userSession.role === "SUPER ADMIN") ? `
                   <button type="button" onclick="approveProyekPusat('${p.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10.5px] transition shadow cursor-pointer" title="Approve &amp; Terbitkan Nomor Resmi">
                     Approve
+                  </button>
+                ` : ''}
+
+                <!-- Tombol Notifikasi WA Pengaju untuk Proyek Approved -->
+                ${isApproved ? `
+                  <button type="button" onclick="kirimNotifikasiWaPengaju('${escapeHtml(p.id)}')" class="px-2 py-1 rounded-lg bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold text-[10.5px] transition shadow flex items-center gap-1 border border-emerald-500/40 cursor-pointer" title="Kirim Notifikasi WhatsApp ke Pengaju Cabang">
+                    <span>💬 Notif WA</span>
                   </button>
                 ` : ''}
 
@@ -12006,6 +12124,200 @@
       // Sinkronisasi data live dari Google Spreadsheet di latar belakang
       sinkronisasiDataServer(true);
     });
+
+
+    // ==========================================================
+    // 14. SISTEM NOTIFIKASI APPROVAL SPK/JO (WHATSAPP & EMAIL)
+    // ==========================================================
+    function normalisasiNomorWa(rawPhone) {
+      if (!rawPhone) return '';
+      let clean = String(rawPhone).replace(/[^0-9]/g, '');
+      if (clean.startsWith('08')) {
+        clean = '62' + clean.substring(1);
+      } else if (clean.startsWith('8')) {
+        clean = '62' + clean;
+      }
+      return clean;
+    }
+
+    function formatPesanWhatsAppJo(p) {
+      const namaPengaju = p.pengaju_nama || p.namaPemohon || 'Rekan Penilai';
+      const kantorCabang = p.kantor_wilayah || p.pengaju_kantor || 'Kantor Cabang';
+      const namaPenugasan = p.pemberi_tugas_nama || p.debitur_nama || 'Penugasan Penilaian';
+      const noSpk = p.nomor_lp || '-';
+      const noJo = p.nomor_adm || '-';
+      const tglSurat = formatTanggalIndo(p.approved_at || p.tanggal_surat || new Date());
+      const portalUrl = 'https://kjppnanangrahayu.com/portal-penugasan-jo.html';
+
+      let msg = 'Yth. Rekan Penilai / Admin Pengaju *' + namaPengaju + '*,\n\n';
+      msg += '🔔 *[OPINI NSR] Pemberitahuan Penerbitan Nomor SPK & Job Order (JO) Resmi*\n';
+      msg += '--------------------------------------\n';
+      msg += 'Permohonan Lingkup Penugasan & Job Order Anda telah *DISETUJUI* oleh Kantor Pusat.\n\n';
+      msg += '• ID Penugasan : *' + (p.id || '-') + '*\n';
+      msg += '• Kantor Cabang: ' + kantorCabang + '\n';
+      msg += '• Penugasan    : ' + namaPenugasan + '\n';
+      msg += '• No. SPK Resmi: *' + noSpk + '*\n';
+      msg += '• No. JO Resmi : *' + noJo + '*\n';
+      msg += '• Tgl Disetujui: ' + tglSurat + '\n';
+      msg += '• Status       : *DISETUJUI*\n';
+      msg += '• Keterangan   : Dokumen resmi telah disahkan dan siap dicetak melalui Portal JO.\n';
+      msg += '--------------------------------------\n';
+      msg += 'Silakan buka Portal Penugasan & JO resmi untuk mencetak dan mengunduh berkas lengkap:\n';
+      msg += portalUrl + '\n\n';
+      msg += 'Salam hormat,\n_Sekretariat & Administrasi Penugasan KJPP NSR_';
+
+      const cleanWa = normalisasiNomorWa(p.pengaju_wa || p.waPemohon);
+      return {
+        pesan: msg,
+        phone: cleanWa,
+        waUrl: cleanWa ? ('https://wa.me/' + cleanWa + '?text=' + encodeURIComponent(msg)) : ''
+      };
+    }
+
+    async function kirimNotifikasiApprovalJoServer(p) {
+      if (!p) return;
+      const payload = {
+        action: 'kirimNotifikasiApprovalJo',
+        idPenugasan: p.id,
+        nomorLp: p.nomor_lp,
+        nomorAdm: p.nomor_adm,
+        kantorCabang: p.kantor_wilayah,
+        namaPenugasan: p.pemberi_tugas_nama || p.debitur_nama || '-',
+        tanggalApproval: p.approved_at || new Date().toISOString().split('T')[0],
+        pengajuNama: p.pengaju_nama || p.namaPemohon || '',
+        pengajuEmail: p.pengaju_email || p.emailPemohon || '',
+        pengajuWa: p.pengaju_wa || p.waPemohon || '',
+        email_verified: Boolean(p.email_verified),
+        whatsapp_verified: Boolean(p.whatsapp_verified)
+      };
+
+      if (!p.notifikasi_approval) {
+        p.notifikasi_approval = {
+          triggered_at: new Date().toISOString(),
+          email_status: 'QUEUED',
+          whatsapp_ready: Boolean(p.pengaju_wa || p.waPemohon)
+        };
+      }
+
+      try {
+        const res = await fetch('/nolap-data-handler.php?action=kirimNotifikasiApprovalJo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const resJson = await res.json();
+          if (resJson && resJson.success) {
+            p.notifikasi_approval.email_status = resJson.email_status || 'QUEUED';
+            p.notifikasi_approval.event_id = resJson.event_id || '';
+            p.notifikasi_approval.whatsapp_url = resJson.whatsapp_url || '';
+            p.notifikasi_approval.dispatched_at = new Date().toISOString();
+            simpanDatabaseLokal();
+          }
+        }
+      } catch (err) {
+        console.warn('[NOTIF_JO] Backend email dispatch fallback:', err);
+      }
+    }
+
+    function bukaModalNotifikasiApprovalJo(p) {
+      if (!p) return;
+      const waData = formatPesanWhatsAppJo(p);
+
+      const elSpk = document.getElementById('notif-jo-spk');
+      const elAdm = document.getElementById('notif-jo-adm');
+      const elWil = document.getElementById('notif-jo-wilayah');
+      const elKlien = document.getElementById('notif-jo-klien');
+      const elPengaju = document.getElementById('notif-jo-pengaju');
+      const elMailTarget = document.getElementById('notif-jo-email-target');
+      const elMailBadge = document.getElementById('notif-jo-email-badge');
+      const elWaTarget = document.getElementById('notif-jo-wa-target');
+      const elWaBadge = document.getElementById('notif-jo-wa-badge');
+      const btnWa = document.getElementById('btn-modal-kirim-wa');
+      const elTime = document.getElementById('notif-jo-timestamp');
+
+      if (elSpk) elSpk.textContent = p.nomor_lp || '-';
+      if (elAdm) elAdm.textContent = p.nomor_adm || '-';
+      if (elWil) elWil.textContent = p.kantor_wilayah || '-';
+      if (elKlien) elKlien.textContent = p.pemberi_tugas_nama || p.debitur_nama || '-';
+      if (elPengaju) elPengaju.textContent = p.pengaju_nama || p.namaPemohon || 'Petugas Cabang';
+
+      const email = p.pengaju_email || p.emailPemohon || '';
+      if (elMailTarget) elMailTarget.textContent = email || '(Tidak diisi pada formulir)';
+      if (elMailBadge) {
+        if (email && email.includes('@')) {
+          elMailBadge.textContent = 'QUEUED / DIANTREKAN';
+          elMailBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-700';
+        } else {
+          elMailBadge.textContent = 'SKIPPED (KOSONG)';
+          elMailBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700';
+        }
+      }
+
+      const waPhone = p.pengaju_wa || p.waPemohon || '';
+      if (elWaTarget) elWaTarget.textContent = waPhone ? (waPhone + ' (' + (waData.phone || '-') + ')') : '(Tidak diisi pada formulir)';
+      if (elWaBadge) {
+        if (waData.phone) {
+          elWaBadge.textContent = 'SIAP KIRIM';
+          elWaBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700';
+        } else {
+          elWaBadge.textContent = 'NOMOR TIDAK VALID';
+          elWaBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-700';
+        }
+      }
+
+      if (btnWa) {
+        if (waData.waUrl) {
+          btnWa.href = waData.waUrl;
+          btnWa.classList.remove('opacity-50', 'pointer-events-none');
+          btnWa.innerHTML = '<span>📲 Kirim Notifikasi WA ke Pengaju (Buka wa.me)</span>';
+        } else {
+          btnWa.href = '#';
+          btnWa.classList.add('opacity-50', 'pointer-events-none');
+          btnWa.innerHTML = '<span>⚠️ Nomor WhatsApp Pengaju Tidak Tersedia</span>';
+        }
+      }
+
+      if (elTime) elTime.textContent = 'Tercatat: ' + new Date().toLocaleTimeString('id-ID');
+
+      const modal = document.getElementById('modal-notifikasi-approval-jo');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function tutupModalNotifikasiApprovalJo(lanjutKeTab3 = false) {
+      const modal = document.getElementById('modal-notifikasi-approval-jo');
+      if (modal) modal.classList.add('hidden');
+      if (lanjutKeTab3) {
+        gantiTab(3);
+      }
+    }
+
+    function kirimNotifikasiWaPengaju(proyekId) {
+      let p = projectDatabase.find(item => item.id === proyekId);
+      if (!p) {
+        p = (window.DATA_PROYEK_TERPILIH && window.DATA_PROYEK_TERPILIH.id === proyekId) ? window.DATA_PROYEK_TERPILIH : null;
+      }
+      if (!p) {
+        const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+        const localPrivate = ambilDataPrivatCabang((auth && auth.wilayah) || userSession.wilayah);
+        p = localPrivate.find(item => item.id === proyekId);
+      }
+      if (!p) {
+        alert('Data penugasan tidak ditemukan.');
+        return;
+      }
+      bukaModalNotifikasiApprovalJo(p);
+    }
+
+    function kirimNotifikasiWaPengajuAktif() {
+      const p = window.DATA_PROYEK_TERPILIH || activeProjectData;
+      if (!p) {
+        alert('Silakan pilih berkas penugasan terlebih dahulu.');
+        return;
+      }
+      bukaModalNotifikasiApprovalJo(p);
+    }
   </script>
 </body>
 </html>
