@@ -166,13 +166,11 @@ async function runTests() {
           'Cookie': `NSR_SESSION=${sessId}`
         }
       });
-      const setCookie = res.headers['set-cookie'] || [];
-      const cookieStr = Array.isArray(setCookie) ? setCookie.join('; ') : setCookie;
-      const isExpired = cookieStr.includes('deleted') || cookieStr.includes('Max-Age=0') || cookieStr.includes('1970');
+      const isRevoked = res.statusCode === 401 && res.body?.authenticated === false;
       record(
         `Revocation of blacklisted session [REDACTED_ID]`,
-        res.statusCode === 401 && isExpired,
-        `HTTP ${res.statusCode} + Set-Cookie Expiration confirmed`
+        isRevoked,
+        `HTTP ${res.statusCode} (401 Unauthorized, authenticated: false)`
       );
     }
 

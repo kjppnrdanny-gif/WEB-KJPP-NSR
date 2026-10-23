@@ -84,8 +84,10 @@ $REVOKED_SESSION_IDS = [
     'bcd790d3a97f63d115f3bd06f59bb84d',
     '8a12b1ef6a7dd5895c2369261633f637'
 ];
+$incomingCookieSess = $_COOKIE['NSR_SESSION'] ?? '';
 $currentSessionId = session_id();
-if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
+if (($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) ||
+    ($incomingCookieSess && in_array($incomingCookieSess, $REVOKED_SESSION_IDS, true))) {
     $_SESSION = [];
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
