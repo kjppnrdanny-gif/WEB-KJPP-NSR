@@ -48,6 +48,15 @@ jobs:
         run: |
           python3 -c "
           import ftplib, ssl, os, sys, time, hashlib
+
+          class ReusedSslFTP(ftplib.FTP_TLS):
+              def ntransfercmd(self, cmd, rest=None):
+                  conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+                  if self._prot_p:
+                      session = getattr(self.sock, 'session', None)
+                      conn = self.context.wrap_socket(conn, server_hostname=self.host, session=session)
+                  return conn, size
+
           server = os.environ['FTP_SERVER']
           user = os.environ['FTP_USERNAME']
           passwd = os.environ['FTP_PASSWORD']
@@ -57,39 +66,58 @@ jobs:
           success = False
 
           for attempt in range(1, max_retries + 1):
-              print(f'🔄 [Percobaan {attempt}/{max_retries}] Mengambil backup filesystem cPanel via FTPS (timeout={timeout_sec}s)...')
+              print(f'🔄 [Percobaan {attempt}/{max_retries}] Mengambil backup filesystem cPanel (timeout={timeout_sec}s)...')
+              
+              # Metode 1: Menggunakan curl FTPS (Native TLS session reuse)
+              for path in ['public_html/index.html', 'index.html']:
+                  cmd = f'curl -s --ssl-reqd --ftp-pasv --connect-timeout {timeout_sec} --max-time 60 -u "{user}:{passwd}" "ftp://{server}/{path}" -o {backup_file}'
+                  os.system(cmd)
+                  if os.path.exists(backup_file) and os.path.getsize(backup_file) > 0:
+                      print(f'   Curl berhasil mengunduh dari /{path}')
+                      break
+                      
+              if os.path.exists(backup_file) and os.path.getsize(backup_file) > 0:
+                  with open(backup_file, 'rb') as f:
+                      h = hashlib.sha256(f.read()).hexdigest()
+                  print('✅ BERHASIL MENGAMBIL BACKUP FILESYSTEM CPANEL VIA FTPS')
+                  print(f'   File: {backup_file}')
+                  print(f'   Ukuran: {os.path.getsize(backup_file)} bytes')
+                  print(f'   SHA256: {h}')
+                  success = True
+                  break
+
+              # Metode 2: Python FTPS dengan TLS session reuse
               try:
-                  context = ssl.create_default_context()
-                  ftps = ftplib.FTP_TLS(context=context, timeout=timeout_sec)
+                  ctx = ssl.create_default_context()
+                  ftps = ReusedSslFTP(context=ctx, timeout=timeout_sec)
                   ftps.connect(server)
                   ftps.login(user, passwd)
                   ftps.prot_p()
+                  ftps.set_pasv(True)
                   try:
-                      files_in_root = ftps.nlst()
-                      if 'public_html' in files_in_root:
+                      if 'public_html' in ftps.nlst():
                           ftps.cwd('public_html')
-                  except Exception as e_dir:
-                      print(f'   Catatan navigasi direktori: {e_dir}')
+                  except Exception:
+                      pass
                   with open(backup_file, 'wb') as f:
                       ftps.retrbinary('RETR index.html', f.write)
                   ftps.quit()
                   if os.path.exists(backup_file) and os.path.getsize(backup_file) > 0:
                       with open(backup_file, 'rb') as f:
                           h = hashlib.sha256(f.read()).hexdigest()
-                      print('✅ BERHASIL MENGAMBIL BACKUP FILESYSTEM CPANEL VIA FTPS')
+                      print('✅ BERHASIL MENGAMBIL BACKUP FILESYSTEM CPANEL VIA PYTHON FTPS')
                       print(f'   File: {backup_file}')
                       print(f'   Ukuran: {os.path.getsize(backup_file)} bytes')
                       print(f'   SHA256: {h}')
                       success = True
                       break
-                  else:
-                      raise Exception('File backup kosong (0 bytes) atau tidak terunduh.')
-              except Exception as err:
-                  print(f'⚠️ Gagal pada percobaan {attempt}: {err}')
-                  if attempt < max_retries:
-                      sleep_time = attempt * 5
-                      print(f'   Menunggu {sleep_time} detik sebelum mencoba kembali...')
-                      time.sleep(sleep_time)
+              except Exception as e_py:
+                  print(f'   Python FTPS info ({attempt}): {e_py}')
+
+              if attempt < max_retries:
+                  sleep_t = attempt * 5
+                  print(f'   Menunggu {sleep_t} detik sebelum mencoba kembali...')
+                  time.sleep(sleep_t)
 
           if not success:
               print('❌ FATAL: Seluruh percobaan backup filesystem live cPanel gagal!')
