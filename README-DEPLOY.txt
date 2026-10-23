@@ -36,12 +36,8 @@ CATATAN PORTAL INTERNAL CABANG
   3. Pengajuan Nolap (Cloud Web App)
   4. Presensi Online
 - Token akses cabang resmi:
-  * Jakarta Pusat: NSR-PST-2026
-  * Bandung:       NSR-BDG-2026
-  * Padang:        NSR-PDG-2026
-  * Makassar:      NSR-MKS-2026
-  * Palembang:     NSR-PLB-2026
-  * Master Akses:  NSR8899 / NSR2026
+  * Kredensial privat didistribusikan langsung kepada masing-masing admin cabang resmi.
+  * Master Akses dikunci melalui otentikasi aman server-side & PIN dinamis.
 
 PENTING
 Jika hanya mengunggah index.html sebagai file statis tanpa Netlify Function,
