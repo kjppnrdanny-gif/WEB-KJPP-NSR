@@ -460,7 +460,7 @@ function loadPrivateAuthRegistry() {
         'd471eb92040e36990d7e68e243d132bec66aa4db636d917521a62eec4bbc03d1' => [
             'sub'               => 'deni_penilai',
             'branch'            => 'PUSAT',
-            'displayName'       => 'Deni Siswandi, S.T., MAPPI',
+            'displayName'       => 'Deni Siswandi, S.T., MAPPI (Cert.)',
             'role'              => 'PENILAI_PUBLIK',
             'roleLabel'         => 'Rekan / Penilai Publik Penanggung Jawab',
             'title'             => 'Penilai Publik Penanggung Jawab',
@@ -500,7 +500,7 @@ function loadPrivateAuthRegistry() {
         '429f4f2f7e74ccd0a2d8bf70ea4decbaaad5d1729907a4f4d477753c3c42c7f2' => [
             'sub'               => 'deni_penilai',
             'branch'            => 'PUSAT',
-            'displayName'       => 'Deni Siswandi, S.T., MAPPI',
+            'displayName'       => 'Deni Siswandi, S.T., MAPPI (Cert.)',
             'role'              => 'PENILAI_PUBLIK',
             'roleLabel'         => 'Rekan / Penilai Publik Penanggung Jawab',
             'title'             => 'Penilai Publik Penanggung Jawab',
