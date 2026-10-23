@@ -14879,9 +14879,12 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       const serviceClassId = elJasa?.value || "PROPERTY";
       const kodeJasa = optJasa?.getAttribute('data-report-code') || resolveReportServiceCode(serviceClassId);
 
-      // 4. Kode Sektor Industri (2 Digit)
+      // 4. Kode Sektor Industri (2 Digit) Sesuai Master Baku 01-12
       const elIndustri = document.getElementById('f-industri');
-      const kodeIndustri = elIndustri?.value || "07";
+      const rawIndustri = elIndustri?.value || "07";
+      const cleanInd = String(rawIndustri).replace(/\D/g, '').padStart(2, '0');
+      const numInd = parseInt(cleanInd, 10);
+      const kodeIndustri = (numInd >= 1 && numInd <= 12) ? cleanInd : "07";
 
       // 5. Kode Izin Penilai
       const elPenilai = document.getElementById('f-penilai');

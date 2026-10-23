@@ -1374,6 +1374,20 @@ function muatMasterServiceClassifications($mastersDir) {
     return file_exists($f) ? (json_decode(file_get_contents($f), true) ?: []) : [];
 }
 
+function muatMasterSektorIndustri($mastersDir) {
+    $f = $mastersDir . '/master_sektor_industri.json';
+    return file_exists($f) ? (json_decode(file_get_contents($f), true) ?: []) : [];
+}
+
+function resolveKodeIndustri($inputKode) {
+    $clean = str_pad(preg_replace('/\D/', '', (string)$inputKode), 2, '0', STR_PAD_LEFT);
+    $intVal = (int)$clean;
+    if ($intVal >= 1 && $intVal <= 12) {
+        return $clean;
+    }
+    return '07'; // Default Sektor 07 Perbankan KJPP NSR
+}
+
 function resolveReportServiceCode($classificationInput) {
     $val = strtoupper(trim((string)$classificationInput));
     if ($val === 'PROPERTY_SIMPLE' || $val === 'PS' || strpos($val, 'SEDERHANA') !== false) {
@@ -4568,7 +4582,7 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
             $penilaiIzin = $dgRecords[$targetIdx]['penugasan']['appraiserLicenseCode'] ?? ($pObjResolved['izin_segmen'] ?? '00581');
             $targetServiceInput = $dgRecords[$targetIdx]['penugasan']['service_classification_id'] ?? $dgRecords[$targetIdx]['penugasan']['klasifikasiJasa'] ?? 'PROPERTY';
             $reportServiceCode = resolveReportServiceCode($targetServiceInput);
-            $targetSektor = $dgRecords[$targetIdx]['penugasan']['kodeIndustri'] ?? '07';
+            $targetSektor = resolveKodeIndustri($dgRecords[$targetIdx]['penugasan']['kodeIndustri'] ?? '07');
             // P0 COMPLIANCE: Segmen 3 HANYA boleh PI, BS, atau PP (Dilarang keras PS!)
             if ($reportServiceCode === 'PS') { $reportServiceCode = 'PI'; }
             $noDefinitif = "{$seq}/{$signingCode}/{$reportServiceCode}/{$targetSektor}/{$penilaiIzin}/1/{$romawiBulan}/" . date('Y');
@@ -5298,9 +5312,48 @@ Audit Log ID: {$auditLogId}"
         }
 
         $records[$targetIndex]['status'] = 'FINAL - SIAP ELSA';
-        $records[$targetIndex]['statusElsa'] = 'BELUM INPUT';
+        $records[$targetIndex]['statusElsa'] = 'SIAP INPUT';
+        if (empty($records[$targetIndex]['nomorAlokasiAwal'])) {
+            $records[$targetIndex]['nomorAlokasiAwal'] = $records[$targetIndex]['nomorLaporan'];
+        }
         if (!empty($payload['kesimpulanNilai'])) $records[$targetIndex]['kesimpulanNilai'] = $payload['kesimpulanNilai'];
-        if (!empty($payload['tglLaporan'])) $records[$targetIndex]['tglTerbit'] = $payload['tglLaporan'];
+        if (!empty($payload['tglLaporan'])) {
+            $tglLaporanInput = trim($payload['tglLaporan']);
+            $records[$targetIndex]['tglFinalisasiDefinitif'] = $tglLaporanInput;
+            $records[$targetIndex]['tglTerbit'] = $tglLaporanInput;
+
+            // Audit Trail Pengendalian Periode Nomor Booking SE-6/PPPK/2018
+            $segsCurrentNo = explode('/', $records[$targetIndex]['nomorLaporan']);
+            if (count($segsCurrentNo) >= 7) {
+                $romawiList = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+                $bulanRomawiAlokasi = $segsCurrentNo[6] ?? '';
+                $blnIdx = (int)date('n', strtotime($tglLaporanInput)) - 1;
+                $bulanRomawiLaporan = $romawiList[$blnIdx] ?? $bulanRomawiAlokasi;
+                $tahunLaporan = date('Y', strtotime($tglLaporanInput));
+
+                if (!empty($payload['revisiPeriodeBulanResmi']) && in_array($userRole, ['ADMIN_PUSAT', 'SUPER_ADMIN'], true)) {
+                    // Prosedur koreksi resmi oleh Admin Pusat jika disyaratkan instansi klien
+                    $oldNo = $records[$targetIndex]['nomorLaporan'];
+                    $segsCurrentNo[6] = $bulanRomawiLaporan;
+                    $segsCurrentNo[7] = $tahunLaporan;
+                    $newNo = implode('/', $segsCurrentNo);
+                    $records[$targetIndex]['nomorLaporan'] = $newNo;
+                    if (!isset($records[$targetIndex]['auditTrailKoreksiBulan'])) {
+                        $records[$targetIndex]['auditTrailKoreksiBulan'] = [];
+                    }
+                    $records[$targetIndex]['auditTrailKoreksiBulan'][] = [
+                        'waktu' => date('c'),
+                        'user' => $currentUser['nama'] ?? $userRole,
+                        'nomorSebelumnya' => $oldNo,
+                        'nomorBaru' => $newNo,
+                        'alasan' => $payload['alasanKoreksi'] ?? 'Penyesuaian resmi segmen bulan pelaporan SE-6/PPPK/2018'
+                    ];
+                } else {
+                    // Kebijakan Standar: Pertahankan nomor alokasi awal yang mengikat kontrak SPK/SPM
+                    $records[$targetIndex]['catatanSinkronisasiPeriode'] = "Nomor alokasi {$records[$targetIndex]['nomorLaporan']} (Bulan {$bulanRomawiAlokasi}) dipertahankan sesuai pengikatan kontrak awal. Tanggal laporan fisik tercatat {$tglLaporanInput}.";
+                }
+            }
+        }
         if (!empty($payload['fileLaporan'])) $records[$targetIndex]['fileLaporan'] = $payload['fileLaporan'];
         if (!empty($payload['filePembanding'])) $records[$targetIndex]['filePembanding'] = $payload['filePembanding'];
         if (!empty($payload['fileBai'])) $records[$targetIndex]['fileBai'] = $payload['fileBai'];
