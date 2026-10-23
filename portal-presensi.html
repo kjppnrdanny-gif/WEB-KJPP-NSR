@@ -603,108 +603,74 @@
 
   <!-- ========================================================
        MODAL PEMBERITAHUAN PRIVASI KARYAWAN (UU PDP NO. 27/2022)
+       MOBILE RESPONSIVE & STICKY FOOTER
        ======================================================== -->
-  <div id="modal-privasi-karyawan"
+  <div id="modal-privasi-karyawan" 
        role="dialog"
        aria-modal="true"
        aria-labelledby="modal-privasi-title"
-       class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="card-glass max-w-lg w-full max-h-[90vh] rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col shadow-2xl border border-slate-700 text-left animate-in fade-in zoom-in-95 duration-150">
+       class="fixed inset-0 z-[99999] hidden flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-md">
+    <div class="w-full sm:max-w-xl max-h-[92dvh] sm:max-h-[85vh] flex flex-col bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
       
-      <!-- Modal Header -->
-      <div class="flex items-start justify-between gap-3 border-b border-slate-800 pb-3 shrink-0">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold shrink-0 text-base">
-            🛡️
-          </div>
-          <div>
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <h3 id="modal-privasi-title" class="text-sm sm:text-base font-extrabold text-white">
-                Pemberitahuan Privasi Karyawan
-              </h3>
-              <span id="badge-gate-wajib" class="hidden px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-400/20 text-amber-300 border border-amber-400/40">Wajib Dikonfirmasi</span>
-            </div>
-            <p class="text-[10px] text-amber-400 font-semibold">KJPP Nanang Rahayu Sigit Paryanto dan Rekan</p>
-          </div>
+      <!-- Header Modal (Tetap di Atas) -->
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/90">
+        <div>
+          <h3 id="modal-privasi-title" class="text-sm sm:text-base font-black text-white flex items-center gap-2">
+            <span>🛡️ Pemberitahuan Privasi Karyawan</span>
+          </h3>
+          <p class="text-[10px] sm:text-xs text-amber-400 font-semibold mt-0.5">KJPP Nanang Rahayu Sigit Paryanto dan Rekan</p>
         </div>
-        <button type="button"
-                id="btn-tutup-privasi-x"
-                onclick="tutupModalPrivasiKaryawan()"
-                class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 text-lg leading-none cursor-pointer"
-                aria-label="Tutup dialog privasi">
-          &times;
-        </button>
+        <div class="flex items-center gap-2">
+          <span id="badge-gate-wajib" class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-md">
+            Wajib
+          </span>
+          <button type="button"
+                  id="btn-tutup-privasi-x"
+                  onclick="tutupModalPrivasiKaryawan()"
+                  class="hidden p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 text-lg leading-none cursor-pointer"
+                  aria-label="Tutup dialog privasi">
+            &times;
+          </button>
+        </div>
       </div>
 
-      <!-- Modal Body (Scrollable) -->
-      <div class="overflow-y-auto flex-1 my-3 pr-1 space-y-3.5 text-xs text-slate-300 leading-relaxed text-[11px] sm:text-xs">
-        
-        <!-- Poin 1 -->
-        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80">
-          <h4 class="font-bold text-white flex items-center gap-1.5 mb-1 text-[11.5px] sm:text-xs">
-            <span class="text-amber-400 font-mono">1.</span> Pemrosesan Data Karyawan
-          </h4>
-          <p class="text-slate-300 text-[10.5px] sm:text-[11.5px]">
-            Data pribadi karyawan mencakup NIK, nama lengkap, divisi, kantor penugasan, alamat email resmi/Gmail terdaftar, dan nomor kontak diproses semata-mata untuk pencatatan kehadiran, kepatuhan ketenagakerjaan, penugasan profesi penilai, dan pelaporan internal resmi.
-          </p>
+      <!-- Body Teks (Scrollable Area) -->
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-300 leading-relaxed custom-scrollbar overscroll-contain">
+        <!-- 5 Poin Privasi Karyawan -->
+        <div class="p-3 rounded-xl bg-slate-950/50 border border-slate-800/80">
+          <h4 class="font-bold text-amber-400 mb-1">1. Pemrosesan Data Karyawan</h4>
+          <p class="text-[11px] text-slate-400">Data pribadi mencakup NIK, nama lengkap, dan penugasan diproses semata-mata untuk pencatatan kehadiran resmi.</p>
         </div>
-
-        <!-- Poin 2 -->
-        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80">
-          <h4 class="font-bold text-white flex items-center gap-1.5 mb-1 text-[11.5px] sm:text-xs">
-            <span class="text-amber-400 font-mono">2.</span> Perekaman Geolocation (GPS) Sesaat
-          </h4>
-          <p class="text-slate-300 text-[10.5px] sm:text-[11.5px]">
-            Koordinat satelit GPS diambil secara <em>sesaat (point-in-time)</em> hanya ketika karyawan menekan tombol simpan presensi atau pendaftaran titik rumah WFH untuk validasi jarak terhadap radius kantor resmi (150m) atau rumah (100m). Sistem <strong class="text-amber-300">tidak melakukan pelacakan lokasi secara terus-menerus</strong>.
-          </p>
+        <div class="p-3 rounded-xl bg-slate-950/50 border border-slate-800/80">
+          <h4 class="font-bold text-amber-400 mb-1">2. Perekaman Geolocation (GPS) Sesaat</h4>
+          <p class="text-[11px] text-slate-400">Koordinat satelit GPS diambil sesaat (point-in-time) saat tombol presensi ditekan. Sistem tidak melakukan pelacakan terus-menerus.</p>
         </div>
-
-        <!-- Poin 3 -->
-        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80">
-          <h4 class="font-bold text-white flex items-center gap-1.5 mb-1 text-[11.5px] sm:text-xs">
-            <span class="text-amber-400 font-mono">3.</span> Keamanan Kode OTP Gmail Pribadi
-          </h4>
-          <p class="text-slate-300 text-[10.5px] sm:text-[11.5px]">
-            Autentikasi dua langkah (2FA) menggunakan kode OTP 6-digit yang dikirimkan ke email Gmail terdaftar masing-masing karyawan. Kode OTP bersifat rahasia, berlaku 5 menit, dan tidak boleh dibagikan kepada pihak lain.
-          </p>
+        <div class="p-3 rounded-xl bg-slate-950/50 border border-slate-800/80">
+          <h4 class="font-bold text-amber-400 mb-1">3. Keamanan Kode OTP Gmail Pribadi</h4>
+          <p class="text-[11px] text-slate-400">Autentikasi dua langkah (2FA) menggunakan kode OTP 6-digit ke email Gmail terdaftar masing-masing karyawan.</p>
         </div>
-
-        <!-- Poin 4 -->
-        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80">
-          <h4 class="font-bold text-white flex items-center gap-1.5 mb-1 text-[11.5px] sm:text-xs">
-            <span class="text-amber-400 font-mono">4.</span> Penyimpanan &amp; Integritas Data
-          </h4>
-          <p class="text-slate-300 text-[10.5px] sm:text-[11.5px]">
-            Seluruh transaksi presensi disimpan terenkripsi pada backend resmi Google Apps Script dan Google Spreadsheet terisolasi KJPP NSR, diaudit berkala sesuai tata kelola kepatuhan SPI dan regulasi Kemenkeu P2PK.
-          </p>
+        <div class="p-3 rounded-xl bg-slate-950/50 border border-slate-800/80">
+          <h4 class="font-bold text-amber-400 mb-1">4. Penyimpanan &amp; Integritas Data</h4>
+          <p class="text-[11px] text-slate-400">Seluruh transaksi presensi disimpan terenkripsi pada backend resmi Google Apps Script dan Google Spreadsheet KJPP NSR.</p>
         </div>
-
-        <!-- Poin 5 -->
-        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80">
-          <h4 class="font-bold text-white flex items-center gap-1.5 mb-1 text-[11.5px] sm:text-xs">
-            <span class="text-amber-400 font-mono">5.</span> Hak Subjek Data Pribadi
-          </h4>
-          <p class="text-slate-300 text-[10.5px] sm:text-[11.5px]">
-            Sesuai UU No. 27 Tahun 2022, karyawan berhak atas transparansi data presensi diri sendiri, ralat informasi jika terdapat ketidaksesuaian rekam kehadiran, serta konsultasi data melalui Divisi Operasional &amp; SDM KJPP NSR.
-          </p>
+        <div class="p-3 rounded-xl bg-slate-950/50 border border-slate-800/80">
+          <h4 class="font-bold text-amber-400 mb-1">5. Hak Subjek Data Pribadi</h4>
+          <p class="text-[11px] text-slate-400">Sesuai UU No. 27 Tahun 2022, karyawan berhak atas transparansi data presensi pribadi.</p>
         </div>
-
       </div>
 
-      <!-- Modal Footer -->
-      <div class="border-t border-slate-800 pt-3 flex items-center justify-between gap-2 shrink-0">
-        <a href="kebijakan-privasi.html"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="text-[10px] text-slate-400 hover:text-amber-300 underline transition">
-          Kebijakan Privasi Lengkap &nearr;
-        </a>
+      <!-- Footer Modal (STICKY DI BAWAH, TIDAK AKAN HILANG DI HP) -->
+      <div class="p-4 border-t border-slate-800 bg-slate-950/95 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <span class="text-[10px] text-slate-400 text-center sm:text-left">
+          Persetujuan ini mengikat sesuai UU PDP No. 27/2022
+        </span>
         <button type="button" 
-        id="btn-setuju-privasi-presensi" 
-        onclick="konfirmasiSetujuPrivasi()" 
-        class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-black text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-lg shadow-amber-500/20 active:scale-95 cursor-pointer">
-  Saya Menyetujui & Lanjutkan
-</button>
+                id="btn-setuju-privasi-presensi" 
+                onclick="konfirmasiSetujuPrivasi(event)" 
+                ontouchend="konfirmasiSetujuPrivasi(event)"
+                class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 min-h-[44px] rounded-xl font-black text-xs sm:text-sm bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 shadow-lg shadow-amber-500/20 active:scale-95 transition cursor-pointer select-none touch-manipulation">
+          Saya Menyetujui & Lanjutkan
+        </button>
       </div>
 
     </div>
@@ -1583,37 +1549,62 @@
 
       if (modal) {
         modal.classList.remove('hidden');
-        modal.style.display = 'flex';
+        modal.style.removeProperty('display');
         document.body.style.overflow = 'hidden';
       }
     }
 
-    function konfirmasiSetujuPrivasi() {
-      privasiConfirmed = true;
-      try {
-        sessionStorage.setItem('nsr_privasi_confirmed_version', PRIVACY_NOTICE_VERSION);
-        sessionStorage.setItem('nsr_privasi_confirmed_at', new Date().toISOString());
-        localStorage.setItem('nsr_presensi_privacy_ack', JSON.stringify({
-          ack: true,
-          timestamp: new Date().toISOString()
-        }));
-      } catch (e) {}
+    window.konfirmasiSetujuPrivasi = function(e) {
+      if (e) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+      }
 
-      isGateMode = false;
-      const modal = document.getElementById('modal-privasi-karyawan') || document.getElementById('modal-privacy-karyawan');
-      if (modal) {
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
+      try {
+        // 1. Simpan tanda persetujuan ke storage
+        sessionStorage.setItem('nsr_privasi_confirmed_version', 'PDP-2026-V1');
+        sessionStorage.setItem('nsr_privasi_confirmed_at', new Date().toISOString());
+        localStorage.setItem('nsr_presensi_privacy_ack', 'true');
+        localStorage.setItem('nsr_presensi_privacy_accepted', 'true');
+
+        // 2. Tutup paksa modal
+        const targetModal = document.getElementById('modal-privasi-karyawan') || 
+                            document.getElementById('modal-privacy-karyawan');
+        if (targetModal) {
+          targetModal.classList.add('hidden');
+          targetModal.style.setProperty('display', 'none', 'important');
+        }
+
+        // 3. Pulihkan overflow layar
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+
+        // 4. Picu GPS & Fokus NIK dengan aman (Isolasi Error)
+        try {
+          if (typeof ambilGPS === 'function') {
+            ambilGPS();
+          }
+        } catch (gpsErr) {
+          console.warn("GPS belum aktif atau ditolak di HP:", gpsErr);
+        }
+
+        setTimeout(() => {
+          const inputNik = document.getElementById('auth-nik-input') || document.querySelector('input[name="nik"]');
+          if (inputNik) {
+            inputNik.focus();
+          }
+        }, 150);
+
+      } catch (err) {
+        console.error("Gagal menutup modal di HP:", err);
+        // Jalur darurat mutlak
+        document.querySelectorAll('[id*="privasi"]').forEach(el => {
+          el.style.setProperty('display', 'none', 'important');
+        });
         document.body.style.overflow = '';
       }
-      if (typeof ambilGPS === 'function') {
-        ambilGPS();
-      }
-      const nikInput = document.getElementById('auth-nik-input');
-      if (nikInput) nikInput.focus();
-    }
-    window.konfirmasiSetujuPrivasi = konfirmasiSetujuPrivasi;
-    window.konfirmasiPrivasiKaryawan = konfirmasiSetujuPrivasi;
+    };
+    window.konfirmasiPrivasiKaryawan = window.konfirmasiSetujuPrivasi;
 
     function bukaModalPrivasiKaryawan() {
       isGateMode = false;
@@ -1631,7 +1622,7 @@
 
       if (modal) {
         modal.classList.remove('hidden');
-        modal.style.display = 'flex';
+        modal.style.removeProperty('display');
         document.body.style.overflow = 'hidden';
       }
     }
@@ -1642,7 +1633,7 @@
       const modal = document.getElementById('modal-privasi-karyawan') || document.getElementById('modal-privacy-karyawan');
       if (modal) {
         modal.classList.add('hidden');
-        modal.style.display = 'none';
+        modal.style.setProperty('display', 'none', 'important');
         document.body.style.overflow = '';
       }
     }
