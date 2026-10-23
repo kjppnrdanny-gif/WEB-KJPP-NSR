@@ -111,7 +111,7 @@ async function runLiveVerification() {
     return testRunner(documentMock, user, elements);
   }
 
-  // Skenario A: Login Super Admin Pusat (Token NSR-PST-2026)
+  // Skenario A: Login Super Admin Pusat (Token [REDACTED_ADMIN_PUSAT_TOKEN])
   const userPusat = {
     role: "SUPER ADMIN",
     roleLabel: "SUPER ADMIN • KANTOR PUSAT",
@@ -137,7 +137,7 @@ async function runLiveVerification() {
     assert(!resPusat.elements['badge-admin-pusat'].classList.has('hidden'));
   });
 
-  // Skenario B: Login Cabang Bandung (Token NSR-BDG-2026)
+  // Skenario B: Login Cabang Bandung (Token [REDACTED_CAB_BDG_TOKEN])
   const userCabang = {
     role: "ADMIN_CABANG",
     roleLabel: "Admin Cabang Bandung",

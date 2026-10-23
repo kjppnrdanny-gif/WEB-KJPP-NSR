@@ -31,7 +31,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwF5SI6A6hj0yuPBVd8FlRNc7uaXqCNDtoe6RdvlPdL7t33ithJ6TFrHQEB11fxzMqF/exec';
 const TARGET_SPREADSHEET_ID = '1VJW4nrzc1884kxepxZ2p8zNUcHrCWEqodQQcjeXXg_g';
 const PORTAL_URL = 'https://kjppnanangrahayu.com/portal-surat-umum.html';
-const ADMIN_TOKEN = 'NSR-PST-2026';
+const ADMIN_TOKEN = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
 
 function findChrome() {
   const candidates = [

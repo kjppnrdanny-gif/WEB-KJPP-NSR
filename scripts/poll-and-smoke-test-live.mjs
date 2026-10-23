@@ -27,10 +27,10 @@ async function runLiveVerification() {
     const loginRes = await fetch(`${LIVE_BASE}/auth-handler.php?action=login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 'NSR8899' })
+      body: JSON.stringify({ token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") })
     });
     const loginJson = await loginRes.json();
-    record(loginRes.status === 200 && loginJson.authenticated === true, 'Login SUPER ADMIN KING (NSR8899) sukses');
+    record(loginRes.status === 200 && loginJson.authenticated === true, 'Login SUPER ADMIN KING ([REDACTED_SUPER_ADMIN_TOKEN]) sukses');
     record(!!loginJson.sessionToken && loginJson.sessionToken.startsWith('nsr_sess_'), 'Server mengembalikan sessionToken aman');
     sessionToken = loginJson.sessionToken;
 
@@ -64,7 +64,7 @@ async function runLiveVerification() {
     const relogin = await fetch(`${LIVE_BASE}/auth-handler.php?action=login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 'NSR8899' })
+      body: JSON.stringify({ token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") })
     });
     const reloginJson = await relogin.json();
     activeSession = reloginJson.sessionToken;

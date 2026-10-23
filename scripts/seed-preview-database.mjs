@@ -235,7 +235,7 @@ const kwitansiDb = [
     isApproved: true,
     tglKwitansi: '2026-10-20',
     createdAt: '2026-10-20 15:00:00',
-    disahkanOleh: 'Admin Pusat Jakarta (NSR-PST-2026)'
+    disahkanOleh: 'Admin Pusat Jakarta ([REDACTED_ADMIN_PUSAT_TOKEN])'
   }
 ];
 

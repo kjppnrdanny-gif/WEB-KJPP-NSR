@@ -95,12 +95,12 @@ async function run() {
   }
   await new Promise(r => setTimeout(r, 1200));
 
-  console.log('🔑 Melakukan login KING dengan token NSR8899...');
+  console.log('🔑 Melakukan login KING dengan token [REDACTED_SUPER_ADMIN_TOKEN]...');
   const evalRaw = await send('Runtime.evaluate', {
     expression: `(async () => {
       try {
         const input = document.getElementById('input_token_auth');
-        if (input) input.value = 'NSR8899';
+        if (input) input.value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
         if (typeof verifikasiTokenLogin === 'function') {
           await verifikasiTokenLogin(null);
         } else if (typeof window.verifikasiTokenLogin === 'function') {

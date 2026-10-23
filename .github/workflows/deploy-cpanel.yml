@@ -159,3 +159,43 @@ jobs:
             **/README*.txt
             *.md
             package*.json
+
+      - name: 🔐 Sinkronisasi Private Vault Server ke cPanel via FTPS (Bila Tersedia di Secrets)
+        if: ${{ env.NSR_SECRETS_VAULT != '' }}
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          NSR_SECRETS_VAULT: ${{ secrets.NSR_SECRETS_VAULT }}
+        run: |
+          python3 -c "
+          import ftplib, ssl, os, io
+          server = os.environ.get('FTP_SERVER', '')
+          user = os.environ.get('FTP_USERNAME', '')
+          passwd = os.environ.get('FTP_PASSWORD', '')
+          vault_data = os.environ.get('NSR_SECRETS_VAULT', '')
+          if server and user and passwd and vault_data:
+              ctx = ssl.create_default_context()
+              ftps = ftplib.FTP_TLS(context=ctx, timeout=30)
+              ftps.connect(server)
+              ftps.login(user, passwd)
+              ftps.prot_p()
+              try:
+                  ftps.cwd('public_html')
+              except Exception:
+                  pass
+              try:
+                  ftps.mkd('data')
+              except Exception:
+                  pass
+              try:
+                  ftps.mkd('data/config')
+              except Exception:
+                  pass
+              bio = io.BytesIO(vault_data.encode('utf-8'))
+              ftps.storbinary('STOR data/config/credentials.secrets.php', bio)
+              ht_bio = io.BytesIO(b'Require all denied\nDeny from all\n')
+              ftps.storbinary('STOR data/config/.htaccess', ht_bio)
+              ftps.quit()
+              print('✅ Private Vault berhasil disinkronisasi ke cPanel filesystem.')
+          "

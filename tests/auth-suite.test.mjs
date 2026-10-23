@@ -255,8 +255,8 @@ async function runTests() {
 
     // Daftar pola kata kunci sensitif produksi yang DILARANG ADA di modul baru
     const forbiddenKeywords = [
-      "NSR8899", "JKT#00", "BDG#010", "PDG#020", "MKS#030", "PLB#040",
-      "NSR-PST-2026", "NSR-BDG-2026", "ADMIN#NSR"
+      (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"), "JKT#00", "BDG#010", "PDG#020", "MKS#030", "PLB#040",
+      (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN"), (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"), "ADMIN#NSR"
     ];
 
     let leakFound = false;

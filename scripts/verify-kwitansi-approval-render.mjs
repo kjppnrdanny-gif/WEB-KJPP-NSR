@@ -63,14 +63,14 @@ async function run() {
       `
     });
 
-    // Test 1: Login with token NSR-PST-2026
-    console.log('\n--- Skenario 1: Login dengan Token Pusat (NSR-PST-2026) ---');
+    // Test 1: Login with token [REDACTED_ADMIN_PUSAT_TOKEN]
+    console.log('\n--- Skenario 1: Login dengan Token Pusat ([REDACTED_ADMIN_PUSAT_TOKEN]) ---');
     await send('Runtime.evaluate', {
       expression: `
         (async function() {
           const inp = document.getElementById('kwitansi-auth-username');
           if (inp) {
-            inp.value = 'NSR-PST-2026';
+            inp.value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
             await masukSesiKwitansi();
           }
         })()
@@ -153,13 +153,13 @@ async function run() {
     console.log('Hasil state Skenario 3 (Kembali ke Tab 2):', JSON.stringify(stateTab2Back.result.value, null, 2));
 
     // Test 4: Skenario Cabang (Bandung)
-    console.log('\n--- Skenario 4: Login Akun Cabang Bandung (NSR-BDG-2026) ---');
+    console.log('\n--- Skenario 4: Login Akun Cabang Bandung ([REDACTED_CAB_BDG_TOKEN]) ---');
     await send('Runtime.evaluate', {
       expression: `
         (async function() {
           const inp = document.getElementById('kwitansi-auth-username');
           if (inp) {
-            inp.value = 'NSR-BDG-2026';
+            inp.value = (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN");
             await masukSesiKwitansi();
           }
         })()

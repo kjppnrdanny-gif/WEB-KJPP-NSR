@@ -135,7 +135,7 @@ async function main() {
           window.alert = () => {};
           window.confirm = () => true;
           sessionStorage.clear();
-          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          document.getElementById('input_token_auth').value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
           await verifikasiTokenLogin();
         })()
       `,

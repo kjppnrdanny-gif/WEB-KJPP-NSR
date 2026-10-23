@@ -68,8 +68,8 @@ async function main() {
     fs.writeFileSync(path.join(ARTIFACT_DIR, 'cpanel_staging_kwitansi_pusat_approval.png'), Buffer.from(shotPusat.data, 'base64'));
     console.log('✓ cpanel_staging_kwitansi_pusat_approval.png tersimpan!');
 
-    // 3. Login dengan token Cabang Bandung NSR-BDG-2026
-    console.log('Login dengan token NSR-BDG-2026...');
+    // 3. Login dengan token Cabang Bandung [REDACTED_CAB_BDG_TOKEN]
+    console.log('Login dengan token [REDACTED_CAB_BDG_TOKEN]...');
     await cdpSend(ws, 'Runtime.evaluate', {
       expression: `
         sessionStorage.clear();
@@ -80,7 +80,7 @@ async function main() {
     await cdpSend(ws, 'Runtime.evaluate', {
       expression: `
         const input = document.getElementById('kwitansi-auth-username');
-        if (input) input.value = 'NSR-BDG-2026';
+        if (input) input.value = (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN");
         masukSesiKwitansi();
       `
     });

@@ -85,7 +85,7 @@ async function run() {
   const authJoResult = await evaluate(`
     (async () => {
       const inp = document.getElementById('input_token_auth');
-      if (inp) inp.value = 'NSR8899';
+      if (inp) inp.value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
       if (typeof verifikasiTokenLogin === 'function') {
         await verifikasiTokenLogin(null);
       }

@@ -5,7 +5,7 @@ console.log('=== UPDATE & SINKRONISASI 12 TOKEN RBAC SISTEM KJPP NSR ===');
 
 const OFFICIAL_TOKENS = [
   {
-    token: 'NSR8899',
+    token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
     sub: 'admin_master',
     role: 'SUPER ADMIN',
     roleLabel: 'SUPER ADMIN • KANTOR PUSAT',
@@ -23,7 +23,7 @@ const OFFICIAL_TOKENS = [
     mode: 'PUSAT'
   },
   {
-    token: 'NSR-PST-2026',
+    token: (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN"),
     sub: 'cabang_jkt',
     role: 'SUPER ADMIN',
     roleLabel: 'SUPER ADMIN • KANTOR PUSAT',
@@ -41,7 +41,7 @@ const OFFICIAL_TOKENS = [
     mode: 'PUSAT'
   },
   {
-    token: 'NSR-BDG-2026',
+    token: (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"),
     sub: 'cabang_bdg',
     role: 'ADMIN_CABANG',
     roleLabel: 'Admin Cabang Bandung',

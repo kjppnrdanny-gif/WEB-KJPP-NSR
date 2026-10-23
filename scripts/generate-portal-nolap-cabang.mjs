@@ -115,7 +115,7 @@ const htmlContent = `<!DOCTYPE html>
       </div>
       <div>
         <h2 class="text-lg font-bold text-white">Akses Portal NoLap Mandiri Cabang</h2>
-        <p class="text-xs text-slate-400 mt-1">Masukkan Token Otorisasi Cabang resmi KJPP NSR (Contoh: NSR-BDG-2026, NSR-PDG-2026, NSR-MKS-2026, NSR-PLB-2026).</p>
+        <p class="text-xs text-slate-400 mt-1">Masukkan Token Otorisasi Cabang resmi KJPP NSR (Contoh: [REDACTED_CAB_BDG_TOKEN], NSR-PDG-2026, NSR-MKS-2026, NSR-PLB-2026).</p>
       </div>
       <form onsubmit="loginTokenCabang(event)" class="space-y-3 text-left">
         <div>

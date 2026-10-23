@@ -6,7 +6,7 @@ const LIVE_BASE_URL = 'https://kjppnanangrahayu.com';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const DEBUG_PORT = 9460;
 const ARTIFACTS_DIR = 'C:\\Users\\HP\\.gemini\\antigravity\\brain\\5b357e59-98db-42c8-a216-3b795e1f1b2d';
-const TEST_TOKEN = 'NSR-PST-2026';
+const TEST_TOKEN = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
 
 async function runLiveProductionVerification() {
   console.log('===============================================================');

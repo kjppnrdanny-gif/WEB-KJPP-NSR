@@ -46,7 +46,7 @@ if (content.includes(targetDoc23)) {
   }
 }
 
-// 4. Update NSR-PST-2026 role in AUTH_HASH_REGISTRY
+// 4. Update [REDACTED_ADMIN_PUSAT_TOKEN] role in AUTH_HASH_REGISTRY
 const pstRawHash = '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2';
 const targetPstEntry = `'${pstRawHash}': {"valid":true,"role":"SUPER ADMIN","roleLabel":"SUPER ADMIN • KANTOR PUSAT","displayRole":"SUPER ADMIN • KANTOR PUSAT","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","kode":"2.19.0160","kodeKantor":"2.19.0160","kodeWilayah":"2.19.0160","rekan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","rekanNama":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","pimpinan":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","otoritas":"Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)","cabang":"Pusat","label":"Kantor Pusat Jakarta (Super Admin)","jabatan":"Super Admin / Master Otoritas","isCabang":false,"isSuperAdmin":true,"aksesApproval":true,"aksesKwitansi":true,"aksesFee":true,"mode":"PUSAT","canAccessKwitansi":true,"seeFee":true,"canApprove":true,"canApprovePusat":true,"canApproveCabang":true,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":true,"tokenHash":"87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c"}`;
 
@@ -54,7 +54,7 @@ const repPstEntry = `'${pstRawHash}': {"valid":true,"role":"ADMIN_PUSAT","roleLa
 
 if (content.includes(targetPstEntry)) {
   content = content.replace(targetPstEntry, repPstEntry);
-  console.log('✓ Updated NSR-PST-2026 role to ADMIN_PUSAT in portal-penugasan-jo.html');
+  console.log('✓ Updated [REDACTED_ADMIN_PUSAT_TOKEN] role to ADMIN_PUSAT in portal-penugasan-jo.html');
 }
 
 fs.writeFileSync('portal-penugasan-jo.html', content, 'utf8');

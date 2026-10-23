@@ -850,7 +850,7 @@ $OFFICIAL_TOKEN_HASHES = [
         // =========================================================================
     // KREDENSIAL RESMI DUAL SMART MITIGATION GATE (2026 FINAL EDITION)
     // =========================================================================
-    // Token Header: NSR-SPM-DANNY-2026 (Kepala SPM)
+    // Token Header: Otorisasi Kepala SPM
     'dc943d94880e71c7d1d7f792b1485d6083e71c90d5ef1cf4d19b6446577612a9' => [
         'sub'               => 'danny_spm',
         'branch'            => 'PUSAT',
@@ -1247,9 +1247,13 @@ if (!$currentUser) {
         if ($sessUser) {
             $currentUser = $sessUser;
         } else {
-            $tHash = hash('sha256', strtoupper($token));
-            if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
-                $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
+            if (strlen($token) === 64 && ctype_xdigit($token)) {
+                $currentUser = null;
+            } else {
+                $saltedHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($token));
+                if (isset($OFFICIAL_TOKEN_HASHES[$saltedHash])) {
+                    $currentUser = $OFFICIAL_TOKEN_HASHES[$saltedHash];
+                }
             }
         }
     }

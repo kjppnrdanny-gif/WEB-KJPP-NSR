@@ -155,9 +155,9 @@ async function runTests() {
     // -------------------------------------------------------------
     console.log('\n--- Group 3: Compromised Session Revocation Blacklist ---');
     const blacklistedSessions = [
-      '66c3e90cae0df094bda66fa99602fb18',
-      'bcd790d3a97f63d115f3bd06f59bb84d',
-      '8a12b1ef6a7dd5895c2369261633f637'
+      'process.env.NSR_REVOKED_SESS_1 || "revoked_sess_hash_1"',
+      'process.env.NSR_REVOKED_SESS_2 || "revoked_sess_hash_2"',
+      'process.env.NSR_REVOKED_SESS_3 || "revoked_sess_hash_3"'
     ];
 
     for (const sessId of blacklistedSessions) {
@@ -184,7 +184,7 @@ async function runTests() {
         'Content-Type': 'application/json',
         'Cookie': `NSR_SESSION=${dummyPreSessId}`
       },
-      body: { token: 'NSR8899' }
+      body: { token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") }
     });
 
     const postCookies = resPreLogin.headers['set-cookie'] || [];
@@ -210,7 +210,7 @@ async function runTests() {
         'Content-Type': 'application/json',
         'Origin': 'https://evil-phishing-attacker.com'
       },
-      body: { token: 'NSR8899' }
+      body: { token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") }
     });
     record(
       'CSRF Rejection for Untrusted Origin',
@@ -224,7 +224,7 @@ async function runTests() {
         'Content-Type': 'application/json',
         'Origin': 'https://kjppnanangrahayu.com'
       },
-      body: { token: 'NSR8899' }
+      body: { token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") }
     });
     record(
       'CSRF Acceptance for Official Domain (kjppnanangrahayu.com)',
@@ -239,7 +239,7 @@ async function runTests() {
     // Login as Cabang Bandung
     const resBdgLogin = await request('POST', '/auth-handler.php?action=token', {
       headers: { 'Content-Type': 'application/json' },
-      body: { token: 'NSR-BDG-2026' }
+      body: { token: (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN") }
     });
     const bdgCookies = resBdgLogin.headers['set-cookie'] || [];
     const bdgCookieHeader = Array.isArray(bdgCookies) ? bdgCookies[0].split(';')[0] : bdgCookies;
@@ -275,7 +275,7 @@ async function runTests() {
     // Login King
     const resLogin = await request('POST', '/auth-handler.php?action=token', {
       headers: { 'Content-Type': 'application/json' },
-      body: { token: 'NSR8899' }
+      body: { token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") }
     });
     const kingCookies = resLogin.headers['set-cookie'] || [];
     const kingCookieHeader = Array.isArray(kingCookies) ? kingCookies[0].split(';')[0] : kingCookies;

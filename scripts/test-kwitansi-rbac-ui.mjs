@@ -46,8 +46,8 @@ assert.strictEqual(peranPst.roleNormalized, 'PUSAT_KEUANGAN', 'Role harus dinorm
 assert.strictEqual(peranPst.branchNormalized, 'Kantor Pusat Jakarta', 'Branch harus dinormalisasi menjadi Kantor Pusat Jakarta');
 console.log('  ✅ [PASS] Sesi PST (Pusat) berhasil dinormalisasi tegas ke PUSAT_KEUANGAN / isPusat: true');
 
-// TEST 2: Skenario Token Admin Pusat (NSR-PST-2026 / Danny Taufik Hidayat, S.H.)
-console.log('\n👉 UJI 2: Token NSR-PST-2026 (Admin Pusat Verifikasi)');
+// TEST 2: Skenario Token Admin Pusat ([REDACTED_ADMIN_PUSAT_TOKEN] / Danny Taufik Hidayat, S.H.)
+console.log('\n👉 UJI 2: Token [REDACTED_ADMIN_PUSAT_TOKEN] (Admin Pusat Verifikasi)');
 const sesiAdminPusat = {
   branch: 'PUSAT',
   wilayah: 'PUSAT',
@@ -60,7 +60,7 @@ const peranAdminPusat = evaluasiPeranKwitansi(sesiAdminPusat);
 assert.strictEqual(peranAdminPusat.isPusat, true);
 assert.strictEqual(peranAdminPusat.isCabang, false);
 assert.strictEqual(peranAdminPusat.roleNormalized, 'PUSAT_KEUANGAN');
-console.log('  ✅ [PASS] Token NSR-PST-2026 berhasil dinormalisasi ke PUSAT_KEUANGAN');
+console.log('  ✅ [PASS] Token [REDACTED_ADMIN_PUSAT_TOKEN] berhasil dinormalisasi ke PUSAT_KEUANGAN');
 
 // TEST 3: Skenario Token Keuangan Pusat (NSR-KEU-2026 / Milda H)
 console.log('\n👉 UJI 3: Token NSR-KEU-2026 (Divisi Keuangan Pusat)');

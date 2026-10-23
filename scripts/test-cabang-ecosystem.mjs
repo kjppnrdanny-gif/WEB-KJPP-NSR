@@ -181,25 +181,25 @@ try {
   // ---- 2c. Universal Token SSO & Isolasi Mutlak Tab 2 Cabang ----
   console.log('\n\x1b[36m[2c/7] Menguji Universal Token SSO & Isolasi Mutlak Tab 2 Cabang\x1b[0m');
   
-  // A. Uji resolveUnifiedToken dengan token NSR8899, NSR-PST-2026, NSR-ADM-2026
+  // A. Uji resolveUnifiedToken dengan token [REDACTED_SUPER_ADMIN_TOKEN], [REDACTED_ADMIN_PUSAT_TOKEN], NSR-ADM-2026
   const resolveMatch = joHtml.match(/function resolveUnifiedToken\s*\([^)]*\)\s*\{[\s\S]*?\n    \}/);
   assert(resolveMatch !== null, 'Fungsi resolveUnifiedToken ditemukan di portal-penugasan-jo.html');
   const resolveUnifiedToken = new Function(resolveMatch[0] + '; return resolveUnifiedToken;')();
 
-  const auth8899 = resolveUnifiedToken('NSR8899');
-  assert(auth8899 && auth8899.roleLabel === 'SUPER ADMIN • KANTOR PUSAT' && auth8899.isSuperAdmin === true, 'Token NSR8899 menghasilkan role SUPER ADMIN • KANTOR PUSAT');
-  assert(auth8899.mode === 'PUSAT' && auth8899.isCabang === false, 'Token NSR8899 mode PUSAT dan bukan cabang');
+  const auth8899 = resolveUnifiedToken((process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"));
+  assert(auth8899 && auth8899.roleLabel === 'SUPER ADMIN • KANTOR PUSAT' && auth8899.isSuperAdmin === true, 'Token [REDACTED_SUPER_ADMIN_TOKEN] menghasilkan role SUPER ADMIN • KANTOR PUSAT');
+  assert(auth8899.mode === 'PUSAT' && auth8899.isCabang === false, 'Token [REDACTED_SUPER_ADMIN_TOKEN] mode PUSAT dan bukan cabang');
 
-  const authPst = resolveUnifiedToken('NSR-PST-2026');
-  assert(authPst && authPst.roleLabel === 'SUPER ADMIN • KANTOR PUSAT' && authPst.isSuperAdmin === true, 'Token NSR-PST-2026 menghasilkan role SUPER ADMIN • KANTOR PUSAT');
-  assert(authPst.mode === 'PUSAT' && authPst.canApprove === true, 'Token NSR-PST-2026 memiliki izin otorisasi penuh');
+  const authPst = resolveUnifiedToken((process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN"));
+  assert(authPst && authPst.roleLabel === 'SUPER ADMIN • KANTOR PUSAT' && authPst.isSuperAdmin === true, 'Token [REDACTED_ADMIN_PUSAT_TOKEN] menghasilkan role SUPER ADMIN • KANTOR PUSAT');
+  assert(authPst.mode === 'PUSAT' && authPst.canApprove === true, 'Token [REDACTED_ADMIN_PUSAT_TOKEN] memiliki izin otorisasi penuh');
 
   const authAdm = resolveUnifiedToken('NSR-ADM-2026');
   assert(authAdm && authAdm.roleLabel === 'SUPER ADMIN • KANTOR PUSAT' && authAdm.isSuperAdmin === true, 'Token NSR-ADM-2026 menghasilkan role SUPER ADMIN • KANTOR PUSAT');
 
-  const authBdg = resolveUnifiedToken('NSR-BDG-2026');
-  assert(authBdg && authBdg.role === 'ADMIN_CABANG' && authBdg.isCabang === true && authBdg.wilayah === 'Bandung', 'Token NSR-BDG-2026 dikenali sebagai Admin Cabang Bandung');
-  assert(authBdg.kodeKantor === '2.0160-04' && authBdg.rekan.includes('Deni Siswandi'), 'Token NSR-BDG-2026 memuat kode kantor 2.0160-04 dan rekan Deni Siswandi');
+  const authBdg = resolveUnifiedToken((process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"));
+  assert(authBdg && authBdg.role === 'ADMIN_CABANG' && authBdg.isCabang === true && authBdg.wilayah === 'Bandung', 'Token [REDACTED_CAB_BDG_TOKEN] dikenali sebagai Admin Cabang Bandung');
+  assert(authBdg.kodeKantor === '2.0160-04' && authBdg.rekan.includes('Deni Siswandi'), 'Token [REDACTED_CAB_BDG_TOKEN] memuat kode kantor 2.0160-04 dan rekan Deni Siswandi');
 
   // B. Uji Isolasi Tab 2 dengan dataset tiruan (Jakarta, Bandung, Palembang)
   const mockDataset = [
@@ -224,7 +224,7 @@ try {
   const palembangCount = filteredProjects.filter(p => p.kantor_wilayah.toLowerCase().includes('palembang')).length;
   const bandungCount = filteredProjects.filter(p => p.kantor_wilayah.toLowerCase().includes('bandung')).length;
 
-  assert(isCabangUser === true, 'Sesi NSR-BDG-2026 berstatus cabang aktif (isCabangUser = true)');
+  assert(isCabangUser === true, 'Sesi [REDACTED_CAB_BDG_TOKEN] berstatus cabang aktif (isCabangUser = true)');
   assert(filteredProjects.length === 2, `Isolasi Tab 2: Hanya 2 proyek milik Bandung yang tersisa (Ditemukan: ${filteredProjects.length})`);
   assert(bandungCount === 2, 'Isolasi Tab 2: Seluruh proyek yang tersisa merupakan milik Cabang Bandung');
   assert(jakartaCount === 0, 'Isolasi Tab 2: Proyek Kantor Pusat Jakarta tereliminasi mutlak (count = 0)');
@@ -320,8 +320,8 @@ try {
   const hasilApproved = simulasikanGuardTab3(authPlb, proyekApproved);
   assert(hasilApproved.diblokir === false && hasilApproved.targetTab === 3, 'Quality Gate Guard: Sesi Cabang diizinkan membuka Tab 3 jika proyek berstatus APPROVED');
 
-  // Test 4: Sesi Super Admin Pusat (NSR8899 / NSR-PST-2026)
-  const authPusat = resolveUnifiedToken('NSR8899');
+  // Test 4: Sesi Super Admin Pusat ([REDACTED_SUPER_ADMIN_TOKEN] / [REDACTED_ADMIN_PUSAT_TOKEN])
+  const authPusat = resolveUnifiedToken((process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"));
   const hasilSuperAdmin = simulasikanGuardTab3(authPusat, null);
   assert(hasilSuperAdmin.diblokir === false && hasilSuperAdmin.targetTab === 3, 'Quality Gate Guard: Super Admin Pusat memiliki hak inspeksi Tab 3');
 
@@ -583,7 +583,7 @@ try {
   const guardUnauth = simulasikanRouteGuardSU(null);
   assert(guardUnauth.aksesDiterima === false && guardUnauth.redirectTarget === 'index.html', 'Route Guard SU: Akses tanpa token ditolak dan dialihkan ke index.html');
 
-  // 2. Cabang Bandung (NSR-BDG-2026) -> Ditolak
+  // 2. Cabang Bandung ([REDACTED_CAB_BDG_TOKEN]) -> Ditolak
   const guardBdg = simulasikanRouteGuardSU(authBdg);
   assert(guardBdg.aksesDiterima === false && guardBdg.redirectTarget === 'index.html', 'Route Guard SU: Sesi Cabang Bandung ditolak dan dialihkan ke index.html');
 
@@ -595,9 +595,9 @@ try {
   const guardPlb = simulasikanRouteGuardSU(authPlb);
   assert(guardPlb.aksesDiterima === false && guardPlb.redirectTarget === 'index.html', 'Route Guard SU: Sesi Cabang Palembang ditolak dan dialihkan ke index.html');
 
-  // 5. Super Admin Pusat (NSR8899 / NSR-PST-2026) -> Diterima
+  // 5. Super Admin Pusat ([REDACTED_SUPER_ADMIN_TOKEN] / [REDACTED_ADMIN_PUSAT_TOKEN]) -> Diterima
   const guardPst = simulasikanRouteGuardSU(authPusat);
-  assert(guardPst.aksesDiterima === true && guardPst.redirectTarget === null, 'Route Guard SU: Sesi Super Admin Pusat (NSR8899) lolos otorisasi agenda Surat Umum');
+  assert(guardPst.aksesDiterima === true && guardPst.redirectTarget === null, 'Route Guard SU: Sesi Super Admin Pusat ([REDACTED_SUPER_ADMIN_TOKEN]) lolos otorisasi agenda Surat Umum');
 
 
 
@@ -621,10 +621,10 @@ try {
     'wawasan-regulasi.html'
   ];
   const forbiddenPlainTokens = [
-    "'NSR8899'", '"NSR8899"',
-    "'NSR-PST-2026'", '"NSR-PST-2026"',
+    "(process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN")", '(process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN")',
+    "(process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN")", '(process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN")',
     "'NSR-ADM-2026'", '"NSR-ADM-2026"',
-    "'NSR-BDG-2026'", '"NSR-BDG-2026"',
+    "(process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN")", '(process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN")',
     "'NSR-PDG-2026'", '"NSR-PDG-2026"',
     "'NSR-MKS-2026'", '"NSR-MKS-2026"',
     "'NSR-PLB-2026'", '"NSR-PLB-2026"',
@@ -735,10 +735,10 @@ try {
   // C4. Uji Kompatibilitas 100% Token Staf yang Berjalan (Zero Operational Disruption)
   console.log('\n\x1b[36m[6e/7] Menguji Kompatibilitas 100% Token Login Staf (Zero Disruption)\x1b[0m');
   const staffTokensToVerify = [
-    { tok: 'NSR8899', expectedRole: 'SUPER ADMIN', expectedWilayah: 'PUSAT', isSuper: true, isCab: false },
-    { tok: 'NSR-PST-2026', expectedRole: 'SUPER ADMIN', expectedWilayah: 'PUSAT', isSuper: true, isCab: false },
+    { tok: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"), expectedRole: 'SUPER ADMIN', expectedWilayah: 'PUSAT', isSuper: true, isCab: false },
+    { tok: (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN"), expectedRole: 'SUPER ADMIN', expectedWilayah: 'PUSAT', isSuper: true, isCab: false },
     { tok: 'NSR-ADM-2026', expectedRole: 'SUPER ADMIN', expectedWilayah: 'PUSAT', isSuper: true, isCab: false },
-    { tok: 'NSR-BDG-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Bandung', isSuper: false, isCab: true },
+    { tok: (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"), expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Bandung', isSuper: false, isCab: true },
     { tok: 'NSR-PDG-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Padang', isSuper: false, isCab: true },
     { tok: 'NSR-MKS-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Makassar', isSuper: false, isCab: true },
     { tok: 'NSR-PLB-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Palembang', isSuper: false, isCab: true },

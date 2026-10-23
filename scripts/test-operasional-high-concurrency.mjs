@@ -63,11 +63,11 @@ async function run() {
     // -------------------------------------------------------------
     console.log('\n--- TEST 1: 25 Pengajuan Serentak (Concurrent Submissions) ---');
     const branches = [
-      { kode: '00', nama: 'Kantor Pusat Jakarta', token: 'NSR8899' },
+      { kode: '00', nama: 'Kantor Pusat Jakarta', token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") },
       { kode: '01', nama: 'Kantor Cabang Padang', token: 'NSR-PDG-2026' },
       { kode: '02', nama: 'Kantor Cabang Makassar', token: 'NSR-MKS-2026' },
       { kode: '03', nama: 'Kantor Cabang Palembang', token: 'NSR-PLB-2026' },
-      { kode: '04', nama: 'Kantor Cabang Bandung', token: 'NSR-BDG-2026' }
+      { kode: '04', nama: 'Kantor Cabang Bandung', token: (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN") }
     ];
 
     const submissionPromises = [];
@@ -240,7 +240,7 @@ async function run() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer NSR8899',
+        'Authorization': 'Bearer [REDACTED_SUPER_ADMIN_TOKEN]',
         'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({
@@ -266,7 +266,7 @@ async function run() {
     // -------------------------------------------------------------
     console.log('\n--- TEST 6: Verifikasi Kriptografis HMAC Publik (verifyDocument) ---');
     const sampleDoc = (await (await fetch(`${BASE_URL}/operasional-data-handler.php?action=getPengajuanDetail&id=${targetDocs[0].id}`, {
-      headers: { 'Authorization': 'Bearer NSR8899' }
+      headers: { 'Authorization': 'Bearer [REDACTED_SUPER_ADMIN_TOKEN]' }
     })).json()).data;
 
     const tier2App = sampleDoc.approvals[2];

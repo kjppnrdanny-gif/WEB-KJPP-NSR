@@ -226,7 +226,7 @@ async function runTests() {
           sessionStorage.clear();
           bukaModalPortal('kwitansi');
           const inputAdmin = document.getElementById('input-token');
-          inputAdmin.value = 'NSR-BDG-2026';
+          inputAdmin.value = (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN");
           verifikasiTokenPortal({ preventDefault: () => {} });
 
           return { nonAdminResults: results };
@@ -280,10 +280,10 @@ async function runTests() {
             });
           }
 
-          // Test Admin Allowed (NSR-BDG-2026)
+          // Test Admin Allowed ([REDACTED_CAB_BDG_TOKEN])
           sessionStorage.clear();
           const inputAdmin = document.getElementById('kwitansi-auth-username');
-          inputAdmin.value = 'NSR-BDG-2026';
+          inputAdmin.value = (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN");
           await masukSesiKwitansi();
           const isFormOpenAdmin = !document.getElementById('konten-form-cabang').classList.contains('hidden');
           const isBoxAuthHidden = document.getElementById('box-auth-kwitansi').classList.contains('hidden');
@@ -305,14 +305,14 @@ async function runTests() {
       }
     }
     if (!testHardGuardKwitansi.result.value.adminAllowed) {
-      throw new Error('Admin Cabang (NSR-BDG-2026) seharusnya diizinkan mengakses portal-kwitansi.html');
+      throw new Error('Admin Cabang ([REDACTED_CAB_BDG_TOKEN]) seharusnya diizinkan mengakses portal-kwitansi.html');
     }
     console.log('✓ Hard-guard portal-kwitansi.html berhasil 100%: Non-admin diblokir, Admin diizinkan!');
 
     // ------------------------------------------------------------------
     // TEST 3: portal-penugasan-jo.html - Dual-Mode Privasi Mandiri Cabang (Zero-Cloud)
     // ------------------------------------------------------------------
-    console.log('\n--- TEST 3: portal-penugasan-jo.html - Uji Mode Privasi Mandiri Cabang (NSR-BDG-2026) ---');
+    console.log('\n--- TEST 3: portal-penugasan-jo.html - Uji Mode Privasi Mandiri Cabang ([REDACTED_CAB_BDG_TOKEN]) ---');
     await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-penugasan-jo.html` });
     await waitForCondition(cdp, 'typeof window.verifikasiTokenLogin === "function"');
 
@@ -324,7 +324,7 @@ async function runTests() {
           window.confirm = () => true;
           sessionStorage.clear();
           localStorage.removeItem('nsr_private_jo_BDG');
-          document.getElementById('input_token_auth').value = 'NSR-BDG-2026';
+          document.getElementById('input_token_auth').value = (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN");
           await verifikasiTokenLogin();
         })()
       `,
@@ -444,16 +444,16 @@ async function runTests() {
     console.log('✓ Tabel Dashboard menampilkan badge 🔒 MANDIRI CABANG (PRIVAT) dan tombol Backup/Restore!');
 
     // ------------------------------------------------------------------
-    // TEST 3B: Verifikasi Admin Pusat (NSR-PST-2026) - Unlocked Inputs & No 4172027 Bug
+    // TEST 3B: Verifikasi Admin Pusat ([REDACTED_ADMIN_PUSAT_TOKEN]) - Unlocked Inputs & No 4172027 Bug
     // ------------------------------------------------------------------
-    console.log('\n--- TEST 3B: portal-penugasan-jo.html - Uji Admin Pusat (NSR-PST-2026) & Fix Bug 4172027 ---');
+    console.log('\n--- TEST 3B: portal-penugasan-jo.html - Uji Admin Pusat ([REDACTED_ADMIN_PUSAT_TOKEN]) & Fix Bug 4172027 ---');
     await cdp.send('Runtime.evaluate', {
       expression: `
         (async () => {
           window.alert = () => {};
           window.confirm = () => true;
           sessionStorage.clear();
-          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          document.getElementById('input_token_auth').value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
           await verifikasiTokenLogin();
         })()
       `,
@@ -841,7 +841,7 @@ async function runTests() {
       expression: `
         (async () => {
           sessionStorage.clear();
-          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          document.getElementById('input_token_auth').value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
           await verifikasiTokenLogin();
           pindahTab('preview');
           if (projectDatabase.length > 0) {
@@ -1707,7 +1707,7 @@ async function runTests() {
       expression: `
         (async () => {
           document.getElementById('kwitansi-auth-username').value = 'admin.pusat';
-          document.getElementById('kwitansi-auth-password').value = 'NSR-PST-2026';
+          document.getElementById('kwitansi-auth-password').value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
           await loginKwitansiToken();
         })()
       `,
@@ -1788,7 +1788,7 @@ async function runTests() {
           window.alert = () => {};
           window.confirm = () => true;
           sessionStorage.clear();
-          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          document.getElementById('input_token_auth').value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
           await verifikasiTokenLogin();
         })()
       `,
@@ -1869,7 +1869,7 @@ async function runTests() {
       expression: `
         (async () => {
           sessionStorage.clear();
-          document.getElementById('input_token_auth').value = 'NSR-PST-2026';
+          document.getElementById('input_token_auth').value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
           await verifikasiTokenLogin();
           pindahTab('form');
         })()
@@ -2031,10 +2031,10 @@ async function runTests() {
       expression: `
         (async () => {
           const officialTokens = [
-            { token: 'NSR8899', expectedRole: 'SUPER_ADMIN', expectedKwitansi: true, expectedFee: true },
-            { token: 'NSR-PST-2026', expectedRole: 'ADMIN_PUSAT', expectedKwitansi: true, expectedFee: true },
+            { token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"), expectedRole: 'SUPER_ADMIN', expectedKwitansi: true, expectedFee: true },
+            { token: (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN"), expectedRole: 'ADMIN_PUSAT', expectedKwitansi: true, expectedFee: true },
             { token: 'NSR2026', expectedRole: 'ADMIN_PUSAT', expectedKwitansi: true, expectedFee: true },
-            { token: 'NSR-BDG-2026', expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
+            { token: (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"), expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
             { token: 'NSR-PDG-2026', expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
             { token: 'NSR-MKS-2026', expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
             { token: 'NSR-PLB-2026', expectedRole: 'ADMIN_CABANG', expectedKwitansi: true, expectedFee: true },
@@ -2092,7 +2092,7 @@ async function runTests() {
     // ------------------------------------------------------------------
     console.log('\n--- TEST 10: portal-nolap.html - Uji Single Sign-On (SSO) Bebas Form Login ---');
     // Uji 10A: Login SSO Admin Pusat via URL token
-    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-nolap.html?token=NSR-PST-2026` });
+    await cdp.send('Page.navigate', { url: `http://127.0.0.1:${port}/portal-nolap.html?token=[REDACTED_ADMIN_PUSAT_TOKEN]` });
     await waitForCondition(cdp, 'typeof window.isSuperOrAdminPusat === "function"');
     await new Promise(r => setTimeout(r, 600));
 
@@ -2121,22 +2121,22 @@ async function runTests() {
 
     const ssoPst = ssoPusatRes.result.value;
     if (!ssoPst.isBoxHidden || !ssoPst.isPanelVisible) {
-      throw new Error('SSO NoLap gagal: Form login username/password masih muncul untuk token NSR-PST-2026!');
+      throw new Error('SSO NoLap gagal: Form login username/password masih muncul untuk token [REDACTED_ADMIN_PUSAT_TOKEN]!');
     }
     if (!ssoPst.isSesiValid || !ssoPst.isApprovalVisible) {
       throw new Error(`SSO NoLap gagal mengatur peran Admin Pusat: sesiValid=${ssoPst.isSesiValid}, approvalVisible=${ssoPst.isApprovalVisible}`);
     }
-    if (ssoPst.ssoTokenStored !== 'NSR-PST-2026') {
+    if (ssoPst.ssoTokenStored !== (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN")) {
       throw new Error(`SSO NoLap gagal menyimpan NSR_AUTH_TOKEN di sessionStorage: ${ssoPst.ssoTokenStored}`);
     }
-    console.log('✓ SSO NoLap Admin Pusat (NSR-PST-2026) BERHASIL: Form Login dilewati, peran Admin Pusat aktif!');
+    console.log('✓ SSO NoLap Admin Pusat ([REDACTED_ADMIN_PUSAT_TOKEN]) BERHASIL: Form Login dilewati, peran Admin Pusat aktif!');
 
     // Uji 10B: Login SSO Admin Cabang via sessionStorage (simulasi klik navigasi dari portal penugasan)
     await cdp.send('Runtime.evaluate', {
       expression: `
         (() => {
           sessionStorage.clear();
-          sessionStorage.setItem('NSR_AUTH_TOKEN', 'NSR-BDG-2026');
+          sessionStorage.setItem('NSR_AUTH_TOKEN', (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"));
         })()
       `
     });
@@ -2177,7 +2177,7 @@ async function runTests() {
     if (ssoBdg.valCabang !== 'Bandung') {
       throw new Error(`SSO NoLap Cabang Bandung gagal mengunci dropdown cabang: ${ssoBdg.valCabang}`);
     }
-    console.log('✓ SSO NoLap Admin Cabang (NSR-BDG-2026) BERHASIL: Form Login dilewati, cabang otomatis terkunci ke Bandung!');
+    console.log('✓ SSO NoLap Admin Cabang ([REDACTED_CAB_BDG_TOKEN]) BERHASIL: Form Login dilewati, cabang otomatis terkunci ke Bandung!');
 
     // Tangkap screenshot final
     const ssFinal = await cdp.send('Page.captureScreenshot', { format: 'png' });

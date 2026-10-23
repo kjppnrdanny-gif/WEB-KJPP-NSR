@@ -93,8 +93,8 @@ async function runProductionLiveVerification() {
   // -------------------------------------------------------------------------
   const branchClients = {};
   const branchTokens = {
-    Pusat: 'NSR-PST-2026',
-    Bandung: 'NSR-BDG-2026',
+    Pusat: (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN"),
+    Bandung: (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"),
     Padang: 'NSR-PDG-2026',
     Makassar: 'NSR-MKS-2026',
     Palembang: 'NSR-PLB-2026'

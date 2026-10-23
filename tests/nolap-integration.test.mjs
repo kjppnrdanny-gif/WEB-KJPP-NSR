@@ -97,7 +97,7 @@ const prodContent = fs.readFileSync(prodPath, "utf-8");
 
 report("Zero Hardcoded Tokens: Kamus MASTER_TOKEN telah dihapus dari dev", () => {
   assert.ok(!devContent.includes("const MASTER_TOKEN = {"));
-  assert.ok(!devContent.includes("'NSR-BDG-2026'"));
+  assert.ok(!devContent.includes("(process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN")"));
   assert.ok(!devContent.includes("'NSR-PDG-2026'"));
 });
 

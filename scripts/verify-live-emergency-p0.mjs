@@ -126,7 +126,7 @@ async function pollAndVerify() {
   );
 
   console.log('\n--- Uji 3: Pencabutan Sesi Kompromi (Blacklist) di Lingkungan Live ---');
-  const blacklistedId = '66c3e90cae0df094bda66fa99602fb18';
+  const blacklistedId = 'process.env.NSR_REVOKED_SESS_1 || "revoked_sess_hash_1"';
   const resRevoked = await httpsRequest('GET', '/api/auth.php?action=verify', {
     headers: { 'Cookie': `NSR_SESSION=${blacklistedId}` }
   });
@@ -140,7 +140,7 @@ async function pollAndVerify() {
   console.log('\n--- Uji 4: Autentikasi Resmi & Sesi HttpOnly Server-Side di Lingkungan Live ---');
   const resOfficialLogin = await httpsRequest('POST', '/api/auth.php?action=token', {
     headers: { 'Content-Type': 'application/json' },
-    body: { token: 'NSR8899' }
+    body: { token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") }
   });
   const liveCookies = resOfficialLogin.headers['set-cookie'] || [];
   const liveCookieHeader = Array.isArray(liveCookies) ? liveCookies[0].split(';')[0] : liveCookies;

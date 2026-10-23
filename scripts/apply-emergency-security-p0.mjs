@@ -57,9 +57,9 @@ if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
 // KEAMANAN P0: PENCABUTAN SESI KOMPROMI (SESSION REVOCATION BLACKLIST)
 // =============================================================
 $REVOKED_SESSION_IDS = [
-    '66c3e90cae0df094bda66fa99602fb18',
-    'bcd790d3a97f63d115f3bd06f59bb84d',
-    '8a12b1ef6a7dd5895c2369261633f637'
+    'process.env.NSR_REVOKED_SESS_1 || "revoked_sess_hash_1"',
+    'process.env.NSR_REVOKED_SESS_2 || "revoked_sess_hash_2"',
+    'process.env.NSR_REVOKED_SESS_3 || "revoked_sess_hash_3"'
 ];
 $currentSessionId = session_id();
 if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
@@ -123,10 +123,10 @@ if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD', 'OPTIONS'], t
   content = content.replace(/\/\/\s*Dedicated Token:\s*Kepala Keuangan & Pemimpin Rekan[^\n]*/g, '// KREDENSIAL RESMI KEPALA KEUANGAN & PEMIMPIN REKAN');
   content = content.replace(/\/\/\s*NSR-KEPKEU-2026\s*\(Raw SHA-256\)/g, '// Hash Otorisasi Kepala Keuangan');
   content = content.replace(/\/\/\s*NSR-KEPKEU-2026\s*\(Salted SHA-256\)/g, '// Hash Salted Kepala Keuangan');
-  content = content.replace(/\/\/\s*KREDENSIAL RESMI SUPER ADMIN — KING\s*\(NSR8899\)/g, '// KREDENSIAL RESMI SUPER ADMIN (KING)');
-  content = content.replace(/\/\/\s*Token NSR-PST-2026\s*-\s*Admin Operasional Pusat/g, '// Kredensial Resmi Admin Operasional Pusat');
+  content = content.replace(/\/\/\s*KREDENSIAL RESMI SUPER ADMIN — KING\s*\([REDACTED_SUPER_ADMIN_TOKEN]\)/g, '// KREDENSIAL RESMI SUPER ADMIN (KING)');
+  content = content.replace(/\/\/\s*Token [REDACTED_ADMIN_PUSAT_TOKEN]\s*-\s*Admin Operasional Pusat/g, '// Kredensial Resmi Admin Operasional Pusat');
   content = content.replace(/\/\/\s*KREDENSIAL RESMI PENILAI PUBLIK\s*\(NSR-NARA-2026 & NSR-DUS-2026\)/g, '// KREDENSIAL RESMI PENILAI PUBLIK');
-  content = content.replace(/\/\/\s*KREDENSIAL RESMI KEPALA SPM\s*\(NSR-SPM-DANNY-2026\)/g, '// KREDENSIAL RESMI KEPALA SPM');
+  content = content.replace(/\/\/\s*KREDENSIAL RESMI KEPALA SPM\s*\([REDACTED_SPM_TOKEN]\)/g, '// KREDENSIAL RESMI KEPALA SPM');
 
   // D. Remove staging accounts from $USER_ACCOUNTS
   const userAccountsRegex = /\$USER_ACCOUNTS\s*=\s*\[[\s\S]*?\];/;
@@ -191,9 +191,9 @@ if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
 // KEAMANAN P0: PENCABUTAN SESI KOMPROMI (SESSION REVOCATION BLACKLIST)
 // =============================================================
 $REVOKED_SESSION_IDS = [
-    '66c3e90cae0df094bda66fa99602fb18',
-    'bcd790d3a97f63d115f3bd06f59bb84d',
-    '8a12b1ef6a7dd5895c2369261633f637'
+    'process.env.NSR_REVOKED_SESS_1 || "revoked_sess_hash_1"',
+    'process.env.NSR_REVOKED_SESS_2 || "revoked_sess_hash_2"',
+    'process.env.NSR_REVOKED_SESS_3 || "revoked_sess_hash_3"'
 ];
 $currentSessionId = session_id();
 if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
@@ -288,9 +288,9 @@ if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
 // KEAMANAN P0: PENCABUTAN SESI KOMPROMI (SESSION REVOCATION BLACKLIST)
 // =============================================================
 $REVOKED_SESSION_IDS = [
-    '66c3e90cae0df094bda66fa99602fb18',
-    'bcd790d3a97f63d115f3bd06f59bb84d',
-    '8a12b1ef6a7dd5895c2369261633f637'
+    'process.env.NSR_REVOKED_SESS_1 || "revoked_sess_hash_1"',
+    'process.env.NSR_REVOKED_SESS_2 || "revoked_sess_hash_2"',
+    'process.env.NSR_REVOKED_SESS_3 || "revoked_sess_hash_3"'
 ];
 $currentSessionId = session_id();
 if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
@@ -352,12 +352,12 @@ if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD', 'OPTIONS'], t
   content = content.replace(/\/\/\s*NSR-KEPKEU-2026:[^\n]*/g, '// Otorisasi Final Tingkat 3');
   content = content.replace(/\/\/\s*NSR-KEPKEU-2026\s*\(Raw SHA-256\)/g, '// Hash Otorisasi Kepala Keuangan');
   content = content.replace(/\/\/\s*NSR-KEPKEU-2026\s*\(Salted SHA-256\)/g, '// Hash Salted Kepala Keuangan');
-  content = content.replace(/\/\/\s*AUDIT TOKEN TERESKPOS:\s*NSR8899[^\n]*/g, '// KREDENSIAL SUPER ADMIN (KING)');
-  content = content.replace(/\/\/\s*NSR8899\s*\(Raw SHA-256\)/g, '// Hash Otorisasi Super Admin King');
-  content = content.replace(/\/\/\s*NSR8899\s*\(Salted SHA-256\)/g, '// Hash Salted Super Admin King');
-  content = content.replace(/\/\/\s*AUDIT TOKEN TERESKPOS:\s*NSR-PST-2026[^\n]*/g, '// KREDENSIAL ADMIN OPERASIONAL PUSAT');
-  content = content.replace(/\/\/\s*NSR-PST-2026\s*\(Raw SHA-256\)/g, '// Hash Otorisasi Admin Operasional');
-  content = content.replace(/\/\/\s*NSR-PST-2026\s*\(Salted SHA-256\)/g, '// Hash Salted Admin Operasional');
+  content = content.replace(/\/\/\s*AUDIT TOKEN TERESKPOS:\s*[REDACTED_SUPER_ADMIN_TOKEN][^\n]*/g, '// KREDENSIAL SUPER ADMIN (KING)');
+  content = content.replace(/\/\/\s*[REDACTED_SUPER_ADMIN_TOKEN]\s*\(Raw SHA-256\)/g, '// Hash Otorisasi Super Admin King');
+  content = content.replace(/\/\/\s*[REDACTED_SUPER_ADMIN_TOKEN]\s*\(Salted SHA-256\)/g, '// Hash Salted Super Admin King');
+  content = content.replace(/\/\/\s*AUDIT TOKEN TERESKPOS:\s*[REDACTED_ADMIN_PUSAT_TOKEN][^\n]*/g, '// KREDENSIAL ADMIN OPERASIONAL PUSAT');
+  content = content.replace(/\/\/\s*[REDACTED_ADMIN_PUSAT_TOKEN]\s*\(Raw SHA-256\)/g, '// Hash Otorisasi Admin Operasional');
+  content = content.replace(/\/\/\s*[REDACTED_ADMIN_PUSAT_TOKEN]\s*\(Salted SHA-256\)/g, '// Hash Salted Admin Operasional');
   content = content.replace(/\/\/\s*NSR-ADM-2026\s*\(Raw SHA-256\)/g, '// Hash Otorisasi Admin Pusat');
   content = content.replace(/\/\/\s*NSR-ADM-2026\s*\(Salted SHA-256\)/g, '// Hash Salted Admin Pusat');
   content = content.replace(/\/\/\s*4\.\s*MANAGER KEUANGAN\s*\(Milda Hidayati Dewi, S\.E\. - NSR-KEU-2026\)/g, '// 4. MANAGER KEUANGAN');
@@ -374,7 +374,7 @@ if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD', 'OPTIONS'], t
   content = content.replace(/\/\/\s*NSR-MKT-2026\s*\(Salted SHA-256\)/g, '// Hash Salted Marketing');
   content = content.replace(/\/\/\s*NSR-REK-2026[^\n]*/g, '// Rekan Mitra Umum');
   content = content.replace(/\/\/\s*NSR-REV-2026[^\n]*/g, '// Reviewer Mutu Penugasan');
-  content = content.replace(/\/\/\s*Admin Cabang Bandung\s*\(NSR-BDG-2026\)/g, '// Admin Cabang Bandung');
+  content = content.replace(/\/\/\s*Admin Cabang Bandung\s*\([REDACTED_CAB_BDG_TOKEN]\)/g, '// Admin Cabang Bandung');
   content = content.replace(/\/\/\s*Admin Cabang Padang\s*\(NSR-PDG-2026\)/g, '// Admin Cabang Padang');
   content = content.replace(/\/\/\s*Admin Cabang Makassar\s*\(NSR-MKS-2026\)/g, '// Admin Cabang Makassar');
   content = content.replace(/\/\/\s*Admin Cabang Palembang\s*\(NSR-PLB-2026\)/g, '// Admin Cabang Palembang');
@@ -411,9 +411,9 @@ if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
 // KEAMANAN P0: PENCABUTAN SESI KOMPROMI (SESSION REVOCATION BLACKLIST)
 // =============================================================
 $REVOKED_SESSION_IDS = [
-    '66c3e90cae0df094bda66fa99602fb18',
-    'bcd790d3a97f63d115f3bd06f59bb84d',
-    '8a12b1ef6a7dd5895c2369261633f637'
+    'process.env.NSR_REVOKED_SESS_1 || "revoked_sess_hash_1"',
+    'process.env.NSR_REVOKED_SESS_2 || "revoked_sess_hash_2"',
+    'process.env.NSR_REVOKED_SESS_3 || "revoked_sess_hash_3"'
 ];
 $currentSessionId = session_id();
 if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
@@ -491,16 +491,16 @@ if (!$currentUser) {
   content = content.replace(tokenHeaderPattern, replacementHeader);
 
   // C. Sanitize comments in nolap-data-handler.php
-  content = content.replace(/\/\/\s*KREDENSIAL RESMI SUPER ADMIN — KING\s*\(NSR8899\)/g, '// KREDENSIAL RESMI SUPER ADMIN (KING)');
+  content = content.replace(/\/\/\s*KREDENSIAL RESMI SUPER ADMIN — KING\s*\([REDACTED_SUPER_ADMIN_TOKEN]\)/g, '// KREDENSIAL RESMI SUPER ADMIN (KING)');
   content = content.replace(/\/\/\s*KREDENSIAL RESMI ADMIN PUSAT\s*\(NSR-ADM-2026\)/g, '// KREDENSIAL RESMI ADMIN PUSAT');
   content = content.replace(/\/\/\s*Token Header:\s*NSR-DIVTEK-2026\s*\(Kepala Divisi Teknik - Deni Siswandi\)/g, '// Kepala Divisi Teknik - Deni Siswandi');
-  content = content.replace(/\/\/\s*Token Header:\s*NSR-DIVTEK-DENI-2026[^\n]*/g, '// Kepala Divisi Teknik (Alias)');
+  content = content.replace(/\/\/\s*Token Header:\s*[REDACTED_DIVTEK_TOKEN][^\n]*/g, '// Kepala Divisi Teknik (Alias)');
   content = content.replace(/\/\/\s*Token Header:\s*NSR-NARA-2026\s*\(Penilai Publik - Ir\. Nanang Rahayu\)/g, '// Penilai Publik - Ir. Nanang Rahayu');
-  content = content.replace(/\/\/\s*Token Header:\s*NSR-PENILAI-NANANG-2026[^\n]*/g, '// Penilai Publik (Alias)');
+  content = content.replace(/\/\/\s*Token Header:\s*[REDACTED_PENILAI_NANANG_TOKEN][^\n]*/g, '// Penilai Publik (Alias)');
   content = content.replace(/\/\/\s*Token Header:\s*NSR-DUS-2026\s*\(Penilai Publik - Deni Siswandi, Terpisah dari Divtek!\)/g, '// Penilai Publik - Deni Siswandi (Terpisah dari Divtek)');
 
   // D. Hash $allowedKeys in emergencyOverrideGate
-  const allowedKeysPattern = /\$reauthKey\s*=\s*trim\(\$payload\['reauthKey'\]\s*\?\?\s*\$_SERVER\['HTTP_X_NSR_OVERRIDE_KEY'\]\s*\?\?\s*''\);\s*[\r\n]+\s*\$allowedKeys\s*=\s*\['NSR8899',\s*'KING-OVERRIDE-SECURE-2026',\s*'NSR-OVERRIDE-2026'\];\s*[\r\n]+\s*if\s*\(empty\(\$reauthKey\)\s*\|\|\s*!in_array\(\$reauthKey,\s*\$allowedKeys,\s*true\)\)/;
+  const allowedKeysPattern = /\$reauthKey\s*=\s*trim\(\$payload\['reauthKey'\]\s*\?\?\s*\$_SERVER\['HTTP_X_NSR_OVERRIDE_KEY'\]\s*\?\?\s*''\);\s*[\r\n]+\s*\$allowedKeys\s*=\s*\[(process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),\s*'KING-OVERRIDE-SECURE-2026',\s*'NSR-OVERRIDE-2026'\];\s*[\r\n]+\s*if\s*\(empty\(\$reauthKey\)\s*\|\|\s*!in_array\(\$reauthKey,\s*\$allowedKeys,\s*true\)\)/;
   const hashedAllowedKeys = `$reauthKey = trim($payload['reauthKey'] ?? $_SERVER['HTTP_X_NSR_OVERRIDE_KEY'] ?? '');
         $reauthHash = hash('sha256', strtoupper($reauthKey));
         $allowedKeyHashes = [
@@ -620,9 +620,9 @@ if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
 // KEAMANAN P0: PENCABUTAN SESI KOMPROMI (SESSION REVOCATION BLACKLIST)
 // =============================================================
 $REVOKED_SESSION_IDS = [
-    '66c3e90cae0df094bda66fa99602fb18',
-    'bcd790d3a97f63d115f3bd06f59bb84d',
-    '8a12b1ef6a7dd5895c2369261633f637'
+    'process.env.NSR_REVOKED_SESS_1 || "revoked_sess_hash_1"',
+    'process.env.NSR_REVOKED_SESS_2 || "revoked_sess_hash_2"',
+    'process.env.NSR_REVOKED_SESS_3 || "revoked_sess_hash_3"'
 ];
 $currentSessionId = session_id();
 if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
@@ -702,9 +702,9 @@ if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
 // KEAMANAN P0: PENCABUTAN SESI KOMPROMI (SESSION REVOCATION BLACKLIST)
 // =============================================================
 $REVOKED_SESSION_IDS = [
-    '66c3e90cae0df094bda66fa99602fb18',
-    'bcd790d3a97f63d115f3bd06f59bb84d',
-    '8a12b1ef6a7dd5895c2369261633f637'
+    'process.env.NSR_REVOKED_SESS_1 || "revoked_sess_hash_1"',
+    'process.env.NSR_REVOKED_SESS_2 || "revoked_sess_hash_2"',
+    'process.env.NSR_REVOKED_SESS_3 || "revoked_sess_hash_3"'
 ];
 $currentSessionId = session_id();
 if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
@@ -737,7 +737,7 @@ patchFile('alur-kerja-penugasan-nolap-kwitansi.html', (code) => {
   let content = code;
   content = content.replace(/<span class="px-2 py-0\.5 rounded text-\[10px\] font-bold bg-cyan-100 text-cyan-900">Token:\s*NSR-KAS-2026<\/span>/g, '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-900">Otorisasi: Kasir Cabang</span>');
   content = content.replace(/<span class="px-2 py-0\.5 rounded text-\[10px\] font-bold bg-emerald-100 text-emerald-900">Token:\s*NSR-KEU-2026<\/span>/g, '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900">Otorisasi: Keuangan Pusat</span>');
-  content = content.replace(/<li><strong>Distribusi Token Privat:<\/strong>\s*Buka file <a href="daftar-token-akses-internal\.html"[^>]*>daftar-token-akses-internal\.html<\/a>,\s*potong atau salin slip kredensial individual sesuai perannya masing-masing\.\s*Jangan bagikan token master <code[^>]*>NSR8899<\/code> kepada staf umum\.<\/li>/g, '<li><strong>Distribusi Kredensial Privat:</strong> Bagikan kredensial individual kepada masing-masing pejabat dan staf berwenang sesuai matriks kewenangan resmi. Jaga kerahasiaan kredensial dan jangan membagikan akses administratif kepada pihak yang tidak berkepentingan.</li>');
+  content = content.replace(/<li><strong>Distribusi Token Privat:<\/strong>\s*Buka file <a href="daftar-token-akses-internal\.html"[^>]*>daftar-token-akses-internal\.html<\/a>,\s*potong atau salin slip kredensial individual sesuai perannya masing-masing\.\s*Jangan bagikan token master <code[^>]*>[REDACTED_SUPER_ADMIN_TOKEN]<\/code> kepada staf umum\.<\/li>/g, '<li><strong>Distribusi Kredensial Privat:</strong> Bagikan kredensial individual kepada masing-masing pejabat dan staf berwenang sesuai matriks kewenangan resmi. Jaga kerahasiaan kredensial dan jangan membagikan akses administratif kepada pihak yang tidak berkepentingan.</li>');
   return content;
 });
 

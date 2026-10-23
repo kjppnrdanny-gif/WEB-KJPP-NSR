@@ -51,7 +51,7 @@ try {
   console.log('\n--- UJI 1: KEAMANAN SESI, SERVER SESSION STORAGE & LOGOUT REVOCATION ---');
 
   // Token resmi admin pusat
-  const validToken = 'NSR8899';
+  const validToken = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
   const loginRes = await api('/auth-handler.php?action=login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

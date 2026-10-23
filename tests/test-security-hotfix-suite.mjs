@@ -8,7 +8,7 @@ const PHP_HOST = '127.0.0.1';
 const BASE_URL = `http://${PHP_HOST}:${PHP_PORT}`;
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const DEBUG_PORT = 9455;
-const TEST_TOKEN = 'NSR-PST-2026';
+const TEST_TOKEN = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
 
 async function runSecurityTestSuite() {
   console.log('====================================================');

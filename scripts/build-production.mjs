@@ -65,6 +65,7 @@ const ALLOWED_FILES = [
   ".htaccess",
   "visitor-stats.php",
   "auth-handler.php",
+  "auth-registry-loader.php",
   "api/auth.php",
   "pdp-consent-handler.php",
   "nolap-data-handler.php",

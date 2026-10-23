@@ -55,7 +55,7 @@ async function testApprovedDocInTab3() {
   // Login KING
   await send('Runtime.evaluate', {
     expression: `(async () => {
-      document.getElementById('input_token_auth').value = 'NSR8899';
+      document.getElementById('input_token_auth').value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
       await verifikasiTokenLogin(null);
     })()`,
     awaitPromise: true

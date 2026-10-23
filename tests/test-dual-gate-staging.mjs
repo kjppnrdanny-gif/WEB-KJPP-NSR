@@ -93,7 +93,7 @@ async function runAllTests() {
   // TEST 3: Anti-Bypass! Deni Coba Review Sebelum Danny Setuju
   // -------------------------------------------------------------
   console.log('\n[TEST 3] Anti-Bypass: Deni (Divtek) Coba Review Mendahului Danny (SPM)');
-  const t3 = await callDualGatePhp('reviewDeniGerbang1', 'POST', 'NSR-DIVTEK-DENI-2026', {
+  const t3 = await callDualGatePhp('reviewDeniGerbang1', 'POST', (process.env.NSR_DIVTEK_TOKEN || "NSR_MOCK_DIVTEK_TOKEN"), {
     idPenugasan: 'NSR-2026-BDG-TEST01',
     keputusan: 'SETUJU',
     catatan: 'Coba approval langsung tanpa SPM'
@@ -107,7 +107,7 @@ async function runAllTests() {
   // TEST 4: Danny Taufik (Kepala SPM) Review & Menyetujui Gerbang 1
   // -------------------------------------------------------------
   console.log('\n[TEST 4] Danny Taufik (Kepala SPM) Review Gerbang 1 -> SETUJU');
-  const t4 = await callDualGatePhp('reviewDannyGerbang1', 'POST', 'NSR-SPM-DANNY-2026', {
+  const t4 = await callDualGatePhp('reviewDannyGerbang1', 'POST', (process.env.NSR_SPM_TOKEN || "NSR_MOCK_SPM_TOKEN"), {
     idPenugasan: 'NSR-2026-BDG-TEST01',
     keputusan: 'SETUJU',
     catatan: 'Independensi terverifikasi. Tidak ada benturan kepentingan.'
@@ -122,7 +122,7 @@ async function runAllTests() {
   // TEST 5: Deni Siswandi (Kepala Divtek) Review & Menyetujui Gerbang 1
   // -------------------------------------------------------------
   console.log('\n[TEST 5] Deni Siswandi (Kepala Divtek) Review Gerbang 1 -> SETUJU');
-  const t5 = await callDualGatePhp('reviewDeniGerbang1', 'POST', 'NSR-DIVTEK-DENI-2026', {
+  const t5 = await callDualGatePhp('reviewDeniGerbang1', 'POST', (process.env.NSR_DIVTEK_TOKEN || "NSR_MOCK_DIVTEK_TOKEN"), {
     idPenugasan: 'NSR-2026-BDG-TEST01',
     keputusan: 'SETUJU',
     catatan: 'Metodologi dan susunan tim penilai telah memenuhi syarat teknis.'
@@ -170,14 +170,14 @@ async function runAllTests() {
   // TEST 8: Review Berjenjang Gerbang 2 (Danny -> Deni) -> SIAP_TERBIT_NOLAP
   // -------------------------------------------------------------
   console.log('\n[TEST 8] Review Berjenjang Gerbang 2: Danny (SETUJU) -> Deni (SETUJU)');
-  const t8a = await callDualGatePhp('reviewDannyGerbang2', 'POST', 'NSR-SPM-DANNY-2026', {
+  const t8a = await callDualGatePhp('reviewDannyGerbang2', 'POST', (process.env.NSR_SPM_TOKEN || "NSR_MOCK_SPM_TOKEN"), {
     idPenugasan: 'NSR-2026-BDG-TEST01',
     keputusan: 'SETUJU',
     catatan: 'QC dokumen lengkap. Pembatasan tanggung jawab terpenuhi.'
   });
   assert.strictEqual(t8a.json.newStatus, 'MENUNGGU_DIVTEK_AKHIR');
 
-  const t8b = await callDualGatePhp('reviewDeniGerbang2', 'POST', 'NSR-DIVTEK-DENI-2026', {
+  const t8b = await callDualGatePhp('reviewDeniGerbang2', 'POST', (process.env.NSR_DIVTEK_TOKEN || "NSR_MOCK_DIVTEK_TOKEN"), {
     idPenugasan: 'NSR-2026-BDG-TEST01',
     keputusan: 'SETUJU',
     catatan: 'Kertas kerja penilaian dan rekonsiliasi nilai wajar.'
@@ -204,7 +204,7 @@ async function runAllTests() {
   // -------------------------------------------------------------
   console.log('\n[TEST 10] Pemisahan Wewenang: Tanda Tangan Penilai Publik (Bukan Otomatis Divtek)');
   // Coba jika ditandatangani Nanang padahal penugasan untuk Deni -> Wajib Ditolak!
-  const t10Wrong = await callDualGatePhp('signLaporanPenilaiPublik', 'POST', 'NSR-PENILAI-NANANG-2026', {
+  const t10Wrong = await callDualGatePhp('signLaporanPenilaiPublik', 'POST', (process.env.NSR_PENILAI_NANANG_TOKEN || "NSR_MOCK_PENILAI_TOKEN"), {
     idPenugasan: 'NSR-2026-BDG-TEST01'
   });
   assert.strictEqual(t10Wrong.json.success, false);
@@ -212,7 +212,7 @@ async function runAllTests() {
   console.log('✔ LULUS: Penilai Publik lain ditolak menandatangani penugasan yang bukan wewenangnya.');
 
   // Tanda tangan oleh Deni sebagai Penilai Publik yang ditugaskan
-  const t10Correct = await callDualGatePhp('signLaporanPenilaiPublik', 'POST', 'NSR-PENILAI-DENI-2026', {
+  const t10Correct = await callDualGatePhp('signLaporanPenilaiPublik', 'POST', (process.env.NSR_PENILAI_DENI_TOKEN || "NSR_MOCK_PENILAI_TOKEN"), {
     idPenugasan: 'NSR-2026-BDG-TEST01',
     metodeTandaTangan: 'DIGITAL_VERIFIED'
   });
@@ -241,7 +241,7 @@ async function runAllTests() {
   // TEST 12: Kasus Revisi oleh Kepala SPM
   // -------------------------------------------------------------
   console.log('\n[TEST 12] Kasus Pengembalian Revisi oleh Kepala SPM');
-  const t12 = await callDualGatePhp('reviewDannyGerbang1', 'POST', 'NSR-SPM-DANNY-2026', {
+  const t12 = await callDualGatePhp('reviewDannyGerbang1', 'POST', (process.env.NSR_SPM_TOKEN || "NSR_MOCK_SPM_TOKEN"), {
     idPenugasan: 'NSR-2026-PST-RED01',
     keputusan: 'REVISI',
     catatan: 'Wajib lampirkan surat pernyataan bebas benturan kepentingan dari dewan direksi.'

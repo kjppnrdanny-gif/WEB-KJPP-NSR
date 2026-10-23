@@ -23,11 +23,11 @@ const CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 const ARTIFACT_DIR = "C:\\Users\\HP\\.gemini\\antigravity\\brain\\5aa9abf1-bae3-4edf-b938-adfbb1b9bf9d";
 
 const TOKENS = {
-  KING: 'NSR8899',
+  KING: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
   ADMIN_PUSAT: 'NSR-ADM-2026',
   ADMIN_MKS: 'NSR-MKS-2026',
   ADMIN_BDG: 'NSR-ADMIN-BDG-2026',
-  SPM: 'NSR-SPM-DANNY-2026',
+  SPM: (process.env.NSR_SPM_TOKEN || "NSR_MOCK_SPM_TOKEN"),
   DIVTEK: 'NSR-DIVTEK-2026',
   PENILAI_NANANG: 'NSR-NARA-2026'
 };

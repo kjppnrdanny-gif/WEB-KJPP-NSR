@@ -116,7 +116,7 @@ async function main() {
     expression: `(async () => {
       const tokenInput = document.getElementById('input_token_auth');
       if (tokenInput) {
-        tokenInput.value = 'NSR8899';
+        tokenInput.value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
         await verifikasiTokenLogin(null);
       }
     })()`,
@@ -213,8 +213,8 @@ async function main() {
     expression: `(async () => {
       const inpId = document.getElementById('input-auth-id');
       const inpPass = document.getElementById('input-auth-pass');
-      if (inpId) inpId.value = 'NSR-PST-2026';
-      if (inpPass) inpPass.value = 'NSR-PST-2026';
+      if (inpId) inpId.value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
+      if (inpPass) inpPass.value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
       loginKeServer(null);
       await new Promise(r => setTimeout(r, 800));
       return JSON.stringify({

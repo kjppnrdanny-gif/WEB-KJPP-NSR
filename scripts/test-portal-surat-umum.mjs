@@ -191,10 +191,10 @@ async function runTests() {
     await waitForCondition(cdp, 'typeof window.periksaSesiLogin === "function"');
     console.log('✓ portal-surat-umum.html scripts fully loaded and periksaSesiLogin ready');
 
-    // Coba login dengan token Cabang Bandung (NSR-BDG-2026)
+    // Coba login dengan token Cabang Bandung ([REDACTED_CAB_BDG_TOKEN])
     const test1Res = await cdp.send('Runtime.evaluate', {
       expression: `(async () => {
-        localStorage.setItem('kjpp_token_auth', 'NSR-BDG-2026');
+        localStorage.setItem('kjpp_token_auth', (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"));
         await window.periksaSesiLogin();
         
         const noticeDitolak = document.getElementById('notice-akses-ditolak');
@@ -221,12 +221,12 @@ async function runTests() {
     console.log('✓ Hard-Guard Penolakan Non-Admin Berhasil 100%!');
 
     // =========================================================================
-    // TEST 2: Login Admin Pusat (NSR-PST-2026) & Verifikasi Tampilan & Penomoran
+    // TEST 2: Login Admin Pusat ([REDACTED_ADMIN_PUSAT_TOKEN]) & Verifikasi Tampilan & Penomoran
     // =========================================================================
     console.log('\n--- TEST 2: portal-surat-umum.html - Login Admin Pusat & Saran Nomor Otomatis ---');
     const test2Res = await cdp.send('Runtime.evaluate', {
       expression: `(async () => {
-        localStorage.setItem('kjpp_token_auth', 'NSR-PST-2026');
+        localStorage.setItem('kjpp_token_auth', (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN"));
         await window.periksaSesiLogin();
 
         const noticeDitolak = document.getElementById('notice-akses-ditolak');

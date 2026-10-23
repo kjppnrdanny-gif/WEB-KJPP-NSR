@@ -125,10 +125,10 @@ const smokeResults = [
   await testEndpoint('Portal Kwitansi Dual Mode', `${primaryUrl}/portal-kwitansi.html`),
   await testEndpoint('Verifikasi Dokumen Publik', `${primaryUrl}/verifikasi-dokumen.html`),
   await testEndpoint('API e-Operasional (getPengajuanList)', `${primaryUrl}/operasional-data-handler.php?action=getPengajuanList`, {
-    headers: { 'Authorization': 'Bearer NSR8899', 'X-Requested-With': 'XMLHttpRequest' }
+    headers: { 'Authorization': 'Bearer [REDACTED_SUPER_ADMIN_TOKEN]', 'X-Requested-With': 'XMLHttpRequest' }
   }),
   await testEndpoint('API Kwitansi Data Proxy (GET)', `${primaryUrl}/api/kwitansi-data-proxy`, {
-    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-NSR-Token': 'NSR8899' }
+    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-NSR-Token': (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") }
   })
 ];
 
@@ -179,7 +179,7 @@ try {
   await new Promise(r => setTimeout(r, 1500));
   await cdpSend(ws, 'Runtime.evaluate', {
     expression: `
-      document.getElementById('input_token_auth').value = 'NSR8899';
+      document.getElementById('input_token_auth').value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
       handleTokenLogin(new Event('submit'));
     `
   });
@@ -203,7 +203,7 @@ try {
   await new Promise(r => setTimeout(r, 1500));
   await cdpSend(ws, 'Runtime.evaluate', {
     expression: `
-      document.getElementById('input_token_auth').value = 'NSR8899';
+      document.getElementById('input_token_auth').value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
       handleTokenLogin(new Event('submit'));
     `
   });

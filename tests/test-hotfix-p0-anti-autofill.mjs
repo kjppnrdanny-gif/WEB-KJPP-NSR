@@ -28,7 +28,7 @@ const ARTIFACT_DIR = 'C:\\Users\\HP\\.gemini\\antigravity\\brain\\5aa9abf1-bae3-
 const BASE_URL = `http://127.0.0.1:${PORT}/nolap-data-handler.php`;
 
 const TOKENS = {
-  SUPER_ADMIN: 'NSR8899',
+  SUPER_ADMIN: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
   ADMIN_PUSAT: 'NSR-ADMIN-PUSAT-2026',
   MAKASSAR_CABANG: 'NSR-MKS-2026'
 };
@@ -326,11 +326,11 @@ async function main() {
       await cdpSend('Page.navigate', { url: `http://127.0.0.1:${PORT}/portal-penugasan-jo.html` });
       await new Promise(r => setTimeout(r, 1500));
 
-      // Login dengan token KING NSR8899
+      // Login dengan token KING [REDACTED_SUPER_ADMIN_TOKEN]
       const loginRes = await cdpSend('Runtime.evaluate', {
         expression: `(async () => {
           const input = document.getElementById('input_token_auth');
-          if (input) input.value = 'NSR8899';
+          if (input) input.value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
           if (typeof verifikasiTokenLogin === 'function') {
             await verifikasiTokenLogin(null);
           }
@@ -394,7 +394,7 @@ async function main() {
       const loginNolapRes = await cdpSend('Runtime.evaluate', {
         expression: `(async () => {
           const input = document.getElementById('token-input');
-          if (input) input.value = 'NSR8899';
+          if (input) input.value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
           const btnLogin = document.getElementById('btn-login');
           if (btnLogin) btnLogin.click();
           await new Promise(r => setTimeout(r, 1500));

@@ -92,7 +92,7 @@ async function run() {
       expression: `
         localStorage.removeItem('kjpp_jo_database');
         localStorage.setItem('nsr_jo_data_version', '2026.10.GO_LIVE_CLEAN');
-        document.getElementById('input-token').value = 'NSR8899';
+        document.getElementById('input-token').value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
         document.getElementById('btn-login-token').click();
       `
     });
@@ -138,7 +138,7 @@ async function run() {
         localStorage.removeItem('nsr_nolap_database');
         localStorage.setItem('nsr_nolap_data_version', '2026.10.GO_LIVE_CLEAN');
         const tokenInput = document.getElementById('f-token-admin') || document.querySelector('input[type=\"password\"]');
-        if (tokenInput) tokenInput.value = 'NSR8899';
+        if (tokenInput) tokenInput.value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
         const loginBtn = document.getElementById('btn-submit-login') || document.querySelector('button[onclick*=\"login\"]');
         if (loginBtn) loginBtn.click();
         else if (typeof verifikasiTokenAdmin === 'function') verifikasiTokenAdmin();

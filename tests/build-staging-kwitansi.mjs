@@ -818,7 +818,7 @@ function buildStagingKwitansi() {
     "BDG#010",
     "JKT#00",
     "NSR-FIN",
-    "NSR8899",
+    (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
     "081314680998",
     "081286917333",
     "081220314609",

@@ -4,9 +4,9 @@ import crypto from 'crypto';
 console.log('=== TEST SUITE: VERIFIKASI 12 TOKEN SISTEM KJPP NSR ===\n');
 
 const TOKENS_TO_TEST = [
-  { token: 'NSR8899', expectedRole: 'SUPER_ADMIN', expectedTitle: 'Super Admin Pusat', isMaster: true },
-  { token: 'NSR-PST-2026', expectedRole: 'ADMIN_PUSAT', expectedTitle: 'Admin Operasional Pusat' },
-  { token: 'NSR-BDG-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Bandung' },
+  { token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"), expectedRole: 'SUPER_ADMIN', expectedTitle: 'Super Admin Pusat', isMaster: true },
+  { token: (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN"), expectedRole: 'ADMIN_PUSAT', expectedTitle: 'Admin Operasional Pusat' },
+  { token: (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN"), expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Bandung' },
   { token: 'NSR-PDG-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Padang' },
   { token: 'NSR-MKS-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Makassar' },
   { token: 'NSR-PLB-2026', expectedRole: 'ADMIN_CABANG', expectedWilayah: 'Palembang' },

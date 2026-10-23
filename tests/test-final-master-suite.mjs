@@ -14,16 +14,16 @@ const PORT = 8895;
 const BASE_URL = `http://127.0.0.1:${PORT}/nolap-data-handler.php`;
 
 const TOKENS = {
-  KING: 'NSR8899',
-  SPM: 'NSR-SPM-DANNY-2026',
+  KING: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
+  SPM: (process.env.NSR_SPM_TOKEN || "NSR_MOCK_SPM_TOKEN"),
   DIVTEK: 'NSR-DIVTEK-2026',
-  DIVTEK_ALIAS: 'NSR-DIVTEK-DENI-2026',
+  DIVTEK_ALIAS: (process.env.NSR_DIVTEK_TOKEN || "NSR_MOCK_DIVTEK_TOKEN"),
   ADMIN_PUSAT: 'NSR-ADM-2026',
   ADMIN_PUSAT_ALIAS: 'NSR-ADMIN-PUSAT-2026',
   NARA_PENILAI: 'NSR-NARA-2026',
-  NARA_ALIAS: 'NSR-PENILAI-NANANG-2026',
+  NARA_ALIAS: (process.env.NSR_PENILAI_NANANG_TOKEN || "NSR_MOCK_PENILAI_TOKEN"),
   DUS_PENILAI: 'NSR-DUS-2026',
-  DUS_ALIAS: 'NSR-PENILAI-DENI-2026',
+  DUS_ALIAS: (process.env.NSR_PENILAI_DENI_TOKEN || "NSR_MOCK_PENILAI_TOKEN"),
   ADMIN_BDG: 'NSR-ADMIN-BDG-2026',
   INVALID: 'NSR-FAKE-TOKEN-9999'
 };
@@ -357,12 +357,12 @@ async function runMasterTestSuite() {
     const t26 = await request('?action=emergencyOverrideGate', {
       method: 'POST',
       token: TOKENS.KING,
-      overrideKey: 'NSR8899',
+      overrideKey: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
       body: {
         idPenugasan: redFlagId,
         targetStatus: 'MENUNGGU_DIVTEK_AWAL',
         alasanOverride: 'Dokumen legalitas kepemilikan telah diverifikasi oleh Notaris rekanan resmi.',
-        reauthKey: 'NSR8899'
+        reauthKey: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN")
       }
     });
     assert(t26.status === 200 && t26.data.statusSesudah === 'MENUNGGU_DIVTEK_AWAL', 26, 'KING sukses mengeksekusi Emergency Override darurat yang sah', t26);
@@ -371,12 +371,12 @@ async function runMasterTestSuite() {
     const t27 = await request('?action=emergencyOverrideGate', {
       method: 'POST',
       token: TOKENS.KING,
-      overrideKey: 'NSR8899',
+      overrideKey: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
       body: {
         idPenugasan: redFlagId,
         targetStatus: 'SIAP_TERBIT_LP',
         alasanOverride: 'Pendek',
-        reauthKey: 'NSR8899'
+        reauthKey: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN")
       }
     });
     assert(t27.status === 400, 27, 'Override tanpa alasan substantif wajib ditolak (400)', t27);
@@ -397,12 +397,12 @@ async function runMasterTestSuite() {
     const t29 = await request('?action=emergencyOverrideGate', {
       method: 'POST',
       token: TOKENS.ADMIN_PUSAT,
-      overrideKey: 'NSR8899',
+      overrideKey: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
       body: {
         idPenugasan: redFlagId,
         targetStatus: 'SIAP_TERBIT_LP',
         alasanOverride: 'Admin Pusat mencoba override darurat ilegal.',
-        reauthKey: 'NSR8899'
+        reauthKey: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN")
       }
     });
     assert(t29.status === 403, 29, 'Override oleh selain SUPER ADMIN ditolak keras (403)');
@@ -447,8 +447,8 @@ async function runMasterTestSuite() {
     await request('?action=emergencyOverrideGate', {
       method: 'POST',
       token: TOKENS.KING,
-      overrideKey: 'NSR8899',
-      body: { idPenugasan: concTestId, targetStatus: 'SIAP_TERBIT_NOLAP', alasanOverride: 'Intervensi pengujian konkurensi alokasi nomor resmi.', reauthKey: 'NSR8899' }
+      overrideKey: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
+      body: { idPenugasan: concTestId, targetStatus: 'SIAP_TERBIT_NOLAP', alasanOverride: 'Intervensi pengujian konkurensi alokasi nomor resmi.', reauthKey: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") }
     });
 
     // Kirim 2 permintaan penerbitan NoLap secara serentak

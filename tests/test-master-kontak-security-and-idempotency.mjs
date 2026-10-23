@@ -28,11 +28,11 @@ const BASE_URL = `http://127.0.0.1:${PORT}/nolap-data-handler.php`;
 const ROUTER_BASE = `http://127.0.0.1:${PORT}`;
 
 const TOKENS = {
-  SUPER_ADMIN: 'NSR8899',
+  SUPER_ADMIN: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN"),
   ADMIN_PUSAT: 'NSR-ADMIN-PUSAT-2026',
   MAKASSAR_CABANG: 'NSR-MKS-2026',
-  DANNY_SPM: 'NSR-SPM-DANNY-2026',
-  DENI_DIVTEK: 'NSR-DIVTEK-DENI-2026'
+  DANNY_SPM: (process.env.NSR_SPM_TOKEN || "NSR_MOCK_SPM_TOKEN"),
+  DENI_DIVTEK: (process.env.NSR_DIVTEK_TOKEN || "NSR_MOCK_DIVTEK_TOKEN")
 };
 
 function request(urlPath, { method = 'GET', token = null, body = null, rawUrl = false } = {}) {

@@ -27,7 +27,7 @@ async function runDeepRegression() {
     const kingLogin = await fetch(`${LIVE_BASE}/auth-handler.php?action=login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 'NSR8899' })
+      body: JSON.stringify({ token: (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN") })
     });
     const kingJson = await kingLogin.json();
     record(kingJson.authenticated && kingJson.user?.role === 'SUPER_ADMIN', 'Login SUPER ADMIN (KING) terverifikasi hak akses tertinggi');
@@ -37,7 +37,7 @@ async function runDeepRegression() {
     const cabangLogin = await fetch(`${LIVE_BASE}/auth-handler.php?action=login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 'NSR-BDG-2026' })
+      body: JSON.stringify({ token: (process.env.NSR_CAB_BDG_TOKEN || "NSR_MOCK_BDG_TOKEN") })
     });
     const cabangJson = await cabangLogin.json();
     record(cabangJson.authenticated && cabangJson.user?.role === 'ADMIN_CABANG' && (cabangJson.user?.branch === 'Bandung' || cabangJson.user?.wilayah === 'Bandung'), 'Login Admin Cabang Bandung terverifikasi dengan isolasi wilayah');

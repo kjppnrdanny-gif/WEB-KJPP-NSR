@@ -71,13 +71,13 @@ async function main() {
   }
   await new Promise(r => setTimeout(r, 1200));
 
-  console.log('\n--- TAHAP 1: AUDIT RBAC ADMIN PUSAT (NSR-PST-2026) ---');
+  console.log('\n--- TAHAP 1: AUDIT RBAC ADMIN PUSAT ([REDACTED_ADMIN_PUSAT_TOKEN]) ---');
   const authPstRes = await send('Runtime.evaluate', {
     expression: `(async () => {
       const inpId = document.getElementById('input-auth-id');
       const inpPass = document.getElementById('input-auth-pass');
-      if (inpId) inpId.value = 'NSR-PST-2026';
-      if (inpPass) inpPass.value = 'NSR-PST-2026';
+      if (inpId) inpId.value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
+      if (inpPass) inpPass.value = (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN");
       loginKeServer(null);
       await new Promise(r => setTimeout(r, 600));
       return JSON.stringify({
@@ -375,7 +375,7 @@ async function main() {
     headers: {
       'content-type': 'application/json',
       'X-NSR-Role': 'ADMIN_PUSAT',
-      'X-NSR-Token': 'NSR-PST-2026'
+      'X-NSR-Token': (process.env.NSR_PUSAT_TOKEN || "NSR_MOCK_PUSAT_TOKEN")
     },
     body: JSON.stringify({
       action: 'approveRequest',
@@ -393,13 +393,13 @@ async function main() {
   }
   console.log('✅ Backend PHP TERBUKTI Menolak Segmen 6 dengan Huruf "B" (HTTP 422).');
 
-  console.log('\n--- TAHAP 8: UJI SESI SUPER ADMIN KING (NSR8899) ---');
+  console.log('\n--- TAHAP 8: UJI SESI SUPER ADMIN KING ([REDACTED_SUPER_ADMIN_TOKEN]) ---');
   const kingAuthRes = await send('Runtime.evaluate', {
     expression: `(async () => {
       const inpId = document.getElementById('input-auth-id');
       const inpPass = document.getElementById('input-auth-pass');
-      if (inpId) inpId.value = 'NSR8899';
-      if (inpPass) inpPass.value = 'NSR8899';
+      if (inpId) inpId.value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
+      if (inpPass) inpPass.value = (process.env.NSR_KING_TOKEN || "NSR_MOCK_KING_TOKEN");
       loginKeServer(null);
       await new Promise(r => setTimeout(r, 600));
       return JSON.stringify({

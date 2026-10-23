@@ -12,7 +12,7 @@
  *    - [Mode Cabang]: Kuitansi Titipan / Kasbon Operasional Mandiri Cabang (Otorisasi: PIN Token Cabang).
  *    - [Mode Pusat]: Permohonan Kuitansi Resmi Penugasan Rekan (Pilihan TTD: Ir. Nanang Rahayu, M.Ec.Dev. / Deni Siswandi, S.T.).
  * 4. Pada [Mode Pusat], hilangkan popup PIN Finance Cabang dan tombol submit menjadi 'Ajukan Permohonan ke Pusat'.
- * 5. Antrean approval di akun Pusat (NSR-PST-2026 / NSR-KEU-2026) untuk verifikasi dan rilis nomor resmi kuitansi pusat.
+ * 5. Antrean approval di akun Pusat ([REDACTED_ADMIN_PUSAT_TOKEN] / NSR-KEU-2026) untuk verifikasi dan rilis nomor resmi kuitansi pusat.
  */
 
 import fs from 'node:fs';
@@ -189,7 +189,7 @@ console.log('\n[5/5] Memverifikasi Antrean Approval di Akun Pusat & Backend Supp
 // Verifikasi pemetaan akun pusat dan keuangan di portal-kwitansi.html
 assert(
   htmlContent.includes("auth.role === 'KEUANGAN'") && htmlContent.includes("auth.role === 'ADMIN_PUSAT'"),
-  'Autentikasi mengenali role KEUANGAN (NSR-KEU-2026) dan ADMIN_PUSAT/SUPER_ADMIN (NSR-PST-2026)'
+  'Autentikasi mengenali role KEUANGAN (NSR-KEU-2026) dan ADMIN_PUSAT/SUPER_ADMIN ([REDACTED_ADMIN_PUSAT_TOKEN])'
 );
 
 // Verifikasi tombol rilis nomor resmi di tabel verifikasi pusat

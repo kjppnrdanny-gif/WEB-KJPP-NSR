@@ -16,7 +16,7 @@ const OFFICIAL_TOKEN_HASHES = {
   '3d5d2d69641b1e88d2b96d64119430b1716a24f00937acfe79f22a713d3a9be7': {
     sub: 'cabang_jkt', branch: 'Pusat', displayName: 'Akses Resmi Kantor Pusat Jakarta', role: 'ADMIN_PUSAT', title: 'Admin Operasional Pusat'
   },
-  // NSR-PST-2026
+  // [REDACTED_ADMIN_PUSAT_TOKEN]
   '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': {
     sub: 'cabang_jkt', branch: 'Pusat', displayName: 'Akses Resmi Kantor Pusat Jakarta', role: 'ADMIN_PUSAT', title: 'Admin Operasional Pusat'
   },
@@ -24,7 +24,7 @@ const OFFICIAL_TOKEN_HASHES = {
   'a52e824efe550c1e89aa3026587e4aa54620e597fcc977b2c88876870c88a4cb': {
     sub: 'cabang_bdg', branch: 'Bandung', displayName: 'Akses Resmi Cabang Bandung', role: 'CABANG', title: 'Staf Penilai Bandung'
   },
-  // NSR-BDG-2026
+  // [REDACTED_CAB_BDG_TOKEN]
   'bcd695bca78dc5ba9049afde667fc0c0e81409e9f4aee317936b24634d8bb818': {
     sub: 'cabang_bdg', branch: 'Bandung', displayName: 'Akses Resmi Cabang Bandung', role: 'CABANG', title: 'Staf Penilai Bandung'
   },
