@@ -578,19 +578,11 @@
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF5SI6A6hj0yuPBVd8FlRNc7uaXqCNDtoe6RdvlPdL7t33ithJ6TFrHQEB11fxzMqF/exec";
 
     function getSuratUmumAuthHeaders(extraHeaders = {}) {
-      const token = (typeof userSession !== 'undefined' && userSession && userSession.token) 
-        ? userSession.token 
-        : (localStorage.getItem('kjpp_token_auth') || localStorage.getItem('kjpp_session_token') || '');
-      const headers = {
+      return {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         ...extraHeaders
       };
-      if (token) {
-        headers['Authorization'] = 'Bearer ' + token;
-        headers['X-NSR-Token'] = token;
-      }
-      return headers;
     }
 
     // Kamus Token Resmi Ter-Obfuskasi (SHA-256 RBAC)
@@ -1254,11 +1246,14 @@
       terapkanSesiKeUI(auth, rawToken);
     }
 
-    function keluarSesi() {
+    async function keluarSesi() {
+      try {
+        await fetch('/api/auth-logout', { method: 'POST', credentials: 'include' });
+      } catch (_) {}
+      const scrubKeys = ['TOKEN_AUTH_NSR', 'CURRENT_AUTH_TOKEN', 'NSR_AUTH_TOKEN', 'NSR_AUTH_HASH', 'NSR_SESSION_CHECKSUM', 'NSR_SESSION_SIG', 'kjpp_token_internal', 'kjpp_session_jo', 'NSR_USER_SESSION', 'nsr_nolap_session'];
+      scrubKeys.forEach(k => sessionStorage.removeItem(k));
       localStorage.removeItem('kjpp_token_auth');
       localStorage.removeItem('kjpp_session_token');
-      sessionStorage.removeItem('NSR_USER_SESSION');
-      sessionStorage.removeItem('NSR_AUTH_TOKEN');
       window.CURRENT_AUTH_SESSION = null;
       window.location.reload();
     }
@@ -1568,6 +1563,7 @@
         // A. Coba kirim ke Backend SSOT Proxy
         const proxyRes = await fetch(BACKEND_SU_PROXY_URL, {
           method: 'POST',
+          credentials: 'include',
           headers: getSuratUmumAuthHeaders(),
           body: JSON.stringify(bodyReq)
         });
@@ -1645,6 +1641,7 @@
           const proxyUrl = `${BACKEND_SU_PROXY_URL}?target_year=2026${forceRefresh ? '&refresh=true' : ''}`;
           const proxyRes = await fetch(proxyUrl, {
             method: 'GET',
+            credentials: 'include',
             headers: getSuratUmumAuthHeaders()
           });
 
@@ -2038,6 +2035,7 @@
           try {
             const proxyRes = await fetch(BACKEND_SU_PROXY_URL, {
               method: 'POST',
+              credentials: 'include',
               headers: getSuratUmumAuthHeaders(),
               body: JSON.stringify(reqPayload)
             });

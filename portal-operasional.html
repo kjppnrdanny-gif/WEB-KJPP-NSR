@@ -1925,11 +1925,9 @@
     }
 
     function getAuthHeaders() {
-      const token = localStorage.getItem('kjpp_token_auth') || sessionStorage.getItem('kjpp_token_auth') || '';
       return {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-NSR-Token': token
+        'Content-Type': 'application/json'
       };
     }
 
@@ -2146,7 +2144,8 @@
 
       try {
         const res = await fetch(url, {
-          headers: getAuthHeaders()
+          headers: getAuthHeaders(),
+          credentials: 'include'
         });
 
         if (res.status === 403) {
@@ -2680,6 +2679,7 @@
         const res = await fetch('operasional-data-handler.php?action=approveTier', {
           method: 'POST',
           headers: getAuthHeaders(),
+          credentials: 'include',
           body: JSON.stringify({ id: id, tier: tier })
         });
         const json = await res.json();
@@ -2717,6 +2717,7 @@
         const res = await fetch('operasional-data-handler.php?action=rejectWithNote', {
           method: 'POST',
           headers: getAuthHeaders(),
+          credentials: 'include',
           body: JSON.stringify({
             id: DOC_TO_REJECT,
             tier: REJECT_TIER,
@@ -2939,15 +2940,10 @@
 
     // Token & Session Authentication
     function periksaSesiLogin() {
-      const token = localStorage.getItem('kjpp_token_auth') || sessionStorage.getItem('kjpp_token_auth');
-      if (!token) {
-        document.getElementById('modal-auth').classList.remove('hidden');
-        return;
-      }
-
-      // Validasi token ke backend
+      // Validasi sesi aktif ke backend via cookie HttpOnly
       fetch('operasional-data-handler.php?action=getPengajuanList', {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        credentials: 'include'
       })
       .then(async r => {
         if (r.status === 403) {
@@ -2979,11 +2975,23 @@
       if (!token) return;
 
       try {
+        const loginRes = await fetch('/api/auth-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ token: token }),
+          credentials: 'include'
+        });
+
+        if (!loginRes.ok) {
+          const errData = await loginRes.json().catch(() => ({}));
+          errBox.innerText = errData.error || 'Token tidak valid atau tidak memiliki izin akses.';
+          errBox.classList.remove('hidden');
+          return;
+        }
+
         const res = await fetch('operasional-data-handler.php?action=getPengajuanList', {
-          headers: {
-            'Accept': 'application/json',
-            'X-NSR-Token': token
-          }
+          headers: getAuthHeaders(),
+          credentials: 'include'
         });
 
         if (res.status === 403) {
@@ -2994,11 +3002,11 @@
         }
 
         if (res.status === 401) {
-          errBox.innerText = 'Token tidak valid atau tidak memiliki izin akses.';
+          errBox.innerText = 'Token tidak memiliki izin akses ke modul operasional.';
           errBox.classList.remove('hidden');
         } else {
-          localStorage.setItem('kjpp_token_auth', token);
-          sessionStorage.setItem('kjpp_token_auth', token);
+          localStorage.removeItem('kjpp_token_auth');
+          sessionStorage.removeItem('kjpp_token_auth');
           document.getElementById('modal-auth').classList.add('hidden');
           document.getElementById('dot-sesi').className = 'w-2 h-2 rounded-full bg-emerald-400';
           document.getElementById('label-sesi-role').innerText = 'Petugas Terautentikasi';
@@ -3011,10 +3019,16 @@
       }
     }
 
-    function keluarSesi() {
+    async function keluarSesi() {
       if (confirm('Keluar dari sesi portal operasional?')) {
+        try {
+          await fetch('/api/auth-logout', { method: 'POST', credentials: 'include' });
+        } catch (_) {}
         localStorage.removeItem('kjpp_token_auth');
+        localStorage.removeItem('kjpp_session_token');
         sessionStorage.removeItem('kjpp_token_auth');
+        sessionStorage.removeItem('NSR_USER_SESSION');
+        sessionStorage.removeItem('kjpp_token_internal');
         window.location.reload();
       }
     }

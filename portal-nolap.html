@@ -13731,6 +13731,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       try {
         const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
         const res = await fetch('/api/nolap-data-proxy?action=submitRegistrasiPersonel', {
+          credentials: 'include',
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -14340,7 +14341,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
               tokenHash: auth.tokenHash,
               sessionChecksum: auth.sessionChecksum
             };
-            sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token || auth.tokenHash);
+            // Token storage removed for security compliance
             sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
             aktifkanPanelUtama();
             inisialisasiSesiPengguna(sesiAktif);
@@ -14425,7 +14426,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
         };
         window.currentUser = sesiAktif;
         currentUser = sesiAktif;
-        sessionStorage.setItem('NSR_AUTH_TOKEN', tokenAuth.token || tokenAuth.tokenHash);
+        // Token storage removed for security compliance
         sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
         aktifkanPanelUtama();
         inisialisasiSesiPengguna(sesiAktif);
@@ -15563,6 +15564,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
           // Kirim ke backend proxy cPanel resmi (/api/nolap-data-proxy)
           const res = await fetch('/api/nolap-data-proxy', {
             method: 'POST',
+            credentials: 'include',
             headers: {
               'content-type': 'application/json',
               'accept': 'application/json',
@@ -15687,6 +15689,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       try {
         const res = await fetch('/api/nolap-data-proxy', {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -15735,6 +15738,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
         const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
         const res = await fetch('/api/nolap-data-proxy', {
           method: 'GET',
+          credentials: 'include',
           headers: {
             'accept': 'application/json',
             ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
@@ -21738,6 +21742,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       try {
         const res = await fetch(`${DUAL_GATE_NOLAP_API}?action=submitGerbang2Akhir`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             'X-NSR-Token': auth?.token || auth?.sessionToken || ''
@@ -21766,7 +21771,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       g2ActiveReviewRole = role || auth?.role;
 
       fetch(`${DUAL_GATE_NOLAP_API}?action=getDualGateDetail&idPenugasan=${encodeURIComponent(idPenugasan)}`, {
-        headers: { 'X-NSR-Token': auth?.token || auth?.sessionToken || '' }
+        credentials: 'include'
       })
       .then(res => res.json())
       .then(json => {
@@ -21829,6 +21834,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       try {
         const res = await fetch(`${DUAL_GATE_NOLAP_API}?action=${actionName}`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             'X-NSR-Token': auth?.token || auth?.sessionToken || ''
@@ -21863,6 +21869,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       try {
         const res = await fetch(`${DUAL_GATE_NOLAP_API}?action=issueDefinitiveNoLap`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             'X-NSR-Token': auth?.token || auth?.sessionToken || ''
@@ -21889,6 +21896,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       try {
         const res = await fetch(`${DUAL_GATE_NOLAP_API}?action=signLaporanPenilaiPublik`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             'X-NSR-Token': auth?.token || auth?.sessionToken || ''
@@ -21947,6 +21955,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       try {
         const res = await fetch(`${DUAL_GATE_NOLAP_API}?action=emergencyOverrideGate`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             'X-NSR-Token': auth?.token || auth?.sessionToken || reauthKey,

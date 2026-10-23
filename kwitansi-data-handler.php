@@ -1090,16 +1090,17 @@ if (!$currentUser) {
 
     if ($rawToken) {
         $trimmed = trim($rawToken);
-        if (isset($OFFICIAL_TOKEN_HASHES[$trimmed])) {
-            $currentUser = $OFFICIAL_TOKEN_HASHES[$trimmed];
+        $tokenHash = hash('sha256', $trimmed);
+        if (isset($OFFICIAL_TOKEN_HASHES[$tokenHash])) {
+            $currentUser = $OFFICIAL_TOKEN_HASHES[$tokenHash];
         } else {
-            $tokenHash = hash('sha256', $trimmed);
-            if (isset($OFFICIAL_TOKEN_HASHES[$tokenHash])) {
-                $currentUser = $OFFICIAL_TOKEN_HASHES[$tokenHash];
+            $upperHash = hash('sha256', strtoupper($trimmed));
+            if (isset($OFFICIAL_TOKEN_HASHES[$upperHash])) {
+                $currentUser = $OFFICIAL_TOKEN_HASHES[$upperHash];
             } else {
-                $upperHash = hash('sha256', strtoupper($trimmed));
-                if (isset($OFFICIAL_TOKEN_HASHES[$upperHash])) {
-                    $currentUser = $OFFICIAL_TOKEN_HASHES[$upperHash];
+                $saltedHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($trimmed));
+                if (isset($OFFICIAL_TOKEN_HASHES[$saltedHash])) {
+                    $currentUser = $OFFICIAL_TOKEN_HASHES[$saltedHash];
                 }
             }
         }

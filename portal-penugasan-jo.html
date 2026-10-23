@@ -346,9 +346,12 @@
         </div>
 
         <!-- Tombol Keluar / Ganti Token -->
-        <button type="button" onclick="bukaModalToken()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5 cursor-pointer" title="Ganti Token / Keluar">
+        <button type="button" onclick="bukaModalToken()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5 cursor-pointer" title="Ganti Token">
           <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
           <span>Ganti Token</span>
+        </button>
+        <button type="button" onclick="keluarSesiJo()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-rose-400 text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5 cursor-pointer" title="Keluar dari Portal">
+          <span>Keluar</span>
         </button>
 
         <!-- Link Navigasi Cepat Portal Lain -->
@@ -3102,7 +3105,7 @@
       p.approved_at = new Date().toISOString();
       p.approved_by = 'ADMIN_PUSAT';
       const isKing = Boolean(auth && (auth.isKing || auth.isSuperAdmin || auth.role === 'SUPER_ADMIN'));
-      p.disetujui_oleh = isKing ? `SUPER ADMIN (KING) (${userSession.token || 'OTORISASI_KING'})` : `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})`;
+      p.disetujui_oleh = isKing ? `SUPER ADMIN (KING) (${userSession.displayName || 'OTORISASI_KING'})` : `Admin Pusat (${userSession.displayName || 'OTORISASI_PUSAT'})`;
       p.nomor_spk_pusat = finalLp;
 
       const isMetodeScanAktif = (approvalMetodeAktif === 'SCAN_BASAH');
@@ -3804,15 +3807,15 @@
       };
       delete secureSession.token;
 
-      sessionStorage.setItem('NSR_AUTH_HASH', tokenHash);
-      sessionStorage.setItem('NSR_SESSION_CHECKSUM', sessionChecksum);
-      sessionStorage.setItem('NSR_SESSION_SIG', sessionChecksum);
+      const scrubKeys = ['TOKEN_AUTH_NSR', 'CURRENT_AUTH_TOKEN', 'NSR_AUTH_TOKEN', 'NSR_AUTH_HASH', 'NSR_SESSION_CHECKSUM', 'NSR_SESSION_SIG'];
+      scrubKeys.forEach(k => sessionStorage.removeItem(k));
+      localStorage.removeItem('kjpp_token_auth');
+      localStorage.removeItem('kjpp_session_token');
+
+      delete secureSession.token;
       sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(secureSession));
       sessionStorage.setItem('nsr_nolap_session', JSON.stringify(secureSession));
-      sessionStorage.setItem('TOKEN_AUTH_NSR', tokenHash);
-      sessionStorage.setItem('CURRENT_AUTH_TOKEN', tokenHash);
-      sessionStorage.setItem('NSR_AUTH_TOKEN', tokenHash);
-      sessionStorage.setItem('kjpp_token_internal', tokenHash);
+      sessionStorage.setItem('kjpp_token_internal', JSON.stringify(secureSession));
       sessionStorage.setItem('kjpp_session_jo', JSON.stringify(secureSession));
       window.CURRENT_AUTH_SESSION = secureSession;
     }
@@ -4420,14 +4423,22 @@
 
     function bukaPortalNoLap(event) {
       if (event) event.preventDefault();
-      const token = (userSession && userSession.token) ? userSession.token : (sessionStorage.getItem('NSR_AUTH_TOKEN') || sessionStorage.getItem('kjpp_token_internal') || '');
-      if (token) {
-        sessionStorage.setItem('NSR_AUTH_TOKEN', token);
-        window.location.href = `portal-nolap.html?token=${encodeURIComponent(token)}`;
-      } else {
-        window.location.href = 'portal-nolap.html';
-      }
+      window.location.href = 'portal-nolap.html';
     }
+
+        async function keluarSesiJo() {
+      try {
+        await fetch('/api/auth-logout', { method: 'POST', credentials: 'include' });
+      } catch (_) {}
+      const scrubKeys = ['TOKEN_AUTH_NSR', 'CURRENT_AUTH_TOKEN', 'NSR_AUTH_TOKEN', 'NSR_AUTH_HASH', 'NSR_SESSION_CHECKSUM', 'NSR_SESSION_SIG', 'kjpp_token_internal', 'kjpp_session_jo', 'NSR_USER_SESSION', 'nsr_nolap_session'];
+      scrubKeys.forEach(k => sessionStorage.removeItem(k));
+      localStorage.removeItem('kjpp_token_auth');
+      localStorage.removeItem('kjpp_session_token');
+      window.CURRENT_AUTH_SESSION = null;
+      userSession = null;
+      window.location.href = 'index.html';
+    }
+    window.keluarSesiJo = keluarSesiJo;
 
     function bukaModalToken() {
       document.getElementById('modal-token-auth')?.classList.remove('hidden');
@@ -4436,7 +4447,7 @@
       document.getElementById('pesan_error_token')?.classList.add('hidden');
       const input = document.getElementById('input_token_auth');
       if (input) {
-        input.value = userSession.token || "";
+        input.value = "";
         setTimeout(() => input.focus(), 100);
       }
     }
@@ -4652,13 +4663,12 @@
       const payload = { nama, nik, office_id, jabatan, divisi, email, whatsapp_number, alasan_pengajuan };
 
       try {
-        const tokenVal = (userSession && (userSession.token || userSession.tokenHash)) || '';
         const res = await fetch('/api/nolap-data-proxy?action=submitRegistrasiPersonel', {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+            'Accept': 'application/json'
           },
           body: JSON.stringify(payload)
         });
@@ -7549,7 +7559,7 @@
         })(),
         alamat_lokasi_objek: objekRows.map((o, idx) => `${idx + 1}. [${getObjekNamaDisplay(o)}] ${o.lokasi || '-'}`).join('; '),
         approved_at: (projectStatus === 'APPROVED' || (isPrivateCabang && isCabangAdmin)) ? new Date().toISOString() : '-',
-        disetujui_oleh: (projectStatus === 'APPROVED' || (isPrivateCabang && isCabangAdmin)) ? (isPusat ? `Admin Pusat (${userSession.token || 'OTORISASI_PUSAT'})` : `Admin Cabang (${auth.roleLabel || userSession.roleLabel || 'CABANG'})`) : '-',
+        disetujui_oleh: (projectStatus === 'APPROVED' || (isPrivateCabang && isCabangAdmin)) ? (isPusat ? `Admin Pusat (${userSession.displayName || 'OTORISASI_PUSAT'})` : `Admin Cabang (${auth.roleLabel || userSession.roleLabel || 'CABANG'})`) : '-',
         folder_drive_url: '-',
         created_at: new Date().toISOString()
       };
@@ -11494,7 +11504,7 @@
       let items = [];
       try {
         const selObjek = document.getElementById('jenis_objek')?.value || 'Tanah dan Bangunan';
-        const res = await fetch(`/nolap-data-handler.php?action=getDynamicRiskChecklist&tujuanPenilaian=${encodeURIComponent(tujuan)}&jenisObjek=${encodeURIComponent(selObjek)}`);
+        const res = await fetch(`/nolap-data-handler.php?action=getDynamicRiskChecklist&tujuanPenilaian=${encodeURIComponent(tujuan)}&jenisObjek=${encodeURIComponent(selObjek)}`, { credentials: 'include' });
         if (res.ok) {
           const json = await res.json();
           if (json.success && Array.isArray(json.checklist) && json.checklist.length > 0) {
@@ -11566,7 +11576,7 @@
 
       // Ambil detail dual gate dari backend
       fetch(`${DUAL_GATE_API_URL}?action=getDualGateDetail&idPenugasan=${encodeURIComponent(idPenugasan)}`, {
-        headers: { 'X-NSR-Token': auth?.token || auth?.sessionToken || 'NSR-ADMIN-PUSAT-2026' }
+        credentials: 'include'
       })
       .then(res => res.json())
       .then(json => {
@@ -11621,9 +11631,9 @@
       try {
         const res = await fetch(`${DUAL_GATE_API_URL}?action=${actionName}`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
-            'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || (isDanny ? 'NSR-SPM-DANNY-2026' : 'NSR-DIVTEK-DENI-2026')
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             idPenugasan: g1ActiveReviewItem.idPenugasan,

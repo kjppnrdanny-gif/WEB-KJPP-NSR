@@ -2308,7 +2308,7 @@
           } catch (e) {}
 
           let pesanSukses = isPusatMode 
-            ? `✅ Permohonan Kuitansi Resmi Penugasan Rekan BERHASIL DIAJUKAN KE PUSAT!\n\nNomor Referensi: ${data.idKwitansi}\nPenandatangan: ${rekanObj.nama}\n\nPermohonan telah masuk ke antrean verifikasi Akun Pusat (NSR-PST-2026 / NSR-KEU-2026) untuk verifikasi administrasi dan rilis nomor resmi.`
+            ? `✅ Permohonan Kuitansi Resmi Penugasan Rekan BERHASIL DIAJUKAN KE PUSAT!\n\nNomor Referensi: ${data.idKwitansi}\nPenandatangan: ${rekanObj.nama}\n\nPermohonan telah masuk ke antrean verifikasi Akun Pusat (Divisi Keuangan & Kasir Pusat) untuk verifikasi administrasi dan rilis nomor resmi.`
             : `✅ Draf kuitansi operasional mandiri cabang berhasil diajukan dan tersimpan di server terpusat!\n\nNomor Referensi Draf: ${data.idKwitansi}`;
           if (data.isOverbilling) {
             pesanSukses += `\n\n⚠️ Peringatan Pagu: Total akumulasi tertagih melebihi nilai kontrak SPK. Tercatat di audit server untuk verifikasi Keuangan Pusat.`;
@@ -2951,13 +2951,15 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
             isSuperAdmin: Boolean(auth.isSuperAdmin),
             canApprove: isPusatKeuangan
           };
-          sessionStorage.setItem('NSR_AUTH_TOKEN', simUser.tokenHash);
-          sessionStorage.setItem('TOKEN_AUTH_NSR', simUser.tokenHash);
-          sessionStorage.setItem('CURRENT_AUTH_TOKEN', simUser.tokenHash);
+          const scrubKeys = ['TOKEN_AUTH_NSR', 'CURRENT_AUTH_TOKEN', 'NSR_AUTH_TOKEN', 'NSR_AUTH_HASH', 'NSR_SESSION_CHECKSUM', 'NSR_SESSION_SIG'];
+          scrubKeys.forEach(k => sessionStorage.removeItem(k));
+          localStorage.removeItem('kjpp_token_auth');
+          localStorage.removeItem('kjpp_session_token');
+
+          delete simUser.token;
           sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(simUser));
           sessionStorage.setItem('kjpp_token_internal', JSON.stringify({
             branch: simUser.branch,
-            token: simUser.tokenHash,
             role: simUser.role,
             roleLabel: simUser.displayName,
             canAccessKwitansi: true,
@@ -3010,12 +3012,10 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
 
     // 18. Logout Pengguna (POST /api/auth-logout)
     async function keluarSesiKwitansi() {
-      sessionStorage.removeItem('NSR_AUTH_TOKEN');
-      sessionStorage.removeItem('NSR_USER_SESSION');
-      sessionStorage.removeItem('TOKEN_AUTH_NSR');
-      sessionStorage.removeItem('CURRENT_AUTH_TOKEN');
-      sessionStorage.removeItem('kjpp_token_internal');
-      sessionStorage.removeItem('kjpp_session_jo');
+      const scrubKeys = ['TOKEN_AUTH_NSR', 'CURRENT_AUTH_TOKEN', 'NSR_AUTH_TOKEN', 'NSR_AUTH_HASH', 'NSR_SESSION_CHECKSUM', 'NSR_SESSION_SIG', 'kjpp_token_internal', 'kjpp_session_jo', 'NSR_USER_SESSION', 'nsr_nolap_session'];
+      scrubKeys.forEach(k => sessionStorage.removeItem(k));
+      localStorage.removeItem('kjpp_token_auth');
+      localStorage.removeItem('kjpp_session_token');
       try {
         await fetch(((window.location.pathname.includes('/staging') ? '/staging/api/' : '/api/')) + 'auth-logout', { method: 'POST', credentials: 'include' });
       } catch (e) {}

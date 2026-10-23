@@ -1968,7 +1968,7 @@
         const raw = sessionStorage.getItem('NSR_USER_SESSION');
         if (!raw) return null;
         const parsed = JSON.parse(raw);
-        if (parsed && typeof verifySessionChecksum === 'function' && verifySessionChecksum(parsed)) {
+        if (parsed && (parsed.authenticated || parsed.valid) && (!parsed.expiresAt || parsed.expiresAt > Date.now())) {
           return parsed;
         }
         return null;
@@ -2433,11 +2433,10 @@
           auth = {
             ...srv.user,
             valid: true,
-            token: input,
-            tokenHash: srv.tokenHash || computeTokenHashSync(input),
-            sessionChecksum: srv.sessionChecksum,
+            authenticated: true,
             expiresAt: srv.expiresAt || (Date.now() + (8 * 3600 * 1000))
           };
+          delete auth.token;
         } else {
           // Server merespons namun menolak token (HTTP 401 / 403 / non-auth)
           backendRejectionReason = (srv && srv.error) ? srv.error : 'Akses Ditolak: Token otorisasi tidak valid.';
@@ -2475,55 +2474,62 @@
         return;
       }
 
-      // Simpan sesi terpadu dengan proteksi integritas kriptografis
-      const branchName = auth.wilayah;
-      const tokenHash = auth.tokenHash || (typeof computeTokenHashSync === 'function' ? computeTokenHashSync(auth.token || input) : '');
-      const expiresAt = Date.now() + (8 * 3600 * 1000);
-      const sessionChecksum = typeof computeSessionChecksum === 'function'
-        ? computeSessionChecksum(tokenHash, auth.role, auth.wilayah, expiresAt, auth.isSuperAdmin)
-        : 'sig_' + tokenHash;
+      // Simpan HANYA metadata profil aman (DILARANG menyimpan token mentah di browser)
+      const branchName = auth.wilayah || auth.branch || 'Kantor Pusat Jakarta';
+      const expiresAt = auth.expiresAt || (Date.now() + (8 * 3600 * 1000));
 
-      const secureAuth = {
-        ...auth,
-        tokenHash: tokenHash,
-        sessionChecksum: sessionChecksum,
-        expiresAt: expiresAt
-      };
-
-      const sessionObj = {
-        ...auth,
-        branch: branchName,
-        wilayah: branchName,
-        token: auth.token || input,
-        tokenHash: tokenHash,
+      const safeProfile = {
+        sub: auth.sub || '',
+        displayName: auth.displayName || auth.nama || '',
+        nama: auth.displayName || auth.nama || '',
         role: auth.role,
         roleLabel: auth.roleLabel,
+        displayRole: auth.displayRole || auth.roleLabel,
+        wilayah: branchName,
+        wilayahLabel: auth.wilayahLabel || branchName,
+        wilayahCode: auth.wilayahCode || '',
+        branch: branchName,
         mode: auth.mode,
-        canAccessKwitansi: auth.canAccessKwitansi,
-        seeFee: auth.seeFee,
-        sessionChecksum: sessionChecksum,
+        isCabang: Boolean(auth.isCabang),
+        isSuperAdmin: Boolean(auth.isSuperAdmin),
+        canAccessKwitansi: Boolean(auth.canAccessKwitansi),
+        seeFee: Boolean(auth.seeFee),
+        canApprove: Boolean(auth.canApprove),
+        canSubmit: Boolean(auth.canSubmit),
+        authenticated: true,
+        valid: true,
         expiresAt: expiresAt
       };
 
-      sessionStorage.setItem('NSR_AUTH_HASH', tokenHash);
-      sessionStorage.setItem('NSR_SESSION_CHECKSUM', sessionChecksum);
-      sessionStorage.setItem('NSR_SESSION_SIG', sessionChecksum);
-      sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(secureAuth));
-      sessionStorage.setItem('nsr_nolap_session', JSON.stringify(secureAuth));
-      sessionStorage.setItem('TOKEN_AUTH_NSR', auth.token || input);
-      sessionStorage.setItem('CURRENT_AUTH_TOKEN', auth.token || input);
-      sessionStorage.setItem('NSR_AUTH_TOKEN', auth.token || input);
-      sessionStorage.setItem('kjpp_token_internal', JSON.stringify(sessionObj));
+      // Bersihkan seluruh residu token mentah atau checksum client lama
+      const tokenKeysToScrub = [
+        'TOKEN_AUTH_NSR',
+        'CURRENT_AUTH_TOKEN',
+        'NSR_AUTH_TOKEN',
+        'NSR_AUTH_HASH',
+        'NSR_SESSION_CHECKSUM',
+        'NSR_SESSION_SIG'
+      ];
+      tokenKeysToScrub.forEach(k => sessionStorage.removeItem(k));
+      localStorage.removeItem('kjpp_token_auth');
+      localStorage.removeItem('kjpp_session_token');
+
+      // Simpan objek sesi steril tanpa atribut 'token'
+      sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(safeProfile));
+      sessionStorage.setItem('nsr_nolap_session', JSON.stringify(safeProfile));
+      sessionStorage.setItem('kjpp_token_internal', JSON.stringify(safeProfile));
       sessionStorage.setItem('kjpp_session_jo', JSON.stringify({
         isLoggedIn: true,
-        token: auth.token || input,
-        tokenHash: tokenHash,
-        role: auth.role,
-        roleLabel: auth.roleLabel,
-        mode: auth.mode,
-        wilayah: auth.wilayah,
-        wilayahCode: auth.wilayahCode,
-        sessionChecksum: sessionChecksum,
+        role: safeProfile.role,
+        roleLabel: safeProfile.roleLabel,
+        mode: safeProfile.mode,
+        wilayah: safeProfile.wilayah,
+        wilayahCode: safeProfile.wilayahCode,
+        isCabang: safeProfile.isCabang,
+        isSuperAdmin: safeProfile.isSuperAdmin,
+        canAccessKwitansi: safeProfile.canAccessKwitansi,
+        canApprove: safeProfile.canApprove,
+        seeFee: safeProfile.seeFee,
         expiresAt: expiresAt,
         loginAt: new Date().toISOString()
       }));
@@ -2592,15 +2598,32 @@
     }
     window.verifikasiTokenPortal = verifikasiTokenPortal;
 
-    // 6. Reset Sesi
-    function resetTokenSesi() {
-      sessionStorage.removeItem('NSR_AUTH_TOKEN');
-      sessionStorage.removeItem('NSR_USER_SESSION');
-      sessionStorage.removeItem('TOKEN_AUTH_NSR');
-      sessionStorage.removeItem('CURRENT_AUTH_TOKEN');
-      sessionStorage.removeItem('kjpp_token_internal');
-      sessionStorage.removeItem('kjpp_session_jo');
-      sessionStorage.removeItem('nsr_nolap_session');
+    // 6. Reset Sesi (Inaktivasi Sesi Server-Side & Pembersihan Sesi Lokal)
+    async function resetTokenSesi() {
+      try {
+        await fetch('/api/auth-logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (err) {
+        console.warn('Gagal memanggil endpoint logout server:', err);
+      }
+
+      const keysToRemove = [
+        'NSR_AUTH_TOKEN',
+        'NSR_USER_SESSION',
+        'TOKEN_AUTH_NSR',
+        'CURRENT_AUTH_TOKEN',
+        'kjpp_token_internal',
+        'kjpp_session_jo',
+        'nsr_nolap_session',
+        'NSR_AUTH_HASH',
+        'NSR_SESSION_CHECKSUM',
+        'NSR_SESSION_SIG'
+      ];
+      keysToRemove.forEach(k => sessionStorage.removeItem(k));
+      localStorage.removeItem('kjpp_token_auth');
+      localStorage.removeItem('kjpp_session_token');
 
       const formToken = document.getElementById('form-token-portal');
       const panelLayanan = document.getElementById('panel-layanan');

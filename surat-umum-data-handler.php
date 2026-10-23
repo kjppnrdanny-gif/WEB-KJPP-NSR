@@ -328,10 +328,7 @@ if (!$currentUser) {
 
     if ($rawToken) {
         $trimmed = trim($rawToken);
-        if (isset($OFFICIAL_TOKEN_HASHES[$trimmed])) {
-            $currentUser = $OFFICIAL_TOKEN_HASHES[$trimmed];
-        } else {
-            $tokenHash = hash('sha256', $trimmed);
+        $tokenHash = hash('sha256', $trimmed);
             if (isset($OFFICIAL_TOKEN_HASHES[$tokenHash])) {
                 $currentUser = $OFFICIAL_TOKEN_HASHES[$tokenHash];
             } else {

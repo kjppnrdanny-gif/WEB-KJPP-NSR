@@ -1590,9 +1590,6 @@ function resolveCurrentUser($officialTokenHashes) {
 
     if ($rawToken) {
         $trimmed = trim($rawToken);
-        if (isset($officialTokenHashes[$trimmed])) {
-            return $officialTokenHashes[$trimmed];
-        }
         $tokenHash = hash('sha256', $trimmed);
         if (isset($officialTokenHashes[$tokenHash])) {
             return $officialTokenHashes[$tokenHash];
