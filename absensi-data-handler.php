@@ -68,7 +68,35 @@ $ADMIN_HR_NIKS = [
     'NSR-2019-004'  // Milda Hidayati Dewi (Manager Keuangan)
 ];
 
-// 4. Helper Haversine Distance (Meter)
+// 4. Master 22 Karyawan Resmi Kantor Pusat Jakarta (SSOT Google Sheet)
+function getOfficialMasterKaryawanPusat() {
+    return [
+        ['nik' => 'NSR-2019-001', 'nama' => 'Nanang Rahayu', 'jabatan' => 'Pemimpin Rekan', 'divisi' => 'Manajemen', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'nara.mocool@gmail.com'],
+        ['nik' => 'NSR-2019-002', 'nama' => 'Deni Siswandi', 'jabatan' => 'Rekan', 'divisi' => 'Manajemen', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'denisiswandi19@gmail.com'],
+        ['nik' => 'NSR-2019-003', 'nama' => 'Mini Intan Cahyani', 'jabatan' => 'Rekan', 'divisi' => 'Manajemen', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'miniintan@gmail.com'],
+        ['nik' => 'NSR-2019-004', 'nama' => 'Milda Hidayati Dewi', 'jabatan' => 'Manager Keuangan', 'divisi' => 'Keuangan', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'mildadewi27@gmail.com'],
+        ['nik' => 'NSR-2019-005', 'nama' => 'Danny Taufik Hidayat', 'jabatan' => 'Manager Admin & Umum', 'divisi' => 'Administrasi & Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'kjppnr.danny@gmail.com', 'alamat_wfh' => 'JL. PULAU SANGIYANG CAKUNG JAKARTA TIMUR', 'gps_wfh' => '-6.193630454554782,106.94436809423287'],
+        ['nik' => 'NSR-2019-006', 'nama' => 'Arie Indra Permana', 'jabatan' => 'Manager Marketing', 'divisi' => 'Business Development', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'riendra.ok@gmail.com'],
+        ['nik' => 'NSR-2019-007', 'nama' => 'Tedi Setiadi', 'jabatan' => 'Reviewer', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'kjppnr.tedi@gmail.com'],
+        ['nik' => 'NSR-2019-008', 'nama' => 'Ricca Noer Farikha', 'jabatan' => 'Accounting & Tax', 'divisi' => 'Keuangan', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'ichafarikha.kjppnr@gmail.com'],
+        ['nik' => 'NSR-2019-009', 'nama' => 'Angga Malid Cahyadi', 'jabatan' => 'Reviewer', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'anggamalid@gmail.com'],
+        ['nik' => 'NSR-2019-010', 'nama' => 'Fadri Nurdin', 'jabatan' => 'Surveyor', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'fn.kjppnr@gmail.com'],
+        ['nik' => 'NSR-2019-011', 'nama' => 'Erwandi', 'jabatan' => 'Kurir', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'ewandiazka.01@gmail.com'],
+        ['nik' => 'NSR-2019-012', 'nama' => 'Latief Satihi', 'jabatan' => 'Kurir', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'latifsatihi@gmail.com'],
+        ['nik' => 'NSR-2019-013', 'nama' => 'Aryanto', 'jabatan' => 'Umum', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'abendnr@gmail.com'],
+        ['nik' => 'NSR-2019-014', 'nama' => 'Yanto', 'jabatan' => 'Driver', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => ''],
+        ['nik' => 'NSR-2019-015', 'nama' => 'Lasiman', 'jabatan' => 'Driver', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'lasimanlasiman29@gmail.com'],
+        ['nik' => 'NSR-2019-016', 'nama' => 'Sukirno', 'jabatan' => 'Office Boy', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'sukirnoekoprasetya@gmail.com'],
+        ['nik' => 'NSR-2019-017', 'nama' => 'Muhammad Syahrul Ruly', 'jabatan' => 'Surveyor', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'm.syahrulrully@gmail.com'],
+        ['nik' => 'NSR-2019-018', 'nama' => 'Uci Sanusi', 'jabatan' => 'Surveyor', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'sanusinr@gmail.com'],
+        ['nik' => 'NSR-2019-019', 'nama' => 'Yasir Rizal', 'jabatan' => 'Surveyor', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'rizal.yasir2424@gmail.com'],
+        ['nik' => 'NSR-2019-020', 'nama' => 'Udin Syamsudin', 'jabatan' => 'Security', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => ''],
+        ['nik' => 'NSR-2025-021', 'nama' => 'Dhea Shafitri Ningrum', 'jabatan' => 'Staf Admin', 'divisi' => 'Administrasi', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'dheash315@gmail.com'],
+        ['nik' => 'NSR-2026-022', 'nama' => 'Siti Nuraeni Ependi', 'jabatan' => 'Staf Admin', 'divisi' => 'Administrasi', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'sitinuraeniependi@gmail.com']
+    ];
+}
+
+// 5. Helper Haversine Distance (Meter)
 function hitungJarakHaversine($lat1, $lon1, $lat2, $lon2) {
     $R = 6371000; // Radius bumi dalam meter
     $dLat = deg2rad($lat2 - $lat1);
@@ -80,7 +108,7 @@ function hitungJarakHaversine($lat1, $lon1, $lat2, $lon2) {
     return round($R * $c);
 }
 
-// 5. Helper Normalisasi NIK & Pencocokan NIK Lengkap Unik (Anti-Partial Trap)
+// 6. Helper Normalisasi NIK & Pencocokan NIK Lengkap Unik (Anti-Partial Trap)
 function normalisasiNIK($nik) {
     if (!$nik) return '';
     return strtoupper(trim(preg_replace('/\s+/', '', (string)$nik)));
@@ -104,16 +132,9 @@ function samarkanEmail($email) {
     return substr($name, 0, 1) . '***' . substr($name, -1) . '@' . $domain;
 }
 
-// 6. Database Loading & Inisialisasi Master
+// 7. Database Loading & Inisialisasi Master
 function getDatabaseStructure() {
-    $masterKaryawan = [];
-    if (file_exists(MASTER_SSOT_FILE)) {
-        $raw = @file_get_contents(MASTER_SSOT_FILE);
-        $parsed = json_decode($raw, true);
-        if (isset($parsed['karyawan']) && is_array($parsed['karyawan'])) {
-            $masterKaryawan = $parsed['karyawan'];
-        }
-    }
+    $masterList = getOfficialMasterKaryawanPusat();
     return [
         'metadata' => [
             'app' => 'KJPP NSR Presensi SSOT',
@@ -121,11 +142,11 @@ function getDatabaseStructure() {
             'last_sync' => date('Y-m-d H:i:s'),
             'source_master' => 'DATABASE ABSENSI KARYAWAN - KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN',
             'scope' => 'KANTOR PUSAT JAKARTA',
-            'total_karyawan_pusat' => count($masterKaryawan),
+            'total_karyawan_pusat' => count($masterList),
             'total_absensi' => 0,
             'total_cuti' => 0
         ],
-        'master_karyawan' => $masterKaryawan,
+        'master_karyawan' => $masterList,
         'master_wfh' => [],
         'absensi' => [],
         'pengajuan_cuti' => []
@@ -133,17 +154,74 @@ function getDatabaseStructure() {
 }
 
 function loadDatabase() {
-    if (!file_exists(DB_FILE)) {
-        $initial = getDatabaseStructure();
-        file_put_contents(DB_FILE, json_encode($initial, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
-        return $initial;
+    $db = null;
+    if (file_exists(DB_FILE)) {
+        $raw = @file_get_contents(DB_FILE);
+        $db = json_decode($raw, true);
     }
-    $raw = @file_get_contents(DB_FILE);
-    $data = json_decode($raw, true);
-    if (!is_array($data)) {
-        return getDatabaseStructure();
+    if (!is_array($db)) {
+        $db = getDatabaseStructure();
     }
-    return $data;
+
+    // Auto-reconciliation: Pastikan ke-22 karyawan master Google Sheet selalu sinkron dan tersedia
+    $masterList = getOfficialMasterKaryawanPusat();
+    $existingNiks = [];
+    $needsSave = false;
+
+    if (!isset($db['master_karyawan']) || !is_array($db['master_karyawan'])) {
+        $db['master_karyawan'] = [];
+    }
+
+    foreach ($db['master_karyawan'] as &$ek) {
+        $norm = normalisasiNIK($ek['nik'] ?? '');
+        $existingNiks[$norm] = true;
+    }
+
+    foreach ($masterList as $mk) {
+        $norm = normalisasiNIK($mk['nik']);
+        if (!isset($existingNiks[$norm])) {
+            $db['master_karyawan'][] = $mk;
+            $needsSave = true;
+        } else {
+            foreach ($db['master_karyawan'] as &$ek) {
+                if (normalisasiNIK($ek['nik'] ?? '') === $norm) {
+                    if (($ek['nama'] ?? '') !== $mk['nama'] || ($ek['cabang'] ?? '') !== 'Pusat Jakarta') {
+                        $ek['nama'] = $mk['nama'];
+                        $ek['jabatan'] = $mk['jabatan'];
+                        $ek['divisi'] = $mk['divisi'];
+                        $ek['cabang'] = 'Pusat Jakarta';
+                        if (!empty($mk['email']) && empty($ek['email'])) {
+                            $ek['email'] = $mk['email'];
+                        }
+                        $ek['status'] = 'AKTIF';
+                        $needsSave = true;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // Tandai karyawan lama non-Pusat / dummy yang tidak ada di master Google Sheet
+    $masterNikSet = [];
+    foreach ($masterList as $mk) { $masterNikSet[normalisasiNIK($mk['nik'])] = true; }
+
+    foreach ($db['master_karyawan'] as &$ek) {
+        $norm = normalisasiNIK($ek['nik'] ?? '');
+        if (!isset($masterNikSet[$norm]) && ($ek['status'] ?? '') !== 'PERLU_VERIFIKASI_HR') {
+            $ek['status'] = 'PERLU_VERIFIKASI_HR';
+            $needsSave = true;
+        }
+    }
+
+    $db['metadata']['source_master'] = 'DATABASE ABSENSI KARYAWAN - KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN';
+    $db['metadata']['total_karyawan_pusat'] = count($masterList);
+
+    if ($needsSave) {
+        @file_put_contents(DB_FILE, json_encode($db, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
+
+    return $db;
 }
 
 function saveDatabase($data) {
@@ -155,7 +233,7 @@ function saveDatabase($data) {
     return @file_put_contents(DB_FILE, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
-// 7. Pengelolaan State OTP & Sesi Terenkripsi
+// 8. Pengelolaan State OTP & Sesi Terenkripsi
 function loadOTPCache() {
     if (!file_exists(OTP_FILE)) return ['otps' => [], 'sessions' => []];
     $raw = @file_get_contents(OTP_FILE);
@@ -209,7 +287,7 @@ function cekOtorisasiAdminHR($sessionToken, $nik = '') {
     return false;
 }
 
-// 8. Buka File Lock Transaksi
+// 9. Buka File Lock Transaksi
 $lockHandle = fopen(LOCK_FILE, 'c');
 if (!$lockHandle || !flock($lockHandle, LOCK_EX)) {
     http_response_code(503);
@@ -248,8 +326,8 @@ try {
             'timestamp' => $nowWib->format('c'),
             'zona_waktu' => 'Asia/Jakarta (WIB)',
             'total_absensi' => count($db['absensi'] ?? []),
-            'total_karyawan_pusat' => $totalPusat ?: count($db['master_karyawan'] ?? []),
-            'source_master' => $db['metadata']['source_master'] ?? 'Google Sheets MASTER KARYAWAN',
+            'total_karyawan_pusat' => $totalPusat ?: 22,
+            'source_master' => $db['metadata']['source_master'] ?? 'DATABASE ABSENSI KARYAWAN - KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN',
             'last_sync' => $db['metadata']['last_sync'] ?? '-'
         ]);
         exit;
@@ -545,8 +623,8 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
     // ---------------------------------------------------------------------
     if ($action === 'simpanAbsensi') {
         $nik = $payload['nik'] ?? '';
-        $jenis = $payload['jenis'] ?? 'Masuk'; // Masuk, Pulang, Dinas Luar
-        $lokasi = $payload['lokasi'] ?? 'KANTOR'; // KANTOR, WFH, DINAS LUAR
+        $jenis = $payload['jenis'] ?? 'Masuk';
+        $lokasi = $payload['lokasi'] ?? 'KANTOR';
         $gps = trim((string)($payload['gps'] ?? ''));
         $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
         $keterangan = trim((string)($payload['keterangan'] ?? ''));
@@ -641,16 +719,12 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
             $statusValidasi = 'VALID';
         }
 
-        // =================================================================
-        // ATURAN INTEGRITAS HARIAN & PENCEGAHAN PRESENSI GANDA
-        // =================================================================
-        $punchesHariIni = [];
+        // Aturan Integritas & Pencegahan Presensi Ganda
         $recordMasuk = null;
         $recordPulang = null;
 
         foreach ($db['absensi'] as $rec) {
             if (cocokNIK($rec['nik'], $cleanNik) && $rec['tanggal'] === $tglStr) {
-                $punchesHariIni[] = $rec;
                 if ($rec['jenis'] === 'Masuk') $recordMasuk = $rec;
                 if ($rec['jenis'] === 'Pulang') $recordPulang = $rec;
             }
@@ -700,7 +774,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
             $durasiKerja = "{$jamKerja} jam {$menitKerja} menit";
         }
 
-        // Cek Keterlambatan Masuk (setelah 08:30 WIB)
+        // Cek Keterlambatan Masuk
         $isTerlambat = false;
         if ($jenis === 'Masuk') {
             $waktuJam = $dtNow->format('H:i:s');
@@ -1160,7 +1234,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
         }
 
         $cutiId = $payload['cuti_id'] ?? '';
-        $keputusan = $payload['keputusan'] ?? 'Disetujui'; // Disetujui / Ditolak
+        $keputusan = $payload['keputusan'] ?? 'Disetujui';
         $catatan = trim((string)($payload['catatan'] ?? ''));
 
         if (!$cutiId) {
