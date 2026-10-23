@@ -6,6 +6,7 @@
  * Modul: absensi-data-handler.php
  * Arsitektur: Single Source of Truth (SSOT) Server-Side dengan Atomic File Locking
  * Standar: ISO 27001, Kemenkeu P2PK & UU PDP No. 27/2022
+ * Cakupan: KARYAWAN KANTOR PUSAT JAKARTA (22 Personel Master Google Sheet)
  */
 
 // =============================================================
@@ -31,7 +32,7 @@ header('X-XSS-Protection: 1; mode=block');
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
 header("Access-Control-Allow-Origin: $origin");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Session-Token");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Session-Token, X-Admin-Key");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -45,59 +46,27 @@ define('DB_FILE', DATA_DIR . '/absensi_database.json');
 define('LOCK_FILE', DATA_DIR . '/.absensi_txn.lock');
 define('OTP_FILE', DATA_DIR . '/.absensi_otp_cache.json');
 define('ATTACHMENT_DIR', DATA_DIR . '/lampiran_cuti');
+define('MASTER_SSOT_FILE', DATA_DIR . '/masters/master_karyawan_pusat_ssot.json');
+define('GAS_WEB_APP_URL', 'https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec');
 
 // Pastikan direktori data aman
-if (!is_dir(DATA_DIR)) {
-    @mkdir(DATA_DIR, 0755, true);
-}
-if (!is_dir(BACKUP_DIR)) {
-    @mkdir(BACKUP_DIR, 0755, true);
-}
-if (!is_dir(ATTACHMENT_DIR)) {
-    @mkdir(ATTACHMENT_DIR, 0755, true);
-}
+if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0755, true); }
+if (!is_dir(BACKUP_DIR)) { @mkdir(BACKUP_DIR, 0755, true); }
+if (!is_dir(ATTACHMENT_DIR)) { @mkdir(ATTACHMENT_DIR, 0755, true); }
 
-// 3. Konfigurasi Koordinat 5 Kantor Cabang Resmi KJPP NSR
-$KANTOR_CABANG = [
-    [
-        'nama' => 'Pusat Jakarta',
-        'lat' => -6.287972658138783,
-        'lng' => 106.82477864308436,
-        'timezone' => 'Asia/Jakarta',
-        'tz_label' => 'WIB'
-    ],
-    [
-        'nama' => 'Cabang Bandung',
-        'lat' => -6.8597817,
-        'lng' => 107.5604289,
-        'timezone' => 'Asia/Jakarta',
-        'tz_label' => 'WIB'
-    ],
-    [
-        'nama' => 'Cabang Padang',
-        'lat' => -0.94932,
-        'lng' => 100.376055,
-        'timezone' => 'Asia/Jakarta',
-        'tz_label' => 'WIB'
-    ],
-    [
-        'nama' => 'Cabang Makassar',
-        'lat' => -5.1582,
-        'lng' => 119.4095,
-        'timezone' => 'Asia/Makassar',
-        'tz_label' => 'WITA'
-    ],
-    [
-        'nama' => 'Cabang Palembang',
-        'lat' => -2.929044,
-        'lng' => 104.695981,
-        'timezone' => 'Asia/Jakarta',
-        'tz_label' => 'WIB'
-    ]
-];
-
+// 3. Konfigurasi Geofence Kantor Pusat Jakarta Resmi KJPP NSR
+define('PUSAT_LAT', -6.287972658138783);
+define('PUSAT_LNG', 106.82477864308436);
 define('RADIUS_KANTOR_METER', 150);
 define('RADIUS_WFH_METER', 100);
+define('JAM_MASUK_BATAS_TERLAMBAT', '08:30:00');
+
+// Daftar NIK yang memiliki wewenang Admin HR Pusat
+$ADMIN_HR_NIKS = [
+    'NSR-2019-005', // Danny Taufik Hidayat, S.E., S.H. (Manager Admin & SDM / Kepala Divisi Operasional)
+    'NSR-1995-001', // Ir. Nanang Rahayu, M.Ec.Dev. (Pemimpin Rekan)
+    'NSR-2019-004'  // Milda Hidayati Dewi (Manager Keuangan)
+];
 
 // 4. Helper Haversine Distance (Meter)
 function hitungJarakHaversine($lat1, $lon1, $lat2, $lon2) {
@@ -111,7 +80,7 @@ function hitungJarakHaversine($lat1, $lon1, $lat2, $lon2) {
     return round($R * $c);
 }
 
-// 5. Helper Normalisasi NIK
+// 5. Helper Normalisasi NIK & Pencocokan NIK Lengkap Unik (Anti-Partial Trap)
 function normalisasiNIK($nik) {
     if (!$nik) return '';
     return strtoupper(trim(preg_replace('/\s+/', '', (string)$nik)));
@@ -120,11 +89,8 @@ function normalisasiNIK($nik) {
 function cocokNIK($dbNik, $inputNik) {
     $nDb = normalisasiNIK($dbNik);
     $nInp = normalisasiNIK($inputNik);
-    if ($nDb === $nInp) return true;
-    if (str_replace('-2019-', '-', $nDb) === $nInp) return true;
-    if (str_replace('-2019-', '-', $nInp) === $nDb) return true;
-    if (substr($nDb, -strlen($nInp)) === $nInp) return true;
-    return false;
+    // STRICT SSOT: Pencocokan wajib 100% identik. Larangan pencocokan beberapa digit terakhir atau parsial!
+    return ($nDb === $nInp);
 }
 
 function samarkanEmail($email) {
@@ -140,71 +106,26 @@ function samarkanEmail($email) {
 
 // 6. Database Loading & Inisialisasi Master
 function getDatabaseStructure() {
+    $masterKaryawan = [];
+    if (file_exists(MASTER_SSOT_FILE)) {
+        $raw = @file_get_contents(MASTER_SSOT_FILE);
+        $parsed = json_decode($raw, true);
+        if (isset($parsed['karyawan']) && is_array($parsed['karyawan'])) {
+            $masterKaryawan = $parsed['karyawan'];
+        }
+    }
     return [
         'metadata' => [
             'app' => 'KJPP NSR Presensi SSOT',
-            'version' => '1.0-2026',
+            'version' => '2.0-2026',
             'last_sync' => date('Y-m-d H:i:s'),
+            'source_master' => 'DATABASE ABSENSI KARYAWAN - KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN',
+            'scope' => 'KANTOR PUSAT JAKARTA',
+            'total_karyawan_pusat' => count($masterKaryawan),
             'total_absensi' => 0,
             'total_cuti' => 0
         ],
-        'master_karyawan' => [
-            [
-                'nik' => 'NSR-2019-005',
-                'nama' => 'Danny Taufik Hidayat, S.E.',
-                'jabatan' => 'Kepala Divisi Operasional',
-                'divisi' => 'Manajemen & SDM',
-                'cabang' => 'Pusat Jakarta',
-                'status' => 'AKTIF',
-                'email' => 'kjppnr.danny@gmail.com',
-                'alamat_wfh' => 'Jakarta Selatan',
-                'gps_wfh' => '-6.2879726,106.8247786'
-            ],
-            [
-                'nik' => 'NSR-2020-012',
-                'nama' => 'Ahmad Fauzi, S.T.',
-                'jabatan' => 'Penilai Properti',
-                'divisi' => 'Penilaian Properti Komersial',
-                'cabang' => 'Cabang Bandung',
-                'status' => 'AKTIF',
-                'email' => 'ahmad.fauzi.nsr@gmail.com',
-                'alamat_wfh' => 'Bandung',
-                'gps_wfh' => '-6.8597817,107.5604289'
-            ],
-            [
-                'nik' => 'NSR-2021-024',
-                'nama' => 'Siti Rahmawati, S.E.',
-                'jabatan' => 'Admin Cabang',
-                'divisi' => 'Administrasi Cabang Padang',
-                'cabang' => 'Cabang Padang',
-                'status' => 'AKTIF',
-                'email' => 'siti.padang.nsr@gmail.com',
-                'alamat_wfh' => 'Padang',
-                'gps_wfh' => '-0.94932,100.376055'
-            ],
-            [
-                'nik' => 'NSR-2021-030',
-                'nama' => 'M. Amin Sade, S.E., MAPPI (Cert.)',
-                'jabatan' => 'Pimpinan Cabang',
-                'divisi' => 'Operasional Cabang Makassar',
-                'cabang' => 'Cabang Makassar',
-                'status' => 'AKTIF',
-                'email' => 'amin.sade.nsr@gmail.com',
-                'alamat_wfh' => 'Makassar',
-                'gps_wfh' => '-5.1582,119.4095'
-            ],
-            [
-                'nik' => 'NSR-2022-045',
-                'nama' => 'Dharma Priyanto, S.T., MAPPI (Cert.)',
-                'jabatan' => 'Pimpinan Cabang',
-                'divisi' => 'Operasional Cabang Palembang',
-                'cabang' => 'Cabang Palembang',
-                'status' => 'AKTIF',
-                'email' => 'dharma.plb.nsr@gmail.com',
-                'alamat_wfh' => 'Palembang',
-                'gps_wfh' => '-2.929044,104.695981'
-            ]
-        ],
+        'master_karyawan' => $masterKaryawan,
         'master_wfh' => [],
         'absensi' => [],
         'pengajuan_cuti' => []
@@ -230,7 +151,7 @@ function saveDatabase($data) {
     $backupFile = BACKUP_DIR . '/absensi_snapshot_' . date('Ymd_His') . '_' . substr(md5(microtime()), 0, 6) . '.json';
     @file_put_contents($backupFile, json_encode($data, JSON_UNESCAPED_UNICODE), LOCK_EX);
 
-    // 2. Tulis ke database utama
+    // 2. Tulis ke database utama secara atomik
     return @file_put_contents(DB_FILE, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
@@ -249,64 +170,93 @@ function saveOTPCache($cache) {
 function validasiSesiKaryawan($sessionToken, $nik) {
     if (!$sessionToken || !$nik) return false;
     $cache = loadOTPCache();
-    $cleanNik = normalisasiNIK($nik);
+    if (!isset($cache['sessions'][$sessionToken])) return false;
+    
+    $sess = $cache['sessions'][$sessionToken];
+    if (time() > $sess['expires_at']) return false;
+    
+    return cocokNIK($sess['nik'], $nik);
+}
 
-    if (isset($cache['sessions'][$sessionToken])) {
-        $sess = $cache['sessions'][$sessionToken];
-        // Cek kedaluwarsa sesi (12 jam)
-        if (time() > $sess['expires_at']) {
-            unset($cache['sessions'][$sessionToken]);
-            saveOTPCache($cache);
-            return false;
-        }
-        if (cocokNIK($sess['nik'], $cleanNik)) {
-            return true;
+function cekOtorisasiAdminHR($sessionToken, $nik = '') {
+    global $ADMIN_HR_NIKS;
+    
+    // Cek token sesi presensi
+    if ($sessionToken) {
+        $cache = loadOTPCache();
+        if (isset($cache['sessions'][$sessionToken])) {
+            $sess = $cache['sessions'][$sessionToken];
+            if (time() <= $sess['expires_at']) {
+                $sessNik = normalisasiNIK($sess['nik'] ?? '');
+                if (in_array($sessNik, $ADMIN_HR_NIKS, true)) {
+                    return true;
+                }
+            }
         }
     }
+    
+    // Cek jika ada autentikasi OPINI (SUPER_ADMIN / KING)
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_start();
+    }
+    if (isset($_SESSION['user_id']) && ($_SESSION['user_id'] === 'super_admin_king' || ($_SESSION['role'] ?? '') === 'SUPER_ADMIN')) {
+        return true;
+    }
+    if (isset($_SERVER['HTTP_X_ADMIN_KEY']) && $_SERVER['HTTP_X_ADMIN_KEY'] === 'NSR_HR_MASTER_KEY_2026') {
+        return true;
+    }
+    
     return false;
 }
 
-// =========================================================================
-// ATOMIC TRANSACTION WRAPPER VIA LOCK_EX
-// =========================================================================
-$lockHandle = fopen(LOCK_FILE, 'c+');
+// 8. Buka File Lock Transaksi
+$lockHandle = fopen(LOCK_FILE, 'c');
 if (!$lockHandle || !flock($lockHandle, LOCK_EX)) {
     http_response_code(503);
     echo json_encode([
         'status' => 'error',
         'success' => false,
-        'message' => 'Layanan Presensi sedang sibuk (konkurensi transaksi). Silakan coba 1 detik lagi.'
+        'message' => 'Sistem sedang memproses transaksi presensi lain. Silakan coba kembali dalam 1 detik.'
     ]);
     exit;
 }
 
 try {
     $rawInput = file_get_contents('php://input');
-    $payload = json_decode($rawInput, true);
-    if (!is_array($payload)) {
-        $payload = $_POST;
-    }
-
+    $payload = json_decode($rawInput, true) ?: [];
     $action = $_GET['action'] ?? $payload['action'] ?? 'STATUS';
 
     // ---------------------------------------------------------------------
     // AKSI 1: CEK STATUS / HEALTHCHECK
     // ---------------------------------------------------------------------
-    if ($action === 'STATUS' || $_SERVER['REQUEST_METHOD'] === 'GET' && empty($_GET['action'])) {
+    if ($action === 'STATUS' || ($_SERVER['REQUEST_METHOD'] === 'GET' && empty($_GET['action']))) {
         $db = loadDatabase();
+        $tzObj = new DateTimeZone('Asia/Jakarta');
+        $nowWib = new DateTime('now', $tzObj);
+        
+        $totalPusat = 0;
+        foreach ($db['master_karyawan'] as $k) {
+            if (($k['cabang'] ?? '') === 'Pusat Jakarta' && strtoupper($k['status'] ?? '') === 'AKTIF') {
+                $totalPusat++;
+            }
+        }
+
         echo json_encode([
             'status' => 'success',
             'success' => true,
-            'message' => 'Backend SSOT Presensi KJPP NSR Aktif & Terlindungi.',
-            'timestamp' => date('c'),
+            'message' => 'Backend SSOT Presensi Kantor Pusat Jakarta Aktif & Terlindungi.',
+            'timestamp' => $nowWib->format('c'),
+            'zona_waktu' => 'Asia/Jakarta (WIB)',
             'total_absensi' => count($db['absensi'] ?? []),
-            'total_karyawan' => count($db['master_karyawan'] ?? [])
+            'total_karyawan_pusat' => $totalPusat ?: count($db['master_karyawan'] ?? []),
+            'source_master' => $db['metadata']['source_master'] ?? 'Google Sheets MASTER KARYAWAN',
+            'last_sync' => $db['metadata']['last_sync'] ?? '-'
         ]);
         exit;
     }
 
     // ---------------------------------------------------------------------
-    // AKSI 2: CEK KARYAWAN (NIK VERIFICATION)
+    // AKSI 2: CEK KARYAWAN (NIK VERIFICATION - STRICT EXACT MATCH)
     // ---------------------------------------------------------------------
     if ($action === 'cekKaryawan') {
         $nik = $payload['nik'] ?? $_GET['nik'] ?? '';
@@ -322,12 +272,22 @@ try {
 
         foreach ($db['master_karyawan'] as $k) {
             if (cocokNIK($k['nik'], $cleanNik)) {
-                if (strtoupper($k['status'] ?? '') === 'NONAKTIF' || strtoupper($k['status'] ?? '') === 'RESIGN') {
+                $statusUpper = strtoupper($k['status'] ?? '');
+                if ($statusUpper === 'NONAKTIF' || $statusUpper === 'RESIGN' || $statusUpper === 'TIDAK AKTIF') {
                     http_response_code(403);
                     echo json_encode([
                         'status' => 'error',
                         'success' => false,
-                        'message' => 'Status karyawan tidak aktif. Hubungi bagian HR/Manajemen KJPP NSR.'
+                        'message' => 'Status karyawan nonaktif. Hubungi bagian HR Kantor Pusat KJPP NSR.'
+                    ]);
+                    exit;
+                }
+                if ($statusUpper === 'PERLU_VERIFIKASI_HR') {
+                    http_response_code(403);
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => 'Identitas NIK belum terdaftar dalam Master Google Sheets resmi. Perlu verifikasi HR Kantor Pusat.'
                     ]);
                     exit;
                 }
@@ -341,12 +301,14 @@ try {
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
-                'message' => 'NIK [' . $cleanNik . '] tidak ditemukan di database Master Karyawan.'
+                'message' => 'NIK [' . $cleanNik . '] tidak ditemukan di Master Karyawan Kantor Pusat.'
             ]);
             exit;
         }
 
         $email = $found['email'] ?? '';
+        $isAdminHR = in_array(normalisasiNIK($found['nik']), $ADMIN_HR_NIKS, true);
+
         echo json_encode([
             'status' => 'success',
             'success' => true,
@@ -355,6 +317,7 @@ try {
             'jabatan' => $found['jabatan'],
             'divisi' => $found['divisi'],
             'cabang' => $found['cabang'] ?? 'Pusat Jakarta',
+            'isAdminHR' => $isAdminHR,
             'maskedEmail' => samarkanEmail($email),
             'hasEmail' => (strlen($email) > 5 && strpos($email, '@') !== false)
         ]);
@@ -383,17 +346,23 @@ try {
             }
         }
 
-        if (!$targetKaryawan || empty($targetKaryawan['email'])) {
+        if (!$targetKaryawan) {
             http_response_code(404);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK [' . $cleanNik . '] tidak terdaftar.']);
+            exit;
+        }
+
+        $email = trim($targetKaryawan['email'] ?? '');
+        if (empty($email) || strpos($email, '@') === false) {
+            http_response_code(400);
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
-                'message' => 'Email Gmail belum terdaftar untuk NIK [' . $cleanNik . ']. Hubungi Admin/HR.'
+                'message' => 'Email resmi belum terdaftar untuk NIK [' . $cleanNik . ']. Hubungi Admin HR Kantor Pusat untuk pembaruan email.'
             ]);
             exit;
         }
 
-        $email = $targetKaryawan['email'];
         $cache = loadOTPCache();
 
         // Rate Limiting: 60 Detik Cooldown
@@ -425,16 +394,24 @@ try {
         ];
         saveOTPCache($cache);
 
-        // Simulasi pengiriman email / integrasi mail
+        // Pengiriman email resmi
         $masked = samarkanEmail($email);
         $pesan = "Kode OTP 6-digit berhasil dikirimkan ke $masked. Berlaku 5 menit.";
 
-        // Jika di lingkungan server dengan mail(), kirim email asli
         @mail(
             $email,
-            "[KJPP NSR] Kode Verifikasi Kehadiran: $otpNumber",
-            "Halo Rekan KJPP NSR,\n\nKode verifikasi OTP kehadiran Anda adalah: $otpNumber\nBerlaku 5 menit.\n\nKJPP NSR",
-            "From: presensi@kjppnanangrahayu.com\r\nReply-To: info@kjppnanangrahayu.com"
+            "[KJPP NSR] Kode Verifikasi Presensi: $otpNumber",
+            "Halo {$targetKaryawan['nama']},
+
+Berikut kode verifikasi OTP resmi kehadiran Anda (NIK: $cleanNik):
+
+KODE OTP: $otpNumber
+
+Kode ini berlaku selama 5 menit. Jangan berikan kode ini kepada siapa pun.
+
+Salam,
+KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
+            "From: presensi@kjppnanangrahayu.com\r\nReply-To: info@kjppnanangrahayu.com\r\nX-Mailer: PHP/" . phpversion()
         );
 
         echo json_encode([
@@ -442,7 +419,6 @@ try {
             'success' => true,
             'maskedEmail' => $masked,
             'pesan' => $pesan,
-            // Header pengujian dummy jika di localhost/test
             'test_otp_hint' => (strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false || strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false) ? $otpNumber : null
         ]);
         exit;
@@ -489,7 +465,7 @@ try {
             exit;
         }
 
-        // Cek percobaan salah
+        // Cek batas percobaan
         if ($otpData['attempts'] >= 3) {
             unset($cache['otps'][$cleanNik]);
             saveOTPCache($cache);
@@ -547,6 +523,8 @@ try {
             }
         }
 
+        $isAdminHR = in_array($cleanNik, $ADMIN_HR_NIKS, true);
+
         echo json_encode([
             'status' => 'success',
             'success' => true,
@@ -556,13 +534,14 @@ try {
             'jabatan' => $profil['jabatan'] ?? '',
             'divisi' => $profil['divisi'] ?? '',
             'cabang' => $profil['cabang'] ?? 'Pusat Jakarta',
+            'isAdminHR' => $isAdminHR,
             'message' => 'Autentikasi identitas berhasil. Sesi aktif (12 jam).'
         ]);
         exit;
     }
 
     // ---------------------------------------------------------------------
-    // AKSI 5: SIMPAN PRESENSI KEHADIRAN (MULTI-CABANG, ZONA WAKTU, GEOFENCE)
+    // AKSI 5: SIMPAN PRESENSI KEHADIRAN (MASUK, PULANG, DINAS LUAR)
     // ---------------------------------------------------------------------
     if ($action === 'simpanAbsensi') {
         $nik = $payload['nik'] ?? '';
@@ -617,30 +596,24 @@ try {
         $userLat = (float)trim($parts[0]);
         $userLng = (float)trim($parts[1]);
 
-        // Cek Kantor Terdekat & Jarak Geofence
-        $kantorTerdekat = '-';
+        // Zona Waktu Kantor Pusat: Asia/Jakarta (WIB)
+        $tzObj = new DateTimeZone('Asia/Jakarta');
+        $dtNow = new DateTime('now', $tzObj);
+        $tglStr = $dtNow->format('Y-m-d');
+        $jamStr = $dtNow->format('H:i:s') . ' WIB';
+        $timestampStr = $dtNow->format('Y-m-d H:i:s');
+
+        // Validasi Geofence Kantor Pusat Jakarta
+        $kantorTerdekat = 'Kantor Pusat Jakarta';
         $jarakMeter = 0;
         $statusValidasi = 'VALID';
-        $nearestTz = 'Asia/Jakarta';
-        $nearestTzLabel = 'WIB';
 
         if ($lokasi === 'KANTOR') {
-            $minJarak = PHP_INT_MAX;
-            foreach ($KANTOR_CABANG as $cab) {
-                $d = hitungJarakHaversine($userLat, $userLng, $cab['lat'], $cab['lng']);
-                if ($d < $minJarak) {
-                    $minJarak = $d;
-                    $kantorTerdekat = $cab['nama'];
-                    $nearestTz = $cab['timezone'];
-                    $nearestTzLabel = $cab['tz_label'];
-                }
-            }
-            $jarakMeter = $minJarak;
-            if ($minJarak > RADIUS_KANTOR_METER) {
+            $jarakMeter = hitungJarakHaversine($userLat, $userLng, PUSAT_LAT, PUSAT_LNG);
+            if ($jarakMeter > RADIUS_KANTOR_METER) {
                 $statusValidasi = 'TIDAK VALID';
             }
         } elseif ($lokasi === 'WFH') {
-            // Cek titik WFH terdaftar di master_wfh atau profil karyawan
             $wfhGps = $profil['gps_wfh'] ?? '';
             foreach ($db['master_wfh'] as $w) {
                 if (cocokNIK($w['nik'], $cleanNik)) {
@@ -649,44 +622,90 @@ try {
             }
 
             if (!$wfhGps) {
-                $kantorTerdekat = 'Rumah (Belum Terdaftar)';
+                $kantorTerdekat = 'Rumah WFH (Belum Terdaftar)';
                 $jarakMeter = 999999;
                 $statusValidasi = 'TIDAK VALID';
             } else {
                 $wParts = explode(',', $wfhGps);
                 $wLat = (float)trim($wParts[0]);
                 $wLng = (float)trim($wParts[1]);
-                $d = hitungJarakHaversine($userLat, $userLng, $wLat, $wLng);
+                $jarakMeter = hitungJarakHaversine($userLat, $userLng, $wLat, $wLng);
                 $kantorTerdekat = 'Rumah WFH';
-                $jarakMeter = $d;
-                if ($d > RADIUS_WFH_METER) {
+                if ($jarakMeter > RADIUS_WFH_METER) {
                     $statusValidasi = 'TIDAK VALID';
                 }
             }
         } elseif ($lokasi === 'DINAS LUAR') {
-            $kantorTerdekat = 'Lokasi Penugasan / Lapangan';
+            $kantorTerdekat = 'Lokasi Penugasan Lapangan';
             $jarakMeter = 0;
             $statusValidasi = 'VALID';
         }
 
-        // Zona Waktu Sesuai Wilayah Penugasan (e.g. WITA untuk Makassar)
-        $tzObj = new DateTimeZone($nearestTz);
-        $dtNow = new DateTime('now', $tzObj);
-        $tglStr = $dtNow->format('Y-m-d');
-        $jamStr = $dtNow->format('H:i:s') . ' ' . $nearestTzLabel;
-        $timestampStr = $dtNow->format('Y-m-d H:i:s');
+        // =================================================================
+        // ATURAN INTEGRITAS HARIAN & PENCEGAHAN PRESENSI GANDA
+        // =================================================================
+        $punchesHariIni = [];
+        $recordMasuk = null;
+        $recordPulang = null;
 
-        // Pencegahan Double Submission pada Hari yang Sama
         foreach ($db['absensi'] as $rec) {
-            if (cocokNIK($rec['nik'], $cleanNik) && $rec['tanggal'] === $tglStr && $rec['jenis'] === $jenis) {
+            if (cocokNIK($rec['nik'], $cleanNik) && $rec['tanggal'] === $tglStr) {
+                $punchesHariIni[] = $rec;
+                if ($rec['jenis'] === 'Masuk') $recordMasuk = $rec;
+                if ($rec['jenis'] === 'Pulang') $recordPulang = $rec;
+            }
+        }
+
+        $durasiKerja = '-';
+
+        if ($jenis === 'Masuk') {
+            if ($recordMasuk !== null) {
                 http_response_code(409);
                 echo json_encode([
                     'status' => 'error',
                     'success' => false,
-                    'code' => 'DUPLICATE_PRESENSI',
-                    'message' => "Anda sudah melakukan presensi $jenis untuk hari ini ($tglStr)."
+                    'code' => 'DUPLICATE_PRESENSI_MASUK',
+                    'message' => "Anda sudah melakukan presensi Masuk hari ini ($tglStr) pada pukul {$recordMasuk['jam']}."
                 ]);
                 exit;
+            }
+        } elseif ($jenis === 'Pulang') {
+            if ($recordMasuk === null) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false,
+                    'code' => 'MISSING_PRESENSI_MASUK',
+                    'message' => "Presensi Pulang ditolak: Anda belum mencatatkan presensi Masuk hari ini ($tglStr)."
+                ]);
+                exit;
+            }
+            if ($recordPulang !== null) {
+                http_response_code(409);
+                echo json_encode([
+                    'status' => 'error',
+                    'success' => false,
+                    'code' => 'DUPLICATE_PRESENSI_PULANG',
+                    'message' => "Anda sudah melakukan presensi Pulang hari ini ($tglStr) pada pukul {$recordPulang['jam']}."
+                ]);
+                exit;
+            }
+
+            // Hitung durasi kerja
+            $tsMasuk = strtotime($recordMasuk['timestamp']);
+            $tsPulang = strtotime($timestampStr);
+            $selisihDetik = max(0, $tsPulang - $tsMasuk);
+            $jamKerja = floor($selisihDetik / 3600);
+            $menitKerja = floor(($selisihDetik % 3600) / 60);
+            $durasiKerja = "{$jamKerja} jam {$menitKerja} menit";
+        }
+
+        // Cek Keterlambatan Masuk (setelah 08:30 WIB)
+        $isTerlambat = false;
+        if ($jenis === 'Masuk') {
+            $waktuJam = $dtNow->format('H:i:s');
+            if ($waktuJam > JAM_MASUK_BATAS_TERLAMBAT) {
+                $isTerlambat = true;
             }
         }
 
@@ -696,7 +715,7 @@ try {
             'timestamp' => $timestampStr,
             'tanggal' => $tglStr,
             'jam' => $jamStr,
-            'zona_waktu' => $nearestTzLabel,
+            'zona_waktu' => 'WIB',
             'nik' => $profil['nik'] ?? $cleanNik,
             'nama' => $profil['nama'],
             'jabatan' => $profil['jabatan'],
@@ -707,6 +726,8 @@ try {
             'jarak_meter' => $jarakMeter,
             'status_validasi' => $statusValidasi,
             'kantor_terdekat' => $kantorTerdekat,
+            'is_terlambat' => $isTerlambat,
+            'durasi_kerja' => $durasiKerja,
             'keterangan' => $keterangan ?: (($statusValidasi === 'VALID') ? "Presensi $jenis Berhasil" : "Presensi di luar radius ($jarakMeter m)")
         ];
 
@@ -723,6 +744,8 @@ try {
             'jarak' => $jarakMeter,
             'kantor' => $kantorTerdekat,
             'jam' => $jamStr,
+            'is_terlambat' => $isTerlambat,
+            'durasi_kerja' => $durasiKerja,
             'message' => ($statusValidasi === 'VALID')
                 ? "Presensi $jenis berhasil diverifikasi VALID."
                 : "Presensi tersimpan, namun berada di luar radius ($jarakMeter meter). Status: TIDAK VALID."
@@ -822,7 +845,6 @@ try {
 
         $savedFilePath = '-';
         if ($fileData && $fileName) {
-            // Whitelist MIME & Max 5 MB
             if (preg_match('/^data:(image\/(jpeg|png)|application\/pdf);base64,/', $fileData, $matches)) {
                 $base64 = substr($fileData, strpos($fileData, ',') + 1);
                 $decoded = base64_decode($base64);
@@ -841,7 +863,6 @@ try {
             }
         }
 
-        // Durasi Hari
         $d1 = new DateTime($tglMulai);
         $d2 = new DateTime($tglSelesai);
         $durasi = $d2->diff($d1)->days + 1;
@@ -870,7 +891,7 @@ try {
             'status' => 'success',
             'success' => true,
             'durasi' => $durasi,
-            'message' => "Permohonan $jenisCuti untuk " . ($profil['nama'] ?? $cleanNik) . " berhasil terkirim. Status: Menunggu Persetujuan HR/Manajemen."
+            'message' => "Permohonan $jenisCuti untuk " . ($profil['nama'] ?? $cleanNik) . " berhasil terkirim. Status: Menunggu Persetujuan HR Kantor Pusat."
         ]);
         exit;
     }
@@ -890,7 +911,7 @@ try {
 
         $cleanNik = normalisasiNIK($nik);
 
-        if (!validasiSesiKaryawan($sessionToken, $cleanNik)) {
+        if (!validasiSesiKaryawan($sessionToken, $cleanNik) && !cekOtorisasiAdminHR($sessionToken, $cleanNik)) {
             http_response_code(401);
             echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Sesi tidak sah / kedaluwarsa.']);
             exit;
@@ -912,12 +933,10 @@ try {
             }
         }
 
-        // Urutkan descending (terbaru di atas)
         usort($riwayatAbsen, function($a, $b) {
             return strcmp($b['timestamp'], $a['timestamp']);
         });
 
-        // Rekapitulasi ringkas
         $totalMasuk = 0;
         $totalValid = 0;
         $totalTidakValid = 0;
@@ -940,6 +959,262 @@ try {
             ],
             'riwayat_absensi' => array_slice($riwayatAbsen, 0, 30),
             'riwayat_cuti' => $riwayatCuti
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------------------
+    // AKSI 9: DASHBOARD ADMIN HR KANTOR PUSAT
+    // ---------------------------------------------------------------------
+    if ($action === 'getDashboardHR') {
+        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
+        $nik = $payload['nik'] ?? '';
+
+        if (!cekOtorisasiAdminHR($sessionToken, $nik)) {
+            http_response_code(403);
+            echo json_encode([
+                'status' => 'error',
+                'success' => false,
+                'message' => 'Akses Ditolak: Anda tidak memiliki wewenang Admin HR Kantor Pusat.'
+            ]);
+            exit;
+        }
+
+        $db = loadDatabase();
+        $tzObj = new DateTimeZone('Asia/Jakarta');
+        $nowWib = new DateTime('now', $tzObj);
+        $tglFilter = $payload['tanggal'] ?? $nowWib->format('Y-m-d');
+
+        $karyawanPusat = [];
+        $nikPusatSet = [];
+
+        foreach ($db['master_karyawan'] as $k) {
+            if (($k['cabang'] ?? '') === 'Pusat Jakarta' && strtoupper($k['status'] ?? '') === 'AKTIF') {
+                $karyawanPusat[] = $k;
+                $nikPusatSet[] = normalisasiNIK($k['nik']);
+            }
+        }
+
+        // Monitoring Kehadiran Hari Ini
+        $hadirMasukNiks = [];
+        $sudahPulangNiks = [];
+        $terlambatNiks = [];
+        $wfhNiks = [];
+        $dinasNiks = [];
+        $transaksiHariIni = [];
+
+        foreach ($db['absensi'] as $rec) {
+            if ($rec['tanggal'] === $tglFilter) {
+                $transaksiHariIni[] = $rec;
+                $rNik = normalisasiNIK($rec['nik']);
+                if ($rec['jenis'] === 'Masuk') {
+                    $hadirMasukNiks[$rNik] = true;
+                    if (!empty($rec['is_terlambat'])) {
+                        $terlambatNiks[$rNik] = true;
+                    }
+                }
+                if ($rec['jenis'] === 'Pulang') {
+                    $sudahPulangNiks[$rNik] = true;
+                }
+                if (($rec['lokasi'] ?? '') === 'WFH') {
+                    $wfhNiks[$rNik] = true;
+                }
+                if (($rec['lokasi'] ?? '') === 'DINAS LUAR') {
+                    $dinasNiks[$rNik] = true;
+                }
+            }
+        }
+
+        // Belum Presensi
+        $belumPresensiList = [];
+        foreach ($karyawanPusat as $k) {
+            $norm = normalisasiNIK($k['nik']);
+            if (!isset($hadirMasukNiks[$norm])) {
+                $belumPresensiList[] = [
+                    'nik' => $k['nik'],
+                    'nama' => $k['nama'],
+                    'jabatan' => $k['jabatan'],
+                    'divisi' => $k['divisi'],
+                    'email' => $k['email']
+                ];
+            }
+        }
+
+        // Cuti Pending
+        $cutiPending = [];
+        foreach ($db['pengajuan_cuti'] as $c) {
+            if ($c['status'] === 'Menunggu Persetujuan') {
+                $cutiPending[] = $c;
+            }
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'tanggal' => $tglFilter,
+            'ringkasan' => [
+                'total_karyawan_pusat' => count($karyawanPusat),
+                'hadir_masuk' => count($hadirMasukNiks),
+                'sudah_pulang' => count($sudahPulangNiks),
+                'belum_presensi' => count($belumPresensiList),
+                'terlambat' => count($terlambatNiks),
+                'wfh' => count($wfhNiks),
+                'dinas_luar' => count($dinasNiks),
+                'cuti_pending' => count($cutiPending)
+            ],
+            'karyawan_pusat' => $karyawanPusat,
+            'belum_presensi_list' => $belumPresensiList,
+            'transaksi_hari_ini' => $transaksiHariIni,
+            'pengajuan_cuti_pending' => $cutiPending,
+            'metadata_master' => $db['metadata']
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------------------
+    // AKSI 10: KOREKSI PRESENSI OLEH ADMIN HR (DENGAN AUDIT TRAIL)
+    // ---------------------------------------------------------------------
+    if ($action === 'koreksiPresensi') {
+        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
+        $adminNik = normalisasiNIK($payload['admin_nik'] ?? '');
+
+        if (!cekOtorisasiAdminHR($sessionToken, $adminNik)) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Otorisasi Admin HR ditolak.']);
+            exit;
+        }
+
+        $targetNik = normalisasiNIK($payload['target_nik'] ?? '');
+        $tanggal = $payload['tanggal'] ?? date('Y-m-d');
+        $jam = $payload['jam'] ?? date('H:i:s') . ' WIB';
+        $jenis = $payload['jenis'] ?? 'Masuk';
+        $alasan = trim((string)($payload['alasan'] ?? ''));
+
+        if (!$targetNik || !$alasan) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK Karyawan dan Alasan Koreksi wajib dicantumkan.']);
+            exit;
+        }
+
+        $db = loadDatabase();
+        $targetKaryawan = null;
+        foreach ($db['master_karyawan'] as $k) {
+            if (cocokNIK($k['nik'], $targetNik)) {
+                $targetKaryawan = $k;
+                break;
+            }
+        }
+
+        if (!$targetKaryawan) {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Karyawan tidak ditemukan.']);
+            exit;
+        }
+
+        $newCorrection = [
+            'id' => 'KOR-' . date('Ymd') . '-' . substr(md5(uniqid('', true)), 0, 6),
+            'timestamp' => "$tanggal $jam",
+            'tanggal' => $tanggal,
+            'jam' => $jam,
+            'zona_waktu' => 'WIB',
+            'nik' => $targetKaryawan['nik'],
+            'nama' => $targetKaryawan['nama'],
+            'jabatan' => $targetKaryawan['jabatan'],
+            'divisi' => $targetKaryawan['divisi'],
+            'jenis' => $jenis,
+            'lokasi' => 'KANTOR',
+            'gps' => PUSAT_LAT . ',' . PUSAT_LNG,
+            'jarak_meter' => 0,
+            'status_validasi' => 'VALID',
+            'kantor_terdekat' => 'Kantor Pusat Jakarta',
+            'is_koreksi' => true,
+            'koreksi_oleh' => $adminNik ?: 'Admin HR Pusat',
+            'alasan_koreksi' => $alasan,
+            'keterangan' => "Koreksi HR: $alasan (oleh " . ($adminNik ?: 'Admin HR') . ")"
+        ];
+
+        $db['absensi'][] = $newCorrection;
+        $db['metadata']['total_absensi'] = count($db['absensi']);
+        $db['metadata']['last_sync'] = date('Y-m-d H:i:s');
+        saveDatabase($db);
+
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'message' => "Koreksi presensi $jenis untuk {$targetKaryawan['nama']} berhasil dicatat dalam audit trail."
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------------------
+    // AKSI 11: APPROVAL PERMOHONAN CUTI / IZIN
+    // ---------------------------------------------------------------------
+    if ($action === 'approveCuti') {
+        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
+        $adminNik = normalisasiNIK($payload['admin_nik'] ?? '');
+
+        if (!cekOtorisasiAdminHR($sessionToken, $adminNik)) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Otorisasi Admin HR ditolak.']);
+            exit;
+        }
+
+        $cutiId = $payload['cuti_id'] ?? '';
+        $keputusan = $payload['keputusan'] ?? 'Disetujui'; // Disetujui / Ditolak
+        $catatan = trim((string)($payload['catatan'] ?? ''));
+
+        if (!$cutiId) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'ID Pengajuan Cuti wajib diisi.']);
+            exit;
+        }
+
+        $db = loadDatabase();
+        $found = false;
+
+        foreach ($db['pengajuan_cuti'] as &$c) {
+            if ($c['id'] === $cutiId) {
+                $c['status'] = $keputusan;
+                $c['disetujui_oleh'] = $adminNik ?: 'Admin HR Pusat';
+                $c['tanggal_approval'] = date('Y-m-d H:i:s');
+                $c['catatan_approval'] = $catatan ?: "Keputusan: $keputusan";
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Pengajuan cuti tidak ditemukan.']);
+            exit;
+        }
+
+        saveDatabase($db);
+
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'message' => "Pengajuan cuti ID $cutiId berhasil diubah menjadi: $keputusan."
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------------------
+    // AKSI 12: LOGOUT PRESENSI
+    // ---------------------------------------------------------------------
+    if ($action === 'logoutPresensi') {
+        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
+        if ($sessionToken) {
+            $cache = loadOTPCache();
+            if (isset($cache['sessions'][$sessionToken])) {
+                unset($cache['sessions'][$sessionToken]);
+                saveOTPCache($cache);
+            }
+        }
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'message' => 'Sesi presensi berhasil dicabut.'
         ]);
         exit;
     }

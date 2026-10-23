@@ -100,6 +100,8 @@ function doPost(e) {
       res = simpanPengajuanCuti(payload);
     } else if (action === 'getRiwayatPresensi') {
       res = getRiwayatPresensi(payload.nik, payload.sessionToken);
+    } else if (action === 'getMasterKaryawanFull') {
+      res = getMasterKaryawanFull();
     } else {
       res = { status: 'error', success: false, message: 'Aksi [' + action + '] tidak dikenali.' };
     }
@@ -242,15 +244,8 @@ function normalizeNikKey_(nik) {
 function isNikMatch_(dbNik, inputNik) {
   const normDb = normalizeNikKey_(dbNik);
   const normInp = normalizeNikKey_(inputNik);
-  if (normDb === normInp) return true;
-  
-  // Jika database berformat NSR-2019-XXX dan input berformat NSR-XXX
-  if (normDb.replace('-2019-', '-') === normInp) return true;
-  if (normInp.replace('-2019-', '-') === normDb) return true;
-  
-  // Jika input hanya angka 005 dan db NSR-2019-005
-  if (normDb.endsWith('-' + normInp) || normDb.endsWith(normInp)) return true;
-  return false;
+  // STRICT SSOT: Wajib NIK lengkap yang unik, larangan pencocokan parsial/digit terakhir
+  return normDb === normInp;
 }
 
 /**
@@ -1152,5 +1147,46 @@ function getRiwayatPresensi(nik, sessionToken) {
     },
     riwayat_absensi: riwayatAbsen.slice(0, 30),
     riwayat_cuti: riwayatCuti
+  };
+}
+
+
+/**
+ * SSOT Master Karyawan Retrieval
+ * Mengambil seluruh data MASTER KARYAWAN dari Google Spreadsheet resmi
+ */
+function getMasterKaryawanFull() {
+  const ss = getSS_();
+  const sheets = ss.getSheets().map(function(s) { return s.getName(); });
+  let sh = ss.getSheetByName('MASTER KARYAWAN') || ss.getSheetByName('MASTER_KARYAWAN');
+  if (!sh) {
+    return {
+      status: 'error',
+      success: false,
+      message: 'Sheet MASTER KARYAWAN tidak ditemukan pada spreadsheet ' + ss.getName(),
+      availableSheets: sheets
+    };
+  }
+  const lastRow = sh.getLastRow();
+  const lastCol = sh.getLastColumn();
+  if (lastRow < 1 || lastCol < 1) {
+    return {
+      status: 'success',
+      success: true,
+      headers: [],
+      rows: [],
+      availableSheets: sheets,
+      sheetName: sh.getName()
+    };
+  }
+  const values = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  return {
+    status: 'success',
+    success: true,
+    spreadsheetTitle: ss.getName(),
+    sheetName: sh.getName(),
+    availableSheets: sheets,
+    headers: values[0],
+    rows: values.slice(1)
   };
 }
