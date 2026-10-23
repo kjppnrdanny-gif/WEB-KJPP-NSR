@@ -1552,7 +1552,7 @@ if ($action === 'login') {
 // ==========================================
 // C. ACTION: VERIFY (GET/POST /api/auth-verify)
 // ==========================================
-if ($action === 'verify') {
+if ($action === 'verify' || $action === 'check') {
     // 1. Sesi PHP (jika belum dicabut)
     if (isset($_SESSION['nsr_user']) && is_array($_SESSION['nsr_user'])) {
         $loginTime = $_SESSION['nsr_login_time'] ?? 0;
