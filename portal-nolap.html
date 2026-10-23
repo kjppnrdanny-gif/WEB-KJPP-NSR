@@ -629,13 +629,14 @@
             <div class="lg:col-span-2">
               <label class="block font-semibold text-slate-300 mb-1">Sektor Industri Kemenkeu *</label>
               <select id="f-industri" onchange="updateLivePreview()" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
-                <option value="07" selected>07 — Sektor Keuangan - Perbankan</option>
-                <option value="03">03 — Properti dan Konstruksi</option>
+                <option value="" disabled selected>-- Pilih Sektor Industri Kemenkeu (01–12) * --</option>
                 <option value="01">01 — Pertanian, perkebunan, kehutanan, peternakan, perikanan</option>
                 <option value="02">02 — Pertambangan dan Energi</option>
+                <option value="03">03 — Properti dan Konstruksi</option>
                 <option value="04">04 — Industri Pengolahan / Manufaktur</option>
                 <option value="05">05 — Perdagangan dan Jasa</option>
                 <option value="06">06 — Informasi, Komunikasi, dan Transportasi</option>
+                <option value="07">07 — Sektor Keuangan - Perbankan</option>
                 <option value="08">08 — Sektor Keuangan - Asuransi dan Dana Pensiun</option>
                 <option value="09">09 — Sektor Keuangan - Lainnya</option>
                 <option value="10">10 — Industri Lainnya</option>
@@ -14880,12 +14881,12 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       const serviceClassId = elJasa?.value || "PROPERTY";
       const kodeJasa = optJasa?.getAttribute('data-report-code') || resolveReportServiceCode(serviceClassId);
 
-      // 4. Kode Sektor Industri (2 Digit) Sesuai Master Baku 01-12
+      // 4. Kode Sektor Industri (2 Digit) Sesuai Master Baku 01-12 (Dilarang fallback diam-diam ke 07)
       const elIndustri = document.getElementById('f-industri');
-      const rawIndustri = elIndustri?.value || "07";
+      const rawIndustri = (elIndustri?.value || "").trim();
       const cleanInd = String(rawIndustri).replace(/\D/g, '').padStart(2, '0');
       const numInd = parseInt(cleanInd, 10);
-      const kodeIndustri = (numInd >= 1 && numInd <= 12) ? cleanInd : "07";
+      const kodeIndustri = (rawIndustri && !isNaN(numInd) && numInd >= 1 && numInd <= 12) ? cleanInd : "--";
 
       // 5. Kode Izin Penilai
       const elPenilai = document.getElementById('f-penilai');
@@ -15326,6 +15327,15 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       if (!waPemohon || waPemohon.replace(/\D/g, '').length < 8) {
         alert('⚠️ INPUT MANDATORY: WhatsApp Pemohon wajib diisi dengan nomor yang valid (minimal 8 digit).');
         document.getElementById('f-wa-pemohon')?.focus();
+        return;
+      }
+
+      // Validasi Wajib Sektor Industri Master 01-12 (Anti-Fallback Diam-Diam)
+      const rawIndSubmit = (document.getElementById('f-industri')?.value || '').trim();
+      const numIndSubmit = parseInt(rawIndSubmit, 10);
+      if (!rawIndSubmit || isNaN(numIndSubmit) || numIndSubmit < 1 || numIndSubmit > 12) {
+        alert('⚠️ INPUT MANDATORY: Sektor Industri Kemenkeu (01–12) wajib dipilih sesuai master klasifikasi resmi.');
+        document.getElementById('f-industri')?.focus();
         return;
       }
 
@@ -16154,7 +16164,7 @@ function resolveIzinPenilaiDisplay(p) {
       const item = currentReqToApprove;
       const kodeKantor = item.signing_office_code || item.kodeKantorTtd || (item.requested_signing_office === 'PUSAT' ? '2.0160-00' : (MASTER_KANTOR[item.cabang]?.kodeSegmen || '2.0160-00'));
       const kodeJasa = item.report_service_code || resolveReportServiceCode(item.service_classification_id || item.klasifikasiJasa) || "PI";
-      const kodeIndustri = String(item.kodeIndustri || '07').padStart(2, '0');
+      const kodeIndustri = item.kodeIndustri ? String(item.kodeIndustri).padStart(2, '0') : '--';
       const izinPenilai = item.izinPenilai || resolveIzinPenilaiDisplay(item) || "00581";
       // Sesuai SE-6/PPPK/2018: Segmen 6 adalah Kode NPWP Klien, HANYA '0' (Non-NPWP) atau '1' (Ber-NPWP).
       // Dilarang keras menggunakan huruf 'B' atau kode status lain pada segmen NoLap Kemenkeu!
@@ -20222,7 +20232,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
                 deadline: cleanCols[15] || '',
                 penilai: cleanCols[16] || '',
                 izinPenilai: MASTER_PENILAI[cleanCols[16]] || '00581',
-                kodeIndustri: cleanCols[17] || '07',
+                kodeIndustri: cleanCols[17] || '',
                 npwp: cleanCols[18] || '',
                 kodeNpwp: cleanCols[18] && cleanCols[18] !== '-' ? '1' : '0',
                 status: cleanCols[20] || 'DIAJUKAN',

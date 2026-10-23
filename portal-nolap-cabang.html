@@ -210,7 +210,7 @@
             </div>
             <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
               <span class="text-slate-400 block text-[10px]">4. Industri</span>
-              <strong id="seg-industri" class="text-amber-300 font-mono">07</strong>
+              <strong id="seg-industri" class="text-amber-300 font-mono">--</strong>
             </div>
             <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
               <span class="text-slate-400 block text-[10px]">5. Izin Rekan Cabang</span>
@@ -388,15 +388,20 @@
 
               <div>
                 <label class="block text-xs font-semibold text-slate-300 mb-1">Sektor Industri (Segmen 4)</label>
-                <select id="sektor_industri" onchange="sinkronkanSegmenLive()" class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-teal-400">
-                  <option value="07" selected>07 - Perbankan &amp; Jasa Keuangan</option>
-                  <option value="01">01 - Pertanian, Kehutanan &amp; Perikanan</option>
-                  <option value="02">02 - Pertambangan &amp; Penggalian</option>
-                  <option value="03">03 - Industri Pengolahan &amp; Manufaktur</option>
-                  <option value="05">05 - Konstruksi &amp; Real Estate</option>
-                  <option value="06">06 - Perdagangan Besar &amp; Eceran</option>
-                  <option value="08">08 - Transportasi &amp; Pergudangan</option>
-                  <option value="14">14 - Jasa Lainnya / Instansi Pemerintah</option>
+                <select id="sektor_industri" onchange="sinkronkanSegmenLive()" required class="w-full h-11 px-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs font-bold focus:outline-none focus:border-teal-400">
+                  <option value="" disabled selected>-- Pilih Sektor Industri (01–12) * --</option>
+                  <option value="01">01 — Pertanian, perkebunan, kehutanan, peternakan, perikanan</option>
+                  <option value="02">02 — Pertambangan dan Energi</option>
+                  <option value="03">03 — Properti dan Konstruksi</option>
+                  <option value="04">04 — Industri Pengolahan / Manufaktur</option>
+                  <option value="05">05 — Perdagangan dan Jasa</option>
+                  <option value="06">06 — Informasi, Komunikasi, dan Transportasi</option>
+                  <option value="07">07 — Sektor Keuangan - Perbankan</option>
+                  <option value="08">08 — Sektor Keuangan - Asuransi dan Dana Pensiun</option>
+                  <option value="09">09 — Sektor Keuangan - Lainnya</option>
+                  <option value="10">10 — Industri Lainnya</option>
+                  <option value="11">11 — Pemerintahan, Badan Internasional, Organisasi Non Profit</option>
+                  <option value="12">12 — Non Industri / Perorangan</option>
                 </select>
               </div>
 
@@ -1033,7 +1038,9 @@
       const rawJasaVal = elJenisJasa?.value || 'PROPERTY';
       // P0 SE-6/PPPK/2018: Segmen 3 HANYA boleh PI, BS, atau PP (Dilarang keras PS!)
       const jenisJasa = optJenisJasa?.getAttribute('data-report-code') || ((rawJasaVal === 'PS' || rawJasaVal === 'PROPERTY_SIMPLE' || rawJasaVal.indexOf('SEDERHANA') !== -1) ? 'PI' : ((rawJasaVal === 'BS' || rawJasaVal === 'BUSINESS') ? 'BS' : ((rawJasaVal === 'PP' || rawJasaVal === 'PERSONAL_PROPERTY') ? 'PP' : 'PI')));
-      const industri = document.getElementById('sektor_industri')?.value || '07';
+      const rawIndCab = (document.getElementById('sektor_industri')?.value || '').trim();
+      const numIndCab = parseInt(rawIndCab, 10);
+      const industri = (rawIndCab && !isNaN(numIndCab) && numIndCab >= 1 && numIndCab <= 12) ? String(numIndCab).padStart(2, '0') : '--';
       const izinRekan = conf.rekan.izin;
       const kodeKantor = conf.kodeKemenkeu;
       const seqDefinitif = String(getSequenceTerakhirCabang() + 1).padStart(5, '0');

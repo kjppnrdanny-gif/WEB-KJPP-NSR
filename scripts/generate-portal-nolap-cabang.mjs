@@ -834,7 +834,10 @@ const htmlContent = `<!DOCTYPE html>
       if (segIzin) segIzin.innerText = izinRekan;
       if (segWaktu) segWaktu.innerText = `${romawi}/${thn}`;
 
-      const formatDefinitif = `${seqDefinitif}/${kodeKantor}/${jenisJasa}/${industri}/${izinRekan}/1/${romawi}/${thn}`;
+      const inpNpwp = document.getElementById('pemberi_tugas_npwp')?.value.trim() || '';
+      const cleanNpwp = inpNpwp.replace(/\D/g, '');
+      const kodeNpwp = cleanNpwp.length >= 10 ? '1' : '0';
+      const formatDefinitif = `${seqDefinitif}/${kodeKantor}/${jenisJasa}/${industri}/${izinRekan}/${kodeNpwp}/${romawi}/${thn}`;
       if (liveNomor) liveNomor.innerText = formatDefinitif;
     }
 
@@ -991,7 +994,10 @@ const htmlContent = `<!DOCTYPE html>
       const jenisJasa = document.getElementById('jenis_jasa')?.value || 'PI';
       const industri = document.getElementById('sektor_industri')?.value || '07';
       const seq = String(getSequenceTerakhirCabang() + 1).padStart(5, '0');
-      const noDefinitif = `${seq}/${conf.kodeKemenkeu}/${jenisJasa}/${industri}/${conf.rekan.izin}/1/${romawi}/${thn}`;
+      const inpNpwp = (data.npwp || data.pemberi_tugas_npwp || '').toString().trim();
+      const cleanNpwp = inpNpwp.replace(/\D/g, '');
+      const kodeNpwp = cleanNpwp.length >= 10 ? '1' : '0';
+      const noDefinitif = `${seq}/${conf.kodeKemenkeu}/${jenisJasa}/${industri}/${conf.rekan.izin}/${kodeNpwp}/${romawi}/${thn}`;
 
       const klien = document.getElementById('pemberi_tugas_nama')?.value || '-';
       const deb = document.getElementById('debitur_nama')?.value || '-';

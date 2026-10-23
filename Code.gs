@@ -2199,10 +2199,20 @@ function handleIssueCabangDefinitiveNoLap(ss, data, auth) {
   const thn = Utilities.formatDate(now, "Asia/Jakarta", "yyyy");
   const blnIndex = now.getMonth();
   const romawiBln = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][blnIndex] || 'X';
-  const klasifikasi = (data.klasifikasi || data.jenisJasa || 'PI').toString().trim();
-  const sektor = (data.sektorIndustri || data.kodeIndustri || '07').toString().trim();
+  const rawJasa = (data.report_service_code || data.service_classification_id || data.klasifikasi || data.jenisJasa || 'PI').toString().trim().toUpperCase();
+  const klasifikasi = (rawJasa === 'PS' || rawJasa === 'PROPERTY_SIMPLE' || rawJasa.indexOf('SEDERHANA') !== -1) ? 'PI' : ((rawJasa === 'BS' || rawJasa === 'BUSINESS') ? 'BS' : ((rawJasa === 'PP' || rawJasa === 'PERSONAL_PROPERTY') ? 'PP' : 'PI'));
+  const rawSektor = (data.sektorIndustri || data.kodeIndustri || '').toString().trim();
+  const cleanSektor = rawSektor.replace(/\D/g, '').padStart(2, '0');
+  const numSektor = parseInt(cleanSektor, 10);
+  if (!rawSektor || isNaN(numSektor) || numSektor < 1 || numSektor > 12) {
+    return { status: 'error', success: false, error: 'VALIDASI GAGAL: Kode Industri Kemenkeu wajib dipilih dan valid (01–12).' };
+  }
+  const sektor = cleanSektor;
+  const rawNpwp = (data.npwp || data.pemberi_tugas_npwp || data.klien_npwp || data.kodeNpwp || '').toString().trim();
+  const cleanNpwp = rawNpwp.replace(/\D/g, '');
+  const kodeNpwp = (cleanNpwp.length >= 10 || data.statusNpwp === '1' || data.kodeNpwp === '1') ? '1' : '0';
   const seq = String(Math.floor(Math.random() * 9000) + 1000).padStart(5, '0');
-  const noDefinitif = `${seq}/${conf.kodeKemenkeu}/${klasifikasi}/${sektor}/${conf.izin}/1/${romawiBln}/${thn}`;
+  const noDefinitif = `${seq}/${conf.kodeKemenkeu}/${klasifikasi}/${sektor}/${conf.izin}/${kodeNpwp}/${romawiBln}/${thn}`;
 
   try {
     catatLogAktivitas(ss, noDefinitif, 'ISSUE_CABANG_DEFINITIVE_NOLAP', (auth && auth.token) || 'CABANG', 'NoLap Definitif Mandiri Cabang ' + cabang + ' terbit');

@@ -916,10 +916,19 @@ function handleIssueCabangDefinitiveNoLap(data) {
   const rawJasa = (data.report_service_code || data.service_classification_id || data.klasifikasi || data.jenisJasa || 'PI').toString().trim().toUpperCase();
   // P0 GUARD & SE-6/PPPK/2018: Segmen 3 HANYA PI, BS, atau PP (DILARANG PS!)
   const reportCode = (rawJasa === 'PS' || rawJasa === 'PROPERTY_SIMPLE' || rawJasa.indexOf('SEDERHANA') !== -1) ? 'PI' : ((rawJasa === 'BS' || rawJasa === 'BUSINESS') ? 'BS' : ((rawJasa === 'PP' || rawJasa === 'PERSONAL_PROPERTY') ? 'PP' : 'PI'));
-  const sektor = (data.sektorIndustri || data.kodeIndustri || '07').toString().trim();
+  const rawSektor = (data.sektorIndustri || data.kodeIndustri || '').toString().trim();
+  const cleanSektor = rawSektor.replace(/\D/g, '').padStart(2, '0');
+  const numSektor = parseInt(cleanSektor, 10);
+  if (!rawSektor || isNaN(numSektor) || numSektor < 1 || numSektor > 12) {
+    return { status: 'error', success: false, error: 'VALIDASI GAGAL: Kode Industri Kemenkeu wajib dipilih dan valid (01–12).' };
+  }
+  const sektor = cleanSektor;
+  const rawNpwp = (data.npwp || data.pemberi_tugas_npwp || data.klien_npwp || data.kodeNpwp || '').toString().trim();
+  const cleanNpwp = rawNpwp.replace(/\D/g, '');
+  const kodeNpwp = (cleanNpwp.length >= 10 || data.statusNpwp === '1' || data.kodeNpwp === '1') ? '1' : '0';
 
-  // 7 Segmen Format Resmi: 00045/2.0160-04/PI/07/00581/1/X/2026
-  const noDefinitif = `${nextSeqStr}/${conf.kodeKemenkeu}/${reportCode}/${sektor}/${conf.izin}/1/${romawiBln}/${thn}`;
+  // 7 Segmen Format Resmi: 00045/2.0160-04/PI/07/00581/1/X/2026 (Segmen 6 dinamis 1/0)
+  const noDefinitif = `${nextSeqStr}/${conf.kodeKemenkeu}/${reportCode}/${sektor}/${conf.izin}/${kodeNpwp}/${romawiBln}/${thn}`;
 
   // 4. Catat ke sheet PENGAJUAN
   const lastCol = Math.max(sheet.getLastColumn(), 53);
