@@ -55,7 +55,7 @@ TOKENS_TO_TEST.forEach(item => {
   const saltedHash = crypto.createHash('sha256').update('KJPP_NSR_2026_CORE_AUTH::' + item.token).digest('hex');
 
   // Cek file auth-handler.php apakah memuat hash raw atau salted
-  const authPhp = fs.readFileSync('auth-handler.php', 'utf8');
+  const authPhp = fs.readFileSync('auth-handler.php', 'utf8') + (fs.existsSync('auth-registry-loader.php') ? fs.readFileSync('auth-registry-loader.php', 'utf8') : '');
   const hasRaw = authPhp.includes(`'${rawHash}'`);
   const hasSalted = authPhp.includes(`'${saltedHash}'`);
 

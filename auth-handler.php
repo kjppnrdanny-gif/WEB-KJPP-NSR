@@ -228,7 +228,7 @@ if (!$action) {
         $action = 'verify';
     } elseif (strpos($path, 'auth-logout') !== false) {
         $action = 'logout';
-    } elseif (strpos($path, 'auth.php') !== false || strpos($path, 'api/auth') !== false) {
+    } elseif (strpos($path, 'auth') !== false) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = 'login';
         } else {
@@ -269,18 +269,8 @@ function clearFail($rateFile) {
     }
 }
 
-if ($rateData['fails'] >= 10 && (time() - $rateData['last']) < 300) {
-    http_response_code(429);
-    echo json_encode([
-        'success'       => false,
-        'authenticated' => false,
-        'error'         => 'Terlalu banyak percobaan gagal. Silakan tunggu 5 menit sebelum mencoba kembali.'
-    ]);
-    exit;
-}
-
 // -------------------------------------------------------------
-// 5. PARSE INPUT BODY (JSON ATAU POST DATA)
+// 5. PARSE INPUT BODY (JSON ATAU POST DATA) & RATE LIMITING
 // -------------------------------------------------------------
 $rawInput = file_get_contents('php://input');
 $body = [];
@@ -289,6 +279,28 @@ if ($rawInput) {
 }
 if (empty($body)) {
     $body = $_POST;
+}
+
+// PEMULIHAN CEPAT: Jika request menyertakan token resmi yang valid,
+// segera bersihkan lockout rate-limiter tanpa harus menunggu 5 menit.
+$checkCandidate = trim($body['token'] ?? $body['identifier'] ?? $body['username'] ?? $body['password'] ?? '');
+if ($checkCandidate) {
+    $candidateResolved = resolveServerToken($checkCandidate, $OFFICIAL_TOKEN_HASHES);
+    if ($candidateResolved) {
+        clearFail($rateFile);
+        $rateData = ['fails' => 0, 'last' => time()];
+    }
+}
+
+// Proteksi brute force: hanya tolak jika kredensial/token TIDAK valid dan gagal >= 10x
+if ($rateData['fails'] >= 10 && (time() - $rateData['last']) < 300) {
+    http_response_code(429);
+    echo json_encode([
+        'success'       => false,
+        'authenticated' => false,
+        'error'         => 'Terlalu banyak percobaan gagal. Silakan tunggu 5 menit sebelum mencoba kembali.'
+    ]);
+    exit;
 }
 
 // -------------------------------------------------------------
