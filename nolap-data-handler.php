@@ -134,6 +134,7 @@ if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD', 'OPTIONS'], t
 // -------------------------------------------------------------
 // 1. DATA TOKENS RESMI UNTUK VALIDASI API / BEARER / HEADER
 // -------------------------------------------------------------
+require_once __DIR__ . '/auth-registry-loader.php';
 $OFFICIAL_TOKEN_HASHES = [
         // KREDENSIAL RESMI SUPER ADMIN (KING)
     '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' => [
@@ -1204,6 +1205,11 @@ $OFFICIAL_TOKEN_HASHES = [
     ],
 
 ];
+
+$privateRegistry = loadPrivateAuthRegistry();
+if (!empty($privateRegistry['token_hashes']) && is_array($privateRegistry['token_hashes'])) {
+    $OFFICIAL_TOKEN_HASHES = array_merge($OFFICIAL_TOKEN_HASHES, $privateRegistry['token_hashes']);
+}
 
 // -------------------------------------------------------------
 
@@ -3835,7 +3841,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'service_classification_name' => $serviceClassName,
             'report_service_code' => $reportServiceCode,
             'klasifikasiJasa' => $reportServiceCode,
+            'kodeIndustri' => $cleanIndG1,
+            'kodeNpwp' => $payload['kodeNpwp'],
+            'klien' => [
+                'nama' => $klien,
+                'npwp' => $rawNpwpG1,
+                'statusNpwp' => $statusNpwpG1,
+                'kodeNpwp' => $payload['kodeNpwp']
+            ],
             'penugasan' => [
+                'kodeIndustri' => $cleanIndG1,
+                'kodeNpwp' => $payload['kodeNpwp'],
                 'penilaiPublikDitunjuk' => $penilaiDitunjuk,
                 'penilaiPublikId' => $penilaiId,
                 'appraiserLicenseCode' => $appraiserLicenseCode,
@@ -5025,7 +5041,7 @@ Mohon memeriksa kelengkapan QC, BAI, dan ketiadaan deviasi material di Portal OP
 
     // 6. REVIEW DANNY TAUFIK (KEPALA SPM) PADA GERBANG 2
     if ($action === 'reviewDannyGerbang2') {
-        if ($currentUser['role'] !== 'KEPALA_SPM') {
+        if ($userRole !== 'KEPALA_SPM' && $userRole !== 'SUPER_ADMIN') {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Danny Taufik (Kepala SPM) yang berwenang mengeksekusi review ini.']);
             exit;

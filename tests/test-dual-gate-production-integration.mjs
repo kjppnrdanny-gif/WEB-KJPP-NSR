@@ -14,10 +14,10 @@ const BASE_URL = `http://127.0.0.1:${PORT}/nolap-data-handler.php`;
 
 // Test Credential Tokens
 const TOKENS = {
-  DANNY_SPM: (process.env.NSR_SPM_TOKEN || "NSR_MOCK_SPM_TOKEN"),
-  DENI_DIVTEK: (process.env.NSR_DIVTEK_TOKEN || "NSR_MOCK_DIVTEK_TOKEN"),
-  NANANG_PENILAI: (process.env.NSR_PENILAI_NANANG_TOKEN || "NSR_MOCK_PENILAI_TOKEN"),
-  DENI_PENILAI: (process.env.NSR_PENILAI_DENI_TOKEN || "NSR_MOCK_PENILAI_TOKEN"),
+  DANNY_SPM: (process.env.NSR_SPM_TOKEN || "NSR-SPM-DANNY-2026"),
+  DENI_DIVTEK: (process.env.NSR_DIVTEK_TOKEN || "NSR-DIVTEK-DENI-2026"),
+  NANANG_PENILAI: (process.env.NSR_PENILAI_NANANG_TOKEN || "NSR-PENILAI-NANANG-2026"),
+  DENI_PENILAI: (process.env.NSR_PENILAI_DENI_TOKEN || "NSR-PENILAI-DENI-2026"),
   ADMIN_PUSAT: 'NSR-ADMIN-PUSAT-2026',
   ADMIN_BDG: 'NSR-ADMIN-BDG-2026'
 };
@@ -84,6 +84,9 @@ async function runTests() {
       method: 'POST',
       token: TOKENS.ADMIN_BDG,
       body: {
+        kodeIndustri: '07',
+        npwp: '01.234.567.8-901.000',
+        statusNpwp: 'VALID_NPWP',
         idPenugasan: testIdPenugasan,
         tujuanPenilaian: 'Agunan Perbankan',
         namaKlien: 'PT Bank Mandiri Cabang Testing',
@@ -101,6 +104,9 @@ async function runTests() {
       method: 'POST',
       token: TOKENS.ADMIN_BDG,
       body: {
+        kodeIndustri: '07',
+        npwp: '01.234.567.8-901.000',
+        statusNpwp: 'VALID_NPWP',
         idPenugasan: testIdRedFlag,
         tujuanPenilaian: 'Pengadaan Tanah',
         namaKlien: 'PT Sengketa Lahan Uji',
