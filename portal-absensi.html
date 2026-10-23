@@ -699,12 +699,12 @@
            class="text-[10px] text-slate-400 hover:text-amber-300 underline transition">
           Kebijakan Privasi Lengkap &nearr;
         </a>
-        <button type="button"
-                id="btn-konfirmasi-privasi"
-                onclick="konfirmasiPrivasiKaryawan()"
-                class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs shadow-md transition btn-tactile cursor-pointer">
-          Saya Menyetujui &amp; Lanjutkan
-        </button>
+        <button type="button" 
+        id="btn-setuju-privasi-presensi" 
+        onclick="konfirmasiSetujuPrivasi()" 
+        class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-black text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-lg shadow-amber-500/20 active:scale-95 cursor-pointer">
+  Saya Menyetujui & Lanjutkan
+</button>
       </div>
 
     </div>
@@ -1569,48 +1569,58 @@
 
     function tampilkanModalPrivasiGate() {
       isGateMode = true;
-      const modal = document.getElementById('modal-privasi-karyawan');
+      const modal = document.getElementById('modal-privasi-karyawan') || document.getElementById('modal-privacy-karyawan');
       const btnX = document.getElementById('btn-tutup-privasi-x');
       const badgeWajib = document.getElementById('badge-gate-wajib');
-      const btnKonfirmasi = document.getElementById('btn-konfirmasi-privasi');
+      const btnKonfirmasi = document.getElementById('btn-setuju-privasi-presensi') || document.getElementById('btn-konfirmasi-privasi');
 
       if (btnX) btnX.style.display = 'none';
       if (badgeWajib) badgeWajib.style.display = 'inline-flex';
       if (btnKonfirmasi) {
         btnKonfirmasi.textContent = 'Saya Menyetujui & Lanjutkan';
-        btnKonfirmasi.onclick = konfirmasiPrivasiKaryawan;
+        btnKonfirmasi.onclick = konfirmasiSetujuPrivasi;
       }
 
       if (modal) {
         modal.classList.remove('hidden');
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
       }
     }
 
-    function konfirmasiPrivasiKaryawan() {
+    function konfirmasiSetujuPrivasi() {
       privasiConfirmed = true;
       try {
         sessionStorage.setItem('nsr_privasi_confirmed_version', PRIVACY_NOTICE_VERSION);
         sessionStorage.setItem('nsr_privasi_confirmed_at', new Date().toISOString());
+        localStorage.setItem('nsr_presensi_privacy_ack', JSON.stringify({
+          ack: true,
+          timestamp: new Date().toISOString()
+        }));
       } catch (e) {}
 
       isGateMode = false;
-      const modal = document.getElementById('modal-privasi-karyawan');
+      const modal = document.getElementById('modal-privasi-karyawan') || document.getElementById('modal-privacy-karyawan');
       if (modal) {
         modal.classList.add('hidden');
+        modal.style.display = 'none';
         document.body.style.overflow = '';
       }
-      ambilGPS();
+      if (typeof ambilGPS === 'function') {
+        ambilGPS();
+      }
       const nikInput = document.getElementById('auth-nik-input');
       if (nikInput) nikInput.focus();
     }
+    window.konfirmasiSetujuPrivasi = konfirmasiSetujuPrivasi;
+    window.konfirmasiPrivasiKaryawan = konfirmasiSetujuPrivasi;
 
     function bukaModalPrivasiKaryawan() {
       isGateMode = false;
-      const modal = document.getElementById('modal-privasi-karyawan');
+      const modal = document.getElementById('modal-privasi-karyawan') || document.getElementById('modal-privacy-karyawan');
       const btnX = document.getElementById('btn-tutup-privasi-x');
       const badgeWajib = document.getElementById('badge-gate-wajib');
-      const btnKonfirmasi = document.getElementById('btn-konfirmasi-privasi');
+      const btnKonfirmasi = document.getElementById('btn-setuju-privasi-presensi') || document.getElementById('btn-konfirmasi-privasi');
 
       if (btnX) btnX.style.display = '';
       if (badgeWajib) badgeWajib.style.display = 'none';
@@ -1621,18 +1631,22 @@
 
       if (modal) {
         modal.classList.remove('hidden');
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
       }
     }
+    window.bukaModalPrivasiKaryawan = bukaModalPrivasiKaryawan;
 
     function tutupModalPrivasiKaryawan() {
       if (isGateMode && !privasiConfirmed) return;
-      const modal = document.getElementById('modal-privasi-karyawan');
+      const modal = document.getElementById('modal-privasi-karyawan') || document.getElementById('modal-privacy-karyawan');
       if (modal) {
         modal.classList.add('hidden');
+        modal.style.display = 'none';
         document.body.style.overflow = '';
       }
     }
+    window.tutupModalPrivasiKaryawan = tutupModalPrivasiKaryawan;
 
     // Inisialisasi awal saat dokumen siap
     if (document.readyState === 'loading') {
