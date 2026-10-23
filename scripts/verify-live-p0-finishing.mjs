@@ -25,7 +25,7 @@ async function waitForLiveDeployment() {
       const nolapHtml = await fetchLiveText(`${LIVE_BASE}/portal-nolap.html`);
       const joHtml = await fetchLiveText(`${LIVE_BASE}/portal-penugasan-jo.html`);
       
-      const nolapReady = nolapHtml.includes('Meja Approval &amp; Smart Register NoLap OPINI NSR') && nolapHtml.includes('input-manual-seq');
+      const nolapReady = (nolapHtml.includes('Segmen 6 (Kode NPWP 1/0)') || nolapHtml.includes('KODE SEGMEN KE-6 TIDAK SAH')) && nolapHtml.includes('input-manual-seq');
       const joReady = joHtml.includes('[Ditetapkan oleh Admin Pusat saat Approval]');
 
       if (nolapReady && joReady) {
