@@ -236,6 +236,28 @@ try {
         isset($resBdgKomp['json']['pejabatBerwenang']) && strpos($resBdgKomp['json']['pejabatBerwenang'], 'Deni Siswandi') !== false,
         $resBdgKomp['raw']
     );
+    assertTest("Nama dan gelar Deni Siswandi pada otorisasi resmi konsisten 'Deni Siswandi, S.T., MAPPI' tanpa M.Ec.Dev.",
+        isset($resBdgKomp['json']['pejabatBerwenang']) && $resBdgKomp['json']['pejabatBerwenang'] === 'Deni Siswandi, S.T., MAPPI' &&
+        strpos($resBdgKomp['raw'], 'M.Ec.Dev') === false,
+        $resBdgKomp['raw']
+    );
+    assertTest("Response server memisahkan entitas penginput dan pejabat_pengesah secara eksplisit",
+        isset($resBdgKomp['json']['penginput']) && isset($resBdgKomp['json']['pejabat_pengesah']) &&
+        $resBdgKomp['json']['penginput']['nama'] !== $resBdgKomp['json']['pejabat_pengesah']['nama'] &&
+        isset($resBdgKomp['json']['waktu_pengesahan']),
+        $resBdgKomp['raw']
+    );
+    assertTest("Nama dan gelar Deni Siswandi pada otorisasi resmi konsisten 'Deni Siswandi, S.T., MAPPI' tanpa M.Ec.Dev.",
+        isset($resBdgKomp['json']['pejabatBerwenang']) && $resBdgKomp['json']['pejabatBerwenang'] === 'Deni Siswandi, S.T., MAPPI' &&
+        strpos($resBdgKomp['raw'], 'M.Ec.Dev') === false,
+        $resBdgKomp['raw']
+    );
+    assertTest("Response server memisahkan entitas penginput dan pejabat_pengesah secara eksplisit",
+        isset($resBdgKomp['json']['penginput']) && isset($resBdgKomp['json']['pejabat_pengesah']) &&
+        $resBdgKomp['json']['penginput']['nama'] !== $resBdgKomp['json']['pejabat_pengesah']['nama'] &&
+        isset($resBdgKomp['json']['waktu_pengesahan']),
+        $resBdgKomp['raw']
+    );
 
     // -------------------------------------------------------------------------
     // 5. TEST RBAC: NON-ADMIN CABANG/NON-PENILAI DITOLAK JALUR A MANDIRI (HTTP 403)
@@ -298,6 +320,28 @@ try {
     );
     assertTest("Record Mandiri Padang menyimpan audit trail pejabat dan kantor asal",
         $recPadang !== null && ($recPadang['kantorAsal'] ?? '') === 'Padang' && isset($recPadang['pejabatOtorisasi'])
+    );
+
+    // Cari record Mandiri Bandung
+    $recBandung = null;
+    foreach ($dbAfter as $r) {
+        if (($r['idPenugasan'] ?? '') === 'TEST-BDG-MANDIRI-KOMP-003') { $recBandung = $r; break; }
+    }
+    assertTest("Record Mandiri Bandung di database memisahkan penginput vs pejabat_pengesah vs waktu_pengesahan",
+        $recBandung !== null && isset($recBandung['penginput']) && isset($recBandung['pejabat_pengesah']) &&
+        $recBandung['pejabat_pengesah']['nama'] === 'Deni Siswandi, S.T., MAPPI' &&
+        isset($recBandung['waktu_pengesahan']) && isset($recBandung['audit_trail'])
+    );
+
+    // Cari record Mandiri Bandung
+    $recBandung = null;
+    foreach ($dbAfter as $r) {
+        if (($r['idPenugasan'] ?? '') === 'TEST-BDG-MANDIRI-KOMP-003') { $recBandung = $r; break; }
+    }
+    assertTest("Record Mandiri Bandung di database memisahkan penginput vs pejabat_pengesah vs waktu_pengesahan",
+        $recBandung !== null && isset($recBandung['penginput']) && isset($recBandung['pejabat_pengesah']) &&
+        $recBandung['pejabat_pengesah']['nama'] === 'Deni Siswandi, S.T., MAPPI' &&
+        isset($recBandung['waktu_pengesahan']) && isset($recBandung['audit_trail'])
     );
 
     // Cari record Pengajuan Pusat

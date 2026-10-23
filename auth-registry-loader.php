@@ -419,7 +419,7 @@ function loadPrivateAuthRegistry() {
         'd471eb92040e36990d7e68e243d132bec66aa4db636d917521a62eec4bbc03d1' => [
             'sub'               => 'deni_penilai',
             'branch'            => 'PUSAT',
-            'displayName'       => 'Deni Siswandi, S.T., MAPPI (Cert.)',
+            'displayName'       => 'Deni Siswandi, S.T., MAPPI',
             'role'              => 'PENILAI_PUBLIK',
             'roleLabel'         => 'Rekan / Penilai Publik Penanggung Jawab',
             'title'             => 'Penilai Publik Penanggung Jawab',

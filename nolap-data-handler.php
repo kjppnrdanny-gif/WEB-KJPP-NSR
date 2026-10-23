@@ -974,8 +974,8 @@ $OFFICIAL_TOKEN_HASHES = [
     '7b4f2d04563cc945fa87efa81644f7d577b30803c62518d70a237d35d2fe1b9a' => [
         'sub'               => 'deni_penilai',
         'branch'            => 'PUSAT',
-        'displayName'       => 'Deni Siswandi, S.T., MAPPI (Cert.)',
-        'nama'              => 'Deni Siswandi, S.T., MAPPI (Cert.)',
+        'displayName'       => 'Deni Siswandi, S.T., MAPPI',
+        'nama'              => 'Deni Siswandi, S.T., MAPPI',
         'email'             => 'deni.siswandi@kjppnanangrahayu.com',
         'wa'                => '081381909504',
         'izinMenkeu'        => 'P-1.20.00581',
@@ -1071,8 +1071,8 @@ $OFFICIAL_TOKEN_HASHES = [
     '8b5420d9942829d62967b099a1049a1f36e05d173eac6cd6217fbfe403004c96' => [
         'sub'               => 'deni_penilai',
         'branch'            => 'PUSAT',
-        'displayName'       => 'Deni Siswandi, S.T., MAPPI (Cert.)',
-        'nama'              => 'Deni Siswandi, S.T., MAPPI (Cert.)',
+        'displayName'       => 'Deni Siswandi, S.T., MAPPI',
+        'nama'              => 'Deni Siswandi, S.T., MAPPI',
         'email'             => 'deni.siswandi@kjppnanangrahayu.com',
         'wa'                => '081381909504',
         'izinMenkeu'        => 'P-1.20.00581',
@@ -1435,7 +1435,7 @@ function cariMasterPenilaiPublik($mastersDir, $identifier) {
     if (empty($penilais)) {
         $penilais = [
             ['id' => 'nanang_penilai', 'nama' => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', 'izin_segmen' => '0218', 'klasifikasi' => 'P', 'email' => 'nanang.rahayu@kjppnanangrahayu.com'],
-            ['id' => 'deni_penilai', 'nama' => 'Deni Siswandi, S.T., MAPPI (Cert.)', 'izin_segmen' => '00581', 'klasifikasi' => 'P', 'email' => 'deni.siswandi@kjppnanangrahayu.com'],
+            ['id' => 'deni_penilai', 'nama' => 'Deni Siswandi, S.T., MAPPI', 'izin_segmen' => '00581', 'klasifikasi' => 'P', 'email' => 'deni.siswandi@kjppnanangrahayu.com'],
             ['id' => 'hernita_penilai', 'nama' => 'Hernita, S.Si., MAPPI (Cert.)', 'izin_segmen' => '00046', 'klasifikasi' => 'PS', 'email' => 'hernita@kjppnanangrahayu.com'],
             ['id' => 'amin_penilai', 'nama' => 'Muhammad Amin Sade, S.M., MAPPI (Cert.)', 'izin_segmen' => '00126', 'klasifikasi' => 'PS', 'email' => 'amin.sade@kjppnanangrahayu.com'],
             ['id' => 'dharma_penilai', 'nama' => 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)', 'izin_segmen' => '00249', 'klasifikasi' => 'PS', 'email' => 'dharma.priyanto@kjppnanangrahayu.com']
@@ -3709,7 +3709,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $rawDitunjuk = $payload['penilaiPublikDitunjuk'] ?? '';
         $pObj = cariMasterPenilaiPublik($mastersDir, $penilaiId ?: $rawDitunjuk);
         $penilaiId = $pObj['id'] ?? 'deni_penilai';
-        $penilaiDitunjuk = $payload['penilaiPublikDitunjuk'] ?? ($pObj['nama'] ?? 'Deni Siswandi, S.T., MAPPI (Cert.)');
+        $penilaiDitunjuk = $payload['penilaiPublikDitunjuk'] ?? ($pObj['nama'] ?? 'Deni Siswandi, S.T., MAPPI');
         $checklist = $payload['checklistAwal'] ?? [];
 
         // Evaluasi Red Flag & Konflik Kepentingan
@@ -4175,7 +4175,7 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
                 'kode_kantor' => '2.0160-04',
                 'klasifikasi_cabang' => 'PP',
                 'rekan_id' => 'deni_penilai',
-                'rekan_nama' => 'Deni Siswandi, S.T., MAPPI (Cert.)',
+                'rekan_nama' => 'Deni Siswandi, S.T., MAPPI',
                 'rekan_izin' => 'P-1.20.00581',
                 'rekan_klasifikasi' => 'P',
                 'allowed_services' => ['PROPERTY', 'PROPERTY_SIMPLE', 'P', 'PS']
@@ -4390,6 +4390,48 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         $pejabatIzin = $branchConfig['rekan_izin'];
         $pejabatOtorisasi = "Pimpinan Cabang {$matchedBranchKey} ({$pejabatNama})";
 
+        // Audit Trail Pemisahan Kewenangan Ketat:
+        // Admin Cabang sebagai petugas administrasi tidak otomatis memiliki kewenangan profesional.
+        // Penerbitan resmi wajib didasarkan pada persetujuan Pimpinan Cabang yang berwenang atau delegasi sah.
+        $waktuInput = $payload['tanggalInput'] ?? ($payload['waktu_input'] ?? ($payload['created_at'] ?? $nowWib));
+        $penginputNama = trim($payload['pengaju']['nama'] ?? ($payload['pengaju_nama'] ?? ($currentUser['nama'] ?? $userDisplayName)));
+        $penginputNik = trim($payload['pengaju']['nik'] ?? ($payload['pengaju_nik'] ?? ($currentUser['nik'] ?? '-')));
+        $penginputJabatan = trim($payload['pengaju']['jabatan'] ?? ($payload['pengaju_jabatan'] ?? ($userRole === 'ADMIN_CABANG' ? 'Petugas Administrasi Cabang' : $userRole)));
+        $penginputEmail = trim($payload['pengaju']['email'] ?? ($payload['pengaju_email'] ?? ($currentUser['email'] ?? '')));
+        $penginputWa = trim($payload['pengaju']['whatsapp_number'] ?? ($payload['pengaju_wa'] ?? ($currentUser['whatsapp_number'] ?? '')));
+
+        $penginputData = [
+            'id' => $currentUser['sub'] ?? ($payload['pengaju']['nik'] ?? 'staf_cabang'),
+            'nama' => $penginputNama,
+            'nik' => $penginputNik,
+            'jabatan' => $penginputJabatan,
+            'kantor' => "Kantor Cabang {$matchedBranchKey}",
+            'role' => $userRole,
+            'waktu_input' => $waktuInput
+        ];
+
+        $pejabatPengesah = [
+            'id' => $branchConfig['rekan_id'],
+            'nama' => $pejabatNama,
+            'izin' => $pejabatIzin,
+            'jabatan' => "Pimpinan Cabang {$matchedBranchKey}",
+            'klasifikasi_profesional' => $branchConfig['klasifikasi_cabang'],
+            'dasar_kewenangan' => "PMK 101/2014 & SPI 204 — Otorisasi Rekan Pemimpin Cabang {$matchedBranchKey} (Izin No. {$pejabatIzin})",
+            'status_persetujuan' => 'DISETUJUI_PIMPINAN_CABANG',
+            'waktu_pengesahan' => $nowWib
+        ];
+
+        $auditTrailItem = [
+            'waktu' => $nowWib,
+            'aksi' => 'PENERBITAN_RESMI_MANDIRI_CABANG',
+            'jalur' => 'MANDIRI_CABANG',
+            'penginput' => $penginputData,
+            'pejabat_pengesah' => $pejabatPengesah,
+            'waktu_input' => $waktuInput,
+            'waktu_pengesahan' => $nowWib,
+            'keterangan' => "Nomor SPK {$nomorLpResmi} & JO {$nomorAdmResmi} disahkan atas persetujuan Pimpinan Cabang {$matchedBranchKey} ({$pejabatNama}). Petugas administrasi cabang ({$penginputNama}) bertindak sebagai penginput data."
+        ];
+
         $dgEntry = [
             'idPenugasan' => $idPenugasan,
             'noPermintaan' => $payload['noPermintaan'] ?? $idPenugasan,
@@ -4410,6 +4452,11 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
             'disetujui_oleh' => $pejabatOtorisasi,
             'pejabatOtorisasi' => $pejabatOtorisasi,
             'pejabat_otorisasi' => $pejabatOtorisasi,
+            'penginput' => $penginputData,
+            'pejabat_pengesah' => $pejabatPengesah,
+            'waktu_input' => $waktuInput,
+            'waktu_pengesahan' => $nowWib,
+            'audit_trail' => [$auditTrailItem],
             'tujuanPenilaian' => $payload['tujuanPenilaian'] ?? ($payload['tujuan_penilaian'] ?? 'Agunan Bank'),
             'jenisObjek' => $payload['jenisObjek'] ?? ($payload['jenis_objek'] ?? 'Properti'),
             'namaKlien' => $payload['namaKlien'] ?? ($payload['pemberi_tugas_nama'] ?? 'Klien'),
@@ -4428,6 +4475,10 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
                 'nomorLpResmi' => $nomorLpResmi,
                 'nomorAdmResmi' => $nomorAdmResmi,
                 'diterbitkanPada' => $nowWib,
+                'waktu_input' => $waktuInput,
+                'waktu_pengesahan' => $nowWib,
+                'penginput' => $penginputData,
+                'pejabat_pengesah' => $pejabatPengesah,
                 'diterbitkanOleh' => $pejabatOtorisasi,
                 'pejabatBerwenang' => $pejabatNama,
                 'nomorIzinPejabat' => $pejabatIzin,
@@ -4452,13 +4503,17 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
 
         echo json_encode([
             'success' => true,
-            'message' => "Nomor Lingkup Penugasan (SPK) & Job Order resmi Mandiri Cabang {$matchedBranchKey} berhasil diterbitkan dan disimpan secara resmi di server.",
+            'message' => "Nomor Lingkup Penugasan (SPK) & Job Order resmi Mandiri Cabang {$matchedBranchKey} berhasil disahkan oleh Pimpinan Cabang ({$pejabatNama}) dan disimpan secara resmi di server.",
             'idPenugasan' => $idPenugasan,
             'status' => 'APPROVED',
             'status_approval' => 'APPROVED_CABANG',
             'jalur' => 'MANDIRI_CABANG',
             'nomorLpResmi' => $nomorLpResmi,
             'nomorAdmResmi' => $nomorAdmResmi,
+            'penginput' => $penginputData,
+            'pejabat_pengesah' => $pejabatPengesah,
+            'waktu_input' => $waktuInput,
+            'waktu_pengesahan' => $nowWib,
             'diterbitkanOleh' => $pejabatOtorisasi,
             'pejabatBerwenang' => $pejabatNama,
             'nomorIzinPejabat' => $pejabatIzin,

@@ -34,7 +34,7 @@ function buildMergeTagsDictionary(array $record): array {
         $penilaiDefault = 'Hernita, S.E., M.Si.';
         $izinDefault = 'PS.0046';
     } elseif (strpos($c, 'bandung') !== false) {
-        $penilaiDefault = 'Deni Siswandi, S.T., M.Ec.Dev.';
+        $penilaiDefault = 'Deni Siswandi, S.T., MAPPI';
         $izinDefault = '00581';
     } elseif (strpos($c, 'palembang') !== false) {
         $penilaiDefault = 'Dharma Priyanto Sih Budi Susilo';
