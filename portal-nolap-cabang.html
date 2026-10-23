@@ -1054,7 +1054,13 @@
       if (segIzin) segIzin.innerText = izinRekan;
       if (segWaktu) segWaktu.innerText = romawi + '/' + thn;
 
-      const formatDefinitif = seqDefinitif + '/' + kodeKantor + '/' + jenisJasa + '/' + industri + '/' + izinRekan + '/1/' + romawi + '/' + thn;
+      const inpNpwp = document.getElementById('pemberi_tugas_npwp')?.value.trim() || '';
+      let kodeNpwp = '0';
+      if (inpNpwp && inpNpwp !== '-' && !inpNpwp.toLowerCase().includes('non') && !inpNpwp.toLowerCase().includes('tidak')) {
+        const cleanDigits = inpNpwp.replace(/\D/g, '');
+        kodeNpwp = cleanDigits.length >= 10 ? '1' : '0';
+      }
+      const formatDefinitif = seqDefinitif + '/' + kodeKantor + '/' + jenisJasa + '/' + industri + '/' + izinRekan + '/' + kodeNpwp + '/' + romawi + '/' + thn;
       if (liveNomor) liveNomor.innerText = formatDefinitif;
     }
 

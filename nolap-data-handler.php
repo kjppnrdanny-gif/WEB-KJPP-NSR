@@ -62,11 +62,78 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// =============================================================
+// KEAMANAN P0: TOLAK OTORISASI VIA QUERY PARAMETER URL
+// =============================================================
+if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'error'   => 'Akses Ditolak: Autentikasi melalui parameter URL (query string) dilarang demi keamanan sistem.'
+    ]);
+    exit;
+}
+
+// =============================================================
+// KEAMANAN P0: PENCABUTAN SESI KOMPROMI (SESSION REVOCATION BLACKLIST)
+// =============================================================
+$REVOKED_SESSION_IDS = [
+    '66c3e90cae0df094bda66fa99602fb18',
+    'bcd790d3a97f63d115f3bd06f59bb84d',
+    '8a12b1ef6a7dd5895c2369261633f637'
+];
+$currentSessionId = session_id();
+if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
+    $_SESSION = [];
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+    session_destroy();
+    http_response_code(401);
+    echo json_encode([
+        'success'       => false,
+        'authenticated' => false,
+        'error'         => 'Sesi telah dicabut demi keamanan (Revoked Session). Silakan masuk kembali.'
+    ]);
+    exit;
+}
+
+// =============================================================
+// KEAMANAN P0: PROTEKSI CSRF PADA AKSI MUTASI DATA
+// =============================================================
+if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD', 'OPTIONS'], true)) {
+    if (empty($_SERVER['HTTP_X_NSR_SERVICE_KEY'])) {
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $allowedHosts = ['kjppnanangrahayu.com', 'www.kjppnanangrahayu.com', 'localhost', '127.0.0.1'];
+        if ($host && !in_array($host, $allowedHosts, true)) {
+            $allowedHosts[] = $host;
+        }
+        $targetUrl = $origin ?: $referer;
+        if ($targetUrl) {
+            $parsedHost = parse_url($targetUrl, PHP_URL_HOST);
+            if (!$parsedHost || !in_array(strtolower($parsedHost), $allowedHosts, true)) {
+                http_response_code(403);
+                echo json_encode([
+                    'success' => false,
+                    'error'   => 'CSRF Validation Failed: Permintaan ditolak karena berasal dari domain luar yang tidak diizinkan.'
+                ]);
+                exit;
+            }
+        }
+    }
+}
+
 // -------------------------------------------------------------
 // 1. DATA TOKENS RESMI UNTUK VALIDASI API / BEARER / HEADER
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
-        // KREDENSIAL RESMI SUPER ADMIN — KING (NSR8899)
+        // KREDENSIAL RESMI SUPER ADMIN (KING)
     '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' => [
         'sub'               => 'super_admin_king',
         'branch'            => 'PUSAT',
@@ -149,7 +216,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'tokenHash'         => '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c'
     ],
-        // KREDENSIAL RESMI ADMIN PUSAT (NSR-ADM-2026)
+        // KREDENSIAL RESMI ADMIN PUSAT
     '116f1fc38a65e1f069d617ef30be1bd2c693e9cb69950ea475a694af2594dd99' => [
         'sub'               => 'cabang_jkt_adm',
         'branch'            => 'PUSAT',
@@ -805,7 +872,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'permissions'       => ['spm.review', 'opr.view']
     ],
-    // Token Header: NSR-DIVTEK-2026 (Kepala Divisi Teknik - Deni Siswandi)
+    // Kepala Divisi Teknik - Deni Siswandi
     'dd978492a43a62cdfaf0526c90957ae6443be71f7459a6dbcb4014ed3e4c24fb' => [
         'sub'               => 'deni_divtek',
         'branch'            => 'PUSAT',
@@ -829,7 +896,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'permissions'       => ['divtek.review', 'opr.view']
     ],
-    // Token Header: NSR-DIVTEK-DENI-2026 (Alias Kompatibilitas Transisi)
+    // Kepala Divisi Teknik (Alias)
     '718d4e13ec07cd7c24c605c78bd0cb9485f0e199b9d79711a5c2557b10ca6c25' => [
         'sub'               => 'deni_divtek',
         'branch'            => 'PUSAT',
@@ -853,7 +920,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'permissions'       => ['divtek.review', 'opr.view']
     ],
-    // Token Header: NSR-NARA-2026 (Penilai Publik - Ir. Nanang Rahayu)
+    // Penilai Publik - Ir. Nanang Rahayu
     '4bb9bd103f256473cb840ba504388c65150d01ffec55ddc58ae12c6bbf67199f' => [
         'sub'               => 'nanang_penilai',
         'branch'            => 'PUSAT',
@@ -877,7 +944,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'permissions'       => ['report.sign', 'opr.view']
     ],
-    // Token Header: NSR-PENILAI-NANANG-2026 (Alias Kompatibilitas)
+    // Penilai Publik (Alias)
     'bf4963975e153a898bf6547f5528383dce9969a058146311141c9a41f969ada6' => [
         'sub'               => 'nanang_penilai',
         'branch'            => 'PUSAT',
@@ -901,7 +968,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'mode'              => 'PUSAT',
         'permissions'       => ['report.sign', 'opr.view']
     ],
-    // Token Header: NSR-DUS-2026 (Penilai Publik - Deni Siswandi, Terpisah dari Divtek!)
+    // Penilai Publik - Deni Siswandi (Terpisah dari Divtek)
     '7b4f2d04563cc945fa87efa81644f7d577b30803c62518d70a237d35d2fe1b9a' => [
         'sub'               => 'deni_penilai',
         'branch'            => 'PUSAT',
@@ -1137,40 +1204,67 @@ $OFFICIAL_TOKEN_HASHES = [
 ];
 
 // -------------------------------------------------------------
+
+$sessionsDir = __DIR__ . '/data/sessions';
+$sessionsFile = $sessionsDir . '/active_sessions.json';
+
+function verifikasiSesiServerNoLap($sessionsFile, $sessionToken) {
+    if (!$sessionToken || !file_exists($sessionsFile)) return null;
+    $data = json_decode(@file_get_contents($sessionsFile), true);
+    if (!is_array($data) || !isset($data[$sessionToken])) return null;
+    $sess = $data[$sessionToken];
+    if (($sess['expiresAt'] ?? 0) < time() * 1000) {
+        return null;
+    }
+    return $sess['user'] ?? null;
+}
+
 // 2. VERIFIKASI AUTENTIKASI PENGGUNA (FAIL-CLOSED)
 // -------------------------------------------------------------
 $currentUser = null;
 
-// A. Dari Sesi PHP (NSR_SESSION)
+// A. Dari Sesi PHP (NSR_SESSION) yang belum dicabut
 if (isset($_SESSION['nsr_user']) && is_array($_SESSION['nsr_user'])) {
     $loginTime = $_SESSION['nsr_login_time'] ?? 0;
-    if (time() - $loginTime < 28800) {
+    $sessToken = $_SESSION['nsr_session_token'] ?? null;
+    $isSessValid = true;
+    if ($sessToken && file_exists($sessionsFile)) {
+        $isSessValid = (verifikasiSesiServerNoLap($sessionsFile, $sessToken) !== null);
+    }
+    if ($isSessValid && (time() - $loginTime < 28800)) {
         $currentUser = $_SESSION['nsr_user'];
     }
 }
 
-// B. Dari Authorization Header (Bearer Token)
+// B. Dari Authorization Header (Bearer Token / Session Token)
 if (!$currentUser) {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
     if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $matches)) {
         $token = trim($matches[1]);
-        $tHash = hash('sha256', strtoupper($token));
-        if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
-            $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
+        $sessUser = verifikasiSesiServerNoLap($sessionsFile, $token);
+        if ($sessUser) {
+            $currentUser = $sessUser;
+        } else {
+            $tHash = hash('sha256', strtoupper($token));
+            if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
+                $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
+            }
         }
     }
 }
 
-// C. Dari Header X-NSR-Token
+// C. Dari Header X-NSR-Session-Token atau X-NSR-Token
 if (!$currentUser) {
-    $customToken = $_SERVER['HTTP_X_NSR_TOKEN'] ?? $_SERVER['HTTP_X_INTERNAL_TOKEN'] ?? $_GET['token'] ?? '';
-    if ($customToken) {
-        $trimmed = trim($customToken);
-        // AUDIT KEAMANAN GAP ANALYSIS 2026: Hanya menerima secret token mentah, lalu di-hash di server.
-        // DILARANG menerima string hash SHA-256 langsung sebagai kredensial autentikasi!
-        $tHash = hash('sha256', strtoupper($trimmed));
-        if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
-            $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
+    $incomingToken = trim($_SERVER['HTTP_X_NSR_SESSION_TOKEN'] ?? $_SERVER['HTTP_X_NSR_TOKEN'] ?? $_SERVER['HTTP_X_INTERNAL_TOKEN'] ?? $_GET['session_token'] ?? $_GET['token'] ?? '');
+    if ($incomingToken) {
+        $sessUser = verifikasiSesiServerNoLap($sessionsFile, $incomingToken);
+        if ($sessUser) {
+            $currentUser = $sessUser;
+        } else {
+            $tHash = hash('sha256', strtoupper($incomingToken));
+            if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
+                $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
+            }
         }
     }
 }
@@ -1380,12 +1474,35 @@ function muatMasterSektorIndustri($mastersDir) {
 }
 
 function resolveKodeIndustri($inputKode) {
+    if ($inputKode === null || trim((string)$inputKode) === '' || trim((string)$inputKode) === '--') {
+        return null;
+    }
     $clean = str_pad(preg_replace('/\D/', '', (string)$inputKode), 2, '0', STR_PAD_LEFT);
     $intVal = (int)$clean;
     if ($intVal >= 1 && $intVal <= 12) {
         return $clean;
     }
-    return '07'; // Default Sektor 07 Perbankan KJPP NSR
+    return null; // DILARANG KERAS FALLBACK DIAM-DIAM KE '07'! Harus null jika di luar rentang master 01-12.
+}
+
+function resolveKodeNpwpKlien($npwpRaw, $statusNpwp = '') {
+    if ($npwpRaw === '1' || $npwpRaw === 1 || $statusNpwp === 'BER_NPWP' || $statusNpwp === '1') {
+        return '1';
+    }
+    if ($npwpRaw === '0' || $npwpRaw === 0 || $statusNpwp === 'NON_NPWP' || $statusNpwp === '0') {
+        return '0';
+    }
+    if ($npwpRaw !== null && trim((string)$npwpRaw) !== '' && trim((string)$npwpRaw) !== '-') {
+        $str = strtolower(trim((string)$npwpRaw));
+        if (strpos($str, 'non') !== false || strpos($str, 'tidak') !== false || strpos($str, 'tanpa') !== false) {
+            return '0';
+        }
+        $cleanDigits = preg_replace('/\D/', '', (string)$npwpRaw);
+        if (strlen($cleanDigits) >= 10) {
+            return '1';
+        }
+    }
+    return '0';
 }
 
 function resolveReportServiceCode($classificationInput) {
@@ -3460,6 +3577,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'submitGerbang1Awal') {
         $idPenugasan = trim($payload['idPenugasan'] ?? ('NSR-' . date('Y') . '-' . strtoupper(substr(md5(uniqid()), 0, 6))));
+        
+        // Validasi Wajib Sektor Industri Master 01-12 pada Gerbang 1
+        $rawIndG1 = $payload['kodeIndustri'] ?? ($payload['kode_industri'] ?? ($payload['sektorIndustri'] ?? ''));
+        $cleanIndG1 = resolveKodeIndustri($rawIndG1);
+        if (!$cleanIndG1) {
+            http_response_code(422);
+            echo json_encode([
+                'success' => false,
+                'error' => "Validasi Sektor Industri Gagal: Kode Industri ('{$rawIndG1}') tidak valid atau belum dipilih. Wajib memilih salah satu kode resmi dari Master Sektor Industri Kemenkeu/KJPP NSR (01-12). Fallback otomatis dinonaktifkan.",
+                'violation' => 'INVALID_OR_MISSING_INDUSTRY_CODE'
+            ]);
+            exit;
+        }
+        $payload['kodeIndustri'] = $cleanIndG1;
+        $rawNpwpG1 = $payload['npwp'] ?? ($payload['npwpKlien'] ?? '');
+        $statusNpwpG1 = $payload['statusNpwp'] ?? '';
+        $payload['kodeNpwp'] = resolveKodeNpwpKlien($rawNpwpG1, $statusNpwpG1);
         $tujuan = $payload['tujuanPenilaian'] ?? 'Agunan Perbankan';
         $objek = $payload['jenisObjek'] ?? 'Tanah dan Bangunan';
         $klien = $payload['namaKlien'] ?? 'Bank Rekanan';
@@ -3509,6 +3643,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         
+        // Validasi Wajib Sektor Industri Master 01-12 pada Gerbang 1
+        $rawIndG1 = $payload['kodeIndustri'] ?? ($payload['kode_industri'] ?? ($payload['sektorIndustri'] ?? ''));
+        $cleanIndG1 = resolveKodeIndustri($rawIndG1);
+        if (!$cleanIndG1) {
+            http_response_code(422);
+            echo json_encode([
+                'success' => false,
+                'error' => "Validasi Sektor Industri Gagal: Kode Industri ('{$rawIndG1}') tidak valid atau belum dipilih. Wajib memilih salah satu kode resmi dari Master Sektor Industri Kemenkeu/KJPP NSR (01-12). Fallback otomatis dinonaktifkan.",
+                'violation' => 'INVALID_OR_MISSING_INDUSTRY_CODE'
+            ]);
+            exit;
+        }
+        $payload['kodeIndustri'] = $cleanIndG1;
+
         // P0 HOTFIX: Validasi Mandatory & Snapshot Kontak Pengaju Manual (Anti-Autofill)
         $reqInput = is_array($payload['pengaju'] ?? null) ? $payload['pengaju'] : (is_array($payload['requester'] ?? null) ? $payload['requester'] : []);
         $reqNama = trim($reqInput['nama'] ?? ($payload['namaPemohon'] ?? ($payload['pengaju_nama'] ?? ($payload['nama_pengaju'] ?? ''))));
@@ -4582,10 +4730,25 @@ Silakan menerbitkan Nomor Laporan Definitif resmi."
             $penilaiIzin = $dgRecords[$targetIdx]['penugasan']['appraiserLicenseCode'] ?? ($pObjResolved['izin_segmen'] ?? '00581');
             $targetServiceInput = $dgRecords[$targetIdx]['penugasan']['service_classification_id'] ?? $dgRecords[$targetIdx]['penugasan']['klasifikasiJasa'] ?? 'PROPERTY';
             $reportServiceCode = resolveReportServiceCode($targetServiceInput);
-            $targetSektor = resolveKodeIndustri($dgRecords[$targetIdx]['penugasan']['kodeIndustri'] ?? '07');
+            $rawInd = $dgRecords[$targetIdx]['penugasan']['kodeIndustri'] ?? ($dgRecords[$targetIdx]['kodeIndustri'] ?? '');
+            $targetSektor = resolveKodeIndustri($rawInd);
+            if (!$targetSektor) {
+                if (isset($fpLock) && $fpLock) { flock($fpLock, LOCK_UN); fclose($fpLock); }
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'error' => "Validasi Kode Industri Gagal: Kode sektor industri penugasan ('{$rawInd}') tidak valid atau kosong. Wajib dipilih dari master 01-12.",
+                    'violation' => 'INVALID_OR_MISSING_INDUSTRY_CODE'
+                ]);
+                exit;
+            }
             // P0 COMPLIANCE: Segmen 3 HANYA boleh PI, BS, atau PP (Dilarang keras PS!)
             if ($reportServiceCode === 'PS') { $reportServiceCode = 'PI'; }
-            $noDefinitif = "{$seq}/{$signingCode}/{$reportServiceCode}/{$targetSektor}/{$penilaiIzin}/1/{$romawiBulan}/" . date('Y');
+            // P0 KODE NPWP: Segmen 6 wajib bernilai '1' atau '0' dinamis dari status NPWP terverifikasi
+            $rawNpwp = $dgRecords[$targetIdx]['klien']['npwp'] ?? ($dgRecords[$targetIdx]['npwp'] ?? ($dgRecords[$targetIdx]['penugasan']['kodeNpwp'] ?? ($dgRecords[$targetIdx]['penugasan']['npwp'] ?? '')));
+            $stNpwp = $dgRecords[$targetIdx]['klien']['statusNpwp'] ?? ($dgRecords[$targetIdx]['penugasan']['statusNpwp'] ?? '');
+            $targetKodeNpwp = resolveKodeNpwpKlien($rawNpwp, $stNpwp);
+            $noDefinitif = "{$seq}/{$signingCode}/{$reportServiceCode}/{$targetSektor}/{$penilaiIzin}/{$targetKodeNpwp}/{$romawiBulan}/" . date('Y');
         }
 
         $nowWib = date('c');
@@ -4721,8 +4884,13 @@ Mohon melakukan pemeriksaan dokumen final dan membubuhkan tanda tangan resmi di 
 
         // Secondary Re-Authentication / Confirmation MFA Key check
         $reauthKey = trim($payload['reauthKey'] ?? $_SERVER['HTTP_X_NSR_OVERRIDE_KEY'] ?? '');
-        $allowedKeys = ['NSR8899', 'KING-OVERRIDE-SECURE-2026', 'NSR-OVERRIDE-2026'];
-        if (empty($reauthKey) || !in_array($reauthKey, $allowedKeys, true)) {
+        $reauthHash = hash('sha256', strtoupper($reauthKey));
+        $allowedKeyHashes = [
+            '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0', // Super Admin King
+            'd25c371153dfe59a42d9e5d51d714b9ac304c1a49d1221dd6e7d0f7005ab7631',
+            '9ee253342c39aef0dc76c60857d85a6a4ac1694ef2292edf3161b4c61fff6bf8'
+        ];
+        if (empty($reauthKey) || !in_array($reauthHash, $allowedKeyHashes, true)) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
@@ -5153,6 +5321,25 @@ Audit Log ID: {$auditLogId}"
         }
         $payload['namaKlien'] = $namaKlien;
 
+        // Validasi Wajib Sektor Industri Master 01-12 (Anti-Silent-Fallback)
+        $rawIndReq = $payload['kodeIndustri'] ?? ($payload['kode_industri'] ?? ($payload['sektorIndustri'] ?? ''));
+        $cleanIndReq = resolveKodeIndustri($rawIndReq);
+        if (!$cleanIndReq) {
+            http_response_code(422);
+            echo json_encode([
+                'success' => false,
+                'error' => "Validasi Sektor Industri Gagal: Kode Industri ('{$rawIndReq}') tidak valid atau belum dipilih. Wajib memilih salah satu kode resmi dari Master Sektor Industri Kemenkeu/KJPP NSR (01-12). Fallback otomatis dinonaktifkan.",
+                'violation' => 'INVALID_OR_MISSING_INDUSTRY_CODE'
+            ]);
+            exit;
+        }
+        $payload['kodeIndustri'] = $cleanIndReq;
+        
+        // Simpan status NPWP klien terverifikasi
+        $rawNpwpReq = $payload['npwp'] ?? ($payload['npwpKlien'] ?? '');
+        $statusNpwpReq = $payload['statusNpwp'] ?? '';
+        $payload['kodeNpwp'] = resolveKodeNpwpKlien($rawNpwpReq, $statusNpwpReq);
+
         // P0 HOTFIX: Validasi Mandatory Kontak Pemohon Manual (Anti-Autofill)
         $namaPemohon = trim($payload['namaPemohon'] ?? ($payload['pengaju_nama'] ?? ($payload['nama_pengaju'] ?? '')));
         $emailPemohon = trim($payload['emailPemohon'] ?? ($payload['pengaju_email'] ?? ($payload['email_pengaju'] ?? '')));
@@ -5331,22 +5518,102 @@ Audit Log ID: {$auditLogId}"
                 $bulanRomawiLaporan = $romawiList[$blnIdx] ?? $bulanRomawiAlokasi;
                 $tahunLaporan = date('Y', strtotime($tglLaporanInput));
 
-                if (!empty($payload['revisiPeriodeBulanResmi']) && in_array($userRole, ['ADMIN_PUSAT', 'SUPER_ADMIN'], true)) {
-                    // Prosedur koreksi resmi oleh Admin Pusat jika disyaratkan instansi klien
+                if (!empty($payload['revisiPeriodeBulanResmi'])) {
+                    // 1. OTORISASI: Wajib Admin Pusat atau SUPER ADMIN (KING)
+                    if (!in_array($userRole, ['ADMIN_PUSAT', 'SUPER_ADMIN'], true)) {
+                        http_response_code(403);
+                        echo json_encode([
+                            'success'   => false,
+                            'error'     => 'Akses Ditolak (403 Forbidden): Koreksi periode nomor laporan booking hanya dapat disetujui oleh Admin Pusat atau SUPER ADMIN.',
+                            'violation' => 'UNAUTHORIZED_BOOKING_PERIOD_REVISION'
+                        ]);
+                        exit;
+                    }
+
+                    // 2. JUSTIFIKASI: Alasan koreksi wajib diisi
+                    $alasanKoreksi = trim($payload['alasanKoreksi'] ?? '');
+                    if (empty($alasanKoreksi) || strlen($alasanKoreksi) < 8) {
+                        http_response_code(422);
+                        echo json_encode([
+                            'success'   => false,
+                            'error'     => 'Koreksi nomor ditolak (422): Alasan justifikasi koreksi periode nomor booking wajib diisi lengkap (minimal 8 karakter).',
+                            'violation' => 'MISSING_REVISION_JUSTIFICATION'
+                        ]);
+                        exit;
+                    }
+
                     $oldNo = $records[$targetIndex]['nomorLaporan'];
                     $segsCurrentNo[6] = $bulanRomawiLaporan;
                     $segsCurrentNo[7] = $tahunLaporan;
                     $newNo = implode('/', $segsCurrentNo);
+
+                    // 3. KONTROL DUPLIKASI KETAT: Periksa apakah nomor baru sudah digunakan record lain
+                    $isDuplicateNewNo = false;
+                    $conflictOwner = '';
+                    foreach ($records as $checkIdx => $chkRec) {
+                        if ($checkIdx !== $targetIndex &&
+                            !empty($chkRec['nomorLaporan']) &&
+                            strcasecmp(trim($chkRec['nomorLaporan']), $newNo) === 0 &&
+                            ($chkRec['status'] ?? '') !== 'VOID' && ($chkRec['status'] ?? '') !== 'DIBATALKAN') {
+                            $isDuplicateNewNo = true;
+                            $conflictOwner = $chkRec['noPermintaan'] ?? 'Permohonan Lain';
+                            break;
+                        }
+                    }
+                    if (!$isDuplicateNewNo && file_exists($dualGateDbFile)) {
+                        $dgDataCheck = json_decode(@file_get_contents($dualGateDbFile), true) ?: [];
+                        foreach ($dgDataCheck as $dgItem) {
+                            $dgDef = trim($dgItem['finalisasi']['nomorLaporanDefinitif'] ?? '');
+                            if ($dgDef !== '' && strcasecmp($dgDef, $newNo) === 0 && ($dgItem['idPenugasan'] ?? '') !== ($records[$targetIndex]['idPenugasan'] ?? '')) {
+                                $isDuplicateNewNo = true;
+                                $conflictOwner = $dgItem['idPenugasan'] ?? 'Dual Gate';
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($isDuplicateNewNo) {
+                        http_response_code(409);
+                        echo json_encode([
+                            'success'   => false,
+                            'error'     => "Koreksi periode nomor booking ditolak: Nomor '{$newNo}' sudah terdaftar pada dokumen {$conflictOwner}. Blokir anti-duplikasi aktif.",
+                            'violation' => 'DUPLICATE_BOOKING_PERIOD_REVISION'
+                        ]);
+                        exit;
+                    }
+
+                    // 4. REKONSILIASI DUAL GATE DATABASE (jika ada hubungan record)
+                    if (file_exists($dualGateDbFile)) {
+                        $dgData = json_decode(@file_get_contents($dualGateDbFile), true) ?: [];
+                        $dgUpdated = false;
+                        foreach ($dgData as &$dgItem) {
+                            if (($dgItem['idPenugasan'] ?? '') === ($records[$targetIndex]['idPenugasan'] ?? '') ||
+                                ($dgItem['noPermintaan'] ?? '') === ($records[$targetIndex]['noPermintaan'] ?? '')) {
+                                $dgItem['finalisasi']['nomorLaporanDefinitif'] = $newNo;
+                                $dgItem['finalisasi']['nomorSebelumnya'] = $oldNo;
+                                $dgUpdated = true;
+                            }
+                        }
+                        if ($dgUpdated) {
+                            @file_put_contents($dualGateDbFile, json_encode($dgData, JSON_PRETTY_PRINT), LOCK_EX);
+                        }
+                    }
+
+                    // 5. PENETAPAN & AUDIT TRAIL RESMI
                     $records[$targetIndex]['nomorLaporan'] = $newNo;
                     if (!isset($records[$targetIndex]['auditTrailKoreksiBulan'])) {
                         $records[$targetIndex]['auditTrailKoreksiBulan'] = [];
                     }
                     $records[$targetIndex]['auditTrailKoreksiBulan'][] = [
-                        'waktu' => date('c'),
-                        'user' => $currentUser['nama'] ?? $userRole,
+                        'waktu'           => date('c'),
+                        'user'            => $currentUser['nama'] ?? $userDisplayName,
+                        'role'            => $userRole,
                         'nomorSebelumnya' => $oldNo,
-                        'nomorBaru' => $newNo,
-                        'alasan' => $payload['alasanKoreksi'] ?? 'Penyesuaian resmi segmen bulan pelaporan SE-6/PPPK/2018'
+                        'nomorBaru'       => $newNo,
+                        'tglLaporanInput' => $tglLaporanInput,
+                        'alasan'          => $alasanKoreksi,
+                        'approval'        => 'DISETUJUI_ADMIN_PUSAT',
+                        'reconciliation'  => 'SYNCHRONIZED_DUAL_GATE'
                     ];
                 } else {
                     // Kebijakan Standar: Pertahankan nomor alokasi awal yang mengikat kontrak SPK/SPM
@@ -5397,15 +5664,26 @@ Audit Log ID: {$auditLogId}"
             exit;
         }
 
-        // Validasi Kepatuhan SE-6/PPPK/2018: Segmen ke-6 HANYA boleh bernilai '0' atau '1' (Kode NPWP Klien)
+        // Validasi Kepatuhan SE-6/PPPK/2018: Segmen 4 (Industri 01-12) & Segmen 6 (NPWP 0/1)
         $segsNoLap = explode('/', $noLap);
         if (count($segsNoLap) >= 7) {
+            $seg4 = trim($segsNoLap[3] ?? '');
+            $validIndSeg4 = resolveKodeIndustri($seg4);
+            if (!$validIndSeg4) {
+                http_response_code(422);
+                echo json_encode([
+                    'success'   => false,
+                    'error'     => "Format nomor laporan '{$noLap}' tidak memenuhi ketentuan: Segmen ke-4 adalah Kode Industri ('{$seg4}') dan wajib bernilai '01' s/d '12' sesuai Master Baku Sektor Industri.",
+                    'violation' => 'INVALID_SEGMENT_4_INDUSTRY_CODE'
+                ]);
+                exit;
+            }
             $seg6 = trim($segsNoLap[5] ?? '');
             if ($seg6 !== '0' && $seg6 !== '1') {
                 http_response_code(422);
                 echo json_encode([
-                    'success' => false,
-                    'error' => "Format nomor laporan '{$noLap}' tidak memenuhi SE-6/PPPK/2018: Segmen ke-6 adalah Kode NPWP Klien dan HANYA boleh bernilai '1' (Ber-NPWP) atau '0' (Non-NPWP). Penggunaan huruf 'B' atau kode status booking dilarang keras pada nomor resmi Kemenkeu.",
+                    'success'   => false,
+                    'error'     => "Format nomor laporan '{$noLap}' tidak memenuhi SE-6/PPPK/2018: Segmen ke-6 adalah Kode NPWP Klien dan HANYA boleh bernilai '1' (Ber-NPWP) atau '0' (Non-NPWP). Penggunaan huruf 'B' atau kode status booking dilarang keras pada nomor resmi Kemenkeu.",
                     'violation' => 'INVALID_SEGMENT_6_NPWP_CODE'
                 ]);
                 exit;
@@ -5661,7 +5939,7 @@ Audit Log ID: {$auditLogId}"
     // D. TINDAKAN ADMINISTRATIF: RESTORE DATABASE DARI BACKUP (PROSEDUR PEMELIHARAAN KHUSUS)
     // =========================================================================
     if ($action === 'restoreBackup') {
-        if ($userRole !== 'ADMIN_PUSAT') {
+        if (!in_array($userRole, ['ADMIN_PUSAT', 'SUPER_ADMIN'], true)) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Hanya Admin Pusat yang berwenang melakukan pemulihan backup.']);
             exit;

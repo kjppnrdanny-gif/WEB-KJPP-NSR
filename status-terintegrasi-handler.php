@@ -64,6 +64,46 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// =============================================================
+// KEAMANAN P0: TOLAK OTORISASI VIA QUERY PARAMETER URL
+// =============================================================
+if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'error'   => 'Akses Ditolak: Autentikasi melalui parameter URL (query string) dilarang demi keamanan sistem.'
+    ]);
+    exit;
+}
+
+// =============================================================
+// KEAMANAN P0: PENCABUTAN SESI KOMPROMI (SESSION REVOCATION BLACKLIST)
+// =============================================================
+$REVOKED_SESSION_IDS = [
+    '66c3e90cae0df094bda66fa99602fb18',
+    'bcd790d3a97f63d115f3bd06f59bb84d',
+    '8a12b1ef6a7dd5895c2369261633f637'
+];
+$currentSessionId = session_id();
+if ($currentSessionId && in_array($currentSessionId, $REVOKED_SESSION_IDS, true)) {
+    $_SESSION = [];
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+    session_destroy();
+    http_response_code(401);
+    echo json_encode([
+        'success'       => false,
+        'authenticated' => false,
+        'error'         => 'Sesi telah dicabut demi keamanan (Revoked Session). Silakan masuk kembali.'
+    ]);
+    exit;
+}
+
 // Pencegahan Circular Request / Loopback
 if (isset($_SERVER['HTTP_X_NSR_PROXY_ORIGIN']) && $_SERVER['HTTP_X_NSR_PROXY_ORIGIN'] === 'cpanel-handler') {
     http_response_code(508);

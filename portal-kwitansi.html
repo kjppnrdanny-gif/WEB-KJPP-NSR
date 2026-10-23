@@ -1943,7 +1943,7 @@
 
     function getKwitansiAuthHeaders(extraHeaders = {}) {
       const headers = { 'Accept': 'application/json', ...extraHeaders };
-      const token = sessionStorage.getItem('NSR_AUTH_TOKEN') || (currentUser && (currentUser.token || currentUser.tokenHash));
+      const token = sessionStorage.getItem('NSR_SESSION_TOKEN') || (currentUser && (currentUser.token || currentUser.tokenHash));
       if (token) {
         headers['X-NSR-Token'] = token;
         headers['Authorization'] = `Bearer ${token}`;
@@ -3355,7 +3355,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       }
 
       try {
-        const authToken = sessionStorage.getItem('NSR_AUTH_TOKEN') || (currentUser && (currentUser.token || currentUser.tokenHash)) || '';
+        const authToken = sessionStorage.getItem('NSR_SESSION_TOKEN') || (currentUser && (currentUser.token || currentUser.tokenHash)) || '';
         const resp = await fetch(GAS_PENUGASAN_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },

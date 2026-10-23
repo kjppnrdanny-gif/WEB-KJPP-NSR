@@ -40,18 +40,41 @@ if ($isCli) {
         }
     }
 } else {
-    // Mode Web Request: Validasi Token atau Cron Key
+    // Mode Web Request: Validasi Token atau Cron Key (Strict Header & Hashes)
     header('Content-Type: application/json; charset=UTF-8');
-    $authHeader = $_SERVER['HTTP_X_NSR_TOKEN'] ?? $_GET['token'] ?? '';
-    $validTokens = ['NSR-PST-2026', 'CRON_NSR_SECURE_KEY_2026', 'NSR8899', 'NSR-ADMIN-PUSAT-2026'];
-    if (!in_array($authHeader, $validTokens, true) && !in_array(hash('sha256', $authHeader), [
-        '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0',
-        '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f'
-    ], true)) {
+
+    // Tolak query parameter URL
+    if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Otorisasi melalui query parameter URL dilarang demi keamanan.']);
+        exit;
+    }
+
+    $authHeader = trim($_SERVER['HTTP_X_NSR_TOKEN'] ?? $_SERVER['HTTP_X_NSR_SERVICE_KEY'] ?? '');
+    if (!$authHeader) {
+        $rawAuth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        if (preg_match('/Bearer\s+(\S+)/i', $rawAuth, $m)) {
+            $authHeader = trim($m[1]);
+        }
+    }
+
+    $incomingHash = hash('sha256', strtoupper($authHeader));
+    $validWorkerHashes = [
+        '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0', // Super Admin King
+        '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f', // Super Admin King Salted
+        '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2', // Admin PST
+        '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c', // Admin PST Salted
+        '116f1fc38a65e1f069d617ef30be1bd2c693e9cb69950ea475a694af2594dd99', // Admin Pusat
+        '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04', // Admin Pusat Salted
+        '1eca319685157819193cdb1a220c30b58773534c54dbb244afab8243e779d734'                             // Dedicated Service Key
+    ];
+
+    if (!$authHeader || !in_array($incomingHash, $validWorkerHashes, true)) {
         http_response_code(401);
         echo json_encode(['success' => false, 'error' => 'Akses Ditolak: Token otorisasi worker email tidak sah.']);
         exit;
     }
+    
     if (isset($_GET['dry_run']) && $_GET['dry_run'] === 'true') $dryRun = true;
     if (isset($_GET['mock']) && $_GET['mock'] === 'true') $mockMode = true;
     if (isset($_GET['limit'])) $batchLimit = max(1, min(20, (int)$_GET['limit']));

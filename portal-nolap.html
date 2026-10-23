@@ -13729,14 +13729,14 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       const payload = { nama, nik, office_id, jabatan, divisi, email, whatsapp_number, alasan_pengajuan };
 
       try {
-        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        const sessionTokenVal = (sesiAktif && sesiAktif.sessionToken) ? sesiAktif.sessionToken : (sessionStorage.getItem('NSR_SESSION_TOKEN') || '');
         const res = await fetch('/api/nolap-data-proxy?action=submitRegistrasiPersonel', {
           credentials: 'include',
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+            ...(sessionTokenVal ? { 'X-NSR-Session-Token': sessionTokenVal } : {})
           },
           body: JSON.stringify(payload)
         });
@@ -15558,7 +15558,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       };
 
       try {
-        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        const sessionTokenVal = (sesiAktif && sesiAktif.sessionToken) ? sesiAktif.sessionToken : (sessionStorage.getItem('NSR_SESSION_TOKEN') || '');
         let json = {};
         try {
           // Kirim ke backend proxy cPanel resmi (/api/nolap-data-proxy)
@@ -15568,7 +15568,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
             headers: {
               'content-type': 'application/json',
               'accept': 'application/json',
-              ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+              ...(sessionTokenVal ? { 'X-NSR-Session-Token': sessionTokenVal } : {})
             },
             credentials: 'include',
             body: JSON.stringify({
@@ -15735,13 +15735,13 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
 
     async function sinkronkanDariServerProxy() {
       try {
-        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        const sessionTokenVal = (sesiAktif && sesiAktif.sessionToken) ? sesiAktif.sessionToken : (sessionStorage.getItem('NSR_SESSION_TOKEN') || '');
         const res = await fetch('/api/nolap-data-proxy', {
           method: 'GET',
           credentials: 'include',
           headers: {
             'accept': 'application/json',
-            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+            ...(sessionTokenVal ? { 'X-NSR-Session-Token': sessionTokenVal } : {})
           },
           credentials: 'include'
         });
@@ -16387,13 +16387,13 @@ function resolveIzinPenilaiDisplay(p) {
 
       // Sinkronisasi ke backend proxy server
       try {
-        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        const sessionTokenVal = (sesiAktif && sesiAktif.sessionToken) ? sesiAktif.sessionToken : (sessionStorage.getItem('NSR_SESSION_TOKEN') || '');
         fetch('/api/nolap-data-proxy', {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
             'accept': 'application/json',
-            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+            ...(sessionTokenVal ? { 'X-NSR-Session-Token': sessionTokenVal } : {})
           },
           credentials: 'include',
           body: JSON.stringify({
@@ -16508,13 +16508,13 @@ function resolveIzinPenilaiDisplay(p) {
 
       // Kirim ke backend proxy cPanel (akan mengantrekan email asynchronous)
       try {
-        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        const sessionTokenVal = (sesiAktif && sesiAktif.sessionToken) ? sesiAktif.sessionToken : (sessionStorage.getItem('NSR_SESSION_TOKEN') || '');
         await fetch('/api/nolap-data-proxy', {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
             'accept': 'application/json',
-            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+            ...(sessionTokenVal ? { 'X-NSR-Session-Token': sessionTokenVal } : {})
           },
           credentials: 'include',
           body: JSON.stringify({
@@ -16786,13 +16786,13 @@ ${(item['File Laporan Penilaian'] || item.linkLaporan || item.linkDrive) ? `
       item.statusElsa = statusElsa;
 
       try {
-        const tokenVal = (sesiAktif && (sesiAktif.token || sesiAktif.tokenHash)) ? (sesiAktif.token || sesiAktif.tokenHash) : (sessionStorage.getItem('NSR_AUTH_TOKEN') || '');
+        const sessionTokenVal = (sesiAktif && sesiAktif.sessionToken) ? sesiAktif.sessionToken : (sessionStorage.getItem('NSR_SESSION_TOKEN') || '');
         const res = await fetch('/api/nolap-data-proxy?action=verifyElsaQrReport', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            ...(tokenVal ? { 'X-NSR-Token': tokenVal } : {})
+            ...(sessionTokenVal ? { 'X-NSR-Session-Token': sessionTokenVal } : {})
           },
           body: JSON.stringify({
             noPermintaan: reqId,
@@ -21745,7 +21745,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || ''
+            'X-NSR-Session-Token': auth?.sessionToken || ''
           },
           body: JSON.stringify(payload)
         });
@@ -21837,7 +21837,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || ''
+            'X-NSR-Session-Token': auth?.sessionToken || ''
           },
           body: JSON.stringify({
             idPenugasan: g2ActiveReviewItem.idPenugasan,
@@ -21872,7 +21872,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || ''
+            'X-NSR-Session-Token': auth?.sessionToken || ''
           },
           body: JSON.stringify({ idPenugasan: idPenugasan })
         });
@@ -21899,7 +21899,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || ''
+            'X-NSR-Session-Token': auth?.sessionToken || ''
           },
           body: JSON.stringify({ idPenugasan: idPenugasan, metodeTandaTangan: 'DIGITAL_VERIFIED' })
         });
@@ -21958,7 +21958,7 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'X-NSR-Token': auth?.token || auth?.sessionToken || reauthKey,
+            'X-NSR-Session-Token': auth?.sessionToken || '',
             'X-NSR-Override-Key': reauthKey
           },
           body: JSON.stringify({
