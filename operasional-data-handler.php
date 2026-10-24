@@ -1439,7 +1439,19 @@ function resolveCurrentUser($officialTokenHashes) {
             }
         }
         if ($isSessValid && (time() - $loginTime < 28800)) {
-            return $_SESSION['nsr_user'];
+            $sessUser = $_SESSION['nsr_user'];
+            $tHash = $sessUser['tokenHash'] ?? '';
+            if ($tHash && isset($officialTokenHashes[$tHash])) {
+                $sessUser = array_merge($sessUser, $officialTokenHashes[$tHash]);
+                $_SESSION['nsr_user'] = $sessUser;
+            }
+            if (($sessUser['sub'] ?? '') === 'keuangan_milda' || ($sessUser['sub'] ?? '') === 'keuangan_pst') {
+                if (isset($officialTokenHashes['57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0'])) {
+                    $sessUser = array_merge($sessUser, $officialTokenHashes['57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0']);
+                    $_SESSION['nsr_user'] = $sessUser;
+                }
+            }
+            return $sessUser;
         }
     }
 
@@ -1448,7 +1460,19 @@ function resolveCurrentUser($officialTokenHashes) {
     if ($sessHdr && file_exists($sessionsFile)) {
         $sessData = json_decode(@file_get_contents($sessionsFile), true);
         if (isset($sessData[$sessHdr]) && (($sessData[$sessHdr]['expiresAt'] ?? 0) >= time() * 1000)) {
-            return $sessData[$sessHdr]['user'] ?? null;
+            $hdrUser = $sessData[$sessHdr]['user'] ?? null;
+            if (is_array($hdrUser)) {
+                $tHash = $hdrUser['tokenHash'] ?? '';
+                if ($tHash && isset($officialTokenHashes[$tHash])) {
+                    $hdrUser = array_merge($hdrUser, $officialTokenHashes[$tHash]);
+                }
+                if (($hdrUser['sub'] ?? '') === 'keuangan_milda' || ($hdrUser['sub'] ?? '') === 'keuangan_pst') {
+                    if (isset($officialTokenHashes['57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0'])) {
+                        $hdrUser = array_merge($hdrUser, $officialTokenHashes['57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0']);
+                    }
+                }
+            }
+            return $hdrUser;
         }
     }
 

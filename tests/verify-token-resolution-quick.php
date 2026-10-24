@@ -24,7 +24,8 @@ $tests = [
     'NSR-ADMIN-PUSAT-2026' => ['role' => 'ADMIN_PUSAT', 'sub' => 'cabang_jkt'],
     'NSR-ADMIN-BDG-2026' => ['role' => 'ADMIN_CABANG', 'sub' => 'cabang_bdg'],
     'NSR-PENILAI-NANANG-2026' => ['role' => 'PENILAI_PUBLIK', 'sub' => 'nanang_penilai'],
-    'NSR-PENILAI-DENI-2026' => ['role' => 'PENILAI_PUBLIK', 'sub' => 'deni_penilai']
+    'NSR-PENILAI-DENI-2026' => ['role' => 'PENILAI_PUBLIK', 'sub' => 'deni_penilai'],
+    'NSR-KEU-2026' => ['role' => 'MANAGER_KEUANGAN', 'sub' => 'keuangan_milda', 'canApprove' => true, 'displayName' => 'Milda Hidayati Dewi, S.E.']
 ];
 
 $allPass = true;
@@ -39,13 +40,16 @@ foreach ($tests as $token => $expected) {
     if ($user['role'] !== $expected['role']) {
         echo "FAIL: Token $token role expected " . $expected['role'] . " got " . $user['role'] . "\n";
         $allPass = false;
+    } elseif (!empty($expected['canApprove']) && empty($user['canApprove'])) {
+        echo "FAIL: Token $token expected canApprove=true got " . var_export($user['canApprove'], true) . "\n";
+        $allPass = false;
     } else {
-        echo "PASS: Token $token -> " . $user['role'] . " (" . $user['displayName'] . ")\n";
+        echo "PASS: Token $token -> " . $user['role'] . " (" . $user['displayName'] . ") [canApprove: " . ($user['canApprove'] ? 'true' : 'false') . "]\n";
     }
 }
 
 if ($allPass) {
-    echo "\n>>> ALL 10 TOKEN RESOLUTIONS TESTED & VERIFIED 100% PASS <<<\n";
+    echo "\n>>> ALL 11 TOKEN RESOLUTIONS TESTED & VERIFIED 100% PASS <<<\n";
     exit(0);
 } else {
     exit(1);

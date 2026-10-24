@@ -103,7 +103,7 @@ function loadPrivateAuthRegistry() {
             'canSubmit'         => true,
             'seeFee'            => true,
             'mode'              => 'PUSAT',
-            'permissions'       => ['SUBMIT_OPR', 'VIEW_OPR', 'APPROVE_OPR', 'APPROVE_PUSAT', 'NOLAP_APPROVE'],
+            'permissions'       => ['SUBMIT_OPR', 'VIEW_OPR', 'APPROVE_OPR', 'APPROVE_PUSAT', 'APPROVE_ADMIN', 'NOLAP_APPROVE'],
             'tokenHash'         => '4bdd71ba9f372106b9b52f9f0e8c1e6cfa4afb12857ff3f760b3df74dce0ca04'
         ],
         'ba7e7fd031ab1e2e784d9ef76d91211fdef2192879f344c634e8f75a256c7c2a' => [
@@ -124,7 +124,7 @@ function loadPrivateAuthRegistry() {
             'canSubmit'         => true,
             'seeFee'            => true,
             'mode'              => 'PUSAT',
-            'permissions'       => ['SUBMIT_OPR', 'VIEW_OPR', 'APPROVE_OPR', 'APPROVE_PUSAT', 'NOLAP_APPROVE'],
+            'permissions'       => ['SUBMIT_OPR', 'VIEW_OPR', 'APPROVE_OPR', 'APPROVE_PUSAT', 'APPROVE_ADMIN', 'NOLAP_APPROVE'],
             'tokenHash'         => 'ba7e7fd031ab1e2e784d9ef76d91211fdef2192879f344c634e8f75a256c7c2a'
         ],
         'd60eb335c981f18d8ce10aeebaed6c0f6d77d81c4846a73e577f1cfc0cf67d03' => [
@@ -620,22 +620,47 @@ function loadPrivateAuthRegistry() {
             'tokenHash'         => '47717336a985e88bfed6b7a38e8dacedf4179467455351385f630e09666292f7'
         ],
 
-        // DIVISI KEUANGAN PUSAT
+        // DIVISI KEUANGAN PUSAT - Manager Keuangan (Milda Hidayati Dewi, S.E. - Tingkat 2)
         '57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0' => [
-            'sub'               => 'keuangan_pst',
+            'sub'               => 'keuangan_milda',
             'branch'            => 'PUSAT',
-            'displayName'       => 'Kantor Pusat Jakarta',
-            'role'              => 'KEUANGAN',
-            'roleLabel'         => 'Keuangan Pusat',
-            'title'             => 'Keuangan & Kasir Pusat',
+            'displayName'       => 'Milda Hidayati Dewi, S.E.',
+            'nama'              => 'Milda Hidayati Dewi, S.E.',
+            'role'              => 'MANAGER_KEUANGAN',
+            'roleLabel'         => 'Manager Keuangan (Tingkat 2)',
+            'title'             => 'Manager Keuangan',
             'wilayah'           => 'PUSAT',
             'wilayahLabel'      => 'Kantor Pusat Jakarta',
-            'wilayahCode'       => 'PST',
+            'wilayahCode'       => '00',
             'isSuperAdmin'      => false,
+            'isMaster'          => false,
             'isCabang'          => false,
             'canAccessKwitansi' => true,
-            'canApprove'        => false,
+            'canApprove'        => true,
             'canSubmit'         => true,
+            'permissions'       => ['APPROVE_KEUANGAN', 'SUBMIT_OPR', 'VIEW_OPR', 'ACCESS_KWITANSI'],
+            'seeFee'            => true,
+            'mode'              => 'PUSAT',
+            'tokenHash'         => '57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0'
+        ],
+        '107ee87beefd50d3ecf4c3ea6716c22cbff5330505ee747ce5d800f77c94f32d' => [
+            'sub'               => 'keuangan_milda',
+            'branch'            => 'PUSAT',
+            'displayName'       => 'Milda Hidayati Dewi, S.E.',
+            'nama'              => 'Milda Hidayati Dewi, S.E.',
+            'role'              => 'MANAGER_KEUANGAN',
+            'roleLabel'         => 'Manager Keuangan (Tingkat 2)',
+            'title'             => 'Manager Keuangan',
+            'wilayah'           => 'PUSAT',
+            'wilayahLabel'      => 'Kantor Pusat Jakarta',
+            'wilayahCode'       => '00',
+            'isSuperAdmin'      => false,
+            'isMaster'          => false,
+            'isCabang'          => false,
+            'canAccessKwitansi' => true,
+            'canApprove'        => true,
+            'canSubmit'         => true,
+            'permissions'       => ['APPROVE_KEUANGAN', 'SUBMIT_OPR', 'VIEW_OPR', 'ACCESS_KWITANSI'],
             'seeFee'            => true,
             'mode'              => 'PUSAT',
             'tokenHash'         => '57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0'
