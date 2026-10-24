@@ -1242,6 +1242,80 @@ function buildDefaultApprovals($pemohonNama = 'Holik Kelana', $pemohonJabatan = 
 }
 
 // -------------------------------------------------------------
+// 6.5. NORMALISASI & ENRICHMENT ROLE & PERMISSIONS OPERASIONAL
+// -------------------------------------------------------------
+function normalizeOperasionalUser($user) {
+    if (!is_array($user)) return $user;
+    $roleUpper = strtoupper(trim($user['role'] ?? ''));
+    $sub = trim($user['sub'] ?? '');
+
+    // KEUANGAN / MANAGER_KEUANGAN: Mutlak memiliki hak approval Tingkat 2 (T2)
+    if (in_array($roleUpper, ['KEUANGAN', 'MANAGER_KEUANGAN'], true) || in_array($sub, ['keuangan_milda', 'keuangan_pst'], true)) {
+        $user['canApprove'] = true;
+        $perms = $user['permissions'] ?? [];
+        if (!in_array('APPROVE_KEUANGAN', $perms, true)) {
+            $perms[] = 'APPROVE_KEUANGAN';
+        }
+        if (!in_array('SUBMIT_OPR', $perms, true)) {
+            $perms[] = 'SUBMIT_OPR';
+        }
+        if (!in_array('VIEW_OPR', $perms, true)) {
+            $perms[] = 'VIEW_OPR';
+        }
+        $user['permissions'] = array_values(array_unique($perms));
+        if (empty($user['displayName']) || $user['displayName'] === 'Kantor Pusat Jakarta') {
+            $user['displayName'] = 'Milda Hidayati Dewi, S.E.';
+        }
+        $user['roleLabel'] = 'Manager Keuangan (Tingkat 2)';
+        $user['title'] = 'Manager Keuangan';
+    }
+
+    // DIVTEK / MANAGER_TEKNIK: Hak approval Tingkat 1 (Teknis)
+    if (in_array($roleUpper, ['KEPALA_DIVTEK', 'MANAGER_TEKNIK'], true) || in_array($sub, ['deni_divtek', 'divtek_pst'], true)) {
+        $user['canApprove'] = true;
+        $perms = $user['permissions'] ?? [];
+        if (!in_array('APPROVE_TEKNIK', $perms, true)) {
+            $perms[] = 'APPROVE_TEKNIK';
+        }
+        $user['permissions'] = array_values(array_unique($perms));
+    }
+
+    // SPM / MANAGER_ADMIN / ADMIN_PUSAT: Hak approval Tingkat 1 (Admin & Umum)
+    if (in_array($roleUpper, ['KEPALA_SPM', 'MANAGER_ADMIN', 'ADMIN_PUSAT'], true) || in_array($sub, ['danny_spm', 'admin_danny', 'cabang_jkt'], true)) {
+        $user['canApprove'] = true;
+        $perms = $user['permissions'] ?? [];
+        if (!in_array('APPROVE_ADMIN', $perms, true)) {
+            $perms[] = 'APPROVE_ADMIN';
+        }
+        $user['permissions'] = array_values(array_unique($perms));
+    }
+
+    // KEPALA_KEUANGAN / PEMIMPIN_REKAN: Hak approval Tingkat 3
+    if (in_array($roleUpper, ['KEPALA_KEUANGAN', 'PEMIMPIN_REKAN'], true) || in_array($sub, ['kepala_keuangan', 'nanang_penilai', 'admin_master'], true)) {
+        $user['canApprove'] = true;
+        $perms = $user['permissions'] ?? [];
+        if (!in_array('APPROVE_KEPALA_KEUANGAN', $perms, true)) {
+            $perms[] = 'APPROVE_KEPALA_KEUANGAN';
+        }
+        $user['permissions'] = array_values(array_unique($perms));
+    }
+
+    // SUPER_ADMIN / KING: Full approval across all tiers
+    if (!empty($user['isSuperAdmin']) || !empty($user['isKing']) || in_array($roleUpper, ['SUPER_ADMIN', 'SUPER ADMIN'], true)) {
+        $user['canApprove'] = true;
+        $perms = $user['permissions'] ?? [];
+        foreach (['APPROVE_TEKNIK', 'APPROVE_ADMIN', 'APPROVE_KEUANGAN', 'APPROVE_KEPALA_KEUANGAN', 'APPROVE_OPR', 'APPROVE_PUSAT'] as $p) {
+            if (!in_array($p, $perms, true)) {
+                $perms[] = $p;
+            }
+        }
+        $user['permissions'] = array_values(array_unique($perms));
+    }
+
+    return $user;
+}
+
+// -------------------------------------------------------------
 // 7. AUTENTIKASI PENGGUNA
 // -------------------------------------------------------------
 /**
@@ -1401,7 +1475,14 @@ function evaluatePengajuanPendingStatus($doc, $user) {
                 }
             }
 
-            if ($requiredPerm && in_array($requiredPerm, $userPermissions, true)) {
+            $isAuthorized = ($requiredPerm && in_array($requiredPerm, $userPermissions, true)) ||
+                            ($roleKey === 'KEUANGAN' && in_array($userRole, ['KEUANGAN', 'MANAGER_KEUANGAN'], true)) ||
+                            ($roleKey === 'TEKNIK' && in_array($userRole, ['KEPALA_DIVTEK', 'MANAGER_TEKNIK'], true)) ||
+                            ($roleKey === 'ADMIN_UMUM' && in_array($userRole, ['KEPALA_SPM', 'MANAGER_ADMIN', 'ADMIN_PUSAT'], true)) ||
+                            ($roleKey === 'KEPALA_KEUANGAN' && in_array($userRole, ['PEMIMPIN_REKAN', 'KEPALA_KEUANGAN'], true)) ||
+                            !empty($user['isSuperAdmin']) || !empty($user['isKing']);
+
+            if ($isAuthorized) {
                 return [
                     'isPending'    => true,
                     'pendingTier'  => $actTier,
@@ -1451,7 +1532,7 @@ function resolveCurrentUser($officialTokenHashes) {
                     $_SESSION['nsr_user'] = $sessUser;
                 }
             }
-            return $sessUser;
+            return normalizeOperasionalUser($sessUser);
         }
     }
 
@@ -1472,7 +1553,7 @@ function resolveCurrentUser($officialTokenHashes) {
                     }
                 }
             }
-            return $hdrUser;
+            return normalizeOperasionalUser($hdrUser);
         }
     }
 
@@ -1493,7 +1574,7 @@ function resolveCurrentUser($officialTokenHashes) {
         }
         $saltedUpperHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($trimmed));
         if (isset($officialTokenHashes[$saltedUpperHash])) {
-            return $officialTokenHashes[$saltedUpperHash];
+            return normalizeOperasionalUser($officialTokenHashes[$saltedUpperHash]);
         }
     }
 
@@ -1667,6 +1748,7 @@ if ($isCabang || !$isPusat) {
 $isMaster = !empty($currentUser['isMaster']) || (!empty($currentUser['isSuperAdmin']) && $userRole === 'SUPER ADMIN');
 $isSuperOrPusat = in_array($userRole, ['SUPER ADMIN', 'ADMIN_PUSAT', 'ADMIN'], true) || !empty($currentUser['isSuperAdmin']);
 $userDisplayName = $currentUser['displayName'] ?? ($currentUser['sub'] ?? 'Petugas Terverifikasi');
+$userPermissions = is_array($currentUser['permissions'] ?? null) ? $currentUser['permissions'] : [];
 
 // B. ACTION: lookupNolap (Mencari ID Penugasan dari nolap_database.json atau baseline)
 if ($action === 'lookupNolap') {
@@ -2349,9 +2431,25 @@ if ($action === 'approveTier') {
         exit;
     }
 
-    // 2. BLOKIR SELURUH TOKEN STAF (FAIL-CLOSED)
+    // 2. EVALUASI WEWENANG OTORISASI (PEMBERIAN HAK UNTUK KEUANGAN & ROLE APPROVAL)
+    $userRoleUpper = strtoupper(trim($userRole));
+    $isApproverRole = in_array($userRoleUpper, [
+        'KEUANGAN', 'MANAGER_KEUANGAN',
+        'KEPALA_DIVTEK', 'MANAGER_TEKNIK',
+        'KEPALA_SPM', 'MANAGER_ADMIN', 'ADMIN_PUSAT',
+        'PEMIMPIN_REKAN', 'KEPALA_KEUANGAN',
+        'SUPER_ADMIN', 'SUPER ADMIN', 'KING'
+    ], true);
+
+    if ($isApproverRole) {
+        $currentUser['canApprove'] = true;
+        if (in_array($userRoleUpper, ['KEUANGAN', 'MANAGER_KEUANGAN'], true) && !in_array('APPROVE_KEUANGAN', $userPermissions, true)) {
+            $userPermissions[] = 'APPROVE_KEUANGAN';
+            $currentUser['permissions'] = $userPermissions;
+        }
+    }
+
     $userCanApprove = !empty($currentUser['canApprove']);
-    $userPermissions = $currentUser['permissions'] ?? [];
     if (!$userCanApprove || empty($userPermissions)) {
         http_response_code(403);
         echo json_encode([
@@ -2361,14 +2459,42 @@ if ($action === 'approveTier') {
         exit;
     }
 
-    // 3. FAST-FAIL RBAC: Jika user tidak memiliki izin sama sekali untuk tier ini
-    if ($tier === 1 && !in_array('APPROVE_TEKNIK', $userPermissions, true) && !in_array('APPROVE_ADMIN', $userPermissions, true)) {
-        http_response_code(403);
-        echo json_encode([
-            'success'   => false,
-            'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki izin APPROVE_TEKNIK atau APPROVE_ADMIN untuk mengesahkan Tingkat 1."
-        ]);
-        exit;
+    // 3. FAST-FAIL RBAC BERJENJANG (T1 -> T2 -> T3)
+    if ($tier === 1) {
+        $canT1 = in_array('APPROVE_TEKNIK', $userPermissions, true) ||
+                 in_array('APPROVE_ADMIN', $userPermissions, true) ||
+                 in_array('APPROVE_OPR', $userPermissions, true) ||
+                 in_array($userRoleUpper, ['KEPALA_DIVTEK', 'MANAGER_TEKNIK', 'KEPALA_SPM', 'MANAGER_ADMIN', 'ADMIN_PUSAT', 'KACAB', 'SUPER_ADMIN', 'SUPER ADMIN'], true);
+        if (!$canT1) {
+            http_response_code(403);
+            echo json_encode([
+                'success'   => false,
+                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki wewenang otorisasi Tingkat 1 (Teknis / Atasan)."
+            ]);
+            exit;
+        }
+    } elseif ($tier === 2) {
+        $canT2 = in_array('APPROVE_KEUANGAN', $userPermissions, true) ||
+                 in_array($userRoleUpper, ['KEUANGAN', 'MANAGER_KEUANGAN', 'SUPER_ADMIN', 'SUPER ADMIN'], true);
+        if (!$canT2) {
+            http_response_code(403);
+            echo json_encode([
+                'success'   => false,
+                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki wewenang otorisasi Tingkat 2 (Verifikasi Anggaran & Keuangan)."
+            ]);
+            exit;
+        }
+    } elseif ($tier === 3) {
+        $canT3 = in_array('APPROVE_KEPALA_KEUANGAN', $userPermissions, true) ||
+                 in_array($userRoleUpper, ['PEMIMPIN_REKAN', 'KEPALA_KEUANGAN', 'SUPER_ADMIN', 'SUPER ADMIN'], true);
+        if (!$canT3) {
+            http_response_code(403);
+            echo json_encode([
+                'success'   => false,
+                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki wewenang otorisasi Tingkat 3 (Persetujuan Akhir & Pencairan)."
+            ]);
+            exit;
+        }
     }
 
     $result = mutateDatabaseOperasional($dataFile, $lockFile, function(&$records) use ($id, $tier, $currentUser, $userRole, $userPermissions, $SERVER_SECRET) {
@@ -2445,11 +2571,26 @@ if ($action === 'approveTier') {
             }
         }
 
-        if (!$requiredPerm || !in_array($requiredPerm, $userPermissions, true)) {
+        $isAuthorized = false;
+        if ($roleKey === 'TEKNIK') {
+            $isAuthorized = in_array('APPROVE_TEKNIK', $userPermissions, true) || in_array($userRole, ['KEPALA_DIVTEK', 'MANAGER_TEKNIK', 'SUPER_ADMIN', 'SUPER ADMIN'], true);
+            $authorizedRoleTitle = 'Manager Teknik (Deni Siswandi, S.T.)';
+        } elseif ($roleKey === 'ADMIN_UMUM') {
+            $isAuthorized = in_array('APPROVE_ADMIN', $userPermissions, true) || in_array('APPROVE_OPR', $userPermissions, true) || in_array($userRole, ['KEPALA_SPM', 'MANAGER_ADMIN', 'ADMIN_PUSAT', 'SUPER_ADMIN', 'SUPER ADMIN'], true);
+            $authorizedRoleTitle = 'Manager Admin & Umum (Danny Taufik Hidayat, S.H.)';
+        } elseif ($roleKey === 'KEUANGAN') {
+            $isAuthorized = in_array('APPROVE_KEUANGAN', $userPermissions, true) || in_array($userRole, ['KEUANGAN', 'MANAGER_KEUANGAN', 'SUPER_ADMIN', 'SUPER ADMIN'], true);
+            $authorizedRoleTitle = 'Manager Keuangan (Milda Hidayati Dewi, S.E.)';
+        } elseif ($roleKey === 'KEPALA_KEUANGAN') {
+            $isAuthorized = in_array('APPROVE_KEPALA_KEUANGAN', $userPermissions, true) || in_array($userRole, ['PEMIMPIN_REKAN', 'KEPALA_KEUANGAN', 'SUPER_ADMIN', 'SUPER ADMIN'], true);
+            $authorizedRoleTitle = 'Kepala Keuangan (Ir. Nanang Rahayu, M.Ec.Dev.)';
+        }
+
+        if (!$isAuthorized && empty($currentUser['isSuperAdmin']) && empty($currentUser['isKing'])) {
             return [
                 'success'   => false,
                 'http_code' => 403,
-                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki izin {$requiredPerm} untuk mengesahkan {$labelTarget}. Wewenang ini khusus untuk {$authorizedRoleTitle}."
+                'error'     => "Akses Ditolak (403 Forbidden): Akun Anda ({$userRole}) tidak memiliki izin untuk mengesahkan {$labelTarget}. Wewenang ini khusus untuk {$authorizedRoleTitle}."
             ];
         }
 
@@ -2571,6 +2712,7 @@ if ($action === 'approveTier') {
             'success' => true,
             'records' => $records,
             'data'    => $doc,
+            'status'  => $allDone ? 'APPROVED' : ($tier === 2 ? 'APPROVED_T2' : 'IN_REVIEW'),
             'message' => "Persetujuan Tier {$tier} (" . ($doc['approvals'][$tier]['label'] ?? '') . ") berhasil disahkan oleh {$pejabatNama}."
         ];
     });
@@ -2622,9 +2764,25 @@ if ($action === 'rejectWithNote') {
         exit;
     }
 
-    // 2. BLOKIR SELURUH TOKEN STAF (FAIL-CLOSED)
+    // 2. EVALUASI WEWENANG OTORISASI PENOLAKAN
+    $userRoleUpper = strtoupper(trim($userRole));
+    $isApproverRole = in_array($userRoleUpper, [
+        'KEUANGAN', 'MANAGER_KEUANGAN',
+        'KEPALA_DIVTEK', 'MANAGER_TEKNIK',
+        'KEPALA_SPM', 'MANAGER_ADMIN', 'ADMIN_PUSAT',
+        'PEMIMPIN_REKAN', 'KEPALA_KEUANGAN',
+        'SUPER_ADMIN', 'SUPER ADMIN', 'KING'
+    ], true);
+
+    if ($isApproverRole) {
+        $currentUser['canApprove'] = true;
+        if (in_array($userRoleUpper, ['KEUANGAN', 'MANAGER_KEUANGAN'], true) && !in_array('APPROVE_KEUANGAN', $userPermissions, true)) {
+            $userPermissions[] = 'APPROVE_KEUANGAN';
+            $currentUser['permissions'] = $userPermissions;
+        }
+    }
+
     $userCanApprove = !empty($currentUser['canApprove']);
-    $userPermissions = $currentUser['permissions'] ?? [];
     if (!$userCanApprove || empty($userPermissions)) {
         http_response_code(403);
         echo json_encode([

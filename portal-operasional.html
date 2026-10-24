@@ -862,25 +862,21 @@
         </button>
       </div>
 
-      <!-- Tabel Riwayat Pengajuan -->
-      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/40">
-        <table class="w-full text-left text-xs border-collapse">
+      <!-- Tabel Riwayat Pengajuan (Fit-to-Screen Zero-Scroll) -->
+      <div class="w-full rounded-2xl border border-slate-800 bg-slate-900/40 shadow-xl overflow-hidden">
+        <table class="w-full text-left text-xs border-collapse table-fixed" style="table-layout: fixed; width: 100%;">
           <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
             <tr>
-              <th class="py-3 px-3 w-10 text-center">#</th>
-              <th class="py-3 px-4 min-w-[190px]">Nomor Registrasi Dokumen</th>
-              <th class="py-3 px-3 min-w-[150px]">Jenis Pengajuan</th>
-              <th class="py-3 px-3 min-w-[90px]">Kantor</th>
-              <th class="py-3 px-3 min-w-[90px]">Tanggal</th>
-              <th class="py-3 px-4 min-w-[130px] text-right">Total Biaya (Rp)</th>
-              <th class="py-3 px-3 min-w-[110px] text-center">Status</th>
-              <th class="py-3 px-4 min-w-[280px]">Timeline Otorisasi (Tingkat 1 &rarr; 2 &rarr; 3)</th>
-              <th class="py-3 px-4 min-w-[180px] text-center">Tindakan</th>
+              <th class="py-3 px-2 w-10 sm:w-12 text-center text-slate-500 font-mono">#</th>
+              <th class="py-3 px-3 w-[24%]">Dokumen &amp; Kantor</th>
+              <th class="py-3 px-3 w-[22%]">Pengajuan &amp; Total</th>
+              <th class="py-3 px-3 w-[36%]">Status &amp; Timeline Otorisasi</th>
+              <th class="py-3 px-3 w-[18%] min-w-[140px] text-center sticky right-0 bg-[#0b132b] border-l border-slate-800/80 z-10 shadow-lg">Aksi Otorisasi</th>
             </tr>
           </thead>
           <tbody id="tbody-riwayat" class="divide-y divide-slate-800/60">
             <tr>
-              <td colspan="9" class="py-10 text-center text-slate-400">
+              <td colspan="5" class="py-10 text-center text-slate-400">
                 Memuat data riwayat operasional...
               </td>
             </tr>
@@ -2128,7 +2124,7 @@
     // Muat Daftar Riwayat
     async function muatDaftarPengajuan() {
       const tbody = document.getElementById('tbody-riwayat');
-      tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-400">Memuat data riwayat...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-slate-400">Memuat data riwayat...</td></tr>`;
 
       const jenis = document.getElementById('filter_jenis').value;
       const status = document.getElementById('filter_status').value;
@@ -2201,18 +2197,18 @@
           document.getElementById('badge-total-pengajuan').innerText = DATA_LIST.length;
           renderTabelRiwayat(DATA_LIST);
         } else {
-          tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-rose-400">${json.error || 'Gagal memuat data'}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-rose-400">${json.error || 'Gagal memuat data'}</td></tr>`;
         }
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-rose-400">Kesalahan: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-rose-400">Kesalahan: ${err.message}</td></tr>`;
       }
     }
 
-    // Render Timeline Otorisasi Dinamis (Tingkat 1 -> 2 -> 3)
+    // Render Timeline Otorisasi Dinamis (Tingkat 1 -> 2 -> 3) - Micro-Stepper Horizontal Padat
     function renderApprovalTimeline(item) {
       const approvals = item.approvals || {};
       const tierKeys = Object.keys(approvals).map(Number).sort((a,b) => a - b);
-      if (tierKeys.length === 0) return '<span class="text-slate-500 italic text-[11px]">-</span>';
+      if (tierKeys.length === 0) return '<span class="text-slate-500 italic text-[10px]">-</span>';
 
       let stepsHtml = [];
       tierKeys.forEach((t, idx) => {
@@ -2220,80 +2216,68 @@
         const isApproved = !!(app && app.approved);
         const tingkat = app?.tingkat || t;
         const label = app?.label || `Tingkat ${tingkat}`;
-        const shortPejabat = app?.pejabat ? app.pejabat.split(',')[0].trim() : '-';
-        const dateStr = (app && app.approvedAt) ? app.approvedAt.substring(5, 16) : ''; // e.g. "10-21 09:15"
+        let shortPejabat = app?.pejabat ? app.pejabat.split(',')[0].trim() : '-';
+        if (shortPejabat.length > 13) shortPejabat = shortPejabat.substring(0, 12) + '…';
+        const dateStr = (app && app.approvedAt) ? app.approvedAt.substring(5, 16) : '';
 
-        let stepBadge = '';
+        let badge = '';
         if (isApproved) {
-          stepBadge = `
-            <div class="flex flex-col items-start bg-emerald-950/40 border border-emerald-500/40 px-2 py-1 rounded-lg text-left" title="${escapeHtml(label)}: Disetujui oleh ${escapeHtml(app.pejabat)} (${app.approvedAt})">
-              <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-300">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span>T${tingkat} Disetujui</span>
-              </div>
-              <span class="text-[11px] font-semibold text-slate-200 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
-              <span class="text-[9px] font-mono text-emerald-400/90">${dateStr}</span>
-            </div>
+          badge = `
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 text-[10px] font-bold shrink-0 shadow-sm"
+              title="${escapeHtml(label)}: Disetujui oleh ${escapeHtml(app.pejabat)} (${app.approvedAt})">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>T${tingkat}: ${escapeHtml(shortPejabat)} ✓</span>
+            </span>
           `;
         } else if (item.status === 'REJECTED') {
           const isRejectedHere = (item.penolakan && (item.penolakan.tierDitolak == t || (!item.penolakan.tierDitolak && idx === 0)));
           if (isRejectedHere) {
-            stepBadge = `
-              <div class="flex flex-col items-start bg-rose-950/60 border border-rose-500/50 px-2 py-1 rounded-lg text-left shadow-sm" title="${escapeHtml(label)}: Ditolak / Perlu Revisi">
-                <div class="flex items-center gap-1 text-[10px] font-extrabold text-rose-300">
-                  <span>✕ T${tingkat} Ditolak</span>
-                </div>
-                <span class="text-[11px] font-medium text-rose-200 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
-                <span class="text-[9px] font-mono text-rose-400 font-bold">Stop Revisi</span>
-              </div>
+            badge = `
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-950/80 border border-rose-500/60 text-rose-300 text-[10px] font-extrabold shrink-0"
+                title="${escapeHtml(label)}: Ditolak (${escapeHtml(shortPejabat)})">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                <span>T${tingkat}: ✕ Ditolak</span>
+              </span>
             `;
           } else {
-            stepBadge = `
-              <div class="flex flex-col items-start bg-slate-900/60 border border-slate-800 px-2 py-1 rounded-lg text-left opacity-40" title="${escapeHtml(label)}">
-                <div class="flex items-center gap-1 text-[10px] font-medium text-slate-400">
-                  <span>○ T${tingkat}</span>
-                </div>
-                <span class="text-[11px] font-medium text-slate-400 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
-                <span class="text-[9px] font-mono text-slate-600">-</span>
-              </div>
+            badge = `
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-900/60 border border-slate-800 text-slate-500 text-[10px] opacity-40 shrink-0"
+                title="${escapeHtml(label)}">
+                <span>T${tingkat}: ${escapeHtml(shortPejabat)}</span>
+              </span>
             `;
           }
         } else {
-          // Sedang menunggu persetujuan
           const isActionable = (item.pendingTier === t) || (idx === 0 && !isApproved);
           if (isActionable) {
-            stepBadge = `
-              <div class="flex flex-col items-start bg-amber-950/40 border border-amber-500/50 px-2 py-1 rounded-lg text-left shadow-sm ring-1 ring-amber-500/30" title="${escapeHtml(label)}: Menunggu Persetujuan">
-                <div class="flex items-center gap-1 text-[10px] font-bold text-amber-300">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                  <span>T${tingkat} Menunggu</span>
-                </div>
-                <span class="text-[11px] font-bold text-amber-200 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
-                <span class="text-[9px] font-mono text-amber-400/90 font-medium">Antrean Aktif</span>
-              </div>
+            badge = `
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/60 text-amber-300 text-[10px] font-bold shrink-0 ring-1 ring-amber-500/30 animate-pulse"
+                title="${escapeHtml(label)}: Menunggu Otorisasi (${escapeHtml(shortPejabat)})">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span>T${tingkat}: ${escapeHtml(shortPejabat)} ⏳</span>
+              </span>
             `;
           } else {
-            stepBadge = `
-              <div class="flex flex-col items-start bg-slate-900/50 border border-slate-800 px-2 py-1 rounded-lg text-left opacity-70" title="${escapeHtml(label)}: Menunggu Tahap Sebelumnya">
-                <div class="flex items-center gap-1 text-[10px] font-medium text-slate-400">
-                  <span>○ T${tingkat}</span>
-                </div>
-                <span class="text-[11px] font-medium text-slate-400 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
-                <span class="text-[9px] font-mono text-slate-600">Pending</span>
-              </div>
+            badge = `
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-900/60 border border-slate-800 text-slate-400 text-[10px] shrink-0 opacity-60"
+                title="${escapeHtml(label)}: Menunggu Tahap Sebelumnya (${escapeHtml(shortPejabat)})">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                <span>T${tingkat}: ${escapeHtml(shortPejabat)}</span>
+              </span>
             `;
           }
         }
-        stepsHtml.push(stepBadge);
+        stepsHtml.push(badge);
       });
 
-      return `<div class="flex items-center gap-1.5 flex-nowrap overflow-x-auto py-1">${stepsHtml.join('<span class="text-slate-600 text-xs font-bold shrink-0">&rarr;</span>')}</div>`;
+      return `<div class="flex items-center gap-1 flex-wrap">${stepsHtml.join('<span class="text-slate-600 text-[10px] font-bold select-none">&rarr;</span>')}</div>`;
     }
 
+    // Render Tabel Riwayat 5-Kolom Terkonsolidasi (Zero-Scroll Fit-to-Screen)
     function renderTabelRiwayat(list) {
       const tbody = document.getElementById('tbody-riwayat');
       if (!list || list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-slate-500 italic">Belum ada pengajuan operasional yang tercatat sesuai filter.</td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-slate-500 italic">Belum ada pengajuan operasional yang tercatat sesuai filter.</td></tr>';
         return;
       }
 
@@ -2314,22 +2298,11 @@
         let rejectionBox = '';
         if (item.status === 'REJECTED' && item.penolakan) {
           rejectionBox = `
-            <div class="mt-2 p-2 rounded-xl bg-rose-950/60 border border-rose-500/50 text-[11px] text-rose-200 text-left">
-              <div class="flex items-center justify-between font-bold text-rose-300 mb-0.5">
-                <span class="flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                  Catatan Penolakan (Tingkat ${item.penolakan.tierDitolak || 'Review'}):
-                </span>
-                <span class="text-[10px] font-mono text-rose-300/70">${item.penolakan.tglDitolak ? item.penolakan.tglDitolak.substring(0, 16) : ''}</span>
-              </div>
-              <p class="text-slate-100 font-medium bg-black/40 p-1.5 rounded border border-rose-900/60 italic">
-                &ldquo;${escapeHtml(item.penolakan.alasan || 'Memerlukan perbaikan')}&rdquo;
+            <div class="mt-1.5 p-1.5 rounded-lg bg-rose-950/70 border border-rose-500/50 text-[10px] text-rose-200 text-left">
+              <div class="font-bold text-rose-300">Catatan Revisi:</div>
+              <p class="text-slate-100 font-medium italic truncate max-w-[280px]">
+                &ldquo;${escapeHtml(item.penolakan.alasan || 'Perlu perbaikan')}&rdquo;
               </p>
-              <div class="mt-1 text-[10px] text-rose-300/80">
-                Oleh: <strong>${escapeHtml(item.penolakan.ditolakOleh || 'Pejabat Berwenang')}</strong>
-              </div>
             </div>
           `;
         }
@@ -2338,67 +2311,91 @@
         let pendingTag = '';
         if (item.isPendingOnMe) {
           if (item.status === 'REJECTED') {
-            pendingTag = `<div class="mt-1"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>Perlu Revisi Anda</span></div>`;
+            pendingTag = '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold"><span class="w-1 h-1 rounded-full bg-amber-400 animate-ping"></span>Perlu Revisi</span>';
           } else {
-            pendingTag = `<div class="mt-1"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>Menunggu Otorisasi Anda</span></div>`;
+            pendingTag = '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[9px] font-bold"><span class="w-1 h-1 rounded-full bg-rose-500 animate-ping"></span>Otorisasi Anda</span>';
           }
         }
 
-        // Tombol Tindakan
-        let actionButtons = `<div class="flex items-center justify-center gap-1.5 flex-wrap">`;
+        // Tombol Otorisasi / Aksi Utama
+        let actionApproveBtn = '';
         if (item.isPendingOnMe && item.status !== 'REJECTED' && item.status !== 'DRAFT') {
-          actionButtons += `
+          actionApproveBtn = `
             <button type="button" onclick="bukaModalDetail('${item.id}')"
-              class="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow flex items-center gap-1 transition">
+              class="w-full py-1.5 px-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-md flex items-center justify-center gap-1 transition">
               <span class="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping"></span>
               <span>⚡ Setujui</span>
             </button>
           `;
-        }
-        if (item.status === 'REJECTED') {
-          actionButtons += `
+        } else if (item.status === 'REJECTED') {
+          actionApproveBtn = `
             <button type="button" onclick="siapkanRevisiPengajuan('${item.id}')"
-              class="px-2.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow flex items-center gap-1 transition animate-bounce">
-              <span>✏️ Ajukan Revisi</span>
+              class="w-full py-1.5 px-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow-md flex items-center justify-center gap-1 transition animate-bounce">
+              <span>✏️ Revisi</span>
             </button>
           `;
         }
-        actionButtons += `
-            <button type="button" onclick="bukaModalDetail('${item.id}')"
-              class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
-              Detail / Alur
-            </button>
-            <button type="button" onclick="cetakLangsung('${item.id}')" title="Cetak PDF Dokumen"
-              class="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition">
-              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-            </button>
-          </div>
-        `;
 
         html += `
           <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-3 px-3 text-center text-slate-500">${idx + 1}</td>
-            <td class="py-3 px-4 font-mono font-bold text-amber-300">
-              <div>${item.noRegistrasi || item.id}</div>
-              ${pendingTag}
-              ${rejectionBox}
-            </td>
+            <!-- Sel 1: # -->
+            <td class="py-3 px-2 text-center text-slate-500 font-mono text-xs">${idx + 1}</td>
+
+            <!-- Sel 2: Dokumen & Kantor -->
             <td class="py-3 px-3">
-              <span class="font-semibold text-slate-200 block">${item.jenisLabel || item.jenisOperasional}</span>
-              <span class="text-[10px] text-slate-400">Versi ${item.versi || 1}</span>
+              <div class="font-mono font-bold text-amber-300 text-xs tracking-wide truncate" title="${item.noRegistrasi || item.id}">
+                ${item.noRegistrasi || item.id}
+              </div>
+              <div class="text-slate-400 text-[11px] mt-0.5 flex items-center gap-1.5 flex-wrap">
+                <span class="text-slate-300 font-medium">${escapeHtml(item.kantor || 'Kantor Pusat')}</span>
+                <span class="text-slate-600">•</span>
+                <span class="font-mono text-slate-400">${item.tglPengajuan || '-'}</span>
+              </div>
             </td>
-            <td class="py-3 px-3 text-slate-300">${item.kantor || 'Pusat'}</td>
-            <td class="py-3 px-3 text-slate-400 font-mono text-[11px]">${item.tglPengajuan || '-'}</td>
-            <td class="py-3 px-4 text-right font-mono font-bold text-slate-200">${formatRupiah(item.totalEstimasi || 0)}</td>
-            <td class="py-3 px-3 text-center">
-              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black border ${statusClass}">
-                ${item.status}
-              </span>
+
+            <!-- Sel 3: Pengajuan & Total -->
+            <td class="py-3 px-3">
+              <div class="font-semibold text-slate-200 text-xs truncate" title="${escapeHtml(item.jenisLabel || item.jenisOperasional)}">
+                ${escapeHtml(item.jenisLabel || item.jenisOperasional)} <span class="text-[10px] text-slate-400 font-normal">(v${item.versi || 1})</span>
+              </div>
+              <div class="font-mono font-bold text-emerald-400 text-xs mt-0.5">
+                ${formatRupiah(item.totalEstimasi || 0)}
+              </div>
+              <div class="text-[10px] text-slate-400 truncate mt-0.5" title="${escapeHtml(item.maksudTujuan || item.pemohon?.nama || '')}">
+                ${escapeHtml(item.maksudTujuan || ('Diajukan oleh: ' + (item.pemohon?.nama || '-')))}
+              </div>
             </td>
-            <td class="py-3 px-4">${timelineHtml}</td>
-            <td class="py-3 px-4 text-center">${actionButtons}</td>
+
+            <!-- Sel 4: Status & Timeline -->
+            <td class="py-3 px-3">
+              <div class="space-y-1.5">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black border ${statusClass}">
+                    ${item.status}
+                  </span>
+                  ${pendingTag}
+                </div>
+                ${timelineHtml}
+                ${rejectionBox}
+              </div>
+            </td>
+
+            <!-- Sel 5: Aksi Otorisasi (Sticky Right-0) -->
+            <td class="py-3 px-3 text-center sticky right-0 bg-[#0b132b] border-l border-slate-800/80 z-10 shadow-lg">
+              <div class="flex flex-col gap-1.5 items-stretch max-w-[130px] mx-auto">
+                ${actionApproveBtn}
+                <div class="flex items-center gap-1">
+                  <button type="button" onclick="bukaModalDetail('${item.id}')"
+                    class="flex-1 py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700 transition">
+                    Detail
+                  </button>
+                  <button type="button" onclick="cetakLangsung('${item.id}')" title="Cetak PDF Dokumen"
+                    class="py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition">
+                    🖨️
+                  </button>
+                </div>
+              </div>
+            </td>
           </tr>
         `;
       });
