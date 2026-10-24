@@ -4295,7 +4295,7 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
                 'kode_kantor' => '2.0160-04',
                 'klasifikasi_cabang' => 'PP',
                 'rekan_id' => 'deni_penilai',
-                'rekan_nama' => 'Deni Siswandi, S.T., MAPPI',
+                'rekan_nama' => 'Deni Siswandi, S.T., MAPPI (Cert.)',
                 'rekan_izin' => 'P-1.20.00581',
                 'rekan_klasifikasi' => 'P',
                 'allowed_services' => ['PROPERTY', 'PROPERTY_SIMPLE', 'P', 'PS']

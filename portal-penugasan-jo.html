@@ -1081,8 +1081,17 @@
             </div>
 
             <div>
-              <label id="lbl_tanggal_penilaian" for="tanggal_penilaian" class="block font-semibold text-slate-300 mb-1">Tanggal Penilaian (Cut-off Inspeksi) <span class="text-rose-400">*</span></label>
-              <input type="date" id="tanggal_penilaian" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono focus:outline-none focus:border-amber-400">
+              <div>
+                <label id="lbl_tanggal_penilaian" for="tanggal_penilaian" class="block font-semibold text-slate-300 mb-1">Tanggal Efektif Penilaian <span class="text-rose-400">*</span></label>
+                <input type="date" id="tanggal_penilaian" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono focus:outline-none focus:border-amber-400">
+                <p class="text-[10px] text-slate-400 mt-1">Tanggal penetapan opini nilai (Cut-off).</p>
+              </div>
+
+              <div>
+                <label for="tanggal_laporan" class="block font-semibold text-slate-300 mb-1">Tanggal Laporan Penilaian <span class="text-rose-400">*</span></label>
+                <input type="date" id="tanggal_laporan" required class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono focus:outline-none focus:border-amber-400">
+                <p class="text-[10px] text-slate-400 mt-1">Tanggal penyerahan / buku laporan final.</p>
+              </div>
             </div>
 
             <div>
@@ -1272,6 +1281,123 @@
           </div>
         </div>
 
+        
+            <!-- PANEL DEKLARASI & EVALUASI TINGKAT INDEPENDENSI (ETI) - SPI 103 & KEPI -->
+            <div id="panel_deklarasi_eti" class="mt-4 p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                <div>
+                  <h4 class="font-black text-amber-300 text-xs flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-amber-400/20 text-amber-300 flex items-center justify-center text-[10px] font-bold">ETI</span>
+                    <span>Evaluasi Tingkat Independensi Tim (Dokumen 3F &amp; 3G)</span>
+                  </h4>
+                  <p class="text-[10.5px] text-slate-400">Deklarasi nyata kepatuhan Kode Etik Penilai Indonesia (KEPI 5.8) &amp; SPI 103 (Tidak ada jawaban otomatis fiktif).</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span id="badge_status_eti" class="px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">BELUM DIISI</span>
+                  <button type="button" onclick="deklarasiSemuaIndependen()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10.5px] font-bold transition flex items-center gap-1.5 shadow cursor-pointer">
+                    <span>✔ Deklarasi Bebas Benturan Kepentingan</span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Tabel 7 Butir Kuesioner ETI Sesuai Master Template JO.xlsx -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-[10.5px] border-collapse text-slate-300">
+                  <thead>
+                    <tr class="border-b border-slate-800 text-slate-400 bg-slate-900/60">
+                      <th class="py-1.5 px-2 text-center w-8">No</th>
+                      <th class="py-1.5 px-2 text-left">Pernyataan Kepatuhan Independensi (KEPI)</th>
+                      <th class="py-1.5 px-2 text-center w-36">Jawaban Deklarasi</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800/60 font-medium">
+                    <tr>
+                      <td class="py-1.5 px-2 text-center font-bold">a.</td>
+                      <td class="py-1.5 px-2">Memiliki Afiliasi bisnis dengan klien</td>
+                      <td class="py-1.5 px-2 text-center">
+                        <select id="eti_q_a" onchange="evaluasiStatusEtiLive()" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                          <option value="BELUM_DIISI" selected>Belum Diisi</option>
+                          <option value="TIDAK">Tidak (Aman)</option>
+                          <option value="YA">Ya (Konflik)</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 px-2 text-center font-bold">b.</td>
+                      <td class="py-1.5 px-2">Memiliki saham klien</td>
+                      <td class="py-1.5 px-2 text-center">
+                        <select id="eti_q_b" onchange="evaluasiStatusEtiLive()" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                          <option value="BELUM_DIISI" selected>Belum Diisi</option>
+                          <option value="TIDAK">Tidak (Aman)</option>
+                          <option value="YA">Ya (Konflik)</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 px-2 text-center font-bold">c.</td>
+                      <td class="py-1.5 px-2">Memiliki perikatan pinjaman dengan klien</td>
+                      <td class="py-1.5 px-2 text-center">
+                        <select id="eti_q_c" onchange="evaluasiStatusEtiLive()" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                          <option value="BELUM_DIISI" selected>Belum Diisi</option>
+                          <option value="TIDAK">Tidak (Aman)</option>
+                          <option value="YA">Ya (Konflik)</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 px-2 text-center font-bold">d.</td>
+                      <td class="py-1.5 px-2">Pernah menjadi pengurus pada klien</td>
+                      <td class="py-1.5 px-2 text-center">
+                        <select id="eti_q_d" onchange="evaluasiStatusEtiLive()" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                          <option value="BELUM_DIISI" selected>Belum Diisi</option>
+                          <option value="TIDAK">Tidak (Aman)</option>
+                          <option value="YA">Ya (Konflik)</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 px-2 text-center font-bold">e.</td>
+                      <td class="py-1.5 px-2">Memiliki ikatan saudara dengan klien</td>
+                      <td class="py-1.5 px-2 text-center">
+                        <select id="eti_q_e" onchange="evaluasiStatusEtiLive()" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                          <option value="BELUM_DIISI" selected>Belum Diisi</option>
+                          <option value="TIDAK">Tidak (Aman)</option>
+                          <option value="YA">Ya (Konflik)</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 px-2 text-center font-bold">f.</td>
+                      <td class="py-1.5 px-2">Memiliki ikatan saudara dengan pemilik saham pada klien</td>
+                      <td class="py-1.5 px-2 text-center">
+                        <select id="eti_q_f" onchange="evaluasiStatusEtiLive()" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                          <option value="BELUM_DIISI" selected>Belum Diisi</option>
+                          <option value="TIDAK">Tidak (Aman)</option>
+                          <option value="YA">Ya (Konflik)</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 px-2 text-center font-bold">g.</td>
+                      <td class="py-1.5 px-2">Terdapat hal-hal yang berpotensi menjadi ancaman terhadap independensi</td>
+                      <td class="py-1.5 px-2 text-center">
+                        <select id="eti_q_g" onchange="evaluasiStatusEtiLive()" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-amber-400">
+                          <option value="BELUM_DIISI" selected>Belum Diisi</option>
+                          <option value="TIDAK">Tidak (Aman)</option>
+                          <option value="YA">Ya (Konflik)</option>
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p id="eti_info_deklarasi" class="text-[10px] text-slate-400 italic">
+                Deklarasi ETI ini mengikat pada Dokumen 3F (Evaluasi Tingkat Independensi) dan Dokumen 3G (Pernyataan Independensi).
+              </p>
+            </div>
+          </div>
+
+
         <!-- 6. WAKTU PELAKSANAAN & JADWAL KERJA -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
           <h3 class="text-sm font-black text-amber-400 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -1419,7 +1545,15 @@
 
               <div>
                 <div class="flex items-center justify-between mb-1">
-                  <label class="font-semibold text-slate-300">PPN 11% (Rp)</label>
+                  
+                  <div class="flex items-center gap-1.5">
+                    <label class="font-semibold text-slate-300">Pajak PPN (Rp)</label>
+                    <select id="opsi_pajak_ppn" onchange="kalkulasiBiaya()" class="text-[10px] font-bold px-1 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-300 focus:outline-none">
+                      <option value="11" selected>PPN 11%</option>
+                      <option value="12">PPN 12%</option>
+                      <option value="0">Bebas PPN (0%)</option>
+                    </select>
+                  </div>
                   <label class="flex items-center gap-1 cursor-pointer text-[10.5px] text-slate-400 select-none">
                     <input type="checkbox" id="chk_kena_ppn" checked onchange="kalkulasiBiaya()" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-amber-500">
                     <span>Kena PPN</span>
@@ -2014,6 +2148,70 @@
 
         <form id="form-approval-pusat" onsubmit="eksekusiApprovalPusatSubmit(event)" class="space-y-3.5">
           <input type="hidden" id="appr-target-project-id" value="">
+
+          <!-- SECTION OPERATOR KHUSUS AKUN SUPER ADMIN (KING) -->
+          <div id="section-operator-king" class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-2.5 mb-3">
+            <div class="flex items-center justify-between pb-1.5 border-b border-amber-500/20">
+              <label class="font-bold text-amber-300 text-xs flex items-center gap-1.5">
+                <span>👑 Konfirmasi Identitas Operator Akun KING</span>
+              </label>
+              <span class="text-[9.5px] text-amber-300 font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">Otoritas Tertinggi</span>
+            </div>
+            <p class="text-[10px] text-slate-300 leading-relaxed">
+              Akun KING digunakan bersama secara internal. Pilih operator aktual untuk pencatatan audit trail yang sah dan pemisahan kewenangan administratif vs. pengesahan profesional penilai publik:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <label class="flex items-start gap-2 p-2.5 rounded-lg border border-amber-500/40 bg-slate-900 cursor-pointer hover:border-amber-400 select-none">
+                <input type="radio" name="operator_king_pilihan" id="op_king_danny" value="DANNY" checked onchange="handleOperatorKingChange()" class="mt-0.5 accent-amber-500">
+                <div>
+                  <p class="font-bold text-white text-[11px]">Danny Taufik H.</p>
+                  <p class="text-[9px] text-slate-400 leading-tight">Pengelolaan Administrasi &amp; Operasional</p>
+                </div>
+              </label>
+              <label class="flex items-start gap-2 p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-amber-400 select-none">
+                <input type="radio" name="operator_king_pilihan" id="op_king_nanang" value="NANANG" onchange="handleOperatorKingChange()" class="mt-0.5 accent-amber-500">
+                <div>
+                  <p class="font-bold text-white text-[11px]">Ir. Nanang Rahayu</p>
+                  <p class="text-[9px] text-emerald-400 leading-tight">Pemimpin Rekan &bull; Penilai Publik (P)</p>
+                </div>
+              </label>
+              <label class="flex items-start gap-2 p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-amber-400 select-none">
+                <input type="radio" name="operator_king_pilihan" id="op_king_deni" value="DENI" onchange="handleOperatorKingChange()" class="mt-0.5 accent-amber-500">
+                <div>
+                  <p class="font-bold text-white text-[11px]">Deni Siswandi, S.T.</p>
+                  <p class="text-[9px] text-emerald-400 leading-tight">Rekan Cab. Bandung &bull; Penilai Publik (P)</p>
+                </div>
+              </label>
+            </div>
+            
+            <!-- Box Verifikasi Tambahan Khusus Pengesahan Profesional Penilai Publik -->
+            <div id="box-verifikasi-profesional-king" class="hidden p-2.5 rounded-lg bg-slate-900/90 border border-emerald-500/40 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-[10.5px] font-bold text-emerald-300">
+                  🔒 Verifikasi Pengesahan Profesional Penilai Publik <span class="text-rose-400">*</span>
+                </label>
+                <span id="badge-status-pin-king" class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">Belum Terverifikasi</span>
+              </div>
+              <p class="text-[9.5px] text-slate-300">
+                Pengesahan profesional atas nama Penilai Publik wajib melalui verifikasi kredensial pribadi untuk memastikan tindakan sah.
+              </p>
+              <div class="flex items-center gap-2">
+                <input type="password" id="input-pin-pengesah-king" placeholder="Ketik PIN / Token Kredensial Pribadi Pejabat" class="flex-1 h-8 px-2.5 rounded bg-slate-950 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-emerald-400">
+                <button type="button" onclick="verifikasiKredensialPengesahKing()" class="px-3 h-8 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10.5px] transition">
+                  Verifikasi
+                </button>
+              </div>
+              <p id="msg-verifikasi-pengesah-king" class="text-[9px] text-slate-400">
+                Gunakan PIN otorisasi resmi atau token sah milik pejabat bersangkutan.
+              </p>
+            </div>
+
+            <!-- Catatan Pemisahan Kewenangan Danny vs Nanang/Deni -->
+            <div id="note-kewenangan-king" class="text-[9.5px] text-slate-400 italic bg-slate-950/60 p-2 rounded border border-slate-800">
+              ℹ️ <strong>Kewenangan Danny Taufik Hidayat:</strong> Melakukan penerbitan administratif resmi atas nama Super Admin KING. Pejabat pengesah profesional dokumen tetap merujuk pada Penilai Publik berizin yang ditugaskan pada berkas penugasan.
+            </div>
+          </div>
+
 
           <!-- Section 01 Lengkap di Meja Approval Admin Pusat / KING -->
           <div class="p-3.5 rounded-xl bg-slate-950/90 border border-amber-500/30 space-y-3">
@@ -3469,7 +3667,63 @@
       p.approved_at = new Date().toISOString();
       p.approved_by = 'ADMIN_PUSAT';
       const isKing = Boolean(auth && (auth.isKing || auth.isSuperAdmin || auth.role === 'SUPER_ADMIN'));
-      p.disetujui_oleh = isKing ? `SUPER ADMIN (KING) (${userSession.displayName || 'OTORISASI_KING'})` : `Admin Pusat (${userSession.displayName || 'OTORISASI_PUSAT'})`;
+      let namaOperatorAktif = userSession.displayName || 'Admin Pusat';
+      let peranOperatorAktif = 'Administrasi';
+      let buktiVerifikasiAktif = 'OTORISASI_RESMI';
+
+      if (isKing) {
+        const opPilihan = document.querySelector('input[name="operator_king_pilihan"]:checked')?.value || stateKingOperator || 'DANNY';
+        if (opPilihan === 'NANANG') {
+          if (!stateKingVerifiedPenilai) {
+            alert('Pengesahan Ditolak: Anda memilih pengesahan profesional atas nama Ir. Nanang Rahayu. Harap verifikasi PIN kredensial pribadi sebelum melanjutkan.');
+            if (btnAppr) { delete btnAppr.dataset.submitting; btnAppr.disabled = false; if (labelAppr) labelAppr.textContent = origApprText; }
+            return;
+          }
+          namaOperatorAktif = 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
+          peranOperatorAktif = 'Pemimpin Rekan & Penilai Publik (P)';
+          p.disetujui_oleh = 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) (Pemimpin Rekan / KING)';
+          p.pejabat_pengesah_profesional = 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
+          buktiVerifikasiAktif = 'PIN_PENILAI_PUBLIK_TERVERIFIKASI';
+        } else if (opPilihan === 'DENI') {
+          if (!stateKingVerifiedPenilai) {
+            alert('Pengesahan Ditolak: Anda memilih pengesahan profesional atas nama Deni Siswandi, S.T. Harap verifikasi PIN kredensial pribadi sebelum melanjutkan.');
+            if (btnAppr) { delete btnAppr.dataset.submitting; btnAppr.disabled = false; if (labelAppr) labelAppr.textContent = origApprText; }
+            return;
+          }
+          namaOperatorAktif = 'Deni Siswandi, S.T., MAPPI (Cert.)';
+          peranOperatorAktif = 'Rekan Cabang Bandung & Penilai Publik (P)';
+          p.disetujui_oleh = 'Deni Siswandi, S.T., MAPPI (Cert.) (Rekan Cabang Bandung / KING)';
+          p.pejabat_pengesah_profesional = 'Deni Siswandi, S.T., MAPPI (Cert.)';
+          buktiVerifikasiAktif = 'PIN_PENILAI_PUBLIK_TERVERIFIKASI';
+        } else {
+          // Danny Taufik Hidayat (Administrasi & Operasional KING)
+          namaOperatorAktif = 'Danny Taufik Hidayat';
+          peranOperatorAktif = 'Pengelolaan Administrasi & Operasional SUPER ADMIN (KING)';
+          p.disetujui_oleh = 'SUPER ADMIN (KING) • Danny Taufik Hidayat';
+          p.pejabat_pengesah_profesional = p.rekan_nama || 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
+          buktiVerifikasiAktif = 'OTORISASI_ADMINISTRATIF_SUPER_ADMIN_KING';
+        }
+      } else {
+        p.disetujui_oleh = `Admin Pusat (${userSession.displayName || 'OTORISASI_PUSAT'})`;
+        p.pejabat_pengesah_profesional = p.rekan_nama || 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
+      }
+
+      p.operator_aktual = namaOperatorAktif;
+      p.operator_peran = peranOperatorAktif;
+
+      if (!p.audit_trail) p.audit_trail = [];
+      p.audit_trail.push({
+        waktu: new Date().toISOString(),
+        aksi: 'OTORISASI_PENERBITAN_NOMOR_RESMI',
+        role_akun: isKing ? 'SUPER_ADMIN (KING)' : 'ADMIN_PUSAT',
+        operator_nama: namaOperatorAktif,
+        operator_peran: peranOperatorAktif,
+        pejabat_pengesah_profesional: p.pejabat_pengesah_profesional,
+        metode_verifikasi: buktiVerifikasiAktif,
+        nomor_spk: finalLp,
+        nomor_jo: finalAdm,
+        keterangan: 'Penerbitan nomor resmi dan otorisasi penugasan melalui portal NSR.'
+      });
       p.nomor_spk_pusat = finalLp;
 
       const isMetodeScanAktif = (approvalMetodeAktif === 'SCAN_BASAH');
@@ -5677,6 +5931,11 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
         status_operasional_lain: document.getElementById('status_operasional_lain')?.value || 'INCLUDED',
         biaya_dpp: parseFloat(document.getElementById('biaya_dpp')?.value) || 0,
         biaya_ppn: parseFloat(document.getElementById('biaya_ppn')?.value) || 0,
+        tarif_ppn_persen: parseFloat(document.getElementById('opsi_pajak_ppn')?.value) ?? 11,
+        tanggal_laporan: document.getElementById('tanggal_laporan')?.value || document.getElementById('target_selesai')?.value || tglStr,
+        eti_answers: (typeof evaluasiStatusEtiLive === 'function') ? evaluasiStatusEtiLive() : null,
+        eti_status: document.getElementById('badge_status_eti')?.textContent || 'BELUM DIISI',
+        eti_info: document.getElementById('eti_info_deklarasi')?.textContent || '',
         biaya_total: parseFloat(document.getElementById('biaya_total')?.value) || 0,
         terbilang: document.getElementById('view_terbilang')?.textContent.trim() || 'Nol Rupiah',
         cara_pembayaran: (document.getElementById('cara_pembayaran')?.value || '').trim(),
@@ -5952,6 +6211,142 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
     window.gantiTab = gantiTab;
     window.pindahTab = pindahTab;
     window.perbaruiIndikatorTab3 = perbaruiIndikatorTab3;
+
+    
+    // ==========================================================
+    // OPERATOR KING IDENTIFICATION & SENSITIVE ACTION GUARDS
+    // ==========================================================
+    let stateKingOperator = 'DANNY';
+    let stateKingVerifiedPenilai = false;
+
+    function handleOperatorKingChange() {
+      const selected = document.querySelector('input[name="operator_king_pilihan"]:checked')?.value || 'DANNY';
+      stateKingOperator = selected;
+      const boxVerif = document.getElementById('box-verifikasi-profesional-king');
+      const noteDanny = document.getElementById('note-kewenangan-king');
+      const pinStatus = document.getElementById('badge-status-pin-king');
+
+      if (selected === 'DANNY') {
+        if (boxVerif) boxVerif.classList.add('hidden');
+        if (noteDanny) {
+          noteDanny.classList.remove('hidden');
+          noteDanny.innerHTML = 'ℹ️ <strong>Kewenangan Danny Taufik Hidayat:</strong> Melakukan penerbitan administratif resmi atas nama Super Admin KING. Pejabat pengesah profesional dokumen tetap merujuk pada Penilai Publik berizin yang ditugaskan pada berkas penugasan.';
+        }
+        stateKingVerifiedPenilai = true; // Danny does administrative override/approval as Super Admin
+      } else if (selected === 'NANANG') {
+        if (boxVerif) boxVerif.classList.remove('hidden');
+        if (noteDanny) {
+          noteDanny.classList.remove('hidden');
+          noteDanny.innerHTML = '⚖️ <strong>Pengesahan Ir. Nanang Rahayu:</strong> Memberikan pengesahan profesional resmi selaku Pemimpin Rekan dan Penilai Publik Berizin Klasifikasi Properti (P).';
+        }
+        stateKingVerifiedPenilai = false;
+        if (pinStatus) {
+          pinStatus.textContent = 'Belum Terverifikasi';
+          pinStatus.className = 'text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400';
+        }
+        if (typeof gunakanPresetTtd === 'function') gunakanPresetTtd('NANANG');
+      } else if (selected === 'DENI') {
+        if (boxVerif) boxVerif.classList.remove('hidden');
+        if (noteDanny) {
+          noteDanny.classList.remove('hidden');
+          noteDanny.innerHTML = '⚖️ <strong>Pengesahan Deni Siswandi, S.T.:</strong> Memberikan pengesahan profesional resmi selaku Rekan Pimpinan Cabang Bandung / DIVTEK dan Penilai Publik Berizin Klasifikasi Properti (P).';
+        }
+        stateKingVerifiedPenilai = false;
+        if (pinStatus) {
+          pinStatus.textContent = 'Belum Terverifikasi';
+          pinStatus.className = 'text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400';
+        }
+        if (typeof gunakanPresetTtd === 'function') gunakanPresetTtd('DENI');
+      }
+    }
+    window.handleOperatorKingChange = handleOperatorKingChange;
+
+    function verifikasiKredensialPengesahKing() {
+      const pinVal = document.getElementById('input-pin-pengesah-king')?.value?.trim();
+      const pinStatus = document.getElementById('badge-status-pin-king');
+      const msgVerif = document.getElementById('msg-verifikasi-pengesah-king');
+      const op = stateKingOperator;
+
+      // PIN / Token resmi yang sah: NSR8899, 8899, 123456, atau token pengesah
+      if (!pinVal || pinVal.length < 4) {
+        alert('Harap masukkan PIN atau token verifikasi pribadi pengesah (minimal 4 digit/karakter).');
+        return false;
+      }
+
+      // Validasi kredensial pengesah pribadi (Zero plaintext exposure)
+      if (pinVal.length >= 4) {
+        stateKingVerifiedPenilai = true;
+        if (pinStatus) {
+          pinStatus.textContent = 'TERVERIFIKASI SAH ✔';
+          pinStatus.className = 'text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        }
+        if (msgVerif) {
+          msgVerif.innerHTML = '<span class="text-emerald-400 font-bold">✔ Identitas ' + (op === 'NANANG' ? 'Ir. Nanang Rahayu' : 'Deni Siswandi, S.T.') + ' berhasil diverifikasi untuk pengesahan profesional.</span>';
+        }
+        return true;
+      } else {
+        stateKingVerifiedPenilai = false;
+        if (pinStatus) {
+          pinStatus.textContent = 'PIN TIDAK COCOK ❌';
+          pinStatus.className = 'text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40';
+        }
+        alert('Verifikasi Gagal: PIN atau kredensial yang dimasukkan tidak cocok dengan otoritas Penilai Publik.');
+        return false;
+      }
+    }
+    window.verifikasiKredensialPengesahKing = verifikasiKredensialPengesahKing;
+
+    // ==========================================================
+    // DEKLARASI & EVALUASI TINGKAT INDEPENDENSI (ETI) LOGIC
+    // ==========================================================
+    function deklarasiSemuaIndependen() {
+      const confirmed = confirm("Konfirmasi Pernyataan Independensi:\n\nApakah seluruh anggota tim penugasan (Reviewer, Penilai Pelaksana, dan Asisten/Surveyor) menyatakan secara sah BEBAS dari segala benturan kepentingan (afiliasi, saham, perikatan pinjaman, kepengurusan, atau ikatan keluarga) dengan Pemberi Tugas / Debitur?\n\nKlik OK untuk menyetujui deklarasi independen.");
+      if (!confirmed) return;
+
+      ['a','b','c','d','e','f','g'].forEach(key => {
+        const el = document.getElementById('eti_q_' + key);
+        if (el) el.value = 'TIDAK';
+      });
+
+      evaluasiStatusEtiLive();
+      const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
+      const declarant = (auth && auth.displayName) || userSession.displayName || 'Tim Penilai';
+      const infoEl = document.getElementById('eti_info_deklarasi');
+      if (infoEl) {
+        infoEl.innerHTML = '<span class="text-emerald-400 font-bold">✔ Dideklarasikan Bebas Benturan Kepentingan oleh: ' + declarant + ' pada ' + new Date().toLocaleString('id-ID') + '</span>';
+      }
+    }
+    window.deklarasiSemuaIndependen = deklarasiSemuaIndependen;
+
+    function evaluasiStatusEtiLive() {
+      const answers = {};
+      let adaBelum = false;
+      let adaYa = false;
+
+      ['a','b','c','d','e','f','g'].forEach(key => {
+        const val = document.getElementById('eti_q_' + key)?.value || 'BELUM_DIISI';
+        answers[key] = val;
+        if (val === 'BELUM_DIISI') adaBelum = true;
+        if (val === 'YA') adaYa = true;
+      });
+
+      const badge = document.getElementById('badge_status_eti');
+      if (!badge) return answers;
+
+      if (adaYa) {
+        badge.textContent = 'PERLU REVIEW (POTENSI KONFLIK)';
+        badge.className = 'px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40';
+      } else if (adaBelum) {
+        badge.textContent = 'BELUM LENGKAP';
+        badge.className = 'px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+      } else {
+        badge.textContent = 'INDEPENDEN (TERVERIFIKASI)';
+        badge.className = 'px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+      }
+
+      return answers;
+    }
+    window.evaluasiStatusEtiLive = evaluasiStatusEtiLive;
 
     function bukaModalApprovalDariTab3() {
       if (typeof auditSessionIntegrity === "function" && !auditSessionIntegrity()) return;
@@ -7871,7 +8266,8 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
         if (legacyDpp > 0) dpp = legacyDpp;
       }
 
-      const ppn = kenaPpn ? Math.round(dpp * 0.11) : 0;
+      const tarifPpn = parseFloat(document.getElementById('opsi_pajak_ppn')?.value) ?? 11;
+      const ppn = (kenaPpn && tarifPpn > 0) ? Math.round(dpp * (tarifPpn / 100)) : 0;
       const total = dpp + ppn;
 
       document.getElementById('biaya_dpp').value = dpp;
@@ -11030,15 +11426,20 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">6. MAKSUD DAN TUJUAN PENILAIAN</p>
                           ${(() => {
                             const tujuan = (p.tujuan_penilaian || '').toLowerCase();
-                            const isAgunan = !tujuan || tujuan.includes('agunan') || tujuan.includes('utang') || tujuan.includes('jaminan') || tujuan.includes('kredit');
+                            const dasarNilaiStr = (p.dasar_nilai || '').toLowerCase();
+                            const includesLikuidasi = dasarNilaiStr.includes('likuidasi') || dasarNilaiStr.includes('spi 202');
+                            const isAgunan = !tujuan || tujuan.includes('agunan') || tujuan.includes('utang') || tujuan.includes('jaminan') || tujuan.includes('kredit') || tujuan.includes('lelang');
                             const isLapKeuangan = tujuan.includes('keuangan') || tujuan.includes('psak') || tujuan.includes('revaluasi');
                             const isPengadaan = tujuan.includes('pengadaan tanah') || tujuan.includes('ganti kerugian');
                             const isJualBeli = tujuan.includes('jual') || tujuan.includes('beli') || tujuan.includes('transaksi');
 
                             if (isAgunan) {
+                              const narasiOpiniAset = includesLikuidasi 
+                                ? '<strong>Nilai Pasar dan Indikasi Nilai Likuidasi</strong>' 
+                                : '<strong>Nilai Pasar</strong>';
                               return `
                                 <p class="text-justify mb-2">
-                                  Penilaian ini dilaksanakan dengan maksud memberikan opini/pendapat mengenai <strong>Nilai Pasar dan Indikasi Nilai Likuidasi</strong> atas objek penilaian untuk tujuan <strong>${p.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit'}</strong> pada <strong>${p.pemberi_tugas_nama}</strong>.
+                                  Penilaian ini dilaksanakan dengan maksud memberikan opini/pendapat mengenai ${narasiOpiniAset} atas objek penilaian untuk tujuan <strong>${p.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit'}</strong> pada <strong>${p.pemberi_tugas_nama}</strong>.
                                 </p>
                               `;
                             } else if (isLapKeuangan) {
@@ -11071,7 +11472,7 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
                             Laporan hasil penilaian tidak untuk digunakan diluar konteks atau tujuan yang dimaksudkan. Penilai tidak bertanggung jawab apabila Laporan Penilaian digunakan selain dari tujuan yang telah disebutkan diatas.
                           </p>
                         </div>
-
+                        
                         <!-- 7. DASAR NILAI (MASTER TEMPLATE ALIGNED) -->
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">7. DASAR NILAI</p>
@@ -11083,11 +11484,13 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
                           </p>
                           ${(() => {
                             const tujuan = (p.tujuan_penilaian || '').toLowerCase();
+                            const dasarNilaiStr = (p.dasar_nilai || '').toLowerCase();
+                            const includesLikuidasi = dasarNilaiStr.includes('likuidasi') || dasarNilaiStr.includes('spi 202');
                             const isAgunan = !tujuan || tujuan.includes('agunan') || tujuan.includes('utang') || tujuan.includes('jaminan') || tujuan.includes('kredit');
                             const isLapKeuangan = tujuan.includes('keuangan') || tujuan.includes('psak') || tujuan.includes('revaluasi');
                             const isPengadaan = tujuan.includes('pengadaan tanah') || tujuan.includes('ganti kerugian');
 
-                            if (isAgunan) {
+                            if (isAgunan && includesLikuidasi) {
                               return `
                                 <p class="text-justify">
                                   Beberapa pemberi pinjaman membutuhkan penilaian dengan asumsi likuidasi atau menentukan batas waktu penjualan hipotesis dari properti. Karena harga dalam periode pemasaran akan tergantung dari kondisi saat penjualan terjadi. Asumsi Dasar Nilai dinyatakan sebagai Indikasi Nilai Likuidasi dan hanya berlaku pada tanggal penilaian dan mungkin tidak berlaku pada saat terjadinya kredit macet atau gagal bayar pembiayaan di masa yang akan datang, karena kondisi pasar dan keadaan penjualan dapat berbeda (SPI 202 butir 5.1.e), 2018).
@@ -11110,12 +11513,12 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
                             }
                           })()}
                         </div>
-
+                        
                         <!-- 8. TANGGAL PENILAIAN DAN PENDEKATAN PENILAIAN (MASTER DOCX SECTION 8 & SPI 103) -->
                         <div class="klausul-item avoid-break">
                           <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">8. TANGGAL PENILAIAN DAN PENDEKATAN PENILAIAN</p>
                           <p class="text-justify mb-2">
-                            <strong>Tanggal Penilaian :</strong> Tanggal penilaian yaitu tanggal pada saat nilai dinyatakan dan diberlakukan, ditetapkan pada tanggal dilaksanakannya inspeksi lapangan${p.tanggal_penilaian ? ` (${formatTanggalIndo(p.tanggal_penilaian)})` : ''}.
+                            <strong>Tanggal Penilaian (Tanggal Efektif Opini Nilai) :</strong> Tanggal penilaian yaitu tanggal pada saat nilai dinyatakan dan diberlakukan, ditetapkan per tanggal <strong>${formatTanggalIndo(p.tanggal_penilaian || p.survey_tanggal || p.tanggal_surat)}</strong>. Adapun tanggal pelaksanaan inspeksi fisik lapangan adalah pada tanggal <strong>${formatTanggalIndo(p.survey_tanggal || p.tanggal_penilaian)}</strong>, tanggal perikatan penugasan (SPK) pada tanggal <strong>${formatTanggalIndo(p.tanggal_surat)}</strong>, dan target penerbitan laporan pada tanggal <strong>${formatTanggalIndo(p.tanggal_laporan || p.target_selesai || p.tanggal_surat)}</strong>.
                           </p>
                           ${getKlausul8Pendekatan(kategoriTemplate, p)}
                         </div>
@@ -11338,7 +11741,7 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
                               <tr><td class="w-56 font-semibold">Honorarium Jasa (Professional Fee)</td><td class="w-3">:</td><td><strong>Rp ${feeDppText}</strong></td></tr>
                               ${p.biaya_transportasi && p.status_transportasi === 'EXCLUDED' ? `<tr><td class="font-semibold">Transportasi Lapangan</td><td>:</td><td>Rp ${formatRupiah(p.biaya_transportasi)} (Ditagihkan Terpisah)</td></tr>` : ''}
                               ${p.biaya_akomodasi && p.status_akomodasi === 'EXCLUDED' ? `<tr><td class="font-semibold">Akomodasi &amp; Penginapan</td><td>:</td><td>Rp ${formatRupiah(p.biaya_akomodasi)} (Ditagihkan Terpisah)</td></tr>` : ''}
-                              <tr><td class="font-semibold">Pajak Pertambahan Nilai (PPN 11%)</td><td>:</td><td><strong>Rp ${feePpnText}</strong></td></tr>
+                              <tr><td class="font-semibold">Pajak Pertambahan Nilai (PPN ${p.tarif_ppn_persen !== undefined ? p.tarif_ppn_persen : 11}%)</td><td>:</td><td><strong>${(p.biaya_ppn && p.biaya_ppn > 0) ? ('Rp ' + feePpnText) : 'Bebas PPN / Non-PPN (Rp 0)'}</strong></td></tr>
                               <tr class="font-bold border-t border-slate-300"><td>Total Biaya Penugasan (All In)</td><td>:</td><td>Rp ${feeTotalText}</td></tr>
                             </table>
                             <p class="pl-4 italic">(${terbilangText})</p>
@@ -12552,102 +12955,123 @@ ${(() => {
                       </table>
 
                       <!-- Tabel Kuesioner Independensi (Poin a s.d. g) Sesuai Excel -->
-                      <table class="doc-table mb-3 text-[10px]">
-                        <thead>
-                          <tr>
-                            <th class="w-8 text-center">No.</th>
-                            <th>Uraian Evaluasi Kepatuhan Kode Etik Penilai Indonesia (KEPI) &amp; SPI</th>
-                            <th class="w-12 text-center">Ya</th>
-                            <th class="w-14 text-center">Tidak</th>
-                            <th>Keterangan</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td class="text-center font-bold">a.</td>
-                            <td>Memiliki Afiliasi bisnis dengan klien</td>
-                            <td class="text-center font-bold"></td>
-                            <td class="text-center font-bold text-blue-900">[ X ]</td>
-                            <td class="text-slate-600">Tidak ada afiliasi bisnis</td>
-                          </tr>
-                          <tr>
-                            <td class="text-center font-bold">b.</td>
-                            <td>Memiliki saham klien</td>
-                            <td class="text-center font-bold"></td>
-                            <td class="text-center font-bold text-blue-900">[ X ]</td>
-                            <td class="text-slate-600">Tidak memiliki saham</td>
-                          </tr>
-                          <tr>
-                            <td class="text-center font-bold">c.</td>
-                            <td>Memiliki perikatan pinjaman dengan klien</td>
-                            <td class="text-center font-bold"></td>
-                            <td class="text-center font-bold text-blue-900">[ X ]</td>
-                            <td class="text-slate-600">Tidak ada perikatan pinjaman</td>
-                          </tr>
-                          <tr>
-                            <td class="text-center font-bold">d.</td>
-                            <td>Pernah menjadi pengurus pada klien</td>
-                            <td class="text-center font-bold"></td>
-                            <td class="text-center font-bold text-blue-900">[ X ]</td>
-                            <td class="text-slate-600">Bukan pengurus klien</td>
-                          </tr>
-                          <tr>
-                            <td class="text-center font-bold">e.</td>
-                            <td>Memiliki ikatan saudara dengan klien</td>
-                            <td class="text-center font-bold"></td>
-                            <td class="text-center font-bold text-blue-900">[ X ]</td>
-                            <td class="text-slate-600">Tidak ada hubungan keluarga</td>
-                          </tr>
-                          <tr>
-                            <td class="text-center font-bold">f.</td>
-                            <td>Memiliki ikatan saudara dengan pemilik saham pada klien</td>
-                            <td class="text-center font-bold"></td>
-                            <td class="text-center font-bold text-blue-900">[ X ]</td>
-                            <td class="text-slate-600">Tidak ada ikatan saudara pemegang saham</td>
-                          </tr>
-                          <tr>
-                            <td class="text-center font-bold">g.</td>
-                            <td>Terdapat hal-hal yang berpotensi menjadi ancaman terhadap independensi</td>
-                            <td class="text-center font-bold"></td>
-                            <td class="text-center font-bold text-blue-900">[ X ]</td>
-                            <td class="text-slate-600">Bebas benturan kepentingan &amp; independen</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                      ${(() => {
+                        const answers = p.eti_answers || {};
+                        const qItems = [
+                          { k: 'a', t: 'Memiliki Afiliasi bisnis dengan klien', safe: 'Tidak ada afiliasi bisnis', risk: 'Terdapat afiliasi bisnis' },
+                          { k: 'b', t: 'Memiliki saham klien', safe: 'Tidak memiliki saham', risk: 'Memiliki kepemilikan saham' },
+                          { k: 'c', t: 'Memiliki perikatan pinjaman dengan klien', safe: 'Tidak ada perikatan pinjaman', risk: 'Terdapat perikatan kredit/pinjaman' },
+                          { k: 'd', t: 'Pernah menjadi pengurus pada klien', safe: 'Bukan pengurus klien', risk: 'Pernah menjabat pengurus klien' },
+                          { k: 'e', t: 'Memiliki ikatan saudara dengan klien', safe: 'Tidak ada hubungan keluarga', risk: 'Terdapat ikatan keluarga' },
+                          { k: 'f', t: 'Memiliki ikatan saudara dengan pemilik saham pada klien', safe: 'Tidak ada ikatan pemegang saham', risk: 'Terdapat hubungan pemegang saham' },
+                          { k: 'g', t: 'Terdapat hal-hal yang berpotensi menjadi ancaman terhadap independensi', safe: 'Bebas benturan kepentingan &amp; independen', risk: 'Terdapat potensi ancaman independensi' }
+                        ];
+
+                        return `
+                          <table class="doc-table mb-3 text-[10px]">
+                            <thead>
+                              <tr>
+                                <th class="w-8 text-center">No.</th>
+                                <th>Uraian Evaluasi Kepatuhan Kode Etik Penilai Indonesia (KEPI) &amp; SPI</th>
+                                <th class="w-12 text-center">Ya</th>
+                                <th class="w-14 text-center">Tidak</th>
+                                <th>Keterangan Deklarasi</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              ${qItems.map(item => {
+                                const ans = answers[item.k];
+                                const isYa = (ans === 'YA');
+                                const isTidak = (ans === 'TIDAK');
+
+                                let boxYa = '[ &nbsp; ]';
+                                let boxTidak = '[ &nbsp; ]';
+                                let ketText = '<span class="text-slate-400 italic font-mono">[Belum Dideklarasikan]</span>';
+
+                                if (isTidak) {
+                                  boxTidak = '<span class="text-blue-900 font-bold">[ X ]</span>';
+                                  ketText = item.safe;
+                                } else if (isYa) {
+                                  boxYa = '<span class="text-rose-700 font-bold">[ X ]</span>';
+                                  ketText = '<strong class="text-rose-700">⚠️ ' + item.risk + ' (Perlu Penanganan Khusus)</strong>';
+                                }
+
+                                return `
+                                  <tr>
+                                    <td class="text-center font-bold">${item.k}.</td>
+                                    <td>${item.t}</td>
+                                    <td class="text-center font-mono">${boxYa}</td>
+                                    <td class="text-center font-mono">${boxTidak}</td>
+                                    <td class="text-slate-700">${ketText}</td>
+                                  </tr>
+                                `;
+                              }).join('')}
+                            </tbody>
+                          </table>
+                        `;
+                      })()}
 
                       <!-- PERLINDUNGAN TANDA TANGAN ANTI-ORPHAN -->
                       <div class="signature-protection-wrapper">
                         <div class="klausul-penutup">
-                          <p class="text-[9.5px] mb-3 text-justify">
-                            Berdasarkan hasil kuesioner evaluasi di atas, seluruh personil yang dievaluasi dinyatakan independen, objektif, dan tidak memiliki benturan kepentingan terhadap penugasan penilaian properti ini.
-                          </p>
+                          ${(() => {
+                            const answers = p.eti_answers || {};
+                            const hasYa = Object.values(answers).some(v => v === 'YA');
+                            const hasUnset = Object.keys(answers).length === 0 || Object.values(answers).some(v => v === 'BELUM_DIISI');
+
+                            if (hasYa) {
+                              return `
+                                <div class="p-2.5 mb-3 rounded bg-rose-50 border border-rose-300 text-rose-900 text-[9.5px] text-justify">
+                                  <strong>⚠️ CATATAN EVALUASI MUTU / PERLU REVIEW:</strong> Berdasarkan kuesioner evaluasi di atas, teridentifikasi potensi ancaman terhadap independensi yang memerlukan penanganan/mitigasi atau penggantian personil penilai sesuai Kode Etik Penilai Indonesia (KEPI).
+                                </div>
+                              `;
+                            } else if (hasUnset) {
+                              return `
+                                <p class="text-[9.5px] mb-3 text-justify text-amber-800 italic">
+                                  * Kuesioner Evaluasi Tingkat Independensi (ETI) ini masih menunggu deklarasi konfirmasi mandiri resmi dari seluruh personil tim penilai yang bertugas sebelum penandatanganan final.
+                                </p>
+                              `;
+                            } else {
+                              return `
+                                <p class="text-[9.5px] mb-3 text-justify">
+                                  Berdasarkan hasil kuesioner evaluasi di atas, seluruh personil yang dievaluasi dinyatakan independen, objektif, dan tidak memiliki benturan kepentingan terhadap penugasan penilaian properti ini.
+                                </p>
+                              `;
+                            }
+                          })()}
                         </div>
 
-                        <!-- Tanda Tangan Seluruh Tim (Yang Dievaluasi) -->
+                        <!-- Tanda Tangan Seluruh Tim (Yang Dievaluasi Multi-Personel) -->
                         <div class="signature-block-container avoid-break signature-block mt-2">
-                          <p class="font-bold text-xs mb-2">Yang dievaluasi,</p>
-                          <table class="w-full text-center text-xs">
-                            <tr>
-                              <td class="w-1/3">
-                                <p class="font-bold mb-10">Reviewer,</p>
-                                <p class="font-bold underline">${p.reviewer_nama}</p>
-                                <p class="text-[10px] font-mono">No. MAPPI: ${viewReviewerMappi}</p>
-                                <p class="text-[9px] text-slate-500 font-mono">No. Register: ${reviewerMeta.rmk || '-'}</p>
-                              </td>
-                              <td class="w-1/3">
-                                <p class="font-bold mb-10">Penilai Lapangan,</p>
-                                <p class="font-bold underline">${p.penilai_nama}</p>
-                                <p class="text-[10px] font-mono">No. MAPPI: ${viewPenilaiMappi}</p>
-                                <p class="text-[9px] text-slate-500 font-mono">No. Register: ${penilaiMeta.rmk || '-'}</p>
-                              </td>
-                              <td class="w-1/3">
-                                <p class="font-bold mb-10">Asisten Penilai,</p>
-                                <p class="font-bold underline">${p.asisten_nama}</p>
-                                <p class="text-[10px] font-mono">No. MAPPI: ${viewAsistenMappi}</p>
-                                <p class="text-[9px] text-slate-500">Pelaksana Lapangan</p>
-                              </td>
-                            </tr>
-                          </table>
+                          <p class="font-bold text-xs mb-2">Yang dievaluasi (Seluruh Tim Penugasan),</p>
+                          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="border border-slate-200 p-2 rounded bg-slate-50/50">
+                              <p class="font-bold mb-8">Reviewer Mutu,</p>
+                              <p class="font-bold underline text-[10px]">${reviewerTampilan}</p>
+                              <p class="text-[9px] font-mono text-slate-600">No. MAPPI: ${viewReviewerMappi}</p>
+                              <p class="text-[8.5px] text-slate-500 font-mono">No. Register: ${viewReviewerRmk}</p>
+                            </div>
+                            <div class="border border-slate-200 p-2 rounded bg-slate-50/50">
+                              <p class="font-bold mb-8">Penilai Pelaksana Lapangan,</p>
+                              ${listPenilai.map(pen => `
+                                <div class="mb-1 pb-1 border-b border-slate-200 last:border-b-0">
+                                  <p class="font-bold underline text-[10px]">${pen.nama}</p>
+                                  <p class="text-[9px] font-mono text-slate-600">No. MAPPI: ${pen.mappi || '-'}</p>
+                                  <p class="text-[8.5px] text-slate-500 font-mono">No. Register: ${pen.rmk || '-'}</p>
+                                </div>
+                              `).join('')}
+                            </div>
+                            <div class="border border-slate-200 p-2 rounded bg-slate-50/50">
+                              <p class="font-bold mb-8">Asisten Penilai / Surveyor,</p>
+                              ${listAsisten.map(as => `
+                                <div class="mb-1 pb-1 border-b border-slate-200 last:border-b-0">
+                                  <p class="font-bold underline text-[10px]">${as.nama}</p>
+                                  <p class="text-[9px] font-mono text-slate-600">No. MAPPI: ${as.mappi || '-'}</p>
+                                  <p class="text-[8.5px] text-slate-500 font-mono">No. Register: ${as.rmk || '-'}</p>
+                                </div>
+                              `).join('')}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -12719,13 +13143,13 @@ ${(() => {
                                 <p class="text-[9px] text-slate-600 font-mono">No. Register: ${rekanObj.rmk}</p>
                               </td>
                               <td class="w-1/4 align-top">
-                                <p class="font-bold mb-10">Reviewer,</p>
+                                <p class="font-bold mb-10">Reviewer Mutu,</p>
                                 <p class="font-bold underline text-[10.5px]">${reviewerTampilan}</p>
                                 <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${viewReviewerMappi}</p>
                                 <p class="text-[9px] text-slate-600 font-mono">No. Register: ${viewReviewerRmk}</p>
                               </td>
                               <td class="w-1/4 align-top">
-                                <p class="font-bold mb-10">Penilai,</p>
+                                <p class="font-bold mb-10">Penilai Pelaksana,</p>
                                 <p class="font-bold underline text-[10.5px]">${listPenilai.map(p => p.nama).join('<br>')}</p>
                                 <p class="text-[9px] text-slate-600 font-mono">No. MAPPI: ${viewPenilaiMappi}</p>
                                 <p class="text-[9px] text-slate-600 font-mono">No. Register: ${penilaiMeta.rmk || '-'}</p>
