@@ -387,7 +387,7 @@ async function runFocusedSuite() {
   assert(regulerValidRes.status === 200 && regulerValidRes.data?.success === true && regulerValidRes.data?.record?.status === 'MENUNGGU_SPM_AKHIR', 
     'Reguler NoLap: Berkas lengkap + mitigasi valid -> PASS (HTTP 200, Status: MENUNGGU_SPM_AKHIR)');
 
-  // TEST 6: Central functional staff (Surveyor Pusat) submission -> routed to MENUNGGU_VERIFIKASI_ADMIN
+  // TEST 6: Central functional staff (Surveyor Pusat) submission -> routed directly to SPM (No Admin Intercept)
   const pusatSurveyorRes = await request('/nolap-data-handler.php?action=submitRequest', {
     method: 'POST',
     headers: { 'X-NSR-Token': PUSAT_SURVEYOR_TOKEN },
@@ -411,8 +411,44 @@ async function runFocusedSuite() {
       }
     }
   });
-  assert(pusatSurveyorRes.status === 200 && pusatSurveyorRes.data?.record?.status === 'MENUNGGU_VERIFIKASI_ADMIN', 
-    'Staf Pusat Fungsional: Pengajuan NoLap dialirkan ke antrean verifikasi Admin Pusat (Status: MENUNGGU_VERIFIKASI_ADMIN)');
+  assert(pusatSurveyorRes.status === 200 && pusatSurveyorRes.data?.record?.status === 'MENUNGGU_SPM_AKHIR', 
+    'Staf Pusat Fungsional: Pengajuan NoLap langsung ke antrean telaah Kepala SPM tanpa intersep admin (Status: MENUNGGU_SPM_AKHIR)');
+
+  // TEST 7: Simpan Draf Terpadu (isDraft: true) -> PASS (200 OK, Status: DRAFT, bypass strict links/mitigasi checks)
+  const draftRes = await request('/nolap-data-handler.php?action=submitRequest', {
+    method: 'POST',
+    headers: { 'X-NSR-Token': ADMIN_BDG_TOKEN },
+    body: {
+      origin_branch_id: 'Bandung',
+      namaKlien: 'PT Progres Draft Konstruksi',
+      kodeIndustri: '03',
+      namaPemohon: 'Staf Admin Cabang Bandung',
+      emailPemohon: 'admin.bdg@kjppnanangrahayu.com',
+      waPemohon: '081234567890',
+      isDraft: true,
+      modePengajuan: 'DRAFT',
+      linkLaporan: '',
+      linkPembanding: '',
+      linkBai: '',
+      smart_mitigasi: []
+    }
+  });
+  assert(draftRes.status === 200 && draftRes.data?.success === true && draftRes.data?.record?.status === 'DRAFT',
+    'Simpan Draf Terpadu: Simpan progres awal berhasil tanpa blokir berkas/mitigasi (HTTP 200, Status: DRAFT)');
+
+  // TEST 8: Generator Dokumen Ganda (Dual Output: TANDA_TERIMA & QA_CHECKLIST)
+  const targetReqId = regulerValidRes.data?.record?.noPermintaan || regulerValidRes.data?.record?.idPenugasan;
+  const tandaTerimaRes = await request(`/nolap-data-handler.php?action=renderDocumentTemplate&templateName=TANDA_TERIMA&noReq=${encodeURIComponent(targetReqId)}`, {
+    headers: { 'X-NSR-Token': ADMIN_BDG_TOKEN }
+  });
+  assert(tandaTerimaRes.status === 200 && tandaTerimaRes.data?.success === true && typeof tandaTerimaRes.data?.html === 'string' && tandaTerimaRes.data.html.length > 100,
+    'Dual Output 1: Lembar Registrasi & Tanda Terima NoLap Resmi berhasil di-render (HTTP 200, HTML Content Valid)');
+
+  const qaChecklistRes = await request(`/nolap-data-handler.php?action=renderDocumentTemplate&templateName=QA_CHECKLIST&noReq=${encodeURIComponent(targetReqId)}`, {
+    headers: { 'X-NSR-Token': ADMIN_BDG_TOKEN }
+  });
+  assert(qaChecklistRes.status === 200 && qaChecklistRes.data?.success === true && typeof qaChecklistRes.data?.html === 'string' && qaChecklistRes.data.html.length > 100,
+    'Dual Output 2: Lembar Kertas Kerja Mitigasi SPM Sah Format Cetak A4 berhasil di-render (HTTP 200, HTML Content Valid)');
 
   console.log(`\n================================================================`);
   console.log(`FINAL RESULT: ${passed} PASSED, ${failed} FAILED`);

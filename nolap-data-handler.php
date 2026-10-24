@@ -2980,6 +2980,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
 
+    if ($actionGet === 'renderDocumentTemplate') {
+        $noReq = trim($_GET['noPermintaan'] ?? ($_GET['noReq'] ?? ''));
+        $templateType = strtoupper(trim($_GET['templateType'] ?? ($_GET['templateName'] ?? 'SURAT_TUGAS')));
+
+        $targetItem = null;
+        foreach ($records as $item) {
+            if (($item['noPermintaan'] ?? '') === $noReq || ($item['idPenugasan'] ?? '') === $noReq) {
+                $targetItem = $item;
+                break;
+            }
+        }
+        if (!$targetItem) {
+            $dgList = muatDatabaseDualGate($dualGateDbFile);
+            foreach ($dgList as $item) {
+                if (($item['noPermintaan'] ?? '') === $noReq || ($item['idPenugasan'] ?? '') === $noReq) {
+                    $targetItem = $item;
+                    break;
+                }
+            }
+        }
+
+        if (!$targetItem) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Data permohonan tidak ditemukan.']);
+            exit;
+        }
+
+        $templateRaw = '';
+        $docTitle = '';
+        if ($templateType === 'SURAT_TUGAS') {
+            $templateRaw = getTemplateSuratTugas();
+            $docTitle = 'Surat Tugas Lapangan - ' . $noReq;
+        } elseif ($templateType === 'QA_CHECKLIST') {
+            $templateRaw = getTemplateQaChecklist();
+            $docTitle = 'Lembar Kendali Mutu (QA) - ' . $noReq;
+        } elseif ($templateType === 'TANDA_TERIMA') {
+            $templateRaw = getTemplateTandaTerima();
+            $docTitle = 'Tanda Terima Laporan - ' . $noReq;
+        } else {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => "Jenis template '{$templateType}' tidak didukung."]);
+            exit;
+        }
+
+        $renderedHtml = renderMergeTags($templateRaw, $targetItem);
+
+        // Jika request format HTML langsung (buka di tab baru browser)
+        if (isset($_GET['raw']) || isset($_GET['print']) || (isset($_SERVER['HTTP_ACCEPT']) && stripos($_SERVER['HTTP_ACCEPT'], 'text/html') !== false && stripos($_SERVER['HTTP_ACCEPT'], 'application/json') === false)) {
+            header('Content-Type: text/html; charset=utf-8');
+            echo $renderedHtml;
+            exit;
+        }
+
+        echo json_encode([
+            'success'      => true,
+            'templateType' => $templateType,
+            'docTitle'     => $docTitle,
+            'noPermintaan' => $noReq,
+            'html'         => $renderedHtml
+        ]);
+        exit;
+    }
+
     $targetNoReq = $_GET['noPermintaan'] ?? null;
 
     if ($targetNoReq) {
@@ -6587,6 +6650,11 @@ Audit Log ID: {$auditLogId}"
             }
         }
 
+        // 0. DETEKSI SIMPAN DRAF TERPADU (LANGKAH 1 + LANGKAH 2)
+        $isDraftReq = !empty($payload['isDraft']) || !empty($payload['saveAsDraft']) || 
+                      (isset($payload['status']) && strtoupper($payload['status']) === 'DRAFT') ||
+                      (isset($payload['modePengajuan']) && strtoupper($payload['modePengajuan']) === 'DRAFT');
+
         // 2. DETEKSI MODE PENGAJUAN (REGULER vs BOOKING NOLAP)
         $isBookingReq = !empty($payload['isBooking']) || 
                         (isset($payload['modePengajuan']) && strtoupper($payload['modePengajuan']) === 'BOOKING') || 
@@ -6594,8 +6662,8 @@ Audit Log ID: {$auditLogId}"
                         (isset($payload['request_status']) && stripos($payload['request_status'], 'BOOKING') !== false) ||
                         (isset($payload['status']) && stripos($payload['status'], 'BOOKING') !== false);
 
-        // 3. ENFORCE 3 TAUTAN DOKUMEN JIKA MODE REGULER
-        if (!$isBookingReq) {
+        // 3. ENFORCE 3 TAUTAN DOKUMEN JIKA MODE REGULER (DRAF DIKECUALIKAN)
+        if (!$isBookingReq && !$isDraftReq) {
             $linkLaporan = trim($payload['linkLaporan'] ?? ($payload['File Laporan Penilaian'] ?? ($payload['drafLaporanUrl'] ?? ($payload['linkDrive'] ?? ''))));
             $linkPembanding = trim($payload['linkPembanding'] ?? ($payload['File Data Pembanding'] ?? ($payload['link_pembanding'] ?? '')));
             $linkBai = trim($payload['linkBai'] ?? ($payload['File Berita Acara Inspeksi'] ?? ($payload['baiUrl'] ?? ($payload['link_bai'] ?? ''))));
@@ -6611,9 +6679,9 @@ Audit Log ID: {$auditLogId}"
             }
         }
 
-        // 4. ENFORCE SMART MITIGASI UNTUK SEMUA MODE (REGULER & BOOKING)
+        // 4. ENFORCE SMART MITIGASI UNTUK SEMUA MODE (REGULER & BOOKING, DRAF DIKECUALIKAN)
         $smartMitigasiReq = $payload['smart_mitigasi'] ?? ($payload['smartMitigasi'] ?? null);
-        if (empty($smartMitigasiReq) || !is_array($smartMitigasiReq) || count($smartMitigasiReq) === 0) {
+        if (!$isDraftReq && (empty($smartMitigasiReq) || !is_array($smartMitigasiReq) || count($smartMitigasiReq) === 0)) {
             http_response_code(422);
             echo json_encode([
                 'success'   => false,
@@ -6730,14 +6798,15 @@ Audit Log ID: {$auditLogId}"
         $ppn = isset($payload['ppn']) ? (float)$payload['ppn'] : (isset($payload['nominalPpn']) ? (float)$payload['nominalPpn'] : round($dpp * 0.11));
         $totalBayar = isset($payload['totalBayar']) ? (float)$payload['totalBayar'] : ($dpp + $ppn);
 
-        // 5. PENENTUAN STATUS ALUR KERJA (PEMISAHAN STAF FUNGSIONAL PUSAT VS ADMIN/SPM)
-        if (!$isBranchOriginReq && in_array($userRole, ['SURVEYOR', 'PENILAI', 'MARKETING'], true)) {
-            $initialStatus = 'MENUNGGU_VERIFIKASI_ADMIN';
-            $requestStatus = 'MENUNGGU_VERIFIKASI_ADMIN';
+        // 5. PENENTUAN STATUS ALUR KERJA (ALUR TERPADU LANGSUNG KE KEPALA SPM)
+        if ($isDraftReq) {
+            $initialStatus = 'DRAFT';
+            $requestStatus = 'DRAFT';
         } elseif ($isBookingReq) {
             $initialStatus = 'BOOKING DIAJUKAN';
             $requestStatus = 'BOOKING DIAJUKAN';
         } else {
+            // Hapus intersep admin di awal! Baik Staf Pusat maupun Admin Cabang langsung mendarat di meja telaah Kepala SPM
             $initialStatus = 'MENUNGGU_SPM_AKHIR';
             $requestStatus = 'MENUNGGU_SPM_AKHIR';
         }
@@ -6789,7 +6858,7 @@ Audit Log ID: {$auditLogId}"
                 break;
             }
         }
-        $dgStatusGerbang2 = ($initialStatus === 'MENUNGGU_VERIFIKASI_ADMIN') ? 'MENUNGGU_VERIFIKASI_ADMIN' : 'MENUNGGU_SPM_AKHIR';
+        $dgStatusGerbang2 = $initialStatus;
         $dgEntry = [
             'idPenugasan'       => $idReq,
             'noPermintaan'      => $idReq,
@@ -7431,14 +7500,23 @@ Audit Log ID: {$auditLogId}"
     // D.2. TINDAKAN MERGE TAGS RENDERING DOKUMEN RESMI (PILAR 4)
     // =========================================================================
     if ($action === 'renderDocumentTemplate') {
-        $noReq = trim($payload['noPermintaan'] ?? '');
-        $templateType = strtoupper(trim($payload['templateType'] ?? 'SURAT_TUGAS'));
+        $noReq = trim($payload['noPermintaan'] ?? ($payload['noReq'] ?? ($_GET['noReq'] ?? ($_GET['noPermintaan'] ?? ''))));
+        $templateType = strtoupper(trim($payload['templateType'] ?? ($payload['templateName'] ?? ($_GET['templateType'] ?? ($_GET['templateName'] ?? 'SURAT_TUGAS')))));
 
         $targetItem = null;
         foreach ($records as $item) {
-            if (($item['noPermintaan'] ?? '') === $noReq) {
+            if (($item['noPermintaan'] ?? '') === $noReq || ($item['idPenugasan'] ?? '') === $noReq) {
                 $targetItem = $item;
                 break;
+            }
+        }
+        if (!$targetItem) {
+            $dgList = muatDatabaseDualGate($dualGateDbFile);
+            foreach ($dgList as $item) {
+                if (($item['noPermintaan'] ?? '') === $noReq || ($item['idPenugasan'] ?? '') === $noReq) {
+                    $targetItem = $item;
+                    break;
+                }
             }
         }
 

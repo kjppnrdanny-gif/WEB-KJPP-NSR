@@ -38,6 +38,13 @@
     html.nsr-auth-passed #panel-aplikasi-utama {
       display: block !important;
     }
+      /* Isolasi Ketat Panel Audit SPM (F01-F07 & Tombol Persetujuan Resmi) */
+    .spm-audit-only-panel {
+      display: none !important;
+    }
+    body.is-spm-auditor .spm-audit-only-panel {
+      display: block !important;
+    }
   </style>
   <link rel="icon" type="image/png" href="favicon.png?v=2">
 
@@ -310,6 +317,45 @@
         <!-- FORM ISIAN PENGAJUAN -->
         <form id="form-pengajuan-nolap" onsubmit="ajukanPermohonanNoLap(event)" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
           <input type="hidden" id="f-idempotency-key" value="">
+
+          <!-- ========================================================
+               WIZARD STEPPER HEADER (LANGKAH 1 -> LANGKAH 2)
+               ======================================================== -->
+          <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-xl">
+            <div class="flex items-center justify-between max-w-xl mx-auto">
+              <!-- Step 1 Indicator -->
+              <div id="step-nav-1" onclick="navigasiKeStepWizard(1)" class="flex items-center gap-3 cursor-pointer group select-none">
+                <div id="step-circle-1" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20 transition-all">
+                  1
+                </div>
+                <div class="text-left">
+                  <div id="step-label-1" class="text-xs font-black text-amber-300 tracking-wide uppercase">Langkah 1</div>
+                  <div class="text-[11px] text-slate-300 font-medium hidden sm:block">Identitas &amp; Dokumen NoLap</div>
+                </div>
+              </div>
+
+              <!-- Step Divider Line -->
+              <div class="flex-1 mx-3 sm:mx-4 h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div id="step-progress-line" class="h-full bg-gradient-to-r from-amber-400 to-teal-400 transition-all duration-300 w-0"></div>
+              </div>
+
+              <!-- Step 2 Indicator -->
+              <div id="step-nav-2" onclick="navigasiKeStepWizard(2)" class="flex items-center gap-3 cursor-pointer group opacity-60 select-none">
+                <div id="step-circle-2" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm bg-slate-800 text-slate-400 border border-slate-700 transition-all">
+                  2
+                </div>
+                <div class="text-left">
+                  <div id="step-label-2" class="text-xs font-bold text-slate-400 tracking-wide uppercase">Langkah 2</div>
+                  <div class="text-[11px] text-slate-500 font-medium hidden sm:block">Kertas Kerja Mitigasi SPM</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================================
+               WIZARD STEP 1: DATA PENUGASAN, IDENTITAS, DAN 3 TAUTAN BERKAS
+               ======================================================== -->
+          <div id="wizard-step-1" class="space-y-6">
           <!-- PILIHAN MODE PENGAJUAN: REGULER VS BOOKING NOLAP -->
           <div class="p-4 rounded-2xl bg-slate-950/90 border-2 border-amber-400/40 space-y-3">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -973,6 +1019,28 @@
             </div>
           </div>
 
+          <!-- Navigasi Langkah 1 -->
+          <div class="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800">
+            <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
+              <span>📋 Pastikan seluruh data administratif dan tautan berkas telah lengkap sebelum lanjut.</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <button type="reset" onclick="setTimeout(() => { toggleKlasifikasiEntitas(); clearPenggunaLaporan(); onTujuanPenilaianChange(); perbaruiIdempotencyKey(); }, 20);" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+                Reset Isian
+              </button>
+              <button type="button" onclick="navigasiKeStepWizard(2)" id="btn-wizard-next-1" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber-400/20 flex items-center gap-2 cursor-pointer">
+                <span>Lanjut ke Pengisian Kertas Kerja Mitigasi</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div><!-- /#wizard-step-1 -->
+
+        <!-- ========================================================
+             WIZARD STEP 2: KERTAS KERJA MITIGASI FAKTUAL SPM (GERBANG 2)
+             ======================================================== -->
+        <div id="wizard-step-2" class="space-y-6 hidden">
+
           <!-- ========================================================
                SEKSI D: INTEGRATED SMART GATEWAY — MITIGASI RISIKO & SPM (GERBANG 2 TERPADU)
                ======================================================== -->
@@ -1105,20 +1173,24 @@
             </div>
           </div>
 
-          <!-- Tombol Aksi Pengajuan -->
+          <!-- Tombol Aksi Akhir Langkah 2 -->
           <div class="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800">
-            <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
-              <span>🔒 Data tersimpan otomatis di database sistem &amp; terkirim ke Admin Pusat.</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <button type="reset" onclick="setTimeout(() => { toggleKlasifikasiEntitas(); clearPenggunaLaporan(); onTujuanPenilaianChange(); perbaruiIdempotencyKey(); }, 20);" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
-                Reset Isian
+            <button type="button" onclick="navigasiKeStepWizard(1)" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer border border-slate-700">
+              <span>&larr;</span>
+              <span>Kembali ke Langkah 1</span>
+            </button>
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" onclick="ajukanPermohonanNoLap(event, true)" id="btn-simpan-draf" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 hover:text-teal-200 border border-teal-500/40 text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-md">
+                <span>💾</span>
+                <span>Simpan Draf Terpadu</span>
               </button>
-              <button type="submit" id="btn-submit-pengajuan" disabled class="px-6 py-2.5 rounded-xl bg-slate-800 text-slate-500 font-black text-xs uppercase tracking-wider transition shadow-lg cursor-not-allowed">
-                Lengkapi Formulir &amp; Mitigasi untuk Mengajukan
+              <button type="submit" id="btn-submit-pengajuan" disabled class="px-6 py-2.5 rounded-xl bg-slate-800 text-slate-500 font-black text-xs uppercase tracking-wider transition shadow-lg cursor-not-allowed flex items-center gap-2">
+                <span>🚀</span>
+                <span>Ajukan Verifikasi ke Kepala SPM &rarr;</span>
               </button>
             </div>
           </div>
+        </div><!-- /#wizard-step-2 -->
 
         </form>
 
@@ -6003,9 +6075,9 @@
           </div>
 
           <!-- ========================================================
-               BAGIAN F — VERIFIKASI SPM DAN APPROVAL (F01 - F07)
+               BAGIAN F — VERIFIKASI SPM DAN APPROVAL (F01 - F07) [KHUSUS KEPALA SPM]
                ======================================================== -->
-          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+          <div id="spm-audit-panel-umum" class="spm-audit-only-panel border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
             <button type="button" onclick="toggleSmartSection('sec-umum-f')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
               <div class="flex items-center gap-2.5">
                 <span class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-xs">F</span>
@@ -7732,9 +7804,9 @@
           </div>
 
           <!-- ========================================================
-               BAGIAN G: VERIFIKASI SPM DAN PERSETUJUAN INTERNAL (Q62 - Q70)
+               BAGIAN G: VERIFIKASI SPM DAN PERSETUJUAN INTERNAL (Q62 - Q70) [KHUSUS KEPALA SPM]
                ======================================================== -->
-          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+          <div id="spm-audit-panel-tanah" class="spm-audit-only-panel border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
             <button type="button" onclick="toggleSmartSection('sec-tanah-g')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
               <div class="flex items-center gap-2.5">
                 <span class="w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-xs">G</span>
@@ -12954,9 +13026,9 @@
           </div>
 
           <!-- ========================================================
-               BAGIAN 8 — VERIFIKASI SPM & APPROVAL BERJENJANG
+               BAGIAN 8 — VERIFIKASI SPM & APPROVAL BERJENJANG [KHUSUS KEPALA SPM]
                ======================================================== -->
-          <div class="border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
+          <div id="spm-audit-panel-ruislagh" class="spm-audit-only-panel border border-slate-800 rounded-xl bg-slate-950/50 overflow-hidden">
             <button type="button" onclick="toggleSmartSection('sec-ruislagh-approval')" class="w-full px-5 py-3.5 bg-slate-950 hover:bg-slate-800/60 border-b border-slate-800 flex items-center justify-between text-left transition">
               <div class="flex items-center gap-2.5">
                 <span class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-xs">8</span>
@@ -14082,9 +14154,92 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
           gantiTabModul('pengajuan');
         }
       }
+
+      // PEMISAHAN MUTLAK UI: Panel Audit SPM (F01-F07 & Tombol Persetujuan Resmi)
+      // HANYA Kepala SPM Danny Taufik Hidayat, S.H. (KEPALA_SPM / danny_spm) atau SUPER_ADMIN yang berhak melihat & mengeksekusi
+      const rawUserRole = String(activeUser?.role || '').toUpperCase().trim();
+      const rawUserSub = String(activeUser?.sub || '').toLowerCase().trim();
+      const isKepalaSpmOrKing = (rawUserRole === 'KEPALA_SPM' || rawUserRole === 'SPM' || rawUserSub === 'danny_spm' || isSuperOrAdmin);
+
+      if (isKepalaSpmOrKing) {
+        document.body.classList.add('is-spm-auditor');
+        document.querySelectorAll('.spm-audit-only-panel').forEach(p => {
+          p.classList.remove('hidden');
+          p.style.display = 'block';
+        });
+      } else {
+        document.body.classList.remove('is-spm-auditor');
+        document.querySelectorAll('.spm-audit-only-panel').forEach(p => {
+          p.classList.add('hidden');
+          p.style.display = 'none';
+        });
+      }
     }
     if (typeof validasiFormDanMitigasiLive === 'function') validasiFormDanMitigasiLive();
     window.applyRBAC = applyRBAC;
+
+    // FUNGSI NAVIGASI WIZARD FORM 2-TAHAP
+    function navigasiKeStepWizard(step) {
+      const step1 = document.getElementById('wizard-step-1');
+      const step2 = document.getElementById('wizard-step-2');
+      const circle1 = document.getElementById('step-circle-1');
+      const circle2 = document.getElementById('step-circle-2');
+      const label1 = document.getElementById('step-label-1');
+      const label2 = document.getElementById('step-label-2');
+      const nav2 = document.getElementById('step-nav-2');
+      const line = document.getElementById('step-progress-line');
+
+      if (step === 2) {
+        const klien = (document.getElementById('f-klien')?.value || '').trim();
+        const pemohon = (document.getElementById('f-pemohon')?.value || '').trim();
+        if (!klien || !pemohon) {
+          if (!confirm('⚠️ Nama Klien atau Nama Pemohon belum terisi lengkap. Tetap lanjut ke Kertas Kerja Mitigasi?')) {
+            if (!pemohon) document.getElementById('f-pemohon')?.focus();
+            else document.getElementById('f-klien')?.focus();
+            return;
+          }
+        }
+        if (step1) step1.classList.add('hidden');
+        if (step2) step2.classList.remove('hidden');
+
+        if (circle1) {
+          circle1.className = 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm bg-teal-500 text-slate-950 shadow-lg shadow-teal-500/20 transition-all';
+          circle1.innerHTML = '✔';
+        }
+        if (label1) label1.className = 'text-xs font-bold text-teal-300 tracking-wide uppercase';
+
+        if (circle2) {
+          circle2.className = 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20 transition-all';
+          circle2.innerHTML = '2';
+        }
+        if (label2) label2.className = 'text-xs font-extrabold text-amber-300 tracking-wide uppercase';
+        if (nav2) nav2.classList.remove('opacity-60');
+
+        if (line) line.style.width = '100%';
+        step2?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        if (step2) step2.classList.add('hidden');
+        if (step1) step1.classList.remove('hidden');
+
+        if (circle1) {
+          circle1.className = 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20 transition-all';
+          circle1.innerHTML = '1';
+        }
+        if (label1) label1.className = 'text-xs font-black text-amber-300 tracking-wide uppercase';
+
+        if (circle2) {
+          circle2.className = 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm bg-slate-800 text-slate-400 border border-slate-700 transition-all';
+          circle2.innerHTML = '2';
+        }
+        if (label2) label2.className = 'text-xs font-bold text-slate-400 tracking-wide uppercase';
+        if (nav2) nav2.classList.add('opacity-60');
+
+        if (line) line.style.width = '0%';
+        step1?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      if (typeof validasiFormDanMitigasiLive === 'function') validasiFormDanMitigasiLive();
+    }
+    window.navigasiKeStepWizard = navigasiKeStepWizard;
 
     // Dukungan alias ID tombol tab (tab_btn_* <-> tab-btn-*) agar kompatibel penuh
     (function inisialisasiAliasTab() {
@@ -15569,11 +15724,11 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       if (elInputTerbilang) elInputTerbilang.value = kalimat;
     }
 
-    async function ajukanPermohonanNoLap(e) {
+    async function ajukanPermohonanNoLap(e, isDraft = false) {
       if (e && e.preventDefault) e.preventDefault();
 
-      const btn = document.getElementById('btn-submit-pengajuan');
-      const textOriginal = btn ? btn.innerHTML : 'Kirim Permohonan NoLap';
+      const btn = isDraft ? document.getElementById('btn-simpan-draf') : document.getElementById('btn-submit-pengajuan');
+      const textOriginal = btn ? btn.innerHTML : (isDraft ? 'Simpan Draf' : 'Kirim Permohonan NoLap');
 
       // P0 HOTFIX: Validasi Mandatory Kontak Pemohon Manual (Anti-Autofill)
       const pemohon = (document.getElementById('f-pemohon')?.value || '').trim();
@@ -15582,44 +15737,52 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       const emailPemohon = (document.getElementById('f-email-pemohon')?.value || '').trim();
       const waPemohon = (document.getElementById('f-wa-pemohon')?.value || '').trim();
 
-      if (!pemohon) {
-        alert('⚠️ INPUT MANDATORY: Nama Pemohon (Penilai/Staf) wajib diisi secara manual.');
-        document.getElementById('f-pemohon')?.focus();
-        return;
-      }
-      if (!nikPemohon) {
-        alert('⚠️ INPUT MANDATORY: NIK / ID Personel Pemohon wajib diisi secara manual.');
-        document.getElementById('f-nik-pemohon')?.focus();
-        return;
-      }
-      if (!jabatan) {
-        alert('⚠️ INPUT MANDATORY: Jabatan Pemohon wajib diisi secara manual.');
-        document.getElementById('f-jabatan')?.focus();
-        return;
-      }
-      if (!emailPemohon || !emailPemohon.includes('@') || !emailPemohon.includes('.')) {
-        alert('⚠️ INPUT MANDATORY: Email Pemohon wajib diisi dengan format email yang valid.');
-        document.getElementById('f-email-pemohon')?.focus();
-        return;
-      }
-      if (!waPemohon || waPemohon.replace(/\D/g, '').length < 8) {
-        alert('⚠️ INPUT MANDATORY: WhatsApp Pemohon wajib diisi dengan nomor yang valid (minimal 8 digit).');
-        document.getElementById('f-wa-pemohon')?.focus();
-        return;
-      }
+      if (!isDraft) {
+        if (!pemohon) {
+          alert('⚠️ INPUT MANDATORY: Nama Pemohon (Penilai/Staf) wajib diisi secara manual.');
+          navigasiKeStepWizard(1);
+          document.getElementById('f-pemohon')?.focus();
+          return;
+        }
+        if (!nikPemohon) {
+          alert('⚠️ INPUT MANDATORY: NIK / ID Personel Pemohon wajib diisi secara manual.');
+          navigasiKeStepWizard(1);
+          document.getElementById('f-nik-pemohon')?.focus();
+          return;
+        }
+        if (!jabatan) {
+          alert('⚠️ INPUT MANDATORY: Jabatan Pemohon wajib diisi secara manual.');
+          navigasiKeStepWizard(1);
+          document.getElementById('f-jabatan')?.focus();
+          return;
+        }
+        if (!emailPemohon || !emailPemohon.includes('@') || !emailPemohon.includes('.')) {
+          alert('⚠️ INPUT MANDATORY: Email Pemohon wajib diisi dengan format email yang valid.');
+          navigasiKeStepWizard(1);
+          document.getElementById('f-email-pemohon')?.focus();
+          return;
+        }
+        if (!waPemohon || waPemohon.replace(/\D/g, '').length < 8) {
+          alert('⚠️ INPUT MANDATORY: WhatsApp Pemohon wajib diisi dengan nomor yang valid (minimal 8 digit).');
+          navigasiKeStepWizard(1);
+          document.getElementById('f-wa-pemohon')?.focus();
+          return;
+        }
 
-      // Validasi Wajib Sektor Industri Master 01-12 (Anti-Fallback Diam-Diam)
-      const rawIndSubmit = (document.getElementById('f-industri')?.value || '').trim();
-      const numIndSubmit = parseInt(rawIndSubmit, 10);
-      if (!rawIndSubmit || isNaN(numIndSubmit) || numIndSubmit < 1 || numIndSubmit > 12) {
-        alert('⚠️ INPUT MANDATORY: Sektor Industri Kemenkeu (01–12) wajib dipilih sesuai master klasifikasi resmi.');
-        document.getElementById('f-industri')?.focus();
-        return;
+        // Validasi Wajib Sektor Industri Master 01-12 (Anti-Fallback Diam-Diam)
+        const rawIndSubmit = (document.getElementById('f-industri')?.value || '').trim();
+        const numIndSubmit = parseInt(rawIndSubmit, 10);
+        if (!rawIndSubmit || isNaN(numIndSubmit) || numIndSubmit < 1 || numIndSubmit > 12) {
+          alert('⚠️ INPUT MANDATORY: Sektor Industri Kemenkeu (01–12) wajib dipilih sesuai master klasifikasi resmi.');
+          navigasiKeStepWizard(1);
+          document.getElementById('f-industri')?.focus();
+          return;
+        }
       }
 
       if (btn) {
         btn.disabled = true;
-        btn.innerText = 'Memproses Pengajuan...';
+        btn.innerText = isDraft ? 'Menyimpan Draf Terpadu...' : 'Memproses Pengajuan ke Kepala SPM...';
       }
 
       // Pastikan perhitungan finansial up to date
@@ -15748,9 +15911,10 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
         catatanPemohon = (catatanPemohon ? catatanPemohon + ' | ' : '') + '[BOOKING NOLAP - TARGET FINALISASI: ' + targetFinalisasiVal + ']';
       }
 
-      // Validasi 3 Tautan Dokumen jika Mode Reguler
-      if (!isBookingMode && (!linkLaporan || !linkPembanding || !linkBai)) {
+      // Validasi 3 Tautan Dokumen jika Mode Reguler (Draf Dikecualikan)
+      if (!isDraft && !isBookingMode && (!linkLaporan || !linkPembanding || !linkBai)) {
         alert('⚠️ VALIDASI BERKAS GAGAL: Mode Reguler mewajibkan seluruh 3 tautan berkas penilaian (Link File Laporan, Data Pembanding, dan Berita Acara Inspeksi/BAI) diisi lengkap.');
+        navigasiKeStepWizard(1);
         if (!linkLaporan) document.getElementById('input_link_laporan')?.focus();
         else if (!linkPembanding) document.getElementById('input_link_pembanding')?.focus();
         else document.getElementById('input_link_bai')?.focus();
@@ -15764,8 +15928,9 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       const c3Val = document.getElementById('chk_mitigasi_legalitas')?.checked === true;
       const c4Val = document.getElementById('chk_mitigasi_deviasi')?.checked === true;
 
-      if (!c1Val || !c2Val || !c3Val || !c4Val) {
-        alert('⚠️ SMART MITIGASI GAGAL: Seluruh 4 pernyataan checklist Smart Mitigasi (Gerbang 2) wajib diverifikasi sebelum mengajukan NoLap.');
+      if (!isDraft && (!c1Val || !c2Val || !c3Val || !c4Val)) {
+        alert('⚠️ SMART MITIGASI GAGAL: Seluruh 4 pernyataan checklist Smart Mitigasi (Gerbang 2) wajib diverifikasi sebelum mengajukan NoLap ke Kepala SPM.');
+        navigasiKeStepWizard(2);
         if (btn) { btn.disabled = false; btn.innerHTML = textOriginal; }
         return;
       }
@@ -15886,11 +16051,12 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
         assigned_public_appraiser_id: penilai,
         appraiser_license_code: izinPenilai,
         official_report_sequence: null,
-        request_status: isBookingMode ? "BOOKING DIAJUKAN" : "DIAJUKAN",
+        isDraft: isDraft,
+        request_status: isDraft ? "DRAFT" : (isBookingMode ? "BOOKING DIAJUKAN" : "MENUNGGU_SPM_AKHIR"),
         kewenanganTtd: requestedSigningOffice,
         kodeKantorTtd: signingOfficeCode,
         catatanPemohon: catatanPemohon,
-        status: isBookingMode ? "BOOKING DIAJUKAN" : "DIAJUKAN",
+        status: isDraft ? "DRAFT" : (isBookingMode ? "BOOKING DIAJUKAN" : "MENUNGGU_SPM_AKHIR"),
         nomorLaporan: "",
         tglTerbit: "",
         statusElsa: isBookingMode ? "MENUNGGU BERKAS FINAL" : "BELUM INPUT",
@@ -15966,15 +16132,21 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
         // Upaya sinkronisasi background ke Google Apps Script (jika ada koneksi)
         kirimKeAppsScriptBackground(finalRecord);
 
-        // Buka Modal Sukses
-        bukaModalSuksesPengajuan(finalRecord);
+        if (isDraft) {
+          alert('💾 Draf Terpadu Berhasil Disimpan!\n\nNomor Permintaan: ' + finalRecord.noPermintaan + '\nStatus: DRAFT\n\nSeluruh data isian Langkah 1 dan Langkah 2 telah tersimpan. Anda dapat melengkapi tautan dokumen dan checklist mitigasi kapan saja sebelum diajukan ke Kepala SPM.');
+          muatUlangTabel();
+        } else {
+          // Buka Modal Sukses & Dual Output
+          bukaModalSuksesPengajuan(finalRecord);
 
-        // Reset form hanya setelah berhasil disimpan
-        document.getElementById('form-pengajuan-nolap').reset();
-        perbaruiIdempotencyKey();
-        hitungFinansialNoLap();
-        updateLivePreview();
-        muatUlangTabel();
+          // Reset form hanya setelah berhasil diajukan resmi
+          document.getElementById('form-pengajuan-nolap').reset();
+          navigasiKeStepWizard(1);
+          perbaruiIdempotencyKey();
+          hitungFinansialNoLap();
+          updateLivePreview();
+          muatUlangTabel();
+        }
 
       } catch (err) {
         console.error('Error saat menyimpan permohonan NoLap:', err);
@@ -16169,12 +16341,20 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       `;
 
       action.innerHTML = `
-        <a href="${linkWaAdmin}" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow">
-          <span>💬 Kirim Notifikasi ke WA Admin Resmi (085110513157)</span>
-        </a>
-        <button onclick="tutupModalDetail()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs">
-          Tutup
-        </button>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <a href="/api/nolap-data-proxy?action=renderDocumentTemplate&templateName=TANDA_TERIMA&noReq=${encodeURIComponent(data.noPermintaan)}" target="_blank" class="px-4 py-2.5 rounded-xl bg-blue-600/40 hover:bg-blue-600/60 text-sky-200 border border-sky-400/50 font-bold text-xs flex items-center gap-1.5 transition">
+            <span>📄 Cetak Tanda Terima NoLap</span>
+          </a>
+          <a href="/api/nolap-data-proxy?action=renderDocumentTemplate&templateName=QA_CHECKLIST&noReq=${encodeURIComponent(data.noPermintaan)}" target="_blank" class="px-4 py-2.5 rounded-xl bg-teal-600/40 hover:bg-teal-600/60 text-teal-200 border border-teal-400/50 font-bold text-xs flex items-center gap-1.5 transition">
+            <span>🛡️ Cetak Kertas Kerja SPM (A4)</span>
+          </a>
+          <a href="${linkWaAdmin}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow">
+            <span>💬 Notifikasi WA Admin</span>
+          </a>
+          <button onclick="tutupModalDetail()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs">
+            Tutup
+          </button>
+        </div>
       `;
 
       modal.classList.remove('hidden');
@@ -21118,8 +21298,8 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
           btn.className = "px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-400 via-sky-300 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg shadow-sky-400/20 cursor-pointer";
           btn.innerHTML = 'Booking Nomor Laporan Sekarang &rarr;';
         } else {
-          btn.className = "px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber-400/20 cursor-pointer";
-          btn.innerHTML = 'Ajukan Nomor Laporan Sekarang &rarr;';
+          btn.className = "px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 via-emerald-400 to-teal-400 hover:from-teal-400 hover:to-emerald-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-xl shadow-teal-500/20 cursor-pointer flex items-center gap-2";
+          btn.innerHTML = '<span>🚀</span><span>Ajukan Verifikasi ke Kepala SPM &rarr;</span>';
         }
         if (lockBadge) {
           lockBadge.textContent = "✔ GATE UNLOCKED";
