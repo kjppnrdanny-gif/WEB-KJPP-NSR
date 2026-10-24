@@ -5702,7 +5702,8 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
             'checklistData' => $checklistAkhir,
             'deltaAnalysis' => $deltaAnalysis,
             'drafLaporanUrl' => $payload['drafLaporanUrl'] ?? '',
-            'baiUrl' => $payload['baiUrl'] ?? '',
+            'pembandingUrl'  => $payload['pembandingUrl'] ?? '',
+            'baiUrl'          => $payload['baiUrl'] ?? '',
             'history' => array_merge($dgRecords[$targetIdx]['gerbang2']['history'] ?? [], [
                 ['versi' => $versiG2, 'waktu' => $nowWib, 'event' => 'SUBMIT_AKHIR', 'status' => $statusAkhir, 'actor' => $currentUser['nama'] ?? $userDisplayName]
             ])
