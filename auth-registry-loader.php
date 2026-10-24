@@ -232,6 +232,28 @@ function loadPrivateAuthRegistry() {
             'tokenHash'         => '7e07e6d1e0797a597be011c1691cf77f0fd109ecd891405832bf8fa1da864cc2'
         ],
 
+        // SURVEYOR CABANG BANDUNG (ROLE NON-ADMIN UNTUK VALIDASI RBAC CABANG)
+        'e245414f1884a2c03bfcc328b9a6aa2a265d854780dc2611c7aa5f17ef3aff06' => [
+            'sub'               => 'surveyor_bdg',
+            'branch'            => 'Bandung',
+            'displayName'       => 'Surveyor Lapangan Bandung',
+            'role'              => 'SURVEYOR',
+            'roleLabel'         => 'Surveyor Lapangan Bandung',
+            'title'             => 'Surveyor Cabang Bandung',
+            'wilayah'           => 'Bandung',
+            'wilayahLabel'      => 'Kantor Cabang Bandung',
+            'wilayahCode'       => 'BDG',
+            'isSuperAdmin'      => false,
+            'isCabang'          => true,
+            'canAccessKwitansi' => false,
+            'canApprove'        => false,
+            'canSubmit'         => false,
+            'seeFee'            => false,
+            'mode'              => 'CABANG',
+            'kodeKemenkeu'      => '2.0160-04',
+            'tokenHash'         => 'e245414f1884a2c03bfcc328b9a6aa2a265d854780dc2611c7aa5f17ef3aff06'
+        ],
+
         // ADMIN CABANG PADANG
         'db6da2b4cde952d408263966d2106faebe6ff26c5df15656961d5c1e64ab0495' => [
             'sub'               => 'cabang_pdg',

@@ -1274,8 +1274,11 @@ if (!$currentUser) {
             $currentUser = $sessUser;
         } else {
             $tHash = hash('sha256', strtoupper($incomingToken));
+            $saltedHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . strtoupper($incomingToken));
             if (isset($OFFICIAL_TOKEN_HASHES[$tHash])) {
                 $currentUser = $OFFICIAL_TOKEN_HASHES[$tHash];
+            } elseif (isset($OFFICIAL_TOKEN_HASHES[$saltedHash])) {
+                $currentUser = $OFFICIAL_TOKEN_HASHES[$saltedHash];
             }
         }
     }
@@ -1300,16 +1303,22 @@ if (in_array($rawRole, ['SUPER_ADMIN', 'SUPER ADMIN'], true) || !empty($currentU
     $userRole = 'KEPALA_SPM';
 } elseif (in_array($rawRole, ['KEPALA_DIVTEK', 'MANAGER_TEKNIK', 'DIVTEK'], true)) {
     $userRole = 'KEPALA_DIVTEK';
-} elseif (in_array($rawRole, ['PENILAI_PUBLIK', 'PENILAI'], true)) {
+} elseif ($rawRole === 'PENILAI_PUBLIK') {
     $userRole = 'PENILAI_PUBLIK';
+} elseif ($rawRole === 'PENILAI') {
+    $userRole = 'PENILAI';
 } elseif (in_array($rawRole, ['ADMIN_PUSAT', 'PUSAT'], true)) {
     $userRole = 'ADMIN_PUSAT';
 } elseif (in_array($rawRole, ['ADMIN_CABANG'], true) || ($rawRole === 'CABANG')) {
     $userRole = 'ADMIN_CABANG';
+} elseif ($rawRole === 'SURVEYOR') {
+    $userRole = 'SURVEYOR';
 } elseif ($rawRole === 'MARKETING') {
     $userRole = 'MARKETING';
 } elseif ($rawRole === 'REVIEWER') {
     $userRole = 'REVIEWER';
+} elseif (in_array($rawRole, ['KEUANGAN_CABANG', 'KEUANGAN'], true)) {
+    $userRole = $rawRole;
 } else {
     $userRole = $rawRole;
 }
@@ -3691,6 +3700,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'submitGerbang1Awal') {
         $idPenugasan = trim($payload['idPenugasan'] ?? ('NSR-' . date('Y') . '-' . strtoupper(substr(md5(uniqid()), 0, 6))));
+
+        // RBAC HARD GATE: Pengajuan penugasan dari Cabang HANYA dapat dilakukan oleh pemegang token ADMIN_CABANG
+        $rawBranchG1 = trim($payload['origin_branch_id'] ?? ($payload['cabang'] ?? ($currentUser['wilayah'] ?? ($userBranch ?? 'Pusat'))));
+        $isBranchOriginG1 = (!empty($currentUser['isCabang']) || (strcasecmp($userBranch, 'Pusat') !== 0 && !empty($userBranch)) || (strcasecmp($rawBranchG1, 'Pusat') !== 0 && !empty($rawBranchG1)));
+        if ($isBranchOriginG1 && empty($currentUser['isKing']) && ($userRole !== 'SUPER_ADMIN')) {
+            if ($userRole !== 'ADMIN_CABANG') {
+                http_response_code(403);
+                echo json_encode([
+                    'success'   => false,
+                    'error'     => 'Akses Ditolak: Pengajuan ke pusat hanya dapat dilakukan oleh Petugas Admin Cabang resmi.',
+                    'violation' => 'BRANCH_NON_ADMIN_FORBIDDEN'
+                ]);
+                exit;
+            }
+        }
         
         // Validasi Wajib Sektor Industri Master 01-12 pada Gerbang 1
         $rawIndG1 = $payload['kodeIndustri'] ?? ($payload['kode_industri'] ?? ($payload['sektorIndustri'] ?? ''));
@@ -5100,6 +5124,20 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         $rawKantor = trim($payload['kantorWilayah'] ?? ($payload['kantor_wilayah'] ?? ($userBranch ?: 'Kantor Cabang')));
         $branchName = trim(preg_replace('/^(Kantor\s+Cabang|Cabang|Kantor)\s+/i', '', $rawKantor));
 
+        // RBAC HARD GATE: Pengajuan penugasan cabang ke pusat HANYA dapat dilakukan oleh pemegang token ADMIN_CABANG
+        $isBranchOriginLP = (!empty($currentUser['isCabang']) || (strcasecmp($userBranch, 'Pusat') !== 0 && !empty($userBranch)) || (strcasecmp($branchName, 'Pusat') !== 0 && !empty($branchName)));
+        if ($isBranchOriginLP && empty($currentUser['isKing']) && ($userRole !== 'SUPER_ADMIN')) {
+            if ($userRole !== 'ADMIN_CABANG') {
+                http_response_code(403);
+                echo json_encode([
+                    'success'   => false,
+                    'error'     => 'Akses Ditolak: Pengajuan ke pusat hanya dapat dilakukan oleh Petugas Admin Cabang resmi.',
+                    'violation' => 'BRANCH_NON_ADMIN_FORBIDDEN'
+                ]);
+                exit;
+            }
+        }
+
         $dgRecords = muatDatabaseDualGate($dualGateDbFile);
         $targetIdx = -1;
         foreach ($dgRecords as $i => $r) {
@@ -5439,6 +5477,55 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
         if ($targetIdx < 0) {
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'ID Penugasan tidak ditemukan.']);
+            exit;
+        }
+
+        // RBAC HARD GATE: Pengajuan NoLap Gerbang 2 dari Cabang HANYA dapat dilakukan oleh pemegang token ADMIN_CABANG
+        $branchG2 = trim($dgRecords[$targetIdx]['origin_branch_id'] ?? ($dgRecords[$targetIdx]['kantorAsal'] ?? ($currentUser['wilayah'] ?? ($userBranch ?? 'Pusat'))));
+        $isBranchOriginG2 = (!empty($currentUser['isCabang']) || (strcasecmp($userBranch, 'Pusat') !== 0 && !empty($userBranch)) || (strcasecmp($branchG2, 'Pusat') !== 0 && !empty($branchG2)));
+        if ($isBranchOriginG2 && empty($currentUser['isKing']) && ($userRole !== 'SUPER_ADMIN')) {
+            if ($userRole !== 'ADMIN_CABANG') {
+                http_response_code(403);
+                echo json_encode([
+                    'success'   => false,
+                    'error'     => 'Akses Ditolak: Pengajuan ke pusat hanya dapat dilakukan oleh Petugas Admin Cabang resmi.',
+                    'violation' => 'BRANCH_NON_ADMIN_FORBIDDEN'
+                ]);
+                exit;
+            }
+        }
+
+        // Validasi Mode Pengajuan (Reguler vs Booking NoLap)
+        $isBookingG2 = !empty($payload['isBooking']) || 
+                       (isset($payload['modePengajuan']) && strtoupper($payload['modePengajuan']) === 'BOOKING') || 
+                       (isset($payload['tipePengajuan']) && strtoupper($payload['tipePengajuan']) === 'BOOKING') ||
+                       (isset($payload['request_status']) && stripos($payload['request_status'], 'BOOKING') !== false) ||
+                       (isset($payload['status']) && stripos($payload['status'], 'BOOKING') !== false);
+
+        if (!$isBookingG2) {
+            $drafUrl = trim($payload['drafLaporanUrl'] ?? ($payload['linkLaporan'] ?? ''));
+            $baiUrl = trim($payload['baiUrl'] ?? ($payload['linkBai'] ?? ''));
+            if (empty($drafUrl) || empty($baiUrl)) {
+                http_response_code(422);
+                echo json_encode([
+                    'success'   => false,
+                    'error'     => 'Validasi Gagal: Mode Reguler mewajibkan tautan Draf Laporan dan Berita Acara Inspeksi (BAI).',
+                    'violation' => 'MISSING_MANDATORY_DOCUMENT_LINKS'
+                ]);
+                exit;
+            }
+        }
+
+        // Validasi Wajib Smart Mitigasi & SPM (Enforced untuk SEMUA Mode)
+        $smartMitigasiG2 = $payload['smart_mitigasi'] ?? ($payload['smartMitigasi'] ?? null);
+        $checklistAkhirG2 = $payload['checklistAkhir'] ?? [];
+        if (empty($smartMitigasiG2) && empty($checklistAkhirG2)) {
+            http_response_code(422);
+            echo json_encode([
+                'success'   => false,
+                'error'     => 'Validasi Gagal: Parameter Smart Mitigasi & SPM wajib diisi baik untuk pengajuan Reguler maupun Booking.',
+                'violation' => 'MISSING_SMART_MITIGATION_PAYLOAD'
+            ]);
             exit;
         }
 
@@ -6472,6 +6559,58 @@ Audit Log ID: {$auditLogId}"
         }
         $payload['namaKlien'] = $namaKlien;
 
+        // 1. RBAC HARD GATE: Pengajuan dari Kantor Cabang HANYA dapat dilakukan oleh pemegang token ADMIN_CABANG
+        $rawBranchReq = trim($payload['origin_branch_id'] ?? ($payload['cabang'] ?? ($currentUser['wilayah'] ?? ($userBranch ?? 'Pusat'))));
+        $isBranchOriginReq = (!empty($currentUser['isCabang']) || (strcasecmp($userBranch, 'Pusat') !== 0 && !empty($userBranch)) || (strcasecmp($rawBranchReq, 'Pusat') !== 0 && !empty($rawBranchReq)));
+
+        if ($isBranchOriginReq && empty($currentUser['isKing']) && ($userRole !== 'SUPER_ADMIN')) {
+            if ($userRole !== 'ADMIN_CABANG') {
+                http_response_code(403);
+                echo json_encode([
+                    'success'   => false,
+                    'error'     => 'Akses Ditolak: Pengajuan ke pusat hanya dapat dilakukan oleh Petugas Admin Cabang resmi.',
+                    'violation' => 'BRANCH_NON_ADMIN_FORBIDDEN'
+                ]);
+                exit;
+            }
+        }
+
+        // 2. DETEKSI MODE PENGAJUAN (REGULER vs BOOKING NOLAP)
+        $isBookingReq = !empty($payload['isBooking']) || 
+                        (isset($payload['modePengajuan']) && strtoupper($payload['modePengajuan']) === 'BOOKING') || 
+                        (isset($payload['tipePengajuan']) && strtoupper($payload['tipePengajuan']) === 'BOOKING') ||
+                        (isset($payload['request_status']) && stripos($payload['request_status'], 'BOOKING') !== false) ||
+                        (isset($payload['status']) && stripos($payload['status'], 'BOOKING') !== false);
+
+        // 3. ENFORCE 3 TAUTAN DOKUMEN JIKA MODE REGULER
+        if (!$isBookingReq) {
+            $linkLaporan = trim($payload['linkLaporan'] ?? ($payload['File Laporan Penilaian'] ?? ($payload['drafLaporanUrl'] ?? ($payload['linkDrive'] ?? ''))));
+            $linkPembanding = trim($payload['linkPembanding'] ?? ($payload['File Data Pembanding'] ?? ($payload['link_pembanding'] ?? '')));
+            $linkBai = trim($payload['linkBai'] ?? ($payload['File Berita Acara Inspeksi'] ?? ($payload['baiUrl'] ?? ($payload['link_bai'] ?? ''))));
+
+            if (empty($linkLaporan) || empty($linkPembanding) || empty($linkBai)) {
+                http_response_code(422);
+                echo json_encode([
+                    'success'   => false,
+                    'error'     => 'Validasi Gagal: Mode Reguler (Berkas Final Lengkap) mewajibkan seluruh 3 tautan berkas penilaian (Link File Laporan, Link Data Pembanding, dan Link Berita Acara Inspeksi/BAI) terisi dengan valid.',
+                    'violation' => 'MISSING_MANDATORY_DOCUMENT_LINKS'
+                ]);
+                exit;
+            }
+        }
+
+        // 4. ENFORCE SMART MITIGASI UNTUK SEMUA MODE (REGULER & BOOKING)
+        $smartMitigasiReq = $payload['smart_mitigasi'] ?? ($payload['smartMitigasi'] ?? null);
+        if (empty($smartMitigasiReq) || !is_array($smartMitigasiReq) || count($smartMitigasiReq) === 0) {
+            http_response_code(422);
+            echo json_encode([
+                'success'   => false,
+                'error'     => 'Validasi Gagal: Parameter Smart Mitigasi & SPM wajib diisi baik untuk pengajuan Reguler maupun Booking.',
+                'violation' => 'MISSING_SMART_MITIGATION_PAYLOAD'
+            ]);
+            exit;
+        }
+
         // Validasi Wajib Sektor Industri Master 01-12 (Anti-Silent-Fallback)
         $rawIndReq = $payload['kodeIndustri'] ?? ($payload['kode_industri'] ?? ($payload['sektorIndustri'] ?? ''));
         $cleanIndReq = resolveKodeIndustri($rawIndReq);
@@ -6579,6 +6718,18 @@ Audit Log ID: {$auditLogId}"
         $ppn = isset($payload['ppn']) ? (float)$payload['ppn'] : (isset($payload['nominalPpn']) ? (float)$payload['nominalPpn'] : round($dpp * 0.11));
         $totalBayar = isset($payload['totalBayar']) ? (float)$payload['totalBayar'] : ($dpp + $ppn);
 
+        // 5. PENENTUAN STATUS ALUR KERJA (PEMISAHAN STAF FUNGSIONAL PUSAT VS ADMIN/SPM)
+        if (!$isBranchOriginReq && in_array($userRole, ['SURVEYOR', 'PENILAI', 'MARKETING'], true)) {
+            $initialStatus = 'MENUNGGU_VERIFIKASI_ADMIN';
+            $requestStatus = 'MENUNGGU_VERIFIKASI_ADMIN';
+        } elseif ($isBookingReq) {
+            $initialStatus = 'BOOKING DIAJUKAN';
+            $requestStatus = 'BOOKING DIAJUKAN';
+        } else {
+            $initialStatus = 'MENUNGGU_SPM_AKHIR';
+            $requestStatus = 'MENUNGGU_SPM_AKHIR';
+        }
+
         $newRecord = array_merge($payload, [
             'noPermintaan'                 => $idReq,
             'cabang'                       => $originBranchId,
@@ -6589,7 +6740,9 @@ Audit Log ID: {$auditLogId}"
             'assigned_public_appraiser_id' => $assignedAppraiserId,
             'appraiser_license_code'       => $appraiserLicenseCode,
             'official_report_sequence'     => null,
-            'request_status'               => (!empty($payload['isBooking']) || ($payload['modePengajuan'] ?? '') === 'BOOKING') ? 'BOOKING DIAJUKAN' : 'DIAJUKAN',
+            'request_status'               => $requestStatus,
+            'status'                       => $initialStatus,
+            'smart_mitigasi'               => $smartMitigasiReq,
             'kewenanganTtd'                => $requestedSigningOffice,
             'kodeKantorTtd'                => $signingOfficeCode,
             'namaPemohon'                  => $namaPemohon,
@@ -6607,14 +6760,64 @@ Audit Log ID: {$auditLogId}"
             'totalBayar'                   => $totalBayar,
             'idempotencyKey'               => $idempotencyKey,
             'terbilang'                    => $payload['terbilang'] ?? '',
-            'status'                       => (!empty($payload['isBooking']) || ($payload['modePengajuan'] ?? '') === 'BOOKING') ? 'BOOKING DIAJUKAN' : 'DIAJUKAN',
             'nomorLaporan'                 => '',
             'tglTerbit'                    => '',
-            'statusElsa'                   => (!empty($payload['isBooking']) || ($payload['modePengajuan'] ?? '') === 'BOOKING') ? 'MENUNGGU BERKAS FINAL' : 'BELUM INPUT'
+            'statusElsa'                   => $isBookingReq ? 'MENUNGGU BERKAS FINAL' : 'BELUM INPUT'
         ]);
 
         array_unshift($records, $newRecord);
         simpanDatabaseNoLap($dataFile, $records);
+
+        // Sinkronisasi Terpadu ke Dual Gate Database untuk Antrean Review SPM
+        $dgRecords = muatDatabaseDualGate($dualGateDbFile);
+        $dgTargetIdx = -1;
+        foreach ($dgRecords as $dgi => $dgr) {
+            if (($dgr['idPenugasan'] ?? '') === $idReq || ($dgr['noPermintaan'] ?? '') === $idReq) {
+                $dgTargetIdx = $dgi;
+                break;
+            }
+        }
+        $dgStatusGerbang2 = ($initialStatus === 'MENUNGGU_VERIFIKASI_ADMIN') ? 'MENUNGGU_VERIFIKASI_ADMIN' : 'MENUNGGU_SPM_AKHIR';
+        $dgEntry = [
+            'idPenugasan'       => $idReq,
+            'noPermintaan'      => $idReq,
+            'createdAt'         => date('c'),
+            'createdBy'         => $namaPemohon,
+            'kantorAsal'        => $originBranchId,
+            'origin_branch_id'  => $originBranchId,
+            'origin_branch_code'=> $originBranchCode,
+            'namaKlien'         => $namaKlien,
+            'jenisObjek'        => $payload['jenisObjek'] ?? '-',
+            'tujuanPenilaian'   => $payload['tujuanPenilaian'] ?? '-',
+            'status'            => $initialStatus,
+            'isBooking'         => $isBookingReq,
+            'gerbang1'          => [
+                'status'        => 'LP_TERVERIFIKASI',
+                'submittedAt'   => date('c'),
+                'submittedBy'   => $namaPemohon
+            ],
+            'gerbang2'          => [
+                'status'        => $dgStatusGerbang2,
+                'submittedAt'   => date('c'),
+                'submittedBy'   => $namaPemohon,
+                'smart_mitigasi'=> $smartMitigasiReq,
+                'checklistData' => $smartMitigasiReq['checklistAkhir'] ?? $smartMitigasiReq,
+                'deltaAnalysis' => $smartMitigasiReq['deltaAnalysis'] ?? [],
+                'drafLaporanUrl'=> $payload['linkLaporan'] ?? ($payload['drafLaporanUrl'] ?? ''),
+                'baiUrl'        => $payload['linkBai'] ?? ($payload['baiUrl'] ?? '')
+            ],
+            'pengaju'           => [
+                'nama'          => $namaPemohon,
+                'email'         => $emailPemohon,
+                'whatsapp_number'=> $waPemohon
+            ]
+        ];
+        if ($dgTargetIdx >= 0) {
+            $dgRecords[$dgTargetIdx] = array_merge($dgRecords[$dgTargetIdx], $dgEntry);
+        } else {
+            $dgRecords[] = $dgEntry;
+        }
+        simpanDatabaseDualGate($dualGateDbFile, $dgRecords);
 
         echo json_encode([
             'success'      => true,

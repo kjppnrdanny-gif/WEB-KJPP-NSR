@@ -20,6 +20,8 @@ const DENI_TOKEN = 'NSR-DIVTEK-DENI-2026';
 const ADMIN_PUSAT_TOKEN = 'NSR-ADMIN-PUSAT-2026';
 const ADMIN_BDG_TOKEN = 'NSR-ADMIN-BDG-2026';
 const DENI_PENILAI_TOKEN = 'NSR-PENILAI-DENI-2026';
+const BRANCH_SURVEYOR_TOKEN = 'NSR-SURVEYOR-BDG-2026';
+const PUSAT_SURVEYOR_TOKEN = 'NSR-SRV-2026';
 
 function request(path, options = {}) {
   const url = new URL(path, BASE_URL);
@@ -254,6 +256,163 @@ async function runFocusedSuite() {
     headers: { 'Cookie': spmCookie }
   });
   assert(verifyAfterLogout.status === 401 && verifyAfterLogout.data?.authenticated === false, 'POST-LOGOUT VERIFY: Sesi yang telah dicabut ditolak (401)');
+
+  // 6. INTEGRATED SMART GATEWAY & RBAC PENGAJUAN NOLAP TEST
+  console.log('\n[6/6] Menguji Arsitektur Integrated Smart Gateway & Pengetatan RBAC NoLap...');
+
+  // TEST 1: Branch non-admin submission rejected (HTTP 403, BRANCH_NON_ADMIN_FORBIDDEN)
+  const branchNonAdminRes = await request('/nolap-data-handler.php?action=submitRequest', {
+    method: 'POST',
+    headers: { 'X-NSR-Token': BRANCH_SURVEYOR_TOKEN },
+    body: {
+      origin_branch_id: 'Bandung',
+      namaKlien: 'PT Mitra Sukses Bandung',
+      kodeIndustri: '07',
+      namaPemohon: 'Ahmad Surveyor BDG',
+      emailPemohon: 'ahmad.surveyor@kjppnanangrahayu.com',
+      waPemohon: '081299887766',
+      modePengajuan: 'REGULER',
+      linkLaporan: 'https://drive.google.com/test_lap.pdf',
+      linkPembanding: 'https://drive.google.com/test_pem.xlsx',
+      linkBai: 'https://drive.google.com/test_bai.pdf',
+      smart_mitigasi: { pembandingValid: true, bebasKonflik: true, bebasSengketa: true, deltaAnalysisFisikYuridis: true }
+    }
+  });
+  assert(branchNonAdminRes.status === 403 && branchNonAdminRes.data?.violation === 'BRANCH_NON_ADMIN_FORBIDDEN', 
+    'RBAC Guard Cabang: Pengajuan dari staf cabang non-admin ditolak mutlak (HTTP 403, BRANCH_NON_ADMIN_FORBIDDEN)');
+
+  // TEST 2: Booking NoLap with empty links + complete mitigation -> PASS (200 OK, status: BOOKING DIAJUKAN, queued for SPM)
+  const bookingValidRes = await request('/nolap-data-handler.php?action=submitRequest', {
+    method: 'POST',
+    headers: { 'X-NSR-Token': ADMIN_BDG_TOKEN },
+    body: {
+      origin_branch_id: 'Bandung',
+      namaKlien: 'PT BUMN Infrastruktur Mandiri',
+      kodeIndustri: '03',
+      namaPemohon: 'Staf Admin Cabang Bandung',
+      emailPemohon: 'admin.bdg@kjppnanangrahayu.com',
+      waPemohon: '081234567890',
+      isBooking: true,
+      modePengajuan: 'BOOKING',
+      linkLaporan: '',
+      linkPembanding: '',
+      linkBai: '',
+      smart_mitigasi: {
+        pembandingValid: true,
+        bebasKonflik: true,
+        bebasSengketa: true,
+        deltaAnalysisFisikYuridis: true,
+        keterangan: 'Data pembanding dalam proses kompilasi menjelang BAST termin 100%'
+      }
+    }
+  });
+  assert(bookingValidRes.status === 200 && bookingValidRes.data?.success === true && bookingValidRes.data?.record?.status === 'BOOKING DIAJUKAN', 
+    'Booking NoLap: 3 link kosong + mitigasi lengkap -> PASS (HTTP 200, Status: BOOKING DIAJUKAN)');
+
+  // TEST 3: Booking NoLap with empty mitigation -> REJECT / Validation Error (HTTP 422, MISSING_SMART_MITIGATION_PAYLOAD)
+  const bookingEmptyMitigasiRes = await request('/nolap-data-handler.php?action=submitRequest', {
+    method: 'POST',
+    headers: { 'X-NSR-Token': ADMIN_BDG_TOKEN },
+    body: {
+      origin_branch_id: 'Bandung',
+      namaKlien: 'PT BUMN Infrastruktur Mandiri',
+      kodeIndustri: '03',
+      namaPemohon: 'Staf Admin Cabang Bandung',
+      emailPemohon: 'admin.bdg@kjppnanangrahayu.com',
+      waPemohon: '081234567890',
+      isBooking: true,
+      modePengajuan: 'BOOKING',
+      linkLaporan: '',
+      linkPembanding: '',
+      linkBai: '',
+      smart_mitigasi: []
+    }
+  });
+  assert(bookingEmptyMitigasiRes.status === 422 && bookingEmptyMitigasiRes.data?.violation === 'MISSING_SMART_MITIGATION_PAYLOAD', 
+    'Booking NoLap: Mitigasi kosong ditolak mutlak (HTTP 422, MISSING_SMART_MITIGATION_PAYLOAD)');
+
+  // TEST 4: Reguler NoLap with empty links -> REJECT / Validation Error (HTTP 422, MISSING_MANDATORY_DOCUMENT_LINKS)
+  const regulerEmptyLinksRes = await request('/nolap-data-handler.php?action=submitRequest', {
+    method: 'POST',
+    headers: { 'X-NSR-Token': ADMIN_BDG_TOKEN },
+    body: {
+      origin_branch_id: 'Bandung',
+      namaKlien: 'PT Bank Central Asia Cabang Bandung',
+      kodeIndustri: '07',
+      namaPemohon: 'Staf Admin Cabang Bandung',
+      emailPemohon: 'admin.bdg@kjppnanangrahayu.com',
+      waPemohon: '081234567890',
+      isBooking: false,
+      modePengajuan: 'REGULER',
+      linkLaporan: '',
+      linkPembanding: '',
+      linkBai: '',
+      smart_mitigasi: {
+        pembandingValid: true,
+        bebasKonflik: true,
+        bebasSengketa: true,
+        deltaAnalysisFisikYuridis: true
+      }
+    }
+  });
+  assert(regulerEmptyLinksRes.status === 422 && regulerEmptyLinksRes.data?.violation === 'MISSING_MANDATORY_DOCUMENT_LINKS', 
+    'Reguler NoLap: Tautan berkas kosong ditolak mutlak (HTTP 422, MISSING_MANDATORY_DOCUMENT_LINKS)');
+
+  // TEST 5: Reguler NoLap with complete links + complete mitigation -> PASS (200 OK, queued for SPM / MENUNGGU_SPM_AKHIR)
+  const regulerValidRes = await request('/nolap-data-handler.php?action=submitRequest', {
+    method: 'POST',
+    headers: { 'X-NSR-Token': ADMIN_BDG_TOKEN },
+    body: {
+      origin_branch_id: 'Bandung',
+      namaKlien: 'PT Bank Central Asia Cabang Bandung',
+      kodeIndustri: '07',
+      namaPemohon: 'Staf Admin Cabang Bandung',
+      emailPemohon: 'admin.bdg@kjppnanangrahayu.com',
+      waPemohon: '081234567890',
+      isBooking: false,
+      modePengajuan: 'REGULER',
+      linkLaporan: 'https://drive.google.com/draf_laporan_lengkap.pdf',
+      linkPembanding: 'https://drive.google.com/data_pembanding_valid.xlsx',
+      linkBai: 'https://drive.google.com/bai_lengkap.pdf',
+      smart_mitigasi: {
+        pembandingValid: true,
+        min3Pembanding: true,
+        bebasKonflik: true,
+        bebasSengketa: true,
+        deltaAnalysisFisikYuridis: true,
+        deltaAnalysis: { luasYuridis: 500, luasFisik: 500, keterangan: 'Luas fisik sesuai yuridis.' }
+      }
+    }
+  });
+  assert(regulerValidRes.status === 200 && regulerValidRes.data?.success === true && regulerValidRes.data?.record?.status === 'MENUNGGU_SPM_AKHIR', 
+    'Reguler NoLap: Berkas lengkap + mitigasi valid -> PASS (HTTP 200, Status: MENUNGGU_SPM_AKHIR)');
+
+  // TEST 6: Central functional staff (Surveyor Pusat) submission -> routed to MENUNGGU_VERIFIKASI_ADMIN
+  const pusatSurveyorRes = await request('/nolap-data-handler.php?action=submitRequest', {
+    method: 'POST',
+    headers: { 'X-NSR-Token': PUSAT_SURVEYOR_TOKEN },
+    body: {
+      origin_branch_id: 'Pusat',
+      namaKlien: 'PT Korporasi Niaga Jakarta',
+      kodeIndustri: '05',
+      namaPemohon: 'Budi Surveyor Pusat',
+      emailPemohon: 'budi.surveyor@kjppnanangrahayu.com',
+      waPemohon: '081211223344',
+      isBooking: false,
+      modePengajuan: 'REGULER',
+      linkLaporan: 'https://drive.google.com/lap_jkt.pdf',
+      linkPembanding: 'https://drive.google.com/pem_jkt.xlsx',
+      linkBai: 'https://drive.google.com/bai_jkt.pdf',
+      smart_mitigasi: {
+        pembandingValid: true,
+        bebasKonflik: true,
+        bebasSengketa: true,
+        deltaAnalysisFisikYuridis: true
+      }
+    }
+  });
+  assert(pusatSurveyorRes.status === 200 && pusatSurveyorRes.data?.record?.status === 'MENUNGGU_VERIFIKASI_ADMIN', 
+    'Staf Pusat Fungsional: Pengajuan NoLap dialirkan ke antrean verifikasi Admin Pusat (Status: MENUNGGU_VERIFIKASI_ADMIN)');
 
   console.log(`\n================================================================`);
   console.log(`FINAL RESULT: ${passed} PASSED, ${failed} FAILED`);
