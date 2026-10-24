@@ -1,6 +1,6 @@
 <?php
 /**
- * KJPP NANANG RAHAYU & REKAN (KJPP NSR)
+ * KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (KJPP NSR)
  * Worker Pemroses Antrean Email Asynchronous (cPanel Native Edition)
  * 
  * Karakteristik Keamanan & Keandalan:
@@ -123,7 +123,7 @@ function kirimViaSmtpCpanel($to, $subject, $body, $smtpConfig, $isMock = false) 
     $port = (int)($smtpConfig['port'] ?? (getenv('SMTP_PORT') ?: 465));
     $user = $smtpConfig['user'] ?? (getenv('SMTP_USER') ?: 'notifikasi@kjppnanangrahayu.com');
     $pass = $smtpConfig['pass'] ?? (getenv('SMTP_PASS') ?: '');
-    $sender = $smtpConfig['sender'] ?? 'KJPP Nanang Rahayu & Rekan <notifikasi@kjppnanangrahayu.com>';
+    $sender = $smtpConfig['sender'] ?? 'KJPP Nanang Rahayu Sigit Paryanto dan Rekan <notifikasi@kjppnanangrahayu.com>';
     $fromEmail = 'notifikasi@kjppnanangrahayu.com';
 
     $headers = [
@@ -259,7 +259,7 @@ try {
         $smtpConfig = $job['smtpConfig'] ?? [
             'host' => 'mail.kjppnanangrahayu.com',
             'port' => 465,
-            'sender' => 'KJPP Nanang Rahayu & Rekan <notifikasi@kjppnanangrahayu.com>'
+            'sender' => 'KJPP Nanang Rahayu Sigit Paryanto dan Rekan <notifikasi@kjppnanangrahayu.com>'
         ];
 
         $res = kirimViaSmtpCpanel(

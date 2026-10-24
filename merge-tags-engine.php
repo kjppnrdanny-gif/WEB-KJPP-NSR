@@ -1,6 +1,6 @@
 <?php
 /**
- * KJPP NANANG RAHAYU & REKAN (KJPP NSR)
+ * KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (KJPP NSR)
  * Modul Engine Penggantian Merge Tags Dokumen Resmi
  * 
  * Standar Dokumen:
@@ -87,7 +87,9 @@ function buildMergeTagsDictionary(array $record): array {
         '{{reviewer_qa}}'            => sanitizeMergeTagValue($record['reviewerQa'] ?? 'Tim Kendali Mutu Pusat (SPI 102)'),
         '{{partner_penandatangan}}'  => sanitizeMergeTagValue($penilai),
         '{{nomor_ijin_penilai}}'     => sanitizeMergeTagValue($izin),
-        '{{kode_cabang}}'            => sanitizeMergeTagValue($record['cabang'] ?? 'Pusat')
+        '{{kode_cabang}}'            => sanitizeMergeTagValue($record['cabang'] ?? 'Pusat'),
+        '{{sub_header_cabang}}'      => (empty($record['cabang']) || strcasecmp(trim($record['cabang']), 'Pusat') === 0 || strcasecmp(trim($record['cabang']), 'Jakarta') === 0) ? '' : ' | Kantor Cabang ' . sanitizeMergeTagValue($record['cabang']),
+        '{{wilayah_operasional}}'    => (empty($record['cabang']) || strcasecmp(trim($record['cabang']), 'Pusat') === 0 || strcasecmp(trim($record['cabang']), 'Jakarta') === 0) ? 'Kantor Pusat' : 'Kantor Cabang ' . sanitizeMergeTagValue($record['cabang'])
     ];
 }
 
@@ -117,8 +119,8 @@ function getTemplateSuratTugas(): string {
     return <<<'HTML'
 <div class="dokumen-resmi surat-tugas" style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 30px; color: #1e293b; background: #ffffff;">
   <div style="border-bottom: 3px double #0f172a; padding-bottom: 15px; margin-bottom: 20px; text-align: center;">
-    <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; color: #0f172a;">KJPP NANANG RAHAYU &amp; REKAN</h2>
-    <p style="margin: 4px 0 0 0; font-size: 11px; color: #475569;">Izin Usaha Kantor Jasa Penilai Publik No. 2.19.0160 | Cabang: {{kode_cabang}}</p>
+    <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; color: #0f172a;">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
+    <p style="margin: 4px 0 0 0; font-size: 11px; color: #475569;">Izin Usaha Kemenkeu No. 2.19.0160{{sub_header_cabang}}</p>
     <p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">Standar Penilaian Indonesia (SPI) &amp; Kode Etik Penilai Indonesia (KEPI)</p>
   </div>
 
@@ -173,12 +175,12 @@ function getTemplateQaChecklist(): string {
 <div class="dokumen-resmi qa-checklist" style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 30px; color: #1e293b; background: #ffffff;">
   <div style="border-bottom: 3px double #0f172a; padding-bottom: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
     <div>
-      <h2 style="margin: 0; font-size: 16px; text-transform: uppercase; color: #0f172a;">KJPP NANANG RAHAYU &amp; REKAN</h2>
+      <h2 style="margin: 0; font-size: 16px; text-transform: uppercase; color: #0f172a;">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
       <p style="margin: 2px 0 0 0; font-size: 11px; color: #475569;">Komite Pengendalian Mutu &amp; Manajemen Risiko (SPI 102)</p>
     </div>
     <div style="text-align: right; font-family: monospace; font-size: 11px;">
       <div>Ref: QA-{{nomor_registrasi}}</div>
-      <div>Cabang: {{kode_cabang}}</div>
+      <div>{{wilayah_operasional}}</div>
     </div>
   </div>
 
@@ -235,8 +237,8 @@ function getTemplateTandaTerima(): string {
     return <<<'HTML'
 <div class="dokumen-resmi tanda-terima" style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 30px; color: #1e293b; background: #ffffff;">
   <div style="border-bottom: 3px double #0f172a; padding-bottom: 12px; margin-bottom: 20px; text-align: center;">
-    <h2 style="margin: 0; font-size: 16px; text-transform: uppercase; color: #0f172a;">KJPP NANANG RAHAYU &amp; REKAN</h2>
-    <p style="margin: 3px 0 0 0; font-size: 11px; color: #475569;">Izin Usaha Kemenkeu No. 2.19.0160 | Cabang: {{kode_cabang}}</p>
+    <h2 style="margin: 0; font-size: 16px; text-transform: uppercase; color: #0f172a;">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
+    <p style="margin: 3px 0 0 0; font-size: 11px; color: #475569;">Izin Usaha Kemenkeu No. 2.19.0160{{sub_header_cabang}}</p>
   </div>
 
   <div style="text-align: center; margin-bottom: 25px;">

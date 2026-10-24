@@ -2093,7 +2093,7 @@ function kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $reque
         $bodyHtml = "
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;'>
             <div style='background-color: #0f172a; padding: 20px; color: #f8fafc; text-align: center;'>
-                <h2 style='margin:0; color: #f59e0b;'>KJPP NANANG RAHAYU & REKAN</h2>
+                <h2 style='margin:0; color: #f59e0b;'>KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
                 <p style='margin: 4px 0 0; font-size: 13px; color: #94a3b8;'>Sistem Manajemen Penugasan Terintegrasi — OPINI NSR</p>
             </div>
             <div style='padding: 24px; color: #1e293b; line-height: 1.6;'>
@@ -2463,7 +2463,7 @@ function antrekanNotifikasiEmail($dataFile, $job) {
                 'port'      => 465,
                 'encryption'=> 'ssl',
                 'username'  => 'notifikasi@kjppnanangrahayu.com',
-                'sender'    => 'KJPP Nanang Rahayu & Rekan <notifikasi@kjppnanangrahayu.com>',
+                'sender'    => 'KJPP Nanang Rahayu Sigit Paryanto dan Rekan <notifikasi@kjppnanangrahayu.com>',
                 'spfDkim'   => 'v=spf1 include:spf.rumahweb.com ~all'
             ]
         ];
