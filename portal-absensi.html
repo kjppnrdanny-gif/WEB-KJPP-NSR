@@ -1272,7 +1272,7 @@
       // Tampilkan Tab Admin HR jika berwenang
       const bDash = document.getElementById('tab-btn-dashboard');
       if (bDash) {
-        if (sessionUser && (sessionUser.isAdminHR || sessionNik === 'NSR-2019-005' || sessionNik === 'NSR-1995-001' || sessionNik === 'NSR-2019-004')) {
+        if (sessionUser && (sessionUser.isAdminHR || sessionNik === 'NSR-2019-005' || sessionNik === 'NSR-2019-001' || sessionNik === 'NSR-2019-004')) {
           bDash.classList.remove('hidden');
         } else {
           bDash.classList.add('hidden');
@@ -1860,7 +1860,7 @@
     const MAP_OPINI_TO_NIK = {
       'super_admin_king': 'NSR-2019-005', // Danny Taufik Hidayat
       'danny_taufik': 'NSR-2019-005',
-      'nanang_penilai': 'NSR-1995-001',
+      'nanang_penilai': 'NSR-2019-001',
       'tedi_setiadi': 'NSR-2019-007',
       'angga_malid': 'NSR-2019-009',
       'ricca_farikha': 'NSR-2019-008',
@@ -2060,10 +2060,79 @@
               <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">${k.status || 'Aktif'}</span>
             </div>
             <span class="text-[10px] text-slate-400 block truncate">${k.nik} &bull; ${k.jabatan} (${k.divisi})</span>
-            <span class="text-[9px] text-slate-500 block truncate">${k.email ? '✉️ ' + k.email : '⚠️ Belum Ada Email'}</span>
+            <span class="text-[9px] ${k.email ? 'text-slate-500' : 'text-amber-400 font-semibold'} block truncate">
+              ${k.email ? '✉️ ' + k.email : '⚠️ Belum Ada Email (Perlu Verifikasi HR)'}
+            </span>
+          </div>
+          <div class="shrink-0 flex items-center gap-1.5">
+            ${!k.email ? `
+              <button type="button" onclick="bukaModalDaftarEmail('${k.nik}', '${(k.nama || '').replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-black transition active:scale-95 cursor-pointer">
+                + Daftarkan Email
+              </button>
+            ` : ''}
+            <button type="button" onclick="verifikasiPresensiLapangan('${k.nik}', '${(k.nama || '').replace(/'/g, "\\'")}')" title="Verifikasi Kehadiran Lapangan oleh Admin HR" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[10px] font-bold transition active:scale-95 cursor-pointer">
+              Verif Lapangan
+            </button>
           </div>
         </div>
       `).join('');
+    }
+
+    async function sinkronkanMasterSheet() {
+      bukaModalNotif("Sinkronisasi Master Google Sheet 🔄", "Menghubungi Google Apps Script SSOT...", true);
+      try {
+        const res = await callBackend('syncMasterKaryawan', {
+          sessionToken,
+          admin_nik: sessionNik
+        });
+        bukaModalNotif("Sinkronisasi Berhasil ✅", res.message || "Master Karyawan berhasil disinkronkan dari Google Sheet.");
+        muatDashboardHR();
+      } catch (err) {
+        bukaModalNotif("Sinkronisasi Gagal ❌", err.message || "Gagal sinkronisasi.", false);
+      }
+    }
+
+    async function bukaModalDaftarEmail(nik, nama) {
+      const inputEmail = prompt(`[Admin HR KJPP NSR]\nDaftarkan Email Resmi untuk Karyawan:\n\nNama: ${nama}\nNIK: ${nik}\n\nMasukkan alamat email resmi Google Mail:`);
+      if (!inputEmail || !inputEmail.trim()) return;
+      const cleanEmail = inputEmail.trim();
+      if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+        bukaModalNotif("Format Email Tidak Valid ⚠️", "Pastikan memasukkan alamat email yang valid (contoh: nama@domain.com).", false);
+        return;
+      }
+
+      try {
+        const res = await callBackend('daftarkanEmailKaryawan', {
+          sessionToken,
+          admin_nik: sessionNik,
+          target_nik: nik,
+          email: cleanEmail
+        });
+        bukaModalNotif("Pendaftaran Email Berhasil ✅", res.message || `Email resmi untuk ${nama} berhasil didaftarkan.`);
+        muatDashboardHR();
+      } catch (err) {
+        bukaModalNotif("Pendaftaran Gagal ❌", err.message || "Kendala koneksi server.", false);
+      }
+    }
+
+    async function verifikasiPresensiLapangan(nik, nama) {
+      const jenis = confirm(`Verifikasi Presensi Lapangan oleh HR:\n\nNama: ${nama}\nNIK: ${nik}\n\nKlik [OK] untuk Presensi MASUK.\nKlik [Batal] untuk Presensi PULANG.`) ? 'Masuk' : 'Pulang';
+      const catatan = prompt(`Masukkan catatan verifikasi kehadiran ${jenis} untuk ${nama}:`, `Verifikasi Lapangan oleh HR (${sessionNik})`);
+      if (catatan === null) return;
+
+      try {
+        const res = await callBackend('verifikasiPresensiLapangan', {
+          sessionToken,
+          admin_nik: sessionNik,
+          target_nik: nik,
+          jenis: jenis,
+          keterangan: catatan || `Verifikasi Lapangan oleh HR`
+        });
+        bukaModalNotif("Presensi Diverifikasi ✅", res.message || `Presensi ${jenis} berhasil diverifikasi.`);
+        muatDashboardHR();
+      } catch (err) {
+        bukaModalNotif("Verifikasi Gagal ❌", err.message || "Kendala server.", false);
+      }
     }
 
     function filterRosterKaryawan(keyword) {

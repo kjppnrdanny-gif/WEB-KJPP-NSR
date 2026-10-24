@@ -46,7 +46,7 @@ define('DB_FILE', DATA_DIR . '/absensi_database.json');
 define('LOCK_FILE', DATA_DIR . '/.absensi_txn.lock');
 define('OTP_FILE', DATA_DIR . '/.absensi_otp_cache.json');
 define('ATTACHMENT_DIR', DATA_DIR . '/lampiran_cuti');
-define('MASTER_SSOT_FILE', DATA_DIR . '/masters/master_karyawan_pusat_ssot.json');
+define('MASTER_CACHE_FILE', DATA_DIR . '/.master_karyawan_cache.json');
 define('GAS_WEB_APP_URL', 'https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec');
 
 // Pastikan direktori data aman
@@ -64,36 +64,138 @@ define('JAM_MASUK_BATAS_TERLAMBAT', '08:30:00');
 // Daftar NIK yang memiliki wewenang Admin HR Pusat
 $ADMIN_HR_NIKS = [
     'NSR-2019-005', // Danny Taufik Hidayat, S.E., S.H. (Manager Admin & SDM / Kepala Divisi Operasional)
-    'NSR-1995-001', // Ir. Nanang Rahayu, M.Ec.Dev. (Pemimpin Rekan)
+    'NSR-2019-001', // Nanang Rahayu, S.E., M.M., MAPPI (Cert.) (Pemimpin Rekan)
     'NSR-2019-004'  // Milda Hidayati Dewi (Manager Keuangan)
 ];
 
-// 4. Master 22 Karyawan Resmi Kantor Pusat Jakarta (SSOT Google Sheet)
-function getOfficialMasterKaryawanPusat() {
-    return [
-        ['nik' => 'NSR-2019-001', 'nama' => 'Nanang Rahayu', 'jabatan' => 'Pemimpin Rekan', 'divisi' => 'Manajemen', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'nara.mocool@gmail.com'],
-        ['nik' => 'NSR-2019-002', 'nama' => 'Deni Siswandi', 'jabatan' => 'Rekan', 'divisi' => 'Manajemen', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'denisiswandi19@gmail.com'],
-        ['nik' => 'NSR-2019-003', 'nama' => 'Mini Intan Cahyani', 'jabatan' => 'Rekan', 'divisi' => 'Manajemen', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'miniintan@gmail.com'],
-        ['nik' => 'NSR-2019-004', 'nama' => 'Milda Hidayati Dewi', 'jabatan' => 'Manager Keuangan', 'divisi' => 'Keuangan', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'mildadewi27@gmail.com'],
-        ['nik' => 'NSR-2019-005', 'nama' => 'Danny Taufik Hidayat', 'jabatan' => 'Manager Admin & Umum', 'divisi' => 'Administrasi & Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'kjppnr.danny@gmail.com', 'alamat_wfh' => 'JL. PULAU SANGIYANG CAKUNG JAKARTA TIMUR', 'gps_wfh' => '-6.193630454554782,106.94436809423287'],
-        ['nik' => 'NSR-2019-006', 'nama' => 'Arie Indra Permana', 'jabatan' => 'Manager Marketing', 'divisi' => 'Business Development', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'riendra.ok@gmail.com'],
-        ['nik' => 'NSR-2019-007', 'nama' => 'Tedi Setiadi', 'jabatan' => 'Reviewer', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'kjppnr.tedi@gmail.com'],
-        ['nik' => 'NSR-2019-008', 'nama' => 'Ricca Noer Farikha', 'jabatan' => 'Accounting & Tax', 'divisi' => 'Keuangan', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'ichafarikha.kjppnr@gmail.com'],
-        ['nik' => 'NSR-2019-009', 'nama' => 'Angga Malid Cahyadi', 'jabatan' => 'Reviewer', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'anggamalid@gmail.com'],
-        ['nik' => 'NSR-2019-010', 'nama' => 'Fadri Nurdin', 'jabatan' => 'Surveyor', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'fn.kjppnr@gmail.com'],
-        ['nik' => 'NSR-2019-011', 'nama' => 'Erwandi', 'jabatan' => 'Kurir', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'ewandiazka.01@gmail.com'],
-        ['nik' => 'NSR-2019-012', 'nama' => 'Latief Satihi', 'jabatan' => 'Kurir', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'latifsatihi@gmail.com'],
-        ['nik' => 'NSR-2019-013', 'nama' => 'Aryanto', 'jabatan' => 'Umum', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'abendnr@gmail.com'],
-        ['nik' => 'NSR-2019-014', 'nama' => 'Yanto', 'jabatan' => 'Driver', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => ''],
-        ['nik' => 'NSR-2019-015', 'nama' => 'Lasiman', 'jabatan' => 'Driver', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'lasimanlasiman29@gmail.com'],
-        ['nik' => 'NSR-2019-016', 'nama' => 'Sukirno', 'jabatan' => 'Office Boy', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'sukirnoekoprasetya@gmail.com'],
-        ['nik' => 'NSR-2019-017', 'nama' => 'Muhammad Syahrul Ruly', 'jabatan' => 'Surveyor', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'm.syahrulrully@gmail.com'],
-        ['nik' => 'NSR-2019-018', 'nama' => 'Uci Sanusi', 'jabatan' => 'Surveyor', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'sanusinr@gmail.com'],
-        ['nik' => 'NSR-2019-019', 'nama' => 'Yasir Rizal', 'jabatan' => 'Surveyor', 'divisi' => 'Teknik', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'rizal.yasir2424@gmail.com'],
-        ['nik' => 'NSR-2019-020', 'nama' => 'Udin Syamsudin', 'jabatan' => 'Security', 'divisi' => 'Umum', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => ''],
-        ['nik' => 'NSR-2025-021', 'nama' => 'Dhea Shafitri Ningrum', 'jabatan' => 'Staf Admin', 'divisi' => 'Administrasi', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'dheash315@gmail.com'],
-        ['nik' => 'NSR-2026-022', 'nama' => 'Siti Nuraeni Ependi', 'jabatan' => 'Staf Admin', 'divisi' => 'Administrasi', 'cabang' => 'Pusat Jakarta', 'status' => 'AKTIF', 'email' => 'sitinuraeniependi@gmail.com']
+// Helper Komunikasi ke Google Apps Script Web App
+function callGASWebService($payload, $timeout = 10) {
+    $url = GAS_WEB_APP_URL;
+    $postData = json_encode($payload, JSON_UNESCAPED_UNICODE);
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: text/plain;charset=utf-8']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $res = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+        if ($res && !$err) {
+            $json = json_decode($res, true);
+            if (is_array($json)) return $json;
+        }
+    }
+
+    $opts = [
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: text/plain;charset=utf-8\r\n",
+            'content' => $postData,
+            'timeout' => $timeout,
+            'follow_location' => 1,
+            'max_redirects' => 5
+        ],
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false
+        ]
     ];
+    $ctx = @stream_context_create($opts);
+    $res = @file_get_contents($url, false, $ctx);
+    if ($res) {
+        $json = json_decode($res, true);
+        if (is_array($json)) return $json;
+    }
+
+    return null;
+}
+
+// 4. Sinkronisasi Dinamis & Pengambilan Roster SSOT Google Sheet Tanpa Hardcoded PII
+function fetchMasterFromGAS() {
+    $res = callGASWebService(['action' => 'getMasterKaryawanFull'], 12);
+    if ($res && !empty($res['success']) && !empty($res['rows']) && is_array($res['rows'])) {
+        $headers = array_map(function($h) { return strtoupper(trim((string)$h)); }, $res['headers'] ?? []);
+        $colNik = -1; $colNama = -1; $colJabatan = -1; $colDivisi = -1; $colStatus = -1;
+        $colAlamatWfh = -1; $colGpsWfh = -1; $colTglWfh = -1; $colEmail = -1;
+
+        foreach ($headers as $idx => $h) {
+            if ($h === 'NIK') $colNik = $idx;
+            else if ($h === 'NAMA' || $h === 'NAMA KARYAWAN') $colNama = $idx;
+            else if ($h === 'JABATAN') $colJabatan = $idx;
+            else if ($h === 'DIVISI') $colDivisi = $idx;
+            else if ($h === 'STATUS') $colStatus = $idx;
+            else if ($h === 'ALAMAT WFH') $colAlamatWfh = $idx;
+            else if ($h === 'GPS WFH') $colGpsWfh = $idx;
+            else if (strpos($h, 'REGISTRASI WFH') !== false) $colTglWfh = $idx;
+            else if (strpos($h, 'EMAIL') !== false || $h === 'GMAIL') $colEmail = $idx;
+        }
+
+        if ($colNik === -1) $colNik = 0;
+        if ($colNama === -1) $colNama = 1;
+        if ($colJabatan === -1) $colJabatan = 2;
+        if ($colDivisi === -1) $colDivisi = 3;
+        if ($colStatus === -1) $colStatus = 4;
+        if ($colAlamatWfh === -1) $colAlamatWfh = 5;
+        if ($colGpsWfh === -1) $colGpsWfh = 6;
+        if ($colTglWfh === -1) $colTglWfh = 7;
+        if ($colEmail === -1) $colEmail = 8;
+
+        $roster = [];
+        foreach ($res['rows'] as $r) {
+            $nik = trim((string)($r[$colNik] ?? ''));
+            if (empty($nik)) continue;
+            $roster[] = [
+                'nik' => $nik,
+                'nama' => trim((string)($r[$colNama] ?? '')),
+                'jabatan' => trim((string)($r[$colJabatan] ?? '')),
+                'divisi' => trim((string)($r[$colDivisi] ?? '')),
+                'cabang' => 'Pusat Jakarta',
+                'status' => strtoupper(trim((string)($r[$colStatus] ?? 'AKTIF'))),
+                'alamat_wfh' => trim((string)($r[$colAlamatWfh] ?? '')),
+                'gps_wfh' => trim((string)($r[$colGpsWfh] ?? '')),
+                'tgl_reg_wfh' => trim((string)($r[$colTglWfh] ?? '')),
+                'email' => trim((string)($r[$colEmail] ?? ''))
+            ];
+        }
+
+        if (!empty($roster)) {
+            $cacheData = [
+                'source' => $res['spreadsheetTitle'] ?? 'DATABASE ABSENSI KARYAWAN - KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN',
+                'sheet_name' => $res['sheetName'] ?? 'MASTER_KARYAWAN',
+                'last_synced' => date('Y-m-d H:i:s'),
+                'total_karyawan' => count($roster),
+                'roster' => $roster
+            ];
+            @file_put_contents(MASTER_CACHE_FILE, json_encode($cacheData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+            return $roster;
+        }
+    }
+    return null;
+}
+
+function loadMasterKaryawanRoster() {
+    if (file_exists(MASTER_CACHE_FILE)) {
+        $raw = @file_get_contents(MASTER_CACHE_FILE);
+        $cache = json_decode($raw, true);
+        if (is_array($cache) && !empty($cache['roster']) && is_array($cache['roster'])) {
+            return $cache['roster'];
+        }
+    }
+
+    $fetched = fetchMasterFromGAS();
+    if ($fetched !== null) {
+        return $fetched;
+    }
+
+    return [];
 }
 
 // 5. Helper Haversine Distance (Meter)
@@ -134,7 +236,7 @@ function samarkanEmail($email) {
 
 // 7. Database Loading & Inisialisasi Master
 function getDatabaseStructure() {
-    $masterList = getOfficialMasterKaryawanPusat();
+    $masterList = loadMasterKaryawanRoster();
     return [
         'metadata' => [
             'app' => 'KJPP NSR Presensi SSOT',
@@ -164,7 +266,7 @@ function loadDatabase() {
     }
 
     // Auto-reconciliation: Pastikan ke-22 karyawan master Google Sheet selalu sinkron dan tersedia
-    $masterList = getOfficialMasterKaryawanPusat();
+    $masterList = loadMasterKaryawanRoster();
     $existingNiks = [];
     $needsSave = false;
 
@@ -626,6 +728,9 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
         $jenis = $payload['jenis'] ?? 'Masuk';
         $lokasi = $payload['lokasi'] ?? 'KANTOR';
         $gps = trim((string)($payload['gps'] ?? ''));
+        if (empty($gps) && isset($payload['latitude']) && isset($payload['longitude'])) {
+            $gps = $payload['latitude'] . ',' . $payload['longitude'];
+        }
         $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
         $keterangan = trim((string)($payload['keterangan'] ?? ''));
 
@@ -1276,6 +1381,197 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
     // ---------------------------------------------------------------------
     // AKSI 12: LOGOUT PRESENSI
     // ---------------------------------------------------------------------
+
+    // ---------------------------------------------------------------------
+    // AKSI BARU: SINKRONISASI MASTER GOOGLE SHEET (ADMIN HR)
+    // ---------------------------------------------------------------------
+    if ($action === 'syncMasterKaryawan') {
+        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
+        $adminNik = normalisasiNIK($payload['admin_nik'] ?? $payload['nik'] ?? '');
+
+        if (!cekOtorisasiAdminHR($sessionToken, $adminNik)) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Otorisasi Admin HR ditolak.']);
+            exit;
+        }
+
+        $fetched = fetchMasterFromGAS();
+        if (!$fetched) {
+            http_response_code(502);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Gagal mengambil data dari Google Apps Script SSOT. Periksa koneksi ke Google Spreadsheet.']);
+            exit;
+        }
+
+        $db = loadDatabase();
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'message' => 'Sinkronisasi Master Karyawan dengan Google Sheet berhasil.',
+            'total_karyawan' => count($fetched),
+            'last_sync' => date('Y-m-d H:i:s')
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------------------
+    // AKSI BARU: DAFTARKAN / PERBARUI EMAIL KARYAWAN OLEH ADMIN HR
+    // ---------------------------------------------------------------------
+    if ($action === 'daftarkanEmailKaryawan') {
+        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
+        $adminNik = normalisasiNIK($payload['admin_nik'] ?? $payload['nik'] ?? '');
+
+        if (!cekOtorisasiAdminHR($sessionToken, $adminNik)) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Otorisasi Admin HR ditolak.']);
+            exit;
+        }
+
+        $targetNik = normalisasiNIK($payload['target_nik'] ?? '');
+        $email = trim((string)($payload['email'] ?? ''));
+
+        if (!$targetNik || empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Format email resmi tidak valid atau NIK karyawan tidak disertakan.']);
+            exit;
+        }
+
+        $db = loadDatabase();
+        $found = false;
+        $namaTarget = '';
+
+        foreach ($db['master_karyawan'] as &$k) {
+            if (cocokNIK($k['nik'], $targetNik)) {
+                $k['email'] = $email;
+                $namaTarget = $k['nama'];
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Karyawan dengan NIK [' . $targetNik . '] tidak ditemukan di master.']);
+            exit;
+        }
+
+        if (file_exists(MASTER_CACHE_FILE)) {
+            $cacheRaw = @file_get_contents(MASTER_CACHE_FILE);
+            $cache = json_decode($cacheRaw, true);
+            if (is_array($cache) && !empty($cache['roster'])) {
+                foreach ($cache['roster'] as &$ck) {
+                    if (cocokNIK($ck['nik'], $targetNik)) {
+                        $ck['email'] = $email;
+                        break;
+                    }
+                }
+                @file_put_contents(MASTER_CACHE_FILE, json_encode($cache, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+            }
+        }
+
+        @callGASWebService([
+            'action' => 'updateEmailKaryawan',
+            'nik' => $targetNik,
+            'email' => $email,
+            'admin_nik' => $adminNik
+        ], 5);
+
+        if (!isset($db['audit_log'])) $db['audit_log'] = [];
+        $db['audit_log'][] = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'aksi' => 'HR_PENDAFTARAN_EMAIL',
+            'admin_nik' => $adminNik,
+            'target_nik' => $targetNik,
+            'target_nama' => $namaTarget,
+            'keterangan' => "Email resmi berhasil didaftarkan untuk $namaTarget ($targetNik) oleh Admin HR $adminNik"
+        ];
+
+        saveDatabase($db);
+
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'message' => "Email resmi untuk $namaTarget ($targetNik) berhasil didaftarkan dan diverifikasi oleh Admin HR."
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------------------
+    // AKSI BARU: VERIFIKASI PRESENSI LAPANGAN (DRIVER / SECURITY)
+    // ---------------------------------------------------------------------
+    if ($action === 'verifikasiPresensiLapangan') {
+        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
+        $adminNik = normalisasiNIK($payload['admin_nik'] ?? $payload['nik'] ?? '');
+
+        if (!cekOtorisasiAdminHR($sessionToken, $adminNik)) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Otorisasi Admin HR ditolak.']);
+            exit;
+        }
+
+        $targetNik = normalisasiNIK($payload['target_nik'] ?? '');
+        $jenis = $payload['jenis'] ?? 'Masuk';
+        $keterangan = trim((string)($payload['keterangan'] ?? 'Verifikasi Presensi Lapangan'));
+
+        if (!$targetNik) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK Karyawan wajib disertakan.']);
+            exit;
+        }
+
+        $db = loadDatabase();
+        $targetKaryawan = null;
+        foreach ($db['master_karyawan'] as $k) {
+            if (cocokNIK($k['nik'], $targetNik)) {
+                $targetKaryawan = $k;
+                break;
+            }
+        }
+
+        if (!$targetKaryawan) {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Karyawan tidak ditemukan.']);
+            exit;
+        }
+
+        $tzObj = new DateTimeZone('Asia/Jakarta');
+        $nowWib = new DateTime('now', $tzObj);
+        $tgl = $nowWib->format('Y-m-d');
+        $jam = $nowWib->format('H:i:s') . ' WIB';
+
+        $newPresensi = [
+            'id' => 'ABS-' . date('Ymd') . '-' . substr(md5(uniqid('', true)), 0, 6),
+            'timestamp' => $tgl . ' ' . $jam,
+            'tanggal' => $tgl,
+            'jam' => $jam,
+            'zona_waktu' => 'WIB',
+            'nik' => $targetKaryawan['nik'],
+            'nama' => $targetKaryawan['nama'],
+            'jabatan' => $targetKaryawan['jabatan'],
+            'divisi' => $targetKaryawan['divisi'],
+            'jenis' => $jenis,
+            'lokasi' => 'KANTOR',
+            'gps' => PUSAT_LAT . ',' . PUSAT_LNG,
+            'jarak_meter' => 0,
+            'status_validasi' => 'VALID',
+            'kantor_terdekat' => 'Kantor Pusat Jakarta',
+            'is_verifikasi_hr' => true,
+            'diverifikasi_oleh' => $adminNik,
+            'keterangan' => "Presensi $jenis Lapangan diverifikasi oleh HR ($adminNik): $keterangan"
+        ];
+
+        $db['absensi'][] = $newPresensi;
+        $db['metadata']['total_absensi'] = count($db['absensi']);
+        $db['metadata']['last_sync'] = date('Y-m-d H:i:s');
+        saveDatabase($db);
+
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'message' => "Presensi $jenis untuk {$targetKaryawan['nama']} ({$targetKaryawan['nik']}) berhasil diverifikasi oleh Admin HR."
+        ]);
+        exit;
+    }
+
     if ($action === 'logoutPresensi') {
         $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
         if ($sessionToken) {
