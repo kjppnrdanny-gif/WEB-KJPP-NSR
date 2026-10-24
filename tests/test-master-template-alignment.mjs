@@ -59,16 +59,16 @@ kMarkers.forEach((m, idx) => {
 // 2. UJI KELENGKAPAN 9 DOKUMEN RESMI OPINI NSR
 console.log('\n[2] VERIFIKASI KELENGKAPAN 9 DOKUMEN KELUARAN PORTAL:');
 const docChecks = [
-  { id: 'DOK1', name: 'Dokumen 1: Lingkup Penugasan (SPK 23 Klausul)', tag: 'klausul-item avoid-break' },
+  { id: 'DOK1', name: 'Dokumen 1: Lingkup Penugasan (SPK 23 Klausul Master)', tag: 'klausul-item avoid-break' },
   { id: 'LAMP1', name: 'Lampiran 1: Daftar Objek Penilaian dan Kepemilikan', tag: 'LAMPIRAN 1: DAFTAR OBJEK PENILAIAN DAN KEPEMILIKAN' },
-  { id: 'DOK2', name: 'Dokumen 2: Surat Representasi Klien (KEPI 5.8.c.4)', tag: 'Perihal : Surat Representasi Kebenaran Informasi, Data &amp; Dokumen' },
-  { id: 'DOK3A', name: 'Dokumen 3A: Lembar Isian Umum (Administrasi Penugasan)', tag: '3A. LEMBAR ISIAN UMUM (ADMINISTRASI PENUGASAN)' },
-  { id: 'DOK3B', name: 'Dokumen 3B: Form Order KJPP NSR (JO 2026)', tag: 'FORM ORDER KJPP NSR TAHUN 2026' },
-  { id: 'DOK3C', name: 'Dokumen 3C: Kartu Proyek (Kendali Mutu Berjenjang 4 QC)', tag: 'KARTU PROYEK' },
-  { id: 'DOK3D', name: 'Dokumen 3D: Surat Tugas Resmi', tag: 'SURAT TUGAS' },
-  { id: 'DOK3E', name: 'Dokumen 3E: Berita Acara Inspeksi Lapangan (BAP)', tag: 'BERITA ACARA INSPEKSI LAPANGAN (BAP)' },
-  { id: 'DOK3F', name: 'Dokumen 3F: Evaluasi Tingkat Independensi (ETI)', tag: 'EVALUASI TINGKAT INDEPENDENSI (ETI)' },
-  { id: 'DOK3G', name: 'Dokumen 3G: Pernyataan Independensi (PI)', tag: 'PERNYATAAN INDEPENDENSI (PI)' }
+  { id: 'DOK2', name: 'Dokumen 2: Surat Representasi (Kebenaran Dokumen & Bebas Penilaian Ulang)', tag: 'Perihal : Surat Representasi Kebenaran Informasi, Data &amp; Dokumen' },
+  { id: 'DOK3', legacyId: 'DOK3A', name: 'Dokumen 3: Isian UMUM (Form Standar Lingkup Penugasan)', tag: '3A. LEMBAR ISIAN UMUM (ADMINISTRASI PENUGASAN)' },
+  { id: 'DOK4', legacyId: 'DOK3B', name: 'Dokumen 4: Lembar Order (JO / Job Order 2026)', tag: 'FORM ORDER KJPP NSR TAHUN 2026' },
+  { id: 'DOK5', legacyId: 'DOK3C', name: 'Dokumen 5: Kartu Proyek (Kendali Mutu Berjenjang)', tag: 'KARTU PROYEK' },
+  { id: 'DOK6', legacyId: 'DOK3D', name: 'Dokumen 6: Surat Tugas Penilaian Resmi', tag: 'SURAT TUGAS' },
+  { id: 'DOK7', legacyId: 'DOK3E', name: 'Dokumen 7: Berita Acara Pemeriksaan (BAP / Inspeksi)', tag: 'BERITA ACARA INSPEKSI LAPANGAN (BAP)' },
+  { id: 'DOK8', legacyId: 'DOK3F', name: 'Dokumen 8: Evaluasi Tingkat Independensi (ETI KEPI 5.8)', tag: 'EVALUASI TINGKAT INDEPENDENSI (ETI)' },
+  { id: 'DOK9', legacyId: 'DOK3G', name: 'Dokumen 9: Pernyataan Independensi (PI Multi-Personel)', tag: 'PERNYATAAN INDEPENDENSI (PI)' }
 ];
 
 docChecks.forEach(d => {

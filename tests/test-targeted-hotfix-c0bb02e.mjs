@@ -52,12 +52,34 @@ const nineMasterDocs = [
 let allNineFound = true;
 nineMasterDocs.forEach((d, idx) => {
   const cleanTitle = d.split('(')[0].trim();
-  if (!html.includes(cleanTitle)) {
+  const dokKey = 'DOK' + (idx + 1);
+  const optPattern = `value="${dokKey}"`;
+  if (!html.includes(cleanTitle) || !html.includes(optPattern)) {
     allNineFound = false;
-    assert(false, `1.3.${idx+1} Dokumen master "${cleanTitle}" terdaftar`);
+    assert(false, `1.3.${idx+1} Dokumen master "${cleanTitle}" dengan value "${dokKey}" terdaftar`);
   }
 });
-assert(allNineFound, '1.3 Sembilan Dokumen Master terdaftar berurutan tanpa digantikan dokumen operasional');
+assert(allNineFound, '1.3 Sembilan Dokumen Master terdaftar berurutan dengan key DOK1-DOK9 tanpa digantikan dokumen operasional');
+
+// Verifikasi penghapusan permanen opsi placeholder yang tidak memiliki renderer
+assert(
+  !html.includes('value="SUPP_PENAWARAN"') &&
+  !html.includes('value="SUPP_DISPOSISI"') &&
+  !html.includes('value="SUPP_REVIEW"'),
+  '1.4 Opsi placeholder tidak terpakai (SUPP_*) telah dibersihkan secara permanen dari antarmuka'
+);
+
+// Verifikasi pemetaan renderer presisi DOK1-DOK9 individual dan fallback DOK3A-DOK3G
+assert(
+  html.includes('selDok === "DOK3" || selDok === "DOK3A"') &&
+  html.includes('selDok === "DOK4" || selDok === "DOK3B"') &&
+  html.includes('selDok === "DOK5" || selDok === "DOK3C"') &&
+  html.includes('selDok === "DOK6" || selDok === "DOK3D"') &&
+  html.includes('selDok === "DOK7" || selDok === "DOK3E"') &&
+  html.includes('selDok === "DOK8" || selDok === "DOK3F"') &&
+  html.includes('selDok === "DOK9" || selDok === "DOK3G"'),
+  '1.5 Percabangan renderer renderSemuaDokumen() memetakan DOK1-DOK9 secara presisi individual dengan fallback DOK3A-DOK3G'
+);
 
 // [2] ETI INDIVIDUAL & ZERO FALLBACK
 console.log('\n[2] VERIFIKASI LOGIKA ETI INDIVIDUAL & ZERO FALLBACK TIDAK:');
