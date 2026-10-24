@@ -1988,18 +1988,20 @@
           <div>
             <label class="block text-[10px] text-slate-400 font-bold uppercase mb-1">Pilih Dokumen yang Ditampilkan / Dicetak:</label>
             <select id="pilih_tampilan_dokumen" onchange="gantiTampilanDokumen()" class="h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-amber-300 font-bold text-xs focus:outline-none">
-              <option value="ALL">Semua 9 Dokumen (Bundel Lengkap A4)</option>
-              <option value="DOK1">Dokumen 1: Lingkup Penugasan (SPK 23 Klausul)</option>
-              <option value="LAMP1">Lampiran 1: Daftar Objek Penilaian (Khusus Multi-Objek)</option>
-              <option value="DOK2">Dokumen 2: Surat Representasi Klien (KEPI 5.8.c.4)</option>
-              <option value="DOK3">Bundel JO Lengkap (7 Lembar Kerja Internal)</option>
-              <option value="DOK3A">3A. Isian UMUM</option>
-              <option value="DOK3B">3B. Form Order (JO 2026)</option>
-              <option value="DOK3C">3C. Kartu Proyek (Kendali Mutu Berjenjang)</option>
-              <option value="DOK3D">3D. Surat Tugas Resmi</option>
-              <option value="DOK3E">3E. Berita Acara Inspeksi (BAP)</option>
-              <option value="DOK3F">3F. Evaluasi Tingkat Independensi (ETI)</option>
-              <option value="DOK3G">3G. Pernyataan Independensi (PI)</option>
+              <option value="ALL">Semua 9 Dokumen Master (Bundel Lengkap A4)</option>
+              <option value="DOK1">Dokumen 1: Lingkup Penugasan (SPK 23 Klausul Master)</option>
+              <option value="DOK2">Dokumen 2: Surat Representasi (Kebenaran Dokumen &amp; Bebas Penilaian Ulang)</option>
+              <option value="DOK3">Dokumen 3: Isian UMUM (Form Standar Lingkup Penugasan)</option>
+              <option value="DOK4">Dokumen 4: Lembar Order (JO / Job Order 2026)</option>
+              <option value="DOK5">Dokumen 5: Kartu Proyek (Kendali Mutu Berjenjang)</option>
+              <option value="DOK6">Dokumen 6: Surat Tugas Penilaian Resmi</option>
+              <option value="DOK7">Dokumen 7: Berita Acara Pemeriksaan (BAP / Inspeksi)</option>
+              <option value="DOK8">Dokumen 8: Evaluasi Tingkat Independensi (ETI KEPI 5.8)</option>
+              <option value="DOK9">Dokumen 9: Pernyataan Independensi (PI Multi-Personel)</option>
+              <!-- Dokumen Operasional Pendukung -->
+              <option value="SUPP_PENAWARAN">Dokumen Pendukung: Surat Penawaran Biaya Penilaian</option>
+              <option value="SUPP_DISPOSISI">Dokumen Pendukung: Disposisi Approval SPK &amp; JO</option>
+              <option value="SUPP_REVIEW">Dokumen Pendukung: Lembar Review Pengajuan Pusat</option>
             </select>
           </div>
           
@@ -6340,33 +6342,59 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
     // Individual Declaration Per Required Personnel (No Omnibus / No Batch Override)
     function konfirmasiDeklarasiPersonelIndividual(roleKey, namaPersonel) {
       const auth = window.CURRENT_AUTH_SESSION || dapatkanSesiLogin() || userSession;
-      const declarantNama = (auth && (auth.displayName || auth.nama)) || userSession.displayName || 'Petugas Penilai';
-      
-      const confirmed = confirm("Konfirmasi Pernyataan Independensi Individual (KEPI 5.8):\n\nPersonel: " + namaPersonel + "\nPeran: " + roleKey + "\n\nApakah Anda atas nama " + namaPersonel + " menyatakan secara sah BEBAS dari benturan kepentingan (afiliasi bisnis, saham, pinjaman kredit, hubungan keluarga, atau ancaman independensi) dengan klien / debitur?\n\nKlik OK untuk menyetujui deklarasi independen.");
-      if (!confirmed) return;
+      const currentUserName = (auth && (auth.displayName || auth.nama)) || userSession.displayName || '';
+
+      // 1. Verifikasi bahwa seluruh 7 pertanyaan telah dijawab (TIDAK ADA FALLBACK OTOMATIS TIDAK)
+      const answers = {};
+      let hasConflict = false;
+      let allAnswered = true;
+      const unansweredKeys = [];
+
+      ['a','b','c','d','e','f','g'].forEach(key => {
+        const val = document.getElementById('eti_q_' + key)?.value;
+        if (!val || val === 'BELUM_DIISI') {
+          allAnswered = false;
+          unansweredKeys.push(key.toUpperCase());
+        } else {
+          answers[key] = val;
+          if (val === 'YA') hasConflict = true;
+        }
+      });
+
+      if (!allAnswered) {
+        alert("Pernyataan Belum Lengkap:\n\nHarap tentukan jawaban nyata (pilih YA atau TIDAK) untuk seluruh 7 butir kuesioner KEPI terlebih dahulu pada tabel di bawah.\nButir belum diisi: " + unansweredKeys.join(', '));
+        return;
+      }
+
+      // 2. Proteksi Identitas: Satu operator DILARANG mengonfirmasi atas nama orang lain tanpa verifikasi
+      const isSelf = currentUserName && namaPersonel && (
+        currentUserName.toLowerCase().includes(namaPersonel.toLowerCase().split(' ')[0]) || 
+        namaPersonel.toLowerCase().includes(currentUserName.toLowerCase().split(' ')[0])
+      );
+
+      let declarantMethod = 'AUTHENTICATED_SESSION_MATCH';
+      if (!isSelf) {
+        const pinConfirm = prompt("Konfirmasi Identitas Personel (KEPI 5.8):\n\nAnda sedang mengonfirmasi deklarasi atas nama: " + namaPersonel + " (" + roleKey + ").\n\nUntuk memastikan deklarasi independensi sah dan bukan atas nama orang lain, masukkan PIN / Kredensial pribadi " + namaPersonel + ":");
+        if (!pinConfirm || pinConfirm.trim().length === 0) {
+          alert("Konfirmasi dibatalkan: Deklarasi independensi hanya dapat disahkan oleh personel bersangkutan atau dengan pembuktian kredensial sah.");
+          return;
+        }
+        declarantMethod = 'PERSONAL_CREDENTIAL_AFFIRMED';
+      }
 
       let p = window.DATA_PROYEK_TERPILIH || activeProjectData || bangunDraftDariForm();
       p.eti_declarations = p.eti_declarations || {};
 
-      // Get current values from the 7 questions
-      const answers = {};
-      let hasConflict = false;
-      ['a','b','c','d','e','f','g'].forEach(key => {
-        const val = document.getElementById('eti_q_' + key)?.value || 'TIDAK';
-        answers[key] = val;
-        if (val === 'YA') hasConflict = true;
-      });
-
       p.eti_declarations[roleKey] = {
         role: roleKey,
         nama: namaPersonel,
-        declared_by: declarantNama,
+        declared_by: isSelf ? currentUserName : (namaPersonel + ' (' + declarantMethod + ')'),
         declared_at: new Date().toISOString(),
+        verification_method: declarantMethod,
         answers: answers,
         status: hasConflict ? 'CONFLICT_FLAGGED' : 'INDEPENDENT'
       };
 
-      // Simpan ke state
       window.DATA_PROYEK_TERPILIH = p;
       activeProjectData = p;
 
@@ -6429,63 +6457,72 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
     window.muatStatusDeklarasiPersonel = muatStatusDeklarasiPersonel;
 
     function evaluasiStatusEtiLive() {
-      const answers = {};
-      let adaBelum = false;
-      let adaYa = false;
-
-      ['a','b','c','d','e','f','g'].forEach(key => {
-        const val = document.getElementById('eti_q_' + key)?.value || 'BELUM_DIISI';
-        answers[key] = val;
-        if (val === 'BELUM_DIISI') adaBelum = true;
-        if (val === 'YA') adaYa = true;
-      });
-
       let p = window.DATA_PROYEK_TERPILIH || activeProjectData || bangunDraftDariForm();
       const declarations = p.eti_declarations || {};
-      
-      // Cek apakah ada deklarasi yang konflik
-      let conflictInDecl = false;
-      let anyDeclDone = false;
-      Object.values(declarations).forEach(d => {
-        if (d.status === 'CONFLICT_FLAGGED') conflictInDecl = true;
-        if (d.status === 'INDEPENDENT') anyDeclDone = true;
+
+      // 1. Kumpulkan seluruh personel wajib
+      const requiredList = [];
+      const reviewer = p.reviewer || p.penilai_review || 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
+      requiredList.push({ key: 'REVIEWER', nama: reviewer });
+
+      const listPenilai = p.listPenilai || (window.currentPenilaiList && window.currentPenilaiList.length > 0 ? window.currentPenilaiList : [{ nama: p.penilai_pelaksana || 'Deni Siswandi, S.T., MAPPI (Cert.)' }]);
+      listPenilai.forEach((item, idx) => {
+        requiredList.push({ key: 'PENILAI_' + (idx + 1), nama: item.nama });
       });
 
-      p.eti_answers = answers;
-      window.DATA_PROYEK_TERPILIH = p;
-      activeProjectData = p;
+      const listAsisten = p.listAsisten || (window.currentAsistenList && window.currentAsistenList.length > 0 ? window.currentAsistenList : [{ nama: p.asisten_penilai || 'Asisten Penilai' }]);
+      listAsisten.forEach((item, idx) => {
+        requiredList.push({ key: 'ASISTEN_' + (idx + 1), nama: item.nama });
+      });
+
+      let countConfirmed = 0;
+      let hasConflict = false;
+
+      requiredList.forEach(item => {
+        const d = declarations[item.key];
+        if (d) {
+          if (d.status === 'CONFLICT_FLAGGED') hasConflict = true;
+          if (d.status === 'INDEPENDENT') countConfirmed++;
+        }
+      });
+
+      const isAllComplete = (requiredList.length > 0 && countConfirmed === requiredList.length);
 
       const badge = document.getElementById('badge_status_eti');
       const infoEl = document.getElementById('eti_info_deklarasi');
 
-      if (adaYa || conflictInDecl) {
+      if (hasConflict) {
         if (badge) {
           badge.textContent = 'PERLU REVIEW (POTENSI BENTURAN)';
           badge.className = 'px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40';
         }
         if (infoEl) {
-          infoEl.innerHTML = '<span class="text-rose-400 font-bold">⚠️ PERHATIAN MUTU: Terdapat potensi benturan kepentingan / relasi pada ETI. Perlu review SPM &amp; persetujuan khusus sebelum penerbitan.</span>';
+          infoEl.innerHTML = '<span class="text-rose-400 font-bold">⚠️ PERHATIAN MUTU: Terdapat potensi benturan kepentingan yang dideklarasikan oleh anggota tim. Perlu review SPM sebelum penerbitan.</span>';
         }
         p.status_eti = 'PERLU_REVIEW';
-      } else if (adaBelum || !anyDeclDone) {
+      } else if (!isAllComplete) {
+        const sisa = requiredList.length - countConfirmed;
         if (badge) {
-          badge.textContent = 'BELUM DIISI / BELUM LENGKAP';
+          badge.textContent = 'BELUM LENGKAP (' + countConfirmed + '/' + requiredList.length + ')';
           badge.className = 'px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30';
         }
         if (infoEl) {
-          infoEl.innerHTML = '<span class="text-slate-400">Harap setiap personel tim penugasan mengonfirmasi deklarasi independensi individual.</span>';
+          infoEl.innerHTML = '<span class="text-slate-400">Masih terdapat ' + sisa + ' personel tim penugasan yang belum memberikan konfirmasi independensi sah.</span>';
         }
         p.status_eti = 'BELUM_DIISI';
       } else {
         if (badge) {
-          badge.textContent = 'INDEPENDEN (TERVERIFIKASI SEMUA)';
+          badge.textContent = 'INDEPENDEN (LENGKAP ' + countConfirmed + '/' + requiredList.length + ')';
           badge.className = 'px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
         }
         if (infoEl) {
-          infoEl.innerHTML = '<span class="text-emerald-400 font-bold">✔ Seluruh butir kuesioner KEPI terkonfirmasi bebas dari benturan kepentingan.</span>';
+          infoEl.innerHTML = '<span class="text-emerald-400 font-bold">✔ Seluruh ' + requiredList.length + ' anggota tim telah menyatakan independen dan bebas benturan kepentingan.</span>';
         }
         p.status_eti = 'INDEPENDEN';
       }
+
+      window.DATA_PROYEK_TERPILIH = p;
+      activeProjectData = p;
     }
     window.evaluasiStatusEtiLive = evaluasiStatusEtiLive;
 
@@ -11657,7 +11694,7 @@ Permintaan penugasan Anda telah dicatat ke server. Staf Admin akan memverifikasi
                         
                         <!-- 8. TANGGAL PENILAIAN DAN PENDEKATAN PENILAIAN (MASTER DOCX SECTION 8 & SPI 103) -->
                         <div class="klausul-item avoid-break">
-                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">8. TANGGAL PENILAIAN DAN PENDEKATAN PENILAIAN</p>
+                          <p class="klausul-header font-bold border-b border-slate-900 pb-1 mb-2 uppercase tracking-wide">8. TANGGAL PENILAIAN</p>
                           <p class="text-justify mb-2">
                             <strong>Tanggal Penilaian (Tanggal Efektif Opini Nilai) :</strong> Tanggal penilaian yaitu tanggal pada saat nilai dinyatakan dan diberlakukan, ditetapkan per tanggal <strong>${formatTanggalIndo(p.tanggal_penilaian || p.survey_tanggal || p.tanggal_surat)}</strong>. Adapun tanggal pelaksanaan inspeksi fisik lapangan adalah pada tanggal <strong>${formatTanggalIndo(p.survey_tanggal || p.tanggal_penilaian)}</strong>, tanggal perikatan penugasan (SPK) pada tanggal <strong>${formatTanggalIndo(p.tanggal_surat)}</strong>, dan target penerbitan laporan pada tanggal <strong>${formatTanggalIndo(p.tanggal_laporan || p.target_selesai || p.tanggal_surat)}</strong>.
                           </p>

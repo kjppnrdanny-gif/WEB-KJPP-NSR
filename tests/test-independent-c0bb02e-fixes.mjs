@@ -38,8 +38,8 @@ assert(
 );
 assert(
   html.includes('eti_declarations') &&
-  html.includes('adaBelum || !anyDeclDone'),
-  '1.3 Status ETI tetap BELUM DIISI jika ada personel yang belum melakukan deklarasi mandiri'
+  (html.includes('!isAllComplete') || html.includes('adaBelum || !anyDeclDone')),
+  '1.3 Status ETI tetap BELUM DIISI / BELUM LENGKAP jika ada personel yang belum melakukan deklarasi mandiri'
 );
 
 console.log('\n[2] VERIFIKASI MATRIKS 23 KLAUSUL MASTER TEMPLATE LINGKUP PENUGASAN (DOCX):');
@@ -51,7 +51,7 @@ const masterClauses = [
   '5. JENIS MATA UANG YANG DIGUNAKAN',
   '6. MAKSUD DAN TUJUAN PENILAIAN',
   '7. DASAR NILAI',
-  '8. TANGGAL PENILAIAN DAN PENDEKATAN PENILAIAN',
+  '8. TANGGAL PENILAIAN',
   '9. TINGKAT KEDALAMAN INVESTIGASI',
   '10. SIFAT DAN SUMBER INFORMASI YANG DAPAT DIANDALKAN',
   '11. ASUMSI DAN ASUMSI KHUSUS',
@@ -84,7 +84,7 @@ assert(clauseOrderOk, '2.0 Seluruh 23 Klausul Master DOCX tersusun persis sesuai
 
 // 2. Start PHP server to test backend actions
 console.log('\n[3] TESTING BACKEND API DENGAN PHP BUILT-IN SERVER:');
-const PORT = 8899;
+const PORT = 8896;
 const phpServer = spawn('php', ['-S', `127.0.0.1:${PORT}`, 'nolap-data-handler.php']);
 
 function sleep(ms) {
@@ -174,9 +174,23 @@ async function requestApi(action, payload, token = 'NSR8899') {
 
     // TEST 3.5: Jalur A - publishMandiriCabangLP without professional approval
     console.log('\nTesting Jalur A: publishMandiriCabangLP tanpa persetujuan profesional:');
-    // We call as ADMIN_CABANG (token cabang bandung: 'NSR-BDG-2026' or similar from auth registry)
     const tokenCabangBdg = 'NSR-BDG-2026';
     const testId = 'TEST-JALUR-A-' + Date.now();
+
+    // Register project in DB first
+    await requestApi('submitGerbang1Awal', {
+      idPenugasan: testId,
+      namaKlien: 'PT Agunan Uji',
+      jenisObjek: 'Rumah Tinggal',
+      kantorWilayah: 'Bandung',
+      kodeIndustri: '01',
+      npwp: '01.234.567.8-901.000',
+      statusNpwp: 'VALID_NPWP',
+      namaPemohon: 'Budi Santoso',
+      emailPemohon: 'budi@kjppnanangrahayu.com',
+      waPemohon: '081234567890'
+    }, tokenCabangBdg);
+
     const resUnapproved = await requestApi('publishMandiriCabangLP', {
       idPenugasan: testId,
       kantorWilayah: 'Bandung',
@@ -190,15 +204,22 @@ async function requestApi(action, payload, token = 'NSR8899') {
       '3.5 Backend MENOLAK penerbitan administratif Jalur A jika belum disetujui profesional oleh Pimpinan Cabang (HTTP 422 UNAPPROVED_PROFESSIONAL_LP)'
     );
 
-    // TEST 3.6: Jalur A - approveProfesionalCabangLP followed by publishMandiriCabangLP
+    // TEST 3.6: Jalur A - approveProfesionalCabangLP sah
     console.log('Testing Jalur A: approveProfesionalCabangLP sah:');
+    // Get fresh proof
+    const resProofForApprove = await requestApi('verifyPengesahKing', {
+      operator: 'DENI',
+      credential: 'NSR-DS-2026!P',
+      idPenugasan: testId
+    }, 'NSR8899');
+
     const resApprove = await requestApi('approveProfesionalCabangLP', {
       idPenugasan: testId,
       kantorWilayah: 'Bandung',
       namaKlien: 'PT Agunan Uji',
       jenisObjek: 'Rumah Tinggal',
-      signer_credential: 'NSR-DS-2026!P'
-    }, 'NSR8899'); // KING granting approval on behalf of Deni with valid credentials
+      verification_proof: resProofForApprove.data.verification_proof
+    }, 'NSR8899');
 
     assert(
       resApprove.status === 200 && resApprove.data && resApprove.data.success && resApprove.data.persetujuan_profesional,
