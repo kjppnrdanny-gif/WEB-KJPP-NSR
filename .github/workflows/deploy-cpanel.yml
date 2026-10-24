@@ -1,5 +1,9 @@
 name: Deploy ke cPanel KJPP NSR
 
+concurrency:
+  group: cpanel-ftp-deploy
+  cancel-in-progress: false
+
 on:
   push:
     branches:
@@ -142,7 +146,7 @@ jobs:
           retention-days: 30
 
       - name: ⏳ Jeda Pelepasan Koneksi FTP Server (Anti-Socket Collision)
-        run: sleep 10
+        run: sleep 20
 
       - name: 📂 Sinkronisasi File ke cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
