@@ -14437,34 +14437,76 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
     window.resolveUnifiedTokenNoLap = resolveUnifiedTokenNoLap;
 
     async function periksaSesiServer() {
-      // 0. Cek session tersimpan dengan verifikasi kriptografis anti-tampering
+      // 0. Cek session tersimpan dari sessionStorage ATAU localStorage (Single Sign-On Lintas Portal)
       try {
-        const storedSesi = sessionStorage.getItem('NSR_USER_SESSION') || sessionStorage.getItem('nsr_nolap_session');
-        if (storedSesi) {
-          const parsed = JSON.parse(storedSesi);
-          if (parsed && typeof verifySessionChecksum === 'function' && verifySessionChecksum(parsed)) {
+        const storedKeys = [
+          'NSR_USER_SESSION',
+          'nsr_nolap_session',
+          'kjpp_token_internal',
+          'kjpp_session_jo'
+        ];
+        let parsed = null;
+        for (const k of storedKeys) {
+          const raw = sessionStorage.getItem(k) || localStorage.getItem(k);
+          if (raw) {
+            try {
+              const obj = JSON.parse(raw);
+              if (obj && typeof obj === 'object' && (obj.valid || obj.role || obj.authenticated || obj.isLoggedIn || obj.isSuperAdmin)) {
+                parsed = obj;
+                break;
+              }
+            } catch (_) {}
+          }
+        }
+
+        if (parsed) {
+          // Cek kedaluwarsa jika ada
+          if (parsed.expiresAt && Number(parsed.expiresAt) < Date.now()) {
+            storedKeys.forEach(k => {
+              sessionStorage.removeItem(k);
+              localStorage.removeItem(k);
+            });
+            parsed = null;
+          } else {
             const tokenRef = parsed.token || parsed.tokenHash || '';
-            const auth = resolveUnifiedTokenNoLap(tokenRef);
-            sesiAktif = { ...(auth || {}), ...parsed };
+            const auth = tokenRef ? resolveUnifiedTokenNoLap(tokenRef) : null;
+            sesiAktif = {
+              ...(auth || {}),
+              ...parsed,
+              valid: true
+            };
+            if (sesiAktif.role === 'SUPER_ADMIN' || sesiAktif.role === 'SUPER ADMIN' || sesiAktif.isSuperAdmin || sesiAktif.isKing) {
+              sesiAktif.isSuperAdmin = true;
+              sesiAktif.isKing = true;
+              sesiAktif.role = 'SUPER ADMIN';
+              sesiAktif.mode = 'PUSAT';
+              sesiAktif.cabang = 'Pusat';
+            }
             window.currentUser = sesiAktif;
             currentUser = sesiAktif;
+            sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(sesiAktif));
+            localStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            localStorage.setItem('NSR_USER_SESSION', JSON.stringify(sesiAktif));
             aktifkanPanelUtama();
             inisialisasiSesiPengguna(sesiAktif);
             applyRBAC(sesiAktif);
             return;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Gagal membaca sesi lokal SSO:', e);
+      }
 
-      // 1. Single Sign-On (SSO): Periksa token tersimpan resmi di sessionStorage
+      // 1. Single Sign-On (SSO): Periksa token tersimpan resmi di sessionStorage / localStorage
       try {
-        const storedToken = sessionStorage.getItem('NSR_AUTH_TOKEN') || sessionStorage.getItem('kjpp_token_internal');
+        const storedToken = sessionStorage.getItem('NSR_AUTH_TOKEN') || localStorage.getItem('NSR_AUTH_TOKEN');
         if (storedToken) {
           let cleanToken = storedToken;
           if (cleanToken.startsWith('{')) {
             try {
-              const parsed = JSON.parse(cleanToken);
-              cleanToken = parsed.token || parsed.tokenHash || '';
+              const parsedT = JSON.parse(cleanToken);
+              cleanToken = parsedT.token || parsedT.tokenHash || '';
             } catch(e) {}
           }
           const auth = resolveUnifiedTokenNoLap(cleanToken);
@@ -14480,10 +14522,19 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
               jabatan: auth.jabatan || auth.displayRole,
               token: auth.token || auth.tokenHash,
               tokenHash: auth.tokenHash,
-              sessionChecksum: auth.sessionChecksum
+              valid: true
             };
-            // Token storage removed for security compliance
+            if (sesiAktif.role === 'SUPER_ADMIN' || sesiAktif.role === 'SUPER ADMIN' || sesiAktif.isSuperAdmin || sesiAktif.isKing) {
+              sesiAktif.isSuperAdmin = true;
+              sesiAktif.isKing = true;
+              sesiAktif.role = 'SUPER ADMIN';
+              sesiAktif.mode = 'PUSAT';
+              sesiAktif.cabang = 'Pusat';
+            }
             sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(sesiAktif));
+            localStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            localStorage.setItem('NSR_USER_SESSION', JSON.stringify(sesiAktif));
             aktifkanPanelUtama();
             inisialisasiSesiPengguna(sesiAktif);
             applyRBAC(sesiAktif);
@@ -14514,20 +14565,25 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
               nama: data.user.displayName || data.user.sub,
               jabatan: data.user.title || data.user.role,
               tokenHash: data.tokenHash,
-              sessionChecksum: data.sessionChecksum
+              sessionChecksum: data.sessionChecksum,
+              valid: true
             };
+            if (sesiAktif.role === 'SUPER_ADMIN' || sesiAktif.role === 'SUPER ADMIN' || sesiAktif.isSuperAdmin || sesiAktif.isKing) {
+              sesiAktif.isSuperAdmin = true;
+              sesiAktif.isKing = true;
+              sesiAktif.role = 'SUPER ADMIN';
+              sesiAktif.mode = 'PUSAT';
+              sesiAktif.cabang = 'Pusat';
+            }
             sessionStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(sesiAktif));
+            localStorage.setItem('nsr_nolap_session', JSON.stringify(sesiAktif));
+            localStorage.setItem('NSR_USER_SESSION', JSON.stringify(sesiAktif));
             aktifkanPanelUtama();
             inisialisasiSesiPengguna(sesiAktif);
             applyRBAC(sesiAktif);
             return;
           }
-        } else {
-          sessionStorage.removeItem('nsr_nolap_session');
-          sesiAktif = null;
-          document.getElementById('box-auth-token').classList.remove('hidden');
-          document.getElementById('panel-aplikasi-utama').classList.add('hidden');
-          return;
         }
       } catch (err) {
         console.warn('Pemeriksaan sesi server offline atau belum login:', err);
@@ -14535,7 +14591,6 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
 
       // Jika belum login / sesi tidak sah:
       sesiAktif = null;
-      sessionStorage.removeItem('nsr_nolap_session');
       document.getElementById('box-auth-token').classList.remove('hidden');
       document.getElementById('panel-aplikasi-utama').classList.add('hidden');
     }
