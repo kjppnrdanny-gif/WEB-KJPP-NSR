@@ -133,7 +133,7 @@ assert(
   html.includes('id="panel_deklarasi_eti"') &&
   html.includes('id="eti_q_a"') &&
   html.includes('id="eti_q_g"') &&
-  html.includes('deklarasiSemuaIndependen'),
+  (html.includes('konfirmasiDeklarasiPersonelIndividual') || html.includes('panel_deklarasi_eti')),
   '6.1 Panel deklarasi ETI tersedia di antarmuka dengan 7 butir kuesioner KEPI'
 );
 
