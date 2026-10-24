@@ -3079,6 +3079,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 1. SUBMIT GERBANG 1 (LINGKUP PENUGASAN & SMART MITIGASI AWAL)
     
+    if ($action === 'verifyToken') {
+        echo json_encode([
+            'success'       => true,
+            'authenticated' => true,
+            'user'          => $currentUser,
+            'role'          => $currentUser['role'] ?? '',
+            'isKing'        => !empty($currentUser['isKing']),
+            'isSuperAdmin'  => !empty($currentUser['isSuperAdmin'])
+        ]);
+        exit;
+    }
+
     if ($action === 'submitRegistrasiPersonel') {
         $nama = trim($payload['nama'] ?? '');
         $email = trim($payload['email'] ?? '');
