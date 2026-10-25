@@ -141,22 +141,10 @@ function auditDistSecurity(dir, baseDir = dir) {
 }
 
 function auditPortalHardcodedTokens(distDir) {
-  const portalFiles = [
-    "index.html",
-    "portal-penugasan-jo.html",
-    "portal-nolap-cabang.html",
-    "portal-kwitansi.html",
-    "portal-surat-umum.html",
-    "portal-operasional.html",
-    "verifikasi-dokumen.html",
-    "portal-nolap.html",
-    "layanan.html",
-    "portofolio-rekanan.html",
-    "profil-legalitas.html",
-    "tim-cabang.html",
-    "wawasan-regulasi.html"
-  ];
+  const portalFiles = fs.readdirSync(distDir).filter(f => f.endsWith('.html'));
   const forbiddenCredentials = [
+    /MASTER_PERSONEL_LOOKUP\s*=/i,
+    /MAP_OPINI_TO_NIK\s*=/i,
     /MASTER_TOKEN\s*=/i,
     /MASTER_USER_ACCOUNTS\s*=/i,
     /TOKEN_CABANG_MAP\s*=/i,

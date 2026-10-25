@@ -279,27 +279,7 @@ nolapCode = nolapCode.replace(targetSimpanElsa, replacementSimpanElsa);
 
 // 6. Add Helper functions for Modal & Master Lookup
 const helperScript = `
-    const MASTER_PERSONEL_LOOKUP = {
-      'super_admin_king': { nama: 'Danny Taufik Hidayat, S.E., S.H.', nik: 'NSR-2019-005', office: 'Kantor Pusat Jakarta', office_id: '2.0160-00', email: 'kjppnr.danny@gmail.com', wa: '081298765432' },
-      'danny_spm': { nama: 'Danny Taufik Hidayat, S.E., S.H.', nik: 'NSR-2019-005', office: 'Kantor Pusat Jakarta', office_id: '2.0160-00', email: 'kjppnr.danny@gmail.com', wa: '081298765432' },
-      'admin_pusat': { nama: 'Admin Operasional Pusat Jakarta', nik: 'NSR-2023-099', office: 'Kantor Pusat Jakarta', office_id: '2.0160-00', email: 'notifikasi@kjppnanangrahayu.com', wa: '081298765432' },
-      'cabang_jkt_adm': { nama: 'Admin Operasional Pusat Jakarta', nik: 'NSR-2023-099', office: 'Kantor Pusat Jakarta', office_id: '2.0160-00', email: 'notifikasi@kjppnanangrahayu.com', wa: '081298765432' },
-      'cabang_jkt': { nama: 'Admin Operasional Pusat Jakarta', nik: 'NSR-2023-099', office: 'Kantor Pusat Jakarta', office_id: '2.0160-00', email: 'notifikasi@kjppnanangrahayu.com', wa: '081298765432' },
-      'admin_cabang_bdg': { nama: 'Ahmad Fauzi, S.T.', nik: 'NSR-2020-012', office: 'Kantor Cabang Bandung', office_id: '2.0160-01', email: 'ahmad.fauzi.nsr@gmail.com', wa: '081311223344' },
-      'cabang_bdg': { nama: 'Ahmad Fauzi, S.T.', nik: 'NSR-2020-012', office: 'Kantor Cabang Bandung', office_id: '2.0160-01', email: 'ahmad.fauzi.nsr@gmail.com', wa: '081311223344' },
-      'deni_divtek': { nama: 'Deni Siswandi, S.T., MAPPI (Cert.)', nik: 'NSR-2006-002', office: 'Kantor Cabang Bandung', office_id: '2.0160-01', email: 'deni.siswandi@kjppnanangrahayu.com', wa: '081722334455' },
-      'deni_penilai': { nama: 'Deni Siswandi, S.T., MAPPI (Cert.)', nik: 'NSR-2006-002', office: 'Kantor Cabang Bandung', office_id: '2.0160-01', email: 'deni.siswandi@kjppnanangrahayu.com', wa: '081722334455' },
-      'admin_cabang_pdg': { nama: 'Siti Rahmawati, S.E.', nik: 'NSR-2021-024', office: 'Kantor Cabang Padang', office_id: '2.0160-03', email: 'siti.padang.nsr@gmail.com', wa: '085277889900' },
-      'cabang_pdg': { nama: 'Siti Rahmawati, S.E.', nik: 'NSR-2021-024', office: 'Kantor Cabang Padang', office_id: '2.0160-03', email: 'siti.padang.nsr@gmail.com', wa: '085277889900' },
-      'hernita_penilai': { nama: 'Hernita, S.Si., MAPPI (Cert.)', nik: 'NSR-2009-003', office: 'Kantor Cabang Padang', office_id: '2.0160-03', email: 'hernita@kjppnanangrahayu.com', wa: '085277889900' },
-      'admin_cabang_mks': { nama: 'Muhammad Amin Sade, S.M., MAPPI (Cert.)', nik: 'NSR-2021-030', office: 'Kantor Cabang Makassar', office_id: '2.0160-04', email: 'amin.sade.nsr@gmail.com', wa: '085388990011' },
-      'cabang_mks': { nama: 'Muhammad Amin Sade, S.M., MAPPI (Cert.)', nik: 'NSR-2021-030', office: 'Kantor Cabang Makassar', office_id: '2.0160-04', email: 'amin.sade.nsr@gmail.com', wa: '085388990011' },
-      'amin_penilai': { nama: 'Muhammad Amin Sade, S.M., MAPPI (Cert.)', nik: 'NSR-2021-030', office: 'Kantor Cabang Makassar', office_id: '2.0160-04', email: 'amin.sade.nsr@gmail.com', wa: '085388990011' },
-      'admin_cabang_plb': { nama: 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)', nik: 'NSR-2022-045', office: 'Kantor Cabang Palembang', office_id: '2.0160-05', email: 'dharma.plb.nsr@gmail.com', wa: '081899001122' },
-      'cabang_plb': { nama: 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)', nik: 'NSR-2022-045', office: 'Kantor Cabang Palembang', office_id: '2.0160-05', email: 'dharma.plb.nsr@gmail.com', wa: '081899001122' },
-      'dharma_penilai': { nama: 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)', nik: 'NSR-2022-045', office: 'Kantor Cabang Palembang', office_id: '2.0160-05', email: 'dharma.plb.nsr@gmail.com', wa: '081899001122' },
-      'nanang_penilai': { nama: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', nik: 'NSR-1995-001', office: 'Kantor Pusat Jakarta', office_id: '2.0160-00', email: 'nanang.rahayu@kjppnanangrahayu.com', wa: '081555667788' }
-    };
+    const MASTER_PERSONEL_LOOKUP = {};
 
     function bukaModalRegistrasiPersonel() {
       const modal = document.getElementById('modal-registrasi-personel');
