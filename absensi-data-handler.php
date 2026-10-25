@@ -436,6 +436,70 @@ try {
     }
 
     // ---------------------------------------------------------------------
+    // AKSI 1b: RESOLVE OPINI SESSION (SERVER-SIDE SECURE NIK RESOLVER)
+    // Sesuai UU PDP No. 27/2022 & ISO 27001: Mencegah kebocoran NIK/User di Frontend
+    // ---------------------------------------------------------------------
+    if ($action === 'resolveOpiniSession') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Metode request tidak diizinkan.']);
+            exit;
+        }
+
+        $userId = strtolower(trim((string)($payload['userId'] ?? $payload['username'] ?? $payload['sub'] ?? '')));
+        if (!$userId) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Identitas akun wajib disertakan.']);
+            exit;
+        }
+
+        // SSOT Server-Side Private Mapping Akun OPINI ke NIK Resmi
+        $SERVER_MAP_OPINI = [
+            'super_admin_king' => 'NSR-2019-005',
+            'danny_taufik'     => 'NSR-2019-005',
+            'nanang_penilai'   => 'NSR-2019-001',
+            'tedi_setiadi'     => 'NSR-2019-007',
+            'angga_malid'      => 'NSR-2019-009',
+            'ricca_farikha'    => 'NSR-2019-008',
+            'fadri_nurdin'     => 'NSR-2019-010',
+            'milda_dewi'       => 'NSR-2019-004'
+        ];
+
+        $targetNik = $SERVER_MAP_OPINI[$userId] ?? '';
+
+        // Fallback: master_personel_kontak.json di server privat
+        if (!$targetNik && file_exists(__DIR__ . '/data/masters/master_personel_kontak.json')) {
+            $rawPersonel = @file_get_contents(__DIR__ . '/data/masters/master_personel_kontak.json');
+            $jsonPersonel = json_decode($rawPersonel, true);
+            if (!empty($jsonPersonel['personel']) && is_array($jsonPersonel['personel'])) {
+                foreach ($jsonPersonel['personel'] as $p) {
+                    if (strtolower($p['user_id'] ?? '') === $userId || strtolower($p['alias'] ?? '') === $userId) {
+                        $targetNik = $p['nik'] ?? $p['personnel_id'] ?? '';
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($targetNik) {
+            echo json_encode([
+                'status'  => 'success',
+                'success' => true,
+                'nik'     => $targetNik
+            ]);
+            exit;
+        }
+
+        http_response_code(404);
+        echo json_encode([
+            'status'  => 'error',
+            'success' => false,
+            'message' => 'Akun tidak terikat dengan profil NIK presensi.'
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------------------
     // AKSI 2: CEK KARYAWAN (NIK VERIFICATION - STRICT EXACT MATCH)
     // ---------------------------------------------------------------------
     if ($action === 'cekKaryawan') {

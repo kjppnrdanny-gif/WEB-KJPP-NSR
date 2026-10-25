@@ -1272,7 +1272,7 @@
       // Tampilkan Tab Admin HR jika berwenang
       const bDash = document.getElementById('tab-btn-dashboard');
       if (bDash) {
-        if (sessionUser && (sessionUser.isAdminHR || sessionNik === 'NSR-2019-005' || sessionNik === 'NSR-2019-001' || sessionNik === 'NSR-2019-004')) {
+        if (sessionUser && sessionUser.isAdminHR) {
           bDash.classList.remove('hidden');
         } else {
           bDash.classList.add('hidden');
@@ -1856,25 +1856,23 @@
     // ENHANCEMENT: INTEGRASI OPINI NSR SSO & PERSISTENSI SESI PRESENSI
     // =========================================================================
 
-    // Pemetaan NIK Resmi Kantor Pusat Jakarta untuk Akun OPINI
-    const MAP_OPINI_TO_NIK = {
-      'super_admin_king': 'NSR-2019-005', // Danny Taufik Hidayat
-      'danny_taufik': 'NSR-2019-005',
-      'nanang_penilai': 'NSR-2019-001',
-      'tedi_setiadi': 'NSR-2019-007',
-      'angga_malid': 'NSR-2019-009',
-      'ricca_farikha': 'NSR-2019-008',
-      'fadri_nurdin': 'NSR-2019-010',
-      'milda_dewi': 'NSR-2019-004'
-    };
-
-    function deteksiSesiOpiniNsr() {
+    // Resolusi NIK dilakukan aman di sisi server (Zero Hardcoded Credentials)
+    async function deteksiSesiOpiniNsr() {
       try {
         const raw = sessionStorage.getItem('NSR_USER_SESSION') || localStorage.getItem('nsr_auth_session');
         if (raw) {
           const sess = JSON.parse(raw);
-          const uid = (sess.user_id || sess.username || '').toLowerCase();
-          const targetNik = MAP_OPINI_TO_NIK[uid] || sess.nik || '';
+          const uid = (sess.sub || sess.user_id || sess.username || '').toLowerCase();
+          let targetNik = sess.nik || '';
+
+          if (!targetNik && uid) {
+            try {
+              const res = await callBackend('resolveOpiniSession', { userId: uid });
+              if (res && res.success && res.nik) {
+                targetNik = res.nik;
+              }
+            } catch (err) {}
+          }
 
           if (targetNik) {
             const nikInput = document.getElementById('auth-nik-input');

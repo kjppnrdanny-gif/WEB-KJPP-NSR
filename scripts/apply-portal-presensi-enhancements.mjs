@@ -228,24 +228,14 @@ function applyPresensiPortalEnhancements(relPath) {
     // =========================================================================
 
     // Pemetaan NIK Resmi Kantor Pusat Jakarta untuk Akun OPINI
-    const MAP_OPINI_TO_NIK = {
-      'super_admin_king': 'NSR-2019-005', // Danny Taufik Hidayat
-      'danny_taufik': 'NSR-2019-005',
-      'nanang_penilai': 'NSR-1995-001',
-      'tedi_setiadi': 'NSR-2019-007',
-      'angga_malid': 'NSR-2019-009',
-      'ricca_farikha': 'NSR-2019-008',
-      'fadri_nurdin': 'NSR-2019-010',
-      'milda_dewi': 'NSR-2019-004'
-    };
-
+    // Pemetaan kredensial dialihkan ke backend server SSOT
     function deteksiSesiOpiniNsr() {
       try {
         const raw = sessionStorage.getItem('NSR_USER_SESSION') || localStorage.getItem('nsr_auth_session');
         if (raw) {
           const sess = JSON.parse(raw);
           const uid = (sess.user_id || sess.username || '').toLowerCase();
-          const targetNik = MAP_OPINI_TO_NIK[uid] || sess.nik || '';
+          const targetNik = sess.nik || '';
 
           if (targetNik) {
             const nikInput = document.getElementById('auth-nik-input');
