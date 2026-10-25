@@ -32,6 +32,7 @@ const ALLOWED_FILES = [
   "portal-nolap-cabang.html",
   "portal-surat-umum.html",
   "portal-operasional.html",
+  "portal-governance.html",
   "verifikasi-dokumen.html",
   "kebijakan-privasi.html",
   "disclaimer.html",
@@ -76,6 +77,7 @@ const ALLOWED_FILES = [
   "surat-umum-data-handler.php",
   "absensi-data-handler.php",
   "operasional-data-handler.php",
+  "governance-data-handler.php",
   "status-terintegrasi-handler.php"
 ];
 

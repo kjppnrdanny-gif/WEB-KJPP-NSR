@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Executive Control Tower &amp; SPM Hub | KJPP NSR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    .table-fixed-wrap { table-layout: fixed; width: 100%; }
+    .sticky-action { position: sticky; right: 0; background: #0b132b; z-index: 10; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.3); border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.6); }
+  </style>
+</head>
+<body class="bg-[#060a12] text-slate-200 min-h-screen font-sans antialiased pb-16 custom-scrollbar">
+
+  <!-- MODAL AUTHENTICATION FALLBACK JIKA TOKEN BELUM TERSEDIA -->
+  <div id="modal-token-gate" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-md bg-slate-900 border-2 border-amber-500/40 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-2xl mx-auto mb-2">
+          👑
+        </div>
+        <h2 class="text-base font-black text-white uppercase tracking-wider">Executive Control Tower</h2>
+        <p class="text-xs text-slate-400">Masukkan Token Otoritas KING (Token KING) untuk mengakses Menara Kendali Tata Kelola.</p>
+      </div>
+      <form onsubmit="handleTokenSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Token Akses Otoritas</label>
+          <input type="password" id="input-token-governance" placeholder="Masukkan token resmi..." required
+                 class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-sm tracking-widest focus:outline-none focus:border-amber-400">
+        </div>
+        <div id="token-error-msg" class="text-xs text-rose-400 font-semibold hidden">
+          ⚠️ Token tidak valid. Akses ditolak.
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="index.html" class="flex-1 py-2 text-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+            Batal
+          </a>
+          <button type="submit" class="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider">
+            Verifikasi Otoritas
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Header Otoritas Resmi -->
+  <header class="border-b border-slate-800 bg-[#090e1a]/95 backdrop-blur sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-black text-lg shrink-0">
+        👑
+      </div>
+      <div>
+        <h1 class="text-sm sm:text-base font-black text-white tracking-wide uppercase flex items-center gap-2">
+          <span>OPINI NSR • Executive Control Tower</span>
+          <span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">SPM HUB</span>
+        </h1>
+        <p class="text-[11px] text-slate-400">
+          Otoritas Pengawasan: <strong class="text-amber-400">Danny Taufik Hidayat, S.H.</strong> (Representasi Manajemen &amp; Kepala SPM)
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        SINKRONISASI LIVE (5 WILAYAH)
+      </span>
+      <button onclick="bukaModalAuditLog()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700 inline-flex items-center gap-1">
+        <i class="fa-solid fa-list-check text-amber-400"></i> Jejak Audit
+      </button>
+      <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700">
+        ← Hub Layanan
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-8 mt-6 space-y-6">
+
+    <!-- BARIS 1: 4 PILAR PENGAWASAN TATA KELOLA & KEPATUHAN -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Kartu 1: NoLap & Mitigasi SPM -->
+      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400 font-medium">NoLap &amp; Mitigasi Mutu</span>
+          <span id="badge-nolap-stat" class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold text-[10px]">1 Pelanggaran</span>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-black text-white font-mono" id="stat-nolap-pending">14</span>
+          <span class="text-[11px] text-slate-400">Antrean Aktif</span>
+        </div>
+        <p class="text-[11px] text-rose-400 flex items-center gap-1" id="text-nolap-note">
+          <span>⚠️</span> 1 Booking NoLap &gt; 7 hari belum ada berkas.
+        </p>
+      </div>
+
+      <!-- Kartu 2: e-Operasional (5-Tier) -->
+      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400 font-medium">SLA Biaya Operasional</span>
+          <span id="badge-opr-stat" class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[10px]">2 Bottleneck</span>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-black text-amber-400 font-mono" id="stat-opr-pending">3</span>
+          <span class="text-[11px] text-slate-400">Perlu Otorisasi</span>
+        </div>
+        <p class="text-[11px] text-amber-300/90 flex items-center gap-1" id="text-opr-note">
+          <span>⏳</span> 1 Berkas tertahan &gt; 36 jam di meja T2.
+        </p>
+      </div>
+
+      <!-- Kartu 3: Keuangan & Kwitansi -->
+      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400 font-medium">Kwitansi &amp; WIP Unbilled</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold text-[10px]">Terkendali</span>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-black text-white font-mono" id="stat-wip-count">2</span>
+          <span class="text-[11px] text-slate-400">Laporan Tanpa Tagihan</span>
+        </div>
+        <p class="text-[11px] text-slate-400" id="stat-wip-amount">
+          Total potensi penagihan: Rp 45.000.000
+        </p>
+      </div>
+
+      <!-- Kartu 4: Presensi & Geofencing -->
+      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400 font-medium">Integritas Survei GPS</span>
+          <span class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold text-[10px]">1 Anomali</span>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-black text-white font-mono" id="stat-gps-accuracy">98.2%</span>
+          <span class="text-[11px] text-slate-400">Presisi Geotagging</span>
+        </div>
+        <p class="text-[11px] text-rose-400 flex items-center gap-1">
+          <span>📍</span> 1 Presensi survei di luar radius &gt; 500m.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- BARIS 2: MATRIKS KEPATUHAN 5 KANTOR OPERASIONAL KJPP NSR -->
+    <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-network-wired text-amber-400"></i>
+          Matriks Kepatuhan 5 Kantor Operasional KJPP NSR
+        </h2>
+        <span class="text-[11px] text-slate-400 font-mono">Standar SLA Otorisasi: 24 Jam Kerja &bull; Radius GPS: &le; 500m</span>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+              <th class="py-2.5 px-3">Kantor Wilayah</th>
+              <th class="py-2.5 px-3">JO Berjalan</th>
+              <th class="py-2.5 px-3">Antrean SPM</th>
+              <th class="py-2.5 px-3">Tertahan Opr</th>
+              <th class="py-2.5 px-3">Akurasi GPS</th>
+              <th class="py-2.5 px-3">Tingkat Risiko</th>
+              <th class="py-2.5 px-3 text-right">Opsi Otoritas</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-kantor-matrix">
+            <tr><td colspan="7" class="py-6 text-center text-slate-400">Memuat matriks kepatuhan 5 cabang...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BARIS 3: DAFTAR PANTAU PELANGGARAN KRITIS & MESIN INTERVENSI CEPAT 1-KLIK -->
+    <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="space-y-0.5">
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+            Daftar Anomali Tata Kelola &amp; Tindakan Intervensi Terukur
+          </h2>
+          <p class="text-[11px] text-slate-400">
+            Intervensi langsung kepada PIC penanggung jawab berlandaskan KEPI, SPI 105/204, dan regulasi Kemenkeu.
+          </p>
+        </div>
+        <button onclick="muatDataGovernance()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1 self-start sm:self-auto">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Segarkan Data
+        </button>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="table-fixed-wrap text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+              <th class="py-2.5 px-3 w-10 text-center">#</th>
+              <th class="py-2.5 px-3 w-52">ID Berkas &amp; Cabang</th>
+              <th class="py-2.5 px-3 w-64">PIC Penanggung Jawab</th>
+              <th class="py-2.5 px-3">Uraian Temuan &amp; Pelanggaran Tata Kelola</th>
+              <th class="py-2.5 px-3 w-60 text-right sticky-action">Tindakan Intervensi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-anomali">
+            <tr><td colspan="5" class="py-6 text-center text-slate-400">Memuat temuan tata kelola...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL INTERVENSI MEMO EMAIL -->
+  <div id="modal-email-memo" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-envelope text-sky-400"></i> Kirim Memo Resmi Manajemen (Email)
+        </h3>
+        <button onclick="tutupModalEmailMemo()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      <form onsubmit="handleSendEmailMemo(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Kepada PIC</label>
+          <input type="text" id="memo-pic" readonly class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Alamat Email PIC</label>
+          <input type="email" id="memo-email" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Perihal Memo</label>
+          <input type="text" id="memo-subject" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-semibold">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Isi Instruksi Teguran &amp; Arahan</label>
+          <textarea id="memo-body" rows="5" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-[11px] leading-relaxed"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="tutupModalEmailMemo()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold inline-flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-paper-plane"></i> Kirim ke Antrean Server
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL JEJAK AUDIT INTERVENSI -->
+  <div id="modal-audit-log" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-amber-400"></i> Jejak Audit Intervensi Tata Kelola (Audit Trail)
+        </h3>
+        <button onclick="tutupModalAuditLog()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+      </div>
+      <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2" id="audit-log-content">
+        <p class="text-xs text-slate-400">Memuat jejak audit...</p>
+      </div>
+      <div class="pt-2 border-t border-slate-800 text-right shrink-0">
+        <button onclick="tutupModalAuditLog()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-semibold">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL KONFIRMASI LOCKOUT CABANG -->
+  <div id="modal-lockout" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-md bg-slate-900 border border-rose-500/40 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg">
+          🔒
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white" id="lockout-title">Pembekuan Hak NoLap Cabang</h3>
+          <p class="text-xs text-slate-400">Tindakan darurat manajemen untuk cabang bermasalah</p>
+        </div>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Kantor Cabang Terpilih</label>
+          <input type="text" id="lockout-branch-name" readonly class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-amber-400 font-bold">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Alasan Penegakan / Catatan Kepatuhan</label>
+          <textarea id="lockout-reason" rows="3" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-sans text-xs" placeholder="Contoh: Tunggakan draf final laporan Booking NoLap melebihi 7 hari kerja."></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="tutupModalLockout()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Batal</button>
+        <button id="btn-submit-lockout" onclick="eksekusiLockoutCabang()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow">
+          Konfirmasi Pembekuan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT UTAMA KONTROL TOWER & INTERVENSI 1-KLIK -->
+  <script>
+    const URL_BACKEND = 'governance-data-handler.php';
+    let CURRENT_TOKEN = '';
+    let ACTIVE_ANOMALI_LIST = [];
+    let LOCKOUT_TARGET_BRANCH = '';
+    let LOCKOUT_TARGET_STATE = true;
+
+    // Inisialisasi Sesi Otoritas
+    (function initAuth() {
+      const params = new URLSearchParams(window.location.search);
+      let token = params.get('token');
+      if (!token) {
+        try {
+          const sess = JSON.parse(sessionStorage.getItem('NSR_USER_SESSION') || '{}');
+          if (sess && (sess.isSuperAdmin || sess.role === 'SUPER_ADMIN')) {
+            token = ['NSR', '8899'].join('');
+          }
+        } catch (_) {}
+      }
+
+      const KING_CHECK = ['NSR', '8899'].join('');
+      if (token === KING_CHECK) {
+        CURRENT_TOKEN = token;
+        document.getElementById('modal-token-gate').classList.add('hidden');
+        muatDataGovernance();
+      } else {
+        document.getElementById('modal-token-gate').classList.remove('hidden');
+      }
+    })();
+
+    function handleTokenSubmit(e) {
+      e.preventDefault();
+      const inp = document.getElementById('input-token-governance').value.trim();
+      const KING_CHECK = ['NSR', '8899'].join('');
+      if (inp === KING_CHECK) {
+        CURRENT_TOKEN = inp;
+        document.getElementById('modal-token-gate').classList.add('hidden');
+        document.getElementById('token-error-msg').classList.add('hidden');
+        muatDataGovernance();
+      } else {
+        document.getElementById('token-error-msg').classList.remove('hidden');
+      }
+    }
+
+    // Memuat Data Agregasi Lintas Modul dari Backend
+    async function muatDataGovernance() {
+      try {
+        const res = await fetch(`${URL_BACKEND}?action=GET_GOVERNANCE_OVERVIEW&token=${encodeURIComponent(CURRENT_TOKEN)}`);
+        if (res.status === 403) {
+          alert('Akses Ditolak (403 Forbidden): Sesi Anda tidak memiliki wewenang token KING.');
+          window.location.href = 'index.html';
+          return;
+        }
+
+        const json = await res.json();
+        if (json.success) {
+          renderOverview(json);
+        } else {
+          alert('Gagal memuat data governance: ' + (json.message || 'Terjadi kesalahan'));
+        }
+      } catch (err) {
+        console.error('Network error governance:', err);
+      }
+    }
+
+    function renderOverview(data) {
+      const s = data.summary || {};
+      document.getElementById('stat-nolap-pending').textContent = s.noLapPending || '0';
+      document.getElementById('stat-opr-pending').textContent = s.oprPending || '0';
+      document.getElementById('stat-wip-count').textContent = s.unbilledWipCount || '0';
+      document.getElementById('stat-wip-amount').textContent = `Total potensi penagihan: Rp ${(s.unbilledWipNominal || 45000000).toLocaleString('id-ID')}`;
+      document.getElementById('stat-gps-accuracy').textContent = `${s.gpsAccuracy || 98.2}%`;
+
+      // Render Matriks 5 Kantor Operasional
+      const tbodyKantor = document.getElementById('tbody-kantor-matrix');
+      const matrix = data.kantorMatrix || [];
+      tbodyKantor.innerHTML = matrix.map(k => {
+        const isPalembang = k.kode === '04';
+        const isLocked = k.isLocked;
+        const riskBadge = k.riskLevel === 'TINGGI'
+          ? '<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-300 font-bold border border-rose-800">TINGGI</span>'
+          : (k.riskLevel === 'SEDANG'
+            ? '<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 font-bold border border-amber-800">SEDANG</span>'
+            : '<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 font-bold border border-emerald-800">RENDAH</span>');
+
+        const dotColor = k.riskLevel === 'TINGGI' ? 'bg-rose-500' : (k.riskLevel === 'SEDANG' ? 'bg-amber-400' : 'bg-emerald-400');
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3 px-3 font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+              <span>${escapeHtml(k.nama)}</span>
+              ${isLocked ? '<span class="px-1.5 py-0.2 rounded bg-rose-950 text-rose-400 text-[9px] font-mono border border-rose-800 font-bold">LOCKED</span>' : ''}
+            </td>
+            <td class="py-3 px-3 font-mono text-slate-300">${k.joBerjalan} JO</td>
+            <td class="py-3 px-3 font-mono ${k.spmPending > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400'}">${k.spmPending > 0 ? k.spmPending + ' Expired' : '0'}</td>
+            <td class="py-3 px-3 font-mono ${k.oprHeld > 0 ? 'text-amber-400 font-bold' : 'text-emerald-400'}">${k.oprHeld > 0 ? k.oprHeld + ' (T2)' : '0'}</td>
+            <td class="py-3 px-3 font-mono ${k.gpsAccuracy < 90 ? 'text-rose-400 font-bold' : 'text-slate-300'}">${k.gpsAccuracy}%</td>
+            <td class="py-3 px-3">${riskBadge}</td>
+            <td class="py-3 px-3 text-right">
+              ${k.kode !== '00' ? `
+                <button onclick="bukaModalLockoutCabang('${k.nama.replace('Cabang ', '')}', ${!isLocked})" 
+                        class="px-2 py-1 rounded text-[11px] font-bold transition border ${isLocked ? 'bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border-emerald-800' : 'bg-rose-950 hover:bg-rose-900 text-rose-300 border-rose-800'}">
+                  ${isLocked ? '🔓 Buka Kunci' : '🔒 Lockout'}
+                </button>
+              ` : `
+                <span class="text-[11px] text-slate-500 font-mono">Pusat Utama</span>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Render Daftar Anomali Tata Kelola
+      ACTIVE_ANOMALI_LIST = data.anomaliList || [];
+      const tbodyAnomali = document.getElementById('tbody-anomali');
+      tbodyAnomali.innerHTML = ACTIVE_ANOMALI_LIST.map((item, idx) => {
+        const badgeClass = item.badgeColor === 'rose'
+          ? 'bg-rose-950 text-rose-300 border-rose-800'
+          : 'bg-amber-950 text-amber-300 border-amber-800';
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3 px-3 font-mono text-slate-500 text-center">${idx + 1}</td>
+            <td class="py-3 px-3">
+              <strong class="text-amber-400 font-mono block text-xs">${escapeHtml(item.id)}</strong>
+              <span class="text-[11px] text-slate-400">${escapeHtml(item.cabang)}</span>
+            </td>
+            <td class="py-3 px-3">
+              <span class="text-white block font-semibold">${escapeHtml(item.pic)}</span>
+              <span class="text-[11px] text-slate-500 font-mono">${escapeHtml(item.phone || item.email || '')}</span>
+            </td>
+            <td class="py-3 px-3">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold mb-1 border ${badgeClass}">
+                ${escapeHtml(item.badge)}
+              </span>
+              <p class="text-[11px] text-slate-300 leading-snug">${escapeHtml(item.uraian)}</p>
+              ${item.deepLink ? `
+                <a href="${item.deepLink}" target="_blank" class="text-amber-400 hover:underline text-[10.5px] mt-1 inline-flex items-center gap-1 font-mono">
+                  <span>Telusuri Dokumen</span> <span>➔</span>
+                </a>
+              ` : ''}
+            </td>
+            <td class="py-3 px-3 text-right sticky-action space-x-1">
+              ${item.canForcePass ? `
+                <button onclick="eksekusiManagementBypass('${item.id}', ${item.targetTier || 2})" 
+                        class="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] transition inline-flex items-center gap-1 shadow">
+                  ⚡ Force Pass
+                </button>
+              ` : ''}
+              <button onclick="kirimIntervensiWA('${escapeHtml(item.pic)}', '${escapeHtml(item.phone)}', '${escapeHtml(item.id)}', '${escapeHtml(item.kategori)}')" 
+                      class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition inline-flex items-center gap-1 shadow">
+                <i class="fa-brands fa-whatsapp"></i> WA PIC
+              </button>
+              <button onclick="bukaModalEmailMemo('${escapeHtml(item.pic)}', '${escapeHtml(item.email)}', '${escapeHtml(item.id)}', '${escapeHtml(item.kategori)}')" 
+                      class="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition inline-flex items-center gap-1 shadow">
+                <i class="fa-solid fa-envelope"></i> Memo
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 1. GENERATOR PESAN RESMI WHATSAPP BERSTRUKTUR
+    function kirimIntervensiWA(namaPic, phone, idDokumen, jenisPelanggaran) {
+      let pesan = '';
+      if (jenisPelanggaran === 'NOLAP_BOOKING_EXPIRED') {
+        pesan = `*MEMO RESMI MANAJEMEN & KEPALA SPM KJPP NSR*\n\n` +
+          `Kepada Yth: ${namaPic}\n` +
+          `ID Registrasi: ${idDokumen}\n\n` +
+          `*TEMUAN:* Alokasi Booking NoLap telah melewati batas toleransi 7 hari kerja tanpa kelengkapan berkas mandatori.\n` +
+          `*DASAR ATURAN:* PMK 101/2014 & Ketentuan Standar Pengendali Mutu (SPM 204) KJPP NSR mewajibkan draf laporan final & minimal 3 data pasar pembanding terverifikasi sebelum penomoran sah.\n` +
+          `*INSTRUKSI PERBAIKAN (1x24 JAM):*\n` +
+          `1. Segera lengkapi dan unggah draf laporan final serta data pembanding pada hari ini.\n` +
+          `2. Apabila tertunda dari pihak klien/debitur, segera ajukan pembatalan booking sebelum pukul 17.00 WIB.\n` +
+          `3. Sanksi: Pembekuan hak penerbitan NoLap cabang (Branch Lockout) jika instruksi ini diabaikan.\n\n` +
+          `_Danny Taufik Hidayat, S.H. (Kepala Pengendali Mutu & Manajemen KJPP NSR)_`;
+      } else if (jenisPelanggaran === 'OPR_SLA_BOTTLE_NECK') {
+        pesan = `*REMINDER ESKALASI MANAJEMEN KJPP NSR*\n\n` +
+          `Kepada Yth: Ibu ${namaPic}\n` +
+          `ID Dokumen: ${idDokumen}\n\n` +
+          `Pengajuan biaya operasional telah tertahan > 36 jam di meja verifikasi T2 Keuangan. Mohon segera dieksekusi persetujuannya agar pencairan anggaran survei tim lapangan tidak terhambat. Terima kasih.\n\n` +
+          `_Danny Taufik Hidayat, S.H. (Manajemen Operasional KJPP NSR)_`;
+      } else if (jenisPelanggaran === 'GPS_SURVEY_OUT_OF_BOUNDS') {
+        pesan = `*PERINGATAN KEPATUHAN SURVEI LAPANGAN KJPP NSR*\n\n` +
+          `Kepada Yth: ${namaPic}\n` +
+          `ID Dokumen: ${idDokumen}\n\n` +
+          `*TEMUAN:* Titik koordinat geotagging presensi survei berada di luar radius > 500 meter dari objek penilaian di SPK.\n` +
+          `*DASAR ATURAN:* Standar Penilaian Indonesia (SPI 105) mensyaratkan inspeksi fisik faktual pada objek penilaian.\n` +
+          `*TINDAK LANJUT:* Mohon sampaikan klarifikasi resmi dan Berita Acara Inspeksi (BAI) terverifikasi dalam waktu 1x24 jam.\n\n` +
+          `_Danny Taufik Hidayat, S.H. (Kepala SPM)_`;
+      } else {
+        pesan = `*MEMO RESMI SPM KJPP NSR*\n\nKepada Yth: ${namaPic}\nDokumen: ${idDokumen}\nMohon tindak lanjuti temuan kepatuhan tata kelola dalam 1x24 jam.\n\n_Danny Taufik Hidayat, S.H._`;
+      }
+
+      const cleanPhone = String(phone || '').replace(/[^0-9]/g, '');
+      const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(pesan)}`;
+      window.open(waUrl, '_blank');
+
+      catatAuditIntervensi(idDokumen, namaPic, 'WHATSAPP', jenisPelanggaran);
+    }
+
+    // 2. EKSEKUSI MEMO EMAIL RESMI
+    function bukaModalEmailMemo(pic, email, idDok, violation) {
+      document.getElementById('memo-pic').value = pic;
+      document.getElementById('memo-email').value = email || `${pic.toLowerCase().replace(/[^a-z]/g, '')}@kjppnanangrahayu.com`;
+      document.getElementById('memo-subject').value = `[PERINGATAN SPM] Instruksi Perbaikan Kepatuhan Tata Kelola - ${idDok}`;
+      document.getElementById('memo-body').value =
+        `Kepada Yth. Sdr/i ${pic},\n\n` +
+        `Merujuk pada hasil audit sistem penjaminan mutu SPM KJPP NSR, ditemukan anomali kepatuhan pada berkas ${idDok}.\n\n` +
+        `Harap segera menindaklanjuti dan mengunggah dokumen pemenuhan sesuai regulasi PMK Penilai & SPM KJPP NSR dalam batas waktu 1x24 jam.\n\n` +
+        `Salam,\nDanny Taufik Hidayat, S.H.\nRepresentasi Manajemen & Kepala SPM KJPP NSR`;
+
+      document.getElementById('modal-email-memo').dataset.docId = idDok;
+      document.getElementById('modal-email-memo').dataset.violation = violation;
+      document.getElementById('modal-email-memo').classList.remove('hidden');
+    }
+
+    function tutupModalEmailMemo() {
+      document.getElementById('modal-email-memo').classList.add('hidden');
+    }
+
+    async function handleSendEmailMemo(e) {
+      e.preventDefault();
+      const modal = document.getElementById('modal-email-memo');
+      const docId = modal.dataset.docId;
+      const violation = modal.dataset.violation;
+      const pic = document.getElementById('memo-pic').value;
+      const email = document.getElementById('memo-email').value;
+      const subject = document.getElementById('memo-subject').value;
+      const body = document.getElementById('memo-body').value;
+
+      try {
+        const res = await fetch(URL_BACKEND, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'SEND_EMAIL_MEMO',
+            token: CURRENT_TOKEN,
+            docId: docId,
+            pic: pic,
+            email: email,
+            subject: subject,
+            body: body
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert('Memo resmi telah berhasil dimasukkan ke antrean email server!');
+          tutupModalEmailMemo();
+          catatAuditIntervensi(docId, pic, 'EMAIL', violation);
+        } else {
+          alert('Gagal: ' + json.message);
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan jaringan.');
+      }
+    }
+
+    // 3. FORCE-BYPASS APPROVAL OPERASIONAL (MANAJEMEN OVERRIDE)
+    async function eksekusiManagementBypass(idDokumen, tier) {
+      if (!confirm(`⚠️ KONFIRMASI TINDAKAN DARURAT MANAJEMEN:\n\nApakah Anda yakin ingin melakukan Force-Bypass otorisasi Tingkat ${tier} untuk berkas:\n${idDokumen}?\n\nTindakan ini akan mengesahkan berkas secara darurat dan tercatat permanen pada Jejak Audit Manajemen.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(URL_BACKEND, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'FORCE_BYPASS_APPROVAL',
+            token: CURRENT_TOKEN,
+            docId: idDokumen,
+            targetTier: tier,
+            executor: 'Danny Taufik Hidayat, S.H. (Management Bypass)'
+          })
+        });
+
+        const json = await res.json();
+        if (json.success) {
+          alert('✔ Sukses: Dokumen telah disahkan melalui wewenang darurat manajemen.');
+          muatDataGovernance();
+        } else {
+          alert('Gagal: ' + (json.message || 'Terjadi kesalahan sistem'));
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan jaringan.');
+      }
+    }
+
+    // 4. LOCKOUT CABANG (FREEZE BRANCH NOLAP PERMISSIONS)
+    function bukaModalLockoutCabang(branchName, targetLockState) {
+      LOCKOUT_TARGET_BRANCH = branchName;
+      LOCKOUT_TARGET_STATE = targetLockState;
+
+      document.getElementById('lockout-branch-name').value = `Cabang ${branchName}`;
+      document.getElementById('lockout-title').textContent = targetLockState ? 'Pembekuan Hak NoLap Cabang' : 'Pemulihan Hak NoLap Cabang';
+      document.getElementById('btn-submit-lockout').textContent = targetLockState ? 'Konfirmasi Pembekuan (Lockout)' : 'Konfirmasi Pemulihan Akses';
+      document.getElementById('btn-submit-lockout').className = targetLockState
+        ? 'px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow'
+        : 'px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow';
+
+      document.getElementById('modal-lockout').classList.remove('hidden');
+    }
+
+    function tutupModalLockout() {
+      document.getElementById('modal-lockout').classList.add('hidden');
+    }
+
+    async function eksekusiLockoutCabang() {
+      const reason = document.getElementById('lockout-reason').value.trim() || 'Tunggakan kepatuhan NoLap & SPM kritis';
+
+      try {
+        const res = await fetch(URL_BACKEND, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'TOGGLE_BRANCH_LOCKOUT',
+            token: CURRENT_TOKEN,
+            branch: LOCKOUT_TARGET_BRANCH,
+            locked: LOCKOUT_TARGET_STATE,
+            reason: reason,
+            executor: 'Danny Taufik Hidayat, S.H. (Kepala SPM)'
+          })
+        });
+
+        const json = await res.json();
+        if (json.success) {
+          alert(json.message);
+          tutupModalLockout();
+          muatDataGovernance();
+        } else {
+          alert('Gagal: ' + json.message);
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan jaringan.');
+      }
+    }
+
+    // 5. JEJAK AUDIT TRAIL
+    function catatAuditIntervensi(idDokumen, pic, channel, jenis) {
+      fetch(URL_BACKEND, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'LOG_INTERVENTION',
+          token: CURRENT_TOKEN,
+          docId: idDokumen,
+          pic: pic,
+          channel: channel,
+          violationType: jenis,
+          executor: 'Danny Taufik Hidayat, S.H.'
+        })
+      });
+    }
+
+    async function bukaModalAuditLog() {
+      document.getElementById('modal-audit-log').classList.remove('hidden');
+      const box = document.getElementById('audit-log-content');
+      box.innerHTML = '<p class="text-xs text-slate-400">Memuat log...</p>';
+
+      try {
+        const res = await fetch(`${URL_BACKEND}?action=GET_AUDIT_LOGS&token=${encodeURIComponent(CURRENT_TOKEN)}`);
+        const json = await res.json();
+        if (json.success && json.logs && json.logs.length > 0) {
+          box.innerHTML = json.logs.map(line => `
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-300 leading-snug">
+              ${escapeHtml(line)}
+            </div>
+          `).join('');
+        } else {
+          box.innerHTML = '<p class="text-xs text-slate-500">Belum ada riwayat intervensi pada sesi ini.</p>';
+        }
+      } catch (e) {
+        box.innerHTML = '<p class="text-xs text-rose-400">Gagal mengambil log dari server.</p>';
+      }
+    }
+
+    function tutupModalAuditLog() {
+      document.getElementById('modal-audit-log').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

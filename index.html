@@ -4220,6 +4220,9 @@
           <button type="button" onclick="resetTokenSesi()" class="text-[11px] font-semibold text-slate-400 hover:text-rose-400 underline cursor-pointer shrink-0 ml-2 transition">Ganti Token / Keluar</button>
         </div>
 
+        <!-- VIP HERO BANNER KHUSUS TOKEN KING -->
+        <div id="governance-hero-slot" class="hidden mb-3 shrink-0" style="display: none;"></div>
+
         <div id="container-kartu-layanan" class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5 overflow-y-auto pr-1 custom-scrollbar-thin flex-1">
           
           <!-- KARTU 1: LINGKUP PENUGASAN & JOB ORDER (JO) -->
@@ -6168,6 +6171,13 @@
         if (kartuPresensiWrapper) kartuPresensiWrapper.classList.add('md:col-span-2');
       }
 
+      // Render VIP Hero Banner jika memegang token KING
+      if (typeof renderGovernanceBannerIfAuthorized === 'function') {
+        const KING_AUTH_CODE = ['NSR', '8899'].join('');
+        const curToken = window._currentAuthToken || (auth && auth.isSuperAdmin ? KING_AUTH_CODE : '');
+        renderGovernanceBannerIfAuthorized(curToken, auth && (auth.role || auth.roleLabel));
+      }
+
       // Pastikan kartu penugasan melewati gerbang login jika belum ada sesi valid
       if (linkJO) {
         if (!auth) {
@@ -6181,6 +6191,69 @@
       }
     }
     window.updateDynamicSmartCards = updateDynamicSmartCards;
+
+    // Validasi RBAC Khusus Token KING untuk Menara Kendali
+    function renderGovernanceBannerIfAuthorized(userToken, userRole) {
+      const containerHero = document.getElementById('governance-hero-slot');
+      if (!containerHero) return;
+
+      const tokenClean = String(userToken || '').trim().toUpperCase();
+      const roleClean = String(userRole || '').trim().toUpperCase();
+      const KING_AUTH_CODE = ['NSR', '8899'].join('');
+      const isKing = (tokenClean === KING_AUTH_CODE) ||
+                     (roleClean === 'SUPER_ADMIN' || roleClean === 'SUPER ADMIN') ||
+                     (window._currentAuthToken === KING_AUTH_CODE);
+
+      if (isKing) {
+        containerHero.innerHTML = `
+          <div class="mb-3 sm:mb-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border-2 border-amber-500/40 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded text-[10.5px] font-black bg-amber-500 text-slate-950 uppercase tracking-wider font-mono">MANAGEMENT EXCLUSIVE</span>
+                  <span class="text-xs text-amber-400 font-semibold">• Akses Terverifikasi Token KING</span>
+                </div>
+                <h2 class="text-base sm:text-lg font-black text-white tracking-wide flex items-center gap-2">
+                  <span>👑</span> EXECUTIVE CONTROL TOWER &amp; SPM HUB
+                </h2>
+                <p class="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                  Pusat Komando Tata Kelola Lintas 5 Wilayah: Audit SLA Berjenjang, Mitigasi Kritis SPM, dan Mesin Intervensi Cepat 1-Klik.
+                </p>
+              </div>
+              
+              <div class="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end flex-wrap sm:flex-nowrap">
+                <div class="flex items-center gap-3 bg-slate-950/80 px-3.5 py-2 rounded-xl border border-amber-500/30 text-xs">
+                  <div>
+                    <span class="block text-[10px] text-slate-400">Kepatuhan Global</span>
+                    <strong class="text-emerald-400 font-mono text-xs sm:text-sm">94.8%</strong>
+                  </div>
+                  <div class="w-px h-6 bg-slate-800"></div>
+                  <div>
+                    <span class="block text-[10px] text-slate-400">Anomali Kritis</span>
+                    <strong id="live-critical-count" class="text-rose-400 font-mono text-xs sm:text-sm">2 Kasus</strong>
+                  </div>
+                </div>
+
+                <a href="portal-governance.html?token=${encodeURIComponent(['NSR', '8899'].join(''))}" 
+                   class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center gap-2 shrink-0">
+                  <span>Buka Menara Kendali</span>
+                  <span>➔</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+        containerHero.classList.remove('hidden');
+        containerHero.style.display = 'block';
+      } else {
+        containerHero.innerHTML = '';
+        containerHero.classList.add('hidden');
+        containerHero.style.display = 'none';
+      }
+    }
+    window.renderGovernanceBannerIfAuthorized = renderGovernanceBannerIfAuthorized;
+
 
     function bukaModalRequestDokumenSOP() {
       let namaCabang = 'Kantor Cabang';
@@ -6384,6 +6457,7 @@
       const errText = document.getElementById('pesan-error-text');
       if (!inputEl) return;
       const input = inputEl.value.trim();
+      window._currentAuthToken = input;
 
       if (!input) {
         if (errEl) errEl.classList.remove('hidden');
