@@ -102,6 +102,8 @@ function doPost(e) {
       res = getRiwayatPresensi(payload.nik, payload.sessionToken);
     } else if (action === 'getMasterKaryawanFull') {
       res = getMasterKaryawanFull();
+    } else if (action === 'getAbsensiAll' || action === 'getRekapPresensiHariIni') {
+      res = getAbsensiAll();
     } else {
       res = { status: 'error', success: false, message: 'Aksi [' + action + '] tidak dikenali.' };
     }
@@ -1188,5 +1190,56 @@ function getMasterKaryawanFull() {
     availableSheets: sheets,
     headers: values[0],
     rows: values.slice(1)
+  };
+}
+
+
+/**
+ * SSOT Log Absensi Retrieval
+ * Mengambil seluruh catatan absensi dari sheet ABSENSI Google Spreadsheet resmi
+ */
+function getAbsensiAll() {
+  const ss = getSS_();
+  const sheets = ss.getSheets().map(function(s) { return s.getName(); });
+  let sh = ss.getSheetByName('ABSENSI') || ss.getSheetByName('Presensi') || ss.getSheetByName('LOG_ABSENSI');
+  if (!sh) {
+    return {
+      status: 'error',
+      success: false,
+      message: 'Sheet ABSENSI tidak ditemukan pada spreadsheet ' + ss.getName(),
+      availableSheets: sheets
+    };
+  }
+  const lastRow = sh.getLastRow();
+  const lastCol = sh.getLastColumn();
+  if (lastRow < 2 || lastCol < 1) {
+    return {
+      status: 'success',
+      success: true,
+      headers: [],
+      rows: [],
+      availableSheets: sheets,
+      sheetName: sh.getName()
+    };
+  }
+  const values = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  const headers = values[0].map(function(h) { return String(h || '').trim(); });
+  const rows = values.slice(1).map(function(row) {
+    return row.map(function(cell) {
+      if (cell instanceof Date) {
+        return Utilities.formatDate(cell, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss');
+      }
+      return String(cell !== null && cell !== undefined ? cell : '').trim();
+    });
+  });
+
+  return {
+    status: 'success',
+    success: true,
+    spreadsheetTitle: ss.getName(),
+    sheetName: sh.getName(),
+    availableSheets: sheets,
+    headers: headers,
+    rows: rows
   };
 }

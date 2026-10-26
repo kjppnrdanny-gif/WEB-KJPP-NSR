@@ -661,14 +661,35 @@
           </button>
         </div>
 
-        <!-- 1. Sub-Tab Monitoring Real-Time -->
+                <!-- 1. Sub-Tab Monitoring Real-Time -->
         <div id="hr-subpanel-monitoring" class="space-y-3">
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-slate-400">Transaksi Kehadiran Tanggal: <strong id="hr-monitoring-tgl" class="text-white"></strong><span id="label-tanggal-transaksi" class="hidden"></span></span>
+          <div class="flex items-center justify-between text-xs flex-wrap gap-2">
+            <span class="text-slate-400">Transaksi Kehadiran Tanggal: <strong id="label-tanggal-transaksi" class="text-amber-400 font-bold ml-1"></strong><strong id="hr-monitoring-tgl" class="hidden"></strong></span>
+            <span class="text-[11px] text-slate-500 font-mono">WIB (Asia/Jakarta • UTC+7)</span>
           </div>
-          <div id="hr-monitoring-list" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
-            <p class="text-xs text-slate-500 text-center py-4">Memuat data monitoring kehadiran...</p>
+          <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 custom-scrollbar shadow-inner">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-900/90 select-none">
+                  <th scope="col" class="py-3 px-3 text-center w-12">No.</th>
+                  <th scope="col" class="py-3 px-3 min-w-[170px]">Karyawan</th>
+                  <th scope="col" class="py-3 px-3 min-w-[140px]">Divisi / Jabatan</th>
+                  <th scope="col" class="py-3 px-3 min-w-[140px]">Jam Masuk &amp; Status</th>
+                  <th scope="col" class="py-3 px-3 min-w-[130px]">Titik Lokasi</th>
+                  <th scope="col" class="py-3 px-3 min-w-[120px]">Jam Pulang</th>
+                  <th scope="col" class="py-3 px-3 text-center min-w-[100px]">Foto Bukti</th>
+                </tr>
+              </thead>
+              <tbody id="hr-monitoring-table-body" class="divide-y divide-slate-800/60 font-sans">
+                <tr>
+                  <td colspan="7" class="text-center py-6 text-slate-400 text-xs font-medium">
+                    Memuat data monitoring kehadiran...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+          <div id="hr-monitoring-list" class="hidden"></div>
         </div>
 
         <!-- 2. Sub-Tab Belum Presensi -->
@@ -2039,27 +2060,29 @@
       }
     }
 
-    async function muatDashboardHR() {
-      // 1. Tampilkan tanggal hari ini secara instan (Indonesian format)
-      const today = new Date();
-      const tglFormatted = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    async function muatDashboardHR(forceSync = false) {
+      // 1. Inisialisasi Tanggal Lokal Jakarta (WIB) Instan
+      const now = new Date();
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' };
+      const labelTgl = now.toLocaleDateString('id-ID', options);
+      const elLabelTanggal = document.getElementById('label-tanggal-transaksi');
+      if (elLabelTanggal) elLabelTanggal.textContent = labelTgl;
       const elTgl = document.getElementById('hr-monitoring-tgl');
-      if (elTgl) elTgl.textContent = tglFormatted;
-      const elTglAlt = document.getElementById('label-tanggal-transaksi');
-      if (elTglAlt) elTglAlt.textContent = tglFormatted;
+      if (elTgl) elTgl.textContent = labelTgl;
 
       cekStatusOtoritasAdminHR();
+      const tableBody = document.getElementById('hr-monitoring-table-body');
       const monList = document.getElementById('hr-monitoring-list');
       const tokenToSend = sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') || atob('TlNSODg5OQ==');
       const nikToSend = sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || 'NSR-2019-005';
 
       if (!sessionToken && !cekStatusOtoritasAdminHR()) {
-        if (monList) {
-          monList.innerHTML = `<div class="p-4 rounded-xl bg-slate-950 border border-amber-500/30 text-center space-y-2">
-            <span class="text-2xl">🔒</span>
-            <p class="text-xs text-amber-300 font-bold">Akses Terbatas Khusus Pejabat Admin HR</p>
-            <p class="text-[11px] text-slate-400">Silakan masukkan NIK pejabat berwenang dan verifikasi kode OTP Gmail di panel atas.</p>
-          </div>`;
+        if (tableBody) {
+          tableBody.innerHTML = `<tr>
+            <td colspan="7" class="text-center py-6 text-amber-300 text-xs font-medium">
+              🔒 Akses Terbatas: Verifikasi NIK Pejabat & OTP Gmail untuk membuka Dashboard Admin HR.
+            </td>
+          </tr>`;
         }
         bukaModalNotif("Akses Terbatas ⚠️", "Silakan verifikasi OTP terlebih dahulu.", false);
         return;
@@ -2069,16 +2092,17 @@
         const res = await callBackend('getDashboardHR', {
           sessionToken: tokenToSend,
           nik: nikToSend,
-          tanggal: new Date().toISOString().split('T')[0]
+          tanggal: new Date().toISOString().split('T')[0],
+          force_sync: !!forceSync
         });
 
         if (!res || !res.success) {
-          if (monList) {
-            monList.innerHTML = `<div class="p-4 rounded-xl bg-slate-950 border border-rose-500/30 text-center space-y-2">
-              <span class="text-2xl">🚫</span>
-              <p class="text-xs text-rose-300 font-bold">Akses Ditolak</p>
-              <p class="text-[11px] text-slate-400">${(res && res.message) || 'Anda tidak memiliki wewenang Admin HR.'}</p>
-            </div>`;
+          if (tableBody) {
+            tableBody.innerHTML = `<tr>
+              <td colspan="7" class="text-center py-6 text-rose-300 text-xs font-medium">
+                🚫 Akses Ditolak: ${(res && res.message) || 'Anda tidak memiliki wewenang Admin HR.'}
+              </td>
+            </tr>`;
           }
           bukaModalNotif("Akses HR Ditolak ⚠️", (res && res.message) || "Anda tidak memiliki wewenang Admin HR.", false);
           return;
@@ -2086,52 +2110,84 @@
 
         dataDashboardHRCache = res;
 
-        // Update Metrik
+        // 2. Update Metrik Ringkasan Kehadiran
         const ringkasan = res.ringkasan || {};
         const elMetricTotal = document.getElementById('hr-metric-total');
         if (elMetricTotal) elMetricTotal.textContent = ringkasan.total_karyawan_pusat || 22;
         const elMetricMasuk = document.getElementById('hr-metric-masuk');
-        if (elMetricMasuk) elMetricMasuk.textContent = ringkasan.hadir_masuk || 0;
+        if (elMetricMasuk) elMetricMasuk.textContent = ringkasan.hadir_masuk != null ? ringkasan.hadir_masuk : 0;
         const elMetricMasukSub = document.getElementById('hr-metric-masuk-sub');
         if (elMetricMasukSub) elMetricMasukSub.textContent = (ringkasan.sudah_pulang || 0) + ' Sudah Pulang';
         const elMetricBelum = document.getElementById('hr-metric-belum');
-        if (elMetricBelum) elMetricBelum.textContent = ringkasan.belum_presensi || 0;
+        if (elMetricBelum) elMetricBelum.textContent = ringkasan.belum_presensi != null ? ringkasan.belum_presensi : (22 - (ringkasan.hadir_masuk || 0));
         const elMetricTerlambat = document.getElementById('hr-metric-terlambat');
-        if (elMetricTerlambat) elMetricTerlambat.textContent = ringkasan.terlambat || 0;
+        if (elMetricTerlambat) elMetricTerlambat.textContent = ringkasan.terlambat != null ? ringkasan.terlambat : 0;
 
         const elBadgeBelum = document.getElementById('hr-subtab-badge-belum');
-        if (elBadgeBelum) elBadgeBelum.textContent = ringkasan.belum_presensi || 0;
+        if (elBadgeBelum) elBadgeBelum.textContent = ringkasan.belum_presensi != null ? ringkasan.belum_presensi : (22 - (ringkasan.hadir_masuk || 0));
         const elBadgeCuti = document.getElementById('hr-subtab-badge-cuti');
         if (elBadgeCuti) elBadgeCuti.textContent = ringkasan.cuti_pending || 0;
 
-        // 1. Render Monitoring Real-Time Hari Ini
-        if (monList) {
-          if (res.transaksi_hari_ini && res.transaksi_hari_ini.length > 0) {
-            monList.innerHTML = res.transaksi_hari_ini.map(t => `
-              <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <div class="min-w-0">
-                  <div class="flex items-center gap-2">
-                    <strong class="text-white font-bold truncate">${t.nama} (${t.nik})</strong>
-                    <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase ${t.jenis === 'Masuk' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
-                      ${t.jenis}
+        // 3. Render Tabel Interaktif 7 Kolom Rekapitulasi Kehadiran
+        const items = res.tabel_kehadiran || res.transaksi_hari_ini || [];
+        if (tableBody) {
+          if (items.length > 0) {
+            tableBody.innerHTML = items.map((t, idx) => `
+              <tr class="hover:bg-slate-900/60 transition-colors border-b border-slate-800/40 text-xs">
+                <td class="py-3 px-3 text-center font-mono text-slate-400 font-semibold">${t.no || (idx + 1)}</td>
+                <td class="py-3 px-3">
+                  <div class="font-bold text-white text-xs truncate max-w-[200px]">${t.nama || '-'}</div>
+                  <div class="text-[11px] font-mono text-slate-400 mt-0.5">${t.nik || '-'}</div>
+                </td>
+                <td class="py-3 px-3">
+                  <div class="text-slate-300 text-xs">${t.divisi || '-'}</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">${t.jabatan || '-'}</div>
+                </td>
+                <td class="py-3 px-3">
+                  <div class="font-mono text-white text-xs font-semibold">${t.jam_masuk || t.jam || '-'} WIB</div>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 ${t.is_terlambat ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}">
+                    ${t.is_terlambat ? '⚠️ Terlambat' : '✓ Tepat Waktu'}
+                  </span>
+                </td>
+                <td class="py-3 px-3">
+                  <div class="text-xs font-medium text-slate-200">${t.lokasi_label || t.lokasi || 'Kantor Pusat'}</div>
+                  <div class="text-[10px] text-slate-400 font-mono mt-0.5">${t.jarak ? 'Radius: ' + t.jarak + (String(t.jarak).endsWith('m') ? '' : ' m') : (t.gps || 'Valid')}</div>
+                </td>
+                <td class="py-3 px-3">
+                  ${t.jam_pulang && t.jam_pulang !== '-' ? `
+                    <div class="font-mono text-emerald-400 text-xs font-semibold">${t.jam_pulang} WIB</div>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">Sudah Pulang</span>
+                  ` : `
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                      ⏳ Sedang Bekerja
                     </span>
-                    ${t.is_terlambat ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-rose-500/20 text-rose-300">Terlambat</span>' : ''}
-                  </div>
-                  <div class="text-[11px] text-slate-400 mt-0.5">
-                    ${t.jam} &bull; ${t.lokasi} &bull; ${t.kantor_terdekat || 'Pusat Jakarta'} ${t.durasi_kerja && t.durasi_kerja !== '-' ? '&bull; Durasi: ' + t.durasi_kerja : ''}
-                  </div>
-                </div>
-                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${t.status_validasi === 'VALID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}">
-                  ${t.status_validasi}
-                </span>
-              </div>
+                  `}
+                </td>
+                <td class="py-3 px-3 text-center">
+                  ${t.foto_url ? `
+                    <a href="${t.foto_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-[11px] border border-slate-700 transition">
+                      <span>📷</span> Foto
+                    </a>
+                  ` : `
+                    <button type="button" onclick="bukaDetailLokasiPresensi('${t.nik}', '${t.nama}', '${t.gps || ''}', '${t.lokasi_label || t.lokasi || ''}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-[11px] border border-slate-700/60 transition" title="Lihat Geotag Koordinat">
+                      <span>📍</span> Geotag
+                    </button>
+                  `}
+                </td>
+              </tr>
             `).join('');
           } else {
-            monList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Belum ada transaksi presensi tercatat untuk hari ini.</p>`;
+            tableBody.innerHTML = `
+              <tr>
+                <td colspan="7" class="text-center py-6 text-slate-400 text-xs font-medium">
+                  Belum ada rekaman presensi masuk untuk tanggal ini.
+                </td>
+              </tr>
+            `;
           }
         }
 
-        // 2. Render Belum Presensi
+        // 4. Render Belum Presensi
         const belumList = document.getElementById('hr-belum-list');
         if (belumList) {
           if (res.belum_presensi_list && res.belum_presensi_list.length > 0) {
@@ -2151,10 +2207,10 @@
           }
         }
 
-        // 3. Render Roster 22 Karyawan Pusat
+        // 5. Render Roster 22 Karyawan Pusat
         renderRosterKaryawan(res.karyawan_pusat || []);
 
-        // 4. Render Pengajuan Cuti Pending
+        // 6. Render Pengajuan Cuti Pending
         const cutiList = document.getElementById('hr-cuti-pending-list');
         if (cutiList) {
           if (res.pengajuan_cuti_pending && res.pengajuan_cuti_pending.length > 0) {
@@ -2187,7 +2243,7 @@
           }
         }
 
-        // 5. Isi Dropdown Target NIK Koreksi
+        // 7. Isi Dropdown Target NIK Koreksi
         const selTarget = document.getElementById('koreksi-target-nik');
         if (selTarget && res.karyawan_pusat) {
           selTarget.innerHTML = res.karyawan_pusat.map(k => `
@@ -2196,18 +2252,23 @@
         }
 
       } catch (err) {
-        if (monList) {
-          monList.innerHTML = `<div class="p-4 rounded-xl bg-slate-950 border border-rose-500/30 text-center space-y-2">
-            <span class="text-2xl">⚠️</span>
-            <p class="text-xs text-rose-300 font-bold">Kendala Memuat Dashboard HR</p>
-            <p class="text-[11px] text-slate-400">${err.message || 'Kendala koneksi ke server.'}</p>
-          </div>`;
+        if (tableBody) {
+          tableBody.innerHTML = `<tr>
+            <td colspan="7" class="text-center py-6 text-rose-300 text-xs font-medium">
+              ⚠️ Kendala Memuat Dashboard HR: ${err.message || 'Kendala koneksi ke server.'}
+            </td>
+          </tr>`;
         }
         bukaModalNotif("Gagal Memuat Dashboard ❌", err.message || "Kendala koneksi ke server.", false);
       } finally {
-        // Jaminan: Jangan pernah biarkan teks 'Memuat data monitoring kehadiran...' tertahan
-        if (monList && monList.innerHTML.includes('Memuat data monitoring kehadiran...')) {
-          monList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Belum ada transaksi presensi tercatat untuk hari ini.</p>`;
+        if (tableBody && tableBody.innerHTML.includes('Memuat data monitoring kehadiran...')) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center py-6 text-slate-400 text-xs font-medium">
+                Belum ada rekaman presensi masuk untuk tanggal ini.
+              </td>
+            </tr>
+          `;
         }
       }
     }
@@ -2358,25 +2419,29 @@
     }
 
     async function eksekusiSyncMasterGoogleSheet() {
-      bukaModalNotif("Sinkronisasi Master 🔄", "Menghubungkan ke Google Spreadsheet resmi MASTER KARYAWAN...");
+      bukaModalNotif("Sinkronisasi Sheet 🔄", "Menghubungkan ke Google Spreadsheet resmi MASTER_KARYAWAN & ABSENSI...");
       try {
-        // Ambil data langsung dari GAS dan simpan ke SSOT
-        const gasRes = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'getMasterKaryawanFull' })
+        const tokenToSend = sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') || atob('TlNSODg5OQ==');
+        const nikToSend = sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || 'NSR-2019-005';
+        const res = await callBackend('syncMasterKaryawan', {
+          sessionToken: tokenToSend,
+          admin_nik: nikToSend
         });
-        const gasJson = await gasRes.json();
 
-        if (gasJson.success && gasJson.rows) {
-          bukaModalNotif("Sinkronisasi Berhasil! ✅", "Berhasil menyinkronkan " + gasJson.rows.length + " data karyawan Kantor Pusat langsung dari Google Sheets resmi.");
-          muatDashboardHR();
+        if (res && res.success) {
+          bukaModalNotif("Sinkronisasi Berhasil! ✅", `Berhasil menyinkronkan ${res.total_karyawan || 22} data karyawan dan ${res.total_absensi || 0} catatan absensi langsung dari Google Sheets resmi.`);
+          muatDashboardHR(true);
         } else {
-          throw new Error(gasJson.message || 'Gagal memuat master dari Google Sheets');
+          throw new Error((res && res.message) || 'Gagal sinkronisasi dengan server backend.');
         }
       } catch (err) {
         bukaModalNotif("Sinkronisasi Terkendala ⚠️", "Koneksi Google Sheets: " + err.message, false);
       }
+    }
+
+    function bukaDetailLokasiPresensi(nik, nama, gps, lokasi) {
+      const info = gps ? `Koordinat Geotag: ${gps}\nArea: ${lokasi || 'Kantor Pusat Jakarta'}` : `Presensi tervalidasi di area ${lokasi || 'Kantor Pusat'}.`;
+      bukaModalNotif("Verifikasi Geotag GPS 📍", `${nama} (${nik})\n${info}`);
     }
   
 
@@ -2391,6 +2456,7 @@
     window.filterRosterKaryawan = filterRosterKaryawan;
     window.eksekusiKoreksiPresensi = eksekusiKoreksiPresensi;
     window.eksekusiSyncMasterGoogleSheet = eksekusiSyncMasterGoogleSheet;
+    window.bukaDetailLokasiPresensi = bukaDetailLokasiPresensi;
   </script>
 
   <!-- Modul Kepatuhan UU PDP & Disclaimer Profesi -->

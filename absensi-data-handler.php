@@ -48,6 +48,7 @@ define('LOCK_FILE', DATA_DIR . '/.absensi_txn.lock');
 define('OTP_FILE', DATA_DIR . '/.absensi_otp_cache.json');
 define('ATTACHMENT_DIR', DATA_DIR . '/lampiran_cuti');
 define('MASTER_CACHE_FILE', DATA_DIR . '/.master_karyawan_cache.json');
+define('ABSENSI_CACHE_FILE', DATA_DIR . '/.absensi_records_cache.json');
 define('GAS_WEB_APP_URL', 'https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec');
 
 // Pastikan direktori data aman
@@ -197,6 +198,161 @@ function loadMasterKaryawanRoster() {
     }
 
     return [];
+}
+
+// SSOT Sinkronisasi Log Presensi / Absensi dari Sheet ABSENSI Google Spreadsheet
+function fetchAbsensiFromGAS() {
+    $res = callGASWebService(['action' => 'getAbsensiAll'], 15);
+    if ($res && !empty($res['success']) && !empty($res['rows']) && is_array($res['rows'])) {
+        $headers = array_map(function($h) { return strtoupper(trim((string)$h)); }, $res['headers'] ?? []);
+        $colTime = array_search('TIMESTAMP', $headers);
+        $colNik = array_search('NIK', $headers);
+        $colNama = array_search('NAMA KARYAWAN', $headers);
+        if ($colNama === false) $colNama = array_search('NAMA', $headers);
+        $colJabatan = array_search('JABATAN', $headers);
+        $colDivisi = array_search('DIVISI', $headers);
+        $colJenis = array_search('JENIS ABSENSI', $headers);
+        $colLokasi = array_search('LOKASI', $headers);
+        $colGps = array_search('KOORDINAT GPS', $headers);
+        $colJarak = array_search('JARAK', $headers);
+        $colStatusGps = array_search('STATUS GPS', $headers);
+        $colJam = array_search('JAM ABSENSI', $headers);
+        $colStatusKehadiran = array_search('STATUS KEHADIRAN', $headers);
+        $colValidasi = array_search('VALIDASI LOKASI', $headers);
+        $colKet = array_search('KETERANGAN', $headers);
+
+        $parsed = [];
+        foreach ($res['rows'] as $r) {
+            $nik = trim((string)($r[$colNik !== false ? $colNik : 1] ?? ''));
+            if (empty($nik)) continue;
+
+            $ts = trim((string)($r[$colTime !== false ? $colTime : 0] ?? ''));
+            $jamVal = trim((string)($r[$colJam !== false ? $colJam : 10] ?? ''));
+
+            $jamPresensi = '';
+            if (preg_match('/(\d{2}:\d{2}(?::\d{2})?)/', $jamVal, $m)) {
+                $jamPresensi = $m[1];
+            } else if (preg_match('/(\d{2}:\d{2}(?::\d{2})?)/', $ts, $m)) {
+                $jamPresensi = $m[1];
+            }
+            if (strlen($jamPresensi) === 5) $jamPresensi .= ':00';
+
+            $tglPresensi = '';
+            if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $ts, $m)) {
+                $tglPresensi = $m[1];
+            } else if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/', $ts, $m)) {
+                $tglPresensi = sprintf('%04d-%02d-%02d', (int)$m[3], (int)$m[2], (int)$m[1]);
+            } else {
+                $tglPresensi = normalisasiTanggalYmd($ts);
+            }
+
+            $jenis = trim((string)($r[$colJenis !== false ? $colJenis : 5] ?? 'Masuk'));
+            $lokasi = trim((string)($r[$colLokasi !== false ? $colLokasi : 6] ?? 'KANTOR'));
+            $gps = trim((string)($r[$colGps !== false ? $colGps : 7] ?? ''));
+            $jarak = trim((string)($r[$colJarak !== false ? $colJarak : 8] ?? ''));
+            $statusGps = trim((string)($r[$colStatusGps !== false ? $colStatusGps : 9] ?? 'VALID'));
+            $statusValidasi = trim((string)($r[$colValidasi !== false ? $colValidasi : 12] ?? 'VALID'));
+            $keterangan = trim((string)($r[$colKet !== false ? $colKet : 13] ?? ''));
+
+            $isTerlambat = false;
+            if (stripos($jenis, 'Masuk') !== false && !empty($jamPresensi)) {
+                if ($jamPresensi > '08:30:00') {
+                    $isTerlambat = true;
+                }
+            }
+
+            $fotoUrl = '';
+            if (preg_match('/(https?:\/\/[^\s]+(?:googleusercontent|drive\.google|cloudinary|img|photo|jpg|jpeg|png|webp)[^\s]*)/i', $keterangan, $fm)) {
+                $fotoUrl = $fm[1];
+            }
+
+            $parsed[] = [
+                'id' => 'gs_' . md5($ts . $nik . $jenis),
+                'nik' => $nik,
+                'nama' => trim((string)($r[$colNama !== false ? $colNama : 2] ?? '')),
+                'jabatan' => trim((string)($r[$colJabatan !== false ? $colJabatan : 3] ?? '')),
+                'divisi' => trim((string)($r[$colDivisi !== false ? $colDivisi : 4] ?? '')),
+                'jenis' => $jenis,
+                'tanggal' => $tglPresensi,
+                'timestamp' => $ts,
+                'jam' => $jamPresensi,
+                'lokasi' => $lokasi,
+                'kantor_terdekat' => $lokasi === 'WFH' ? 'Rumah WFH' : 'Pusat Jakarta',
+                'lokasi_label' => $lokasi === 'WFH' ? 'WFH' : 'Kantor Pusat',
+                'gps' => $gps,
+                'jarak' => $jarak,
+                'status_gps' => $statusGps,
+                'status_validasi' => $statusValidasi,
+                'is_terlambat' => $isTerlambat,
+                'keterangan' => $keterangan,
+                'foto_url' => $fotoUrl,
+                'source' => 'GOOGLE_SHEET_SSOT'
+            ];
+        }
+
+        if (!empty($parsed)) {
+            $cacheAbsensi = [
+                'last_synced' => date('Y-m-d H:i:s'),
+                'total_rows' => count($parsed),
+                'records' => $parsed
+            ];
+            @file_put_contents(ABSENSI_CACHE_FILE, json_encode($cacheAbsensi, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+            return $parsed;
+        }
+    }
+    return null;
+}
+
+function loadAllAbsensiRecords($forceSync = false) {
+    $db = loadDatabase();
+    $localRecords = $db['absensi'] ?? [];
+
+    $gsRecords = null;
+    if (!$forceSync && file_exists(ABSENSI_CACHE_FILE)) {
+        $mtime = filemtime(ABSENSI_CACHE_FILE);
+        if ((time() - $mtime) < 45) {
+            $raw = @file_get_contents(ABSENSI_CACHE_FILE);
+            $cache = @json_decode($raw, true);
+            if (is_array($cache) && !empty($cache['records'])) {
+                $gsRecords = $cache['records'];
+            }
+        }
+    }
+
+    if ($gsRecords === null) {
+        $gsRecords = fetchAbsensiFromGAS();
+    }
+
+    if ($gsRecords === null && file_exists(ABSENSI_CACHE_FILE)) {
+        $raw = @file_get_contents(ABSENSI_CACHE_FILE);
+        $cache = @json_decode($raw, true);
+        if (is_array($cache) && !empty($cache['records'])) {
+            $gsRecords = $cache['records'];
+        }
+    }
+
+    if ($gsRecords === null) {
+        $gsRecords = [];
+    }
+
+    $merged = [];
+    $keysSeen = [];
+
+    foreach ($gsRecords as $r) {
+        $key = normalisasiNIK($r['nik']) . '_' . normalisasiTanggalYmd($r['tanggal']) . '_' . strtolower($r['jenis']);
+        $keysSeen[$key] = true;
+        $merged[] = $r;
+    }
+
+    foreach ($localRecords as $lr) {
+        $key = normalisasiNIK($lr['nik']) . '_' . normalisasiTanggalYmd($lr['tanggal'] ?? $lr['timestamp'] ?? '') . '_' . strtolower($lr['jenis'] ?? '');
+        if (!isset($keysSeen[$key])) {
+            $keysSeen[$key] = true;
+            $merged[] = $lr;
+        }
+    }
+
+    return $merged;
 }
 
 // 5. Helper Haversine Distance (Meter)
@@ -456,6 +612,9 @@ if (!$lockHandle || !flock($lockHandle, LOCK_EX)) {
 
 try {
     $rawInput = file_get_contents('php://input');
+    if (empty($rawInput) && php_sapi_name() === 'cli') {
+        $rawInput = @file_get_contents('php://stdin');
+    }
     $payload = json_decode($rawInput, true) ?: [];
     $action = $_GET['action'] ?? $payload['action'] ?? 'STATUS';
 
@@ -1283,16 +1442,21 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
         $tglTargetYmd = normalisasiTanggalYmd($tglFilterRaw);
 
         $karyawanPusat = [];
-        $nikPusatSet = [];
+        $masterLookup = [];
 
         foreach ($db['master_karyawan'] as $k) {
             if (($k['cabang'] ?? '') === 'Pusat Jakarta' && strtoupper($k['status'] ?? '') === 'AKTIF') {
                 $karyawanPusat[] = $k;
-                $nikPusatSet[] = normalisasiNIK($k['nik']);
+                $masterLookup[normalisasiNIK($k['nik'])] = $k;
             }
         }
 
-        // Monitoring Kehadiran Hari Ini
+        // Sinkronisasi SSOT: Muat seluruh log transaksi presensi (termasuk dari Google Spreadsheet)
+        $forceSync = !empty($payload['force_sync']) || !empty($_GET['force_sync']);
+        $allAbsensi = loadAllAbsensiRecords($forceSync);
+
+        // Agregasi Kehadiran Hari Ini (Peta per karyawan untuk Tabel 7 Kolom)
+        $karyawanKehadiran = [];
         $hadirMasukNiks = [];
         $sudahPulangNiks = [];
         $terlambatNiks = [];
@@ -1300,27 +1464,77 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
         $dinasNiks = [];
         $transaksiHariIni = [];
 
-        foreach ($db['absensi'] as $rec) {
-            $recTgl = normalisasiTanggalYmd($rec['tanggal'] ?? $rec['timestamp'] ?? $rec['tgl'] ?? '');
+        foreach ($allAbsensi as $rec) {
+            $recTgl = normalisasiTanggalYmd($rec['tanggal'] ?? $rec['timestamp'] ?? '');
             if ($recTgl === $tglTargetYmd) {
                 $transaksiHariIni[] = $rec;
                 $rNik = normalisasiNIK($rec['nik']);
-                if (($rec['jenis'] ?? '') === 'Masuk') {
+                $rJenis = strtolower($rec['jenis'] ?? '');
+
+                if (!isset($karyawanKehadiran[$rNik])) {
+                    $masterK = $masterLookup[$rNik] ?? null;
+                    $karyawanKehadiran[$rNik] = [
+                        'nik' => $rec['nik'],
+                        'nama' => $masterK ? $masterK['nama'] : ($rec['nama'] ?? $rec['nik']),
+                        'jabatan' => $masterK ? $masterK['jabatan'] : ($rec['jabatan'] ?? '-'),
+                        'divisi' => $masterK ? $masterK['divisi'] : ($rec['divisi'] ?? '-'),
+                        'jam_masuk' => '-',
+                        'is_terlambat' => false,
+                        'lokasi' => $rec['lokasi'] ?? 'Kantor Pusat',
+                        'lokasi_label' => ($rec['lokasi'] ?? '') === 'WFH' ? 'WFH' : 'Kantor Pusat',
+                        'gps' => $rec['gps'] ?? '',
+                        'jarak' => $rec['jarak'] ?? '',
+                        'status_gps' => $rec['status_gps'] ?? 'VALID',
+                        'status_validasi' => $rec['status_validasi'] ?? 'VALID',
+                        'jam_pulang' => null,
+                        'foto_url' => $rec['foto_url'] ?? '',
+                        'keterangan' => $rec['keterangan'] ?? ''
+                    ];
+                }
+
+                if (strpos($rJenis, 'masuk') !== false) {
                     $hadirMasukNiks[$rNik] = true;
-                    if (!empty($rec['is_terlambat'])) {
+                    $jamM = $rec['jam'] ?? '';
+                    if (empty($jamM) && !empty($rec['timestamp'])) {
+                        if (preg_match('/(\d{2}:\d{2}(?::\d{2})?)/', $rec['timestamp'], $m)) {
+                            $jamM = $m[1];
+                        }
+                    }
+                    $karyawanKehadiran[$rNik]['jam_masuk'] = $jamM;
+                    $karyawanKehadiran[$rNik]['lokasi'] = $rec['lokasi'] ?? $karyawanKehadiran[$rNik]['lokasi'];
+                    $karyawanKehadiran[$rNik]['lokasi_label'] = ($rec['lokasi'] ?? '') === 'WFH' ? 'WFH' : 'Kantor Pusat';
+                    if (!empty($rec['gps'])) $karyawanKehadiran[$rNik]['gps'] = $rec['gps'];
+                    if (!empty($rec['jarak'])) $karyawanKehadiran[$rNik]['jarak'] = $rec['jarak'];
+                    if (!empty($rec['foto_url'])) $karyawanKehadiran[$rNik]['foto_url'] = $rec['foto_url'];
+
+                    if (!empty($rec['is_terlambat']) || ($jamM > '08:30:00')) {
+                        $karyawanKehadiran[$rNik]['is_terlambat'] = true;
                         $terlambatNiks[$rNik] = true;
                     }
+
+                    if (($rec['lokasi'] ?? '') === 'WFH') $wfhNiks[$rNik] = true;
+                    if (($rec['lokasi'] ?? '') === 'DINAS LUAR') $dinasNiks[$rNik] = true;
                 }
-                if (($rec['jenis'] ?? '') === 'Pulang') {
+
+                if (strpos($rJenis, 'pulang') !== false) {
                     $sudahPulangNiks[$rNik] = true;
-                }
-                if (($rec['lokasi'] ?? '') === 'WFH') {
-                    $wfhNiks[$rNik] = true;
-                }
-                if (($rec['lokasi'] ?? '') === 'DINAS LUAR') {
-                    $dinasNiks[$rNik] = true;
+                    $jamP = $rec['jam'] ?? '';
+                    if (empty($jamP) && !empty($rec['timestamp'])) {
+                        if (preg_match('/(\d{2}:\d{2}(?::\d{2})?)/', $rec['timestamp'], $m)) {
+                            $jamP = $m[1];
+                        }
+                    }
+                    $karyawanKehadiran[$rNik]['jam_pulang'] = $jamP ?: 'Sudah Pulang';
                 }
             }
+        }
+
+        // Format Baris Tabel 7 Kolom
+        $tabelKehadiran = [];
+        $noUrut = 1;
+        foreach ($karyawanKehadiran as $item) {
+            $item['no'] = $noUrut++;
+            $tabelKehadiran[] = $item;
         }
 
         // Belum Presensi
@@ -1341,25 +1555,30 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
         // Cuti Pending
         $cutiPending = [];
         foreach ($db['pengajuan_cuti'] as $c) {
-            if ($c['status'] === 'Menunggu Persetujuan') {
+            if (($c['status'] ?? '') === 'Menunggu Persetujuan') {
                 $cutiPending[] = $c;
             }
         }
+
+        $totalPusat = count($karyawanPusat) > 0 ? count($karyawanPusat) : 22;
+        $totalMasuk = count($hadirMasukNiks);
+        $totalBelum = max(0, $totalPusat - $totalMasuk);
 
         echo json_encode([
             'status' => 'success',
             'success' => true,
             'tanggal' => $tglTargetYmd,
             'ringkasan' => [
-                'total_karyawan_pusat' => count($karyawanPusat),
-                'hadir_masuk' => count($hadirMasukNiks),
+                'total_karyawan_pusat' => $totalPusat,
+                'hadir_masuk' => $totalMasuk,
                 'sudah_pulang' => count($sudahPulangNiks),
-                'belum_presensi' => count($belumPresensiList),
+                'belum_presensi' => $totalBelum,
                 'terlambat' => count($terlambatNiks),
                 'wfh' => count($wfhNiks),
                 'dinas_luar' => count($dinasNiks),
                 'cuti_pending' => count($cutiPending)
             ],
+            'tabel_kehadiran' => $tabelKehadiran,
             'karyawan_pusat' => $karyawanPusat,
             'belum_presensi_list' => $belumPresensiList,
             'transaksi_hari_ini' => $transaksiHariIni,
@@ -1504,7 +1723,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
     // ---------------------------------------------------------------------
     // AKSI BARU: SINKRONISASI MASTER GOOGLE SHEET (ADMIN HR)
     // ---------------------------------------------------------------------
-    if ($action === 'syncMasterKaryawan') {
+    if ($action === 'syncMasterKaryawan' || $action === 'syncGoogleSheetsAll') {
         $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
         $adminNik = normalisasiNIK($payload['admin_nik'] ?? $payload['nik'] ?? '');
 
@@ -1514,19 +1733,33 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
             exit;
         }
 
-        $fetched = fetchMasterFromGAS();
-        if (!$fetched) {
+        $roster = fetchMasterFromGAS();
+        $absensi = fetchAbsensiFromGAS();
+
+        if (!$roster && !$absensi) {
             http_response_code(502);
             echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Gagal mengambil data dari Google Apps Script SSOT. Periksa koneksi ke Google Spreadsheet.']);
             exit;
         }
 
         $db = loadDatabase();
+        if ($roster) {
+            $db['master_karyawan'] = $roster;
+            $db['metadata']['total_karyawan_pusat'] = count($roster);
+        }
+        if ($absensi) {
+            $db['absensi'] = $absensi;
+            $db['metadata']['total_absensi'] = count($absensi);
+        }
+        $db['metadata']['last_sync'] = date('Y-m-d H:i:s');
+        saveDatabase($db);
+
         echo json_encode([
             'status' => 'success',
             'success' => true,
-            'message' => 'Sinkronisasi Master Karyawan dengan Google Sheet berhasil.',
-            'total_karyawan' => count($fetched),
+            'message' => 'Sinkronisasi Master Karyawan dan Log Absensi dengan Google Sheets berhasil.',
+            'total_karyawan' => $roster ? count($roster) : count($db['master_karyawan']),
+            'total_absensi' => $absensi ? count($absensi) : count($db['absensi']),
             'last_sync' => date('Y-m-d H:i:s')
         ]);
         exit;
