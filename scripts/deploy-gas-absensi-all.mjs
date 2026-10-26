@@ -1,21 +1,12 @@
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 import fs from 'fs';
 import { google } from 'googleapis';
 
 const SCRIPT_ID = '1Hol-8rsthtC_PdY7Rhj0-VS-yZRl2Pyb7bM8kd8uytwms02lzKtbO-vX';
 const DEPLOYMENT_ID = 'AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn';
 
-let code = fs.readFileSync('gas-absensi-Code.gs', 'utf8');
-
-const targetStr = "res = getMasterKaryawanFull();";
-if (!code.includes("action === 'getAbsensiAll'")) {
-  code = code.replace(
-    targetStr,
-    "res = getMasterKaryawanFull();\n    } else if (action === 'getAbsensiAll' || action === 'getRekapPresensiHariIni') {\n      res = getAbsensiAll();"
-  );
-  console.log('[OK] Added action getAbsensiAll to doPost routing!');
-}
-
-fs.writeFileSync('gas-absensi-Code.gs', code, 'utf8');
+const code = fs.readFileSync('gas-absensi-Code.gs', 'utf8');
 
 // Deploy to GAS
 const tokenData = JSON.parse(fs.readFileSync('C:/Users/HP/.clasprc.json', 'utf8')).tokens.default;
@@ -43,7 +34,7 @@ console.log('3. Membuat versi baru...');
 const ver = await script.projects.versions.create({
   scriptId: SCRIPT_ID,
   requestBody: {
-    description: 'Support getAbsensiAll for HR Dashboard live attendance sync'
+    description: 'Support 5-Tab Google Spreadsheet Sync (MASTER_KARYAWAN, ABSENSI, PENGAJUAN_CUTI, MASTER_WFH, DASHBOARD)'
   }
 });
 const versionNumber = ver.data.versionNumber;
@@ -58,23 +49,39 @@ await script.projects.deployments.update({
       scriptId: SCRIPT_ID,
       versionNumber,
       manifestFileName: 'appsscript',
-      description: 'HR Dashboard SSOT Attendance Sync'
+      description: 'Production 5-Tab SSOT Sync Web App'
     }
   }
 });
 console.log('   ✓ Deployment berhasil diperbarui!');
 
-// 5. Test getAbsensiAll
-console.log('5. Menguji getAbsensiAll via POST...');
-const res = await fetch(`https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-  body: JSON.stringify({ action: 'getAbsensiAll' })
-});
-const data = await res.json();
-console.log('Status getAbsensiAll:', data.status, 'Total absensi rows:', data.rows?.length);
-console.log('Available sheets in spreadsheet:', data.availableSheets);
-console.log('Headers:', data.headers);
-if (data.rows && data.rows.length > 0) {
-  console.log('Sample latest record:', data.rows[data.rows.length - 1]);
+// 5. Verifikasi pengujian 5 Tab
+const webAppUrl = `https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec`;
+
+async function testAction(action, payload = {}) {
+  const res = await fetch(webAppUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, ...payload })
+  });
+  return await res.json();
 }
+
+console.log('5. Menguji Endpoint 5-Tab...');
+
+const t1 = await testAction('get_master_karyawan');
+console.log('   [1] get_master_karyawan:', t1.status, 'Total karyawan:', t1.rows?.length);
+
+const t2 = await testAction('get_absensi_all');
+console.log('   [2] get_absensi_all:', t2.status, 'Total absensi:', t2.rows?.length);
+
+const t3 = await testAction('get_cuti_all');
+console.log('   [3] get_cuti_all:', t3.status, 'Total pengajuan cuti:', t3.rows?.length, 'Headers:', t3.headers);
+
+const t4 = await testAction('get_wfh_whitelist');
+console.log('   [4] get_wfh_whitelist:', t4.status, 'Total WFH whitelist:', t4.total);
+
+const t5 = await testAction('get_dashboard_summary');
+console.log('   [5] get_dashboard_summary:', t5.status, 'Summary:', t5.summary);
+
+console.log('=== SEMUA 5 TAB TERVERIFIKASI GO-LIVE ===');

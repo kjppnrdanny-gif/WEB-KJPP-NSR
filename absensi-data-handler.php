@@ -63,6 +63,9 @@ define('OTP_FILE', DATA_DIR . '/.absensi_otp_cache.json');
 define('ATTACHMENT_DIR', DATA_DIR . '/lampiran_cuti');
 define('MASTER_CACHE_FILE', DATA_DIR . '/.master_karyawan_cache.json');
 define('ABSENSI_CACHE_FILE', DATA_DIR . '/.absensi_records_cache.json');
+define('CUTI_CACHE_FILE', DATA_DIR . '/.cuti_records_cache.json');
+define('WFH_CACHE_FILE', DATA_DIR . '/.wfh_records_cache.json');
+define('DASHBOARD_CACHE_FILE', DATA_DIR . '/.dashboard_summary_cache.json');
 define('OTP_STORAGE_DIR', DATA_DIR . '/.otp_storage/');
 define('GAS_WEB_APP_URL', 'https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec');
 
@@ -378,6 +381,148 @@ function loadAllAbsensiRecords($forceSync = false) {
 
     return $merged;
 }
+
+// SSOT Sinkronisasi Permohonan Cuti dari Sheet PENGAJUAN_CUTI Google Spreadsheet
+function fetchCutiFromGAS() {
+    $res = callGASWebService(['action' => 'getCutiAll'], 15);
+    if ($res && !empty($res['success']) && !empty($res['rows']) && is_array($res['rows'])) {
+        $headers = array_map(function($h) { return strtoupper(trim((string)$h)); }, $res['headers'] ?? []);
+        $colTs = array_search('TIMESTAMP', $headers);
+        $colNik = array_search('NIK', $headers);
+        $colNama = array_search('NAMA', $headers);
+        $colJabatan = array_search('JABATAN', $headers);
+        $colDivisi = array_search('DIVISI', $headers);
+        $colJenis = array_search('JENIS CUTI', $headers);
+        if ($colJenis === false) $colJenis = array_search('JENIS', $headers);
+        $colMulai = array_search('TANGGAL MULAI', $headers);
+        if ($colMulai === false) $colMulai = array_search('TGL_MULAI', $headers);
+        $colSelesai = array_search('TANGGAL SELESAI', $headers);
+        if ($colSelesai === false) $colSelesai = array_search('TGL_SELESAI', $headers);
+        $colHari = array_search('JUMLAH HARI', $headers);
+        if ($colHari === false) $colHari = array_search('JUMLAH_HARI', $headers);
+        $colAlasan = array_search('ALASAN', $headers);
+        $colStatus = array_search('STATUS APPROVAL', $headers);
+        if ($colStatus === false) $colStatus = array_search('STATUS', $headers);
+        $colBukti = array_search('LINK BUKTI', $headers);
+        if ($colBukti === false) $colBukti = array_search('LINK_BUKTI', $headers);
+        $colId = array_search('ID', $headers);
+        if ($colId === false) $colId = array_search('ID CUTI', $headers);
+
+        $parsed = [];
+        foreach ($res['rows'] as $r) {
+            $rawNik = trim((string)($r[$colNik !== false ? $colNik : 1] ?? ''));
+            $cleanNik = normalisasiNIK($rawNik);
+            if (empty($cleanNik)) continue;
+
+            $ts = trim((string)($r[$colTs !== false ? $colTs : 0] ?? ''));
+            $idVal = ($colId !== false && !empty($r[$colId])) ? trim((string)$r[$colId]) : ('CUTI-' . md5($ts . $cleanNik));
+            $tglM = trim((string)($r[$colMulai !== false ? $colMulai : 6] ?? ''));
+            $tglS = trim((string)($r[$colSelesai !== false ? $colSelesai : 7] ?? ''));
+
+            $parsed[] = [
+                'id' => $idVal,
+                'timestamp' => $ts,
+                'nik' => $cleanNik,
+                'nama' => trim((string)($r[$colNama !== false ? $colNama : 2] ?? '')),
+                'jabatan' => trim((string)($r[$colJabatan !== false ? $colJabatan : 3] ?? '')),
+                'divisi' => trim((string)($r[$colDivisi !== false ? $colDivisi : 4] ?? '')),
+                'jenis_cuti' => trim((string)($r[$colJenis !== false ? $colJenis : 5] ?? 'Izin')),
+                'tgl_mulai' => $tglM,
+                'tgl_selesai' => $tglS,
+                'jumlah_hari' => (int)($r[$colHari !== false ? $colHari : 8] ?? 1) ?: 1,
+                'alasan' => trim((string)($r[$colAlasan !== false ? $colAlasan : 9] ?? '')),
+                'status' => trim((string)($r[$colStatus !== false ? $colStatus : 10] ?? 'Menunggu Persetujuan')),
+                'file_lampiran' => trim((string)($r[$colBukti !== false ? $colBukti : 11] ?? '-')),
+                'source' => 'GOOGLE_SHEET_SSOT'
+            ];
+        }
+
+        if (!empty($parsed)) {
+            $cacheCuti = [
+                'last_synced' => date('Y-m-d H:i:s'),
+                'total_rows' => count($parsed),
+                'records' => $parsed
+            ];
+            @file_put_contents(CUTI_CACHE_FILE, json_encode($cacheCuti, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+            return $parsed;
+        }
+    }
+    return null;
+}
+
+function loadAllCutiRecords($forceSync = false) {
+    $db = loadDatabase();
+    $localRecords = $db['pengajuan_cuti'] ?? [];
+
+    $gsRecords = null;
+    if (!$forceSync && file_exists(CUTI_CACHE_FILE)) {
+        $mtime = filemtime(CUTI_CACHE_FILE);
+        if ((time() - $mtime) < 45) {
+            $raw = @file_get_contents(CUTI_CACHE_FILE);
+            $cache = @json_decode($raw, true);
+            if (is_array($cache) && !empty($cache['records'])) {
+                $gsRecords = $cache['records'];
+            }
+        }
+    }
+
+    if ($gsRecords === null) {
+        $gsRecords = fetchCutiFromGAS();
+    }
+
+    if ($gsRecords === null && file_exists(CUTI_CACHE_FILE)) {
+        $raw = @file_get_contents(CUTI_CACHE_FILE);
+        $cache = @json_decode($raw, true);
+        if (is_array($cache) && !empty($cache['records'])) {
+            $gsRecords = $cache['records'];
+        }
+    }
+
+    if ($gsRecords === null) $gsRecords = [];
+
+    $merged = [];
+    $keysSeen = [];
+
+    foreach ($localRecords as $lr) {
+        $key = normalisasiNIK($lr['nik']) . '_' . ($lr['tgl_mulai'] ?? '') . '_' . ($lr['jenis_cuti'] ?? '');
+        $keysSeen[$key] = true;
+        $merged[] = $lr;
+    }
+
+    foreach ($gsRecords as $gr) {
+        $key = normalisasiNIK($gr['nik']) . '_' . ($gr['tgl_mulai'] ?? '') . '_' . ($gr['jenis_cuti'] ?? '');
+        if (!isset($keysSeen[$key])) {
+            $keysSeen[$key] = true;
+            $merged[] = $gr;
+        }
+    }
+
+    return $merged;
+}
+
+function fetchWFHFromGAS() {
+    $res = callGASWebService(['action' => 'getWFHWhitelist'], 10);
+    if ($res && !empty($res['success']) && !empty($res['whitelist']) && is_array($res['whitelist'])) {
+        $cacheWFH = [
+            'last_synced' => date('Y-m-d H:i:s'),
+            'total_rows' => count($res['whitelist']),
+            'records' => $res['whitelist']
+        ];
+        @file_put_contents(WFH_CACHE_FILE, json_encode($cacheWFH, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+        return $res['whitelist'];
+    }
+    return null;
+}
+
+function fetchDashboardFromGAS() {
+    $res = callGASWebService(['action' => 'getDashboardSummary'], 10);
+    if ($res && !empty($res['success'])) {
+        @file_put_contents(DASHBOARD_CACHE_FILE, json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+        return $res;
+    }
+    return null;
+}
+
 
 // 5. Helper Haversine Distance (Meter)
 function hitungJarakHaversine($lat1, $lon1, $lat2, $lon2) {
@@ -1250,6 +1395,26 @@ try {
         $db['metadata']['last_sync'] = date('Y-m-d H:i:s');
         saveDatabase($db);
 
+        // Dispatch dua arah (Two-Way Sync) ke Google Sheets ABSENSI
+        @callGASWebService([
+            'action'          => 'record_absensi',
+            'timestamp'       => $timestampStr,
+            'nik'             => $newRecord['nik'],
+            'nama'            => $newRecord['nama'],
+            'jabatan'         => $newRecord['jabatan'],
+            'divisi'          => $newRecord['divisi'],
+            'jenis'           => $jenis,
+            'lokasi'          => $lokasi,
+            'gps'             => $gps,
+            'jarak'           => $jarakMeter,
+            'status_gps'      => ($statusValidasi === 'VALID') ? 'VALID' : ("DI LUAR RADIUS ({$jarakMeter}m)"),
+            'status_validasi' => $statusValidasi,
+            'kantor_terdekat' => $kantorTerdekat,
+            'jam'             => $jamStr,
+            'kehadiran'       => 'Hadir',
+            'keterangan'      => $newRecord['keterangan']
+        ], 5);
+
         echo json_encode([
             'status' => 'success',
             'success' => true,
@@ -1312,6 +1477,14 @@ try {
         ];
 
         saveDatabase($db);
+
+        // Dispatch pendaftaran WFH dua arah ke Google Sheets MASTER_WFH
+        @callGASWebService([
+            'action'  => 'simpanWFH',
+            'nik'     => $cleanNik,
+            'alamat'  => $alamat,
+            'gps'     => $gps
+        ], 5);
 
         echo json_encode([
             'status' => 'success',
@@ -1400,6 +1573,22 @@ try {
         $db['pengajuan_cuti'][] = $cutiRecord;
         $db['metadata']['total_cuti'] = count($db['pengajuan_cuti']);
         saveDatabase($db);
+
+        // Dispatch dua arah (Two-Way Sync) ke Google Sheets PENGAJUAN_CUTI
+        @callGASWebService([
+            'action'        => 'submit_cuti',
+            'id'            => $cutiRecord['id'],
+            'nik'           => $cutiRecord['nik'],
+            'nama'          => $cutiRecord['nama'],
+            'jabatan'       => $cutiRecord['jabatan'],
+            'divisi'        => $cutiRecord['divisi'],
+            'jenisCuti'     => $jenisCuti,
+            'tglMulai'      => $tglMulai,
+            'tglSelesai'    => $tglSelesai,
+            'jumlah_hari'   => $durasi,
+            'alasan'        => $alasan,
+            'file_lampiran' => $savedFilePath
+        ], 5);
 
         echo json_encode([
             'status' => 'success',
@@ -1611,10 +1800,12 @@ try {
             }
         }
 
-        // Cuti Pending
+        // Cuti Pending (Reconciled from GAS & Local Cache)
+        $allCuti = loadAllCutiRecords($forceSync);
         $cutiPending = [];
-        foreach ($db['pengajuan_cuti'] as $c) {
-            if (($c['status'] ?? '') === 'Menunggu Persetujuan') {
+        foreach ($allCuti as $c) {
+            $st = $c['status'] ?? '';
+            if (stripos($st, 'Menunggu') !== false || stripos($st, 'Pending') !== false) {
                 $cutiPending[] = $c;
             }
         }
@@ -1767,6 +1958,15 @@ try {
 
         saveDatabase($db);
 
+        // Dispatch status update dua arah (Two-Way Sync) ke Google Sheets PENGAJUAN_CUTI
+        @callGASWebService([
+            'action'    => 'update_cuti_status',
+            'cuti_id'   => $cutiId,
+            'keputusan' => $keputusan,
+            'catatan'   => $catatan,
+            'admin_nik' => $adminNik
+        ], 5);
+
         echo json_encode([
             'status' => 'success',
             'success' => true,
@@ -1794,8 +1994,11 @@ try {
 
         $roster = fetchMasterFromGAS();
         $absensi = fetchAbsensiFromGAS();
+        $cuti = fetchCutiFromGAS();
+        $wfh = fetchWFHFromGAS();
+        $dash = fetchDashboardFromGAS();
 
-        if (!$roster && !$absensi) {
+        if (!$roster && !$absensi && !$cuti && !$wfh) {
             http_response_code(502);
             echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Gagal mengambil data dari Google Apps Script SSOT. Periksa koneksi ke Google Spreadsheet.']);
             exit;
@@ -1810,15 +2013,24 @@ try {
             $db['absensi'] = $absensi;
             $db['metadata']['total_absensi'] = count($absensi);
         }
+        if ($cuti) {
+            $db['pengajuan_cuti'] = $cuti;
+            $db['metadata']['total_cuti'] = count($cuti);
+        }
+        if ($wfh) {
+            $db['master_wfh'] = $wfh;
+        }
         $db['metadata']['last_sync'] = date('Y-m-d H:i:s');
         saveDatabase($db);
 
         echo json_encode([
             'status' => 'success',
             'success' => true,
-            'message' => 'Sinkronisasi Master Karyawan dan Log Absensi dengan Google Sheets berhasil.',
+            'message' => 'Sinkronisasi 5 Tab Google Spreadsheet (MASTER_KARYAWAN, ABSENSI, PENGAJUAN_CUTI, MASTER_WFH, DASHBOARD) berhasil.',
             'total_karyawan' => $roster ? count($roster) : count($db['master_karyawan']),
             'total_absensi' => $absensi ? count($absensi) : count($db['absensi']),
+            'total_cuti' => $cuti ? count($cuti) : count($db['pengajuan_cuti']),
+            'total_wfh' => $wfh ? count($wfh) : count($db['master_wfh']),
             'last_sync' => date('Y-m-d H:i:s')
         ]);
         exit;
@@ -1827,6 +2039,39 @@ try {
     // ---------------------------------------------------------------------
     // AKSI BARU: DAFTARKAN / PERBARUI EMAIL KARYAWAN OLEH ADMIN HR
     // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // AKSI: AMBIL WHITELIST TITIK DOMISILI WFH (MASTER_WFH)
+    // ---------------------------------------------------------------------
+    if ($action === 'getWFHWhitelist' || $action === 'get_wfh_whitelist') {
+        $nik = $payload['nik'] ?? $_GET['nik'] ?? '';
+        $cleanNik = normalisasiNIK($nik);
+        $whitelist = [];
+        if (file_exists(WFH_CACHE_FILE)) {
+            $raw = @file_get_contents(WFH_CACHE_FILE);
+            $cache = @json_decode($raw, true);
+            if (!empty($cache['records'])) $whitelist = $cache['records'];
+        }
+        if (empty($whitelist)) {
+            $whitelist = fetchWFHFromGAS() ?: [];
+        }
+        if ($cleanNik) {
+            $filtered = [];
+            foreach ($whitelist as $w) {
+                if (cocokNIK($w['nik'] ?? '', $cleanNik)) {
+                    $filtered[] = $w;
+                }
+            }
+            $whitelist = $filtered;
+        }
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'total' => count($whitelist),
+            'whitelist' => $whitelist
+        ]);
+        exit;
+    }
+
     if ($action === 'daftarkanEmailKaryawan') {
         $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
         $adminNik = normalisasiNIK($payload['admin_nik'] ?? $payload['nik'] ?? '');

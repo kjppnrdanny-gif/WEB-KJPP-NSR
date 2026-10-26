@@ -2549,7 +2549,7 @@
     }
 
     async function eksekusiSyncMasterGoogleSheet() {
-      bukaModalNotif("Sinkronisasi Sheet 🔄", "Menghubungkan ke Google Spreadsheet resmi MASTER_KARYAWAN & ABSENSI...");
+      bukaModalNotif("Sinkronisasi 5 Tab Sheet 🔄", "Menghubungkan ke Google Spreadsheet resmi (MASTER_KARYAWAN, ABSENSI, PENGAJUAN_CUTI, MASTER_WFH, DASHBOARD)...");
       try {
         const tokenToSend = sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') || atob('TlNSODg5OQ==');
         const nikToSend = sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || 'NSR-2019-005';
@@ -2559,7 +2559,7 @@
         });
 
         if (res && res.success) {
-          bukaModalNotif("Sinkronisasi Berhasil! ✅", `Berhasil menyinkronkan ${res.total_karyawan || 22} data karyawan dan ${res.total_absensi || 0} catatan absensi langsung dari Google Sheets resmi.`);
+          bukaModalNotif("Sinkronisasi 5 Tab Berhasil! ✅", res.message || `Berhasil menyinkronkan 5 tab Google Sheets (${res.total_karyawan || 22} karyawan, ${res.total_absensi || 0} absensi, ${res.total_cuti || 0} permohonan cuti, ${res.total_wfh || 0} titik WFH).`);
           muatDashboardHR(true);
         } else {
           throw new Error((res && res.message) || 'Gagal sinkronisasi dengan server backend.');

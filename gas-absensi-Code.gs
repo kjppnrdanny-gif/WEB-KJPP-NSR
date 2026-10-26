@@ -25,6 +25,7 @@ const CONFIG = {
   SHEET_ABSENSI: 'ABSENSI',
   SHEET_WFH: 'MASTER_WFH',
   SHEET_CUTI: 'PENGAJUAN_CUTI',
+  SHEET_DASHBOARD: 'DASHBOARD',
   SHEET_SETTING: 'SETTING',
   
   // Folder Drive untuk lampiran cuti/izin (Terisolasi & Privat)
@@ -83,7 +84,7 @@ function doPost(e) {
     const action = payload.action || 'STATUS';
     let res = {};
 
-    if (action === 'STATUS') {
+            if (action === 'STATUS') {
       res = { status: 'success', success: true, message: 'Backend GAS Absensi KJPP NSR Aktif.' };
     } else if (action === 'cekKaryawan') {
       const data = cekKaryawan(payload.nik);
@@ -94,16 +95,28 @@ function doPost(e) {
       res = verifikasiOTP(payload.nik, payload.otp, payload.pdpNoticeVersion);
     } else if (action === 'simpanAbsensi') {
       res = simpanAbsensi(payload);
+    } else if (action === 'record_absensi') {
+      res = recordAbsensiFromProxy(payload);
     } else if (action === 'simpanWFH') {
       res = simpanWFH(payload);
-    } else if (action === 'simpanPengajuanCuti') {
-      res = simpanPengajuanCuti(payload);
+    } else if (action === 'get_wfh_whitelist' || action === 'getWFHWhitelist') {
+      res = getWFHWhitelist(payload.nik);
+    } else if (action === 'simpanPengajuanCuti' || action === 'submit_cuti') {
+      res = submitCuti(payload);
+    } else if (action === 'update_cuti_status' || action === 'approveCuti') {
+      res = updateCutiStatus(payload);
+    } else if (action === 'get_cuti_all' || action === 'getCutiAll') {
+      res = getCutiAll();
+    } else if (action === 'get_dashboard_summary' || action === 'getDashboardSummary') {
+      res = getDashboardSummary();
     } else if (action === 'getRiwayatPresensi') {
       res = getRiwayatPresensi(payload.nik, payload.sessionToken);
-    } else if (action === 'getMasterKaryawanFull') {
+    } else if (action === 'getMasterKaryawanFull' || action === 'get_master_karyawan') {
       res = getMasterKaryawanFull();
-    } else if (action === 'getAbsensiAll' || action === 'getRekapPresensiHariIni') {
+    } else if (action === 'getAbsensiAll' || action === 'getRekapPresensiHariIni' || action === 'get_absensi_all') {
       res = getAbsensiAll();
+    } else if (action === 'updateEmailKaryawan') {
+      res = updateEmailKaryawan(payload.nik, payload.email);
     } else {
       res = { status: 'error', success: false, message: 'Aksi [' + action + '] tidak dikenali.' };
     }
@@ -1242,4 +1255,480 @@ function getAbsensiAll() {
     headers: headers,
     rows: rows
   };
+}
+
+
+/**
+ * SSOT Helper: Rekam Data Absensi yang Masuk Melalui Proxy cPanel
+ */
+function recordAbsensiFromProxy(params) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    if (!params || !params.nik) {
+      throw new Error('Parameter NIK presensi tidak lengkap.');
+    }
+    const nik = normalizeNikKey_(params.nik);
+    const ss = getSS_();
+    const sh = ss.getSheetByName(CONFIG.SHEET_ABSENSI);
+    if (!sh) throw new Error('Sheet ' + CONFIG.SHEET_ABSENSI + ' tidak ditemukan.');
+
+    const lastCol = sh.getLastColumn();
+    const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+    const now = new Date();
+    const ts = params.timestamp || Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss');
+    const jam = params.jam || Utilities.formatDate(now, 'Asia/Jakarta', 'HH:mm:ss') + ' WIB';
+
+    const valueMap = {
+      'TIMESTAMP': ts,
+      'NIK': nik,
+      'NAMA': params.nama || '',
+      'NAMA KARYAWAN': params.nama || '',
+      'JABATAN': params.jabatan || '',
+      'DIVISI': params.divisi || '',
+      'JENIS': params.jenis || 'Masuk',
+      'JENIS ABSENSI': params.jenis || 'Masuk',
+      'LOKASI': params.lokasi || 'KANTOR',
+      'GPS': params.gps || '',
+      'KOORDINAT GPS': params.gps || '',
+      'JARAK': params.jarak ? (params.jarak + ' m') : '0 m',
+      'STATUS_GPS': params.status_gps || (params.status_validasi === 'VALID' ? 'VALID' : 'DI LUAR RADIUS'),
+      'JAM': jam,
+      'JAM ABSENSI': jam,
+      'KEHADIRAN': params.kehadiran || 'Hadir',
+      'STATUS KEHADIRAN': params.kehadiran || 'Hadir',
+      'VALIDASI_LOKASI': params.kantor_terdekat || params.kantor || 'Pusat Jakarta',
+      'KANTOR TERDEKAT': params.kantor_terdekat || params.kantor || 'Pusat Jakarta',
+      'KETERANGAN': params.keterangan || ('Presensi ' + (params.jenis || 'Masuk') + ' via Portal Web')
+    };
+
+    const rowToAppend = mapRowToHeaders_(headers, valueMap);
+    sh.appendRow(rowToAppend);
+
+    return {
+      status: 'success',
+      success: true,
+      message: 'Presensi ' + (params.jenis || 'Masuk') + ' berhasil dicatatkan ke sheet ABSENSI.'
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * SSOT Helper: Submit Permohonan Cuti/Izin dari Web Portal
+ */
+function submitCuti(params) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    if (!params || !params.nik || !params.tglMulai || !params.tglSelesai) {
+      throw new Error('Lengkapi NIK, Kategori Cuti, dan rentang tanggal pengajuan.');
+    }
+    const nik = normalizeNikKey_(params.nik);
+    const jenisCuti = params.jenisCuti || params.jenis_cuti || params.jenis || 'Izin';
+    const alasan = params.alasan || '';
+    const cutiId = params.id || ('CUTI-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyyMMdd') + '-' + Math.random().toString(36).substring(2, 7).toUpperCase());
+
+    const profil = cekKaryawan(nik);
+    const nama = (profil && profil.nama) ? profil.nama : (params.nama || nik);
+    const jabatan = (profil && profil.jabatan) ? profil.jabatan : (params.jabatan || '');
+    const divisi = (profil && profil.divisi) ? profil.divisi : (params.divisi || '');
+
+    let fileUrl = params.file_lampiran || params.fileUrl || '-';
+    let storedFileName = params.fileName || params.file || '-';
+    if (params.fileData && params.fileName) {
+      try {
+        const parts = String(params.fileData).split(';base64,');
+        if (parts.length === 2) {
+          const mimeType = parts[0].replace('data:', '').toLowerCase();
+          const base64Data = parts[1];
+          const decoded = Utilities.base64Decode(base64Data);
+          const cleanName = 'CUTI_' + nik + '_' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyyMMdd_HHmmss') + '_' + params.fileName.replace(/[^a-zA-Z0-9._-]/g, '');
+          const blob = Utilities.newBlob(decoded, mimeType, cleanName);
+
+          let folder;
+          const ssFile = DriveApp.getFileById(CONFIG.SPREADSHEET_ID);
+          const parents = ssFile.getParents();
+          const parentFolder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
+          const folderIter = parentFolder.getFoldersByName(CONFIG.DRIVE_FOLDER_NAME);
+          folder = folderIter.hasNext() ? folderIter.next() : parentFolder.createFolder(CONFIG.DRIVE_FOLDER_NAME);
+
+          const uploadedFile = folder.createFile(blob);
+          fileUrl = uploadedFile.getUrl();
+          storedFileName = cleanName;
+        }
+      } catch (fErr) {}
+    }
+
+    const now = new Date();
+    const ts = Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss');
+    const ss = getSS_();
+    const sh = ss.getSheetByName(CONFIG.SHEET_CUTI);
+    if (!sh) throw new Error('Sheet ' + CONFIG.SHEET_CUTI + ' tidak ditemukan.');
+
+    const lastCol = sh.getLastColumn();
+    const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+
+    let durasiHari = params.jumlah_hari || params.jumlahHari || 1;
+    if (!params.jumlah_hari) {
+      try {
+        const d1 = new Date(params.tglMulai);
+        const d2 = new Date(params.tglSelesai);
+        const diffMs = Math.abs(d2 - d1);
+        durasiHari = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
+      } catch(e) {}
+    }
+
+    const valueMap = {
+      'ID': cutiId,
+      'ID CUTI': cutiId,
+      'TIMESTAMP': ts,
+      'NIK': nik,
+      'NAMA': nama,
+      'JABATAN': jabatan,
+      'DIVISI': divisi,
+      'JENIS': jenisCuti,
+      'JENIS CUTI': jenisCuti,
+      'KATEGORI': jenisCuti,
+      'TGL_MULAI': params.tglMulai,
+      'TANGGAL MULAI': params.tglMulai,
+      'TGL_SELESAI': params.tglSelesai,
+      'TANGGAL SELESAI': params.tglSelesai,
+      'JUMLAH_HARI': durasiHari,
+      'JUMLAH HARI': durasiHari,
+      'ALASAN': alasan,
+      'STATUS_APPROVAL': 'Menunggu Persetujuan',
+      'STATUS': 'Menunggu Persetujuan',
+      'LINK_BUKTI': fileUrl,
+      'LINK BUKTI': fileUrl,
+      'FILE': storedFileName
+    };
+
+    const rowToAppend = mapRowToHeaders_(headers, valueMap);
+    sh.appendRow(rowToAppend);
+
+    return {
+      status: 'success',
+      success: true,
+      cutiId: cutiId,
+      durasi: durasiHari,
+      message: 'Permohonan ' + jenisCuti + ' untuk ' + nama + ' berhasil dicatatkan ke sheet ' + CONFIG.SHEET_CUTI + '.'
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * SSOT Helper: Perbarui Status Approval Pengajuan Cuti di Sheet PENGAJUAN_CUTI
+ */
+function updateCutiStatus(params) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    if (!params || (!params.cuti_id && !params.nik)) {
+      throw new Error('ID Pengajuan Cuti atau NIK wajib dicantumkan.');
+    }
+    const ss = getSS_();
+    const sh = ss.getSheetByName(CONFIG.SHEET_CUTI);
+    if (!sh || sh.getLastRow() < 2) {
+      throw new Error('Sheet ' + CONFIG.SHEET_CUTI + ' kosong.');
+    }
+
+    const lastCol = sh.getLastColumn();
+    const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+    const data = sh.getRange(2, 1, sh.getLastRow() - 1, lastCol).getValues();
+
+    let colId = -1, colNik = -1, colStatus = -1, colCatatan = -1, colApprovedBy = -1, colTglApprove = -1;
+    for (let c = 0; c < headers.length; c++) {
+      const h = String(headers[c]).trim().toUpperCase();
+      if (h === 'ID' || h.indexOf('ID') !== -1) colId = c;
+      if (h === 'NIK' || h.indexOf('NIK') !== -1) colNik = c;
+      if (h.indexOf('APPROVAL') !== -1 || h.indexOf('STATUS') !== -1) colStatus = c;
+      if (h.indexOf('CATATAN') !== -1) colCatatan = c;
+      if (h.indexOf('DISETUJUI') !== -1 || h.indexOf('APPROVER') !== -1) colApprovedBy = c;
+      if (h.indexOf('TGL APPROV') !== -1 || h.indexOf('TANGGAL APPROV') !== -1) colTglApprove = c;
+    }
+
+    const targetId = params.cuti_id ? String(params.cuti_id).trim() : '';
+    const targetNik = params.nik ? normalizeNikKey_(params.nik) : '';
+    const newStatus = params.keputusan || params.status || 'Disetujui';
+    const adminNik = params.admin_nik || 'Admin HR Pusat';
+    const catatan = params.catatan || ('Disahkan oleh ' + adminNik);
+    const nowStr = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss');
+
+    let rowUpdated = -1;
+    for (let r = data.length - 1; r >= 0; r--) {
+      const rowId = (colId !== -1) ? String(data[r][colId] || '').trim() : '';
+      const rowNik = (colNik !== -1) ? normalizeNikKey_(data[r][colNik]) : '';
+
+      let matched = false;
+      if (targetId && rowId && (rowId === targetId || targetId.indexOf(rowId) !== -1 || rowId.indexOf(targetId) !== -1)) {
+        matched = true;
+      } else if (!targetId && targetNik && rowNik === targetNik) {
+        matched = true;
+      }
+
+      if (matched) {
+        const sheetRow = r + 2;
+        if (colStatus !== -1) sh.getRange(sheetRow, colStatus + 1).setValue(newStatus);
+        if (colCatatan !== -1) sh.getRange(sheetRow, colCatatan + 1).setValue(catatan);
+        if (colApprovedBy !== -1) sh.getRange(sheetRow, colApprovedBy + 1).setValue(adminNik);
+        if (colTglApprove !== -1) sh.getRange(sheetRow, colTglApprove + 1).setValue(nowStr);
+        rowUpdated = sheetRow;
+        break;
+      }
+    }
+
+    if (rowUpdated === -1 && targetNik) {
+      for (let r = data.length - 1; r >= 0; r--) {
+        const rowNik = (colNik !== -1) ? normalizeNikKey_(data[r][colNik]) : '';
+        const currentStatus = (colStatus !== -1) ? String(data[r][colStatus] || '').trim() : '';
+        if (rowNik === targetNik && currentStatus.indexOf('Menunggu') !== -1) {
+          const sheetRow = r + 2;
+          if (colStatus !== -1) sh.getRange(sheetRow, colStatus + 1).setValue(newStatus);
+          if (colCatatan !== -1) sh.getRange(sheetRow, colCatatan + 1).setValue(catatan);
+          if (colApprovedBy !== -1) sh.getRange(sheetRow, colApprovedBy + 1).setValue(adminNik);
+          if (colTglApprove !== -1) sh.getRange(sheetRow, colTglApprove + 1).setValue(nowStr);
+          rowUpdated = sheetRow;
+          break;
+        }
+      }
+    }
+
+    return {
+      status: 'success',
+      success: true,
+      rowUpdated: rowUpdated,
+      message: 'Status cuti berhasil diubah menjadi [' + newStatus + '] di Google Sheets.'
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * SSOT Helper: Ambil Seluruh Data PENGAJUAN_CUTI untuk Dashboard Admin HR
+ */
+function getCutiAll() {
+  const ss = getSS_();
+  const sh = ss.getSheetByName(CONFIG.SHEET_CUTI);
+  if (!sh || sh.getLastRow() < 2) {
+    return {
+      status: 'success',
+      success: true,
+      headers: [],
+      rows: []
+    };
+  }
+  const lastRow = sh.getLastRow();
+  const lastCol = sh.getLastColumn();
+  const values = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  const headers = values[0].map(function(h) { return String(h || '').trim(); });
+  const rows = values.slice(1).map(function(row) {
+    return row.map(function(cell) {
+      if (cell instanceof Date) {
+        return Utilities.formatDate(cell, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss');
+      }
+      return String(cell !== null && cell !== undefined ? cell : '').trim();
+    });
+  });
+
+  return {
+    status: 'success',
+    success: true,
+    sheetName: sh.getName(),
+    headers: headers,
+    rows: rows
+  };
+}
+
+/**
+ * SSOT Helper: Ambil Whitelist Titik Koordinat & Toleransi WFH (MASTER_WFH)
+ */
+function getWFHWhitelist(targetNik) {
+  const ss = getSS_();
+  const sh = ss.getSheetByName(CONFIG.SHEET_WFH);
+  if (!sh || sh.getLastRow() < 2) {
+    return {
+      status: 'success',
+      success: true,
+      headers: [],
+      whitelist: []
+    };
+  }
+  const lastRow = sh.getLastRow();
+  const lastCol = sh.getLastColumn();
+  const values = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  const headers = values[0].map(function(h) { return String(h || '').trim(); });
+
+  let colNik = 1, colNama = 2, colAlamat = 3, colLat = 4, colLng = 5, colGps = 6, colRadius = 7, colStatus = 8;
+  for (let c = 0; c < headers.length; c++) {
+    const h = headers[c].toUpperCase();
+    if (h === 'NIK' || h.indexOf('NIK') !== -1) colNik = c;
+    else if (h.indexOf('NAMA') !== -1) colNama = c;
+    else if (h.indexOf('ALAMAT') !== -1) colAlamat = c;
+    else if (h.indexOf('LATITUDE') !== -1) colLat = c;
+    else if (h.indexOf('LONGITUDE') !== -1) colLng = c;
+    else if (h.indexOf('GPS') !== -1 || h.indexOf('KOORDINAT') !== -1) colGps = c;
+    else if (h.indexOf('RADIUS') !== -1) colRadius = c;
+    else if (h.indexOf('STATUS') !== -1) colStatus = c;
+  }
+
+  const cleanNik = targetNik ? normalizeNikKey_(targetNik) : '';
+  const list = [];
+  for (let r = 1; r < values.length; r++) {
+    const row = values[r];
+    const rNik = String(row[colNik] || '').trim();
+    if (!cleanNik || isNikMatch_(rNik, cleanNik)) {
+      let gpsVal = String(row[colGps] || '').trim();
+      if (!gpsVal && row[colLat] && row[colLng]) {
+        gpsVal = row[colLat] + ',' + row[colLng];
+      }
+      list.push({
+        nik: rNik,
+        nama: String(row[colNama] || '').trim(),
+        alamat: String(row[colAlamat] || '').trim(),
+        gps: gpsVal,
+        radius: parseInt(row[colRadius] || '100', 10) || 100,
+        status: String(row[colStatus] || 'AKTIF').trim()
+      });
+    }
+  }
+
+  return {
+    status: 'success',
+    success: true,
+    total: list.length,
+    whitelist: list
+  };
+}
+
+/**
+ * SSOT Helper: Ringkasan Metrik DASHBOARD dan Perhitungan Kehadiran Hari Ini
+ */
+function getDashboardSummary() {
+  const ss = getSS_();
+  let dashboardData = {
+    metrics: {},
+    rawRows: []
+  };
+
+  const shDash = ss.getSheetByName(CONFIG.SHEET_DASHBOARD || 'DASHBOARD');
+  if (shDash && shDash.getLastRow() >= 1) {
+    const lastRow = shDash.getLastRow();
+    const lastCol = shDash.getLastColumn();
+    const values = shDash.getRange(1, 1, lastRow, lastCol).getValues();
+    dashboardData.headers = values[0] || [];
+    dashboardData.rawRows = values.slice(1);
+  }
+
+  const now = new Date();
+  const todayYmd = Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd');
+  const shAbsen = ss.getSheetByName(CONFIG.SHEET_ABSENSI);
+  let totalMasuk = 0;
+  let totalPulang = 0;
+  let totalTerlambat = 0;
+  let totalWfh = 0;
+
+  if (shAbsen && shAbsen.getLastRow() >= 2) {
+    const aValues = shAbsen.getRange(2, 1, shAbsen.getLastRow() - 1, shAbsen.getLastColumn()).getValues();
+    const aHeaders = shAbsen.getRange(1, 1, 1, shAbsen.getLastColumn()).getValues()[0].map(function(h) { return String(h || '').toUpperCase(); });
+    const cTs = aHeaders.findIndex(function(h) { return h.indexOf('TIMESTAMP') !== -1; });
+    const cJenis = aHeaders.findIndex(function(h) { return h.indexOf('JENIS') !== -1; });
+    const cLokasi = aHeaders.findIndex(function(h) { return h.indexOf('LOKASI') !== -1; });
+    const cJam = aHeaders.findIndex(function(h) { return h.indexOf('JAM') !== -1; });
+
+    for (let i = 0; i < aValues.length; i++) {
+      const rawTs = aValues[i][cTs !== -1 ? cTs : 0];
+      let tglStr = '';
+      if (rawTs instanceof Date) {
+        tglStr = Utilities.formatDate(rawTs, 'Asia/Jakarta', 'yyyy-MM-dd');
+      } else {
+        tglStr = String(rawTs || '').slice(0, 10);
+      }
+
+      if (tglStr === todayYmd) {
+        const j = String(aValues[i][cJenis !== -1 ? cJenis : 5] || '').toLowerCase();
+        const lok = String(aValues[i][cLokasi !== -1 ? cLokasi : 6] || '').toUpperCase();
+        const jam = String(aValues[i][cJam !== -1 ? cJam : 10] || '');
+
+        if (j.indexOf('masuk') !== -1) {
+          totalMasuk++;
+          if (jam > '08:30:00') totalTerlambat++;
+          if (lok === 'WFH') totalWfh++;
+        }
+        if (j.indexOf('pulang') !== -1) {
+          totalPulang++;
+        }
+      }
+    }
+  }
+
+  let totalCutiPending = 0;
+  const shCuti = ss.getSheetByName(CONFIG.SHEET_CUTI);
+  if (shCuti && shCuti.getLastRow() >= 2) {
+    const cValues = shCuti.getRange(2, 1, shCuti.getLastRow() - 1, shCuti.getLastColumn()).getValues();
+    const cHeaders = shCuti.getRange(1, 1, 1, shCuti.getLastColumn()).getValues()[0].map(function(h) { return String(h || '').toUpperCase(); });
+    const cStat = cHeaders.findIndex(function(h) { return h.indexOf('STATUS') !== -1 || h.indexOf('APPROVAL') !== -1; });
+    for (let i = 0; i < cValues.length; i++) {
+      const st = String(cValues[i][cStat !== -1 ? cStat : 9] || '');
+      if (st.indexOf('Menunggu') !== -1) totalCutiPending++;
+    }
+  }
+
+  return {
+    status: 'success',
+    success: true,
+    tanggal: todayYmd,
+    zona_waktu: 'Asia/Jakarta (WIB)',
+    summary: {
+      total_karyawan_pusat: 22,
+      hadir_masuk: totalMasuk,
+      sudah_pulang: totalPulang,
+      belum_presensi: Math.max(0, 22 - totalMasuk),
+      terlambat: totalTerlambat,
+      wfh: totalWfh,
+      cuti_pending: totalCutiPending
+    },
+    dashboardData: dashboardData
+  };
+}
+
+/**
+ * SSOT Helper: Perbarui Alamat Email Karyawan di MASTER_KARYAWAN
+ */
+function updateEmailKaryawan(nik, email) {
+  if (!nik || !email) throw new Error('NIK dan Email wajib diisi.');
+  const cleanNik = normalizeNikKey_(nik);
+  const ss = getSS_();
+  const sh = ss.getSheetByName(CONFIG.SHEET_KARYAWAN);
+  if (!sh || sh.getLastRow() < 2) throw new Error('Sheet ' + CONFIG.SHEET_KARYAWAN + ' kosong.');
+
+  const lastCol = sh.getLastColumn();
+  const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  let colNik = -1, colEmail = -1;
+  for (let c = 0; c < headers.length; c++) {
+    const h = String(headers[c]).trim().toUpperCase();
+    if (h === 'NIK' || h.indexOf('NIK') !== -1) colNik = c + 1;
+    if (h.indexOf('EMAIL') !== -1 || h === 'GMAIL') colEmail = c + 1;
+  }
+  if (colEmail === -1) {
+    colEmail = lastCol + 1;
+    sh.getRange(1, colEmail).setValue('Email');
+  }
+
+  const data = sh.getRange(2, colNik, sh.getLastRow() - 1, 1).getValues();
+  for (let r = 0; r < data.length; r++) {
+    if (isNikMatch_(String(data[r][0]), cleanNik)) {
+      sh.getRange(r + 2, colEmail).setValue(email.trim());
+      return {
+        status: 'success',
+        success: true,
+        message: 'Email untuk NIK ' + cleanNik + ' berhasil diperbarui menjadi ' + email
+      };
+    }
+  }
+  throw new Error('Karyawan dengan NIK ' + cleanNik + ' tidak ditemukan.');
 }
