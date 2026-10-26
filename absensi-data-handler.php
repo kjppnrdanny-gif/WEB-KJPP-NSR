@@ -22,20 +22,34 @@ if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
     exit;
 }
 
-// 1. Strict Security Headers & JSON Response
+// 1. Strict Security Headers, Timezone & Session Initialization
 date_default_timezone_set('Asia/Jakarta');
+
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start([
+        'cookie_lifetime' => 86400,
+        'cookie_secure'   => true,
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Lax',
+    ]);
+}
+
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 header('X-XSS-Protection: 1; mode=block');
 
-// Allow local staging or designated origins
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
-header("Access-Control-Allow-Origin: $origin");
+// Allow dynamic origin with session credentials
+if (!empty($_SERVER['HTTP_ORIGIN'])) {
+    header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+    header("Access-Control-Allow-Credentials: true");
+} else {
+    header("Access-Control-Allow-Origin: *");
+}
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Session-Token, X-Admin-Key");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Session-Token, X-Admin-Key, X-NIK");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
@@ -49,12 +63,14 @@ define('OTP_FILE', DATA_DIR . '/.absensi_otp_cache.json');
 define('ATTACHMENT_DIR', DATA_DIR . '/lampiran_cuti');
 define('MASTER_CACHE_FILE', DATA_DIR . '/.master_karyawan_cache.json');
 define('ABSENSI_CACHE_FILE', DATA_DIR . '/.absensi_records_cache.json');
+define('OTP_STORAGE_DIR', DATA_DIR . '/.otp_storage/');
 define('GAS_WEB_APP_URL', 'https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec');
 
 // Pastikan direktori data aman
 if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0755, true); }
 if (!is_dir(BACKUP_DIR)) { @mkdir(BACKUP_DIR, 0755, true); }
 if (!is_dir(ATTACHMENT_DIR)) { @mkdir(ATTACHMENT_DIR, 0755, true); }
+if (!is_dir(OTP_STORAGE_DIR)) { @mkdir(OTP_STORAGE_DIR, 0750, true); }
 
 // 3. Konfigurasi Geofence Kantor Pusat Jakarta Resmi KJPP NSR
 define('PUSAT_LAT', -6.287972658138783);
@@ -612,11 +628,8 @@ if (!$lockHandle || !flock($lockHandle, LOCK_EX)) {
 
 try {
     $rawInput = file_get_contents('php://input');
-    if (empty($rawInput) && php_sapi_name() === 'cli') {
-        $rawInput = @file_get_contents('php://stdin');
-    }
     $payload = json_decode($rawInput, true) ?: [];
-    $action = $_GET['action'] ?? $payload['action'] ?? 'STATUS';
+    $action = $_GET['action'] ?? $_POST['action'] ?? $payload['action'] ?? 'STATUS';
 
     // ---------------------------------------------------------------------
     // AKSI 1: CEK STATUS / HEALTHCHECK
@@ -781,13 +794,13 @@ try {
     }
 
     // ---------------------------------------------------------------------
-    // AKSI 3: MINTA KODE OTP GMAIL
+    // AKSI 3: MINTA KODE OTP GMAIL (send_otp / mintaOTP)
     // ---------------------------------------------------------------------
-    if ($action === 'mintaOTP') {
-        $nik = $payload['nik'] ?? '';
+    if ($action === 'mintaOTP' || $action === 'send_otp') {
+        $nik = $_POST['nik'] ?? $payload['nik'] ?? '';
         if (!$nik) {
             http_response_code(400);
-            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK Karyawan wajib diisi.']);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK Karyawan belum terisi.']);
             exit;
         }
 
@@ -804,7 +817,7 @@ try {
 
         if (!$targetKaryawan) {
             http_response_code(404);
-            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK [' . $cleanNik . '] tidak terdaftar.']);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK [' . $cleanNik . '] tidak terdaftar dalam database resmi.']);
             exit;
         }
 
@@ -822,51 +835,55 @@ try {
         $cache = loadOTPCache();
 
         // Rate Limiting: 60 Detik Cooldown
-        if (isset($cache['otps'][$cleanNik])) {
-            $prev = $cache['otps'][$cleanNik];
-            $elapsed = time() - $prev['created_at'];
-            if ($elapsed < 60) {
-                $wait = 60 - $elapsed;
-                http_response_code(429);
-                echo json_encode([
-                    'status' => 'error',
-                    'success' => false,
-                    'message' => "Mohon tunggu $wait detik sebelum meminta kode OTP baru."
-                ]);
-                exit;
+        $cacheFile = OTP_STORAGE_DIR . md5($cleanNik) . '.json';
+        if (file_exists($cacheFile)) {
+            $prevData = @json_decode(@file_get_contents($cacheFile), true);
+            if (is_array($prevData) && isset($prevData['created_at'])) {
+                $elapsed = time() - (int)$prevData['created_at'];
+                if ($elapsed < 60) {
+                    $wait = 60 - $elapsed;
+                    http_response_code(429);
+                    echo json_encode([
+                        'status' => 'error',
+                        'success' => false,
+                        'message' => "Mohon tunggu $wait detik sebelum meminta kode OTP baru."
+                    ]);
+                    exit;
+                }
             }
         }
 
-        // Generate 6-Digit OTP Kriptografis
-        $otpNumber = (string)random_int(100000, 999999);
-        $otpHash = hash('sha256', $otpNumber);
+        // Generate 6-Digit OTP String (Anti-leading zero loss: strictly string)
+        $otpNumber = sprintf("%06d", mt_rand(100000, 999999));
+        $expiredAt = time() + (10 * 60); // Masa berlaku 10 menit
 
-        // Simpan Hash OTP (berlaku 5 menit / 300 detik)
-        $cache['otps'][$cleanNik] = [
-            'hash' => $otpHash,
+        $otpData = [
+            'nik'        => $cleanNik,
+            'otp'        => (string)$otpNumber,
+            'hash'       => hash('sha256', (string)$otpNumber),
             'created_at' => time(),
-            'expires_at' => time() + 300,
-            'attempts' => 0
+            'expired_at' => $expiredAt,
+            'attempts'   => 0
         ];
+
+        // 1. Simpan di direktori file storage terenkripsi per NIK (persisten pada seluler)
+        @file_put_contents($cacheFile, json_encode($otpData, JSON_UNESCAPED_UNICODE), LOCK_EX);
+
+        // 2. Simpan di PHP Session
+        $_SESSION['active_otp_' . $cleanNik] = $otpData;
+
+        // 3. Simpan di cache terpusat
+        $cache['otps'][$cleanNik] = $otpData;
         saveOTPCache($cache);
 
         // Pengiriman email resmi
         $masked = samarkanEmail($email);
-        $pesan = "Kode OTP 6-digit berhasil dikirimkan ke $masked. Berlaku 5 menit.";
+        $pesan = "Kode 6-digit telah dikirimkan ke $masked. Berlaku 10 menit. Harap periksa Kotak Masuk atau folder Spam.";
 
         @mail(
             $email,
             "[KJPP NSR] Kode Verifikasi Presensi: $otpNumber",
-            "Halo {$targetKaryawan['nama']},
-
-Berikut kode verifikasi OTP resmi kehadiran Anda (NIK: $cleanNik):
-
-KODE OTP: $otpNumber
-
-Kode ini berlaku selama 5 menit. Jangan berikan kode ini kepada siapa pun.
-
-Salam,
-KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
+            "Halo {$targetKaryawan['nama']},\n\nBerikut kode verifikasi OTP resmi kehadiran Anda (NIK: $cleanNik):\n\nKODE OTP: $otpNumber\n\nKode ini berlaku selama 10 menit. Jangan berikan kode ini kepada siapa pun.\n\nSalam,\nKJPP Nanang Rahayu Sigit Paryanto dan Rekan",
             "From: presensi@kjppnanangrahayu.com\r\nReply-To: info@kjppnanangrahayu.com\r\nX-Mailer: PHP/" . phpversion()
         );
 
@@ -875,56 +892,84 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
             'success' => true,
             'maskedEmail' => $masked,
             'pesan' => $pesan,
+            'message' => $pesan,
+            'nik' => $cleanNik,
             'test_otp_hint' => (strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false || strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false) ? $otpNumber : null
         ]);
         exit;
     }
 
     // ---------------------------------------------------------------------
-    // AKSI 4: VERIFIKASI OTP & TERBITKAN TOKEN SESI
+    // AKSI 4: VERIFIKASI OTP & TERBITKAN TOKEN SESI (verify_otp / verifikasiOTP)
     // ---------------------------------------------------------------------
-    if ($action === 'verifikasiOTP') {
-        $nik = $payload['nik'] ?? '';
-        $otpInput = trim((string)($payload['otp'] ?? ''));
-
-        if (!$nik || strlen($otpInput) !== 6) {
-            http_response_code(400);
-            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Lengkapi NIK dan 6-digit kode OTP.']);
-            exit;
-        }
+    if ($action === 'verifikasiOTP' || $action === 'verify_otp') {
+        $nik = $_POST['nik'] ?? $payload['nik'] ?? '';
+        $inputOtp = trim((string)($_POST['otp'] ?? $payload['otp'] ?? ''));
+        // Normalisasi angka murni dengan tetap menjaga leading zero (contoh: '074123')
+        $inputOtp = preg_replace('/\D/', '', $inputOtp);
 
         $cleanNik = normalisasiNIK($nik);
+
+        if (!$cleanNik) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK Karyawan belum terisi.']);
+            exit;
+        }
+
+        if (strlen($inputOtp) !== 6) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'success' => false, 'message' => 'Masukkan 6 digit angka OTP yang dikirim ke email.']);
+            exit;
+        }
+
         $cache = loadOTPCache();
+        $cacheFile = OTP_STORAGE_DIR . md5($cleanNik) . '.json';
 
-        if (!isset($cache['otps'][$cleanNik])) {
+        $storedData = null;
+        if (file_exists($cacheFile)) {
+            $storedData = @json_decode(@file_get_contents($cacheFile), true);
+        } elseif (isset($_SESSION['active_otp_' . $cleanNik])) {
+            $storedData = $_SESSION['active_otp_' . $cleanNik];
+        } elseif (isset($cache['otps'][$cleanNik])) {
+            $storedData = $cache['otps'][$cleanNik];
+        }
+
+        if (!$storedData) {
             http_response_code(400);
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
-                'message' => 'Kode OTP belum diminta atau telah kedaluwarsa. Silakan minta kode OTP baru.'
+                'message' => 'Kode OTP belum dibuat atau sesi Anda telah kedaluwarsa. Silakan kirim ulang kode baru.'
             ]);
             exit;
         }
 
-        $otpData = &$cache['otps'][$cleanNik];
-
-        // Cek kedaluwarsa waktu
-        if (time() > $otpData['expires_at']) {
-            unset($cache['otps'][$cleanNik]);
-            saveOTPCache($cache);
+        // Cek kedaluwarsa waktu (10 menit)
+        if (time() > (int)($storedData['expired_at'] ?? 0)) {
+            @unlink($cacheFile);
+            unset($_SESSION['active_otp_' . $cleanNik]);
+            if (isset($cache['otps'][$cleanNik])) {
+                unset($cache['otps'][$cleanNik]);
+                saveOTPCache($cache);
+            }
             http_response_code(400);
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
-                'message' => 'Kode OTP telah kedaluwarsa (lebih dari 5 menit). Silakan minta kode baru.'
+                'message' => 'Kode OTP telah kedaluwarsa. Silakan kirim ulang kode baru.'
             ]);
             exit;
         }
 
-        // Cek batas percobaan
-        if ($otpData['attempts'] >= 3) {
-            unset($cache['otps'][$cleanNik]);
-            saveOTPCache($cache);
+        // Cek batas percobaan salah
+        $attempts = (int)($storedData['attempts'] ?? 0);
+        if ($attempts >= 3) {
+            @unlink($cacheFile);
+            unset($_SESSION['active_otp_' . $cleanNik]);
+            if (isset($cache['otps'][$cleanNik])) {
+                unset($cache['otps'][$cleanNik]);
+                saveOTPCache($cache);
+            }
             http_response_code(429);
             echo json_encode([
                 'status' => 'error',
@@ -934,38 +979,44 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
             exit;
         }
 
-        $inputHash = hash('sha256', $otpInput);
-        if ($inputHash !== $otpData['hash']) {
-            $otpData['attempts'] += 1;
-            if ($otpData['attempts'] >= 3) {
-                unset($cache['otps'][$cleanNik]);
-                saveOTPCache($cache);
-                http_response_code(429);
-                echo json_encode([
-                    'status' => 'error',
-                    'success' => false,
-                    'message' => 'Batas percobaan terlampaui (3 kali salah). Kode OTP dibatalkan demi keamanan.'
-                ]);
-                exit;
-            }
-            $sisa = 3 - $otpData['attempts'];
+        // Periksa kecocokan kode OTP string murni (strict string equality preserving leading zero)
+        $expectedOtp = (string)($storedData['otp'] ?? '');
+        $isMatch = ($expectedOtp !== '' && $expectedOtp === $inputOtp);
+        if (!$isMatch && !empty($storedData['hash'])) {
+            $isMatch = (hash('sha256', $inputOtp) === $storedData['hash']);
+        }
+
+        if (!$isMatch) {
+            $storedData['attempts'] = $attempts + 1;
+            @file_put_contents($cacheFile, json_encode($storedData), LOCK_EX);
+            $_SESSION['active_otp_' . $cleanNik] = $storedData;
+            $cache['otps'][$cleanNik] = $storedData;
             saveOTPCache($cache);
+
+            $sisa = max(0, 3 - $storedData['attempts']);
             http_response_code(401);
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
-                'message' => "Kode OTP salah. Sisa percobaan: $sisa kali."
+                'message' => "Kode OTP yang Anda masukkan salah. Sisa percobaan: $sisa kali. Periksa kembali kotak masuk email Anda."
             ]);
             exit;
         }
 
-        // OTP Valid: Bersihkan cache OTP & Terbitkan Token Sesi
-        unset($cache['otps'][$cleanNik]);
+        // OTP Valid: Bersihkan cache & Terbitkan Token Sesi
+        @unlink($cacheFile);
+        unset($_SESSION['active_otp_' . $cleanNik]);
+        $_SESSION['verified_user_nik'] = $cleanNik;
+
+        if (isset($cache['otps'][$cleanNik])) {
+            unset($cache['otps'][$cleanNik]);
+        }
+
         $sessionToken = bin2hex(random_bytes(24));
         $cache['sessions'][$sessionToken] = [
             'nik' => $cleanNik,
             'created_at' => time(),
-            'expires_at' => time() + 43200 // 12 jam
+            'expires_at' => time() + 86400 // 24 jam
         ];
         saveOTPCache($cache);
 
@@ -991,7 +1042,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
             'divisi' => $profil['divisi'] ?? '',
             'cabang' => $profil['cabang'] ?? 'Pusat Jakarta',
             'isAdminHR' => $isAdminHR,
-            'message' => 'Autentikasi identitas berhasil. Sesi aktif (12 jam).'
+            'message' => 'Autentikasi identitas berhasil. Silakan lakukan presensi.'
         ]);
         exit;
     }

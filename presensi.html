@@ -227,7 +227,7 @@
             <p class="text-[10px] text-slate-400 truncate">Verifikasi identitas karyawan via email pribadi resmi</p>
           </div>
         </div>
-        <span id="auth-status-pill" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30 shrink-0">Belum Terverifikasi</span>
+        <span id="auth-status-pill" data-badge="badge-status-autentikasi" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30 shrink-0">Belum Terverifikasi</span>
       </div>
 
       <!-- FORM LOGIN NIK & OTP (JIKA BELUM TERVERIFIKASI) -->
@@ -260,7 +260,7 @@
             </label>
             <div class="flex gap-2">
               <input type="text" id="auth-otp-input" maxlength="6" placeholder="• • • • • •" inputmode="numeric" autocomplete="one-time-code" class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-center text-sm font-mono font-bold tracking-widest focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400/20 transition">
-              <button type="button" id="btn-verif-otp" onclick="eksekusiVerifOTP()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs shadow-md transition btn-tactile cursor-pointer disabled:opacity-50 whitespace-nowrap">
+              <button type="button" id="btn-verif-otp" onclick="eksekusiVerifikasiOTP()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs shadow-md transition btn-tactile cursor-pointer disabled:opacity-50 whitespace-nowrap">
                 Verifikasi
               </button>
             </div>
@@ -1176,14 +1176,14 @@
       });
     }
 
-    // 8. MINTA KODE OTP GMAIL
+    // 8. MINTA KODE OTP GMAIL (send_otp)
     async function eksekusiMintaOTP() {
       const input = document.getElementById('auth-nik-input');
       const btn = document.getElementById('btn-minta-otp');
       const resendBtn = document.getElementById('btn-resend-otp');
 
-      const nik = input ? input.value.trim().toUpperCase() : "";
-      if (!nik) {
+      const cleanNik = (input?.value || '').trim().toUpperCase();
+      if (!cleanNik) {
         bukaModalNotif("Perhatian ⚠️", "Harap masukkan NIK Karyawan terlebih dahulu!", false);
         if (input) input.focus();
         return;
@@ -1194,7 +1194,28 @@
       if (resendBtn) resendBtn.disabled = true;
 
       try {
-        const res = await callBackend('mintaOTP', { nik });
+        const payload = new FormData();
+        payload.append('action', 'send_otp');
+        payload.append('nik', cleanNik);
+
+        let res = null;
+        try {
+          const response = await fetch('backend/absensi-data-handler.php', {
+            method: 'POST',
+            body: payload,
+            credentials: 'include'
+          });
+          if (response.ok) {
+            res = await response.json();
+          }
+        } catch (e) {
+          console.warn('[Direct fetch fallback to callBackend]:', e.message);
+        }
+
+        if (!res) {
+          res = await callBackend('mintaOTP', { nik: cleanNik });
+        }
+
         btn.disabled = false;
         btn.textContent = "Kirim OTP";
 
@@ -1204,18 +1225,22 @@
         }
 
         const data = (res && res.data) ? res.data : res;
-        document.getElementById('auth-box-otp-input').classList.remove('hidden');
-        document.getElementById('auth-target-email').textContent = data.maskedEmail || res.maskedEmail || 'Gmail Anda';
+        const boxOtp = document.getElementById('auth-box-otp-input');
+        if (boxOtp) boxOtp.classList.remove('hidden');
+        const targetEmailEl = document.getElementById('auth-target-email');
+        if (targetEmailEl) targetEmailEl.textContent = data.maskedEmail || res.maskedEmail || 'Gmail Anda';
         
-        const pill = document.getElementById('auth-status-pill');
-        pill.textContent = 'Menunggu OTP';
-        pill.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-sky-500/10 text-sky-300 border border-sky-500/30 shrink-0';
+        const pill = document.getElementById('auth-status-pill') || document.getElementById('badge-status-autentikasi');
+        if (pill) {
+          pill.textContent = 'Menunggu OTP';
+          pill.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-sky-500/10 text-sky-300 border border-sky-500/30 shrink-0';
+        }
 
         mulaiCooldownOTP(60);
 
         bukaModalNotif(
           "Kode OTP Berhasil Dikirim 📩",
-          res.pesan || res.message || `Kode 6-digit telah dikirimkan ke ${data.maskedEmail || 'Gmail Anda'}. Harap periksa Kotak Masuk atau folder Spam.`
+          res.pesan || res.message || `Kode 6-digit telah dikirimkan ke ${data.maskedEmail || 'Gmail Anda'}. Berlaku 10 menit. Harap periksa Kotak Masuk atau folder Spam.`
         );
 
         const otpInput = document.getElementById('auth-otp-input');
@@ -1252,54 +1277,136 @@
       }, 1000);
     }
 
-    // 9. VERIFIKASI KODE OTP
-    async function eksekusiVerifOTP() {
-      const nik = document.getElementById('auth-nik-input').value.trim().toUpperCase();
-      const otpInput = document.getElementById('auth-otp-input');
-      const btn = document.getElementById('btn-verif-otp');
+    // 9. VERIFIKASI KODE OTP (verify_otp / eksekusiVerifikasiOTP)
+    async function eksekusiVerifikasiOTP() {
+      const elNik = document.getElementById('auth-nik-input');
+      const elOtp = document.getElementById('auth-otp-input');
+      const btnVerif = document.getElementById('btn-verifikasi-otp') || document.getElementById('btn-verif-otp');
 
-      const otp = otpInput ? otpInput.value.trim() : "";
-      if (!nik || !otp || otp.length !== 6) {
-        bukaModalNotif("Perhatian ⚠️", "Harap masukkan 6-digit kode OTP dengan lengkap!", false);
-        if (otpInput) otpInput.focus();
+      const cleanNik = (elNik?.value || '').trim().toUpperCase();
+      const cleanOtp = (elOtp?.value || '').replace(/\D/g, '').trim();
+
+      if (!cleanNik) {
+        bukaModalNotif('Perhatian ⚠️', 'NIK Karyawan belum terisi.', false);
+        if (elNik) elNik.focus();
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = "Memverifikasi...";
+      if (cleanOtp.length !== 6) {
+        bukaModalNotif('Perhatian ⚠️', 'Masukkan 6 digit angka OTP yang dikirim ke email.', false);
+        if (elOtp) elOtp.focus();
+        return;
+      }
+
+      if (btnVerif) {
+        btnVerif.disabled = true;
+        btnVerif.textContent = 'Memverifikasi...';
+      }
 
       try {
-        const res = await callBackend('verifikasiOTP', { nik, otp });
-        btn.disabled = false;
-        btn.textContent = "Verifikasi";
+        const payload = new FormData();
+        payload.append('action', 'verify_otp');
+        payload.append('nik', cleanNik);
+        payload.append('otp', cleanOtp);
 
-        if (res && (res.status === 'error' || res.success === false)) {
-          bukaModalNotif("Verifikasi Gagal ❌", res.message || "Kode OTP salah atau telah kedaluwarsa.", false);
-          return;
+        let result = null;
+        try {
+          const response = await fetch('backend/absensi-data-handler.php', {
+            method: 'POST',
+            body: payload,
+            credentials: 'include'
+          });
+          if (response.ok) {
+            result = await response.json();
+          }
+        } catch (e) {
+          console.warn('[Direct backend/ fetch failed, falling back to callBackend]:', e.message);
         }
 
-        const data = (res && res.data) ? res.data : res;
+        if (!result) {
+          result = await callBackend('verifikasiOTP', { nik: cleanNik, otp: cleanOtp });
+        }
 
-        sessionToken = res.sessionToken || data.sessionToken || ('TOKEN_' + Date.now());
-        sessionNik = nik;
-        sessionUser = {
-          nama: data.nama || res.nama,
-          jabatan: data.jabatan || res.jabatan,
-          divisi: data.divisi || res.divisi,
-          cabang: data.cabang || res.cabang || 'Pusat Jakarta',
-          isAdminHR: Boolean(data.isAdminHR !== undefined ? data.isAdminHR : res.isAdminHR),
-          maskedEmail: data.maskedEmail || res.maskedEmail || ''
-        };
+        if (result && (result.success || result.status === 'success')) {
+          const data = result.data || result;
+          sessionToken = result.sessionToken || data.sessionToken || ('TOKEN_' + Date.now());
+          sessionNik = cleanNik;
+          sessionUser = {
+            nama: data.nama || result.nama,
+            jabatan: data.jabatan || result.jabatan,
+            divisi: data.divisi || result.divisi,
+            cabang: data.cabang || result.cabang || 'Pusat Jakarta',
+            isAdminHR: Boolean(data.isAdminHR !== undefined ? data.isAdminHR : result.isAdminHR),
+            maskedEmail: data.maskedEmail || result.maskedEmail || ''
+          };
 
-        pasangStateTerverifikasi();
-        bukaModalNotif("Autentikasi Berhasil ✅", res.message || "Identitas Anda berhasil diverifikasi. Sesi aktif 12 jam.");
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = "Verifikasi";
-        bukaModalNotif("Verifikasi Gagal ❌", err.message || "Kode OTP salah atau telah kedaluwarsa.", false);
+          sessionStorage.setItem('nsr_presensi_active_nik', cleanNik);
+          sessionStorage.setItem('nsr_presensi_verified', 'true');
+          sessionStorage.setItem('nsr_presensi_session_token', sessionToken);
+          sessionStorage.setItem('nsr_presensi_session_nik', cleanNik);
+          sessionStorage.setItem('nsr_presensi_session_user', JSON.stringify(sessionUser));
+          if (sessionUser.isAdminHR) {
+            sessionStorage.setItem('nsr_hr_unlocked', 'true');
+          }
+
+          // Update Status Badges
+          const badgeStatus = document.getElementById('badge-status-autentikasi') || document.getElementById('auth-status-pill');
+          if (badgeStatus) {
+            badgeStatus.textContent = 'TERVERIFIKASI';
+            badgeStatus.className = 'px-3 py-1 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+          }
+
+          // Update Info Panels
+          const unverifiedBox = document.getElementById('auth-box-unverified');
+          if (unverifiedBox) unverifiedBox.classList.add('hidden');
+
+          const verifiedBox = document.getElementById('auth-box-verified');
+          if (verifiedBox) {
+            verifiedBox.classList.remove('hidden');
+            const vNama = document.getElementById('verified-karyawan-nama');
+            if (vNama) vNama.textContent = sessionUser.nama;
+            const vSub = document.getElementById('verified-karyawan-sub');
+            if (vSub) vSub.textContent = `${cleanNik} • ${sessionUser.jabatan} • ${sessionUser.divisi}`;
+            const vEmail = document.getElementById('verified-karyawan-email');
+            if (vEmail) vEmail.textContent = `Kantor: ${sessionUser.cabang}`;
+          }
+
+          document.getElementById('panel-form-presensi')?.classList.remove('hidden');
+          document.getElementById('panel-lock-message')?.classList.add('hidden');
+
+          // Buka panel form presensi
+          const pAbsen = document.getElementById("panelAbsensi");
+          if (pAbsen) pAbsen.classList.remove("hidden");
+
+          // Tampilkan Tab Admin HR jika user berwenang
+          const bDash = document.getElementById('tab-btn-dashboard');
+          if (bDash && sessionUser.isAdminHR) {
+            bDash.classList.remove('hidden');
+          }
+
+          if (typeof pasangStateTerverifikasi === 'function') {
+            pasangStateTerverifikasi();
+          }
+
+          bukaModalNotif('Autentikasi Berhasil ✅', 'Autentikasi identitas berhasil. Silakan lakukan presensi.');
+        } else {
+          bukaModalNotif('Verifikasi Gagal ❌', (result && result.message) || 'Kode OTP tidak cocok atau telah kedaluwarsa.', false);
+          if (elOtp) {
+            elOtp.value = '';
+            elOtp.focus();
+          }
+        }
+      } catch (error) {
+        bukaModalNotif('Gangguan Jaringan ⚠️', 'Terjadi gangguan jaringan saat memverifikasi OTP. Silakan coba kembali.', false);
+      } finally {
+        if (btnVerif) {
+          btnVerif.disabled = false;
+          btnVerif.textContent = 'Verifikasi';
+        }
       }
     }
 
+    const eksekusiVerifOTP = eksekusiVerifikasiOTP;
 
     // =========================================================================
     // ENHANCEMENT: DIRECT ROLE BYPASS ADMIN HR (NSR-2019-005 & NSR8899)
@@ -2446,6 +2553,9 @@
   
 
     // Pastikan seluruh fungsi Admin HR & utilitas terekspos ke window
+    window.eksekusiVerifikasiOTP = eksekusiVerifikasiOTP;
+    window.eksekusiVerifOTP = eksekusiVerifikasiOTP;
+    window.eksekusiMintaOTP = eksekusiMintaOTP;
     window.cekStatusOtoritasAdminHR = cekStatusOtoritasAdminHR;
     window.gantiSubTabHR = gantiSubTabHR;
     window.muatDashboardHR = muatDashboardHR;
