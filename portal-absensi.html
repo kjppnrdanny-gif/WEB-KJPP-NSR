@@ -938,7 +938,7 @@
           body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
+        if (res.status < 500) {
           const json = await res.json();
           return json;
         }
@@ -991,6 +991,10 @@
       if (bDashboard) bDashboard.className = "tab-btn py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1 border border-transparent";
       
       if (mode === 'dashboard') {
+        if (!sessionToken || !sessionUser || !sessionUser.isAdminHR) {
+          bukaModalNotif("Akses Terbatas ⚠️", "Dashboard Admin HR hanya dapat diakses oleh pejabat berwenang (SDM, Pemimpin Rekan, Keuangan) setelah verifikasi NIK & OTP Gmail.", false);
+          return;
+        }
         const pAbsen = document.getElementById("panelAbsensi");
         const pWFH = document.getElementById("panelWFH");
         const pCuti = document.getElementById("panelCuti");
@@ -1249,6 +1253,7 @@
           jabatan: data.jabatan || res.jabatan,
           divisi: data.divisi || res.divisi,
           cabang: data.cabang || res.cabang || 'Pusat Jakarta',
+          isAdminHR: Boolean(data.isAdminHR !== undefined ? data.isAdminHR : res.isAdminHR),
           maskedEmail: data.maskedEmail || res.maskedEmail || ''
         };
 
@@ -1925,7 +1930,15 @@
     }
 
     async function muatDashboardHR() {
+      const monList = document.getElementById('hr-monitoring-list');
       if (!sessionToken) {
+        if (monList) {
+          monList.innerHTML = `<div class="p-4 rounded-xl bg-slate-950 border border-amber-500/30 text-center space-y-2">
+            <span class="text-2xl">🔒</span>
+            <p class="text-xs text-amber-300 font-bold">Akses Terbatas Khusus Pejabat Admin HR</p>
+            <p class="text-[11px] text-slate-400">Silakan masukkan NIK pejabat berwenang dan verifikasi kode OTP Gmail di panel atas.</p>
+          </div>`;
+        }
         bukaModalNotif("Akses Terbatas ⚠️", "Silakan verifikasi OTP terlebih dahulu.", false);
         return;
       }
@@ -1937,8 +1950,15 @@
           tanggal: new Date().toISOString().split('T')[0]
         });
 
-        if (!res.success) {
-          bukaModalNotif("Akses HR Ditolak ⚠️", res.message || "Anda tidak memiliki wewenang Admin HR.", false);
+        if (!res || !res.success) {
+          if (monList) {
+            monList.innerHTML = `<div class="p-4 rounded-xl bg-slate-950 border border-rose-500/30 text-center space-y-2">
+              <span class="text-2xl">🚫</span>
+              <p class="text-xs text-rose-300 font-bold">Akses Ditolak</p>
+              <p class="text-[11px] text-slate-400">${(res && res.message) || 'Anda tidak memiliki wewenang Admin HR.'}</p>
+            </div>`;
+          }
+          bukaModalNotif("Akses HR Ditolak ⚠️", (res && res.message) || "Anda tidak memiliki wewenang Admin HR.", false);
           gantiMode('absen');
           return;
         }
@@ -2043,6 +2063,13 @@
         }
 
       } catch (err) {
+        if (monList) {
+          monList.innerHTML = `<div class="p-4 rounded-xl bg-slate-950 border border-rose-500/30 text-center space-y-2">
+            <span class="text-2xl">⚠️</span>
+            <p class="text-xs text-rose-300 font-bold">Kendala Memuat Dashboard HR</p>
+            <p class="text-[11px] text-slate-400">${err.message || 'Kendala koneksi ke server.'}</p>
+          </div>`;
+        }
         bukaModalNotif("Gagal Memuat Dashboard ❌", err.message || "Kendala koneksi ke server.", false);
       }
     }

@@ -361,7 +361,7 @@ function validasiSesiKaryawan($sessionToken, $nik) {
 function cekOtorisasiAdminHR($sessionToken, $nik = '') {
     global $ADMIN_HR_NIKS;
     
-    // Cek token sesi presensi
+    // 1. Cek token sesi presensi OTP
     if ($sessionToken) {
         $cache = loadOTPCache();
         if (isset($cache['sessions'][$sessionToken])) {
@@ -373,9 +373,27 @@ function cekOtorisasiAdminHR($sessionToken, $nik = '') {
                 }
             }
         }
+
+        // 2. Cek token sesi portal operasional OPINI NSR
+        $opiniSessionsFile = __DIR__ . '/data/sessions/active_sessions.json';
+        if (file_exists($opiniSessionsFile)) {
+            $opiniData = @json_decode(@file_get_contents($opiniSessionsFile), true);
+            if (is_array($opiniData) && isset($opiniData[$sessionToken])) {
+                $oSess = $opiniData[$sessionToken];
+                if (($oSess['expiresAt'] ?? 0) >= time() * 1000) {
+                    $u = $oSess['user'] ?? [];
+                    $uId = strtolower($u['username'] ?? $u['sub'] ?? '');
+                    $uRole = strtoupper($u['role'] ?? '');
+                    $uNik = normalisasiNIK($u['nik'] ?? '');
+                    if ($uId === 'super_admin_king' || $uRole === 'SUPER_ADMIN' || in_array($uNik, $ADMIN_HR_NIKS, true)) {
+                        return true;
+                    }
+                }
+            }
+        }
     }
     
-    // Cek jika ada autentikasi OPINI (SUPER_ADMIN / KING)
+    // 3. Cek jika ada autentikasi OPINI via session cookie PHP (SUPER_ADMIN / KING)
     if (session_status() === PHP_SESSION_NONE) {
         @session_start();
     }
