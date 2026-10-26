@@ -23,6 +23,7 @@ if (isset($_GET['token']) || isset($_GET['key']) || isset($_GET['auth'])) {
 }
 
 // 1. Strict Security Headers & JSON Response
+date_default_timezone_set('Asia/Jakarta');
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
@@ -253,6 +254,33 @@ function getDatabaseStructure() {
         'absensi' => [],
         'pengajuan_cuti' => []
     ];
+}
+
+
+// Helper Normalisasi Format Tanggal Fleksibel (ISO YYYY-MM-DD, Slash DD/MM/YYYY, Timestamp)
+function normalisasiTanggalYmd($tglRaw) {
+    if (!$tglRaw) return '';
+    $raw = trim((string)$tglRaw);
+    if (strpos($raw, ' ') !== false) {
+        $parts = explode(' ', $raw);
+        $raw = trim($parts[0]);
+    }
+    if (strpos($raw, 'T') !== false) {
+        $parts = explode('T', $raw);
+        $raw = trim($parts[0]);
+    }
+    if (preg_match('/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/', $raw, $m)) {
+        return sprintf('%04d-%02d-%02d', (int)$m[1], (int)$m[2], (int)$m[3]);
+    }
+    if (preg_match('/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/', $raw, $m)) {
+        return sprintf('%04d-%02d-%02d', (int)$m[3], (int)$m[2], (int)$m[1]);
+    }
+    try {
+        $dt = new DateTime($raw, new DateTimeZone('Asia/Jakarta'));
+        return $dt->format('Y-m-d');
+    } catch (\Exception $e) {
+        return $raw;
+    }
 }
 
 function loadDatabase() {
@@ -1232,11 +1260,11 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
     }
 
     // ---------------------------------------------------------------------
-    // AKSI 9: DASHBOARD ADMIN HR KANTOR PUSAT
+    // AKSI 9: DASHBOARD ADMIN HR KANTOR PUSAT & MONITORING REAL-TIME
     // ---------------------------------------------------------------------
-    if ($action === 'getDashboardHR') {
-        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
-        $nik = $payload['nik'] ?? '';
+    if ($action === 'getDashboardHR' || $action === 'get_today_attendance' || $action === 'monitoring_hari_ini') {
+        $sessionToken = $payload['sessionToken'] ?? $_SERVER['HTTP_X_SESSION_TOKEN'] ?? $_SERVER['HTTP_X_ADMIN_KEY'] ?? '';
+        $nik = $payload['nik'] ?? $_SERVER['HTTP_X_NIK'] ?? '';
 
         if (!cekOtorisasiAdminHR($sessionToken, $nik)) {
             http_response_code(403);
@@ -1251,7 +1279,8 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
         $db = loadDatabase();
         $tzObj = new DateTimeZone('Asia/Jakarta');
         $nowWib = new DateTime('now', $tzObj);
-        $tglFilter = $payload['tanggal'] ?? $nowWib->format('Y-m-d');
+        $tglFilterRaw = $payload['tanggal'] ?? $nowWib->format('Y-m-d');
+        $tglTargetYmd = normalisasiTanggalYmd($tglFilterRaw);
 
         $karyawanPusat = [];
         $nikPusatSet = [];
@@ -1272,16 +1301,17 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
         $transaksiHariIni = [];
 
         foreach ($db['absensi'] as $rec) {
-            if ($rec['tanggal'] === $tglFilter) {
+            $recTgl = normalisasiTanggalYmd($rec['tanggal'] ?? $rec['timestamp'] ?? $rec['tgl'] ?? '');
+            if ($recTgl === $tglTargetYmd) {
                 $transaksiHariIni[] = $rec;
                 $rNik = normalisasiNIK($rec['nik']);
-                if ($rec['jenis'] === 'Masuk') {
+                if (($rec['jenis'] ?? '') === 'Masuk') {
                     $hadirMasukNiks[$rNik] = true;
                     if (!empty($rec['is_terlambat'])) {
                         $terlambatNiks[$rNik] = true;
                     }
                 }
-                if ($rec['jenis'] === 'Pulang') {
+                if (($rec['jenis'] ?? '') === 'Pulang') {
                     $sudahPulangNiks[$rNik] = true;
                 }
                 if (($rec['lokasi'] ?? '') === 'WFH') {
@@ -1319,7 +1349,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
         echo json_encode([
             'status' => 'success',
             'success' => true,
-            'tanggal' => $tglFilter,
+            'tanggal' => $tglTargetYmd,
             'ringkasan' => [
                 'total_karyawan_pusat' => count($karyawanPusat),
                 'hadir_masuk' => count($hadirMasukNiks),

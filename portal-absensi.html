@@ -664,7 +664,7 @@
         <!-- 1. Sub-Tab Monitoring Real-Time -->
         <div id="hr-subpanel-monitoring" class="space-y-3">
           <div class="flex items-center justify-between text-xs">
-            <span class="text-slate-400">Transaksi Kehadiran Tanggal: <strong id="hr-monitoring-tgl" class="text-white"></strong></span>
+            <span class="text-slate-400">Transaksi Kehadiran Tanggal: <strong id="hr-monitoring-tgl" class="text-white"></strong><span id="label-tanggal-transaksi" class="hidden"></span></span>
           </div>
           <div id="hr-monitoring-list" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
             <p class="text-xs text-slate-500 text-center py-4">Memuat data monitoring kehadiran...</p>
@@ -933,11 +933,15 @@
 
       // 1. Coba Backend SSOT Proxy (Netlify Serverless / Apache)
       try {
+        const tokenHdr = payload.sessionToken || sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') || atob('TlNSODg5OQ==');
+        const nikHdr = payload.nik || sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || 'NSR-2019-005';
         const res = await fetch(`${BACKEND_API_URL}?action=${encodeURIComponent(action)}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Session-Token': sessionToken || ''
+            'X-Session-Token': tokenHdr,
+            'X-Admin-Key': tokenHdr,
+            'X-NIK': nikHdr
           },
           body: JSON.stringify(payload)
         });
@@ -950,20 +954,23 @@
         console.warn(`[Proxy Fallback] Kendala pada ${BACKEND_API_URL}:`, err.message);
       }
 
-      // 2. Coba Direct Google Apps Script Web App via POST
-      try {
-        const gasRes = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          redirect: 'follow',
-          body: JSON.stringify(payload)
-        });
-        if (gasRes.ok) {
-          const json = await gasRes.json();
-          return json;
+      // 2. Coba Direct Google Apps Script Web App via POST (hanya untuk aksi dasar yang didukung GAS)
+      const actionsSupportedByGAS = ['cekKaryawan', 'mintaOTP', 'verifikasiOTP', 'simpanAbsensi', 'simpanWFH', 'simpanPengajuanCuti', 'getRiwayatPresensi', 'getMasterKaryawanFull'];
+      if (actionsSupportedByGAS.includes(action)) {
+        try {
+          const gasRes = await fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            redirect: 'follow',
+            body: JSON.stringify(payload)
+          });
+          if (gasRes.ok) {
+            const json = await gasRes.json();
+            return json;
+          }
+        } catch (gasErr) {
+          console.warn(`[GAS Direct Fallback] Kendala pada ${GAS_WEB_APP_URL}:`, gasErr.message);
         }
-      } catch (gasErr) {
-        console.warn(`[GAS Direct Fallback] Kendala pada ${GAS_WEB_APP_URL}:`, gasErr.message);
       }
 
       // 3. Coba google.script.run jika berjalan di lingkungan GAS embed
@@ -1916,24 +1923,29 @@
     window.tutupModalPrivasiKaryawan = tutupModalPrivasiKaryawan;
 
     // Inisialisasi awal saat dokumen siap
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        periksaGatePrivasiAwal();
-        pulihkanSesiPresensiTersimpan();
-        deteksiSesiOpiniNsr();
-        periksaDirectNikLogin();
-        
-        // Pengecekan Akses Instan Admin HR (NSR-2019-005 / NSR8899 / Super Admin)
-        const isHR = cekStatusOtoritasAdminHR();
-        const urlParams = new URLSearchParams(window.location.search);
-        if (isHR && (urlParams.get('tab') === 'dashboard' || urlParams.get('tab') === 'admin' || urlParams.get('mode') === 'hr')) {
-          gantiMode('dashboard');
-        }
+    function inisialisasiPresensiPortal() {
+      periksaGatePrivasiAwal();
+      pulihkanSesiPresensiTersimpan();
+      deteksiSesiOpiniNsr();
+      periksaDirectNikLogin();
+      
+      // Pengecekan Akses Instan Admin HR (NSR-2019-005 / NSR8899 / Super Admin)
+      const isHR = cekStatusOtoritasAdminHR();
+      const urlParams = new URLSearchParams(window.location.search);
+      if (isHR && (urlParams.get('tab') === 'dashboard' || urlParams.get('tab') === 'admin' || urlParams.get('mode') === 'hr')) {
+        gantiMode('dashboard');
+      }
 
-        // Atur tanggal hari ini pada form koreksi
-        const kDate = document.getElementById('koreksi-tanggal');
-        if (kDate) kDate.value = new Date().toISOString().split('T')[0];
-      });
+      // Atur tanggal hari ini pada form koreksi
+      const kDate = document.getElementById('koreksi-tanggal');
+      if (kDate) kDate.value = new Date().toISOString().split('T')[0];
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inisialisasiPresensiPortal);
+    } else {
+      inisialisasiPresensiPortal();
+    }
       
     // =========================================================================
     // ENHANCEMENT: INTEGRASI OPINI NSR SSO & PERSISTENSI SESI PRESENSI
@@ -2028,10 +2040,19 @@
     }
 
     async function muatDashboardHR() {
+      // 1. Tampilkan tanggal hari ini secara instan (Indonesian format)
+      const today = new Date();
+      const tglFormatted = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const elTgl = document.getElementById('hr-monitoring-tgl');
+      if (elTgl) elTgl.textContent = tglFormatted;
+      const elTglAlt = document.getElementById('label-tanggal-transaksi');
+      if (elTglAlt) elTglAlt.textContent = tglFormatted;
+
       cekStatusOtoritasAdminHR();
       const monList = document.getElementById('hr-monitoring-list');
       const tokenToSend = sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') || atob('TlNSODg5OQ==');
       const nikToSend = sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || 'NSR-2019-005';
+
       if (!sessionToken && !cekStatusOtoritasAdminHR()) {
         if (monList) {
           monList.innerHTML = `<div class="p-4 rounded-xl bg-slate-950 border border-amber-500/30 text-center space-y-2">
@@ -2060,65 +2081,74 @@
             </div>`;
           }
           bukaModalNotif("Akses HR Ditolak ⚠️", (res && res.message) || "Anda tidak memiliki wewenang Admin HR.", false);
-          gantiMode('absen');
           return;
         }
 
         dataDashboardHRCache = res;
 
         // Update Metrik
-        document.getElementById('hr-metric-total').textContent = res.ringkasan.total_karyawan_pusat || 22;
-        document.getElementById('hr-metric-masuk').textContent = res.ringkasan.hadir_masuk || 0;
-        document.getElementById('hr-metric-masuk-sub').textContent = (res.ringkasan.sudah_pulang || 0) + ' Sudah Pulang';
-        document.getElementById('hr-metric-belum').textContent = res.ringkasan.belum_presensi || 0;
-        document.getElementById('hr-metric-terlambat').textContent = res.ringkasan.terlambat || 0;
+        const ringkasan = res.ringkasan || {};
+        const elMetricTotal = document.getElementById('hr-metric-total');
+        if (elMetricTotal) elMetricTotal.textContent = ringkasan.total_karyawan_pusat || 22;
+        const elMetricMasuk = document.getElementById('hr-metric-masuk');
+        if (elMetricMasuk) elMetricMasuk.textContent = ringkasan.hadir_masuk || 0;
+        const elMetricMasukSub = document.getElementById('hr-metric-masuk-sub');
+        if (elMetricMasukSub) elMetricMasukSub.textContent = (ringkasan.sudah_pulang || 0) + ' Sudah Pulang';
+        const elMetricBelum = document.getElementById('hr-metric-belum');
+        if (elMetricBelum) elMetricBelum.textContent = ringkasan.belum_presensi || 0;
+        const elMetricTerlambat = document.getElementById('hr-metric-terlambat');
+        if (elMetricTerlambat) elMetricTerlambat.textContent = ringkasan.terlambat || 0;
 
-        document.getElementById('hr-subtab-badge-belum').textContent = res.ringkasan.belum_presensi || 0;
-        document.getElementById('hr-subtab-badge-cuti').textContent = res.ringkasan.cuti_pending || 0;
-        document.getElementById('hr-monitoring-tgl').textContent = res.tanggal || new Date().toISOString().split('T')[0];
+        const elBadgeBelum = document.getElementById('hr-subtab-badge-belum');
+        if (elBadgeBelum) elBadgeBelum.textContent = ringkasan.belum_presensi || 0;
+        const elBadgeCuti = document.getElementById('hr-subtab-badge-cuti');
+        if (elBadgeCuti) elBadgeCuti.textContent = ringkasan.cuti_pending || 0;
 
         // 1. Render Monitoring Real-Time Hari Ini
-        const monList = document.getElementById('hr-monitoring-list');
-        if (res.transaksi_hari_ini && res.transaksi_hari_ini.length > 0) {
-          monList.innerHTML = res.transaksi_hari_ini.map(t => `
-            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <strong class="text-white font-bold truncate">${t.nama} (${t.nik})</strong>
-                  <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase ${t.jenis === 'Masuk' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
-                    ${t.jenis}
-                  </span>
-                  ${t.is_terlambat ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-rose-500/20 text-rose-300">Terlambat</span>' : ''}
+        if (monList) {
+          if (res.transaksi_hari_ini && res.transaksi_hari_ini.length > 0) {
+            monList.innerHTML = res.transaksi_hari_ini.map(t => `
+              <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <strong class="text-white font-bold truncate">${t.nama} (${t.nik})</strong>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase ${t.jenis === 'Masuk' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
+                      ${t.jenis}
+                    </span>
+                    ${t.is_terlambat ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-rose-500/20 text-rose-300">Terlambat</span>' : ''}
+                  </div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">
+                    ${t.jam} &bull; ${t.lokasi} &bull; ${t.kantor_terdekat || 'Pusat Jakarta'} ${t.durasi_kerja && t.durasi_kerja !== '-' ? '&bull; Durasi: ' + t.durasi_kerja : ''}
+                  </div>
                 </div>
-                <div class="text-[11px] text-slate-400 mt-0.5">
-                  ${t.jam} &bull; ${t.lokasi} &bull; ${t.kantor_terdekat || 'Pusat Jakarta'} ${t.durasi_kerja && t.durasi_kerja !== '-' ? '&bull; Durasi: ' + t.durasi_kerja : ''}
-                </div>
+                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${t.status_validasi === 'VALID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}">
+                  ${t.status_validasi}
+                </span>
               </div>
-              <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${t.status_validasi === 'VALID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}">
-                ${t.status_validasi}
-              </span>
-            </div>
-          `).join('');
-        } else {
-          monList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Belum ada transaksi presensi tercatat untuk hari ini.</p>`;
+            `).join('');
+          } else {
+            monList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Belum ada transaksi presensi tercatat untuk hari ini.</p>`;
+          }
         }
 
         // 2. Render Belum Presensi
         const belumList = document.getElementById('hr-belum-list');
-        if (res.belum_presensi_list && res.belum_presensi_list.length > 0) {
-          belumList.innerHTML = res.belum_presensi_list.map(b => `
-            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs flex items-center justify-between gap-2">
-              <div class="min-w-0">
-                <strong class="text-white block truncate">${b.nama}</strong>
-                <span class="text-[10px] text-slate-400 block truncate">${b.nik} &bull; ${b.jabatan}</span>
+        if (belumList) {
+          if (res.belum_presensi_list && res.belum_presensi_list.length > 0) {
+            belumList.innerHTML = res.belum_presensi_list.map(b => `
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <strong class="text-white block truncate">${b.nama}</strong>
+                  <span class="text-[10px] text-slate-400 block truncate">${b.nik} &bull; ${b.jabatan}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-rose-500/10 text-rose-300 border border-rose-500/30 shrink-0">
+                  Belum Hadir
+                </span>
               </div>
-              <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-rose-500/10 text-rose-300 border border-rose-500/30 shrink-0">
-                Belum Hadir
-              </span>
-            </div>
-          `).join('');
-        } else {
-          belumList.innerHTML = `<p class="text-xs text-emerald-400 text-center py-4 col-span-2">Seluruh 22 Karyawan Kantor Pusat telah mencatatkan presensi Masuk hari ini! 🎉</p>`;
+            `).join('');
+          } else {
+            belumList.innerHTML = `<p class="text-xs text-emerald-400 text-center py-4 col-span-2">Seluruh 22 Karyawan Kantor Pusat telah mencatatkan presensi Masuk hari ini! 🎉</p>`;
+          }
         }
 
         // 3. Render Roster 22 Karyawan Pusat
@@ -2126,33 +2156,35 @@
 
         // 4. Render Pengajuan Cuti Pending
         const cutiList = document.getElementById('hr-cuti-pending-list');
-        if (res.pengajuan_cuti_pending && res.pengajuan_cuti_pending.length > 0) {
-          cutiList.innerHTML = res.pengajuan_cuti_pending.map(c => `
-            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
-              <div class="flex items-center justify-between gap-2">
-                <div>
-                  <strong class="text-white block">${c.nama} (${c.nik})</strong>
-                  <span class="text-[10px] text-sky-400 block">${c.jenis_cuti} &bull; ${c.tgl_mulai} s/d ${c.tgl_selesai} (${c.jumlah_hari} hari)</span>
+        if (cutiList) {
+          if (res.pengajuan_cuti_pending && res.pengajuan_cuti_pending.length > 0) {
+            cutiList.innerHTML = res.pengajuan_cuti_pending.map(c => `
+              <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                  <div>
+                    <strong class="text-white block">${c.nama} (${c.nik})</strong>
+                    <span class="text-[10px] text-sky-400 block">${c.jenis_cuti} &bull; ${c.tgl_mulai} s/d ${c.tgl_selesai} (${c.jumlah_hari} hari)</span>
+                  </div>
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                    ${c.status}
+                  </span>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                  ${c.status}
-                </span>
+                <div class="p-2 rounded-lg bg-slate-900 text-[11px] text-slate-300">
+                  ${c.alasan || 'Tidak ada keterangan'}
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-1">
+                  <button type="button" onclick="eksekusiApproveCuti('${c.id}', 'Ditolak')" class="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs border border-rose-500/30">
+                    Tolak
+                  </button>
+                  <button type="button" onclick="eksekusiApproveCuti('${c.id}', 'Disetujui')" class="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-xs border border-emerald-500/30">
+                    Setujui
+                  </button>
+                </div>
               </div>
-              <div class="p-2 rounded-lg bg-slate-900 text-[11px] text-slate-300">
-                ${c.alasan || 'Tidak ada keterangan'}
-              </div>
-              <div class="flex items-center justify-end gap-2 pt-1">
-                <button type="button" onclick="eksekusiApproveCuti('${c.id}', 'Ditolak')" class="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs border border-rose-500/30">
-                  Tolak
-                </button>
-                <button type="button" onclick="eksekusiApproveCuti('${c.id}', 'Disetujui')" class="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-xs border border-emerald-500/30">
-                  Setujui
-                </button>
-              </div>
-            </div>
-          `).join('');
-        } else {
-          cutiList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Tidak ada permohonan cuti yang menunggu persetujuan.</p>`;
+            `).join('');
+          } else {
+            cutiList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Tidak ada permohonan cuti yang menunggu persetujuan.</p>`;
+          }
         }
 
         // 5. Isi Dropdown Target NIK Koreksi
@@ -2172,6 +2204,11 @@
           </div>`;
         }
         bukaModalNotif("Gagal Memuat Dashboard ❌", err.message || "Kendala koneksi ke server.", false);
+      } finally {
+        // Jaminan: Jangan pernah biarkan teks 'Memuat data monitoring kehadiran...' tertahan
+        if (monList && monList.innerHTML.includes('Memuat data monitoring kehadiran...')) {
+          monList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Belum ada transaksi presensi tercatat untuk hari ini.</p>`;
+        }
       }
     }
 
@@ -2342,9 +2379,18 @@
       }
     }
   
-    } else {
-      periksaGatePrivasiAwal();
-    }
+
+    // Pastikan seluruh fungsi Admin HR & utilitas terekspos ke window
+    window.cekStatusOtoritasAdminHR = cekStatusOtoritasAdminHR;
+    window.gantiSubTabHR = gantiSubTabHR;
+    window.muatDashboardHR = muatDashboardHR;
+    window.renderRosterKaryawan = renderRosterKaryawan;
+    window.eksekusiApproveCuti = eksekusiApproveCuti;
+    window.verifikasiPresensiLapangan = verifikasiPresensiLapangan;
+    window.bukaModalDaftarEmail = bukaModalDaftarEmail;
+    window.filterRosterKaryawan = filterRosterKaryawan;
+    window.eksekusiKoreksiPresensi = eksekusiKoreksiPresensi;
+    window.eksekusiSyncMasterGoogleSheet = eksekusiSyncMasterGoogleSheet;
   </script>
 
   <!-- Modul Kepatuhan UU PDP & Disclaimer Profesi -->
