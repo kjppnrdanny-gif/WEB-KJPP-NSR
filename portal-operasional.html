@@ -964,6 +964,14 @@
           <!-- Action buttons (Approve / Reject) inserted based on active tier and role -->
         </div>
         <div class="flex items-center gap-2">
+          <button type="button" onclick="bukaPratinjauMemo()"
+            class="px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 font-bold text-xs transition border border-blue-500/30 flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-4 h-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>Pratinjau Kop Surat</span>
+          </button>
           <button type="button" onclick="bukaCetakDokumenDariModal()"
             class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 flex items-center gap-1.5">
             <svg class="w-4 h-4 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1049,28 +1057,88 @@
     </div>
   </div>
 
+
+  <!-- ==================== MODAL: PRATINJAU KOP SURAT & LEMBAR CETAK (ON-SCREEN) ==================== -->
+  <div id="modal-pratinjau-memo" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-sm hidden no-print">
+    <div class="max-w-4xl w-full bg-white text-slate-900 rounded-3xl p-5 sm:p-7 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📄</span>
+          <h3 class="font-extrabold text-sm sm:text-base text-slate-900">Pratinjau Kop Surat Resmi &amp; Lembar Cetak A4</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="bukaCetakDokumenDariModal()" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition flex items-center gap-1 shadow-md cursor-pointer">
+            <span>🖨️ Cetak Dokumen</span>
+          </button>
+          <button type="button" onclick="tutupPratinjauMemo()" class="text-slate-400 hover:text-slate-700 text-xl font-bold w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center cursor-pointer">
+            &times;
+          </button>
+        </div>
+      </div>
+      <div id="pratinjau-sheet-content" class="p-3 sm:p-5 bg-white border border-slate-200 rounded-2xl shadow-inner overflow-x-auto">
+        <!-- Konten lembar cetak disalin dinamis -->
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== TEMPLATE PRINT CETAK A4 (PRINT ONLY) ==================== -->
   <div id="print-view-container" class="print-only text-slate-900 bg-white p-4">
     
-    <!-- Kop Surat Resmi -->
-    <div class="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="text-2xl font-black tracking-tight text-blue-900">KJPP NSR</div>
-        <div class="text-left leading-tight">
-          <h1 class="text-sm font-extrabold uppercase text-slate-900">
-            KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN
-          </h1>
-          <p class="text-[9pt] text-slate-600">
-            Kantor Jasa Penilai Publik &bull; Izin Usaha KMK No. 2.19.0160
-          </p>
-          <p class="text-[8pt] text-slate-500">
-            Pusat: Jakarta &bull; Cabang: Padang, Makassar, Palembang, Bandung
+    <!-- KOP SURAT RESMI KJPP NSR - SISTEM E-OPERASIONAL -->
+    <div class="w-full pb-3 mb-4 border-b-[3px] border-double border-slate-800">
+      <div class="flex flex-row items-center justify-between gap-4">
+        
+        <!-- SISI KIRI: LOGO VEKTOR RESMI & IDENTITAS LENGKAP BADAN USAHA -->
+        <div class="flex items-center gap-4">
+          <!-- Logo Vektor Resmi NSR -->
+          <div class="flex-shrink-0">
+            <svg class="h-12 w-auto drop-shadow-[0_2px_8px_rgba(37,99,235,0.25)]" viewBox="0 0 160 55" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo Resmi KJPP NSR">
+              <defs>
+                <linearGradient id="nsrKopBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#38bdf8" />
+                  <stop offset="50%" stop-color="#2563eb" />
+                  <stop offset="100%" stop-color="#0f172a" />
+                </linearGradient>
+                <filter id="kopGlow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#f59e0b" flood-opacity="0.5"/>
+                </filter>
+              </defs>
+              <text x="4" y="42" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="44" letter-spacing="1" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round" filter="url(#kopGlow)">NSR</text>
+              <text x="4" y="42" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="44" letter-spacing="1" fill="url(#nsrKopBlue)">NSR</text>
+            </svg>
+          </div>
+
+          <!-- Detail Entitas Legal & Izin Usaha -->
+          <div class="border-l-2 border-slate-300 dark:border-slate-700 pl-3.5 space-y-0.5 text-left">
+            <h2 class="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white uppercase leading-snug">
+              KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN
+            </h2>
+            <p class="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+              Kantor Jasa Penilai Publik &bull; Izin Usaha KMK RI No. 2.19.0160
+            </p>
+            <p class="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">
+              Bidang Jasa: Penilaian Properti &amp; Bisnis (Klasifikasi P &amp; PS)
+            </p>
+            <p class="text-[9.5px] font-mono text-slate-500 dark:text-slate-400 pt-0.5">
+              <span class="font-bold text-slate-700 dark:text-slate-300">Pusat:</span> Jakarta &bull; 
+              <span class="font-bold text-slate-700 dark:text-slate-300">Cabang:</span> Bandung [P] &bull; Padang [PS] &bull; Makassar [PS] &bull; Palembang [PS]
+            </p>
+          </div>
+        </div>
+
+        <!-- SISI KANAN: METADATA FORMULIR E-OPERASIONAL TERKENDALI -->
+        <div class="text-right flex-shrink-0">
+          <span class="inline-block px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-amber-500/10 text-amber-500 border border-amber-500/30">
+            DOKUMEN INTERNAL TERKENDALI
+          </span>
+          <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 mt-1">
+            FORMULIR BIAYA OPERASIONAL
+          </h3>
+          <p class="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+            KODE: <span class="text-slate-700 dark:text-slate-300 font-bold">OPINI-NSR/FORM-OPR-2026</span>
           </p>
         </div>
-      </div>
-      <div class="text-right">
-        <span class="block text-[8pt] text-slate-500 font-bold uppercase">SISTEM e-OPERASIONAL</span>
-        <span class="block text-[8pt] text-slate-700 font-mono">FORM-OPR-2026</span>
+
       </div>
     </div>
 
@@ -2752,7 +2820,24 @@
       siapkanDanCetakDokumen(doc);
     }
 
-    function siapkanDanCetakDokumen(doc) {
+    function bukaPratinjauMemo() {
+      if (!ACTIVE_DOC) return;
+      siapkanDanCetakDokumen(ACTIVE_DOC, true);
+      const pratinjauContent = document.getElementById('pratinjau-sheet-content');
+      const printContainer = document.getElementById('print-view-container');
+      if (pratinjauContent && printContainer) {
+        pratinjauContent.innerHTML = printContainer.innerHTML;
+      }
+      const modal = document.getElementById('modal-pratinjau-memo');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function tutupPratinjauMemo() {
+      const modal = document.getElementById('modal-pratinjau-memo');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function siapkanDanCetakDokumen(doc, isPreviewOnly = false) {
       document.getElementById('print-doc-title').innerText = `PENGAJUAN ${doc.jenisLabel || doc.jenisOperasional}`;
       document.getElementById('print-doc-noreg').innerText = `No. Registrasi: ${doc.noRegistrasi || doc.id}`;
       document.getElementById('print-meta-kantor').innerText = `: ${doc.kantor || 'Kantor Pusat Jakarta'}`;
@@ -2902,9 +2987,11 @@
         }
       });
 
-      setTimeout(() => {
-        window.print();
-      }, 300);
+      if (!isPreviewOnly) {
+        setTimeout(() => {
+          window.print();
+        }, 300);
+      }
     }
 
     // Tampilkan Banner Akses Ditolak untuk Akun Cabang (403 Forbidden)
