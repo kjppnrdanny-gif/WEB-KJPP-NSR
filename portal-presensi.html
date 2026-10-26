@@ -1283,17 +1283,18 @@
       const elOtp = document.getElementById('auth-otp-input');
       const btnVerif = document.getElementById('btn-verifikasi-otp') || document.getElementById('btn-verif-otp');
 
-      const cleanNik = (elNik?.value || '').trim().toUpperCase();
-      const cleanOtp = (elOtp?.value || '').replace(/\D/g, '').trim();
+      const rawOtp = document.getElementById('auth-otp-input')?.value || '';
+      const cleanOtp = rawOtp.replace(/\D/g, '').trim(); // Buang spasi, strip, tanda pemisah
+      const cleanNik = (document.getElementById('auth-nik-input')?.value || '').trim().toUpperCase();
 
       if (!cleanNik) {
-        bukaModalNotif('Perhatian ⚠️', 'NIK Karyawan belum terisi.', false);
+        alert('NIK Karyawan belum terisi.');
         if (elNik) elNik.focus();
         return;
       }
 
       if (cleanOtp.length !== 6) {
-        bukaModalNotif('Perhatian ⚠️', 'Masukkan 6 digit angka OTP yang dikirim ke email.', false);
+        alert('Masukkan 6 digit angka OTP secara lengkap.');
         if (elOtp) elOtp.focus();
         return;
       }
@@ -2052,6 +2053,28 @@
 
     // Inisialisasi awal saat dokumen siap
     function inisialisasiPresensiPortal() {
+      // 1. Inisialisasi Tanggal Lokal Indonesia (WIB) Instan Tanpa Delay
+      const now = new Date();
+      const tglFormatted = now.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'Asia/Jakarta'
+      });
+      const elLabelTanggal = document.getElementById('label-tanggal-transaksi');
+      if (elLabelTanggal) elLabelTanggal.textContent = tglFormatted;
+      const elTgl = document.getElementById('hr-monitoring-tgl');
+      if (elTgl) elTgl.textContent = tglFormatted;
+
+      // 2. Sanitasi Otomatis Input OTP (Hanya digit murni, buang spasi/strip/pemisah visual)
+      const elOtpInput = document.getElementById('auth-otp-input');
+      if (elOtpInput) {
+        elOtpInput.addEventListener('input', function() {
+          this.value = this.value.replace(/\D/g, '').slice(0, 6);
+        });
+      }
+
       periksaGatePrivasiAwal();
       pulihkanSesiPresensiTersimpan();
       deteksiSesiOpiniNsr();
@@ -2368,11 +2391,11 @@
         }
         bukaModalNotif("Gagal Memuat Dashboard ❌", err.message || "Kendala koneksi ke server.", false);
       } finally {
-        if (tableBody && tableBody.innerHTML.includes('Memuat data monitoring kehadiran...')) {
+        if (tableBody && (tableBody.innerHTML.includes('Memuat data monitoring kehadiran...') || tableBody.innerHTML.trim() === '')) {
           tableBody.innerHTML = `
             <tr>
               <td colspan="7" class="text-center py-6 text-slate-400 text-xs font-medium">
-                Belum ada rekaman presensi masuk untuk tanggal ini.
+                Belum ada rekaman presensi masuk hari ini.
               </td>
             </tr>
           `;

@@ -239,10 +239,18 @@ function fetchAbsensiFromGAS() {
 
         $parsed = [];
         foreach ($res['rows'] as $r) {
-            $nik = trim((string)($r[$colNik !== false ? $colNik : 1] ?? ''));
-            if (empty($nik)) continue;
+            $rawNik = trim((string)($r[$colNik !== false ? $colNik : 1] ?? ''));
+            $cleanNik = normalisasiNIK($rawNik);
+            if (empty($cleanNik)) continue;
 
+            $nama = trim((string)($r[$colNama !== false ? $colNama : 2] ?? ''));
             $ts = trim((string)($r[$colTime !== false ? $colTime : 0] ?? ''));
+
+            // Abaikan baris uji coba rusak / data kotor (KTP 16-digit atau 2026-09-25 tanpa nama)
+            if (preg_match('/^\d{16}$/', $cleanNik) && empty($nama)) continue;
+            if (strpos($ts, '2026-09-25') !== false && empty($nama)) continue;
+
+            $nik = $cleanNik;
             $jamVal = trim((string)($r[$colJam !== false ? $colJam : 10] ?? ''));
 
             $jamPresensi = '';
@@ -854,7 +862,7 @@ try {
         }
 
         // Generate 6-Digit OTP String (Anti-leading zero loss: strictly string)
-        $otpNumber = sprintf("%06d", mt_rand(100000, 999999));
+        $otpNumber = sprintf("%06d", mt_rand(1000, 999999));
         $expiredAt = time() + (10 * 60); // Masa berlaku 10 menit
 
         $otpData = [
@@ -980,8 +988,8 @@ try {
         }
 
         // Periksa kecocokan kode OTP string murni (strict string equality preserving leading zero)
-        $expectedOtp = (string)($storedData['otp'] ?? '');
-        $isMatch = ($expectedOtp !== '' && $expectedOtp === $inputOtp);
+        $storedOtp = (string)($storedData['otp'] ?? '');
+        $isMatch = ($storedOtp !== '' && trim($storedOtp) === trim($inputOtp));
         if (!$isMatch && !empty($storedData['hash'])) {
             $isMatch = (hash('sha256', $inputOtp) === $storedData['hash']);
         }

@@ -226,11 +226,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $syncKey = $_GET['key'] ?? $_SERVER['HTTP_X_ADMIN_KEY'] ?? '';
     if (isset($_GET['sync']) && $syncKey === MASTER_ADMIN_KEY) {
         $roster = dapatkanRosterMaster(true);
+
+        // 1. Pembersihan berkas sementara sesi OTP di server (data/.otp_storage/*)
+        $otpDir = DATA_DIR . '/.otp_storage';
+        $cleanedOtp = 0;
+        if (is_dir($otpDir)) {
+            $files = glob($otpDir . '/*.json');
+            if ($files) {
+                foreach ($files as $f) {
+                    if (is_file($f)) {
+                        @unlink($f);
+                        $cleanedOtp++;
+                    }
+                }
+            }
+        }
+
+        // 2. Pembersihan cache rekaman presensi lama jika ada
+        if (file_exists(DATA_DIR . '/.absensi_records_cache.json')) {
+            @unlink(DATA_DIR . '/.absensi_records_cache.json');
+        }
+
         echo json_encode([
             'status' => 'success',
             'success' => true,
-            'message' => 'Sinkronisasi master Google Sheets berhasil diperbarui.',
+            'message' => 'Sinkronisasi master Google Sheets berhasil diperbarui dan sesi OTP lama dibersihkan.',
             'total_karyawan' => count($roster),
+            'otp_sessions_cleaned' => $cleanedOtp,
             'synced_at' => date('Y-m-d H:i:s')
         ]);
         exit;
