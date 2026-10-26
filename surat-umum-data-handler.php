@@ -675,7 +675,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tujuan = trim((string)($data['Tujuan_Penerima'] ?? $data['tujuan_penerima'] ?? ''));
         $perihal = trim((string)($data['Perihal'] ?? $data['perihal'] ?? ''));
         $tanggal = trim((string)($data['Tanggal_Surat'] ?? $data['tanggal_surat'] ?? date('Y-m-d')));
-        $klasifikasi = trim((string)($data['Klasifikasi_Perihal'] ?? $data['klasifikasi_perihal'] ?? 'SU-KET'));
+        $klasifikasi = trim((string)($data['Klasifikasi_Perihal'] ?? $data['klasifikasi_perihal'] ?? 'SU-MEM'));
         $penandatangan = trim((string)($data['Penandatangan'] ?? $data['penandatangan'] ?? 'Pemimpin Rekan'));
 
         if (empty($noSurat) || empty($tujuan) || empty($perihal)) {
