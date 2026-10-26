@@ -1851,6 +1851,7 @@
         periksaGatePrivasiAwal();
         pulihkanSesiPresensiTersimpan();
         deteksiSesiOpiniNsr();
+        periksaDirectNikLogin();
         
         // Atur tanggal hari ini pada form koreksi
         const kDate = document.getElementById('koreksi-tanggal');
@@ -1885,6 +1886,26 @@
               nikInput.value = targetNik;
               // Trigger preview identitas
               nikInput.dispatchEvent(new Event('blur'));
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    function periksaDirectNikLogin() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isDirect = urlParams.get('login') === 'nik_direct';
+        const activeNik = sessionStorage.getItem('nsr_presensi_active_nik') || urlParams.get('nik');
+        if (activeNik) {
+          const nikInput = document.getElementById('auth-nik-input');
+          if (nikInput && (!nikInput.value || isDirect)) {
+            nikInput.value = activeNik;
+            nikInput.dispatchEvent(new Event('blur'));
+
+            const authBox = document.getElementById('auth-box-unverified');
+            if (authBox && isDirect) {
+              authBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
           }
         }

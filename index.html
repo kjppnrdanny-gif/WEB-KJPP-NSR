@@ -6331,6 +6331,73 @@
         return;
       }
 
+      // 0. DETEKSI CEPAT: INPUT FORMAT NIK KARYAWAN (Contoh: NSR-2019-005)
+      // Mengarahkan karyawan langsung ke Portal Presensi via Backend Proxy
+      const cleanInputNik = input.toUpperCase().replace(/\s+/g, '').replace(/_/g, '-');
+      const isNikPattern = /^NSR[-_]?\d{4}[-_]?\d{3}$/i.test(cleanInputNik) || /^NSR-\d{4}-\d{3}$/i.test(cleanInputNik);
+
+      if (isNikPattern) {
+        if (errEl) errEl.classList.add('hidden');
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.innerHTML = '<span>Memverifikasi NIK Karyawan...</span>';
+        }
+
+        try {
+          let resNik = null;
+          try {
+            const resp = await fetch('/api/auth-nik-presensi', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({ nik: cleanInputNik })
+            });
+            resNik = await resp.json().catch(() => null);
+          } catch (_) {}
+
+          // Fallback direct path jika rewrite engine belum aktif
+          if (!resNik) {
+            try {
+              const respFallback = await fetch('backend/auth-nik-presensi.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ nik: cleanInputNik })
+              });
+              resNik = await respFallback.json().catch(() => null);
+            } catch (_) {}
+          }
+
+          if (resNik && resNik.success && resNik.data && resNik.data.nik) {
+            sessionStorage.setItem('nsr_presensi_active_nik', resNik.data.nik);
+            sessionStorage.setItem('nsr_presensi_active_user', JSON.stringify(resNik.data));
+            if (btnSubmit) {
+              btnSubmit.innerHTML = '<span>Mengalihkan ke Portal Presensi... 🚀</span>';
+            }
+            window.location.href = 'portal-presensi.html?login=nik_direct';
+            return;
+          } else {
+            if (btnSubmit) {
+              btnSubmit.disabled = false;
+              btnSubmit.innerHTML = '<span id="btn-submit-text">Verifikasi &amp; Masuk</span> <svg class="w-4 h-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+            }
+            if (errEl) errEl.classList.remove('hidden');
+            if (errText) {
+              errText.innerText = (resNik && resNik.message) || `NIK [${cleanInputNik}] tidak terdaftar dalam database master resmi KJPP NSR.`;
+            }
+            inputEl.select();
+            return;
+          }
+        } catch (errNik) {
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<span id="btn-submit-text">Verifikasi &amp; Masuk</span> <svg class="w-4 h-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+          }
+          if (errEl) errEl.classList.remove('hidden');
+          if (errText) errText.innerText = 'Kendala verifikasi NIK ke server. Silakan coba kembali.';
+          inputEl.select();
+          return;
+        }
+      }
+
       if (errEl) errEl.classList.add('hidden');
       if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerHTML = '<span>Memverifikasi...</span>'; }
 

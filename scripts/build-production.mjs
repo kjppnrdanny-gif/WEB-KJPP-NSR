@@ -76,6 +76,8 @@ const ALLOWED_FILES = [
   "kwitansi-data-handler.php",
   "surat-umum-data-handler.php",
   "absensi-data-handler.php",
+  "backend/auth-nik-presensi.php",
+  "backend/.htaccess",
   "operasional-data-handler.php",
   "governance-data-handler.php",
   "status-terintegrasi-handler.php"
