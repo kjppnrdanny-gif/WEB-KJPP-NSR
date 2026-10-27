@@ -234,9 +234,8 @@
       <div id="auth-box-unverified" class="space-y-3">
         <!-- Input NIK -->
         <div>
-          <label for="auth-nik-input" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+          <label for="auth-nik-input" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
             <span>1. NIK Karyawan <span class="text-rose-400">*</span></span>
-            <span class="text-slate-400 font-mono text-[10px] font-normal normal-case">Contoh: NSR-2019-005, NSR-MKS-2019-30</span>
           </label>
           <div class="relative">
             <input type="text" id="auth-nik-input" oninput="onNikInputChange()" placeholder="Ketik NIK Karyawan" autocomplete="username" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition uppercase">
@@ -248,9 +247,8 @@
 
         <!-- Input PIN Presensi 6-Digit -->
         <div>
-          <label for="auth-pin-input" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+          <label for="auth-pin-input" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
             <span>2. PIN Presensi (6 Digit) <span class="text-rose-400">*</span></span>
-            <span class="text-slate-400 text-[10px] font-normal normal-case">PIN Default Standar: 123456</span>
           </label>
           <div class="relative">
             <input type="password" id="auth-pin-input" maxlength="6" inputmode="numeric" placeholder="Masukkan 6 Digit PIN" autocomplete="current-password" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-center text-sm font-mono font-bold tracking-widest focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 transition" required>
@@ -351,6 +349,19 @@
          PANEL 1: PRESENSI KEHADIRAN (DATANG / PULANG / DINAS)
          ======================================================== -->
     <div id="panelAbsensi" class="space-y-4">
+      <div id="banner-warning-default-pin" class="hidden p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200 mb-3">
+        <span class="text-base shrink-0">⚠️</span>
+        <div class="flex-1">
+          <strong class="font-bold text-amber-300">Peringatan Keamanan PIN Default:</strong>
+          <p class="text-[11px] text-amber-200/90 mt-0.5 leading-relaxed">
+            Anda saat ini menggunakan PIN default standar (123456). Untuk presensi berikutnya, sistem mewajibkan PIN pribadi demi keamanan akun. Disarankan mengganti PIN sekarang.
+          </p>
+          <button type="button" onclick="bukaModalGantiPinLangsungManual()" class="mt-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition cursor-pointer">
+            Ganti PIN Sekarang
+          </button>
+        </div>
+      </div>
+
       <form id="formAbsensi" onsubmit="event.preventDefault(); kirimAbsensi();" class="space-y-4">
         <input type="hidden" id="jenis" value="Masuk">
 
@@ -395,11 +406,11 @@
           </label>
           <div class="grid grid-cols-2 gap-2">
             <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-700 cursor-pointer hover:border-sky-500/50 transition">
-              <input type="radio" name="lokasi_radio" value="KANTOR" checked onchange="document.getElementById('lokasi').value='KANTOR'" class="text-sky-500 focus:ring-0">
+              <input type="radio" name="lokasi_radio" value="KANTOR" checked onchange="onLokasiChange('KANTOR')" class="text-sky-500 focus:ring-0">
               <span class="text-xs font-semibold text-white">🏢 Kantor Resmi</span>
             </label>
             <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-700 cursor-pointer hover:border-amber-500/50 transition">
-              <input type="radio" name="lokasi_radio" value="WFH" onchange="document.getElementById('lokasi').value='WFH'" class="text-amber-500 focus:ring-0">
+              <input type="radio" name="lokasi_radio" value="WFH" onchange="onLokasiChange('WFH')" class="text-amber-500 focus:ring-0">
               <span class="text-xs font-semibold text-white">🏠 Rumah (WFH)</span>
             </label>
           </div>
@@ -462,6 +473,24 @@
          PANEL 2: PENDAFTARAN TITIK LOKASI RUMAH (WFH)
          ======================================================== -->
     <div id="panelWFH" class="hidden space-y-4">
+      <!-- KARTU WFH TERKUNCI PERMANEN (JIKA SUDAH TERDAFTAR) -->
+      <div id="wfh-locked-card" class="hidden p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 space-y-2.5">
+        <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase">
+          <span>📍</span>
+          <span>Titik Rumah WFH Terkunci Permanen</span>
+        </div>
+        <p class="text-xs text-slate-200 leading-relaxed">
+          <strong class="text-slate-400">Alamat Terdaftar:</strong> <br><span id="wfh-locked-alamat" class="text-white font-medium">-</span>
+        </p>
+        <p class="text-xs text-slate-300 font-mono">
+          <strong class="text-slate-400 font-sans">Koordinat GPS:</strong> <span id="wfh-locked-gps" class="text-emerald-300 font-bold">-</span>
+        </p>
+        <div class="pt-2 border-t border-emerald-500/20 flex items-center justify-between text-[11px] text-slate-400">
+          <span class="text-emerald-400 font-semibold">✓ Terdaftar Resmi di HR KJPP NSR</span>
+          <span class="text-slate-400 text-[10px]">(Registrasi ulang dinonaktifkan)</span>
+        </div>
+      </div>
+
       <form id="formWFH" onsubmit="event.preventDefault(); kirimWFH();" class="space-y-4">
         <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
           <div class="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase">
@@ -797,7 +826,7 @@
           📧
         </div>
         <div>
-          <h3 class="text-sm font-bold text-white uppercase tracking-wide">Lengkapi Alamat Email Resmi</h3>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wide">Daftarkan Email Resmi Presensi</h3>
           <p class="text-[11px] text-slate-400">Verifikasi email kepegawaian untuk pemulihan akses &amp; notifikasi</p>
         </div>
       </div>
@@ -816,9 +845,55 @@
 
       <div class="flex items-center justify-end gap-2 pt-2">
         <button type="button" id="btn-simpan-email-mandiri" onclick="eksekusiSimpanEmailMandiri()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20 btn-tactile cursor-pointer">
-          💾 Simpan &amp; Lanjutkan Presensi
+          💾 Simpan &amp; Lanjutkan
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL GANTI PIN DEFAULT WAJIB (ON-SCREEN DIRECT UPDATE)
+       ======================================================== -->
+  <div id="modal-ganti-pin-langsung" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg">
+          🔒
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wide">PIN Default Wajib Diganti</h3>
+          <p class="text-[11px] text-amber-400 font-medium">Pengamanan Akun Presensi Karyawan KJPP NSR</p>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-amber-950/30 border border-amber-500/20 text-xs space-y-1">
+        <p class="text-slate-200">Halo <strong id="modal-pin-nama" class="text-amber-300">-</strong> (<span id="modal-pin-nik" class="font-mono text-slate-300">-</span>),</p>
+        <p class="text-[11px] text-slate-300 leading-relaxed">
+          PIN default standar (<strong class="text-white font-mono">123456</strong>) wajib diganti sebelum melanjutkan presensi ke-2 dan seterusnya demi keamanan identitas Anda.
+        </p>
+      </div>
+
+      <form id="form-ganti-pin-langsung" onsubmit="event.preventDefault(); eksekusiSimpanPinLangsung();" class="space-y-3">
+        <div>
+          <label for="input-pin-baru" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+            PIN Baru (6 Digit Angka) <span class="text-rose-400">*</span>
+          </label>
+          <input type="password" id="input-pin-baru" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="Ketik 6 Digit Angka" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-mono tracking-widest focus:outline-none focus:border-amber-400 transition">
+        </div>
+
+        <div>
+          <label for="input-pin-baru-konf" class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+            Konfirmasi PIN Baru <span class="text-rose-400">*</span>
+          </label>
+          <input type="password" id="input-pin-baru-konf" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="Ulangi 6 Digit PIN Baru" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-mono tracking-widest focus:outline-none focus:border-amber-400 transition">
+        </div>
+
+        <p id="err-pin-langsung" class="text-[11px] text-rose-400 font-semibold hidden"></p>
+
+        <button type="submit" id="btn-simpan-pin-langsung" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20 btn-tactile cursor-pointer">
+          💾 Simpan PIN Baru &amp; Lanjutkan
+        </button>
+      </form>
     </div>
   </div>
 
@@ -844,7 +919,7 @@
           <label for="reset-nik-input" class="block text-[11px] font-bold text-slate-300 uppercase mb-1">
             Masukkan NIK Anda <span class="text-rose-400">*</span>
           </label>
-          <input type="text" id="reset-nik-input" placeholder="Contoh: NSR-2019-012" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-amber-400 transition uppercase">
+          <input type="text" id="reset-nik-input" placeholder="Ketik NIK Karyawan" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs font-semibold focus:outline-none focus:border-amber-400 transition uppercase">
         </div>
         <p class="text-[11px] text-slate-400 leading-relaxed">
           Sistem akan mengirimkan kode konfirmasi 6-digit ke alamat email resmi Anda yang terdaftar di database HR KJPP NSR.
@@ -996,11 +1071,11 @@
   <script>
     // Koordinat Referensi Kantor Resmi KJPP NSR (Google Maps Terverifikasi)
     const KANTOR_REF = [
-      { nama: "Pusat Jakarta", lat: -6.287972658138783, lng: 106.82477864308436, radius: 150, timezone: "Asia/Jakarta", tz: "WIB", alamat: "Jl. Ragunan Raya No. 8, Pasar Minggu, Jakarta Selatan" },
-      { nama: "Cabang Bandung", lat: -6.8597817, lng: 107.5604289, radius: 150, timezone: "Asia/Jakarta", tz: "WIB", alamat: "Bandung, Jawa Barat" },
-      { nama: "Cabang Padang", lat: -0.94932, lng: 100.376055, radius: 150, timezone: "Asia/Jakarta", tz: "WIB", alamat: "Padang, Sumatera Barat" },
-      { nama: "Cabang Makassar", lat: -5.1565, lng: 119.4120, radius: 200, timezone: "Asia/Makassar", tz: "WITA", alamat: "Jl. Nuri Lr. 301 No. 7, Mariso, Makassar, Sulawesi Selatan" },
-      { nama: "Cabang Palembang", lat: -2.929044, lng: 104.695981, radius: 150, timezone: "Asia/Jakarta", tz: "WIB", alamat: "Palembang, Sumatera Selatan" }
+      { nama: "Pusat Jakarta", lat: -6.28797, lng: 106.82478, radius: 150, timezone: "Asia/Jakarta", tz: "WIB", alamat: "Jl. Hankam No. 5 RT.006 RW.001, Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550" },
+      { nama: "Cabang Bandung", lat: -6.85978, lng: 107.56043, radius: 150, timezone: "Asia/Jakarta", tz: "WIB", alamat: "Perumahan Pancanaka Royal Garden II, Jl. Pangrango II No. 1A RT.001 RW.012, Kel. Citeureup, Kec. Cimahi Utara, Kota Cimahi, Jawa Barat 40512" },
+      { nama: "Cabang Padang", lat: -0.94932, lng: 100.37606, radius: 150, timezone: "Asia/Jakarta", tz: "WIB", alamat: "Jl. Parak Gadang VIII No. 19, Kel. Simpang Haru, Kec. Padang Timur, Kota Padang, Sumatera Barat" },
+      { nama: "Cabang Makassar", lat: -5.15650, lng: 119.41200, radius: 200, timezone: "Asia/Makassar", tz: "WITA", alamat: "Jl. Nuri Lr. 301 No. 7, Mariso, Makassar, Sulawesi Selatan" },
+      { nama: "Cabang Palembang", lat: -2.92904, lng: 104.69598, radius: 150, timezone: "Asia/Jakarta", tz: "WIB", alamat: "Komplek Griya Hero Abadi Maskarebet, Kec. Alang-Alang Lebar, Kota Palembang, Sumatera Selatan" }
     ];
 
     const PRIVACY_NOTICE_VERSION = 'PDP-NSR-EMP-2026.10';
@@ -1096,7 +1171,7 @@
       }
 
       // 2. Coba Direct Google Apps Script Web App via POST (hanya untuk aksi dasar yang didukung GAS)
-      const actionsSupportedByGAS = ['cekKaryawan', 'verify_pin', 'verifyPin', 'request_reset_pin', 'submit_new_pin', 'update_employee_email', 'updateEmailKaryawan', 'mintaOTP', 'verifikasiOTP', 'simpanAbsensi', 'simpanWFH', 'simpanPengajuanCuti', 'getRiwayatPresensi', 'getMasterKaryawanFull'];
+      const actionsSupportedByGAS = ['cekKaryawan', 'verify_pin', 'verifyPin', 'direct_change_pin', 'directChangePin', 'request_reset_pin', 'submit_new_pin', 'update_employee_email', 'updateEmailKaryawan', 'mintaOTP', 'verifikasiOTP', 'simpanAbsensi', 'simpanWFH', 'simpanPengajuanCuti', 'getRiwayatPresensi', 'getMasterKaryawanFull'];
       if (actionsSupportedByGAS.includes(action)) {
         try {
           const gasRes = await fetch(GAS_WEB_APP_URL, {
@@ -1378,7 +1453,7 @@
       }
 
       if (!cleanPin || cleanPin.length !== 6) {
-        bukaModalNotif('Perhatian ⚠️', 'Harap masukkan 6 Digit PIN Presensi Anda! (Default: 123456)', false);
+        bukaModalNotif('Perhatian ⚠️', 'Harap masukkan 6 digit PIN Presensi Anda!', false);
         if (elPin) elPin.focus();
         return;
       }
@@ -1438,6 +1513,14 @@
           return;
         }
 
+        // Periksa apakah PIN default wajib diganti (Presensi ke-2 dan seterusnya)
+        if (res.force_change_pin) {
+          pendingNikForPinChange = cleanNik;
+          pendingUserForPinChange = res;
+          bukaModalGantiPinLangsung(res.nama || cleanNik, cleanNik);
+          return;
+        }
+
         // Autentikasi Sukses!
         const data = res.data || res;
         sessionToken = res.sessionToken || data.sessionToken || ('NSR_PIN_' + Date.now());
@@ -1447,8 +1530,20 @@
           jabatan: data.jabatan || res.jabatan || '',
           divisi: data.divisi || res.divisi || '',
           cabang: data.cabang || res.cabang || 'Pusat Jakarta',
+          email: data.email || res.email || '',
+          gps_wfh: data.gps_wfh || res.gps_wfh || '',
+          alamat_wfh: data.alamat_wfh || res.alamat_wfh || '',
           isAdminHR: !!(data.isAdminHR || res.isAdminHR || cleanNik === 'NSR-2019-005')
         };
+
+        const warnBanner = document.getElementById('banner-warning-default-pin');
+        if (warnBanner) {
+          if (res.warning_default_pin) {
+            warnBanner.classList.remove('hidden');
+          } else {
+            warnBanner.classList.add('hidden');
+          }
+        }
 
         // Simpan sesi ke sessionStorage
         try {
@@ -1478,6 +1573,145 @@
           btn.innerHTML = `<span>🔐</span><span>Masuk Presensi</span>`;
         }
         bukaModalNotif('Gangguan Jaringan ⚠️', err.message || 'Terjadi gangguan jaringan saat memverifikasi PIN. Silakan coba kembali.', false);
+      }
+    }
+
+    let pendingNikForPinChange = "";
+    let pendingUserForPinChange = null;
+
+    function bukaModalGantiPinLangsung(nama, nik) {
+      const modal = document.getElementById('modal-ganti-pin-langsung');
+      const elNama = document.getElementById('modal-pin-nama');
+      const elNik = document.getElementById('modal-pin-nik');
+      const inpBaru = document.getElementById('input-pin-baru');
+      const inpKonf = document.getElementById('input-pin-baru-konf');
+      const errEl = document.getElementById('err-pin-langsung');
+
+      if (elNama) elNama.textContent = nama;
+      if (elNik) elNik.textContent = nik;
+      if (inpBaru) inpBaru.value = '';
+      if (inpKonf) inpKonf.value = '';
+      if (errEl) { errEl.textContent = ''; errEl.classList.add('hidden'); }
+      if (modal) modal.classList.remove('hidden');
+      setTimeout(() => { if (inpBaru) inpBaru.focus(); }, 200);
+    }
+
+    function tutupModalGantiPinLangsung() {
+      const modal = document.getElementById('modal-ganti-pin-langsung');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function bukaModalGantiPinLangsungManual() {
+      if (!sessionNik) return;
+      pendingNikForPinChange = sessionNik;
+      bukaModalGantiPinLangsung(sessionUser ? sessionUser.nama : sessionNik, sessionNik);
+    }
+
+    async function eksekusiSimpanPinLangsung() {
+      const inpBaru = document.getElementById('input-pin-baru');
+      const inpKonf = document.getElementById('input-pin-baru-konf');
+      const errEl = document.getElementById('err-pin-langsung');
+      const btn = document.getElementById('btn-simpan-pin-langsung');
+
+      const pinBaru = (inpBaru?.value || '').trim();
+      const pinKonf = (inpKonf?.value || '').trim();
+
+      if (!/^\d{6}$/.test(pinBaru)) {
+        if (errEl) { errEl.textContent = 'PIN Baru harus tepat 6 digit angka!'; errEl.classList.remove('hidden'); }
+        if (inpBaru) inpBaru.focus();
+        return;
+      }
+
+      if (pinBaru === '123456') {
+        if (errEl) { errEl.textContent = 'PIN Baru tidak boleh menggunakan PIN default standar (123456)!'; errEl.classList.remove('hidden'); }
+        if (inpBaru) inpBaru.focus();
+        return;
+      }
+
+      if (pinBaru !== pinKonf) {
+        if (errEl) { errEl.textContent = 'Konfirmasi PIN Baru tidak cocok!'; errEl.classList.remove('hidden'); }
+        if (inpKonf) inpKonf.focus();
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan PIN Baru...';
+      }
+
+      try {
+        const payload = new FormData();
+        payload.append('action', 'direct_change_pin');
+        payload.append('nik', pendingNikForPinChange || sessionNik);
+        payload.append('new_pin', pinBaru);
+
+        let res = null;
+        try {
+          const response = await fetch('backend/absensi-data-handler.php', {
+            method: 'POST',
+            body: payload,
+            credentials: 'include'
+          });
+          if (response.ok) {
+            res = await response.json();
+          } else {
+            res = await response.json().catch(() => null);
+          }
+        } catch (e) {
+          console.warn('[Direct change_pin fetch fallback]:', e.message);
+        }
+
+        if (!res) {
+          res = await callBackend('direct_change_pin', {
+            nik: pendingNikForPinChange || sessionNik,
+            new_pin: pinBaru
+          });
+        }
+
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '💾 Simpan PIN Baru & Lanjutkan';
+        }
+
+        if (!res || res.status === 'error' || res.success === false) {
+          if (errEl) {
+            errEl.textContent = (res && res.message) || 'Gagal menyimpan PIN baru. Silakan coba kembali.';
+            errEl.classList.remove('hidden');
+          }
+          return;
+        }
+
+        tutupModalGantiPinLangsung();
+
+        // Autentikasi sesi aktif
+        const data = res.data || res;
+        sessionToken = res.sessionToken || data.sessionToken || ('NSR_PIN_' + Date.now());
+        sessionNik = pendingNikForPinChange || sessionNik;
+        sessionUser = {
+          nama: data.nama || res.nama || (sessionUser ? sessionUser.nama : 'Karyawan'),
+          jabatan: data.jabatan || res.jabatan || (sessionUser ? sessionUser.jabatan : ''),
+          divisi: data.divisi || res.divisi || (sessionUser ? sessionUser.divisi : ''),
+          cabang: data.cabang || res.cabang || (sessionUser ? sessionUser.cabang : 'Pusat Jakarta'),
+          email: data.email || res.email || (sessionUser ? sessionUser.email : ''),
+          gps_wfh: data.gps_wfh || res.gps_wfh || (sessionUser ? sessionUser.gps_wfh : ''),
+          alamat_wfh: data.alamat_wfh || res.alamat_wfh || (sessionUser ? sessionUser.alamat_wfh : ''),
+          isAdminHR: !!(data.isAdminHR || res.isAdminHR || sessionNik === 'NSR-2019-005')
+        };
+
+        const warnBanner = document.getElementById('banner-warning-default-pin');
+        if (warnBanner) warnBanner.classList.add('hidden');
+
+        pasangStateTerverifikasi();
+        bukaModalNotif('PIN Berhasil Diperbarui ✅', 'PIN Baru Anda telah aktif. Anda dapat langsung melanjutkan presensi.');
+      } catch (err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '💾 Simpan PIN Baru & Lanjutkan';
+        }
+        if (errEl) {
+          errEl.textContent = err.message || 'Gagal menyimpan PIN baru.';
+          errEl.classList.remove('hidden');
+        }
       }
     }
 
@@ -1867,6 +2101,23 @@
       }
 
       updateIdentitasBadges();
+
+      // Kunci Titik Rumah WFH jika sudah terdaftar
+      const wfhLockedCard = document.getElementById('wfh-locked-card');
+      const formWFH = document.getElementById('formWFH');
+      if (wfhLockedCard && formWFH) {
+        if (sessionUser && sessionUser.gps_wfh) {
+          wfhLockedCard.classList.remove('hidden');
+          formWFH.classList.add('hidden');
+          const alEl = document.getElementById('wfh-locked-alamat');
+          const gpsEl = document.getElementById('wfh-locked-gps');
+          if (alEl) alEl.textContent = sessionUser.alamat_wfh || 'Alamat Terdaftar di Database Resmi';
+          if (gpsEl) gpsEl.textContent = sessionUser.gps_wfh;
+        } else {
+          wfhLockedCard.classList.add('hidden');
+          formWFH.classList.remove('hidden');
+        }
+      }
     }
 
     function logoutSesi() {
@@ -1920,6 +2171,35 @@
     }
 
     function updateNearestOffice(lat, lng) {
+      const locVal = document.getElementById('lokasi')?.value || 'KANTOR';
+      const offName = document.getElementById('nearest-office-name');
+      const offDist = document.getElementById('nearest-office-dist');
+
+      if (locVal === 'WFH') {
+        if (sessionUser && sessionUser.gps_wfh) {
+          const wParts = sessionUser.gps_wfh.split(',');
+          if (wParts.length >= 2) {
+            const wLat = parseFloat(wParts[0].trim());
+            const wLng = parseFloat(wParts[1].trim());
+            const distKm = calculateDistance(lat, lng, wLat, wLng);
+            const distM = Math.round(distKm * 1000);
+            if (offName) offName.innerText = 'Rumah (WFH)';
+            if (offDist) {
+              offDist.innerText = distM < 1000 ? `${distM} meter` : `${distKm.toFixed(1)} km`;
+              if (distM <= 100) {
+                offDist.className = "font-mono text-emerald-400 font-bold";
+              } else {
+                offDist.className = "font-mono text-rose-400 font-bold";
+              }
+            }
+            return;
+          }
+        }
+        if (offName) offName.innerText = 'Rumah (Belum Terdaftar)';
+        if (offDist) offDist.innerText = '-';
+        return;
+      }
+
       let minDistance = Infinity;
       let nearestOffice = "";
 
@@ -1931,10 +2211,9 @@
         }
       });
 
-      const offName = document.getElementById('nearest-office-name');
-      const offDist = document.getElementById('nearest-office-dist');
       if (offName) offName.innerText = nearestOffice;
       if (offDist) {
+        offDist.className = "font-mono text-sky-400 font-bold";
         if (minDistance < 1) {
           offDist.innerText = `${Math.round(minDistance * 1000)} meter`;
         } else {
@@ -1945,6 +2224,13 @@
       const connPill = document.getElementById('conn-status-pill');
       if (connPill) {
         document.getElementById('conn-indicator-text').innerText = 'Terhubung ke Database';
+      }
+    }
+
+    function onLokasiChange(mode) {
+      document.getElementById('lokasi').value = mode;
+      if (userLat && userLng) {
+        updateNearestOffice(userLat, userLng);
       }
     }
 
