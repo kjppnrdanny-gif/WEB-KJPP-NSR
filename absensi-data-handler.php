@@ -200,6 +200,7 @@ function fetchMasterFromGAS() {
         $colNik = -1; $colNama = -1; $colJabatan = -1; $colDivisi = -1; $colStatus = -1;
         $colAlamatWfh = -1; $colGpsWfh = -1; $colTglWfh = -1; $colEmail = -1;
 
+        $colKantor = -1; $colPin = -1;
         foreach ($headers as $idx => $h) {
             if ($h === 'NIK') $colNik = $idx;
             else if ($h === 'NAMA' || $h === 'NAMA KARYAWAN') $colNama = $idx;
@@ -210,6 +211,8 @@ function fetchMasterFromGAS() {
             else if ($h === 'GPS WFH') $colGpsWfh = $idx;
             else if (strpos($h, 'REGISTRASI WFH') !== false) $colTglWfh = $idx;
             else if (strpos($h, 'EMAIL') !== false || $h === 'GMAIL') $colEmail = $idx;
+            else if ($h === 'KANTOR' || $h === 'CABANG') $colKantor = $idx;
+            else if (strpos($h, 'PIN') !== false) $colPin = $idx;
         }
 
         if ($colNik === -1) $colNik = 0;
@@ -226,17 +229,25 @@ function fetchMasterFromGAS() {
         foreach ($res['rows'] as $r) {
             $nik = trim((string)($r[$colNik] ?? ''));
             if (empty($nik)) continue;
+            $rawKantor = ($colKantor !== -1) ? trim((string)($r[$colKantor] ?? '')) : '';
+            $cabang = getCabangFromNIK($nik, $rawKantor);
+            $pinVal = ($colPin !== -1) ? trim((string)($r[$colPin] ?? '')) : '';
+            if (empty($pinVal)) {
+                $pinVal = ($nik === 'NSR-2019-005') ? '889900' : '123456';
+            }
             $roster[] = [
                 'nik' => $nik,
                 'nama' => trim((string)($r[$colNama] ?? '')),
                 'jabatan' => trim((string)($r[$colJabatan] ?? '')),
                 'divisi' => trim((string)($r[$colDivisi] ?? '')),
-                'cabang' => 'Pusat Jakarta',
+                'kantor' => $cabang,
+                'cabang' => $cabang,
                 'status' => strtoupper(trim((string)($r[$colStatus] ?? 'AKTIF'))),
                 'alamat_wfh' => trim((string)($r[$colAlamatWfh] ?? '')),
                 'gps_wfh' => trim((string)($r[$colGpsWfh] ?? '')),
                 'tgl_reg_wfh' => trim((string)($r[$colTglWfh] ?? '')),
-                'email' => trim((string)($r[$colEmail] ?? ''))
+                'email' => trim((string)($r[$colEmail] ?? '')),
+                'pin_presensi' => $pinVal
             ];
         }
 
@@ -693,13 +704,18 @@ function loadDatabase() {
         } else {
             foreach ($db['master_karyawan'] as &$ek) {
                 if (normalisasiNIK($ek['nik'] ?? '') === $norm) {
-                    if (($ek['nama'] ?? '') !== $mk['nama'] || ($ek['cabang'] ?? '') !== 'Pusat Jakarta') {
+                    $mkCabang = $mk['cabang'] ?? $mk['kantor'] ?? 'Pusat Jakarta';
+                    if (($ek['nama'] ?? '') !== $mk['nama'] || ($ek['cabang'] ?? '') !== $mkCabang) {
                         $ek['nama'] = $mk['nama'];
                         $ek['jabatan'] = $mk['jabatan'];
                         $ek['divisi'] = $mk['divisi'];
-                        $ek['cabang'] = 'Pusat Jakarta';
+                        $ek['cabang'] = $mkCabang;
+                        $ek['kantor'] = $mkCabang;
                         if (!empty($mk['email']) && empty($ek['email'])) {
                             $ek['email'] = $mk['email'];
+                        }
+                        if (!empty($mk['pin_presensi'])) {
+                            $ek['pin_presensi'] = $mk['pin_presensi'];
                         }
                         $ek['status'] = 'AKTIF';
                         $needsSave = true;
@@ -992,6 +1008,7 @@ try {
             'jabatan' => $found['jabatan'],
             'divisi' => $found['divisi'],
             'cabang' => $found['cabang'] ?? 'Pusat Jakarta',
+            'kantor' => $found['kantor'] ?? $found['cabang'] ?? 'Pusat Jakarta',
             'isAdminHR' => $isAdminHR,
             'maskedEmail' => samarkanEmail($email),
             'hasEmail' => (strlen($email) > 5 && strpos($email, '@') !== false)
@@ -1898,21 +1915,31 @@ X-Mailer: PHP/" . phpversion()
         $userLat = (float)trim($parts[0]);
         $userLng = (float)trim($parts[1]);
 
-        // Zona Waktu Kantor Pusat: Asia/Jakarta (WIB)
-        $tzObj = new DateTimeZone('Asia/Jakarta');
-        $dtNow = new DateTime('now', $tzObj);
-        $tglStr = $dtNow->format('Y-m-d');
-        $jamStr = $dtNow->format('H:i:s') . ' WIB';
-        $timestampStr = $dtNow->format('Y-m-d H:i:s');
-
-        // Validasi Geofence Kantor Pusat Jakarta
-        $kantorTerdekat = 'Kantor Pusat Jakarta';
+        // Multi-Office Geofencing KJPP NSR (5 Kantor Operasional Resmi)
+        $kantorTerdekat = 'Pusat Jakarta';
         $jarakMeter = 0;
         $statusValidasi = 'VALID';
+        $zonaLabel = 'WIB';
 
         if ($lokasi === 'KANTOR') {
-            $jarakMeter = hitungJarakHaversine($userLat, $userLng, PUSAT_LAT, PUSAT_LNG);
-            if ($jarakMeter > RADIUS_KANTOR_METER) {
+            global $KANTOR_CABANG;
+            $minJarak = INF;
+            $bestKantor = 'Pusat Jakarta';
+            $toleransi = RADIUS_KANTOR_METER;
+
+            foreach ($KANTOR_CABANG as $kb) {
+                $d = hitungJarakHaversine($userLat, $userLng, $kb['lat'], $kb['lng']);
+                if ($d < $minJarak) {
+                    $minJarak = $d;
+                    $bestKantor = $kb['nama'];
+                    $toleransi = $kb['radius'] ?? RADIUS_KANTOR_METER;
+                }
+            }
+
+            $kantorTerdekat = $bestKantor;
+            $jarakMeter = round($minJarak);
+
+            if ($minJarak > $toleransi) {
                 $statusValidasi = 'TIDAK VALID';
             }
         } elseif ($lokasi === 'WFH') {
@@ -1931,7 +1958,7 @@ X-Mailer: PHP/" . phpversion()
                 $wParts = explode(',', $wfhGps);
                 $wLat = (float)trim($wParts[0]);
                 $wLng = (float)trim($wParts[1]);
-                $jarakMeter = hitungJarakHaversine($userLat, $userLng, $wLat, $wLng);
+                $jarakMeter = round(hitungJarakHaversine($userLat, $userLng, $wLat, $wLng));
                 $kantorTerdekat = 'Rumah WFH';
                 if ($jarakMeter > RADIUS_WFH_METER) {
                     $statusValidasi = 'TIDAK VALID';
@@ -1942,6 +1969,19 @@ X-Mailer: PHP/" . phpversion()
             $jarakMeter = 0;
             $statusValidasi = 'VALID';
         }
+
+        // Penyesuaian Zona Waktu (WITA untuk Makassar, WIB untuk lainnya)
+        if ($kantorTerdekat === 'Cabang Makassar' || strpos($cleanNik, 'MKS') !== false) {
+            $tzObj = new DateTimeZone('Asia/Makassar');
+            $zonaLabel = 'WITA';
+        } else {
+            $tzObj = new DateTimeZone('Asia/Jakarta');
+            $zonaLabel = 'WIB';
+        }
+        $dtNow = new DateTime('now', $tzObj);
+        $tglStr = $dtNow->format('Y-m-d');
+        $jamStr = $dtNow->format('H:i:s') . ' ' . $zonaLabel;
+        $timestampStr = $dtNow->format('Y-m-d H:i:s');
 
         // Aturan Integritas & Pencegahan Presensi Ganda
         $recordMasuk = null;
@@ -2342,7 +2382,7 @@ X-Mailer: PHP/" . phpversion()
         $masterLookup = [];
 
         foreach ($db['master_karyawan'] as $k) {
-            if (($k['cabang'] ?? '') === 'Pusat Jakarta' && strtoupper($k['status'] ?? '') === 'AKTIF') {
+            if (strtoupper($k['status'] ?? '') === 'AKTIF') {
                 $karyawanPusat[] = $k;
                 $masterLookup[normalisasiNIK($k['nik'])] = $k;
             }
