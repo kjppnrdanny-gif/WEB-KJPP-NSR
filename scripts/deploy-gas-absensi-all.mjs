@@ -15,7 +15,7 @@ const DEPLOYMENT_ID = 'AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_
 
 async function main() {
   console.log('========================================================');
-  console.log('🚀 DEPLOY GOOGLE APPS SCRIPT ABSENSI — SMART OTP RESEND & 15M TTL');
+  console.log('🚀 DEPLOY GOOGLE APPS SCRIPT ABSENSI — 6-DIGIT PIN AUTH & MULTI-BRANCH');
   console.log('Script ID:', SCRIPT_ID);
   console.log('Deployment ID:', DEPLOYMENT_ID);
   console.log('========================================================\n');
@@ -57,7 +57,7 @@ async function main() {
   const ver = await script.projects.versions.create({
     scriptId: SCRIPT_ID,
     requestBody: {
-      description: 'v24: Smart Resend Idempotent OTP, 15m TTL, 5 Attempts Threshold, Alamat Email Database Sync'
+      description: 'v27: 6-Digit PIN Auth, Multi-Branch Geofencing (Makassar -5.1565, 119.4120), Schema Setup, Email PIN Reset, Auto-Prompt Email'
     }
   });
   const versionNumber = ver.data.versionNumber;
@@ -72,7 +72,7 @@ async function main() {
         scriptId: SCRIPT_ID,
         versionNumber,
         manifestFileName: 'appsscript',
-        description: `Production Web App v${versionNumber} - Smart Resend OTP 15m TTL`
+        description: `Production Web App v${versionNumber} - 6-Digit PIN Auth Multi-Branch`
       }
     }
   });
@@ -91,32 +91,41 @@ async function main() {
     return await res.json();
   }
 
-  // Test [1]: Reset Counter Percobaan Gagal
-  const tReset = await testAction('reset_failed_attempts', { nik: 'NSR-2019-005' });
-  console.log('   [1] reset_failed_attempts NSR-2019-005:', tReset.status, tReset.message);
+  // Test [1]: Schema Setup
+  console.log('   Menjalankan setup_master_schema...');
+  const tSchema = await testAction('setup_master_schema');
+  console.log('   [1] setup_master_schema:', tSchema.status, tSchema.message, 'Total updated:', tSchema.totalUpdated);
 
-  // Test [2]: Token Bypass NSR8899
-  const tBypass = await testAction('verifikasiOTP', { nik: 'NSR-2019-005', otp: 'NSR8899' });
-  console.log('   [2] verifikasiOTP NSR8899 bypass:', tBypass.status || (tBypass.success ? 'success' : 'failed'), 'Message:', tBypass.message);
+  // Test [2]: Verify PIN Management NSR-2019-005 dengan PIN 889900
+  const tPin005 = await testAction('verify_pin', { nik: 'NSR-2019-005', pin: '889900' });
+  console.log('   [2] verify_pin NSR-2019-005 (889900):', tPin005.status, 'Admin HR:', tPin005.isAdminHR, 'Name:', tPin005.nama);
 
-  // Test [3]: Cek Karyawan Tanpa Email (NSR-2019-014 Yanto)
-  const tNoEmail = await testAction('mintaOTP', { nik: 'NSR-2019-014', pdpNoticeVersion: 'PDP-NSR-2026' });
-  console.log('   [3] mintaOTP Tanpa Email (NSR-2019-014):', tNoEmail.status || 'error', 'Pesan:', tNoEmail.message);
+  // Test [3]: Verify PIN Karyawan Normal Latief Satihi NSR-2019-012 dengan PIN 123456
+  const tPin012 = await testAction('verify_pin', { nik: 'NSR-2019-012', pin: '123456' });
+  console.log('   [3] verify_pin NSR-2019-012 (123456):', tPin012.status, 'Needs Email Update:', tPin012.needs_email_update, 'Cabang:', tPin012.cabang);
 
-  // Test [4]: Master Karyawan Roster
-  const tMaster = await testAction('get_master_karyawan');
-  console.log('   [4] get_master_karyawan:', tMaster.status, 'Total karyawan:', tMaster.rows?.length);
+  // Test [4]: Verify PIN Karyawan Tanpa Email Yanto NSR-2019-014 dengan PIN 123456
+  const tPin014 = await testAction('verify_pin', { nik: 'NSR-2019-014', pin: '123456' });
+  console.log('   [4] verify_pin NSR-2019-014 (123456 - Tanpa Email):', tPin014.status, 'Needs Email Update:', tPin014.needs_email_update);
 
-  // Test [5]: Dashboard Summary
-  const tSummary = await testAction('get_dashboard_summary');
-  console.log('   [5] get_dashboard_summary:', tSummary.status, 'Summary:', tSummary.summary);
+  // Test [5]: Verify PIN Karyawan Makassar Amin Sade NSR-MKS-2019-30 dengan PIN 123456
+  const tPinMks = await testAction('verify_pin', { nik: 'NSR-MKS-2019-30', pin: '123456' });
+  console.log('   [5] verify_pin NSR-MKS-2019-30 (Cabang Makassar):', tPinMks.status, 'Cabang:', tPinMks.cabang, 'Needs Email Update:', tPinMks.needs_email_update);
 
-  if ((tBypass.success || tBypass.status === 'success') && String(tNoEmail.message).includes('Alamat email resmi belum terdaftar')) {
+  // Test [6]: Verify PIN Salah
+  const tWrongPin = await testAction('verify_pin', { nik: 'NSR-2019-012', pin: '999999' });
+  console.log('   [6] verify_pin Salah (Expected error):', tWrongPin.status, 'Pesan:', tWrongPin.message);
+
+  if ((tPin005.success || tPin005.status === 'success') &&
+      (tPin012.success || tPin012.status === 'success') &&
+      tPin014.needs_email_update === true &&
+      tPinMks.cabang === 'Cabang Makassar' &&
+      tWrongPin.status === 'error') {
     console.log('\n========================================================');
-    console.log('🎉 GOOGLE APPS SCRIPT v' + versionNumber + ' RESMI LIVE & TERVERIFIKASI!');
+    console.log('🎉 GOOGLE APPS SCRIPT v' + versionNumber + ' RESMI LIVE, PIN AUTH & SCHEMA TERVERIFIKASI!');
     console.log('========================================================\n');
   } else {
-    throw new Error('Verifikasi GAS v' + versionNumber + ' tidak memenuhi kriteria: ' + JSON.stringify({ tBypass, tNoEmail }));
+    throw new Error('Verifikasi GAS v' + versionNumber + ' tidak memenuhi kriteria!');
   }
 }
 
