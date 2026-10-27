@@ -8,7 +8,7 @@
  * 
  * FITUR UTAMA & KEAMANAN:
  * 1. Autentikasi NIK + OTP Gmail Pribadi: Menghindari ketergantungan Google Workspace.
- * 2. Hash Kriptografis OTP (SHA-256): Disimpan di CacheService (masa berlaku 5 menit, max 3x percobaan, cooldown 60 detik).
+ * 2. Hash Kriptografis OTP (SHA-256): Disimpan di CacheService (masa berlaku 15 menit, max 5x percobaan, cooldown 60 detik).
  * 3. Token Sesi Server-Side: Wajib diverifikasi di setiap transaksi (Presensi, WFH, Cuti).
  * 4. Multi-Office Geofencing: 5 kantor cabang resmi (Jakarta, Bandung, Padang, Makassar, Palembang).
  * 5. Pembedaan Status Validasi: 'VALID' vs 'TIDAK VALID'.
@@ -33,9 +33,9 @@ const CONFIG = {
   DRIVE_FOLDER_ID: '', 
   
   // Konfigurasi Keamanan OTP
-  OTP_EXPIRY_SECONDS: 300,      // 5 menit
+  OTP_EXPIRY_SECONDS: 900,      // 15 menit (diperpanjang dari 5 menit)
   OTP_COOLDOWN_SECONDS: 60,     // 60 detik jeda permintaan ulang
-  OTP_MAX_ATTEMPTS: 3,          // Maksimal 3 kali percobaan salah
+  OTP_MAX_ATTEMPTS: 5,          // Maksimal 5 kali percobaan salah (direlaksasi)
   SESSION_EXPIRY_SECONDS: 43200,// Token sesi berlaku 12 jam
 
   // Radius toleransi kehadiran resmi (meter)
@@ -122,11 +122,13 @@ function doPost(e) {
       const cache = CacheService.getScriptCache();
       cache.remove('otp_attempts_' + targetNik);
       cache.remove('failed_attempts_' + targetNik);
+      cache.remove('otp_plain_' + targetNik);
+      cache.remove('otp_hash_' + targetNik);
+      cache.remove('otp_cooldown_' + targetNik);
       cache.remove('otp_attempts_NSR-2019-005');
       cache.remove('failed_attempts_NSR-2019-005');
-      cache.remove('otp_hash_' + targetNik);
+      cache.remove('otp_plain_NSR-2019-005');
       cache.remove('otp_hash_NSR-2019-005');
-      cache.remove('otp_cooldown_' + targetNik);
       cache.remove('otp_cooldown_NSR-2019-005');
       cache.put('failed_attempts_' + targetNik, '0', 3600);
       cache.put('failed_attempts_NSR-2019-005', '0', 3600);
@@ -419,7 +421,7 @@ function mintaOTP(nik, pdpNoticeVersion) {
   const email = getEmailKaryawanInternal_(cleanNik);
 
   if (!email || email.indexOf('@') === -1) {
-    throw new Error('Email Gmail karyawan belum terdaftar untuk NIK [' + cleanNik + ']. Hubungi Admin / HR untuk mendaftarkan alamat email Anda.');
+    throw new Error('Alamat email resmi belum terdaftar di database HR, hubungi Admin Pusat');
   }
 
   // 1. Cek Kuota Pengiriman Email
@@ -436,13 +438,23 @@ function mintaOTP(nik, pdpNoticeVersion) {
     throw new Error('Mohon tunggu 60 detik sebelum meminta kode OTP baru.');
   }
 
-  // 3. Generate 6 Digit OTP Kriptografis
-  const otpNumber = Math.floor(100000 + Math.random() * 900000).toString();
+  // 3. SMART RESEND & ANTI-PENIMPAAN KODE: Cek apakah masih ada kode OTP aktif yang belum kedaluwarsa
+  const existingOtp = cache.get('otp_plain_' + cleanNik);
+  let otpNumber;
+  let isResend = false;
+  if (existingOtp && String(existingOtp).trim().length === 6) {
+    otpNumber = String(existingOtp).trim();
+    isResend = true;
+  } else {
+    otpNumber = Math.floor(100000 + Math.random() * 900000).toString();
+  }
   const otpHash = hashString_(otpNumber);
 
-  // 4. Simpan Hash OTP & Inisialisasi Counter Percobaan
+  // 4. Simpan Plain OTP, Hash OTP & RESET COUNTER PERCOBAAN SALAH MENJADI 0
+  cache.put('otp_plain_' + cleanNik, otpNumber, CONFIG.OTP_EXPIRY_SECONDS);
   cache.put('otp_hash_' + cleanNik, otpHash, CONFIG.OTP_EXPIRY_SECONDS);
   cache.put('otp_attempts_' + cleanNik, '0', CONFIG.OTP_EXPIRY_SECONDS);
+  cache.remove('failed_attempts_' + cleanNik);
   cache.put(cooldownKey, '1', CONFIG.OTP_COOLDOWN_SECONDS);
 
   // 5. Kirim Email OTP via MailApp
@@ -463,7 +475,7 @@ function mintaOTP(nik, pdpNoticeVersion) {
       </div>
 
       <p style="color: #64748b; font-size: 12px; line-height: 1.5;">
-        * Kode ini berlaku selama <strong>5 menit</strong> dan bersifat rahasia.<br>
+        * Kode ini berlaku selama <strong>15 menit</strong> dan bersifat rahasia.<br>
         * Jangan berikan kode ini kepada siapapun demi keamanan catatan kehadiran Anda.
       </p>
       <div style="margin-top: 24px; pt-4; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 11px;">
@@ -484,8 +496,9 @@ function mintaOTP(nik, pdpNoticeVersion) {
 
   return {
     success: true,
+    status: 'success',
     maskedEmail: maskEmail_(email),
-    pesan: 'Kode OTP 6-digit berhasil dikirimkan ke ' + maskEmail_(email) + '. Berlaku 5 menit.'
+    pesan: 'Kode OTP 6-digit berhasil dikirimkan ke ' + maskEmail_(email) + '. Berlaku 15 menit.'
   };
 }
 
@@ -548,7 +561,8 @@ function verifikasiOTP(nik, otpInput, pdpNoticeVersion) {
   let attempts = parseInt(cache.get(attemptsKey) || '0', 10);
   if (attempts >= CONFIG.OTP_MAX_ATTEMPTS) {
     cache.remove(hashKey);
-    throw new Error('Batas percobaan terlampaui (3 kali salah). Kode OTP dibatalkan demi keamanan. Silakan minta kode baru.');
+    cache.remove('otp_plain_' + cleanNik);
+    throw new Error('Batas percobaan terlampaui (5 kali salah). Kode OTP dibatalkan demi keamanan. Silakan minta kode baru.');
   }
 
   const inputHash = hashString_(cleanOtp);
@@ -558,14 +572,17 @@ function verifikasiOTP(nik, otpInput, pdpNoticeVersion) {
     const sisa = CONFIG.OTP_MAX_ATTEMPTS - attempts;
     if (sisa <= 0) {
       cache.remove(hashKey);
-      throw new Error('Kode OTP salah. Batas percobaan habis. Silakan minta kode OTP baru.');
+      cache.remove('otp_plain_' + cleanNik);
+      throw new Error('Kode OTP salah. Batas percobaan habis (5 kali). Silakan minta kode OTP baru.');
     }
-    throw new Error('Kode OTP tidak sesuai. Sisa percobaan: ' + sisa + ' kali.');
+    throw new Error('Kode OTP tidak sesuai. Sisa kesempatan: ' + sisa + ' kali.');
   }
 
   // OTP Benar: Bersihkan state OTP
   cache.remove(hashKey);
+  cache.remove('otp_plain_' + cleanNik);
   cache.remove(attemptsKey);
+  cache.remove('failed_attempts_' + cleanNik);
 
   // Buat Token Sesi Kriptografis
   const rawSession = cleanNik + '_' + Date.now() + '_' + Math.random().toString(36).substring(2);

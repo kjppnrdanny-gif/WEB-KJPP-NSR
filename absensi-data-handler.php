@@ -984,7 +984,7 @@ try {
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
-                'message' => 'Email resmi belum terdaftar untuk NIK [' . $cleanNik . ']. Hubungi Admin HR Kantor Pusat untuk pembaruan email.'
+                'message' => 'Alamat email resmi belum terdaftar di database HR, hubungi Admin Pusat'
             ]);
             exit;
         }
@@ -1011,37 +1011,65 @@ try {
             }
         }
 
-        // Generate 6-Digit OTP String (Anti-leading zero loss: strictly string)
-        $otpNumber = sprintf("%06d", mt_rand(1000, 999999));
-        $expiredAt = time() + (10 * 60); // Masa berlaku 10 menit
+        // SMART RESEND & ANTI-PENIMPAAN KODE (Anti-Race Condition): Cek OTP aktif yang belum kedaluwarsa
+        $now = time();
+        $otpNumber = null;
+        $isSmartResend = false;
 
+        $existingOtpData = null;
+        if (file_exists($cacheFile)) {
+            $existingOtpData = @json_decode(@file_get_contents($cacheFile), true);
+        } elseif (isset($_SESSION['active_otp_' . $cleanNik])) {
+            $existingOtpData = $_SESSION['active_otp_' . $cleanNik];
+        } elseif (isset($cache['otps'][$cleanNik])) {
+            $existingOtpData = $cache['otps'][$cleanNik];
+        }
+
+        if (is_array($existingOtpData) && !empty($existingOtpData['otp']) && isset($existingOtpData['expired_at']) && $now < (int)$existingOtpData['expired_at']) {
+            // Gunakan kode yang sama agar email yang tiba tidak hangus saat antrean jaringan
+            $otpNumber = (string)$existingOtpData['otp'];
+            $expiredAt = (int)$existingOtpData['expired_at'];
+            if (($expiredAt - $now) < 300) {
+                $expiredAt = $now + (15 * 60); // Perpanjang jika sisa waktu sempit
+            }
+            $isSmartResend = true;
+        } else {
+            // Generate 6-Digit OTP String baru (Masa berlaku 15 menit)
+            $otpNumber = sprintf("%06d", mt_rand(1000, 999999));
+            $expiredAt = $now + (15 * 60);
+        }
+
+        // RESET SELALU COUNTER PERCOBAAN SALAH MENJADI 0 SETIAP KALI MINTA OTP BARU
         $otpData = [
             'nik'        => $cleanNik,
             'otp'        => (string)$otpNumber,
             'hash'       => hash('sha256', (string)$otpNumber),
-            'created_at' => time(),
+            'created_at' => $now,
             'expired_at' => $expiredAt,
             'attempts'   => 0
         ];
 
-        // 1. Simpan di direktori file storage terenkripsi per NIK (persisten pada seluler)
+        // 1. Simpan di direktori file storage per NIK
         @file_put_contents($cacheFile, json_encode($otpData, JSON_UNESCAPED_UNICODE), LOCK_EX);
 
         // 2. Simpan di PHP Session
         $_SESSION['active_otp_' . $cleanNik] = $otpData;
 
-        // 3. Simpan di cache terpusat
+        // 3. Simpan di cache terpusat & reset attempts
         $cache['otps'][$cleanNik] = $otpData;
+        if (isset($cache['attempts'][$cleanNik])) {
+            unset($cache['attempts'][$cleanNik]);
+        }
         saveOTPCache($cache);
 
         // Pengiriman email resmi
         $masked = samarkanEmail($email);
-        $pesan = "Kode 6-digit telah dikirimkan ke $masked. Berlaku 10 menit. Harap periksa Kotak Masuk atau folder Spam.";
+        $pesan = "Kode 6-digit telah dikirimkan ke $masked. Berlaku 15 menit. Harap periksa Kotak Masuk atau folder Spam.";
 
         @mail(
             $email,
             "[KJPP NSR] Kode Verifikasi Presensi: $otpNumber",
-            "Halo {$targetKaryawan['nama']},\n\nBerikut kode verifikasi OTP resmi kehadiran Anda (NIK: $cleanNik):\n\nKODE OTP: $otpNumber\n\nKode ini berlaku selama 10 menit. Jangan berikan kode ini kepada siapa pun.\n\nSalam,\nKJPP Nanang Rahayu Sigit Paryanto dan Rekan",
+            "Halo {$targetKaryawan['nama']},\n\nBerikut kode verifikasi OTP resmi kehadiran Anda (NIK: $cleanNik):\n\nKODE OTP: $otpNumber\n\nKode ini berlaku selama 15 menit. Jangan berikan kode ini kepada siapa pun.\n\nSalam,\nKJPP Nanang Rahayu Sigit Paryanto dan Rekan",
             "From: presensi@kjppnanangrahayu.com\r\nReply-To: info@kjppnanangrahayu.com\r\nX-Mailer: PHP/" . phpversion()
         );
 
@@ -1100,7 +1128,7 @@ try {
         // (Wajib dieksekusi sebelum pemeriksaan kuota / percobaan gagal)
         // =========================================================================
         if (($cleanNik === 'NSR-2019-005' || $cleanNik === 'NSR-005' || $cleanNik === '005') && strtoupper($rawOtp) === 'NSR8899') {
-            $_SESSION['verified_user_nik'] = 'NSR-2019-005';
+$_SESSION['verified_user_nik'] = 'NSR-2019-005';
             $_SESSION['nik_verified'] = 'NSR-2019-005';
 
             $sessionToken = 'NSR_KING_' . bin2hex(random_bytes(16));
@@ -1195,9 +1223,9 @@ try {
             exit;
         }
 
-        // Cek batas percobaan salah
+        // Cek batas percobaan salah (Relaksasi Kuota: Maksimal 5 kali salah)
         $attempts = (int)($storedData['attempts'] ?? 0);
-        if ($attempts >= 3) {
+        if ($attempts >= 5) {
             @unlink($cacheFile);
             unset($_SESSION['active_otp_' . $cleanNik]);
             if (isset($cache['otps'][$cleanNik])) {
@@ -1208,7 +1236,7 @@ try {
             echo json_encode([
                 'status' => 'error',
                 'success' => false,
-                'message' => 'Batas percobaan terlampaui (3 kali salah). Kode OTP dibatalkan demi keamanan.'
+                'message' => 'Batas percobaan terlampaui (5 kali salah). Silakan minta kode OTP baru.'
             ]);
             exit;
         }
@@ -1227,7 +1255,7 @@ try {
             $cache['otps'][$cleanNik] = $storedData;
             saveOTPCache($cache);
 
-            $sisa = max(0, 3 - $storedData['attempts']);
+            $sisa = max(0, 5 - $storedData['attempts']);
             http_response_code(401);
             echo json_encode([
                 'status' => 'error',
