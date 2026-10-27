@@ -23,7 +23,76 @@ if ($requestMethod === 'OPTIONS') {
 }
 
 // Konfigurasi Google Apps Script Engine Proxy (Dapat dihubungkan ke Deployment ID Web App)
-define('GAS_TRACKING_URL', '');
+define('GAS_TRACKING_URL', 'https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec');
+
+/**
+ * Smart Proxy Forwarder ke SSOT Google Apps Script Web App
+ */
+function callGASTrackingService($action, $data = [], $method = 'POST', $timeout = 8) {
+    if (!defined('GAS_TRACKING_URL') || empty(GAS_TRACKING_URL)) {
+        return null;
+    }
+
+    $url = GAS_TRACKING_URL;
+    $postData = '';
+    
+    if ($method === 'GET') {
+        $queryParams = array_merge(['action' => $action], $data);
+        $url .= (strpos($url, '?') === false ? '?' : '&') . http_build_query($queryParams);
+    } else {
+        $payload = array_merge(['action' => $action], $data);
+        $postData = json_encode($payload, JSON_UNESCAPED_UNICODE);
+    }
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        if ($method === 'POST') {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: text/plain;charset=utf-8']);
+        }
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $res = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+        if ($res && !$err) {
+            $json = json_decode($res, true);
+            if (is_array($json) && ($json['status'] ?? '') === 'success') {
+                return $json;
+            }
+        }
+    }
+
+    $opts = [
+        'http' => [
+            'method'  => $method,
+            'header'  => "Content-Type: text/plain;charset=utf-8\r\n",
+            'content' => $method === 'POST' ? $postData : null,
+            'timeout' => $timeout,
+            'follow_location' => 1,
+            'max_redirects' => 5
+        ],
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false
+        ]
+    ];
+    $ctx = @stream_context_create($opts);
+    $res = @file_get_contents($url, false, $ctx);
+    if ($res) {
+        $json = json_decode($res, true);
+        if (is_array($json) && ($json['status'] ?? '') === 'success') {
+            return $json;
+        }
+    }
+
+    return null;
+}
 
 $dataDir = __DIR__ . '/../data';
 if (!is_dir($dataDir)) {
@@ -424,6 +493,17 @@ if ($action === 'track' || $action === 'track_public') {
     // Sanitasi input pencarian
     $cleanJo = strtoupper(preg_replace('/[^a-zA-Z0-9\-]/', '', $joInput));
     $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
+
+    // 1. Coba proxy query ke SSOT Google Apps Script terlebih dahulu
+    $gasTrack = callGASTrackingService('track', ['id_jo' => $cleanJo, 'telepon_pic' => $cleanPhone], 'GET');
+    if ($gasTrack && isset($gasTrack['data'])) {
+        echo json_encode([
+            'status' => 'success',
+            'source' => 'GAS_SSOT_LIVE',
+            'data' => $gasTrack['data']
+        ]);
+        exit;
+    }
 
     $found = null;
 
