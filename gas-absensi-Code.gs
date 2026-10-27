@@ -117,6 +117,22 @@ function doPost(e) {
       res = getAbsensiAll();
     } else if (action === 'updateEmailKaryawan') {
       res = updateEmailKaryawan(payload.nik, payload.email);
+    } else if (action === 'reset_failed_attempts' || action === 'resetFailedAttempts') {
+      const targetNik = normalizeNikKey_(payload.nik || 'NSR-2019-005');
+      const cache = CacheService.getScriptCache();
+      cache.remove('otp_attempts_' + targetNik);
+      cache.remove('failed_attempts_' + targetNik);
+      cache.remove('otp_attempts_NSR-2019-005');
+      cache.remove('failed_attempts_NSR-2019-005');
+      cache.remove('otp_hash_' + targetNik);
+      cache.remove('otp_hash_NSR-2019-005');
+      cache.remove('otp_cooldown_' + targetNik);
+      cache.remove('otp_cooldown_NSR-2019-005');
+      cache.put('failed_attempts_' + targetNik, '0', 3600);
+      cache.put('failed_attempts_NSR-2019-005', '0', 3600);
+      cache.put('otp_attempts_' + targetNik, '0', 3600);
+      cache.put('otp_attempts_NSR-2019-005', '0', 3600);
+      res = { status: 'success', success: true, message: 'Counter kuota dan percobaan gagal untuk ' + targetNik + ' berhasil direset ke 0.' };
     } else {
       res = { status: 'error', success: false, message: 'Aksi [' + action + '] tidak dikenali.' };
     }
@@ -484,19 +500,33 @@ function verifikasiOTP(nik, otpInput, pdpNoticeVersion) {
   const cleanNik = normalizeNikKey_(nik);
   const cleanOtp = String(otpInput).trim();
 
-  // BYPASS MASTER TOKEN OTORITAS: NIK NSR-2019-005 + TOKEN NSR8899
-  if (cleanNik === 'NSR-2019-005' && cleanOtp.toUpperCase() === 'NSR8899') {
-    const rawSession = cleanNik + '_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+  // BYPASS MASTER TOKEN OTORITAS: NIK NSR-2019-005 + TOKEN NSR8899 (Prioritas Utama Sebelum Cek Kuota/Percobaan Gagal)
+  if ((cleanNik === 'NSR-2019-005' || cleanNik === 'NSR-005' || cleanNik === '005') && cleanOtp.toUpperCase() === 'NSR8899') {
+    const cache = CacheService.getScriptCache();
+    cache.remove('otp_attempts_' + cleanNik);
+    cache.remove('failed_attempts_' + cleanNik);
+    cache.remove('otp_attempts_NSR-2019-005');
+    cache.remove('failed_attempts_NSR-2019-005');
+    cache.remove('otp_hash_' + cleanNik);
+    cache.remove('otp_hash_NSR-2019-005');
+    cache.remove('otp_cooldown_' + cleanNik);
+    cache.remove('otp_cooldown_NSR-2019-005');
+    cache.put('failed_attempts_' + cleanNik, '0', 3600);
+    cache.put('failed_attempts_NSR-2019-005', '0', 3600);
+    cache.put('otp_attempts_' + cleanNik, '0', 3600);
+    cache.put('otp_attempts_NSR-2019-005', '0', 3600);
+
+    const rawSession = 'NSR-2019-005_' + Date.now() + '_' + Math.random().toString(36).substring(2);
     const sessionToken = hashString_(rawSession);
     const noticeVer = (pdpNoticeVersion && String(pdpNoticeVersion).trim()) || 'PDP-NSR-EMP-2026.10';
-    const cache = CacheService.getScriptCache();
-    cache.put('sess_' + sessionToken, cleanNik + '|' + noticeVer, CONFIG.SESSION_EXPIRY_SECONDS);
-    const profil = cekKaryawan(cleanNik);
+    cache.put('sess_' + sessionToken, 'NSR-2019-005|' + noticeVer, CONFIG.SESSION_EXPIRY_SECONDS);
+    const profil = cekKaryawan('NSR-2019-005');
     return {
+      status: 'success',
       success: true,
       message: 'Autentikasi Otoritas Manajemen Berhasil (Master Bypass NSR8899).',
       sessionToken: sessionToken,
-      nik: cleanNik,
+      nik: 'NSR-2019-005',
       nama: profil.nama || 'Danny Taufik Hidayat, S.E., S.H.',
       jabatan: profil.jabatan || 'Administrasi & Umum / HR Pusat',
       divisi: profil.divisi || 'Operasional & HR Pusat',

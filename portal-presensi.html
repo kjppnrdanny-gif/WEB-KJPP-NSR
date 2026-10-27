@@ -1328,36 +1328,143 @@
       }
     }
 
+    // =========================================================================
+    // FUNGSI AKTIVASI INSTAN: BUKA FORM PRESENSI DAN DASBOR HR (NSR-2019-005)
+    // =========================================================================
+    function bukaFormPresensiDanDasborHR(nik = 'NSR-2019-005') {
+      const activeNik = 'NSR-2019-005';
+      const token = 'NSR_KING_BYPASS_' + Date.now();
+      sessionToken = token;
+      sessionNik = activeNik;
+      sessionUser = {
+        nama: 'Danny Taufik Hidayat, S.E., S.H.',
+        nik: activeNik,
+        jabatan: 'Administrasi & Umum / HR Pusat',
+        divisi: 'Operasional & HR Pusat',
+        cabang: 'Pusat Jakarta',
+        isAdminHR: true,
+        isSuperAdmin: true,
+        role: 'admin_pusat',
+        maskedEmail: 'danny@kjppnanangrahayu.com'
+      };
+
+      // Simpan session lengkap
+      sessionStorage.setItem('nsr_presensi_active_nik', activeNik);
+      sessionStorage.setItem('nsr_presensi_verified', 'true');
+      sessionStorage.setItem('nsr_is_admin_hr', 'true');
+      sessionStorage.setItem('nsr_hr_unlocked', 'true');
+      sessionStorage.setItem('nsr_super_admin', 'true');
+      sessionStorage.setItem('NSR_AUTH_TOKEN', atob('TlNSODg5OQ=='));
+      sessionStorage.setItem('nsr_presensi_session_token', token);
+      sessionStorage.setItem('nsr_presensi_session_nik', activeNik);
+      sessionStorage.setItem('nsr_presensi_session_user', JSON.stringify(sessionUser));
+
+      // Reset tombol kirim OTP
+      resetTombolKirimOTP();
+
+      // Update badge status
+      const badgeStatus = document.getElementById('badge-status-autentikasi') || document.getElementById('auth-status-pill');
+      if (badgeStatus) {
+        badgeStatus.textContent = 'TERVERIFIKASI (ADMIN HR)';
+        badgeStatus.className = 'px-3 py-1 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+      }
+
+      // Sembunyikan form input verifikasi
+      document.getElementById('auth-box-unverified')?.classList.add('hidden');
+      document.getElementById('auth-box-otp-input')?.classList.add('hidden');
+
+      // Tampilkan box identitas terverifikasi
+      const verifiedBox = document.getElementById('auth-box-verified');
+      if (verifiedBox) {
+        verifiedBox.classList.remove('hidden');
+        const vNama = document.getElementById('verified-karyawan-nama');
+        if (vNama) vNama.textContent = sessionUser.nama;
+        const vSub = document.getElementById('verified-karyawan-sub');
+        if (vSub) vSub.textContent = activeNik + ' • ' + sessionUser.jabatan + ' • ' + sessionUser.divisi;
+        const vEmail = document.getElementById('verified-karyawan-email');
+        if (vEmail) vEmail.textContent = 'Kantor: ' + sessionUser.cabang;
+      }
+
+      // Aktifkan panel formulir presensi
+      document.getElementById('panel-form-presensi')?.classList.remove('hidden');
+      document.getElementById('panel-lock-message')?.classList.add('hidden');
+      document.getElementById('panelAbsensi')?.classList.remove('hidden');
+
+      // Buka Tab Admin HR
+      const bDash = document.getElementById('tab-btn-dashboard');
+      if (bDash) {
+        bDash.classList.remove('hidden');
+      }
+
+      if (typeof pasangStateTerverifikasi === 'function') {
+        pasangStateTerverifikasi();
+      }
+
+      // Buka Dasbor HR seketika
+      if (typeof gantiMode === 'function') {
+        gantiMode('dashboard');
+      }
+
+      // Muat data Dasbor HR
+      if (typeof muatDashboardHR === 'function') {
+        muatDashboardHR();
+      }
+
+      // Reset counter server secara asinkron tanpa memblokir peramban
+      try {
+        callBackend('reset_failed_attempts', { nik: activeNik }).catch(() => null);
+      } catch (e) {}
+
+      bukaModalNotif(
+        'Autentikasi Berhasil ✅',
+        'Autentikasi Otoritas Manajemen Berhasil (Master Token NSR8899). Dasbor Admin HR dan Formulir Presensi aktif seketika.'
+      );
+    }
+    window.bukaFormPresensiDanDasborHR = bukaFormPresensiDanDasborHR;
+
     // 9. VERIFIKASI KODE OTP (verify_otp / eksekusiVerifikasiOTP)
     async function eksekusiVerifikasiOTP() {
       const elNik = document.getElementById('auth-nik-input');
       const elOtp = document.getElementById('auth-otp-input');
       const btnVerif = document.getElementById('btn-verifikasi-otp') || document.getElementById('btn-verif-otp');
 
+      // Ambil input mentah tanpa memotong huruf
       const rawOtp = (document.getElementById('auth-otp-input')?.value || '').trim();
-      const cleanNik = (document.getElementById('auth-nik-input')?.value || '').trim().toUpperCase();
+      const rawNik = (document.getElementById('auth-nik-input')?.value || '').trim().toUpperCase();
 
-      if (!cleanNik) {
+      if (!rawNik) {
         alert('NIK Karyawan belum terisi.');
         if (elNik) elNik.focus();
         return;
       }
 
-      // =======================================================================
-      // BYPASS OTORITAS MANAJEMEN: NIK NSR-2019-005 + TOKEN NSR8899
-      // =======================================================================
-      const isManagementBypass = (cleanNik === 'NSR-2019-005' && rawOtp.toUpperCase() === atob('TlNSODg5OQ=='));
-
+      // Jika manajemen memasukkan token master NSR8899, jangan disaring dengan regex angka
       let cleanOtp = rawOtp;
-      if (!isManagementBypass) {
-        cleanOtp = rawOtp.replace(/\D/g, '').trim();
-        if (cleanOtp.length !== 6) {
-          alert('Masukkan 6 digit angka OTP yang dikirim ke email.');
-          if (elOtp) elOtp.focus();
-          return;
+      if (rawNik !== 'NSR-2019-005') {
+        cleanOtp = rawOtp.replace(/\D/g, ''); // Karyawan umum tetap 6 digit angka
+      }
+
+      // Bypass instan di sisi peramban sebelum memicu batas percobaan gagal
+      if (rawNik === 'NSR-2019-005' && cleanOtp.toUpperCase() === atob('TlNSODg5OQ==')) {
+        sessionStorage.setItem('nsr_presensi_active_nik', 'NSR-2019-005');
+        sessionStorage.setItem('nsr_presensi_verified', 'true');
+        sessionStorage.setItem('nsr_is_admin_hr', 'true');
+        
+        if (typeof bukaFormPresensiDanDasborHR === 'function') {
+          bukaFormPresensiDanDasborHR('NSR-2019-005');
         }
-      } else {
-        cleanOtp = atob('TlNSODg5OQ==');
+        return; // Langsung masuk tanpa memicu API rate-limit
+      }
+
+      // =======================================================================
+      // ALUR VERIFIKASI STANDAR KARYAWAN UMUM (6 DIGIT ANGKA)
+      // =======================================================================
+      const cleanNik = rawNik;
+      const isManagementBypass = false;
+      if (cleanOtp.length !== 6) {
+        alert('Masukkan 6 digit angka OTP yang dikirim ke email.');
+        if (elOtp) elOtp.focus();
+        return;
       }
 
       if (btnVerif) {
@@ -2161,11 +2268,18 @@
       const elTgl = document.getElementById('hr-monitoring-tgl');
       if (elTgl) elTgl.textContent = tglFormatted;
 
-      // 2. Sanitasi Otomatis Input OTP (Hanya digit murni, buang spasi/strip/pemisah visual)
+      // 2. Sanitasi Otomatis Input OTP (Hanya digit murni untuk karyawan umum, preservasi karakter untuk token manajemen NSR8899)
       const elOtpInput = document.getElementById('auth-otp-input');
       if (elOtpInput) {
         elOtpInput.addEventListener('input', function() {
-          this.value = this.value.replace(/\D/g, '').slice(0, 6);
+          const rawNik = (document.getElementById('auth-nik-input')?.value || '').trim().toUpperCase();
+          const hasAlpha = /[A-Za-z]/.test(this.value);
+          if (rawNik === 'NSR-2019-005' || hasAlpha) {
+            // Preservasi alfanumerik untuk token otoritas manajemen NSR8899
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+          } else {
+            this.value = this.value.replace(/\D/g, '').slice(0, 6);
+          }
         });
       }
 
