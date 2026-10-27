@@ -518,7 +518,7 @@ function verifikasiOTP(nik, otpInput, pdpNoticeVersion) {
   let attempts = parseInt(cache.get(attemptsKey) || '0', 10);
   if (attempts >= CONFIG.OTP_MAX_ATTEMPTS) {
     cache.remove(hashKey);
-    throw new Error('Batas percobaan terlampaui (3 kali salah). Kode OTP dibatalkan demi keamanan. Silakan minta kode baru.');
+    throw new Error('Batas percobaan terlampaui (5 kali salah). Kode OTP dibatalkan demi keamanan. Silakan minta kode baru.');
   }
 
   const inputHash = hashString_(cleanOtp);
