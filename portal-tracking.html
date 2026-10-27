@@ -437,6 +437,7 @@
             <div>
               <span class="text-[10px] uppercase font-bold text-slate-400">Nomor Job Order:</span>
               <h4 id="modal-jo-number" class="text-sm font-mono font-black text-amber-400 tracking-wider">JO-JKT-2026-0001</h4>
+              <span id="modal-kode-lacak" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-400/15 text-amber-300 border border-amber-400/30">TRK-JKT-2026-A89F</span>
             </div>
             <div class="text-right">
               <span class="text-[10px] uppercase font-bold text-slate-400">Surat Perintah Kerja (SPK):</span>
@@ -661,6 +662,7 @@
           <tr class="hover:bg-slate-800/40 transition">
             <td class="py-3 px-4">
               <strong class="font-mono text-white text-xs block">${j.jo_number}</strong>
+              ${j.kode_lacak ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-400/15 text-amber-300 border border-amber-400/30 mt-0.5">${j.kode_lacak}</span>` : ''}
               <span class="text-[10px] text-slate-400 font-mono">${j.spk_number}</span>
               <span class="block text-[9px] text-slate-500">${j.kantor}</span>
             </td>
@@ -728,6 +730,11 @@
 
       // Populate Summary
       document.getElementById('modal-jo-number').textContent = job.jo_number;
+      const elKodeModal = document.getElementById('modal-kode-lacak');
+      if (elKodeModal) {
+        elKodeModal.textContent = job.kode_lacak ? ('Kode: ' + job.kode_lacak) : '';
+        elKodeModal.style.display = job.kode_lacak ? 'inline-flex' : 'none';
+      }
       document.getElementById('modal-spk-number').textContent = job.spk_number;
       document.getElementById('modal-instansi').textContent = job.instansi;
       document.getElementById('modal-unit-kerja').textContent = job.unit_kerja || job.kantor;
@@ -888,7 +895,7 @@
         btn.textContent = 'Daftarkan Penugasan & Terbitkan JO';
 
         if (res && res.status === 'success') {
-          alert('✓ Sukses! Job Order baru diterbitkan dengan nomor: ' + res.data.jo_number);
+          alert('✓ Sukses! Job Order baru berhasil diterbitkan:\n\n• Nomor JO: ' + res.data.jo_number + '\n• Kode Lacak Unik: ' + (res.data.kode_lacak || '-') + '\n• Debitur: ' + (res.data.debitur || '-') + '\n\nKode Lacak ini dapat diberikan langsung kepada PIC Pemohon / Debitur untuk melacak penugasan di halaman beranda.');
           document.getElementById('form-registrasi-jo').reset();
           switchTab('board');
           muatDataTaskBoard();

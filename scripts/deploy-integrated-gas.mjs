@@ -53,16 +53,9 @@ async function main() {
   trackingSource = trackingSource.replace(/function handleSetupDatabase_\(\)/g, 'function handleSetupTrackingDatabase_()');
   trackingSource = trackingSource.replace(/handleSetupDatabase_\(\)/g, 'handleSetupTrackingDatabase_()');
 
-  // Hapus doGet dan doPost dari JobTracking agar tidak bentrok dengan Kode.gs
-  // Kita hilangkan deklarasi doGet dan doPost dari file JobTracking
-  trackingSource = trackingSource.replace(
-    /\/\*\*[\s\S]*?Entry Point HTTP GET[\s\S]*?function doGet\(e\) {[\s\S]*?\n}\n/,
-    '// doGet dipusatkan di Kode.gs\n'
-  );
-  trackingSource = trackingSource.replace(
-    /\/\*\*[\s\S]*?Entry Point HTTP POST[\s\S]*?function doPost\(e\) {[\s\S]*?\n}\n/,
-    '// doPost dipusatkan di Kode.gs\n'
-  );
+  // Hindari bentrok doGet dan doPost dengan Kode.gs
+  trackingSource = trackingSource.replace('function doGet(e)', 'function trackingDoGet_(e)');
+  trackingSource = trackingSource.replace('function doPost(e)', 'function trackingDoPost_(e)');
 
   // Sekarang pastikan Kode.gs merutekan action tracking di doGet dan doPost
   if (!kodeSource.includes('handlePublicTrack_')) {

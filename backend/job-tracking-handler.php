@@ -183,6 +183,28 @@ function getMilestoneTemplate() {
     ];
 }
 
+
+// Generator Kode Unik Pelacakan SPK / JO: TRK-[KANTOR]-[TAHUN]-[4 ALFANUMERIK]
+function generateTrackingCode($kantorCode = 'PUSAT', $year = null) {
+    $kantor = 'JKT';
+    $uKantor = strtoupper($kantorCode);
+    if (strpos($uKantor, 'BDG') !== false || strpos($uKantor, 'BANDUNG') !== false) $kantor = 'BDG';
+    elseif (strpos($uKantor, 'PDG') !== false || strpos($uKantor, 'PADANG') !== false) $kantor = 'PDG';
+    elseif (strpos($uKantor, 'MKS') !== false || strpos($uKantor, 'MAKASSAR') !== false) $kantor = 'MKS';
+    elseif (strpos($uKantor, 'PLM') !== false || strpos($uKantor, 'PALEMBANG') !== false) $kantor = 'PLM';
+    elseif ($uKantor === 'PUSAT' || strpos($uKantor, 'JAKARTA') !== false) $kantor = 'JKT';
+
+    if (!$year) $year = date('Y');
+    
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $rand = '';
+    $maxLen = strlen($chars) - 1;
+    for ($i = 0; $i < 4; $i++) {
+        $rand .= $chars[random_int(0, $maxLen)];
+    }
+    return 'TRK-' . $kantor . '-' . $year . '-' . $rand;
+}
+
 // Inisialisasi Mock Data Awal dengan 2 Skenario Bank BTN + Mandiri & BRI
 function getInitialSeedData() {
     $now = time();
@@ -211,6 +233,7 @@ function getInitialSeedData() {
     $item1 = [
         'id' => 'JO-JKT-2026-0001',
         'jo_number' => 'JO-JKT-2026-0001',
+        'kode_lacak' => 'TRK-JKT-2026-A89F',
         'spk_number' => '042/BTN-JKT/KPR-SPK/X/2026',
         'spk_date' => date('Y-m-d', $now - (86400 * 2)),
         'instansi' => 'PT Bank Tabungan Negara (Persero) Tbk',
@@ -267,6 +290,7 @@ function getInitialSeedData() {
     $item2 = [
         'id' => 'JO-JKT-2026-0002',
         'jo_number' => 'JO-JKT-2026-0002',
+        'kode_lacak' => 'TRK-JKT-2026-C42B',
         'spk_number' => '048/BTN-CBC/KOM-SPK/X/2026',
         'spk_date' => date('Y-m-d', $now - (86400 * 3)),
         'instansi' => 'PT Bank Tabungan Negara (Persero) Tbk',
@@ -314,6 +338,7 @@ function getInitialSeedData() {
     $item3 = [
         'id' => 'JO-BDG-2026-0015',
         'jo_number' => 'JO-BDG-2026-0015',
+        'kode_lacak' => 'TRK-BDG-2026-M512',
         'spk_number' => 'MDR/BDG/KOM-098/X/2026',
         'spk_date' => date('Y-m-d', $now - (86400 * 4)),
         'instansi' => 'PT Bank Mandiri (Persero) Tbk',
@@ -358,6 +383,7 @@ function getInitialSeedData() {
     $item4 = [
         'id' => 'JO-MKS-2026-0008',
         'jo_number' => 'JO-MKS-2026-0008',
+        'kode_lacak' => 'TRK-MKS-2026-K734',
         'spk_number' => 'B.341-AGR/MKS/10/2026',
         'spk_date' => date('Y-m-d', $now - 86400),
         'instansi' => 'PT Bank Rakyat Indonesia (Persero) Tbk',
@@ -404,6 +430,7 @@ function getInitialSeedData() {
     $item5 = [
         'id' => 'JO-JKT-2026-0003',
         'jo_number' => 'JO-JKT-2026-0003',
+        'kode_lacak' => 'TRK-JKT-2026-B901',
         'spk_number' => 'BCA/KCK/APP-551/X/2026',
         'spk_date' => date('Y-m-d', $now - (86400 * 7)),
         'instansi' => 'PT Bank Central Asia Tbk',
@@ -484,61 +511,75 @@ $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 $jobs = loadData($storageFile);
 
 // =========================================================================
-// 1. ACTION: TRACK (Pencarian Publik 7 Milestone)
+// 1. ACTION: TRACK (Pencarian Publik 7 Milestone Berbasis JO / Kode Lacak)
 // =========================================================================
 if ($action === 'track' || $action === 'track_public') {
     $joInput = trim($_GET['jo'] ?? $_POST['jo'] ?? $_GET['id_jo'] ?? $_POST['id_jo'] ?? '');
     $phoneInput = trim($_GET['phone'] ?? $_POST['phone'] ?? $_GET['telepon_pic'] ?? $_POST['telepon_pic'] ?? '');
 
     // Sanitasi input pencarian
-    $cleanJo = strtoupper(preg_replace('/[^a-zA-Z0-9\-]/', '', $joInput));
+    $cleanJo = strtoupper(preg_replace('/[^a-zA-Z0-9-]/', '', $joInput));
     $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
 
-    // 1. Coba proxy query ke SSOT Google Apps Script terlebih dahulu
-    $gasTrack = callGASTrackingService('track', ['id_jo' => $cleanJo, 'telepon_pic' => $cleanPhone], 'GET');
-    if ($gasTrack && isset($gasTrack['data'])) {
-        echo json_encode([
-            'status' => 'success',
-            'source' => 'GAS_SSOT_LIVE',
-            'data' => $gasTrack['data']
-        ]);
-        exit;
+    // 1. Coba proxy query ke SSOT Google Apps Script terlebih dahulu jika ada parameter
+    if (!empty($cleanJo) || !empty($cleanPhone)) {
+        $gasTrack = callGASTrackingService('track', ['id_jo' => $cleanJo, 'telepon_pic' => $cleanPhone], 'GET');
+        if ($gasTrack && isset($gasTrack['status']) && $gasTrack['status'] === 'success' && !empty($gasTrack['data'])) {
+            echo json_encode([
+                'status' => 'success',
+                'source' => 'GAS_SSOT_LIVE',
+                'data' => $gasTrack['data']
+            ]);
+            exit;
+        }
     }
 
     $found = null;
 
-    // Cari exact match JO Number
-    foreach ($jobs as $id => $job) {
-        if (strtoupper($job['jo_number']) === $cleanJo) {
-            $found = $job;
-            break;
+    // 2. Pencarian exact match JO Number atau Kode Lacak
+    if (!empty($cleanJo)) {
+        foreach ($jobs as $id => $job) {
+            $jJo = strtoupper($job['jo_number'] ?? '');
+            $jKode = strtoupper($job['kode_lacak'] ?? '');
+            if ($jJo === $cleanJo || $jKode === $cleanJo) {
+                $found = $job;
+                break;
+            }
         }
     }
 
-    // Jika belum ketemu, cari pencarian nomor kontak
+    // 3. Jika belum ketemu, cari pencarian nomor kontak
     if (!$found && !empty($cleanPhone)) {
         foreach ($jobs as $id => $job) {
-            $jPhone = preg_replace('/[^0-9]/', '', $job['pic_contact']);
-            if (substr($jPhone, -6) === substr($cleanPhone, -6)) {
+            $jPhone = preg_replace('/[^0-9]/', '', $job['pic_contact'] ?? '');
+            if (!empty($jPhone) && strlen($cleanPhone) >= 6 && substr($jPhone, -6) === substr($cleanPhone, -6)) {
                 $found = $job;
                 break;
             }
         }
     }
 
-    // Jika belum ketemu, cari pencarian parsial nomor JO
+    // 4. Jika belum ketemu, cari pencarian parsial nomor JO atau Kode Lacak
     if (!$found && !empty($cleanJo)) {
         foreach ($jobs as $id => $job) {
-            if (strpos(strtoupper($job['jo_number']), $cleanJo) !== false) {
+            $jJo = strtoupper($job['jo_number'] ?? '');
+            $jKode = strtoupper($job['kode_lacak'] ?? '');
+            if ((!empty($jJo) && strpos($jJo, $cleanJo) !== false) || (!empty($jKode) && strpos($jKode, $cleanJo) !== false)) {
                 $found = $job;
                 break;
             }
         }
     }
 
-    // Default Fallback: Jika pengguna mengosongkan atau mengetik contoh JO Bank BTN
+    // 5. Validasi: Jika tidak ditemukan, kembalikan respons 404 (DILARANG FALLBACK KE DATA MOCK)
     if (!$found) {
-        $found = $jobs['JO-JKT-2026-0001'] ?? reset($jobs);
+        http_response_code(404);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Status penugasan dengan Nomor JO / Kode Lacak atau Nomor WhatsApp tersebut tidak ditemukan.',
+            'data' => null
+        ]);
+        exit;
     }
 
     echo json_encode([
