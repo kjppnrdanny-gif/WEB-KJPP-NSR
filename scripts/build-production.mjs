@@ -33,6 +33,7 @@ const ALLOWED_FILES = [
   "portal-surat-umum.html",
   "portal-operasional.html",
   "portal-governance.html",
+  "portal-tracking.html",
   "verifikasi-dokumen.html",
   "kebijakan-privasi.html",
   "disclaimer.html",
@@ -81,7 +82,9 @@ const ALLOWED_FILES = [
   "backend/.htaccess",
   "operasional-data-handler.php",
   "governance-data-handler.php",
-  "status-terintegrasi-handler.php"
+  "status-terintegrasi-handler.php",
+  "job-tracking-handler.php",
+  "backend/job-tracking-handler.php"
 ];
 
 // 2. ALLOWLIST DIREKTORI PUBLIK
