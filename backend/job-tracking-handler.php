@@ -1,6 +1,6 @@
 <?php
 /**
- * Backend Simulasi Job Tracking Penilaian KJPP NSR
+ * Backend Simulasi & Proxy Handler Job Tracking Penilaian KJPP NSR
  * STAGING LOKAL ONLY - Dilarang deploy ke live cPanel.
  * 
  * Melayani API:
@@ -8,7 +8,7 @@
  * 2. list: Daftar penugasan untuk Task Board staf internal
  * 3. create: Registrasi Job Order baru
  * 4. advance_milestone: Menaikkan milestone satu-klik
- * 5. reset_demo: Mengembalikan mock data awal
+ * 5. reset_demo: Mengembalikan mock data awal dengan 2 skenario Bank BTN
  */
 
 header('Content-Type: application/json; charset=UTF-8');
@@ -22,13 +22,16 @@ if ($requestMethod === 'OPTIONS') {
     exit;
 }
 
+// Konfigurasi Google Apps Script Engine Proxy (Dapat dihubungkan ke Deployment ID Web App)
+define('GAS_TRACKING_URL', '');
+
 $dataDir = __DIR__ . '/../data';
 if (!is_dir($dataDir)) {
     @mkdir($dataDir, 0777, true);
 }
 $storageFile = $dataDir . '/job_tracking_staging.json';
 
-// Definisi Standar 7 Milestone KJPP NSR
+// Definisi Standar 7 Milestone KJPP NSR (Nomenklatur Resmi SPI)
 function getMilestoneTemplate() {
     return [
         'M-01' => [
@@ -36,7 +39,7 @@ function getMilestoneTemplate() {
             'code' => 'M-01',
             'title' => 'Registrasi Berkas SPK & Legalitas',
             'short' => 'Registrasi SPK',
-            'desc' => 'Penerimaan Surat Perintah Kerja (SPK), verifikasi dokumen kepemilikan aset (SHM/SHGB), dan kelengkapan legalitas perizinan.',
+            'desc' => 'Penerimaan Surat Perintah Kerja (SPK), verifikasi dokumen kepemilikan aset (SHM/SHGB), dan kelengkapan legalitas yuridis.',
             'status' => 'pending',
             'timestamp' => '-',
             'note' => 'Menunggu kelengkapan dokumen awal.',
@@ -47,7 +50,7 @@ function getMilestoneTemplate() {
             'code' => 'M-02',
             'title' => 'Penetapan Tim & Jadwal Survei',
             'short' => 'Jadwal Survei',
-            'desc' => 'Penetapan surveyor lapangan, konfirmasi jadwal inspeksi dengan debitur/PIC bank, dan persiapan instrumen ukur.',
+            'desc' => 'Penetapan Penilai Pelaksana / Surveyor, konfirmasi kesiapan objek debitur/PIC bank, dan persiapan instrumen ukur.',
             'status' => 'pending',
             'timestamp' => '-',
             'note' => 'Menunggu jadwal konfirmasi lapangan.',
@@ -62,7 +65,7 @@ function getMilestoneTemplate() {
             'status' => 'pending',
             'timestamp' => '-',
             'note' => 'Menunggu pelaksanaan survei fisik.',
-            'actor' => 'Surveyor Lapangan'
+            'actor' => 'Penilai Pelaksana / Surveyor'
         ],
         'M-04' => [
             'id' => 'M-04',
@@ -80,10 +83,10 @@ function getMilestoneTemplate() {
             'code' => 'M-05',
             'title' => 'Kendali Mutu & Reviewer SPM',
             'short' => 'Review SPM',
-            'desc' => 'Pemeriksaan kepatuhan terhadap Standar Penilaian Indonesia (SPI), Kode Etik Penilai Indonesia (KEPI), dan Standar Pengendalian Mutu (SPM) oleh Peer Reviewer.',
+            'desc' => 'Pemeriksaan kepatuhan terhadap Standar Penilaian Indonesia (SPI), Kode Etik Penilai Indonesia (KEPI), dan Standar Pengendalian Mutu (SPM) oleh Reviewer Rekan.',
             'status' => 'pending',
             'timestamp' => '-',
-            'note' => 'Menunggu telaah reviewer mutu.',
+            'note' => 'Menunggu telaah reviewer mutu berjenjang.',
             'actor' => 'Reviewer SPM / Rekan'
         ],
         'M-06' => [
@@ -111,73 +114,135 @@ function getMilestoneTemplate() {
     ];
 }
 
-// Inisialisasi Mock Data Awal (Simulasi Penugasan Bank BTN)
+// Inisialisasi Mock Data Awal dengan 2 Skenario Bank BTN + Mandiri & BRI
 function getInitialSeedData() {
     $now = time();
     $wibFormat = 'd M Y, H:i \W\I\B';
     
-    // Kasus 1: Bank BTN - Kasus Utama Mock Sesuai Perintah Kerja (Tahap M-04 Sedang Berjalan)
+    // =========================================================================
+    // SKENARIO 1 BANK BTN: KPR Retail Rumah Tinggal (Tahap M-04 Analisis Nilai)
+    // =========================================================================
     $mTemplate1 = getMilestoneTemplate();
     $mTemplate1['M-01']['status'] = 'completed';
     $mTemplate1['M-01']['timestamp'] = date($wibFormat, $now - (86400 * 2));
-    $mTemplate1['M-01']['note'] = 'SPK No. 042/BTN-JKT/SPK/X/2026, SHGB No. 1104, dan PBG lengkap terverifikasi resmi.';
+    $mTemplate1['M-01']['note'] = 'SPK KPR No. 042/BTN-JKT/KPR-SPK/X/2026, SHM No. 402, dan IMB/PBG lengkap diverifikasi resmi.';
 
     $mTemplate1['M-02']['status'] = 'completed';
     $mTemplate1['M-02']['timestamp'] = date($wibFormat, $now - (86400 * 2) + 14400);
-    $mTemplate1['M-02']['note'] = 'Tim Surveyor Hendra Wijaya, S.T. ditunjuk. Jadwal inspeksi disepakati dengan PIC debitur.';
+    $mTemplate1['M-02']['note'] = 'Penilai Pelaksana Hendra Wijaya, S.T. ditunjuk. Jadwal survei disepakati bersama debitur.';
 
     $mTemplate1['M-03']['status'] = 'completed';
     $mTemplate1['M-03']['timestamp'] = date($wibFormat, $now - 86400);
-    $mTemplate1['M-03']['note'] = 'Inspeksi fisik, cek tapak & batas, geotagging GPS (-6.1982, 106.9142), dan foto agunan selesai.';
+    $mTemplate1['M-03']['note'] = 'Inspeksi fisik tanah 180 m² & bangunan 220 m², geotagging GPS (-6.2215, 106.8324), dan foto agunan selesai.';
 
     $mTemplate1['M-04']['status'] = 'in_progress';
     $mTemplate1['M-04']['timestamp'] = date($wibFormat, $now - 7200);
-    $mTemplate1['M-04']['note'] = 'Sedang proses analisis komparasi pasar dan pemodelan biaya penggantian terdepresiasi (DRC).';
+    $mTemplate1['M-04']['note'] = 'Sedang proses analisis komparasi pasar residensial dan estimasi Nilai Pasar serta Nilai Likuidasi KPR.';
 
     $item1 = [
         'id' => 'JO-JKT-2026-0001',
         'jo_number' => 'JO-JKT-2026-0001',
-        'spk_number' => '042/BTN-JKT/SPK/X/2026',
+        'spk_number' => '042/BTN-JKT/KPR-SPK/X/2026',
         'spk_date' => date('Y-m-d', $now - (86400 * 2)),
         'instansi' => 'PT Bank Tabungan Negara (Persero) Tbk',
         'instansi_singkat' => 'Bank BTN',
-        'unit_kerja' => 'KC Jakarta Harmoni',
-        'debitur' => 'PT Bangun Prima Perkasa',
-        'pic_pemohon' => 'Bambang Sudarsono, S.E.',
+        'unit_kerja' => 'KC Jakarta Kuningan',
+        'debitur' => 'Hendra Wijaya, S.T.',
+        'pic_pemohon' => 'Rian Pratama, S.E. (Loan Officer BTN)',
         'pic_contact' => '081288997766',
         'kantor' => 'Kantor Pusat Jakarta',
         'kantor_code' => 'PUSAT',
-        'jenis_properti' => 'Pabrik & Gudang Logistik Komersial',
-        'lokasi_aset' => 'Jl. Rawa Gelam IV No. 12, Kawasan Industri Pulogadung, Jakarta Timur',
-        'luas_tanah' => '4.850 m²',
-        'luas_bangunan' => '3.200 m²',
+        'jenis_properti' => 'KPR Retail (Rumah Tinggal)',
+        'lokasi_aset' => 'Perumahan Taman Rasuna Blok C No. 15, Kuningan, Jakarta Selatan',
+        'luas_tanah' => '180 m²',
+        'luas_bangunan' => '220 m²',
         'sla_days' => 3,
         'sla_deadline' => date('Y-m-d', $now + 86400),
         'sla_status' => 'on_track',
-        'sla_label' => 'SLA H+3 Bank BTN (Sisa 1 Hari)',
+        'sla_label' => 'SLA H+3 Bank BTN KPR (Sisa 1 Hari)',
+        'penilai_pelaksana' => 'Hendra Wijaya, S.T.',
         'surveyor' => 'Hendra Wijaya, S.T.',
         'reviewer' => 'Sigit Paryanto, S.E., MAPPI (Cert.)',
+        'reviewer_spm' => 'Sigit Paryanto, S.E., MAPPI (Cert.)',
         'penilai_publik' => 'Ir. Nanang Rahayu, M.Sc., MAPPI (Cert.)',
         'current_milestone' => 'M-04',
         'current_milestone_title' => 'Analisis Penilaian & Kalkulasi Nilai',
         'progress_percent' => 57,
         'milestones' => $mTemplate1,
-        'keterangan_resmi' => 'Tahap berjalan saat ini berada dalam koridor SLA H+3 Bank BTN. Analisis perhitungan nilai aset sedang dilakukan secara teliti berpedoman pada Standar Penilaian Indonesia (SPI 105 & SPI 204).',
+        'keterangan_resmi' => 'Tahap berjalan saat ini berada dalam koridor SLA H+3 Bank BTN KPR Retail. Analisis perbandingan data pasar dan kalkulasi nilai indikasi pasar rumah tinggal sedang dikerjakan secara teliti berpedoman pada Standar Penilaian Indonesia (SPI 105 & SPI 204).',
         'wa_admin' => '6281218008899',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 2)),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];
 
-    // Kasus 2: Bank Mandiri - Bandung (Tahap M-05 Menunggu Reviewer SPM)
+    // =========================================================================
+    // SKENARIO 2 BANK BTN: Gudang Logistik Komersial Pulogadung (Tahap M-03 Selesai)
+    // =========================================================================
     $mTemplate2 = getMilestoneTemplate();
-    $mTemplate2['M-01']['status'] = 'completed'; $mTemplate2['M-01']['timestamp'] = date($wibFormat, $now - (86400 * 4));
-    $mTemplate2['M-02']['status'] = 'completed'; $mTemplate2['M-02']['timestamp'] = date($wibFormat, $now - (86400 * 3));
-    $mTemplate2['M-03']['status'] = 'completed'; $mTemplate2['M-03']['timestamp'] = date($wibFormat, $now - (86400 * 2));
-    $mTemplate2['M-04']['status'] = 'completed'; $mTemplate2['M-04']['timestamp'] = date($wibFormat, $now - 86400);
-    $mTemplate2['M-05']['status'] = 'in_progress'; $mTemplate2['M-05']['timestamp'] = date($wibFormat, $now - 3600);
-    $mTemplate2['M-05']['note'] = 'Reviewer sedang melakukan telaah kertas kerja kalkulasi dan pengujian asumsi kritis.';
+    $mTemplate2['M-01']['status'] = 'completed';
+    $mTemplate2['M-01']['timestamp'] = date($wibFormat, $now - (86400 * 3));
+    $mTemplate2['M-01']['note'] = 'SPK Komersial No. 048/BTN-CBC/KOM-SPK/X/2026, SHGB No. 1104, dan PBG industri lengkap terverifikasi.';
+
+    $mTemplate2['M-02']['status'] = 'completed';
+    $mTemplate2['M-02']['timestamp'] = date($wibFormat, $now - (86400 * 2));
+    $mTemplate2['M-02']['note'] = 'Penilai Pelaksana Ahmad Fauzi, S.T. ditunjuk. Jadwal survei komersial dikoordinasikan dengan PIC logistik.';
+
+    $mTemplate2['M-03']['status'] = 'completed';
+    $mTemplate2['M-03']['timestamp'] = date($wibFormat, $now - 14400);
+    $mTemplate2['M-03']['note'] = 'Inspeksi fisik tapak industri 4.850 m² dan gudang 3.200 m², geotagging GPS (-6.1982, 106.9142), dan foto agunan selesai.';
+
+    $mTemplate2['M-04']['status'] = 'in_progress';
+    $mTemplate2['M-04']['timestamp'] = date($wibFormat, $now - 3600);
+    $mTemplate2['M-04']['note'] = 'Persiapan kertas kerja kalkulasi biaya penggantian terdepresiasi (DRC) dan riset sewa pergudangan.';
 
     $item2 = [
+        'id' => 'JO-JKT-2026-0002',
+        'jo_number' => 'JO-JKT-2026-0002',
+        'spk_number' => '048/BTN-CBC/KOM-SPK/X/2026',
+        'spk_date' => date('Y-m-d', $now - (86400 * 3)),
+        'instansi' => 'PT Bank Tabungan Negara (Persero) Tbk',
+        'instansi_singkat' => 'Bank BTN',
+        'unit_kerja' => 'BTN CBC Jakarta (Commercial Banking Center)',
+        'debitur' => 'PT Bangun Prima Perkasa',
+        'pic_pemohon' => 'Bambang Sudarsono, S.E.',
+        'pic_contact' => '081299881122',
+        'kantor' => 'Kantor Pusat Jakarta',
+        'kantor_code' => 'PUSAT',
+        'jenis_properti' => 'Gudang Logistik Komersial Pulogadung',
+        'lokasi_aset' => 'Jl. Rawa Gelam IV No. 12, Kawasan Industri Pulogadung, Jakarta Timur',
+        'luas_tanah' => '4.850 m²',
+        'luas_bangunan' => '3.200 m²',
+        'sla_days' => 7,
+        'sla_deadline' => date('Y-m-d', $now + (86400 * 4)),
+        'sla_status' => 'on_track',
+        'sla_label' => 'SLA H+7 Bank BTN Komersial (Sisa 4 Hari)',
+        'penilai_pelaksana' => 'Ahmad Fauzi, S.T.',
+        'surveyor' => 'Ahmad Fauzi, S.T.',
+        'reviewer' => 'Danny Taufik Hidayat, S.E., S.H.',
+        'reviewer_spm' => 'Danny Taufik Hidayat, S.E., S.H.',
+        'penilai_publik' => 'Ir. Nanang Rahayu, M.Sc., MAPPI (Cert.)',
+        'current_milestone' => 'M-03',
+        'current_milestone_title' => 'Inspeksi Lapangan Selesai',
+        'progress_percent' => 43,
+        'milestones' => $mTemplate2,
+        'keterangan_resmi' => 'Inspeksi fisik tapak industri 4.850 m² dan gudang 3.200 m² telah tuntas dilaksanakan oleh Penilai Pelaksana. Tim penilai sedang menyiapkan kertas kerja kalkulasi biaya penggantian terdepresiasi (DRC).',
+        'wa_admin' => '6281218008899',
+        'created_at' => date('Y-m-d H:i:s', $now - (86400 * 3)),
+        'updated_at' => date('Y-m-d H:i:s', $now)
+    ];
+
+    // =========================================================================
+    // SKENARIO 3 BANK MANDIRI: Bandung (Tahap M-05 Reviewer SPM)
+    // =========================================================================
+    $mTemplate3 = getMilestoneTemplate();
+    $mTemplate3['M-01']['status'] = 'completed'; $mTemplate3['M-01']['timestamp'] = date($wibFormat, $now - (86400 * 4));
+    $mTemplate3['M-02']['status'] = 'completed'; $mTemplate3['M-02']['timestamp'] = date($wibFormat, $now - (86400 * 3));
+    $mTemplate3['M-03']['status'] = 'completed'; $mTemplate3['M-03']['timestamp'] = date($wibFormat, $now - (86400 * 2));
+    $mTemplate3['M-04']['status'] = 'completed'; $mTemplate3['M-04']['timestamp'] = date($wibFormat, $now - 86400);
+    $mTemplate3['M-05']['status'] = 'in_progress'; $mTemplate3['M-05']['timestamp'] = date($wibFormat, $now - 3600);
+    $mTemplate3['M-05']['note'] = 'Reviewer sedang melakukan telaah kertas kerja kalkulasi dan pengujian asumsi kritis.';
+
+    $item3 = [
         'id' => 'JO-BDG-2026-0015',
         'jo_number' => 'JO-BDG-2026-0015',
         'spk_number' => 'MDR/BDG/KOM-098/X/2026',
@@ -198,26 +263,30 @@ function getInitialSeedData() {
         'sla_deadline' => date('Y-m-d', $now + (86400 * 2)),
         'sla_status' => 'on_track',
         'sla_label' => 'SLA H+5 Bank Mandiri (Tepat Waktu)',
+        'penilai_pelaksana' => 'Ahmad Fauzi, S.T.',
         'surveyor' => 'Ahmad Fauzi, S.T.',
         'reviewer' => 'Danny Taufik Hidayat, S.E., S.H.',
+        'reviewer_spm' => 'Danny Taufik Hidayat, S.E., S.H.',
         'penilai_publik' => 'Sigit Paryanto, S.E., MAPPI (Cert.)',
         'current_milestone' => 'M-05',
         'current_milestone_title' => 'Kendali Mutu & Reviewer SPM',
         'progress_percent' => 71,
-        'milestones' => $mTemplate2,
-        'keterangan_resmi' => 'Kertas kerja telah selesai disusun dan saat ini memasuki proses verifikasi kendali mutu berjenjang oleh Manajer Reviewer SPM.',
+        'milestones' => $mTemplate3,
+        'keterangan_resmi' => 'Kertas kerja telah selesai disusun dan saat ini memasuki proses verifikasi kendali mutu berjenjang oleh Reviewer SPM.',
         'wa_admin' => '6281218008899',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 4)),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];
 
-    // Kasus 3: Bank BRI - Makassar (Tahap M-02 Penetapan Tim)
-    $mTemplate3 = getMilestoneTemplate();
-    $mTemplate3['M-01']['status'] = 'completed'; $mTemplate3['M-01']['timestamp'] = date($wibFormat, $now - 86400);
-    $mTemplate3['M-02']['status'] = 'in_progress'; $mTemplate3['M-02']['timestamp'] = date($wibFormat, $now - 14400);
-    $mTemplate3['M-02']['note'] = 'Konfirmasi kesiapan debitur untuk survei lapangan objek perkebunan & pabrik.';
+    // =========================================================================
+    // SKENARIO 4 BANK BRI: Makassar (Tahap M-02 Penetapan Tim)
+    // =========================================================================
+    $mTemplate4 = getMilestoneTemplate();
+    $mTemplate4['M-01']['status'] = 'completed'; $mTemplate4['M-01']['timestamp'] = date($wibFormat, $now - 86400);
+    $mTemplate4['M-02']['status'] = 'in_progress'; $mTemplate4['M-02']['timestamp'] = date($wibFormat, $now - 14400);
+    $mTemplate4['M-02']['note'] = 'Konfirmasi kesiapan debitur untuk survei lapangan objek perkebunan & pabrik.';
 
-    $item3 = [
+    $item4 = [
         'id' => 'JO-MKS-2026-0008',
         'jo_number' => 'JO-MKS-2026-0008',
         'spk_number' => 'B.341-AGR/MKS/10/2026',
@@ -238,30 +307,34 @@ function getInitialSeedData() {
         'sla_deadline' => date('Y-m-d', $now + (86400 * 4)),
         'sla_status' => 'on_track',
         'sla_label' => 'SLA H+5 Bank BRI (Sisa 4 Hari)',
+        'penilai_pelaksana' => 'Faisal Rahman, S.T.',
         'surveyor' => 'Faisal Rahman, S.T.',
         'reviewer' => 'Ir. Bambang Tri, MAPPI',
+        'reviewer_spm' => 'Ir. Bambang Tri, MAPPI',
         'penilai_publik' => 'Ir. Nanang Rahayu, M.Sc., MAPPI (Cert.)',
         'current_milestone' => 'M-02',
         'current_milestone_title' => 'Penetapan Tim & Jadwal Survei',
         'progress_percent' => 28,
-        'milestones' => $mTemplate3,
+        'milestones' => $mTemplate4,
         'keterangan_resmi' => 'SPK telah diverifikasi. Jadwal survei fisik lapangan sedang dikoordinasikan bersama pihak debitur dan petugas bank.',
         'wa_admin' => '6281218008899',
         'created_at' => date('Y-m-d H:i:s', $now - 86400),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];
 
-    // Kasus 4: Bank BCA - Selesai Laporan Final (M-07 Completed)
-    $mTemplate4 = getMilestoneTemplate();
-    foreach ($mTemplate4 as $k => &$m) {
+    // =========================================================================
+    // SKENARIO 5 BANK BCA: Jakarta (Tahap M-07 Selesai 100%)
+    // =========================================================================
+    $mTemplate5 = getMilestoneTemplate();
+    foreach ($mTemplate5 as $k => &$m) {
         $m['status'] = 'completed';
         $m['timestamp'] = date($wibFormat, $now - (86400 * 3));
     }
-    $mTemplate4['M-07']['note'] = 'Laporan penilaian resmi No. 00192/2.0160-00/PI/03/0192/1/X/2026 telah diserahkan lengkap.';
+    $mTemplate5['M-07']['note'] = 'Laporan penilaian resmi No. 00192/2.0160-00/PI/03/0192/1/X/2026 telah diserahkan lengkap.';
 
-    $item4 = [
-        'id' => 'JO-JKT-2026-0002',
-        'jo_number' => 'JO-JKT-2026-0002',
+    $item5 = [
+        'id' => 'JO-JKT-2026-0003',
+        'jo_number' => 'JO-JKT-2026-0003',
         'spk_number' => 'BCA/KCK/APP-551/X/2026',
         'spk_date' => date('Y-m-d', $now - (86400 * 7)),
         'instansi' => 'PT Bank Central Asia Tbk',
@@ -280,13 +353,15 @@ function getInitialSeedData() {
         'sla_deadline' => date('Y-m-d', $now - (86400 * 4)),
         'sla_status' => 'completed',
         'sla_label' => 'Selesai Tepat Waktu (100%)',
+        'penilai_pelaksana' => 'Hendra Wijaya, S.T.',
         'surveyor' => 'Hendra Wijaya, S.T.',
         'reviewer' => 'Sigit Paryanto, S.E., MAPPI (Cert.)',
+        'reviewer_spm' => 'Sigit Paryanto, S.E., MAPPI (Cert.)',
         'penilai_publik' => 'Ir. Nanang Rahayu, M.Sc., MAPPI (Cert.)',
         'current_milestone' => 'M-07',
         'current_milestone_title' => 'Penyerahan Laporan Final',
         'progress_percent' => 100,
-        'milestones' => $mTemplate4,
+        'milestones' => $mTemplate5,
         'keterangan_resmi' => 'Seluruh tahapan penilaian telah tuntas diselesaikan dan laporan resmi ber-Nolap telah diserahkan kepada pihak perbankan.',
         'wa_admin' => '6281218008899',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 7)),
@@ -297,7 +372,8 @@ function getInitialSeedData() {
         $item1['id'] => $item1,
         $item2['id'] => $item2,
         $item3['id'] => $item3,
-        $item4['id'] => $item4
+        $item4['id'] => $item4,
+        $item5['id'] => $item5
     ];
 }
 
@@ -306,7 +382,7 @@ function loadData($storageFile) {
     if (file_exists($storageFile)) {
         $content = @file_get_contents($storageFile);
         $json = @json_decode($content, true);
-        if (is_array($json) && !empty($json)) {
+        if (is_array($json) && !empty($json) && isset($json['JO-JKT-2026-0001'])) {
             return $json;
         }
     }
@@ -341,9 +417,9 @@ $jobs = loadData($storageFile);
 // =========================================================================
 // 1. ACTION: TRACK (Pencarian Publik 7 Milestone)
 // =========================================================================
-if ($action === 'track') {
-    $joInput = trim($_GET['jo'] ?? $_POST['jo'] ?? '');
-    $phoneInput = trim($_GET['phone'] ?? $_POST['phone'] ?? '');
+if ($action === 'track' || $action === 'track_public') {
+    $joInput = trim($_GET['jo'] ?? $_POST['jo'] ?? $_GET['id_jo'] ?? $_POST['id_jo'] ?? '');
+    $phoneInput = trim($_GET['phone'] ?? $_POST['phone'] ?? $_GET['telepon_pic'] ?? $_POST['telepon_pic'] ?? '');
 
     // Sanitasi input pencarian
     $cleanJo = strtoupper(preg_replace('/[^a-zA-Z0-9\-]/', '', $joInput));
@@ -359,15 +435,21 @@ if ($action === 'track') {
         }
     }
 
-    // Jika belum ketemu, cari pencarian parsial atau nomor kontak
-    if (!$found) {
+    // Jika belum ketemu, cari pencarian nomor kontak
+    if (!$found && !empty($cleanPhone)) {
         foreach ($jobs as $id => $job) {
             $jPhone = preg_replace('/[^0-9]/', '', $job['pic_contact']);
-            if (!empty($cleanPhone) && (substr($jPhone, -7) === substr($cleanPhone, -7))) {
+            if (substr($jPhone, -6) === substr($cleanPhone, -6)) {
                 $found = $job;
                 break;
             }
-            if (!empty($cleanJo) && strpos(strtoupper($job['jo_number']), $cleanJo) !== false) {
+        }
+    }
+
+    // Jika belum ketemu, cari pencarian parsial nomor JO
+    if (!$found && !empty($cleanJo)) {
+        foreach ($jobs as $id => $job) {
+            if (strpos(strtoupper($job['jo_number']), $cleanJo) !== false) {
                 $found = $job;
                 break;
             }
@@ -376,7 +458,6 @@ if ($action === 'track') {
 
     // Default Fallback: Jika pengguna mengosongkan atau mengetik contoh JO Bank BTN
     if (!$found) {
-        // Berikan contoh penugasan Bank BTN agar pratinjau selalu interaktif
         $found = $jobs['JO-JKT-2026-0001'] ?? reset($jobs);
     }
 
@@ -391,7 +472,7 @@ if ($action === 'track') {
 // =========================================================================
 // 2. ACTION: LIST (Daftar Penugasan untuk Task Board Staf Internal)
 // =========================================================================
-if ($action === 'list') {
+if ($action === 'list' || $action === 'get_active_jobs') {
     echo json_encode([
         'status' => 'success',
         'count' => count($jobs),
@@ -403,14 +484,14 @@ if ($action === 'list') {
 // =========================================================================
 // 3. ACTION: CREATE (Registrasi Job Order Baru dari Portal)
 // =========================================================================
-if ($action === 'create') {
+if ($action === 'create' || $action === 'create_job_order') {
     $rawInput = file_get_contents('php://input');
     $payload = @json_decode($rawInput, true);
     if (!is_array($payload)) {
         $payload = $_POST;
     }
 
-    $kantor = $payload['kantor'] ?? 'Kantor Pusat Jakarta';
+    $kantor = $payload['kantor'] ?? $payload['kantor_pelaksana'] ?? 'Kantor Pusat Jakarta';
     $kantorCode = 'PUSAT';
     if (stripos($kantor, 'Bandung') !== false) $kantorCode = 'BDG';
     elseif (stripos($kantor, 'Padang') !== false) $kantorCode = 'PDG';
@@ -431,9 +512,10 @@ if ($action === 'create') {
     $mTemplate['M-01']['note'] = 'SPK No. ' . ($payload['spk_number'] ?? '-') . ' teregistrasi resmi di sistem OPINI NSR.';
     
     // M-02 Masuk Tahap Berjalan
+    $penilaiPelaksana = $payload['penilai_pelaksana'] ?? $payload['surveyor'] ?? 'Hendra Wijaya, S.T.';
     $mTemplate['M-02']['status'] = 'in_progress';
     $mTemplate['M-02']['timestamp'] = date($wibFormat, $now);
-    $mTemplate['M-02']['note'] = 'Penetapan tim surveyor: ' . ($payload['surveyor'] ?? 'Menunggu penetapan');
+    $mTemplate['M-02']['note'] = 'Penetapan Penilai Pelaksana / Surveyor: ' . $penilaiPelaksana;
 
     $slaDays = (int)($payload['sla_days'] ?? 3);
 
@@ -442,15 +524,15 @@ if ($action === 'create') {
         'jo_number' => $joNumber,
         'spk_number' => $payload['spk_number'] ?? ('SPK/' . $nextSeq . '/' . date('m/Y')),
         'spk_date' => $payload['spk_date'] ?? date('Y-m-d'),
-        'instansi' => $payload['instansi'] ?? 'PT Bank Mandiri (Persero) Tbk',
+        'instansi' => $payload['instansi'] ?? 'PT Bank Tabungan Negara (Persero) Tbk',
         'instansi_singkat' => $payload['instansi_singkat'] ?? 'Bank Rekanan',
-        'unit_kerja' => $payload['unit_kerja'] ?? 'Divisi Pembiayaan Komersial',
+        'unit_kerja' => $payload['unit_kerja'] ?? 'KC Jakarta Kuningan',
         'debitur' => $payload['debitur'] ?? 'Debitur Baru',
         'pic_pemohon' => $payload['pic_pemohon'] ?? 'PIC Bank',
         'pic_contact' => $payload['pic_contact'] ?? '081234567890',
         'kantor' => $kantor,
         'kantor_code' => $kantorCode,
-        'jenis_properti' => $payload['jenis_properti'] ?? 'Tanah & Bangunan',
+        'jenis_properti' => $payload['jenis_properti'] ?? 'KPR Retail (Rumah Tinggal)',
         'lokasi_aset' => $payload['lokasi_aset'] ?? 'Alamat Objek Penilaian',
         'luas_tanah' => $payload['luas_tanah'] ?? '-',
         'luas_bangunan' => $payload['luas_bangunan'] ?? '-',
@@ -458,14 +540,16 @@ if ($action === 'create') {
         'sla_deadline' => date('Y-m-d', $now + ($slaDays * 86400)),
         'sla_status' => 'on_track',
         'sla_label' => 'SLA H+' . $slaDays . ' (Dalam Proses)',
-        'surveyor' => $payload['surveyor'] ?? 'Hendra Wijaya, S.T.',
-        'reviewer' => $payload['reviewer'] ?? 'Sigit Paryanto, S.E., MAPPI (Cert.)',
+        'penilai_pelaksana' => $penilaiPelaksana,
+        'surveyor' => $penilaiPelaksana,
+        'reviewer' => $payload['reviewer'] ?? $payload['reviewer_spm'] ?? 'Sigit Paryanto, S.E., MAPPI (Cert.)',
+        'reviewer_spm' => $payload['reviewer_spm'] ?? $payload['reviewer'] ?? 'Sigit Paryanto, S.E., MAPPI (Cert.)',
         'penilai_publik' => $payload['penilai_publik'] ?? 'Ir. Nanang Rahayu, M.Sc., MAPPI (Cert.)',
         'current_milestone' => 'M-02',
         'current_milestone_title' => 'Penetapan Tim & Jadwal Survei',
         'progress_percent' => 28,
         'milestones' => $mTemplate,
-        'keterangan_resmi' => 'Registrasi awal berhasil. Tim operasional sedang menyiapkan surat tugas survei lapangan.',
+        'keterangan_resmi' => 'Registrasi awal berhasil. Penilai Pelaksana / Surveyor sedang menyiapkan surat tugas inspeksi lapangan.',
         'wa_admin' => '6281218008899',
         'created_at' => date('Y-m-d H:i:s', $now),
         'updated_at' => date('Y-m-d H:i:s', $now)
@@ -492,12 +576,11 @@ if ($action === 'advance_milestone') {
         $payload = $_POST;
     }
 
-    $joId = $payload['jo'] ?? $payload['id'] ?? '';
+    $joId = $payload['jo'] ?? $payload['id'] ?? $payload['id_jo'] ?? '';
     $targetM = $payload['target_milestone'] ?? '';
-    $customNote = $payload['note'] ?? '';
+    $customNote = $payload['note'] ?? $payload['catatan_internal'] ?? '';
 
     if (!isset($jobs[$joId])) {
-        // cari berdasarkan jo_number
         foreach ($jobs as $id => $j) {
             if ($j['jo_number'] === $joId) {
                 $joId = $id;
@@ -525,7 +608,6 @@ if ($action === 'advance_milestone') {
     $now = time();
     $wibFormat = 'd M Y, H:i \W\I\B';
 
-    // Tandai milestone sebelumnya sebagai completed
     $targetIndex = array_search($targetM, $mKeys);
     for ($i = 0; $i <= $targetIndex; $i++) {
         $k = $mKeys[$i];
@@ -565,14 +647,14 @@ if ($action === 'advance_milestone') {
 }
 
 // =========================================================================
-// 5. ACTION: RESET_DEMO (Mengembalikan Seed Data Awal)
+// 5. ACTION: RESET_DEMO (Mengembalikan Seed Data Awal 2 Skenario BTN)
 // =========================================================================
 if ($action === 'reset_demo') {
     $initial = getInitialSeedData();
     saveData($storageFile, $initial);
     echo json_encode([
         'status' => 'success',
-        'message' => 'Data simulasi staging berhasil direset ke kondisi awal.',
+        'message' => 'Data simulasi staging berhasil direset ke kondisi awal (2 Skenario Bank BTN aktif).',
         'data' => array_values($initial)
     ]);
     exit;
@@ -582,5 +664,9 @@ if ($action === 'reset_demo') {
 echo json_encode([
     'status' => 'success',
     'endpoint' => 'KJPP NSR Job Tracking Staging API',
+    'scenarios' => [
+        'JO-JKT-2026-0001' => 'KPR Retail Rumah Tinggal - Hendra Wijaya, S.T. (M-04)',
+        'JO-JKT-2026-0002' => 'Gudang Logistik Komersial Pulogadung - PT Bangun Prima Perkasa (M-03)'
+    ],
     'actions' => ['track', 'list', 'create', 'advance_milestone', 'reset_demo']
 ]);

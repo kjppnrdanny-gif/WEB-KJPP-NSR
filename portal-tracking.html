@@ -123,7 +123,7 @@
         </div>
         <div class="mt-2.5 flex items-baseline gap-2">
           <span id="stat-m04-jobs" class="text-2xl sm:text-3xl font-black text-amber-400 font-mono">1</span>
-          <span class="text-[11px] text-amber-200/80 font-medium">Bank BTN (Aktif)</span>
+          <span class="text-[11px] text-amber-200/80 font-medium">Bank BTN KPR (M-04)</span>
         </div>
         <div class="mt-2 text-[10px] text-amber-300 flex items-center gap-1 font-mono">
           <span>SLA: H+3 (Batas 29 Okt)</span>
@@ -218,7 +218,7 @@
                 <th class="py-3 px-4">No. Registrasi &amp; SPK</th>
                 <th class="py-3 px-4">Instansi &amp; Debitur</th>
                 <th class="py-3 px-4">Objek &amp; Lokasi Aset</th>
-                <th class="py-3 px-4">Tim Penilai (Surveyor / SPM)</th>
+                <th class="py-3 px-4">Tim Penilai (Pelaksana / SPM)</th>
                 <th class="py-3 px-4">Batas SLA Target</th>
                 <th class="py-3 px-4">Status 7 Milestone</th>
                 <th class="py-3 px-4 text-center">Aksi Cepat</th>
@@ -247,7 +247,7 @@
             </span>
             <span>Formulir Registrasi Job Order &amp; Penetapan Tim Penilai</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-1">Registrasi otomatis membuka Milestone M-01 (Selesai) dan menugaskan surveyor untuk Milestone M-02.</p>
+          <p class="text-xs text-slate-400 mt-1">Registrasi otomatis membuka Milestone M-01 (Selesai) dan menugaskan Penilai Pelaksana / Surveyor untuk Milestone M-02.</p>
         </div>
 
         <form id="form-registrasi-jo" onsubmit="eksekusiRegistrasiJO(event)" class="space-y-5">
@@ -342,7 +342,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-300 mb-1.5">Surveyor Lapangan <span class="text-rose-400">*</span></label>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Penilai Pelaksana / Surveyor <span class="text-rose-400">*</span></label>
                 <select id="reg-surveyor" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
                   <option value="Hendra Wijaya, S.T.">Hendra Wijaya, S.T. (Pusat)</option>
                   <option value="Ahmad Fauzi, S.T.">Ahmad Fauzi, S.T. (Bandung)</option>
@@ -674,7 +674,7 @@
               <span class="text-[10px] text-slate-400 block line-clamp-2" title="${j.lokasi_aset}">${j.lokasi_aset}</span>
             </td>
             <td class="py-3 px-4">
-              <span class="block text-slate-300"><span class="text-slate-500">Surv:</span> ${j.surveyor}</span>
+              <span class="block text-slate-300"><span class="text-slate-500">Pelaksana:</span> ${j.penilai_pelaksana || j.surveyor}</span>
               <span class="block text-slate-400 text-[10px]"><span class="text-slate-500">SPM:</span> ${j.reviewer}</span>
             </td>
             <td class="py-3 px-4 whitespace-nowrap">
@@ -875,6 +875,7 @@
         luas_tanah: document.getElementById('reg-luas-tanah').value.trim(),
         luas_bangunan: document.getElementById('reg-luas-bangunan').value.trim(),
         lokasi_aset: document.getElementById('reg-lokasi-aset').value.trim(),
+        penilai_pelaksana: document.getElementById('reg-surveyor').value,
         surveyor: document.getElementById('reg-surveyor').value,
         reviewer: document.getElementById('reg-reviewer').value,
         penilai_publik: document.getElementById('reg-penilai').value,

@@ -1971,6 +1971,12 @@
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/15 text-amber-300 border border-amber-400/30">7 Milestone Live</span>
               </div>
               <p class="text-[11px] sm:text-xs text-slate-300 mt-0.5">Pantau tahapan penilaian properti dari registrasi SPK, survei fisik, kendali mutu SPM, hingga laporan final.</p>
+              <div class="flex items-center gap-2 mt-1.5 text-[10px] text-slate-400">
+                <span class="text-slate-500 font-bold uppercase tracking-wider">Contoh Penugasan:</span>
+                <button type="button" onclick="isiContohPencarian('JO-JKT-2026-0001', '081288997766')" class="underline text-amber-400 hover:text-amber-300 cursor-pointer font-mono font-semibold">1. BTN KPR Retail (M-04)</button>
+                <span class="text-slate-600">&bull;</span>
+                <button type="button" onclick="isiContohPencarian('JO-JKT-2026-0002', '081299881122')" class="underline text-sky-400 hover:text-sky-300 cursor-pointer font-mono font-semibold">2. BTN Gudang Logistik (M-03)</button>
+              </div>
             </div>
           </div>
 
@@ -7774,14 +7780,14 @@
       luas_tanah: "4.850 m²",
       luas_bangunan: "3.200 m²",
       sla_deadline: "29 Okt 2026",
-      sla_label: "SLA H+3 Bank BTN (Sisa 1 Hari)",
+      sla_label: "SLA H+3 Bank BTN KPR (Sisa 1 Hari)",
       progress_percent: 57,
       current_milestone: "M-04",
-      keterangan_resmi: "Tahap berjalan saat ini berada dalam koridor SLA H+3 Bank BTN. Analisis perhitungan nilai aset sedang dilakukan secara teliti berpedoman pada Standar Penilaian Indonesia (SPI 105 & SPI 204).",
+      keterangan_resmi: "Tahap berjalan saat ini berada dalam koridor SLA H+3 Bank BTN KPR Retail. Analisis perbandingan data pasar dan kalkulasi nilai indikasi pasar rumah tinggal sedang dikerjakan secara teliti berpedoman pada SPI 105 & SPI 204.",
       wa_admin: "6281218008899",
       milestones: {
         "M-01": { id: "M-01", title: "Registrasi Berkas SPK & Legalitas", status: "completed", timestamp: "25 Okt 2026, 09:15 WIB", note: "SPK No. 042/BTN-JKT/SPK/X/2026, SHGB No. 1104, dan PBG lengkap terverifikasi resmi.", desc: "Penerimaan SPK, verifikasi dokumen legalitas, dan pembukaan berkas penugasan." },
-        "M-02": { id: "M-02", title: "Penetapan Tim & Jadwal Survei", status: "completed", timestamp: "25 Okt 2026, 14:00 WIB", note: "Tim ditunjuk: Hendra Wijaya, S.T. Jadwal disepakati dengan PIC debitur.", desc: "Penetapan surveyor dan konfirmasi waktu inspeksi fisik." },
+        "M-02": { id: "M-02", title: "Penetapan Tim & Jadwal Survei", status: "completed", timestamp: "25 Okt 2026, 14:00 WIB", note: "Penilai Pelaksana Hendra Wijaya, S.T. ditunjuk. Jadwal survei disepakati bersama debitur.", desc: "Penetapan Penilai Pelaksana / Surveyor dan konfirmasi waktu inspeksi fisik." },
         "M-03": { id: "M-03", title: "Inspeksi Lapangan Selesai", status: "completed", timestamp: "26 Okt 2026, 16:30 WIB", note: "Inspeksi fisik, cek tapak & batas, geotagging GPS (-6.1982, 106.9142), dan foto agunan selesai.", desc: "Pemeriksaan fisik aset, pengukuran, dan dokumentasi foto resmi." },
         "M-04": { id: "M-04", title: "Analisis Penilaian & Kalkulasi Nilai", status: "in_progress", timestamp: "27 Okt 2026, 10:00 WIB", note: "Sedang proses analisis komparasi pasar dan pemodelan biaya penggantian terdepresiasi (DRC).", desc: "Pengolahan kertas kerja penilaian, riset pasar properti, dan perhitungan nilai indikasi." },
         "M-05": { id: "M-05", title: "Kendali Mutu & Reviewer SPM", status: "pending", timestamp: "-", note: "Menunggu telaah reviewer mutu berjenjang.", desc: "Pemeriksaan kepatuhan terhadap SPI, KEPI, dan SPM oleh Reviewer Rekan." },
@@ -7791,6 +7797,16 @@
     };
 
     // Scroll ke Widget Lacak Penugasan
+    
+    function isiContohPencarian(jo, phone) {
+      const inpJo = document.getElementById('track-jo-input');
+      const inpPhone = document.getElementById('track-pic-input');
+      if (inpJo) inpJo.value = jo;
+      if (inpPhone) inpPhone.value = phone;
+      eksekusiLacakPenugasanPublik();
+    }
+    window.isiContohPencarian = isiContohPencarian;
+
     function scrollKeLacakPenugasan(e) {
       if (e) e.preventDefault();
       const el = document.getElementById('lacak-penugasan');
