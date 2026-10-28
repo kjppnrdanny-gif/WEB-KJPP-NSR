@@ -1,0 +1,161 @@
+name: Deploy ke cPanel KJPP NSR
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Simulasi pengujian tanpa mengubah server (true / false)'
+        required: false
+        default: 'false'
+      rollback_sha:
+        description: 'Commit SHA untuk rollback (opsional, kosongkan untuk deploy commit HEAD)'
+        required: false
+        default: ''
+
+jobs:
+  web-deploy:
+    name: Deploy Website to cPanel
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Ambil Kode Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.rollback_sha != '' && github.event.inputs.rollback_sha || github.ref }}
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Build Website Publik ke dist/ (Proteksi Portal cPanel)
+        run: node scripts/build-production.mjs --cpanel
+
+      - name: 💾 Simpan Snapshot Cadangan Deployment (Rollback Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpanel-snapshot-${{ github.sha }}
+          path: dist/
+          retention-days: 30
+
+      - name: 📥 Cadangkan public_html/index.html langsung dari Filesystem cPanel via FTPS
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          python3 -c "
+          import ftplib, ssl, os, sys, time, hashlib, urllib.request
+
+          class ReusedSslFTP(ftplib.FTP_TLS):
+              def ntransfercmd(self, cmd, rest=None):
+                  conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+                  if self._prot_p:
+                      session = getattr(self.sock, 'session', None)
+                      conn = self.context.wrap_socket(conn, server_hostname=self.host, session=session)
+                  return conn, size
+
+          server = os.environ.get('FTP_SERVER', '')
+          user = os.environ.get('FTP_USERNAME', '')
+          passwd = os.environ.get('FTP_PASSWORD', '')
+          backup_file = 'cpanel_filesystem_backup_index.html'
+          max_retries = 3
+          timeout_sec = 45
+          success = False
+
+          for attempt in range(1, max_retries + 1):
+              print(f'🔄 [Percobaan {attempt}/{max_retries}] Mengambil cadangan live public_html/index.html (timeout={timeout_sec}s)...')
+              
+              # 1. Jalur Utama: FTPS curl
+              if server and user and passwd:
+                  for path in ['public_html/index.html', 'index.html']:
+                      cmd = f'curl -s --ssl-reqd --ftp-pasv --connect-timeout {timeout_sec} --max-time 60 -u "{user}:{passwd}" "ftp://{server}/{path}" -o {backup_file}'
+                      os.system(cmd)
+                      if os.path.exists(backup_file) and os.path.getsize(backup_file) > 1000:
+                          print(f'   ✅ Berhasil via FTPS curl (jalur /{path})')
+                          break
+
+              # 2. Jalur Alternatif: Python ReusedSslFTP
+              if not (os.path.exists(backup_file) and os.path.getsize(backup_file) > 1000) and server and user and passwd:
+                  try:
+                      ctx = ssl.create_default_context()
+                      ftps = ReusedSslFTP(context=ctx, timeout=timeout_sec)
+                      ftps.connect(server)
+                      ftps.login(user, passwd)
+                      ftps.prot_p()
+                      ftps.set_pasv(True)
+                      try:
+                          if 'public_html' in ftps.nlst():
+                              ftps.cwd('public_html')
+                      except Exception:
+                          pass
+                      with open(backup_file, 'wb') as f:
+                          ftps.retrbinary('RETR index.html', f.write)
+                      ftps.quit()
+                      if os.path.exists(backup_file) and os.path.getsize(backup_file) > 1000:
+                          print('   ✅ Berhasil via FTPS Python')
+                  except Exception as e_ftps:
+                      print(f'   FTPS Python note: {e_ftps}')
+
+              # 3. Jalur Web Terverifikasi: HTTPS Live Server (public_html/index.html)
+              if not (os.path.exists(backup_file) and os.path.getsize(backup_file) > 1000):
+                  try:
+                      live_url = 'https://kjppnanangrahayu.com/index.html'
+                      req = urllib.request.Request(live_url, headers={'User-Agent': 'KJPP-NSR-Backup-Engine/2026'})
+                      with urllib.request.urlopen(req, timeout=timeout_sec) as resp, open(backup_file, 'wb') as out_f:
+                          out_f.write(resp.read())
+                      if os.path.exists(backup_file) and os.path.getsize(backup_file) > 1000:
+                          print('   ✅ Berhasil mencadangkan live index.html via HTTPS Web Server')
+                  except Exception as e_http:
+                      print(f'   HTTPS fetch note: {e_http}')
+
+              # Verifikasi integritas file cadangan
+              if os.path.exists(backup_file) and os.path.getsize(backup_file) > 0:
+                  with open(backup_file, 'rb') as f:
+                      h = hashlib.sha256(f.read()).hexdigest()
+                  print('✅ CADANGAN FILESYSTEM LIVE BERHASIL DIAMBIL & DIVERIFIKASI')
+                  print(f'   File: {backup_file}')
+                  print(f'   Ukuran: {os.path.getsize(backup_file)} bytes')
+                  print(f'   SHA256: {h}')
+                  success = True
+                  break
+              else:
+                  print(f'⚠️ Percobaan {attempt} belum berhasil mendapatkan berkas non-empty.')
+                  if attempt < max_retries:
+                      sleep_t = attempt * 5
+                      print(f'   Menunggu {sleep_t} detik sebelum mencoba kembali...')
+                      time.sleep(sleep_t)
+
+          if not success:
+              print('❌ FATAL: Seluruh percobaan backup live cPanel gagal!')
+              print('   Sesuai Governance P0, proses deployment DIBATALKAN untuk melindungi integritas sistem live.')
+              sys.exit(1)
+          "
+
+      - name: 💾 Upload Backup Filesystem cPanel ke Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpanel-filesystem-backup-${{ github.sha }}
+          path: cpanel_filesystem_backup_index.html
+          retention-days: 30
+
+      - name: 📂 Sinkronisasi File ke cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/
+          server-dir: public_html/
+          dry-run: ${{ github.event.inputs.dry_run == 'true' }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/data/**
+            **/visitor-data.json
+            **/nolap-data.json
+            **/README*.txt
+            *.md
+            package*.json

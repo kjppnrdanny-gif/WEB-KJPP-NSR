@@ -1,0 +1,3038 @@
+<!DOCTYPE html>
+<html lang="id" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Pengajuan Operasional Terpadu (e-Operasional) | KJPP Nanang Rahayu Sigit Paryanto dan Rekan</title>
+  <meta name="description" content="Sistem Terpadu Pengajuan Operasional, Allowance Survey, Meeting & Umum dengan 3-Tingkat Sequential Approval dan Verifikasi Kriptografis QR Code Resmi KJPP Nanang Rahayu Sigit Paryanto & Rekan.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://kjppnanangrahayu.com/portal-operasional.html">
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+
+  <!-- Tailwind CSS & Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- QRCode Library (Local fallback + CDN) -->
+  <script src="js/qrcode.min.js"></script>
+  <script>
+    if (typeof QRCode === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      document.head.appendChild(script);
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b132b; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Print Formatting (A4 Portrait, 10mm margin) */
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 10pt;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-container {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .page-break-inside-avoid {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      table {
+        page-break-inside: auto;
+      }
+      tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+      }
+    }
+
+    @media screen {
+      .print-only {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- ==================== HEADER SISTEM (NO PRINT) ==================== -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <svg class="h-9 w-auto shrink-0 drop-shadow" viewBox="0 0 160 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="nsrBlueHeaderOpr" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2563eb" />
+                <stop offset="50%" stop-color="#1d4ed8" />
+                <stop offset="100%" stop-color="#0b1b4f" />
+              </linearGradient>
+            </defs>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#ef4444" stroke-width="7" stroke-linejoin="round">NSR</text>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round">NSR</text>
+            <text x="4" y="44" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="50" letter-spacing="1" fill="url(#nsrBlueHeaderOpr)">NSR</text>
+          </svg>
+          <div class="leading-tight text-left">
+            <div class="flex items-center gap-2">
+              <span class="block text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-400 transition tracking-wide">
+                PORTAL e-OPERASIONAL
+              </span>
+              <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-black border border-emerald-500/30">
+                3-TINGKAT
+              </span>
+              <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-black border border-blue-500/30 uppercase">
+                Khusus Pusat
+              </span>
+            </div>
+            <span class="block text-[10px] text-slate-400">
+              Pengajuan Biaya Operasional, Approval Dinamis &bull; Kantor Pusat Jakarta
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navigation & Sesi -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div id="badge-sesi-header" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-200">
+          <span id="dot-sesi" class="w-2 h-2 rounded-full bg-slate-500"></span>
+          <span id="label-sesi-role" class="font-bold">Memeriksa Sesi...</span>
+        </div>
+        <button id="btn-logout" onclick="keluarSesi()" class="hidden px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-rose-300 text-xs font-semibold transition border border-slate-700">
+          Keluar
+        </button>
+        <a href="portal-penugasan-jo.html" title="Buka Portal SPK &amp; Job Order" class="hidden md:inline-flex px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+          SPK/JO
+        </a>
+        <a href="portal-nolap.html" title="Buka Portal Nomor Laporan" class="hidden md:inline-flex px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+          NoLap
+        </a>
+        <a href="portal-kwitansi.html" title="Buka Portal Kwitansi" class="hidden md:inline-flex px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+          Kwitansi
+        </a>
+        <a href="index.html" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+          Web Utama &rarr;
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== BANNER AKSES DITOLAK UNTUK CABANG (403 FORBIDDEN) ==================== -->
+  <div id="banner-403-cabang" class="hidden max-w-4xl mx-auto my-12 p-8 rounded-3xl bg-slate-900 border-2 border-rose-500 shadow-2xl text-center space-y-4">
+    <div class="w-16 h-16 rounded-2xl bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center font-black">
+      <svg class="w-9 h-9" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </div>
+    <div class="space-y-2">
+      <span class="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-black uppercase tracking-wider border border-rose-500/30">
+        403 FORBIDDEN &bull; AKSES DITOLAK
+      </span>
+      <h2 class="text-xl sm:text-2xl font-black text-white">
+        Aplikasi Internal Eksklusif Kantor Pusat (Jakarta)
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
+        Mohon maaf, sesi akun Anda terdeteksi sebagai pengguna <strong>Kantor Cabang</strong>. Sesuai regulasi operasional internal KJPP NSR, Portal e-Operasional hanya diperuntukkan bagi pejabat dan staf resmi <strong>Kantor Pusat Jakarta</strong>.
+      </p>
+    </div>
+    <div class="pt-3 flex flex-wrap items-center justify-center gap-3">
+      <a href="index.html" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition shadow-lg">
+        &larr; Kembali ke Website Utama
+      </a>
+      <a href="portal-kwitansi.html?mode=mandiri" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700">
+        Buka Portal Kwitansi Cabang &rarr;
+      </a>
+    </div>
+  </div>
+
+  <!-- ==================== SUB-NAV / TABS (NO PRINT) ==================== -->
+  <div class="bg-slate-900/60 border-b border-slate-800 backdrop-blur sticky top-[61px] z-30 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Tab Buttons -->
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="gantiTabUtama('form')" id="btn-tab-form"
+          class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-amber-400 text-slate-950 shadow-md">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Formulir Pengajuan Baru</span>
+        </button>
+
+        <button type="button" onclick="gantiTabUtama('riwayat')" id="btn-tab-riwayat"
+          class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:bg-slate-700">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          <span>Semua Riwayat</span>
+          <span id="badge-total-pengajuan" class="px-1.5 py-0.2 rounded-full bg-slate-900 text-[10px] text-amber-300 font-mono">0</span>
+        </button>
+
+        <button type="button" onclick="gantiTabUtama('pending')" id="btn-tab-pending"
+          class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:bg-slate-700 relative">
+          <svg class="w-4 h-4 text-rose-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Menunggu Persetujuan Saya</span>
+          <span id="badge-pending-me" class="px-2 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold">0</span>
+        </button>
+      </div>
+
+      <!-- Quick Office Indicator -->
+      <div class="text-[11px] text-slate-400 hidden md:flex items-center gap-3">
+        <span>Format Dokumen: <code class="text-amber-300 font-mono">[JENIS]/[KODE-KANTOR]/[BULAN]/[TAHUN]/[URUT]</code></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== MAIN VIEW CONTAINER ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 no-print">
+
+    <!-- ==================== TAB 1: FORMULIR PENGAJUAN ==================== -->
+    <section id="tab-form-content" class="space-y-6">
+
+      <!-- Form Type Selector Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- Pilihan A: Allowance Survey Lapangan -->
+        <div onclick="pilihJenisOperasional('OPR-SRV')" id="card-type-OPR-SRV"
+          class="cursor-pointer p-4 rounded-2xl border transition-all duration-200 bg-amber-500/10 border-amber-400 shadow-lg relative group">
+          <div class="flex items-start justify-between">
+            <div class="space-y-1">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black tracking-wider bg-amber-400 text-slate-950 uppercase">
+                FORM A
+              </span>
+              <h3 class="text-sm font-extrabold text-white group-hover:text-amber-300 transition">
+                Allowance Survey Lapangan
+              </h3>
+              <p class="text-[11px] text-slate-400 leading-snug">
+                Integrasi ID Penugasan NoLap, Uang Harian/Allowance personal &amp; biaya kolektif armada tim.
+              </p>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pilihan B: Allowance Meeting -->
+        <div onclick="pilihJenisOperasional('OPR-MTG')" id="card-type-OPR-MTG"
+          class="cursor-pointer p-4 rounded-2xl border transition-all duration-200 bg-slate-900 border-slate-800 hover:border-slate-700 group">
+          <div class="flex items-start justify-between">
+            <div class="space-y-1">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black tracking-wider bg-slate-800 text-slate-300 uppercase">
+                FORM B
+              </span>
+              <h3 class="text-sm font-extrabold text-white group-hover:text-amber-300 transition">
+                Allowance Meeting
+              </h3>
+              <p class="text-[11px] text-slate-400 leading-snug">
+                Alokasi koordinasi lintas divisi: Teknik, Admin &amp; Umum, Marketing, Manajemen &amp; Rekan.
+              </p>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pilihan C: Operasional Umum -->
+        <div onclick="pilihJenisOperasional('OPR-UMM')" id="card-type-OPR-UMM"
+          class="cursor-pointer p-4 rounded-2xl border transition-all duration-200 bg-slate-900 border-slate-800 hover:border-slate-700 group">
+          <div class="flex items-start justify-between">
+            <div class="space-y-1">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black tracking-wider bg-slate-800 text-slate-300 uppercase">
+                FORM C
+              </span>
+              <h3 class="text-sm font-extrabold text-white group-hover:text-amber-300 transition">
+                Operasional Umum
+              </h3>
+              <p class="text-[11px] text-slate-400 leading-snug">
+                ATK, utilitas kantor, pemeliharaan IT, perizinan cabang &amp; pengadaan rutin dinamis.
+              </p>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MAIN FORM CARD -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        
+        <!-- Header Formulir & Informasi Pengaju Internal Pusat -->
+        <div class="border-b border-slate-800 pb-5 space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h2 id="judul-form-aktif" class="text-lg font-extrabold text-white flex items-center gap-2">
+                <span>Formulir Allowance Survey Lapangan (OPR-SRV)</span>
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">
+                Isi data pengajuan secara lengkap. Dokumen diproses melalui sistem approval dinamis 3-Tingkat resmi.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="font-bold text-slate-300">Kantor Pusat Jakarta</span>
+              <span class="text-[10px] font-mono text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">2.19.0160-00</span>
+            </div>
+          </div>
+
+          <!-- Input Identitas Pengaju, Jabatan & Divisi (Sesuai Regulasi Internal) -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div>
+              <label for="input_nama_pengaju" class="block text-xs font-bold text-slate-300 mb-1">
+                Nama Pengaju / Pemohon <span class="text-rose-400">*</span>
+              </label>
+              <input type="text" id="input_nama_pengaju" required placeholder="Tuliskan nama lengkap pengaju..."
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <div>
+              <label for="select_jabatan_pengaju" class="block text-xs font-bold text-slate-300 mb-1">
+                Jabatan / Posisi <span class="text-rose-400">*</span>
+              </label>
+              <select id="select_jabatan_pengaju" onchange="toggleJabatanLainnya()"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400 transition">
+                <option value="Lead Surveyor / Penilai Properti">Lead Surveyor / Penilai Properti</option>
+                <option value="Asisten Penilai / Penilai Muda">Asisten Penilai / Penilai Muda</option>
+                <option value="Reviewer / QC Teknis">Reviewer / QC Teknis</option>
+                <option value="Staff Administrasi & Legal">Staff Administrasi &amp; Legal</option>
+                <option value="Staff Keuangan & Kasir">Staff Keuangan &amp; Kasir</option>
+                <option value="Staff IT & Umum">Staff IT &amp; Umum</option>
+                <option value="LAINNYA">Lainnya — isi sendiri</option>
+              </select>
+              <input type="text" id="input_jabatan_kustom" placeholder="Ketik jabatan/posisi Anda..."
+                class="hidden mt-2 w-full px-3 py-2 rounded-xl bg-slate-950 border border-amber-400/60 text-xs text-amber-200 focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <div>
+              <label for="select_divisi_pengaju" class="block text-xs font-bold text-slate-300 mb-1">
+                Divisi / Bagian <span class="text-rose-400">*</span>
+              </label>
+              <select id="select_divisi_pengaju" onchange="toggleDivisiLainnyaDanAlur()"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400 transition">
+                <option value="Teknik">Divisi Teknik &amp; Penilaian (Alur Teknis)</option>
+                <option value="Admin & Umum">Divisi Administrasi, Legal &amp; Umum (Alur Admin/Umum)</option>
+                <option value="Lintas Divisi">Lintas Divisi — Teknik + Admin &amp; Umum</option>
+                <option value="Keuangan">Divisi Keuangan</option>
+                <option value="LAINNYA">Lainnya — isi sendiri</option>
+              </select>
+              <input type="text" id="input_divisi_kustom" placeholder="Ketik divisi/bagian Anda..."
+                class="hidden mt-2 w-full px-3 py-2 rounded-xl bg-slate-950 border border-amber-400/60 text-xs text-amber-200 focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <div class="sm:col-span-3">
+              <label for="input_maksud_tujuan" class="block text-xs font-bold text-slate-300 mb-1">
+                Maksud &amp; Tujuan Pengajuan <span class="text-rose-400">*</span>
+              </label>
+              <textarea id="input_maksud_tujuan" rows="2" required placeholder="Jelaskan secara rinci maksud dan tujuan pengajuan operasional ini..."
+                class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 transition"></textarea>
+            </div>
+          </div>
+
+          <!-- Preview Alur Otorisasi Dinamis 3-Tingkat -->
+          <div class="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-extrabold text-amber-400 flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
+                <svg class="w-4 h-4 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Alur Approval Dinamis (3-Tingkat Terstruktur)</span>
+              </span>
+              <span id="label-skema-alur-aktif" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                Alur Teknis
+              </span>
+            </div>
+            <div id="box-preview-alur-stepper" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px]">
+              <!-- Dynamically rendered stepper preview -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FORM A: ALLOWANCE SURVEY LAPANGAN -->
+        <div id="section-form-survey" class="space-y-6">
+          
+          <!-- ID Penugasan Lookup -->
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-200">
+                Lookup ID Penugasan / SPK Penilaian
+              </label>
+              <span class="text-[11px] text-slate-400">Tersinkronisasi dengan NoLap Database</span>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-2">
+              <div class="relative flex-1">
+                <input type="text" id="input_lookup_nolap" placeholder="Ketik No. Permintaan (REQ-000006) / No. Laporan / Nama Klien..."
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" />
+                <button type="button" onclick="cariIdPenugasan()"
+                  class="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold transition flex items-center gap-1">
+                  <span>Cari</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Hasil Lookup Dropdown / Card -->
+            <div id="box-hasil-lookup" class="hidden p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs space-y-2">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Data Penugasan Ditemukan:</span>
+                </span>
+                <span id="label-lookup-id" class="font-mono text-amber-300 font-bold">-</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div><span class="text-slate-400">No. Laporan:</span> <span id="label-lookup-nolap" class="text-slate-200 font-mono">-</span></div>
+                <div><span class="text-slate-400">Penilai:</span> <span id="label-lookup-penilai" class="text-slate-200 font-semibold">-</span></div>
+                <div class="sm:col-span-2"><span class="text-slate-400">Klien:</span> <span id="label-lookup-klien" class="text-white font-medium">-</span></div>
+                <div class="sm:col-span-2"><span class="text-slate-400">Objek &amp; Lokasi:</span> <span id="label-lookup-objek" class="text-slate-300">-</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zonasi Wilayah Master Tarif & Tanggal/Surveyor -->
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-800/80 pb-2">
+              <label for="survey_wilayah" class="block text-xs font-bold text-slate-200 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>1. Wilayah Zonasi Survey Lapangan</span>
+                <span class="px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 text-[10px] uppercase font-mono font-bold">Master Tarif NSR 2026</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <span id="badge-konfirmasi-wilayah" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                  Zonasi Terpilih
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2">
+                <label for="survey_wilayah" class="block text-[11px] font-semibold text-slate-400 mb-1">Pilihan Zonasi Wilayah Survey:</label>
+                <select id="survey_wilayah" onchange="tanganiPerubahanWilayah()" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 font-semibold cursor-pointer">
+                  <option value="JABODETABEK">Jabodetabek (Jakarta, Bogor, Depok, Tangerang, Bekasi)</option>
+                  <option value="JAWA_BARAT">Jawa Barat (Di luar Jabodetabek)</option>
+                  <option value="WILAYAH_LAIN">Wilayah Lain (Luar Jawa Barat / Luar Jabodetabek)</option>
+                </select>
+              </div>
+              <div>
+                <label for="survey_daftar_surveyor" class="block text-[11px] font-semibold text-slate-400 mb-1">Nama Tim / Personel:</label>
+                <input type="text" id="survey_daftar_surveyor" placeholder="Contoh: Holik Kelana, Budi" value=""
+                  class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+              </div>
+            </div>
+
+            <!-- Notifikasi Rekomendasi NoLap -->
+            <div id="box-rekomendasi-nolap" class="hidden p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/40 text-xs text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-base">📍</span>
+                <span id="text-rekomendasi-nolap">Rekomendasi wilayah survey dari NoLap terdeteksi.</span>
+              </div>
+              <button type="button" onclick="konfirmasiWilayahNoLap()" class="shrink-0 px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition">
+                Konfirmasi Zonasi Ini ✓
+              </button>
+            </div>
+
+            <!-- Jadwal Survey Lapangan -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-800/60">
+              <div>
+                <label for="survey_tgl_mulai" class="block text-[11px] font-semibold text-slate-400 mb-1">Tgl Mulai Survey Lapangan</label>
+                <input type="date" id="survey_tgl_mulai" class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+              </div>
+              <div>
+                <label for="survey_tgl_selesai" class="block text-[11px] font-semibold text-slate-400 mb-1">Tgl Selesai Survey Lapangan</label>
+                <input type="date" id="survey_tgl_selesai" class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+              </div>
+            </div>
+          </div>
+
+          <!-- TABEL 1: BIAYA PERSONAL SURVEYOR (KALKULATOR OTOMATIS MASTER TARIF) -->
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <h4 class="text-xs font-extrabold text-white uppercase tracking-wider">A. Biaya Personal (Allowance / Uang Harian Berdasarkan Master Tarif)</h4>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="tambahBarisPersonalSurvey('SURVEYOR')"
+                  class="px-2.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold flex items-center gap-1 transition shadow-sm">
+                  <span>+ Tambah Personel / Jabatan</span>
+                </button>
+                <button type="button" onclick="tambahBarisPersonalSurvey('MANUAL')"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-1 transition">
+                  <span>+ Biaya Manual</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3 min-w-[220px]">Jabatan / Komponen Allowance</th>
+                    <th class="py-2.5 px-2 w-20 text-center">Personel</th>
+                    <th class="py-2.5 px-2 w-24 text-center">Hari / Titik</th>
+                    <th class="py-2.5 px-2 w-16 text-center">Satuan</th>
+                    <th class="py-2.5 px-3 w-32 text-right">Tarif Satuan (Rp)</th>
+                    <th class="py-2.5 px-3 w-36 text-right">Subtotal (Rp)</th>
+                    <th class="py-2.5 px-2 w-10 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-survey-personal" class="divide-y divide-slate-800/60 bg-slate-900/40">
+                  <!-- Baris akan dirender dinamis tanpa dummy hardcoded -->
+                </tbody>
+                <tfoot class="bg-slate-950/60 font-bold border-t border-slate-800">
+                  <tr>
+                    <td colspan="5" class="py-2.5 px-3 text-right text-slate-400">Subtotal Biaya Personal:</td>
+                    <td id="label-subtotal-personal" class="py-2.5 px-3 text-right text-amber-300 font-mono">Rp 0</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <p class="text-[11px] text-slate-400 italic">
+              *Tarif satuan terkunci otomatis sesuai Master Tarif NSR 2026. Rumus: <span class="font-mono text-slate-300">Personel &times; Durasi &times; Tarif Satuan</span>. Untuk Retail dihitung per titik.
+            </p>
+          </div>
+
+          <!-- TABEL 2: BIAYA KOLEKTIF TIM (ARMADA & TRANSPORTASI) -->
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                <h4 class="text-xs font-extrabold text-white uppercase tracking-wider">B. Biaya Kolektif Tim (Armada / Transportasi / Fasilitas)</h4>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="tambahBarisTransportasiBandara()"
+                  class="px-2.5 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold flex items-center gap-1 transition shadow-sm">
+                  <span>✈️ + Transportasi Bandara (Rp 570.000)</span>
+                </button>
+                <button type="button" onclick="tambahBarisKolektifSurvey()"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-1 transition">
+                  <span>+ Biaya Kolektif Lainnya</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3 min-w-[240px]">Uraian Kebutuhan Kolektif Tim</th>
+                    <th class="py-2.5 px-2 w-20 text-center">Volume</th>
+                    <th class="py-2.5 px-2 w-24 text-center">Satuan</th>
+                    <th class="py-2.5 px-3 w-32 text-right">Tarif Satuan (Rp)</th>
+                    <th class="py-2.5 px-3 w-36 text-right">Subtotal (Rp)</th>
+                    <th class="py-2.5 px-2 w-10 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-survey-kolektif" class="divide-y divide-slate-800/60 bg-slate-900/40">
+                  <!-- Baris akan dirender dinamis tanpa dummy hardcoded -->
+                </tbody>
+                <tfoot class="bg-slate-950/60 font-bold border-t border-slate-800">
+                  <tr>
+                    <td colspan="4" class="py-2.5 px-3 text-right text-slate-400">Subtotal Biaya Kolektif:</td>
+                    <td id="label-subtotal-kolektif" class="py-2.5 px-3 text-right text-amber-300 font-mono">Rp 0</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <p class="text-[11px] text-slate-400 italic">
+              *Transportasi Bandara bertarif baku Rp 570.000 per satuan. Biaya kolektif lainnya wajib menyertakan uraian dan alasan kebutuhan.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- FORM B: ALLOWANCE MEETING -->
+        <div id="section-form-meeting" class="space-y-6 hidden">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div>
+              <label for="meeting_divisi" class="block text-xs font-bold text-slate-300 mb-1">Divisi Penyelenggara</label>
+              <select id="meeting_divisi" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400">
+                <option value="Teknik">Teknik</option>
+                <option value="Admin & Umum">Admin & Umum</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Manajemen">Manajemen</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label for="meeting_agenda" class="block text-xs font-bold text-slate-300 mb-1">Agenda / Topik Rapat</label>
+              <input type="text" id="meeting_agenda" placeholder="Contoh: Koordinasi Proyek Penilaian Tol Cipali"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+            </div>
+            <div>
+              <label for="meeting_estimasi_peserta" class="block text-xs font-bold text-slate-300 mb-1">Estimasi Peserta</label>
+              <input type="number" min="1" id="meeting_estimasi_peserta" value="6"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="meeting_waktu" class="block text-xs font-bold text-slate-300 mb-1">Waktu &amp; Tanggal Pelaksanaan</label>
+              <input type="datetime-local" id="meeting_waktu" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+            </div>
+            <div>
+              <label for="meeting_lokasi" class="block text-xs font-bold text-slate-300 mb-1">Lokasi / Tempat Rapat</label>
+              <input type="text" id="meeting_lokasi" placeholder="Contoh: Ruang Rapat Lt. 2 / Hotel Santika"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+            </div>
+          </div>
+
+          <!-- TABEL BIAYA MEETING -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-extrabold text-white uppercase tracking-wider">Rincian Estimasi Biaya Rapat</h4>
+              <button type="button" onclick="tambahBarisMeeting()"
+                class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-1 transition">
+                <span>+ Tambah Baris</span>
+              </button>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3">Item / Uraian Biaya Rapat</th>
+                    <th class="py-2.5 px-3 w-24 text-center">Volume</th>
+                    <th class="py-2.5 px-3 w-28 text-center">Satuan</th>
+                    <th class="py-2.5 px-3 w-36 text-right">Tarif Satuan (Rp)</th>
+                    <th class="py-2.5 px-3 w-40 text-right">Subtotal (Rp)</th>
+                    <th class="py-2.5 px-2 w-12 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-meeting" class="divide-y divide-slate-800/60 bg-slate-900/40">
+                  <tr>
+                    <td class="p-2">
+                      <input type="text" class="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-200 item-nama" value="Konsumsi &amp; Snack Rapat" />
+                    </td>
+                    <td class="p-2 text-center">
+                      <input type="number" min="0" step="1" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-volume" value="6" />
+                    </td>
+                    <td class="p-2 text-center">
+                      <input type="text" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-satuan" value="Orang" />
+                    </td>
+                    <td class="p-2 text-right">
+                      <input type="number" min="0" step="5000" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-right text-amber-300 font-mono item-tarif" value="50000" />
+                    </td>
+                    <td class="p-2 text-right font-mono font-bold text-slate-200 item-subtotal">Rp 300.000</td>
+                    <td class="p-2 text-center">
+                      <button type="button" onclick="hapusBaris(this)" class="p-1 rounded text-rose-400 hover:bg-rose-500/10">✕</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FORM C: OPERASIONAL UMUM -->
+        <div id="section-form-umum" class="space-y-6 hidden">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label for="umum_kategori" class="block text-xs font-bold text-slate-300 mb-1">Kategori Kebutuhan</label>
+              <select id="umum_kategori" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400">
+                <option value="ATK & Perlengkapan Kantor">ATK &amp; Perlengkapan Kantor</option>
+                <option value="Utilitas & Fasilitas">Utilitas &amp; Fasilitas Kantor</option>
+                <option value="Pemeliharaan & IT">Pemeliharaan &amp; IT / Komputer</option>
+                <option value="Pajak & Perizinan">Pajak &amp; Perizinan</option>
+                <option value="Operasional Lain-lain">Operasional Lain-lain</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label for="umum_maksud_tujuan" class="block text-xs font-bold text-slate-300 mb-1">Maksud &amp; Tujuan Pengadaan</label>
+              <input type="text" id="umum_maksud_tujuan" placeholder="Contoh: Pengadaan Kertas HVS A4 &amp; Toner Printer untuk Laporan Final"
+                class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400" />
+            </div>
+          </div>
+
+          <!-- TABEL BIAYA OPERASIONAL UMUM -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-extrabold text-white uppercase tracking-wider">Tabel Rincian Kebutuhan Barang / Jasa</h4>
+              <button type="button" onclick="tambahBarisUmum()"
+                class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-1 transition">
+                <span>+ Tambah Baris</span>
+              </button>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3">Deskripsi Barang / Jasa</th>
+                    <th class="py-2.5 px-3 w-24 text-center">Kuantitas</th>
+                    <th class="py-2.5 px-3 w-28 text-center">Satuan</th>
+                    <th class="py-2.5 px-3 w-36 text-right">Harga Satuan (Rp)</th>
+                    <th class="py-2.5 px-3 w-40 text-right">Subtotal (Rp)</th>
+                    <th class="py-2.5 px-2 w-12 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-umum" class="divide-y divide-slate-800/60 bg-slate-900/40">
+                  <tr>
+                    <td class="p-2">
+                      <input type="text" class="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-200 item-nama" value="Kertas HVS PaperOne A4 80gr" />
+                    </td>
+                    <td class="p-2 text-center">
+                      <input type="number" min="0" step="1" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-volume" value="10" />
+                    </td>
+                    <td class="p-2 text-center">
+                      <input type="text" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-satuan" value="Rim" />
+                    </td>
+                    <td class="p-2 text-right">
+                      <input type="number" min="0" step="1000" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-right text-amber-300 font-mono item-tarif" value="55000" />
+                    </td>
+                    <td class="p-2 text-right font-mono font-bold text-slate-200 item-subtotal">Rp 550.000</td>
+                    <td class="p-2 text-center">
+                      <button type="button" onclick="hapusBaris(this)" class="p-1 rounded text-rose-400 hover:bg-rose-500/10">✕</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TOTAL ESTIMASI & TERBILANG SUMMARY BOX -->
+        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Grand Total Estimasi Biaya</span>
+            <div id="label-grand-total" class="text-2xl font-black text-amber-400 font-mono">
+              Rp 1.250.000
+            </div>
+            <p id="label-terbilang" class="text-xs text-slate-300 italic">
+              "Satu Juta Dua Ratus Lima Puluh Ribu Rupiah"
+            </p>
+          </div>
+
+          <div>
+            <label for="input_catatan_pemohon" class="block text-[11px] font-bold text-slate-400 mb-1">Catatan Tambahan Pemohon:</label>
+            <textarea id="input_catatan_pemohon" rows="2" placeholder="Catatan keperluan atau batas waktu pencairan..."
+              class="w-full md:w-80 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400"></textarea>
+          </div>
+        </div>
+
+        <!-- SUBMIT & DRAFT BUTTONS -->
+        <div class="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <button type="button" onclick="simpanPengajuan(true)" id="btn-save-draft"
+            class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 shadow flex items-center gap-2">
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            <span>Simpan Draf</span>
+          </button>
+
+          <button type="button" onclick="simpanPengajuan(false)" id="btn-submit-final"
+            class="px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition shadow-lg flex items-center gap-2">
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Kirim Pengajuan Resmi (Tier 1)</span>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2: RIWAYAT & APPROVAL ==================== -->
+    <section id="tab-riwayat-content" class="space-y-6 hidden">
+      
+      <!-- Filter Bar -->
+      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+          
+          <!-- Quick Status Pills -->
+          <div class="w-full pb-2 mb-1 border-b border-slate-800/80 flex flex-wrap items-center gap-2">
+            <span class="text-[10px] uppercase font-bold text-slate-500 mr-1">Filter Cepat:</span>
+            <button type="button" onclick="setQuickStatusFilter('')" id="btn-quick-all"
+              class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 transition">
+              Semua Pengajuan
+            </button>
+            <button type="button" onclick="setQuickStatusFilter('PENDING_ON_ME')" id="btn-quick-pending"
+              class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:text-white border border-rose-500/40 flex items-center gap-1.5 transition">
+              <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+              <span>Menunggu Persetujuan Saya</span>
+              <span id="badge-filter-pending" class="px-1.5 py-0.2 rounded-full bg-rose-600 text-[10px] text-white font-mono font-bold">0</span>
+            </button>
+            <button type="button" onclick="setQuickStatusFilter('REJECTED')" id="btn-quick-rejected"
+              class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:text-white border border-slate-700 flex items-center gap-1 transition">
+              <span>Perlu Revisi (Ditolak)</span>
+            </button>
+            <button type="button" onclick="setQuickStatusFilter('APPROVED')" id="btn-quick-approved"
+              class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition">
+              Disetujui Sah
+            </button>
+          </div>
+
+          <div>
+            <label for="filter_jenis" class="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">Jenis Operasional</label>
+            <select id="filter_jenis" onchange="muatDaftarPengajuan()"
+              class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200">
+              <option value="">Semua Jenis</option>
+              <option value="OPR-SRV">Allowance Survey Lapangan</option>
+              <option value="OPR-MTG">Allowance Meeting</option>
+              <option value="OPR-UMM">Operasional Umum</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="filter_status" class="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">Status Persetujuan</label>
+            <select id="filter_status" onchange="muatDaftarPengajuan()"
+              class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 font-semibold">
+              <option value="">Semua Status</option>
+              <option value="PENDING_ON_ME" class="text-rose-400 font-bold">⚡ Menunggu Persetujuan Saya</option>
+              <option value="SUBMITTED">SUBMITTED (Diajukan)</option>
+              <option value="IN_REVIEW">IN_REVIEW (Proses Approval)</option>
+              <option value="APPROVED">APPROVED (Disetujui Sah)</option>
+              <option value="REJECTED">REJECTED (Perlu Revisi)</option>
+              <option value="DRAFT">DRAFT</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="filter_cabang" class="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">Kantor / Cabang</label>
+            <select id="filter_cabang" onchange="muatDaftarPengajuan()"
+              class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200">
+              <option value="">Semua Kantor</option>
+              <option value="Pusat">Pusat (Jakarta)</option>
+              <option value="Padang">Padang</option>
+              <option value="Makassar">Makassar</option>
+              <option value="Palembang">Palembang</option>
+              <option value="Bandung">Bandung</option>
+            </select>
+          </div>
+
+        </div>
+
+        <button type="button" onclick="muatDaftarPengajuan()"
+          class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Segarkan Data</span>
+        </button>
+      </div>
+
+      <!-- Tabel Riwayat Pengajuan -->
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/40">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-3 w-10 text-center">#</th>
+              <th class="py-3 px-4 min-w-[190px]">Nomor Registrasi Dokumen</th>
+              <th class="py-3 px-3 min-w-[150px]">Jenis Pengajuan</th>
+              <th class="py-3 px-3 min-w-[90px]">Kantor</th>
+              <th class="py-3 px-3 min-w-[90px]">Tanggal</th>
+              <th class="py-3 px-4 min-w-[130px] text-right">Total Biaya (Rp)</th>
+              <th class="py-3 px-3 min-w-[110px] text-center">Status</th>
+              <th class="py-3 px-4 min-w-[280px]">Timeline Otorisasi (Tingkat 1 &rarr; 2 &rarr; 3)</th>
+              <th class="py-3 px-4 min-w-[180px] text-center">Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-riwayat" class="divide-y divide-slate-800/60">
+            <tr>
+              <td colspan="9" class="py-10 text-center text-slate-400">
+                Memuat data riwayat operasional...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL: DETAIL & WORKFLOW APPROVAL ==================== -->
+  <div id="modal-detail" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm hidden no-print">
+    <div class="max-w-4xl w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto space-y-6">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="detail-badge-jenis" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              OPR-SRV
+            </span>
+            <span id="detail-badge-status" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              APPROVED
+            </span>
+            <span id="detail-badge-versi" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
+              Versi 1
+            </span>
+          </div>
+          <h3 id="detail-no-registrasi" class="text-base sm:text-lg font-mono font-extrabold text-amber-300">
+            OPR-SRV/2.19.0160-00/X/2026/0001
+          </h3>
+          <p id="detail-pemohon-info" class="text-xs text-slate-400 mt-0.5">
+            Diajukan oleh: Holik Kelana &bull; Kantor Pusat &bull; 2026-10-20
+          </p>
+        </div>
+        <button type="button" onclick="tutupModalDetail()" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Detail Penolakan Banner (Jika Ada) -->
+      <div id="detail-box-penolakan" class="hidden p-4 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-xs text-rose-200 space-y-1">
+        <div class="font-extrabold text-rose-300 flex items-center gap-1.5">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span id="label-penolakan-title">Dokumen Berstatus Ditolak (REJECTED)</span>
+        </div>
+        <p id="label-penolakan-alasan" class="text-slate-300 font-mono text-[11px]"></p>
+        <span id="label-penolakan-meta" class="text-[10px] text-slate-400 block pt-1"></span>
+      </div>
+
+      <!-- WORKFLOW STEPPER 3-TINGKAT -->
+      <div class="space-y-3">
+        <h4 class="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+          <span>Workflow Otorisasi Bertingkat Resmi</span>
+        </h4>
+        <div id="detail-tiers-container" class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+          <!-- Dynamically populated 3 tingkat approval cards -->
+        </div>
+      </div>
+
+      <!-- RINCIAN DOKUMEN & BIAYA -->
+      <div class="space-y-3">
+        <h4 class="text-xs font-extrabold text-white uppercase tracking-wider">Rincian Estimasi Biaya &amp; Uraian Dokumen</h4>
+        <div id="detail-biaya-container" class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-3">
+          <!-- Dynamically populated table -->
+        </div>
+      </div>
+
+      <!-- AUDIT TRAIL LOG -->
+      <div class="space-y-2">
+        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Audit Trail &amp; Log Perubahan</h4>
+        <div id="detail-audit-container" class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] space-y-1 font-mono text-slate-400 max-h-36 overflow-y-auto">
+          <!-- Dynamically populated logs -->
+        </div>
+      </div>
+
+      <!-- MODAL FOOTER ACTIONS -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800">
+        <div id="detail-action-approval-slot" class="flex items-center gap-2">
+          <!-- Action buttons (Approve / Reject) inserted based on active tier and role -->
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="bukaCetakDokumenDariModal()"
+            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span>Cetak / Simpan PDF</span>
+          </button>
+          <button type="button" onclick="tutupModalDetail()"
+            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
+            Tutup
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ALASAN PENOLAKAN ==================== -->
+  <div id="modal-reject" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm hidden no-print">
+    <div class="max-w-md w-full bg-slate-900 border border-rose-500/50 rounded-3xl p-6 shadow-2xl space-y-4">
+      <div class="space-y-1">
+        <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+          <span class="text-rose-400">✕</span>
+          <span>Tolak Pengajuan Operasional</span>
+        </h3>
+        <p class="text-xs text-slate-400">
+          Masukkan alasan penolakan secara jelas (wajib minimal 10 karakter). Dokumen akan berstatus REJECTED dan dapat direvisi oleh pengaju.
+        </p>
+      </div>
+
+      <div>
+        <label for="input_alasan_reject" class="block text-xs font-bold text-slate-300 mb-1">
+          Alasan / Catatan Penolakan:
+        </label>
+        <textarea id="input_alasan_reject" rows="3" placeholder="Tuliskan catatan perbaikan anggaran atau kekurangan berkas..."
+          class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-rose-400"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <button type="button" onclick="tutupModalReject()"
+          class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
+          Batal
+        </button>
+        <button type="button" onclick="kirimPenolakan()"
+          class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition shadow-lg">
+          Konfirmasi Penolakan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: AUTH / TOKEN GATE ==================== -->
+  <div id="modal-auth" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm hidden no-print">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-400 mx-auto flex items-center justify-center font-black">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h3 class="text-base font-extrabold text-white">Otorisasi e-Operasional</h3>
+        <p class="text-xs text-slate-400">
+          Masukkan token akses resmi KJPP Nanang Rahayu untuk mengaktifkan sistem operasional terpadu.
+        </p>
+      </div>
+
+      <form onsubmit="handleTokenLogin(event)" class="space-y-3">
+        <div>
+          <label for="input_token_auth" class="block text-xs font-bold text-slate-300 mb-1">
+            Token Akses Internal
+          </label>
+          <input type="password" id="input_token_auth" required placeholder="Masukkan token akses resmi Anda..."
+            class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono text-amber-300 placeholder-slate-600 focus:outline-none focus:border-amber-400 transition text-center tracking-widest uppercase" />
+        </div>
+
+        <div id="pesan-auth-error" class="hidden p-2.5 rounded-xl bg-rose-950/80 border border-rose-500/50 text-[11px] text-rose-300 text-center font-semibold"></div>
+
+        <button type="submit" id="btn-login-submit"
+          class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition shadow-lg cursor-pointer">
+          Verifikasi &amp; Masuk Portal
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== TEMPLATE PRINT CETAK A4 (PRINT ONLY) ==================== -->
+  <div id="print-view-container" class="print-only text-slate-900 bg-white p-4">
+    
+    <!-- Kop Surat Resmi -->
+    <div class="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl font-black tracking-tight text-blue-900">KJPP NSR</div>
+        <div class="text-left leading-tight">
+          <h1 class="text-sm font-extrabold uppercase text-slate-900">
+            KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN
+          </h1>
+          <p class="text-[9pt] text-slate-600">
+            Kantor Jasa Penilai Publik &bull; Izin Usaha KMK No. 2.19.0160
+          </p>
+          <p class="text-[8pt] text-slate-500">
+            Pusat: Jakarta &bull; Cabang: Padang, Makassar, Palembang, Bandung
+          </p>
+        </div>
+      </div>
+      <div class="text-right">
+        <span class="block text-[8pt] text-slate-500 font-bold uppercase">SISTEM e-OPERASIONAL</span>
+        <span class="block text-[8pt] text-slate-700 font-mono">FORM-OPR-2026</span>
+      </div>
+    </div>
+
+    <!-- Judul Dokumen -->
+    <div class="text-center my-3">
+      <h2 id="print-doc-title" class="text-base font-extrabold uppercase tracking-wide underline">
+        PENGAJUAN ALLOWANCE SURVEY LAPANGAN
+      </h2>
+      <p id="print-doc-noreg" class="font-mono text-[10pt] font-bold text-slate-800 mt-1">
+        No. Registrasi: OPR-SRV/2.19.0160-00/X/2026/0001
+      </p>
+    </div>
+
+    <!-- Informasi Meta Dokumen -->
+    <div class="grid grid-cols-2 gap-4 text-[9pt] my-3 border border-slate-300 rounded p-2.5">
+      <div>
+        <table class="w-full text-left">
+          <tr><td class="w-32 font-semibold text-slate-600">Kantor / Cabang</td><td id="print-meta-kantor">: Pusat</td></tr>
+          <tr><td class="font-semibold text-slate-600">Tanggal Pengajuan</td><td id="print-meta-tgl">: 2026-10-20</td></tr>
+          <tr><td class="font-semibold text-slate-600">Pemohon / Pengaju</td><td id="print-meta-pemohon">: Holik Kelana</td></tr>
+        </table>
+      </div>
+      <div>
+        <table class="w-full text-left">
+          <tr><td class="w-32 font-semibold text-slate-600">Status Dokumen</td><td id="print-meta-status">: APPROVED</td></tr>
+          <tr><td class="font-semibold text-slate-600">Versi Dokumen</td><td id="print-meta-versi">: Versi 1</td></tr>
+          <tr><td class="font-semibold text-slate-600">Perihal / Penugasan</td><td id="print-meta-perihal">: -</td></tr>
+          <tr><td class="font-semibold text-slate-600">Wilayah Survey</td><td id="print-meta-wilayah">: -</td></tr>
+          <tr><td class="font-semibold text-slate-600">Ref. NoLap / SPK</td><td id="print-meta-nolap">: -</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tabel Rincian Biaya Cetak -->
+    <div class="my-4">
+      <table class="w-full text-left border-collapse border border-slate-400 text-[9pt]">
+        <thead>
+          <tr class="bg-slate-100 font-bold border-b border-slate-400">
+            <th class="border border-slate-400 p-1.5 w-8 text-center">No</th>
+            <th class="border border-slate-400 p-1.5">Uraian / Deskripsi Pengeluaran</th>
+            <th class="border border-slate-400 p-1.5 w-16 text-center">Vol</th>
+            <th class="border border-slate-400 p-1.5 w-16 text-center">Satuan</th>
+            <th class="border border-slate-400 p-1.5 w-28 text-right">Harga Satuan (Rp)</th>
+            <th class="border border-slate-400 p-1.5 w-32 text-right">Subtotal (Rp)</th>
+          </tr>
+        </thead>
+        <tbody id="print-table-body">
+          <!-- Populated dynamically -->
+        </tbody>
+        <tfoot>
+          <tr class="font-bold bg-slate-50 border-t-2 border-slate-400">
+            <td colspan="5" class="border border-slate-400 p-2 text-right uppercase">GRAND TOTAL ESTIMASI BIAYA:</td>
+            <td id="print-grand-total" class="border border-slate-400 p-2 text-right font-mono text-[10pt]">Rp 1.250.000</td>
+          </tr>
+          <tr>
+            <td colspan="6" class="border border-slate-400 p-2 italic bg-white text-[8.5pt]">
+              Terbilang: <span id="print-terbilang" class="font-semibold">"Satu Juta Dua Ratus Lima Puluh Ribu Rupiah"</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Lima Kolom Tanda Tangan & QR Code Verifikasi (Page Break Inside Avoid) -->
+    <div class="page-break-inside-avoid mt-6 pt-4 border-t border-slate-300">
+      <div class="text-[8.5pt] font-bold uppercase text-slate-700 mb-3 text-center tracking-wider">
+        LEMBAR PENGESAHAN DAN OTORISASI DOKUMEN RESMI (KMK NO. 2.19.0160)
+      </div>
+
+      <div id="print-ttd-container" class="grid grid-cols-3 gap-2 text-center text-[8pt]">
+        <!-- Tanda Tangan & QR Code Dinamis Tingkat 1, 2, 3 di-render via JS -->
+      </div>
+
+      <div class="mt-4 text-center text-[7.5pt] text-slate-500 italic">
+        *Keabsahan dokumen ini dapat diverifikasi publik melalui pemindaian QR Code resmi ke server https://kjppnanangrahayu.com.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    // Global State
+    let JENIS_AKTIF = 'OPR-SRV';
+    let ALUR_AKTIF = 'TEKNIS';
+    let CURRENT_USER = null;
+    let ACTIVE_DOC = null;
+    let DOC_TO_REJECT = null;
+    let REJECT_TIER = 0;
+    let DATA_LIST = [];
+    let EDIT_DOC_ID = null;
+
+    // Helper Rupiah & Terbilang
+    function formatRupiah(num) {
+      const val = Math.round(Number(num) || 0);
+      return 'Rp ' + val.toLocaleString('id-ID');
+    }
+
+    function terbilangBilangan(nilai) {
+      nilai = Math.floor(Math.abs(nilai));
+      const huruf = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+      if (nilai === 0) return "";
+      if (nilai < 12) return huruf[nilai];
+      if (nilai < 20) return terbilangBilangan(nilai - 10) + " Belas";
+      if (nilai < 100) return terbilangBilangan(Math.floor(nilai / 10)) + " Puluh " + (nilai % 10 !== 0 ? terbilangBilangan(nilai % 10) : "");
+      if (nilai < 200) return "Seratus " + (nilai - 100 !== 0 ? terbilangBilangan(nilai - 100) : "");
+      if (nilai < 1000) return terbilangBilangan(Math.floor(nilai / 100)) + " Ratus " + (nilai % 100 !== 0 ? terbilangBilangan(nilai % 100) : "");
+      if (nilai < 2000) return "Seribu " + (nilai - 1000 !== 0 ? terbilangBilangan(nilai - 1000) : "");
+      if (nilai < 1000000) return terbilangBilangan(Math.floor(nilai / 1000)) + " Ribu " + (nilai % 1000 !== 0 ? terbilangBilangan(nilai % 1000) : "");
+      if (nilai < 1000000000) return terbilangBilangan(Math.floor(nilai / 1000000)) + " Juta " + (nilai % 1000000 !== 0 ? terbilangBilangan(nilai % 1000000) : "");
+      if (nilai < 1000000000000) return terbilangBilangan(Math.floor(nilai / 1000000000)) + " Miliar " + (nilai % 1000000000 !== 0 ? terbilangBilangan(nilai % 1000000000) : "");
+      return terbilangBilangan(Math.floor(nilai / 1000000000000)) + " Triliun " + (nilai % 1000000000000 !== 0 ? terbilangBilangan(nilai % 1000000000000) : "");
+    }
+
+    function terbilangRupiah(nilai) {
+      if (!nilai || nilai === 0) return "Nol Rupiah";
+      const kata = terbilangBilangan(nilai).replace(/\s+/g, ' ').trim();
+      return kata + " Rupiah";
+    }
+
+    // Helper Escape HTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Quick Status Filter
+    function setQuickStatusFilter(statusVal) {
+      const sel = document.getElementById('filter_status');
+      if (sel) {
+        sel.value = statusVal;
+        muatDaftarPengajuan();
+      }
+    }
+
+    // Switch Tabs
+    function gantiTabUtama(tab) {
+      const btnForm = document.getElementById('btn-tab-form');
+      const btnRiwayat = document.getElementById('btn-tab-riwayat');
+      const btnPending = document.getElementById('btn-tab-pending');
+      const contentForm = document.getElementById('tab-form-content');
+      const contentRiwayat = document.getElementById('tab-riwayat-content');
+      const selStatus = document.getElementById('filter_status');
+
+      const btnInactive = "px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:bg-slate-700";
+      const btnActiveAmber = "px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-amber-400 text-slate-950 shadow-md";
+      const btnActiveRose = "px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-rose-500 text-white shadow-md";
+
+      if (tab === 'form') {
+        btnForm.className = btnActiveAmber;
+        btnRiwayat.className = btnInactive;
+        if (btnPending) btnPending.className = btnInactive;
+        contentForm.classList.remove('hidden');
+        contentRiwayat.classList.add('hidden');
+      } else if (tab === 'pending') {
+        if (btnPending) btnPending.className = btnActiveRose;
+        btnForm.className = btnInactive;
+        btnRiwayat.className = btnInactive;
+        if (selStatus) selStatus.value = 'PENDING_ON_ME';
+        contentRiwayat.classList.remove('hidden');
+        contentForm.classList.add('hidden');
+        muatDaftarPengajuan();
+      } else {
+        btnRiwayat.className = btnActiveAmber;
+        btnForm.className = btnInactive;
+        if (btnPending) btnPending.className = btnInactive;
+        if (selStatus && selStatus.value === 'PENDING_ON_ME') selStatus.value = '';
+        contentRiwayat.classList.remove('hidden');
+        contentForm.classList.add('hidden');
+        muatDaftarPengajuan();
+      }
+    }
+
+    // Dynamic Form Selectors
+    function toggleJabatanLainnya() {
+      const sel = document.getElementById('select_jabatan_pengaju');
+      const inp = document.getElementById('input_jabatan_kustom');
+      if (sel.value === 'LAINNYA') {
+        inp.classList.remove('hidden');
+        inp.focus();
+      } else {
+        inp.classList.add('hidden');
+      }
+    }
+
+    function toggleDivisiLainnyaDanAlur() {
+      const sel = document.getElementById('select_divisi_pengaju');
+      const inp = document.getElementById('input_divisi_kustom');
+      if (sel.value === 'LAINNYA') {
+        inp.classList.remove('hidden');
+        inp.focus();
+      } else {
+        inp.classList.add('hidden');
+      }
+
+      // Tentukan alur aktif
+      if (sel.value === 'Lintas Divisi') {
+        ALUR_AKTIF = 'LINTAS_DIVISI';
+      } else if (sel.value === 'Admin & Umum') {
+        ALUR_AKTIF = 'ADMIN_UMUM';
+      } else if (sel.value === 'Teknik') {
+        ALUR_AKTIF = 'TEKNIS';
+      } else {
+        ALUR_AKTIF = (JENIS_AKTIF === 'OPR-UMM') ? 'ADMIN_UMUM' : 'TEKNIS';
+      }
+
+      renderAlurPreview();
+    }
+
+    function renderAlurPreview() {
+      const labelBadge = document.getElementById('label-skema-alur-aktif');
+      const box = document.getElementById('box-preview-alur-stepper');
+      if (!labelBadge || !box) return;
+
+      if (ALUR_AKTIF === 'LINTAS_DIVISI') {
+        labelBadge.innerText = 'Alur Lintas Divisi (4 Tahap Persetujuan)';
+        labelBadge.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30';
+        box.className = 'grid grid-cols-1 sm:grid-cols-4 gap-2 text-[11px]';
+        box.innerHTML = `
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-amber-400 block uppercase">Tingkat 1A &bull; Manager Teknik</span>
+            <strong class="text-white block text-xs">Deni Siswandi, S.T.</strong>
+            <span class="text-[10px] text-slate-400">Persetujuan Teknis</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-amber-400 block uppercase">Tingkat 1B &bull; Manager Admin</span>
+            <strong class="text-white block text-xs">Danny Taufik Hidayat, S.H.</strong>
+            <span class="text-[10px] text-slate-400">Persetujuan Admin &amp; Umum</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-emerald-400 block uppercase">Tingkat 2 &bull; Manager Keuangan</span>
+            <strong class="text-white block text-xs">Milda Hidayati Dewi, S.E.</strong>
+            <span class="text-[10px] text-slate-400">Verifikasi Anggaran &amp; Bukti</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-sky-400 block uppercase">Tingkat 3 &bull; Kepala Keuangan</span>
+            <strong class="text-white block text-xs">Ir. Nanang Rahayu, M.Ec.Dev.</strong>
+            <span class="text-[10px] text-slate-400">Persetujuan Akhir &amp; Release</span>
+          </div>
+        `;
+      } else if (ALUR_AKTIF === 'ADMIN_UMUM') {
+        labelBadge.innerText = 'Alur Administrasi & Umum (3-Tingkat)';
+        labelBadge.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-teal-500/20 text-teal-300 border border-teal-500/30';
+        box.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]';
+        box.innerHTML = `
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-amber-400 block uppercase">Tingkat 1 &bull; Manager Admin &amp; Umum</span>
+            <strong class="text-white block text-xs">Danny Taufik Hidayat, S.H.</strong>
+            <span class="text-[10px] text-slate-400">Persetujuan Administrasi &amp; Legal</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-emerald-400 block uppercase">Tingkat 2 &bull; Manager Keuangan</span>
+            <strong class="text-white block text-xs">Milda Hidayati Dewi, S.E.</strong>
+            <span class="text-[10px] text-slate-400">Verifikasi Anggaran &amp; Kelengkapan</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-sky-400 block uppercase">Tingkat 3 &bull; Kepala Keuangan</span>
+            <strong class="text-white block text-xs">Ir. Nanang Rahayu, M.Ec.Dev.</strong>
+            <span class="text-[10px] text-slate-400">Persetujuan Akhir &amp; Pengesahan</span>
+          </div>
+        `;
+      } else {
+        // Alur Teknis
+        labelBadge.innerText = 'Alur Kebutuhan Teknis (3-Tingkat)';
+        labelBadge.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30';
+        box.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]';
+        box.innerHTML = `
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-amber-400 block uppercase">Tingkat 1 &bull; Manager Teknik</span>
+            <strong class="text-white block text-xs">Deni Siswandi, S.T.</strong>
+            <span class="text-[10px] text-slate-400">Persetujuan Penilaian &amp; Teknis</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-emerald-400 block uppercase">Tingkat 2 &bull; Manager Keuangan</span>
+            <strong class="text-white block text-xs">Milda Hidayati Dewi, S.E.</strong>
+            <span class="text-[10px] text-slate-400">Verifikasi Anggaran &amp; Kelengkapan</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-0.5">
+            <span class="text-[9px] font-black text-sky-400 block uppercase">Tingkat 3 &bull; Kepala Keuangan</span>
+            <strong class="text-white block text-xs">Ir. Nanang Rahayu, M.Ec.Dev.</strong>
+            <span class="text-[10px] text-slate-400">Persetujuan Akhir &amp; Pengesahan</span>
+          </div>
+        `;
+      }
+    }
+
+    // Pilih Jenis Operasional Form
+    function pilihJenisOperasional(jenis) {
+      JENIS_AKTIF = jenis;
+      const types = ['OPR-SRV', 'OPR-MTG', 'OPR-UMM'];
+
+      types.forEach(t => {
+        const card = document.getElementById(`card-type-${t}`);
+        if (t === jenis) {
+          card.className = "cursor-pointer p-4 rounded-2xl border transition-all duration-200 bg-amber-500/10 border-amber-400 shadow-lg relative group";
+          const badge = card.querySelector('span');
+          if (badge) {
+            badge.className = "inline-block px-2 py-0.5 rounded text-[10px] font-black tracking-wider bg-amber-400 text-slate-950 uppercase";
+          }
+        } else {
+          card.className = "cursor-pointer p-4 rounded-2xl border transition-all duration-200 bg-slate-900 border-slate-800 hover:border-slate-700 group";
+          const badge = card.querySelector('span');
+          if (badge) {
+            badge.className = "inline-block px-2 py-0.5 rounded text-[10px] font-black tracking-wider bg-slate-800 text-slate-300 uppercase";
+          }
+        }
+      });
+
+      // Show hide sections
+      document.getElementById('section-form-survey').classList.toggle('hidden', jenis !== 'OPR-SRV');
+      document.getElementById('section-form-meeting').classList.toggle('hidden', jenis !== 'OPR-MTG');
+      document.getElementById('section-form-umum').classList.toggle('hidden', jenis !== 'OPR-UMM');
+
+      const titles = {
+        'OPR-SRV': 'Formulir Allowance Survey Lapangan (OPR-SRV)',
+        'OPR-MTG': 'Formulir Allowance Meeting (OPR-MTG)',
+        'OPR-UMM': 'Formulir Operasional Umum (OPR-UMM)'
+      };
+      document.getElementById('judul-form-aktif').innerText = titles[jenis] || titles['OPR-SRV'];
+
+      // Atur default divisi dan alur
+      const selDivisi = document.getElementById('select_divisi_pengaju');
+      if (selDivisi && selDivisi.value !== 'LAINNYA') {
+        if (jenis === 'OPR-SRV') {
+          selDivisi.value = 'Teknik';
+          ALUR_AKTIF = 'TEKNIS';
+        } else if (jenis === 'OPR-UMM') {
+          selDivisi.value = 'Admin & Umum';
+          ALUR_AKTIF = 'ADMIN_UMUM';
+        }
+      }
+      renderAlurPreview();
+      hitungSemuaTotal();
+    }
+
+    // Dynamic Row Helpers
+    // ==========================================================
+    // MASTER TARIF RESMI ALLOWANCE SURVEY LAPANGAN NSR (2026.1)
+    // ==========================================================
+    const MASTER_TARIF_ALLOWANCE = {
+      versi: "2026.1",
+      tanggalBerlaku: "2026-01-01",
+      zonasi: {
+        JABODETABEK: {
+          label: "Jabodetabek",
+          rates: {
+            PEMIMPIN_REKAN: 405000,
+            USP_EXPERT: 270000,
+            KADIV: 180000,
+            REVIEWER: 150000,
+            SURVEYOR: 110000,
+            DRIVER: 70000
+          }
+        },
+        JAWA_BARAT: {
+          label: "Jawa Barat",
+          rates: {
+            PEMIMPIN_REKAN: 675000,
+            USP_EXPERT: 450000,
+            KADIV: 360000,
+            REVIEWER: 260000,
+            SURVEYOR: 220000,
+            DRIVER: 160000
+          }
+        },
+        WILAYAH_LAIN: {
+          label: "Wilayah Lain",
+          rates: {
+            PEMIMPIN_REKAN: 900000,
+            USP_EXPERT: 600000,
+            KADIV: 580000,
+            REVIEWER: 450000,
+            SURVEYOR: 430000,
+            DRIVER: 290000
+          }
+        }
+      },
+      khusus: {
+        TRANSPORTASI_BANDARA: {
+          label: "Transportasi Bandara",
+          tarif: 570000,
+          satuan: "Paket / Perjalanan"
+        },
+        RETAIL_FREELANCE: {
+          label: "Retail per titik Freelance",
+          tarif: 150000,
+          satuan: "Titik"
+        },
+        RETAIL_TETAP: {
+          label: "Retail per titik Tetap",
+          tarif: 100000,
+          satuan: "Titik"
+        }
+      }
+    };
+
+    function dapatkanTarifResmi(jabatanKey, wilayahKey) {
+      if (MASTER_TARIF_ALLOWANCE.khusus[jabatanKey]) {
+        return MASTER_TARIF_ALLOWANCE.khusus[jabatanKey].tarif;
+      }
+      const zona = MASTER_TARIF_ALLOWANCE.zonasi[wilayahKey] || MASTER_TARIF_ALLOWANCE.zonasi['JABODETABEK'];
+      if (zona && zona.rates[jabatanKey] !== undefined) {
+        return zona.rates[jabatanKey];
+      }
+      return 0;
+    }
+
+    function dapatkanSatuanResmi(jabatanKey) {
+      if (jabatanKey === 'RETAIL_FREELANCE' || jabatanKey === 'RETAIL_TETAP') {
+        return 'Titik';
+      }
+      return 'Hari';
+    }
+
+    // Dynamic Row Helpers: Tabel 1 (Biaya Personal)
+    function tambahBarisPersonalSurvey(defaultJabatan = 'SURVEYOR', dataItem = null) {
+      const tbody = document.getElementById('tbody-survey-personal');
+      const tr = document.createElement('tr');
+      const selWilayah = document.getElementById('survey_wilayah');
+      const wilayahKey = selWilayah ? selWilayah.value : 'JABODETABEK';
+
+      const initialJabatan = dataItem?.jabatan || defaultJabatan || 'SURVEYOR';
+      const isManual = initialJabatan === 'MANUAL';
+      const isRetail = initialJabatan === 'RETAIL_FREELANCE' || initialJabatan === 'RETAIL_TETAP';
+      const initialSatuan = dataItem?.satuan || (isRetail ? 'Titik' : 'Hari');
+      const initialTarif = dataItem?.tarif !== undefined ? dataItem.tarif : (isManual ? 0 : dapatkanTarifResmi(initialJabatan, wilayahKey));
+      const initialPersonel = dataItem?.jumlahPersonel ?? dataItem?.personel ?? 1;
+      const initialDurasi = dataItem?.durasi ?? dataItem?.hari ?? (dataItem?.volume ? dataItem.volume / initialPersonel : 1);
+      const initialUraian = dataItem?.uraian || '';
+      const initialAlasan = dataItem?.alasanManual || '';
+
+      tr.dataset.isManual = isManual ? 'true' : 'false';
+      tr.className = "hover:bg-slate-800/40 transition";
+
+      tr.innerHTML = `
+        <td class="p-2 space-y-1">
+          <select onchange="onJabatanPersonalChange(this)" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-100 font-semibold item-jabatan focus:outline-none focus:border-amber-400">
+            <optgroup label="Standar Zonasi Wilayah">
+              <option value="SURVEYOR" ${initialJabatan === 'SURVEYOR' ? 'selected' : ''}>Surveyor Lapangan</option>
+              <option value="REVIEWER" ${initialJabatan === 'REVIEWER' ? 'selected' : ''}>Reviewer</option>
+              <option value="KADIV" ${initialJabatan === 'KADIV' ? 'selected' : ''}>Kadiv</option>
+              <option value="USP_EXPERT" ${initialJabatan === 'USP_EXPERT' ? 'selected' : ''}>USP / Expert</option>
+              <option value="PEMIMPIN_REKAN" ${initialJabatan === 'PEMIMPIN_REKAN' ? 'selected' : ''}>Pemimpin Rekan</option>
+              <option value="DRIVER" ${initialJabatan === 'DRIVER' ? 'selected' : ''}>Driver Operasional</option>
+            </optgroup>
+            <optgroup label="Tarif Khusus Retail">
+              <option value="RETAIL_FREELANCE" ${initialJabatan === 'RETAIL_FREELANCE' ? 'selected' : ''}>Retail per titik Freelance (Rp 150.000)</option>
+              <option value="RETAIL_TETAP" ${initialJabatan === 'RETAIL_TETAP' ? 'selected' : ''}>Retail per titik Tetap (Rp 100.000)</option>
+            </optgroup>
+            <optgroup label="Pengecualian / Lainnya">
+              <option value="MANUAL" ${isManual ? 'selected' : ''}>Lainnya (Manual - Perlu Alasan Khusus)</option>
+            </optgroup>
+          </select>
+          <div class="box-manual-details ${isManual ? '' : 'hidden'} space-y-1 pt-1">
+            <input type="text" class="w-full px-2 py-1 rounded bg-slate-900 border border-slate-700 text-[11px] text-slate-200 item-nama-manual placeholder-slate-500" placeholder="Uraian kebutuhan personal..." value="${initialUraian}" />
+            <input type="text" class="w-full px-2 py-1 rounded bg-slate-900 border border-amber-500/50 text-[11px] text-amber-200 item-alasan-manual placeholder-slate-500" placeholder="Alasan pengecualian tarif (wajib diisi)..." value="${initialAlasan}" />
+          </div>
+        </td>
+        <td class="p-2 text-center">
+          <input type="number" min="1" step="1" oninput="hitungSemuaTotal()" class="w-full px-1.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-100 font-mono item-personel" value="${initialPersonel}" />
+        </td>
+        <td class="p-2 text-center">
+          <input type="number" min="1" step="1" oninput="hitungSemuaTotal()" class="w-full px-1.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-100 font-mono item-durasi" value="${initialDurasi}" />
+        </td>
+        <td class="p-2 text-center">
+          <input type="text" readonly class="w-full px-1 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-center text-slate-300 item-satuan font-semibold" value="${initialSatuan}" />
+        </td>
+        <td class="p-2 text-right">
+          <input type="number" min="0" step="5000" oninput="hitungSemuaTotal()" ${isManual ? '' : 'readonly'}
+            class="w-full px-2 py-1.5 rounded-lg ${isManual ? 'bg-slate-950 border border-amber-500/60 text-amber-300' : 'bg-slate-900 border border-slate-800 text-amber-300/90'} text-xs text-right font-mono item-tarif" value="${initialTarif}" />
+        </td>
+        <td class="p-2 text-right font-mono font-bold text-slate-100 item-subtotal">Rp 0</td>
+        <td class="p-2 text-center">
+          <button type="button" onclick="hapusBaris(this)" class="p-1 rounded text-rose-400 hover:bg-rose-500/10 text-sm font-bold transition">✕</button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+      hitungSemuaTotal();
+    }
+
+    function onJabatanPersonalChange(selectEl) {
+      const tr = selectEl.closest('tr');
+      if (!tr) return;
+      const jab = selectEl.value;
+      const isManual = jab === 'MANUAL';
+      const isRetail = jab === 'RETAIL_FREELANCE' || jab === 'RETAIL_TETAP';
+      const selWilayah = document.getElementById('survey_wilayah');
+      const wilayahKey = selWilayah ? selWilayah.value : 'JABODETABEK';
+
+      tr.dataset.isManual = isManual ? 'true' : 'false';
+
+      // Satuan
+      const satEl = tr.querySelector('.item-satuan');
+      if (satEl) {
+        satEl.value = isRetail ? 'Titik' : 'Hari';
+      }
+
+      // Tarif Satuan
+      const tarifEl = tr.querySelector('.item-tarif');
+      if (tarifEl) {
+        if (isManual) {
+          tarifEl.removeAttribute('readonly');
+          tarifEl.className = "w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-amber-500/60 text-amber-300 text-xs text-right font-mono item-tarif";
+        } else {
+          tarifEl.setAttribute('readonly', 'true');
+          tarifEl.className = "w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-amber-300/90 text-xs text-right font-mono item-tarif";
+          tarifEl.value = dapatkanTarifResmi(jab, wilayahKey);
+        }
+      }
+
+      // Manual details box
+      const manualBox = tr.querySelector('.box-manual-details');
+      if (manualBox) {
+        if (isManual) manualBox.classList.remove('hidden');
+        else manualBox.classList.add('hidden');
+      }
+
+      hitungSemuaTotal();
+    }
+
+    function tanganiPerubahanWilayah() {
+      const selWilayah = document.getElementById('survey_wilayah');
+      const wilayahKey = selWilayah ? selWilayah.value : 'JABODETABEK';
+
+      // Perbarui tarif untuk setiap baris non-manual & non-retail
+      document.querySelectorAll('#tbody-survey-personal tr').forEach(tr => {
+        const jabSelect = tr.querySelector('.item-jabatan');
+        const jab = jabSelect ? jabSelect.value : 'SURVEYOR';
+        const isManual = jab === 'MANUAL';
+        const isRetail = jab === 'RETAIL_FREELANCE' || jab === 'RETAIL_TETAP';
+
+        if (!isManual && !isRetail) {
+          const tarifEl = tr.querySelector('.item-tarif');
+          if (tarifEl) {
+            tarifEl.value = dapatkanTarifResmi(jab, wilayahKey);
+          }
+        }
+      });
+
+      const badge = document.getElementById('badge-konfirmasi-wilayah');
+      if (badge) {
+        badge.innerText = 'Zonasi: ' + (selWilayah ? selWilayah.options[selWilayah.selectedIndex].text.split('(')[0].trim() : wilayahKey);
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-500/30 font-mono';
+      }
+
+      hitungSemuaTotal();
+    }
+
+    // Dynamic Row Helpers: Tabel 2 (Biaya Kolektif)
+    function tambahBarisTransportasiBandara() {
+      const tbody = document.getElementById('tbody-survey-kolektif');
+      const tr = document.createElement('tr');
+      tr.dataset.kategori = 'TRANSPORTASI_BANDARA';
+      tr.className = "hover:bg-slate-800/40 transition bg-sky-950/20";
+      const tarifBaku = MASTER_TARIF_ALLOWANCE.khusus.TRANSPORTASI_BANDARA.tarif; // 570000
+
+      tr.innerHTML = `
+        <td class="p-2 space-y-1">
+          <div class="flex items-center gap-1.5 font-semibold text-slate-100 text-xs">
+            <span class="text-sky-400">✈️</span>
+            <input type="text" readonly class="bg-transparent border-0 text-white font-semibold text-xs item-nama w-full focus:outline-none" value="Transportasi Bandara" />
+          </div>
+          <span class="text-[10px] text-sky-300 block font-mono">Master Tarif Baku NSR: Rp 570.000 / satuan</span>
+        </td>
+        <td class="p-2 text-center">
+          <input type="number" min="1" step="1" oninput="hitungSemuaTotal()" class="w-full px-1.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-100 font-mono item-volume" value="1" />
+        </td>
+        <td class="p-2 text-center">
+          <select class="w-full px-1 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-center text-slate-200 item-satuan font-semibold">
+            <option value="Paket">Paket</option>
+            <option value="Perjalanan">Perjalanan</option>
+            <option value="Mobil">Mobil</option>
+          </select>
+        </td>
+        <td class="p-2 text-right">
+          <input type="number" readonly class="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-right text-amber-300 font-mono item-tarif" value="${tarifBaku}" />
+        </td>
+        <td class="p-2 text-right font-mono font-bold text-slate-100 item-subtotal">${formatRupiah(tarifBaku)}</td>
+        <td class="p-2 text-center">
+          <button type="button" onclick="hapusBaris(this)" class="p-1 rounded text-rose-400 hover:bg-rose-500/10 text-sm font-bold transition">✕</button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+      hitungSemuaTotal();
+    }
+
+    function tambahBarisKolektifSurvey(dataItem = null) {
+      const tbody = document.getElementById('tbody-survey-kolektif');
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-800/40 transition";
+      const initNama = dataItem?.uraian || '';
+      const initVol = dataItem?.volume ?? 1;
+      const initSat = dataItem?.satuan || 'Paket';
+      const initTarif = dataItem?.tarif ?? 0;
+      const initAlasan = dataItem?.alasan || '';
+
+      tr.innerHTML = `
+        <td class="p-2 space-y-1">
+          <input type="text" class="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-100 item-nama placeholder-slate-500" placeholder="Uraian biaya armada/kolektif (mis: BBM, Tol, Sewa Kendaraan)..." value="${initNama}" />
+          <input type="text" class="w-full px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[11px] text-slate-400 item-alasan placeholder-slate-600" placeholder="Keterangan / alasan kebutuhan..." value="${initAlasan}" />
+        </td>
+        <td class="p-2 text-center">
+          <input type="number" min="1" step="1" oninput="hitungSemuaTotal()" class="w-full px-1.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-100 font-mono item-volume" value="${initVol}" />
+        </td>
+        <td class="p-2 text-center">
+          <input type="text" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-satuan font-semibold" value="${initSat}" />
+        </td>
+        <td class="p-2 text-right">
+          <input type="number" min="0" step="10000" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-right text-amber-300 font-mono item-tarif" value="${initTarif}" />
+        </td>
+        <td class="p-2 text-right font-mono font-bold text-slate-100 item-subtotal">Rp 0</td>
+        <td class="p-2 text-center">
+          <button type="button" onclick="hapusBaris(this)" class="p-1 rounded text-rose-400 hover:bg-rose-500/10 text-sm font-bold transition">✕</button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+      hitungSemuaTotal();
+    }
+
+    function tambahBarisMeeting() {
+      const tbody = document.getElementById('tbody-meeting');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="p-2">
+          <input type="text" class="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-200 item-nama" placeholder="Item biaya rapat..." />
+        </td>
+        <td class="p-2 text-center">
+          <input type="number" min="0" step="1" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-volume" value="1" />
+        </td>
+        <td class="p-2 text-center">
+          <input type="text" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-satuan" value="Paket" />
+        </td>
+        <td class="p-2 text-right">
+          <input type="number" min="0" step="5000" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-right text-amber-300 font-mono item-tarif" value="0" />
+        </td>
+        <td class="p-2 text-right font-mono font-bold text-slate-200 item-subtotal">Rp 0</td>
+        <td class="p-2 text-center">
+          <button type="button" onclick="hapusBaris(this)" class="p-1 rounded text-rose-400 hover:bg-rose-500/10">✕</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      hitungSemuaTotal();
+    }
+
+    function tambahBarisUmum() {
+      const tbody = document.getElementById('tbody-umum');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="p-2">
+          <input type="text" class="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-200 item-nama" placeholder="Deskripsi barang / jasa..." />
+        </td>
+        <td class="p-2 text-center">
+          <input type="number" min="0" step="1" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-volume" value="1" />
+        </td>
+        <td class="p-2 text-center">
+          <input type="text" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-center text-slate-200 item-satuan" value="Unit" />
+        </td>
+        <td class="p-2 text-right">
+          <input type="number" min="0" step="1000" oninput="hitungSemuaTotal()" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-right text-amber-300 font-mono item-tarif" value="0" />
+        </td>
+        <td class="p-2 text-right font-mono font-bold text-slate-200 item-subtotal">Rp 0</td>
+        <td class="p-2 text-center">
+          <button type="button" onclick="hapusBaris(this)" class="p-1 rounded text-rose-400 hover:bg-rose-500/10">✕</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      hitungSemuaTotal();
+    }
+
+    function hapusBaris(btn) {
+      const row = btn.closest('tr');
+      if (row) {
+        row.remove();
+        hitungSemuaTotal();
+      }
+    }
+
+    // Kalkulasi Real-Time Seluruh Total Biaya & Terbilang
+    function hitungSemuaTotal() {
+      let grandTotal = 0;
+
+      if (JENIS_AKTIF === 'OPR-SRV') {
+        let subPersonal = 0;
+        document.querySelectorAll('#tbody-survey-personal tr').forEach(tr => {
+          const personel = Math.max(0, parseFloat(tr.querySelector('.item-personel')?.value) || 0);
+          const durasi = Math.max(0, parseFloat(tr.querySelector('.item-durasi')?.value) || 0);
+          const trf = Math.max(0, parseFloat(tr.querySelector('.item-tarif')?.value) || 0);
+          const sub = personel * durasi * trf;
+          subPersonal += sub;
+          const subEl = tr.querySelector('.item-subtotal');
+          if (subEl) subEl.innerText = formatRupiah(sub);
+        });
+        const lblP = document.getElementById('label-subtotal-personal');
+        if (lblP) lblP.innerText = formatRupiah(subPersonal);
+
+        let subKolektif = 0;
+        document.querySelectorAll('#tbody-survey-kolektif tr').forEach(tr => {
+          const vol = Math.max(0, parseFloat(tr.querySelector('.item-volume')?.value) || 0);
+          const trf = Math.max(0, parseFloat(tr.querySelector('.item-tarif')?.value) || 0);
+          const sub = vol * trf;
+          subKolektif += sub;
+          const subEl = tr.querySelector('.item-subtotal');
+          if (subEl) subEl.innerText = formatRupiah(sub);
+        });
+        const lblK = document.getElementById('label-subtotal-kolektif');
+        if (lblK) lblK.innerText = formatRupiah(subKolektif);
+
+        grandTotal = subPersonal + subKolektif;
+      } else if (JENIS_AKTIF === 'OPR-MTG') {
+        let subMeeting = 0;
+        document.querySelectorAll('#tbody-meeting tr').forEach(tr => {
+          const vol = Math.max(0, parseFloat(tr.querySelector('.item-volume')?.value) || 0);
+          const trf = Math.max(0, parseFloat(tr.querySelector('.item-tarif')?.value) || 0);
+          const sub = vol * trf;
+          subMeeting += sub;
+          const subEl = tr.querySelector('.item-subtotal');
+          if (subEl) subEl.innerText = formatRupiah(sub);
+        });
+        grandTotal = subMeeting;
+      } else {
+        let subUmum = 0;
+        document.querySelectorAll('#tbody-umum tr').forEach(tr => {
+          const vol = Math.max(0, parseFloat(tr.querySelector('.item-volume')?.value) || 0);
+          const trf = Math.max(0, parseFloat(tr.querySelector('.item-tarif')?.value) || 0);
+          const sub = vol * trf;
+          subUmum += sub;
+          const subEl = tr.querySelector('.item-subtotal');
+          if (subEl) subEl.innerText = formatRupiah(sub);
+        });
+        grandTotal = subUmum;
+      }
+
+      const lblG = document.getElementById('label-grand-total');
+      if (lblG) lblG.innerText = formatRupiah(grandTotal);
+      const lblT = document.getElementById('label-terbilang');
+      if (lblT) lblT.innerText = `"${terbilangRupiah(grandTotal)}"`;
+    }
+
+    // Helper Deteksi Wilayah dari Teks Lokasi Objek NoLap
+    function deteksiWilayahDariLokasi(lokasiText) {
+      if (!lokasiText || typeof lokasiText !== 'string') return null;
+      const l = lokasiText.toLowerCase();
+
+      // Kata kunci Jabodetabek (Diprioritaskan dari kategori Jawa Barat)
+      const jabodetabekKeywords = [
+        'jakarta', 'dki', 'jaksel', 'jakpus', 'jakbar', 'jaktim', 'jakut',
+        'bogor', 'depok', 'tangerang', 'tangsel', 'bekasi',
+        'kepulauan seribu', 'cibubur', 'cibinong', 'cikarang', 'karawaci', 'bsd', 'bintaro'
+      ];
+      for (const kw of jabodetabekKeywords) {
+        if (l.includes(kw)) {
+          return {
+            wilayah: 'JABODETABEK',
+            label: 'Jabodetabek',
+            alasan: `Terdeteksi wilayah Jabodetabek (${kw.toUpperCase()})`
+          };
+        }
+      }
+
+      // Kata kunci Jawa Barat (Di luar Jabodetabek)
+      const jabarKeywords = [
+        'jawa barat', 'jabar', 'bandung', 'cimahi', 'cirebon', 'sukabumi', 'cianjur',
+        'tasikmalaya', 'garut', 'subang', 'purwakarta', 'karawang', 'indramayu',
+        'majalengka', 'kuningan', 'ciamis', 'pangandaran', 'banjar', 'sumedang'
+      ];
+      for (const kw of jabarKeywords) {
+        if (l.includes(kw)) {
+          return {
+            wilayah: 'JAWA_BARAT',
+            label: 'Jawa Barat',
+            alasan: `Terdeteksi wilayah Jawa Barat (${kw.toUpperCase()})`
+          };
+        }
+      }
+
+      // Kata kunci Wilayah Lain di Indonesia
+      const pulauAtauProvinsiLain = [
+        'jawa tengah', 'jateng', 'jawa timur', 'jatim', 'semarang', 'surabaya', 'solo', 'jogja', 'yogyakarta',
+        'sumatera', 'medan', 'palembang', 'padang', 'lampung', 'riau', 'pekanbaru', 'batam', 'aceh', 'jambi', 'bengkulu',
+        'bali', 'denpasar', 'lombok', 'ntb', 'ntt', 'kupang',
+        'kalimantan', 'pontianak', 'banjarmasin', 'balikpapan', 'samarinda',
+        'sulawesi', 'makassar', 'manado', 'palu', 'kendari',
+        'maluku', 'ambon', 'papua', 'jayapura'
+      ];
+      for (const kw of pulauAtauProvinsiLain) {
+        if (l.includes(kw)) {
+          return {
+            wilayah: 'WILAYAH_LAIN',
+            label: 'Wilayah Lain',
+            alasan: `Terdeteksi di luar Jabodetabek/Jabar (${kw.toUpperCase()})`
+          };
+        }
+      }
+
+      return null;
+    }
+
+    let REKOMENDASI_WILAYAH_NOLAP = null;
+
+    function konfirmasiWilayahNoLap() {
+      if (REKOMENDASI_WILAYAH_NOLAP) {
+        const selWilayah = document.getElementById('survey_wilayah');
+        if (selWilayah) {
+          selWilayah.value = REKOMENDASI_WILAYAH_NOLAP.wilayah;
+          tanganiPerubahanWilayah();
+        }
+        const badge = document.getElementById('badge-konfirmasi-wilayah');
+        if (badge) {
+          badge.innerText = 'Dikonfirmasi: ' + REKOMENDASI_WILAYAH_NOLAP.label;
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono';
+        }
+        document.getElementById('box-rekomendasi-nolap').classList.add('hidden');
+        alert(`Zonasi berhasil dikonfirmasi sebagai: ${REKOMENDASI_WILAYAH_NOLAP.label}. Tarif satuan telah disesuaikan.`);
+      }
+    }
+
+    async function cariIdPenugasan() {
+      const q = document.getElementById('input_lookup_nolap').value.trim();
+      const box = document.getElementById('box-hasil-lookup');
+      try {
+        const res = await fetch(`operasional-data-handler.php?action=lookupNolap&query=${encodeURIComponent(q)}`, {
+          headers: getAuthHeaders()
+        });
+        const json = await res.json();
+        if (json.success && json.data && json.data.length > 0) {
+          const item = json.data[0];
+          document.getElementById('label-lookup-id').innerText = item.noPermintaan || '-';
+          document.getElementById('label-lookup-nolap').innerText = item.nomorLaporan || '-';
+          document.getElementById('label-lookup-penilai').innerText = item.penilai || '-';
+          document.getElementById('label-lookup-klien').innerText = item.namaKlien || '-';
+          document.getElementById('label-lookup-objek').innerText = `${item.jenisObjek || ''} - ${item.lokasiObjek || ''}`;
+          box.classList.remove('hidden');
+        } else {
+          alert('Data penugasan tidak ditemukan pada database NoLap.');
+          box.classList.add('hidden');
+        }
+      } catch (err) {
+        console.error('Error lookup nolap:', err);
+      }
+    }
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem('kjpp_token_auth') || sessionStorage.getItem('kjpp_token_auth') || '';
+      return {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-NSR-Token': token
+      };
+    }
+
+    // Simpan Pengajuan (Draft / Final)
+    async function simpanPengajuan(isDraft = false) {
+      hitungSemuaTotal();
+
+      // Input Pengaju Sesuai Regulasi Baru
+      const inpNama = document.getElementById('input_nama_pengaju');
+      const namaPengaju = inpNama ? inpNama.value.trim() : '';
+      if (!namaPengaju) {
+        alert('Nama Pengaju / Pemohon wajib diisi.');
+        if (inpNama) inpNama.focus();
+        return;
+      }
+
+      const selJab = document.getElementById('select_jabatan_pengaju');
+      const inpuJabKustom = document.getElementById('input_jabatan_kustom');
+      let jabatanPengaju = selJab ? selJab.value : 'Staff';
+      if (jabatanPengaju === 'LAINNYA') {
+        jabatanPengaju = (inpuJabKustom && inpuJabKustom.value.trim()) ? inpuJabKustom.value.trim() : 'Staff';
+      }
+
+      const selDiv = document.getElementById('select_divisi_pengaju');
+      const inpuDivKustom = document.getElementById('input_divisi_kustom');
+      let divisiPengaju = selDiv ? selDiv.value : 'Teknik';
+      if (divisiPengaju === 'LAINNYA') {
+        divisiPengaju = (inpuDivKustom && inpuDivKustom.value.trim()) ? inpuDivKustom.value.trim() : 'Teknik';
+      }
+
+      const inpMaksud = document.getElementById('input_maksud_tujuan');
+      const maksudTujuan = inpMaksud ? inpMaksud.value.trim() : '';
+      if (!isDraft && !maksudTujuan) {
+        alert('Maksud & Tujuan Pengajuan wajib diisi secara jelas.');
+        if (inpMaksud) inpMaksud.focus();
+        return;
+      }
+
+      const catatanPemohon = document.getElementById('input_catatan_pemohon')?.value.trim() || '';
+
+      const payload = {
+        id: EDIT_DOC_ID || '',
+        isDraft: isDraft,
+        jenisOperasional: JENIS_AKTIF,
+        kodeCabang: '00',
+        namaPengaju: namaPengaju,
+        jabatanPengaju: jabatanPengaju,
+        divisiPengaju: divisiPengaju,
+        maksudTujuan: maksudTujuan,
+        alur: ALUR_AKTIF,
+        catatanPemohon: catatanPemohon,
+        pemohon: {
+          nama: namaPengaju,
+          jabatan: jabatanPengaju,
+          divisi: divisiPengaju,
+          maksudTujuan: maksudTujuan,
+          cabang: 'Kantor Pusat Jakarta'
+        }
+      };
+
+      if (JENIS_AKTIF === 'OPR-SRV') {
+        const selWilayah = document.getElementById('survey_wilayah');
+        const wilayahVal = selWilayah ? selWilayah.value : 'JABODETABEK';
+        const wilayahLabel = selWilayah ? selWilayah.options[selWilayah.selectedIndex].text.split('(')[0].trim() : 'Jabodetabek';
+
+        const biayaPersonal = [];
+        document.querySelectorAll('#tbody-survey-personal tr').forEach(tr => {
+          const selJabatan = tr.querySelector('.item-jabatan');
+          const jab = selJabatan ? selJabatan.value : 'SURVEYOR';
+          const isManual = jab === 'MANUAL';
+          const jabLabel = selJabatan ? selJabatan.options[selJabatan.selectedIndex].text.split('(')[0].trim() : 'Surveyor Lapangan';
+          const uraian = isManual ? (tr.querySelector('.item-nama-manual')?.value || 'Biaya Personal Manual') : `Allowance ${jabLabel}`;
+          const personel = Math.max(1, parseInt(tr.querySelector('.item-personel')?.value) || 1);
+          const durasi = Math.max(0, parseFloat(tr.querySelector('.item-durasi')?.value) || 0);
+          const satuan = tr.querySelector('.item-satuan')?.value || 'Hari';
+          const tarif = Math.max(0, parseFloat(tr.querySelector('.item-tarif')?.value) || 0);
+          const alasan = isManual ? (tr.querySelector('.item-alasan-manual')?.value || '') : '';
+          const subtotal = personel * durasi * tarif;
+
+          biayaPersonal.push({
+            jabatan: jab,
+            jabatanLabel: jabLabel,
+            uraian: uraian,
+            jumlahPersonel: personel,
+            durasi: durasi,
+            volume: personel * durasi,
+            satuan: satuan,
+            tarif: tarif,
+            total: subtotal,
+            isManual: isManual,
+            alasanManual: alasan
+          });
+        });
+
+        const biayaKolektif = [];
+        document.querySelectorAll('#tbody-survey-kolektif tr').forEach(tr => {
+          const uraian = tr.querySelector('.item-nama')?.value || '';
+          const vol = Math.max(0, parseFloat(tr.querySelector('.item-volume')?.value) || 0);
+          const sat = tr.querySelector('.item-satuan')?.value || 'Paket';
+          const trf = Math.max(0, parseFloat(tr.querySelector('.item-tarif')?.value) || 0);
+          const isBandara = tr.dataset.kategori === 'TRANSPORTASI_BANDARA' || uraian.toLowerCase().includes('bandara');
+          const alasan = tr.querySelector('.item-alasan')?.value || '';
+          const subtotal = vol * trf;
+
+          biayaKolektif.push({
+            uraian: uraian,
+            volume: vol,
+            satuan: sat,
+            tarif: trf,
+            total: subtotal,
+            isBandara: isBandara,
+            alasan: alasan
+          });
+        });
+
+        payload.survey = {
+          wilayahSurvey: wilayahVal,
+          wilayahSurveyLabel: wilayahLabel,
+          idPenugasan: document.getElementById('label-lookup-id').innerText !== '-' ? document.getElementById('label-lookup-id').innerText : '',
+          nomorLaporan: document.getElementById('label-lookup-nolap').innerText !== '-' ? document.getElementById('label-lookup-nolap').innerText : '',
+          namaKlien: document.getElementById('label-lookup-klien').innerText !== '-' ? document.getElementById('label-lookup-klien').innerText : '',
+          lokasiObjek: document.getElementById('label-lookup-objek').innerText !== '-' ? document.getElementById('label-lookup-objek').innerText : '',
+          tglMulaiSurvey: document.getElementById('survey_tgl_mulai').value,
+          tglSelesaiSurvey: document.getElementById('survey_tgl_selesai').value,
+          daftarSurveyor: [document.getElementById('survey_daftar_surveyor').value],
+          biayaPersonal: biayaPersonal,
+          biayaKolektif: biayaKolektif,
+          tarifSnapshot: {
+            versi: '2026.1',
+            wilayahSurvey: wilayahVal,
+            timestamp: new Date().toISOString()
+          }
+        };
+      } else if (JENIS_AKTIF === 'OPR-MTG') {
+        const rincianBiaya = [];
+        document.querySelectorAll('#tbody-meeting tr').forEach(tr => {
+          rincianBiaya.push({
+            uraian: tr.querySelector('.item-nama')?.value || '',
+            volume: parseFloat(tr.querySelector('.item-volume')?.value) || 0,
+            satuan: tr.querySelector('.item-satuan')?.value || '',
+            tarif: parseFloat(tr.querySelector('.item-tarif')?.value) || 0
+          });
+        });
+
+        payload.meeting = {
+          divisi: document.getElementById('meeting_divisi').value,
+          agenda: document.getElementById('meeting_agenda').value,
+          waktu: document.getElementById('meeting_waktu').value,
+          lokasi: document.getElementById('meeting_lokasi').value,
+          estimasiPeserta: parseInt(document.getElementById('meeting_estimasi_peserta').value) || 1,
+          rincianBiaya: rincianBiaya
+        };
+      } else {
+        const rincianItem = [];
+        document.querySelectorAll('#tbody-umum tr').forEach(tr => {
+          rincianItem.push({
+            deskripsi: tr.querySelector('.item-nama')?.value || '',
+            qty: parseFloat(tr.querySelector('.item-volume')?.value) || 0,
+            satuan: tr.querySelector('.item-satuan')?.value || '',
+            hargaSatuan: parseFloat(tr.querySelector('.item-tarif')?.value) || 0
+          });
+        });
+
+        payload.umum = {
+          kategori: document.getElementById('umum_kategori').value,
+          maksudTujuan: maksudTujuan,
+          rincianItem: rincianItem
+        };
+      }
+
+      const btnSubmit = document.getElementById('btn-submit-final');
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = 'Memproses...';
+
+      try {
+        const res = await fetch('operasional-data-handler.php?action=simpanPengajuan', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+
+        if (json.success) {
+          alert(`Sukses: ${json.message || 'Pengajuan tersimpan'}\nNo. Dokumen: ${json.data.noRegistrasi || json.data.id}`);
+          EDIT_DOC_ID = null;
+          gantiTabUtama('riwayat');
+        } else {
+          alert(`Gagal: ${json.error || 'Terjadi kesalahan sistem'}`);
+        }
+      } catch (err) {
+        alert('Kesalahan jaringan: ' + err.message);
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = 'Kirim Pengajuan Resmi (Tier 1)';
+      }
+    }
+
+    // Muat Daftar Riwayat
+    async function muatDaftarPengajuan() {
+      const tbody = document.getElementById('tbody-riwayat');
+      tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-400">Memuat data riwayat...</td></tr>`;
+
+      const jenis = document.getElementById('filter_jenis').value;
+      const status = document.getElementById('filter_status').value;
+      const cabang = document.getElementById('filter_cabang').value;
+      const isPendingMe = (status === 'PENDING_ON_ME');
+
+      let url = `operasional-data-handler.php?action=getPengajuanList&jenis=${encodeURIComponent(jenis)}&cabang=${encodeURIComponent(cabang)}`;
+      if (isPendingMe) {
+        url += `&pendingOnMe=true`;
+      } else if (status) {
+        url += `&status=${encodeURIComponent(status)}`;
+      }
+
+      try {
+        const res = await fetch(url, {
+          headers: getAuthHeaders()
+        });
+
+        if (res.status === 403) {
+          const errData = await res.json().catch(() => ({}));
+          tampilkanAksesDitolakCabang(errData.error);
+          return;
+        }
+
+        const json = await res.json();
+
+        if (json.success) {
+          if (json.currentUser) {
+            CURRENT_USER = json.currentUser;
+            const lblRole = document.getElementById('label-sesi-role');
+            if (lblRole) {
+              lblRole.innerText = `${CURRENT_USER.displayName} (${CURRENT_USER.title || CURRENT_USER.roleLabel || CURRENT_USER.role})`;
+            }
+            const inpNama = document.getElementById('input_nama_pengaju');
+            if (inpNama && !inpNama.value.trim() && CURRENT_USER.displayName) {
+              inpNama.value = CURRENT_USER.displayName;
+            }
+          }
+
+          // Perbarui badge counter "Menunggu Persetujuan Saya"
+          const pendingCount = (typeof json.pendingCount === 'number') ? json.pendingCount : 0;
+          const elBadgeMe = document.getElementById('badge-pending-me');
+          if (elBadgeMe) {
+            elBadgeMe.innerText = pendingCount;
+            if (pendingCount > 0) {
+              elBadgeMe.className = "px-2 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold animate-pulse";
+            } else {
+              elBadgeMe.className = "px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 font-mono text-[10px]";
+            }
+          }
+          const elBadgeFilter = document.getElementById('badge-filter-pending');
+          if (elBadgeFilter) elBadgeFilter.innerText = pendingCount;
+
+          // Perbarui status aktif quick filter pills
+          const btnQAll = document.getElementById('btn-quick-all');
+          const btnQPending = document.getElementById('btn-quick-pending');
+          const btnQRejected = document.getElementById('btn-quick-rejected');
+          const btnQApproved = document.getElementById('btn-quick-approved');
+          if (btnQAll && btnQPending && btnQRejected) {
+            btnQAll.className = (status === '') ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 transition' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition';
+            btnQPending.className = (status === 'PENDING_ON_ME') ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-500 text-white shadow transition flex items-center gap-1.5' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:text-white border border-rose-500/40 flex items-center gap-1.5 transition';
+            btnQRejected.className = (status === 'REJECTED') ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-600 text-white transition' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition';
+            if (btnQApproved) {
+              btnQApproved.className = (status === 'APPROVED') ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 transition' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition';
+            }
+          }
+
+          DATA_LIST = json.data || [];
+          document.getElementById('badge-total-pengajuan').innerText = DATA_LIST.length;
+          renderTabelRiwayat(DATA_LIST);
+        } else {
+          tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-rose-400">${json.error || 'Gagal memuat data'}</td></tr>`;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-rose-400">Kesalahan: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Render Timeline Otorisasi Dinamis (Tingkat 1 -> 2 -> 3)
+    function renderApprovalTimeline(item) {
+      const approvals = item.approvals || {};
+      const tierKeys = Object.keys(approvals).map(Number).sort((a,b) => a - b);
+      if (tierKeys.length === 0) return '<span class="text-slate-500 italic text-[11px]">-</span>';
+
+      let stepsHtml = [];
+      tierKeys.forEach((t, idx) => {
+        const app = approvals[t];
+        const isApproved = !!(app && app.approved);
+        const tingkat = app?.tingkat || t;
+        const label = app?.label || `Tingkat ${tingkat}`;
+        const shortPejabat = app?.pejabat ? app.pejabat.split(',')[0].trim() : '-';
+        const dateStr = (app && app.approvedAt) ? app.approvedAt.substring(5, 16) : ''; // e.g. "10-21 09:15"
+
+        let stepBadge = '';
+        if (isApproved) {
+          stepBadge = `
+            <div class="flex flex-col items-start bg-emerald-950/40 border border-emerald-500/40 px-2 py-1 rounded-lg text-left" title="${escapeHtml(label)}: Disetujui oleh ${escapeHtml(app.pejabat)} (${app.approvedAt})">
+              <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>T${tingkat} Disetujui</span>
+              </div>
+              <span class="text-[11px] font-semibold text-slate-200 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
+              <span class="text-[9px] font-mono text-emerald-400/90">${dateStr}</span>
+            </div>
+          `;
+        } else if (item.status === 'REJECTED') {
+          const isRejectedHere = (item.penolakan && (item.penolakan.tierDitolak == t || (!item.penolakan.tierDitolak && idx === 0)));
+          if (isRejectedHere) {
+            stepBadge = `
+              <div class="flex flex-col items-start bg-rose-950/60 border border-rose-500/50 px-2 py-1 rounded-lg text-left shadow-sm" title="${escapeHtml(label)}: Ditolak / Perlu Revisi">
+                <div class="flex items-center gap-1 text-[10px] font-extrabold text-rose-300">
+                  <span>✕ T${tingkat} Ditolak</span>
+                </div>
+                <span class="text-[11px] font-medium text-rose-200 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
+                <span class="text-[9px] font-mono text-rose-400 font-bold">Stop Revisi</span>
+              </div>
+            `;
+          } else {
+            stepBadge = `
+              <div class="flex flex-col items-start bg-slate-900/60 border border-slate-800 px-2 py-1 rounded-lg text-left opacity-40" title="${escapeHtml(label)}">
+                <div class="flex items-center gap-1 text-[10px] font-medium text-slate-400">
+                  <span>○ T${tingkat}</span>
+                </div>
+                <span class="text-[11px] font-medium text-slate-400 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
+                <span class="text-[9px] font-mono text-slate-600">-</span>
+              </div>
+            `;
+          }
+        } else {
+          // Sedang menunggu persetujuan
+          const isActionable = (item.pendingTier === t) || (idx === 0 && !isApproved);
+          if (isActionable) {
+            stepBadge = `
+              <div class="flex flex-col items-start bg-amber-950/40 border border-amber-500/50 px-2 py-1 rounded-lg text-left shadow-sm ring-1 ring-amber-500/30" title="${escapeHtml(label)}: Menunggu Persetujuan">
+                <div class="flex items-center gap-1 text-[10px] font-bold text-amber-300">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                  <span>T${tingkat} Menunggu</span>
+                </div>
+                <span class="text-[11px] font-bold text-amber-200 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
+                <span class="text-[9px] font-mono text-amber-400/90 font-medium">Antrean Aktif</span>
+              </div>
+            `;
+          } else {
+            stepBadge = `
+              <div class="flex flex-col items-start bg-slate-900/50 border border-slate-800 px-2 py-1 rounded-lg text-left opacity-70" title="${escapeHtml(label)}: Menunggu Tahap Sebelumnya">
+                <div class="flex items-center gap-1 text-[10px] font-medium text-slate-400">
+                  <span>○ T${tingkat}</span>
+                </div>
+                <span class="text-[11px] font-medium text-slate-400 truncate max-w-[115px]">${escapeHtml(shortPejabat)}</span>
+                <span class="text-[9px] font-mono text-slate-600">Pending</span>
+              </div>
+            `;
+          }
+        }
+        stepsHtml.push(stepBadge);
+      });
+
+      return `<div class="flex items-center gap-1.5 flex-nowrap overflow-x-auto py-1">${stepsHtml.join('<span class="text-slate-600 text-xs font-bold shrink-0">&rarr;</span>')}</div>`;
+    }
+
+    function renderTabelRiwayat(list) {
+      const tbody = document.getElementById('tbody-riwayat');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-slate-500 italic">Belum ada pengajuan operasional yang tercatat sesuai filter.</td></tr>`;
+        return;
+      }
+
+      const statusBadges = {
+        'DRAFT': 'bg-slate-800 text-slate-300 border-slate-700',
+        'SUBMITTED': 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+        'IN_REVIEW': 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        'APPROVED': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+        'REJECTED': 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+      };
+
+      let html = '';
+      list.forEach((item, idx) => {
+        const statusClass = statusBadges[item.status] || 'bg-slate-800 text-slate-300';
+        const timelineHtml = renderApprovalTimeline(item);
+
+        // Badge Penolakan / Revisi yang Jelas
+        let rejectionBox = '';
+        if (item.status === 'REJECTED' && item.penolakan) {
+          rejectionBox = `
+            <div class="mt-2 p-2 rounded-xl bg-rose-950/60 border border-rose-500/50 text-[11px] text-rose-200 text-left">
+              <div class="flex items-center justify-between font-bold text-rose-300 mb-0.5">
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                  Catatan Penolakan (Tingkat ${item.penolakan.tierDitolak || 'Review'}):
+                </span>
+                <span class="text-[10px] font-mono text-rose-300/70">${item.penolakan.tglDitolak ? item.penolakan.tglDitolak.substring(0, 16) : ''}</span>
+              </div>
+              <p class="text-slate-100 font-medium bg-black/40 p-1.5 rounded border border-rose-900/60 italic">
+                &ldquo;${escapeHtml(item.penolakan.alasan || 'Memerlukan perbaikan')}&rdquo;
+              </p>
+              <div class="mt-1 text-[10px] text-rose-300/80">
+                Oleh: <strong>${escapeHtml(item.penolakan.ditolakOleh || 'Pejabat Berwenang')}</strong>
+              </div>
+            </div>
+          `;
+        }
+
+        // Tag Menunggu Persetujuan Saya
+        let pendingTag = '';
+        if (item.isPendingOnMe) {
+          if (item.status === 'REJECTED') {
+            pendingTag = `<div class="mt-1"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>Perlu Revisi Anda</span></div>`;
+          } else {
+            pendingTag = `<div class="mt-1"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>Menunggu Otorisasi Anda</span></div>`;
+          }
+        }
+
+        // Tombol Tindakan
+        let actionButtons = `<div class="flex items-center justify-center gap-1.5 flex-wrap">`;
+        if (item.isPendingOnMe && item.status !== 'REJECTED' && item.status !== 'DRAFT') {
+          actionButtons += `
+            <button type="button" onclick="bukaModalDetail('${item.id}')"
+              class="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow flex items-center gap-1 transition">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping"></span>
+              <span>⚡ Setujui</span>
+            </button>
+          `;
+        }
+        if (item.status === 'REJECTED') {
+          actionButtons += `
+            <button type="button" onclick="siapkanRevisiPengajuan('${item.id}')"
+              class="px-2.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow flex items-center gap-1 transition animate-bounce">
+              <span>✏️ Ajukan Revisi</span>
+            </button>
+          `;
+        }
+        actionButtons += `
+            <button type="button" onclick="bukaModalDetail('${item.id}')"
+              class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
+              Detail / Alur
+            </button>
+            <button type="button" onclick="cetakLangsung('${item.id}')" title="Cetak PDF Dokumen"
+              class="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition">
+              <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+            </button>
+          </div>
+        `;
+
+        html += `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-3 px-3 text-center text-slate-500">${idx + 1}</td>
+            <td class="py-3 px-4 font-mono font-bold text-amber-300">
+              <div>${item.noRegistrasi || item.id}</div>
+              ${pendingTag}
+              ${rejectionBox}
+            </td>
+            <td class="py-3 px-3">
+              <span class="font-semibold text-slate-200 block">${item.jenisLabel || item.jenisOperasional}</span>
+              <span class="text-[10px] text-slate-400">Versi ${item.versi || 1}</span>
+            </td>
+            <td class="py-3 px-3 text-slate-300">${item.kantor || 'Pusat'}</td>
+            <td class="py-3 px-3 text-slate-400 font-mono text-[11px]">${item.tglPengajuan || '-'}</td>
+            <td class="py-3 px-4 text-right font-mono font-bold text-slate-200">${formatRupiah(item.totalEstimasi || 0)}</td>
+            <td class="py-3 px-3 text-center">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black border ${statusClass}">
+                ${item.status}
+              </span>
+            </td>
+            <td class="py-3 px-4">${timelineHtml}</td>
+            <td class="py-3 px-4 text-center">${actionButtons}</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // Modal Detail & Workflow
+    function bukaModalDetail(id) {
+      const doc = DATA_LIST.find(d => d.id === id || d.noRegistrasi === id);
+      if (!doc) return;
+      ACTIVE_DOC = doc;
+
+      document.getElementById('detail-no-registrasi').innerText = doc.noRegistrasi || doc.id;
+      document.getElementById('detail-badge-jenis').innerText = doc.jenisOperasional;
+      document.getElementById('detail-badge-status').innerText = doc.status;
+      document.getElementById('detail-badge-versi').innerText = `Versi ${doc.versi || 1}`;
+      document.getElementById('detail-pemohon-info').innerText = `Diajukan oleh: ${doc.pemohon?.nama || '-'} (${doc.pemohon?.jabatan || '-'}, ${doc.pemohon?.divisi || 'Pusat'}) • Kantor: ${doc.kantor || 'Pusat'} • Tanggal: ${doc.tglPengajuan || '-'}`;
+
+      // Box Penolakan
+      const boxReject = document.getElementById('detail-box-penolakan');
+      if (doc.status === 'REJECTED' && doc.penolakan && doc.penolakan.alasan) {
+        boxReject.classList.remove('hidden');
+        document.getElementById('label-penolakan-alasan').innerText = doc.penolakan.alasan;
+        document.getElementById('label-penolakan-meta').innerText = `Ditolak oleh: ${doc.penolakan.ditolakOleh || 'Pejabat Otoritas'} • Waktu: ${doc.penolakan.tglDitolak || '-'}`;
+      } else {
+        boxReject.classList.add('hidden');
+      }
+
+      // Render Tiers Dinamis
+      renderModalTiers(doc);
+
+      // Render Rincian Biaya
+      renderModalBiaya(doc);
+
+      // Render Audit Trail
+      renderModalAudit(doc);
+
+      // Render Opsi Aksi Approval
+      renderModalApprovalActions(doc);
+
+      document.getElementById('modal-detail').classList.remove('hidden');
+    }
+
+    function renderModalTiers(doc) {
+      const container = document.getElementById('detail-tiers-container');
+      container.innerHTML = '';
+
+      const tierKeys = Object.keys(doc.approvals || {}).map(Number).sort((a,b) => a - b);
+      const totalTiers = tierKeys.length || 3;
+      container.className = `grid grid-cols-1 sm:grid-cols-${totalTiers <= 3 ? 3 : (totalTiers === 4 ? 4 : 5)} gap-3`;
+
+      tierKeys.forEach(t => {
+        const app = doc.approvals && doc.approvals[t];
+        const isApproved = app && app.approved;
+        
+        const card = document.createElement('div');
+        card.className = `p-3.5 rounded-2xl border text-center flex flex-col justify-between ${isApproved ? 'bg-emerald-950/30 border-emerald-500/40 shadow-sm' : 'bg-slate-950 border-slate-800'}`;
+
+        let statusText = isApproved ? 'DISETUJUI' : 'MENUNGGU';
+        let statusBadge = isApproved ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-slate-800 text-slate-400 border-slate-700';
+        let tingkatLabel = app?.tingkat ? `Tingkat ${app.tingkat}` : `Tier ${t}`;
+
+        card.innerHTML = `
+          <div>
+            <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-black uppercase border ${statusBadge} mb-1">
+              ${tingkatLabel} &bull; ${statusText}
+            </span>
+            <span class="block text-xs font-bold text-white leading-tight">${app?.label || '-'}</span>
+          </div>
+          <div class="my-2 py-1.5 border-t border-b border-slate-800/60">
+            <span class="text-[11px] font-bold text-amber-300 block leading-snug">${app?.pejabat || '-'}</span>
+            <span class="text-[9px] text-slate-400 block">${app?.jabatan || '-'}</span>
+          </div>
+          <div class="text-[9px] font-mono text-slate-400">
+            ${isApproved ? (app.approvedAt ? app.approvedAt.substring(0, 16) : 'Terverifikasi') : 'Menunggu Otorisasi'}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderModalBiaya(doc) {
+      const box = document.getElementById('detail-biaya-container');
+      let html = `<div class="space-y-2">`;
+
+      if (doc.maksudTujuan) {
+        html += `
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+            <span class="text-slate-400 font-bold block text-[10px] uppercase">Maksud &amp; Tujuan Pengajuan:</span>
+            <p class="text-slate-200 mt-0.5">${doc.maksudTujuan}</p>
+          </div>
+        `;
+      }
+
+      if (doc.jenisOperasional === 'OPR-SRV' && doc.survey) {
+        let rincianItemsHtml = '';
+        if (doc.survey.biayaPersonal && doc.survey.biayaPersonal.length > 0) {
+          rincianItemsHtml += '<div class="space-y-1 pt-1.5"><span class="text-[10px] font-bold uppercase text-amber-400 block tracking-wider">Rincian Allowance Personal:</span>';
+          doc.survey.biayaPersonal.forEach(p => {
+            const jml = p.jumlahPersonel || 1;
+            const dur = p.durasi ?? p.volume ?? 1;
+            const sat = p.satuan || 'Hari';
+            const trf = p.tarif || 0;
+            const tot = p.total ?? (jml * dur * trf);
+            rincianItemsHtml += `
+              <div class="flex justify-between text-[11px] bg-slate-950/60 px-2 py-1 rounded border border-slate-800/80">
+                <span class="text-slate-200">${p.uraian || 'Allowance'} <span class="text-slate-400 font-mono">(${jml} Org &times; ${dur} ${sat} @ ${formatRupiah(trf)})</span></span>
+                <span class="font-mono font-bold text-amber-300">${formatRupiah(tot)}</span>
+              </div>
+            `;
+          });
+          rincianItemsHtml += '</div>';
+        }
+
+        if (doc.survey.biayaKolektif && doc.survey.biayaKolektif.length > 0) {
+          rincianItemsHtml += '<div class="space-y-1 pt-1.5"><span class="text-[10px] font-bold uppercase text-sky-400 block tracking-wider">Rincian Biaya Kolektif:</span>';
+          doc.survey.biayaKolektif.forEach(k => {
+            const vol = k.volume || 1;
+            const sat = k.satuan || 'Paket';
+            const trf = k.tarif || 0;
+            const tot = k.total ?? (vol * trf);
+            rincianItemsHtml += `
+              <div class="flex justify-between text-[11px] bg-slate-950/60 px-2 py-1 rounded border border-slate-800/80">
+                <span class="text-slate-200">${k.uraian || 'Biaya Kolektif'} <span class="text-slate-400 font-mono">(${vol} ${sat} @ ${formatRupiah(trf)})</span></span>
+                <span class="font-mono font-bold text-sky-300">${formatRupiah(tot)}</span>
+              </div>
+            `;
+          });
+          rincianItemsHtml += '</div>';
+        }
+
+        html += `
+          <div class="grid grid-cols-2 gap-2 text-[11px] pb-2 border-b border-slate-800">
+            <div><span class="text-slate-500">ID Penugasan:</span> <span class="font-mono text-amber-300">${doc.survey.idPenugasan || '-'}</span></div>
+            <div><span class="text-slate-500">No. Laporan:</span> <span class="font-mono text-slate-300">${doc.survey.nomorLaporan || '-'}</span></div>
+            <div><span class="text-slate-500">Wilayah Survey:</span> <span class="font-bold text-amber-300">${doc.survey.wilayahSurveyLabel || doc.survey.wilayahSurvey || 'Jabodetabek'}</span></div>
+            <div><span class="text-slate-500">Snapshot Versi:</span> <span class="font-mono text-slate-300">${doc.survey.tarifSnapshot?.versi || '2026.1'}</span></div>
+            <div class="col-span-2"><span class="text-slate-500">Klien &amp; Lokasi:</span> <span class="text-white font-medium">${doc.survey.namaKlien || '-'} (${doc.survey.lokasiObjek || '-'})</span></div>
+          </div>
+          ${rincianItemsHtml}
+          <div class="flex justify-between items-center text-xs pt-2 border-t border-slate-800">
+            <span class="text-slate-400">Subtotal Biaya Personal:</span>
+            <span class="font-mono font-bold text-slate-200">${formatRupiah(doc.survey.subtotalPersonal || 0)}</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-400">Subtotal Biaya Kolektif:</span>
+            <span class="font-mono font-bold text-slate-200">${formatRupiah(doc.survey.subtotalKolektif || 0)}</span>
+          </div>
+        `;
+      } else if (doc.jenisOperasional === 'OPR-MTG' && doc.meeting) {
+        html += `
+          <div class="grid grid-cols-2 gap-2 text-[11px] pb-2 border-b border-slate-800">
+            <div><span class="text-slate-500">Divisi:</span> <span class="text-amber-300 font-bold">${doc.meeting.divisi || '-'}</span></div>
+            <div><span class="text-slate-500">Waktu:</span> <span class="font-mono text-slate-300">${doc.meeting.waktu || '-'}</span></div>
+            <div class="col-span-2"><span class="text-slate-500">Agenda:</span> <span class="text-white">${doc.meeting.agenda || '-'}</span></div>
+          </div>
+        `;
+      } else if (doc.umum) {
+        html += `
+          <div class="grid grid-cols-2 gap-2 text-[11px] pb-2 border-b border-slate-800">
+            <div><span class="text-slate-500">Kategori:</span> <span class="text-amber-300 font-bold">${doc.umum.kategori || '-'}</span></div>
+            <div class="col-span-2"><span class="text-slate-500">Maksud &amp; Tujuan:</span> <span class="text-white">${doc.umum.maksudTujuan || '-'}</span></div>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="flex justify-between items-center text-sm pt-2 border-t border-slate-800 font-bold">
+          <span class="text-white">Total Estimasi:</span>
+          <span class="text-amber-400 font-mono text-base">${formatRupiah(doc.totalEstimasi || 0)}</span>
+        </div>
+      </div>`;
+      box.innerHTML = html;
+    }
+
+    function renderModalAudit(doc) {
+      const box = document.getElementById('detail-audit-container');
+      if (!doc.auditTrail || doc.auditTrail.length === 0) {
+        box.innerHTML = `<div>Belum ada catatan audit log.</div>`;
+        return;
+      }
+      box.innerHTML = doc.auditTrail.map(a => `
+        <div class="flex items-start justify-between gap-2 border-b border-slate-800/40 pb-1">
+          <div><strong class="text-slate-300">[${a.action}]</strong> ${a.keterangan || ''} <span class="text-slate-500">(${a.user || '-'})</span></div>
+          <div class="shrink-0 text-slate-500 text-[10px]">${a.timestamp || ''}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderModalApprovalActions(doc) {
+      const slot = document.getElementById('detail-action-approval-slot');
+      slot.innerHTML = '';
+
+      if (doc.status === 'APPROVED') {
+        slot.innerHTML = '<span class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs border border-emerald-500/30">✔ Seluruh Tingkat Telah Disetujui (Dokumen Sah)</span>';
+        return;
+      }
+
+      if (doc.status === 'REJECTED') {
+        slot.innerHTML = `
+          <button type="button" onclick="siapkanRevisiPengajuan('${doc.id}')"
+            class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition shadow flex items-center gap-1.5">
+            <span>✏️ Ajukan Revisi Dokumen (Versi ${(doc.versi || 1) + 1})</span>
+          </button>
+        `;
+        return;
+      }
+
+      if (doc.status === 'DRAFT') {
+        slot.innerHTML = `
+          <button type="button" onclick="siapkanEditDraft('${doc.id}')"
+            class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs transition shadow flex items-center gap-1.5">
+            <span>📝 Lanjutkan &amp; Kirim Draf</span>
+          </button>
+        `;
+        return;
+      }
+
+      // Cari tier pertama yang belum approved
+      const tierKeys = Object.keys(doc.approvals || {}).map(Number).sort((a,b) => a - b);
+      let nextTier = 0;
+      for (const t of tierKeys) {
+        if (!doc.approvals[t] || !doc.approvals[t].approved) {
+          nextTier = t;
+          break;
+        }
+      }
+
+      if (nextTier > 0) {
+        const appInfo = doc.approvals[nextTier];
+        const labelBtn = appInfo?.label || `Tier ${nextTier}`;
+        slot.innerHTML = `
+          <button type="button" onclick="eksekusiApproveTier('${doc.id}', ${nextTier})"
+            class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition shadow flex items-center gap-1.5">
+            <span>&#10003; Setujui: ${labelBtn}</span>
+          </button>
+          <button type="button" onclick="bukaModalReject('${doc.id}', ${nextTier})"
+            class="px-4 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/40 font-bold text-xs transition">
+            ✕ Tolak Pengajuan
+          </button>
+        `;
+      }
+    }
+
+    function siapkanRevisiPengajuan(id) {
+      const doc = DATA_LIST.find(d => d.id === id || d.noRegistrasi === id);
+      if (!doc) return;
+      tutupModalDetail();
+
+      EDIT_DOC_ID = doc.id;
+      gantiTabUtama('form');
+
+      // Isi form
+      pilihJenisOperasional(doc.jenisOperasional || 'OPR-SRV');
+      if (document.getElementById('input_nama_pengaju')) {
+        document.getElementById('input_nama_pengaju').value = doc.pemohon?.nama || '';
+      }
+      if (document.getElementById('input_maksud_tujuan')) {
+        document.getElementById('input_maksud_tujuan').value = doc.maksudTujuan || doc.pemohon?.maksudTujuan || '';
+      }
+      if (document.getElementById('input_catatan_pemohon')) {
+        document.getElementById('input_catatan_pemohon').value = doc.catatanPemohon || '';
+      }
+
+      alert(`Dokumen ${doc.noRegistrasi || doc.id} dimuat untuk revisi. Silakan perbarui data kebutuhan dan klik "Kirim Pengajuan Resmi" untuk menerbitkan Versi ${(doc.versi || 1) + 1}.`);
+    }
+
+    function siapkanEditDraft(id) {
+      siapkanRevisiPengajuan(id);
+    }
+
+    async function eksekusiApproveTier(id, tier) {
+      if (!confirm(`Konfirmasi pengesahan Tier ${tier}? Tindakan ini akan menerbitkan tanda tangan digital kriptografis HMAC resmi.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('operasional-data-handler.php?action=approveTier', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ id: id, tier: tier })
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert(`Sukses: ${json.message}`);
+          tutupModalDetail();
+          muatDaftarPengajuan();
+        } else {
+          alert(`Gagal otorisasi: ${json.error}`);
+        }
+      } catch (err) {
+        alert('Kesalahan jaringan: ' + err.message);
+      }
+    }
+
+    function bukaModalReject(id, tier) {
+      DOC_TO_REJECT = id;
+      REJECT_TIER = tier;
+      document.getElementById('input_alasan_reject').value = '';
+      document.getElementById('modal-reject').classList.remove('hidden');
+    }
+
+    function tutupModalReject() {
+      document.getElementById('modal-reject').classList.add('hidden');
+    }
+
+    async function kirimPenolakan() {
+      const alasan = document.getElementById('input_alasan_reject').value.trim();
+      if (alasan.length < 10) {
+        alert('Alasan penolakan wajib diisi secara jelas minimal 10 karakter.');
+        return;
+      }
+
+      try {
+        const res = await fetch('operasional-data-handler.php?action=rejectWithNote', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+            id: DOC_TO_REJECT,
+            tier: REJECT_TIER,
+            alasan: alasan
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert('Pengajuan berhasil ditolak dan status diperbarui menjadi REJECTED.');
+          tutupModalReject();
+          tutupModalDetail();
+          muatDaftarPengajuan();
+        } else {
+          alert(`Gagal: ${json.error}`);
+        }
+      } catch (err) {
+        alert('Kesalahan jaringan: ' + err.message);
+      }
+    }
+
+    function tutupModalDetail() {
+      document.getElementById('modal-detail').classList.add('hidden');
+      ACTIVE_DOC = null;
+    }
+
+    // Print & QR Generator Dinamis
+    function bukaCetakDokumenDariModal() {
+      if (!ACTIVE_DOC) return;
+      siapkanDanCetakDokumen(ACTIVE_DOC);
+    }
+
+    function cetakLangsung(id) {
+      const doc = DATA_LIST.find(d => d.id === id || d.noRegistrasi === id);
+      if (!doc) return;
+      siapkanDanCetakDokumen(doc);
+    }
+
+    function siapkanDanCetakDokumen(doc) {
+      document.getElementById('print-doc-title').innerText = `PENGAJUAN ${doc.jenisLabel || doc.jenisOperasional}`;
+      document.getElementById('print-doc-noreg').innerText = `No. Registrasi: ${doc.noRegistrasi || doc.id}`;
+      document.getElementById('print-meta-kantor').innerText = `: ${doc.kantor || 'Kantor Pusat Jakarta'}`;
+      document.getElementById('print-meta-tgl').innerText = `: ${doc.tglPengajuan || '-'}`;
+      document.getElementById('print-meta-pemohon').innerText = `: ${doc.pemohon?.nama || '-'}`;
+      document.getElementById('print-meta-status').innerText = `: ${doc.status}`;
+      document.getElementById('print-meta-versi').innerText = `: Versi ${doc.versi || 1}`;
+      document.getElementById('print-meta-perihal').innerText = `: ${doc.maksudTujuan || doc.survey?.namaKlien || doc.meeting?.agenda || doc.umum?.maksudTujuan || '-'}`;
+      const elWilayah = document.getElementById('print-meta-wilayah');
+      if (elWilayah) elWilayah.innerText = (doc.survey?.wilayahSurveyLabel || doc.survey?.wilayahSurvey) ? `: ${doc.survey.wilayahSurveyLabel || doc.survey.wilayahSurvey}` : ': -';
+      const elNolap = document.getElementById('print-meta-nolap');
+      if (elNolap) elNolap.innerText = (doc.survey?.idPenugasan || doc.survey?.nomorLaporan) ? `: ${doc.survey.idPenugasan || doc.survey.nomorLaporan}` : ': -';
+
+      // Populate Table Body
+      const tbody = document.getElementById('print-table-body');
+      let rowsHtml = '';
+      let rowNum = 1;
+
+      if (doc.jenisOperasional === 'OPR-SRV' && doc.survey) {
+        if (doc.survey.biayaPersonal) {
+          doc.survey.biayaPersonal.forEach(p => {
+            const vol = p.volume ?? p.hari ?? p.qty ?? 1;
+            const sat = p.satuan || 'Hari';
+            const tarif = p.tarif ?? p.uangHarian ?? p.hargaSatuan ?? 0;
+            const tot = p.total ?? p.nominal ?? (vol * tarif);
+            rowsHtml += `
+              <tr>
+                <td class="border border-slate-400 p-1 text-center">${rowNum++}</td>
+                <td class="border border-slate-400 p-1">${p.uraian || p.nama || 'Biaya Personal'} (Personal)</td>
+                <td class="border border-slate-400 p-1 text-center">${vol}</td>
+                <td class="border border-slate-400 p-1 text-center">${sat}</td>
+                <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(tarif)}</td>
+                <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(tot)}</td>
+              </tr>
+            `;
+          });
+        }
+        if (doc.survey.biayaKolektif) {
+          doc.survey.biayaKolektif.forEach(k => {
+            const vol = k.volume ?? k.qty ?? 1;
+            const sat = k.satuan || 'Paket';
+            const tarif = k.tarif ?? k.nominal ?? k.hargaSatuan ?? 0;
+            const tot = k.total ?? k.nominal ?? (vol * tarif);
+            rowsHtml += `
+              <tr>
+                <td class="border border-slate-400 p-1 text-center">${rowNum++}</td>
+                <td class="border border-slate-400 p-1">${k.uraian || k.item || 'Biaya Kolektif'} (Armada/Kolektif)</td>
+                <td class="border border-slate-400 p-1 text-center">${vol}</td>
+                <td class="border border-slate-400 p-1 text-center">${sat}</td>
+                <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(tarif)}</td>
+                <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(tot)}</td>
+              </tr>
+            `;
+          });
+        }
+      } else if (doc.jenisOperasional === 'OPR-MTG' && doc.meeting && doc.meeting.rincianBiaya) {
+        doc.meeting.rincianBiaya.forEach(m => {
+          const vol = m.volume ?? m.qty ?? 1;
+          const sat = m.satuan || 'Paket';
+          const tarif = m.tarif ?? m.hargaSatuan ?? 0;
+          const tot = m.total ?? (vol * tarif);
+          rowsHtml += `
+            <tr>
+              <td class="border border-slate-400 p-1 text-center">${rowNum++}</td>
+              <td class="border border-slate-400 p-1">${m.uraian || m.item || 'Biaya Rapat'}</td>
+              <td class="border border-slate-400 p-1 text-center">${vol}</td>
+              <td class="border border-slate-400 p-1 text-center">${sat}</td>
+              <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(tarif)}</td>
+              <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(tot)}</td>
+            </tr>
+          `;
+        });
+      } else if (doc.umum && (doc.umum.rincianItem || doc.umum.rincianKebutuhan)) {
+        const items = doc.umum.rincianItem || doc.umum.rincianKebutuhan || [];
+        items.forEach(u => {
+          const vol = u.qty ?? u.volume ?? 1;
+          const sat = u.satuan || 'Unit';
+          const tarif = u.hargaSatuan ?? u.tarif ?? 0;
+          const tot = u.subtotal ?? u.total ?? (vol * tarif);
+          rowsHtml += `
+            <tr>
+              <td class="border border-slate-400 p-1 text-center">${rowNum++}</td>
+              <td class="border border-slate-400 p-1">${u.deskripsi || u.uraian || 'Item Operasional'}</td>
+              <td class="border border-slate-400 p-1 text-center">${vol}</td>
+              <td class="border border-slate-400 p-1 text-center">${sat}</td>
+              <td class="border border-slate-400 p-1 text-right font-mono">${formatRupiah(tarif)}</td>
+              <td class="border border-slate-400 p-1 text-right font-mono font-bold">${formatRupiah(tot)}</td>
+            </tr>
+          `;
+        });
+      }
+
+      tbody.innerHTML = rowsHtml;
+      document.getElementById('print-grand-total').innerText = formatRupiah(doc.totalEstimasi || 0);
+      document.getElementById('print-terbilang').innerText = `"${terbilangRupiah(doc.totalEstimasi || 0)}"`;
+
+      // Render Kolom Tanda Tangan & QR Code Dinamis
+      const ttdContainer = document.getElementById('print-ttd-container');
+      ttdContainer.innerHTML = '';
+      const tierKeys = Object.keys(doc.approvals || {}).map(Number).sort((a,b) => a - b);
+      const totalCol = tierKeys.length || 3;
+      const colClass = totalCol <= 3 ? 'grid-cols-3' : (totalCol === 4 ? 'grid-cols-4' : 'grid-cols-5');
+      ttdContainer.className = `grid ${colClass} gap-2 text-center text-[8pt]`;
+
+      tierKeys.forEach(t => {
+        const app = doc.approvals[t];
+        const isApp = app && app.approved && app.qrUrl;
+        const col = document.createElement('div');
+        col.className = 'border border-slate-300 rounded p-1.5 flex flex-col justify-between h-44 bg-slate-50';
+        
+        const tingkatStr = app.tingkat ? `Tingkat ${app.tingkat} &bull; ` : (app.tier ? `Tier ${app.tier} &bull; ` : '');
+
+        col.innerHTML = `
+          <div class="font-bold text-slate-800 leading-tight">
+            ${app.label || 'Otorisasi'}
+            <span class="block text-[7pt] text-slate-500 font-normal">${tingkatStr}${app.jabatan || ''}</span>
+          </div>
+          <div class="my-auto flex flex-col items-center justify-center">
+            <div id="print-qr-dyn-${t}" class="w-16 h-16 flex items-center justify-center mx-auto"></div>
+            <span class="text-[7pt] font-bold ${isApp ? 'text-emerald-700' : 'text-slate-400'} mt-1">
+              ${isApp ? '[DISETUJUI]' : '[MENUNGGU]'}
+            </span>
+          </div>
+          <div class="border-t border-slate-200 pt-1">
+            <div class="font-bold text-slate-900 leading-tight text-[8pt]">${app.pejabat || '-'}</div>
+            <div class="text-[7pt] text-slate-600">${app.jabatan || '-'}</div>
+          </div>
+        `;
+        ttdContainer.appendChild(col);
+
+        const qrEl = document.getElementById(`print-qr-dyn-${t}`);
+        if (isApp) {
+          try {
+            new QRCode(qrEl, {
+              text: app.qrUrl,
+              width: 64,
+              height: 64,
+              colorDark: "#0f172a",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          } catch (e) {
+            qrEl.innerHTML = '<span class="text-[7pt] text-slate-500 font-mono">QR SAH</span>';
+          }
+        } else {
+          qrEl.innerHTML = '<span class="text-[7pt] text-slate-300 font-mono border border-dashed border-slate-300 p-1 rounded">PENDING</span>';
+        }
+      });
+
+      setTimeout(() => {
+        window.print();
+      }, 300);
+    }
+
+    // Tampilkan Banner Akses Ditolak untuk Akun Cabang (403 Forbidden)
+    function tampilkanAksesDitolakCabang(msg) {
+      const banner = document.getElementById('banner-403-cabang');
+      if (banner) {
+        banner.classList.remove('hidden');
+        if (msg) {
+          const p = banner.querySelector('p');
+          if (p) p.innerText = msg;
+        }
+      }
+
+      // Sembunyikan form dan tab
+      const tabForm = document.getElementById('tab-form-content');
+      const tabRiw = document.getElementById('tab-riwayat-content');
+      const subNav = document.querySelector('.bg-slate-900\/60');
+      if (tabForm) tabForm.classList.add('hidden');
+      if (tabRiw) tabRiw.classList.add('hidden');
+      if (subNav) subNav.classList.add('hidden');
+
+      const modalAuth = document.getElementById('modal-auth');
+      if (modalAuth) modalAuth.classList.add('hidden');
+
+      const dotSesi = document.getElementById('dot-sesi');
+      if (dotSesi) dotSesi.className = 'w-2 h-2 rounded-full bg-rose-500';
+      const lblSesi = document.getElementById('label-sesi-role');
+      if (lblSesi) lblSesi.innerText = 'Akses Ditolak (Khusus Pusat)';
+    }
+
+    // Token & Session Authentication
+    function periksaSesiLogin() {
+      const token = localStorage.getItem('kjpp_token_auth') || sessionStorage.getItem('kjpp_token_auth');
+      if (!token) {
+        document.getElementById('modal-auth').classList.remove('hidden');
+        return;
+      }
+
+      // Validasi token ke backend
+      fetch('operasional-data-handler.php?action=getPengajuanList', {
+        headers: getAuthHeaders()
+      })
+      .then(async r => {
+        if (r.status === 403) {
+          const errData = await r.json().catch(() => ({}));
+          tampilkanAksesDitolakCabang(errData.error);
+          return;
+        }
+
+        if (r.status === 401) {
+          document.getElementById('modal-auth').classList.remove('hidden');
+        } else {
+          document.getElementById('modal-auth').classList.add('hidden');
+          document.getElementById('dot-sesi').className = 'w-2 h-2 rounded-full bg-emerald-400';
+          document.getElementById('label-sesi-role').innerText = 'Petugas Terautentikasi';
+          document.getElementById('btn-logout').classList.remove('hidden');
+          muatDaftarPengajuan();
+        }
+      })
+      .catch(() => {
+        document.getElementById('modal-auth').classList.remove('hidden');
+      });
+    }
+
+    async function handleTokenLogin(e) {
+      e.preventDefault();
+      const token = document.getElementById('input_token_auth').value.trim().toUpperCase();
+      const errBox = document.getElementById('pesan-auth-error');
+
+      if (!token) return;
+
+      try {
+        const res = await fetch('operasional-data-handler.php?action=getPengajuanList', {
+          headers: {
+            'Accept': 'application/json',
+            'X-NSR-Token': token
+          }
+        });
+
+        if (res.status === 403) {
+          const errData = await res.json().catch(() => ({}));
+          errBox.innerText = errData.error || 'Akses Ditolak (403 Forbidden): Aplikasi ini khusus internal Kantor Pusat (Jakarta).';
+          errBox.classList.remove('hidden');
+          return;
+        }
+
+        if (res.status === 401) {
+          errBox.innerText = 'Token tidak valid atau tidak memiliki izin akses.';
+          errBox.classList.remove('hidden');
+        } else {
+          localStorage.setItem('kjpp_token_auth', token);
+          sessionStorage.setItem('kjpp_token_auth', token);
+          document.getElementById('modal-auth').classList.add('hidden');
+          document.getElementById('dot-sesi').className = 'w-2 h-2 rounded-full bg-emerald-400';
+          document.getElementById('label-sesi-role').innerText = 'Petugas Terautentikasi';
+          document.getElementById('btn-logout').classList.remove('hidden');
+          muatDaftarPengajuan();
+        }
+      } catch (err) {
+        errBox.innerText = 'Kesalahan jaringan: ' + err.message;
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    function keluarSesi() {
+      if (confirm('Keluar dari sesi portal operasional?')) {
+        localStorage.removeItem('kjpp_token_auth');
+        sessionStorage.removeItem('kjpp_token_auth');
+        window.location.reload();
+      }
+    }
+
+    // Init on DOM Load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inisialisasi tanggal hari ini
+      const today = new Date().toISOString().split('T')[0];
+      const elMulai = document.getElementById('survey_tgl_mulai');
+      const elSelesai = document.getElementById('survey_tgl_selesai');
+      if (elMulai) elMulai.value = today;
+      if (elSelesai) elSelesai.value = today;
+
+      renderAlurPreview();
+      hitungSemuaTotal();
+      periksaSesiLogin();
+    });
+  </script>
+
+  </body>
+</html>

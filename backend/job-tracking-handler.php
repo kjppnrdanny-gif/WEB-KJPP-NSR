@@ -442,7 +442,7 @@ function getInitialSeedData() {
         'progress_percent' => 57,
         'milestones' => $mTemplate1,
         'keterangan_resmi' => 'Tahap berjalan saat ini berada dalam koridor SLA H+3 Bank BTN KPR Retail. Analisis perbandingan data pasar dan kalkulasi nilai indikasi pasar rumah tinggal sedang dikerjakan secara teliti berpedoman pada Standar Penilaian Indonesia (SPI 105 & SPI 204).',
-        'wa_admin' => '6281218008899',
+        'wa_admin' => '6285110513157',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 2)),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];
@@ -490,7 +490,7 @@ function getInitialSeedData() {
         'progress_percent' => 71,
         'milestones' => $mTemplate2,
         'keterangan_resmi' => 'Kertas kerja telah selesai disusun dan saat ini memasuki proses verifikasi kendali mutu berjenjang oleh Reviewer SPM Cabang Bandung.',
-        'wa_admin' => '6281218008899',
+        'wa_admin' => '6285110513157',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 4)),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];
@@ -535,7 +535,7 @@ function getInitialSeedData() {
         'progress_percent' => 28,
         'milestones' => $mTemplate3,
         'keterangan_resmi' => 'SPK telah diverifikasi. Jadwal survei fisik lapangan sedang dikoordinasikan bersama pihak debitur dan petugas bank wilayah Makassar.',
-        'wa_admin' => '6281218008899',
+        'wa_admin' => '6285110513157',
         'created_at' => date('Y-m-d H:i:s', $now - 86400),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];
@@ -581,7 +581,7 @@ function getInitialSeedData() {
         'progress_percent' => 43,
         'milestones' => $mTemplate4,
         'keterangan_resmi' => 'Survei dan pengukuran fisik ruko 3 lantai di Padang telah selesai. Penilai pelaksana menyiapkan bukti dokumentasi dan koordinat GPS.',
-        'wa_admin' => '6281218008899',
+        'wa_admin' => '6285110513157',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 3)),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];
@@ -628,7 +628,7 @@ function getInitialSeedData() {
         'progress_percent' => 57,
         'milestones' => $mTemplate5,
         'keterangan_resmi' => 'Tahap analisis pasar residensial dan komersial sedang berlangsung untuk estimasi Nilai Pasar tanah industri dan gudang.',
-        'wa_admin' => '6281218008899',
+        'wa_admin' => '6285110513157',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 3)),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];
@@ -675,7 +675,7 @@ function getInitialSeedData() {
         'progress_percent' => 100,
         'milestones' => $mTemplate6,
         'keterangan_resmi' => 'Seluruh tahapan penilaian telah tuntas diselesaikan dan laporan resmi ber-Nolap telah diserahkan kepada pihak perbankan.',
-        'wa_admin' => '6281218008899',
+        'wa_admin' => '6285110513157',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 7)),
         'updated_at' => date('Y-m-d H:i:s', $now - (86400 * 3))
     ];
@@ -1197,7 +1197,7 @@ if ($action === 'create' || $action === 'create_job_order') {
         'progress_percent' => 28,
         'milestones' => $mTemplate,
         'keterangan_resmi' => 'Registrasi awal berhasil. Penilai Pelaksana / Surveyor sedang menyiapkan surat tugas inspeksi lapangan.',
-        'wa_admin' => '6281218008899',
+        'wa_admin' => '6285110513157',
         'created_at' => date('Y-m-d H:i:s', $now),
         'updated_at' => date('Y-m-d H:i:s', $now)
     ];

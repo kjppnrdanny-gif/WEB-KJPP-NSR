@@ -345,7 +345,7 @@ function handlePublicTrack_(joInput, phoneInput) {
     progress_percent: progressPct,
     milestones: milestonesResult,
     keterangan_resmi: foundRow[colMap['keterangan_tahap']] || 'Tahapan berjalan sesuai koridor SLA dan Standar Penilaian Indonesia (SPI).',
-    wa_admin: '6281218008899'
+    wa_admin: '6285110513157'
   };
 
   return createJsonResponse_({
