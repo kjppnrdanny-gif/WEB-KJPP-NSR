@@ -27,6 +27,7 @@ fs.mkdirSync(path.join(DIST_STAGING_DIR, 'data'), { recursive: true });
 // 2. Daftar file root yang wajib ada di staging
 const FILES_TO_COPY = [
   'portal-operasional.html',
+  'portal-tracking.html',
   'portal-kwitansi.html',
   'verifikasi-dokumen.html',
   'index.html',
