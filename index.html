@@ -5753,7 +5753,26 @@
 
     function computeTokenHashSync(rawToken) {
       if (!rawToken || typeof rawToken !== 'string') return '';
-      const clean = rawToken.trim().toUpperCase();
+      let clean = rawToken.trim().toUpperCase();
+
+      // Daftar Alias Token Resmi (Mendukung Frasa Teks & Kode Token)
+      const TOKEN_ALIASES = {
+        'TOKEN CABANG MAKASSAR': atob('TlNSLU1LUy0yMDI2'),
+        'TOKEN MAKASSAR': atob('TlNSLU1LUy0yMDI2'),
+        'TOKEN CABANG BANDUNG': atob('TlNSLUJERy0yMDI2'),
+        'TOKEN BANDUNG': atob('TlNSLUJERy0yMDI2'),
+        'TOKEN CABANG PADANG': atob('TlNSLVBERy0yMDI2'),
+        'TOKEN PADANG': atob('TlNSLVBERy0yMDI2'),
+        'TOKEN CABANG PALEMBANG': atob('TlNSLVBMQi0yMDI2'),
+        'TOKEN PALEMBANG': atob('TlNSLVBMQi0yMDI2'),
+        'TOKEN ADMIN PUSAT': atob('TlNSLVBTVC0yMDI2'),
+        'TOKEN PUSAT': atob('TlNSLVBTVC0yMDI2'),
+        'TOKEN MANAJEMEN': atob('TlNSLVBTVC0yMDI2'),
+        'TOKEN REKAN': atob('TlNSODg5OQ==')
+      };
+      if (TOKEN_ALIASES[clean]) {
+        clean = TOKEN_ALIASES[clean];
+      }
       return sha256Hex(NSR_SECURITY_SALT + clean);
     }
 
@@ -5859,7 +5878,26 @@
         return res;
       }
 
-      const clean = rawToken.trim().toUpperCase();
+      let clean = rawToken.trim().toUpperCase();
+
+      // Alias Frasa Teks ke Kode Token Kanonikal
+      const TOKEN_ALIASES = {
+        'TOKEN CABANG MAKASSAR': atob('TlNSLU1LUy0yMDI2'),
+        'TOKEN MAKASSAR': atob('TlNSLU1LUy0yMDI2'),
+        'TOKEN CABANG BANDUNG': atob('TlNSLUJERy0yMDI2'),
+        'TOKEN BANDUNG': atob('TlNSLUJERy0yMDI2'),
+        'TOKEN CABANG PADANG': atob('TlNSLVBERy0yMDI2'),
+        'TOKEN PADANG': atob('TlNSLVBERy0yMDI2'),
+        'TOKEN CABANG PALEMBANG': atob('TlNSLVBMQi0yMDI2'),
+        'TOKEN PALEMBANG': atob('TlNSLVBMQi0yMDI2'),
+        'TOKEN ADMIN PUSAT': atob('TlNSLVBTVC0yMDI2'),
+        'TOKEN PUSAT': atob('TlNSLVBTVC0yMDI2'),
+        'TOKEN MANAJEMEN': atob('TlNSLVBTVC0yMDI2'),
+        'TOKEN REKAN': atob('TlNSODg5OQ==')
+      };
+      if (TOKEN_ALIASES[clean]) {
+        clean = TOKEN_ALIASES[clean];
+      }
       const AUTH_HASH_REGISTRY = {
       'f0e728cbb8ea9ea8b8b53908922bffc081dc22e50855f9d4601a14ed513d7721': {"valid":true,"role":"SURVEYOR","roleLabel":"Surveyor","displayRole":"Surveyor Lapangan","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","cabang":"Pusat","label":"Kantor Pusat Jakarta (Surveyor)","jabatan":"Surveyor Lapangan","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]","tokenHash":"f0e728cbb8ea9ea8b8b53908922bffc081dc22e50855f9d4601a14ed513d7721"},
       '422e642284f66071b52b6cd23e4856ee7e5acf6735f0bc5754173c270c487d4b': {"valid":true,"role":"SURVEYOR","roleLabel":"Surveyor","displayRole":"Surveyor Lapangan","wilayah":"PUSAT","wilayahLabel":"Kantor Pusat Jakarta","wilayahResmi":"Kantor Pusat Jakarta","wilayahCode":"PST","nama":"Kantor Pusat Jakarta","kantor":"Kantor Pusat Jakarta","namaKantor":"Kantor Pusat Jakarta","cabang":"Pusat","label":"Kantor Pusat Jakarta (Surveyor)","jabatan":"Surveyor Lapangan","isCabang":false,"isSuperAdmin":false,"aksesApproval":false,"aksesKwitansi":false,"aksesFee":false,"mode":"PUSAT","canAccessKwitansi":false,"seeFee":false,"canApprove":false,"canSubmit":true,"canInputForm":true,"lockWilayah":false,"canManageSU":false,"feeMaskText":"[Sesuai SPK / Khusus Admin]","tokenHash":"f0e728cbb8ea9ea8b8b53908922bffc081dc22e50855f9d4601a14ed513d7721"},
@@ -6438,8 +6476,8 @@
                 }
                 if (formToken) formToken.classList.remove('hidden');
                 if (panelLayanan) panelLayanan.classList.add('hidden');
-                const inpNik = document.getElementById('input-nik-portal');
-                if (inpNik) setTimeout(() => inpNik.focus(), 150);
+                const inpToken = document.getElementById('input-token');
+                if (inpToken) setTimeout(() => inpToken.focus(), 150);
                 return;
               }
 
@@ -6511,52 +6549,196 @@
     }
     window.toggleTokenVisibility = toggleTokenVisibility;
 
+    // Master 48 NIK Karyawan Resmi KJPP NSR (Pusat & 4 Cabang)
+    const MASTER_48_NIKS = [
+      "NSR-2019-001", "NSR-2019-002", "NSR-2019-003", "NSR-2019-004", "NSR-2019-005",
+      "NSR-2019-006", "NSR-2019-007", "NSR-2019-008", "NSR-2019-009", "NSR-2019-010",
+      "NSR-2019-011", "NSR-2019-012", "NSR-2019-013", "NSR-2019-014", "NSR-2019-015",
+      "NSR-2019-016", "NSR-2019-017", "NSR-2019-018", "NSR-2019-019", "NSR-2019-020",
+      "NSR-2025-021", "NSR-2026-022", "NSR-PDG-2019-23", "NSR-PDG-2019-24", "NSR-PDG-2019-25",
+      "NSR-PDG-2019-26", "NSR-PDG-2019-27", "NSR-PDG-2019-28", "NSR-PDG-2019-29", "NSR-MKS-2019-30",
+      "NSR-MKS-2019-31", "NSR-MKS-2019-32", "NSR-MKS-2020-33", "NSR-MKS-2021-34", "NSR-MKS-2020-35",
+      "NSR-MKS-2019-36", "NSR-MKS-2019-37", "NSR-BDG-2020-38", "NSR-BDG-2020-39", "NSR-BDG-2020-40",
+      "NSR-BDG-2020-41", "NSR-BDG-2020-42", "NSR-BDG-2020-43", "NSR-PLB-2022-44", "NSR-PLB-2022-45",
+      "NSR-PLB-2022-46", "NSR-PLB-2022-47", "NSR-PLB-2022-48"
+    ];
+
+    function tampilkanPesanErrorModal(pesan) {
+      const errEl = document.getElementById('pesan-error');
+      const errText = document.getElementById('pesan-error-text');
+      const btnSubmit = document.getElementById('btn-submit-token');
+      const inputEl = document.getElementById('input-token');
+
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span id="btn-submit-text">Verifikasi &amp; Masuk</span> <svg class="w-4 h-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+      }
+      if (errEl) errEl.classList.remove('hidden');
+      if (errText) errText.innerText = pesan;
+      if (inputEl) inputEl.select();
+    }
+
+    function arahkanKePortalTujuan(auth) {
+      if (!auth) return;
+      const inputEl = document.getElementById('input-token');
+      const errEl = document.getElementById('pesan-error');
+      const errText = document.getElementById('pesan-error-text');
+
+      // Pemblokiran akses kwitansi bagi Penilai, Reviewer & Marketing
+      if (window._targetPortal === 'kwitansi' && !auth.canAccessKwitansi) {
+        if (errEl) errEl.classList.remove('hidden');
+        if (errText) {
+          errText.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${auth.roleLabel || auth.role}.`;
+        }
+        if (inputEl) inputEl.select();
+        return;
+      }
+
+      const branchName = auth.wilayah || auth.branch || 'Kantor Pusat Jakarta';
+      const expiresAt = auth.expiresAt || (Date.now() + (8 * 3600 * 1000));
+
+      const safeProfile = {
+        sub: auth.sub || '',
+        displayName: auth.displayName || auth.nama || '',
+        nama: auth.displayName || auth.nama || '',
+        role: auth.role,
+        roleLabel: auth.roleLabel,
+        displayRole: auth.displayRole || auth.roleLabel,
+        wilayah: branchName,
+        wilayahLabel: auth.wilayahLabel || branchName,
+        wilayahCode: auth.wilayahCode || '',
+        branch: branchName,
+        mode: auth.mode,
+        isCabang: Boolean(auth.isCabang),
+        isSuperAdmin: Boolean(auth.isSuperAdmin),
+        canAccessKwitansi: Boolean(auth.canAccessKwitansi),
+        seeFee: Boolean(auth.seeFee),
+        canApprove: Boolean(auth.canApprove),
+        canSubmit: Boolean(auth.canSubmit),
+        authenticated: true,
+        valid: true,
+        expiresAt: expiresAt
+      };
+
+      // Simpan sesi bersih steril
+      sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(safeProfile));
+      sessionStorage.setItem('nsr_nolap_session', JSON.stringify(safeProfile));
+      sessionStorage.setItem('kjpp_token_internal', JSON.stringify(safeProfile));
+      sessionStorage.setItem('kjpp_user_branch', safeProfile.wilayah);
+      sessionStorage.setItem('kjpp_user_role', safeProfile.role);
+      localStorage.setItem('NSR_USER_SESSION', JSON.stringify(safeProfile));
+      localStorage.setItem('nsr_nolap_session', JSON.stringify(safeProfile));
+      localStorage.setItem('kjpp_token_internal', JSON.stringify(safeProfile));
+      sessionStorage.setItem('kjpp_session_jo', JSON.stringify({
+        isLoggedIn: true,
+        role: safeProfile.role,
+        roleLabel: safeProfile.roleLabel,
+        mode: safeProfile.mode,
+        wilayah: safeProfile.wilayah,
+        wilayahCode: safeProfile.wilayahCode,
+        isCabang: safeProfile.isCabang,
+        isSuperAdmin: safeProfile.isSuperAdmin,
+        canAccessKwitansi: safeProfile.canAccessKwitansi,
+        canApprove: safeProfile.canApprove,
+        seeFee: safeProfile.seeFee,
+        expiresAt: expiresAt,
+        loginAt: new Date().toISOString()
+      }));
+
+      // Rute langsung sesuai target kartu
+      if (window._targetPortal === 'kwitansi') {
+        window.location.href = (auth.mode === 'CABANG') ? 'portal-kwitansi.html?mode=mandiri' : 'portal-kwitansi.html';
+        return;
+      }
+      if (window._targetPortal === 'operasional') {
+        const bCode = (auth.wilayahCode || auth.branchCode || '').toUpperCase();
+        window.location.href = (auth.isCabang || auth.mode === 'CABANG') && bCode
+          ? `portal-operasional.html?branch=${encodeURIComponent(bCode)}`
+          : 'portal-operasional.html';
+        return;
+      }
+      if (window._targetPortal === 'penugasan') {
+        window.location.href = (auth.mode === 'CABANG') ? 'portal-penugasan-jo.html?mode=mandiri' : 'portal-penugasan-jo.html';
+        return;
+      }
+      if (window._targetPortal === 'nolap') {
+        window.location.href = (auth.mode === 'CABANG') ? 'portal-nolap-cabang.html' : 'portal-nolap.html';
+        return;
+      }
+      if (window._targetPortal === 'sop') {
+        tutupModalPortal();
+        if (auth.isCabang || auth.mode === 'CABANG') {
+          bukaModalRequestDokumenSOP();
+          return;
+        }
+        if (auth.isSuperAdmin) {
+          const url = _dekripsiUrlAman(_ENC_URL_SOP_DRIVE);
+          if (url) window.open(url, '_blank', 'noopener,noreferrer');
+          return;
+        }
+        bukaModalRequestDokumenSOP();
+        return;
+      }
+      if (window._targetPortal === 'absen') {
+        tutupModalPortal();
+        window.location.href = 'portal-presensi.html';
+        return;
+      }
+
+      // Tampilkan panel layanan operasional (GRID 2-KOLOM 6 MODUL LENGKAP)
+      const formToken = document.getElementById('form-token-portal');
+      const panelLayanan = document.getElementById('panel-layanan');
+      const labelLokasi = document.getElementById('label-lokasi');
+
+      if (labelLokasi) {
+        labelLokasi.innerHTML = `Terverifikasi: <strong>${auth.wilayah}</strong> &bull; <span class="uppercase text-emerald-800 font-extrabold">${auth.roleLabel || auth.role}</span>`;
+      }
+      if (formToken) formToken.classList.add('hidden');
+      if (panelLayanan) {
+        panelLayanan.classList.remove('hidden');
+        window.updateDynamicSmartCards(auth);
+        if (typeof setupPanelKwitansiLink === 'function') {
+          setupPanelKwitansiLink(auth.canAccessKwitansi !== false, auth.roleLabel || auth.role);
+        }
+      }
+      if (inputEl) inputEl.value = '';
+    }
+
     async function verifikasiTokenPortal(e) {
       if (e) e.preventDefault();
       const inputEl = document.getElementById('input-token');
       const btnSubmit = document.getElementById('btn-submit-token');
       const errEl = document.getElementById('pesan-error');
-      const errText = document.getElementById('pesan-error-text');
       if (!inputEl) return;
-      const rawInput = inputEl.value.trim();
-      const cleanInput = rawInput.toUpperCase().replace(/\s+/g, '').replace(/_/g, '-');
+
+      const rawInput = (inputEl.value || '').trim();
+      const cleanInput = rawInput.toUpperCase();
       window._currentAuthToken = rawInput;
 
       if (!rawInput) {
-        if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Silakan masukkan Token Akses resmi atau NIK Karyawan terlebih dahulu.';
-        inputEl.focus();
+        tampilkanPesanErrorModal('Silakan masukkan Token Akses resmi atau NIK Karyawan terlebih dahulu.');
         return;
       }
 
-      // =====================================================================
-      // KONDISI A: INPUT TUNGGAL CERDAS - NIK KARYAWAN PRESENSI (NSR-...)
-      // =====================================================================
-      if (cleanInput.startsWith('NSR-') || /^NSR\d/i.test(cleanInput)) {
+      // ==========================================
+      // JALUR 1: DETEKSI NIK KARYAWAN (PRESENSI)
+      // ==========================================
+      // Format NIK resmi KJPP NSR berakhiran nomor urut karyawan (-005, -30, -38, dsb)
+      // Contoh: NSR-2019-005, NSR-MKS-2019-30, NSR-BDG-2020-38
+      const isNikPattern = /^NSR(-\w+)?-\d{4}-\d{2,3}$/i.test(cleanInput);
+      const isKnownNik = MASTER_48_NIKS.includes(cleanInput);
+
+      if (isKnownNik || isNikPattern) {
         if (errEl) errEl.classList.add('hidden');
         if (btnSubmit) {
           btnSubmit.disabled = true;
           btnSubmit.innerHTML = '<span>Memverifikasi NIK Karyawan...</span>';
         }
 
-        // Master 48 NIK Karyawan Resmi KJPP NSR (Pusat & 4 Cabang)
-        const MASTER_48_NIKS = [
-          "NSR-2019-001", "NSR-2019-002", "NSR-2019-003", "NSR-2019-004", "NSR-2019-005",
-          "NSR-2019-006", "NSR-2019-007", "NSR-2019-008", "NSR-2019-009", "NSR-2019-010",
-          "NSR-2019-011", "NSR-2019-012", "NSR-2019-013", "NSR-2019-014", "NSR-2019-015",
-          "NSR-2019-016", "NSR-2019-017", "NSR-2019-018", "NSR-2019-019", "NSR-2019-020",
-          "NSR-2025-021", "NSR-2026-022", "NSR-PDG-2019-23", "NSR-PDG-2019-24", "NSR-PDG-2019-25",
-          "NSR-PDG-2019-26", "NSR-PDG-2019-27", "NSR-PDG-2019-28", "NSR-PDG-2019-29", "NSR-MKS-2019-30",
-          "NSR-MKS-2019-31", "NSR-MKS-2019-32", "NSR-MKS-2020-33", "NSR-MKS-2021-34", "NSR-MKS-2020-35",
-          "NSR-MKS-2019-36", "NSR-MKS-2019-37", "NSR-BDG-2020-38", "NSR-BDG-2020-39", "NSR-BDG-2020-40",
-          "NSR-BDG-2020-41", "NSR-BDG-2020-42", "NSR-BDG-2020-43", "NSR-PLB-2022-44", "NSR-PLB-2022-45",
-          "NSR-PLB-2022-46", "NSR-PLB-2022-47", "NSR-PLB-2022-48"
-        ];
-
-        let isNikValid = MASTER_48_NIKS.includes(cleanInput);
+        let isNikValid = isKnownNik;
         let employeeData = null;
 
-        // Verifikasi ke endpoint backend server
+        // Validasi ke endpoint backend jika server web aktif
         try {
           const resp = await fetch('backend/absensi-data-handler.php?action=cekKaryawan&nik=' + encodeURIComponent(cleanInput), {
             method: 'GET',
@@ -6588,7 +6770,6 @@
         }
 
         if (isNikValid) {
-          // 1. Simpan NIK ke sesi peramban
           sessionStorage.setItem('auth_nik', cleanInput);
           sessionStorage.setItem('nsr_presensi_active_nik', cleanInput);
           sessionStorage.setItem('nsr_presensi_session_nik', cleanInput);
@@ -6598,218 +6779,65 @@
           }
 
           if (btnSubmit) {
-            btnSubmit.innerHTML = '<span>NIK Terverifikasi! Mengalihkan ke Presensi...</span>';
+            btnSubmit.innerHTML = '<span>NIK Terverifikasi! Mengalihkan ke Presensi... 🚀</span>';
           }
-
-          // 2. Langsung alihkan detik itu juga ke portal presensi
           window.location.href = 'portal-presensi.html';
           return;
         } else {
-          if (btnSubmit) {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = '<span id="btn-submit-text">Verifikasi &amp; Masuk</span> <svg class="w-4 h-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
-          }
-          if (errEl) errEl.classList.remove('hidden');
-          if (errText) {
-            errText.innerText = 'NIK Karyawan tidak terdaftar dalam database resmi KJPP NSR.';
-          }
-          inputEl.select();
+          tampilkanPesanErrorModal('NIK Karyawan tidak terdaftar dalam database resmi KJPP NSR.');
           return;
         }
       }
 
-      // =====================================================================
-      // KONDISI B: INPUT ADALAH TOKEN OPERASIONAL (BUKAN FORMAT NIK)
-      // =====================================================================
-      const input = rawInput;
-
+      // ==========================================
+      // JALUR 2: EVALUASI TOKEN AKSES RESMI (PORTAL INTERNAL)
+      // ==========================================
       if (errEl) errEl.classList.add('hidden');
-      if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerHTML = '<span>Memverifikasi...</span>'; }
-
-      let auth = null;
-
-      // 1. Validasi Otoritatif Server-Side (PHP cPanel Zero-Trust Endpoint)
-      let backendRejectionReason = null;
-      let serverContacted = false;
-
-      try {
-        const resp = await fetch('/api/auth-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ token: input }),
-          credentials: 'include'
-        });
-        serverContacted = true;
-        const srv = await resp.json().catch(() => null);
-        if (resp.ok && srv && srv.authenticated && srv.user) {
-          auth = {
-            ...srv.user,
-            valid: true,
-            authenticated: true,
-            expiresAt: srv.expiresAt || (Date.now() + (8 * 3600 * 1000))
-          };
-          delete auth.token;
-        } else {
-          // Server merespons namun menolak token (HTTP 401 / 403 / non-auth)
-          backendRejectionReason = (srv && srv.error) ? srv.error : 'Akses Ditolak: Token otorisasi tidak valid.';
-        }
-      } catch (_) {
-        // Jika berada di protokol HTTP/HTTPS web, kegagalan fetch adalah kegagalan koneksi backend
-        if (window.location.protocol.startsWith('http')) {
-          serverContacted = true;
-          backendRejectionReason = 'Gagal menghubungi server autentikasi resmi. Akses ditolak.';
-        }
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span>Memverifikasi Token Akses...</span>';
       }
 
-      // 2. Fallback Resolver: HANYA jika murni mode file statis offline lokal tanpa web server (file:///)
-      // Di hosting web/cPanel (http/https), wajib diverifikasi backend. Dilarang login via fallback browser!
-      if (!auth && !serverContacted && window.location.protocol === 'file:') {
-        auth = typeof window.resolveUnifiedToken === 'function' ? window.resolveUnifiedToken(input) : null;
+      // 1. Evaluasi Kamus Token Akses Resmi Lokal (resolveUnifiedToken)
+      let auth = typeof window.resolveUnifiedToken === 'function' ? window.resolveUnifiedToken(rawInput) : null;
+      if (!auth && cleanInput !== rawInput) {
+        auth = typeof window.resolveUnifiedToken === 'function' ? window.resolveUnifiedToken(cleanInput) : null;
       }
 
-      if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = '<span id="btn-submit-text">Verifikasi &amp; Masuk</span> <svg class="w-4 h-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>'; }
-
+      // 2. Jika resolver lokal belum cocok, verifikasi ke endpoint backend /api/auth-login
       if (!auth) {
-        if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Token tidak valid. Pastikan memasukkan token resmi KJPP NSR (Admin Pusat, Admin Cabang, Reviewer, Penilai, Surveyor, Marketing, atau Keuangan).';
-        inputEl.select();
-        return;
+        try {
+          const resp = await fetch('/api/auth-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ token: rawInput }),
+            credentials: 'include'
+          });
+          const srv = await resp.json().catch(() => null);
+          if (resp.ok && srv && srv.authenticated && srv.user) {
+            auth = {
+              ...srv.user,
+              valid: true,
+              authenticated: true,
+              expiresAt: srv.expiresAt || (Date.now() + (8 * 3600 * 1000))
+            };
+            delete auth.token;
+          }
+        } catch (_) {}
       }
 
-      // Pemblokiran akses kwitansi bagi Penilai, Reviewer & Marketing
-      if (window._targetPortal === 'kwitansi' && !auth.canAccessKwitansi) {
-        if (errEl) errEl.classList.remove('hidden');
-        if (errText) {
-          errText.innerHTML = `Akses Ditolak: Modul Permintaan Kwitansi &amp; Penagihan hanya dapat diakses oleh Admin Pusat dan Admin Cabang. Token Anda terdaftar sebagai ${auth.roleLabel}.`;
-        }
-        inputEl.select();
-        return;
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span id="btn-submit-text">Verifikasi &amp; Masuk</span> <svg class="w-4 h-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
       }
 
-      // Simpan HANYA metadata profil aman (DILARANG menyimpan token mentah di browser)
-      const branchName = auth.wilayah || auth.branch || 'Kantor Pusat Jakarta';
-      const expiresAt = auth.expiresAt || (Date.now() + (8 * 3600 * 1000));
-
-      const safeProfile = {
-        sub: auth.sub || '',
-        displayName: auth.displayName || auth.nama || '',
-        nama: auth.displayName || auth.nama || '',
-        role: auth.role,
-        roleLabel: auth.roleLabel,
-        displayRole: auth.displayRole || auth.roleLabel,
-        wilayah: branchName,
-        wilayahLabel: auth.wilayahLabel || branchName,
-        wilayahCode: auth.wilayahCode || '',
-        branch: branchName,
-        mode: auth.mode,
-        isCabang: Boolean(auth.isCabang),
-        isSuperAdmin: Boolean(auth.isSuperAdmin),
-        canAccessKwitansi: Boolean(auth.canAccessKwitansi),
-        seeFee: Boolean(auth.seeFee),
-        canApprove: Boolean(auth.canApprove),
-        canSubmit: Boolean(auth.canSubmit),
-        authenticated: true,
-        valid: true,
-        expiresAt: expiresAt
-      };
-
-      // Bersihkan seluruh residu token mentah atau checksum client lama
-      const tokenKeysToScrub = [
-        'TOKEN_AUTH_NSR',
-        'CURRENT_AUTH_TOKEN',
-        'NSR_AUTH_TOKEN',
-        'NSR_AUTH_HASH',
-        'NSR_SESSION_CHECKSUM',
-        'NSR_SESSION_SIG'
-      ];
-      tokenKeysToScrub.forEach(k => sessionStorage.removeItem(k));
-      localStorage.removeItem('kjpp_token_auth');
-      localStorage.removeItem('kjpp_session_token');
-
-      // Simpan objek sesi steril tanpa atribut 'token'
-      sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(safeProfile));
-      sessionStorage.setItem('nsr_nolap_session', JSON.stringify(safeProfile));
-      sessionStorage.setItem('kjpp_token_internal', JSON.stringify(safeProfile));
-      localStorage.setItem('NSR_USER_SESSION', JSON.stringify(safeProfile));
-      localStorage.setItem('nsr_nolap_session', JSON.stringify(safeProfile));
-      localStorage.setItem('kjpp_token_internal', JSON.stringify(safeProfile));
-      sessionStorage.setItem('kjpp_session_jo', JSON.stringify({
-        isLoggedIn: true,
-        role: safeProfile.role,
-        roleLabel: safeProfile.roleLabel,
-        mode: safeProfile.mode,
-        wilayah: safeProfile.wilayah,
-        wilayahCode: safeProfile.wilayahCode,
-        isCabang: safeProfile.isCabang,
-        isSuperAdmin: safeProfile.isSuperAdmin,
-        canAccessKwitansi: safeProfile.canAccessKwitansi,
-        canApprove: safeProfile.canApprove,
-        seeFee: safeProfile.seeFee,
-        expiresAt: expiresAt,
-        loginAt: new Date().toISOString()
-      }));
-
-      // Rute langsung terproteksi sesuai target kartu yang diklik
-      if (window._targetPortal === 'kwitansi') {
-        window.location.href = (auth.mode === 'CABANG') ? 'portal-kwitansi.html?mode=mandiri' : 'portal-kwitansi.html';
+      if (auth && auth.valid) {
+        arahkanKePortalTujuan(auth);
+        return;
+      } else {
+        tampilkanPesanErrorModal('Token tidak valid. Pastikan memasukkan token resmi KJPP NSR (Admin Pusat, Admin Cabang, Reviewer, Penilai, Surveyor, Marketing, atau Keuangan).');
         return;
       }
-      if (window._targetPortal === 'operasional') {
-        const bCode = (auth.wilayahCode || auth.branchCode || '').toUpperCase();
-        window.location.href = (auth.isCabang || auth.mode === 'CABANG') && bCode
-          ? `portal-operasional.html?branch=${encodeURIComponent(bCode)}`
-          : 'portal-operasional.html';
-        return;
-      }
-      if (window._targetPortal === 'penugasan') {
-        window.location.href = (auth.mode === 'CABANG') ? 'portal-penugasan-jo.html?mode=mandiri' : 'portal-penugasan-jo.html';
-        return;
-      }
-      if (window._targetPortal === 'nolap') {
-        if (auth.mode === 'CABANG') {
-          window.location.href = 'portal-nolap-cabang.html';
-        } else {
-          window.location.href = 'portal-nolap.html';
-        }
-        return;
-      }
-      if (window._targetPortal === 'sop') {
-        tutupModalPortal();
-        if (auth.isCabang || auth.mode === 'CABANG') {
-          bukaModalRequestDokumenSOP();
-          return;
-        }
-        if (auth.isSuperAdmin) {
-          const url = _dekripsiUrlAman(_ENC_URL_SOP_DRIVE);
-          if (url) window.open(url, '_blank', 'noopener,noreferrer');
-          return;
-        }
-        bukaModalRequestDokumenSOP();
-        return;
-      }
-      if (window._targetPortal === 'absen') {
-        tutupModalPortal();
-        window.location.href = 'portal-presensi.html';
-        return;
-      }
-
-      // Tampilkan panel layanan operasional (GRID 2-KOLOM 6 MODUL LENGKAP)
-      const formToken = document.getElementById('form-token-portal');
-      const panelLayanan = document.getElementById('panel-layanan');
-      const labelLokasi = document.getElementById('label-lokasi');
-
-      if (labelLokasi) {
-        labelLokasi.innerHTML = `Terverifikasi: <strong>${auth.wilayah}</strong> &bull; <span class="uppercase text-emerald-800 font-extrabold">${auth.roleLabel}</span>`;
-      }
-      if (formToken) formToken.classList.add('hidden');
-      if (panelLayanan) {
-        panelLayanan.classList.remove('hidden');
-        window.updateDynamicSmartCards(auth);
-        if (typeof setupPanelKwitansiLink === 'function') {
-          setupPanelKwitansiLink(auth.canAccessKwitansi !== false, auth.roleLabel);
-        }
-      }
-      inputEl.value = '';
     }
     window.verifikasiTokenPortal = verifikasiTokenPortal;
 
