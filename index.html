@@ -4151,7 +4151,7 @@
             <!-- Input Tunggal: Token Otorisasi Akses -->
             <div>
               <label for="input-token" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5 flex items-center justify-between">
-                <span id="label-token-portal">Token Otorisasi Akses <span class="text-rose-400">*</span></span>
+                <span id="label-token-portal">TOKEN OTORISASI / NIK KARYAWAN <span class="text-rose-400">*</span></span>
                 <span class="text-[10px] font-normal text-slate-400">Pusat &amp; Cabang</span>
               </label>
 
@@ -4162,7 +4162,7 @@
                 
                 <input type="password"
                        id="input-token"
-                       placeholder="Masukkan token otorisasi..."
+                       placeholder="Masukkan Token Akses atau NIK (cth: NSR-2019-005)"
                        required
                        class="input-basic flex h-11 w-full rounded-xl border border-slate-700 bg-slate-900/90 pl-10 pr-11 py-2 text-sm text-white font-mono font-bold placeholder:text-slate-500 placeholder:font-sans placeholder:font-normal shadow-inner transition-colors tracking-widest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 focus-visible:border-amber-400/70"
                        autocomplete="current-password">
@@ -6521,15 +6521,110 @@
       const errEl = document.getElementById('pesan-error');
       const errText = document.getElementById('pesan-error-text');
       if (!inputEl) return;
-      const input = inputEl.value.trim();
-      window._currentAuthToken = input;
+      const rawInput = inputEl.value.trim();
+      const cleanInput = rawInput.toUpperCase().replace(/\s+/g, '').replace(/_/g, '-');
+      window._currentAuthToken = rawInput;
 
-      if (!input) {
+      if (!rawInput) {
         if (errEl) errEl.classList.remove('hidden');
-        if (errText) errText.innerText = 'Silakan masukkan token otorisasi resmi terlebih dahulu.';
+        if (errText) errText.innerText = 'Silakan masukkan Token Akses resmi atau NIK Karyawan terlebih dahulu.';
         inputEl.focus();
         return;
       }
+
+      // =====================================================================
+      // KONDISI A: INPUT TUNGGAL CERDAS - NIK KARYAWAN PRESENSI (NSR-...)
+      // =====================================================================
+      if (cleanInput.startsWith('NSR-') || /^NSR\d/i.test(cleanInput)) {
+        if (errEl) errEl.classList.add('hidden');
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.innerHTML = '<span>Memverifikasi NIK Karyawan...</span>';
+        }
+
+        // Master 48 NIK Karyawan Resmi KJPP NSR (Pusat & 4 Cabang)
+        const MASTER_48_NIKS = [
+          "NSR-2019-001", "NSR-2019-002", "NSR-2019-003", "NSR-2019-004", "NSR-2019-005",
+          "NSR-2019-006", "NSR-2019-007", "NSR-2019-008", "NSR-2019-009", "NSR-2019-010",
+          "NSR-2019-011", "NSR-2019-012", "NSR-2019-013", "NSR-2019-014", "NSR-2019-015",
+          "NSR-2019-016", "NSR-2019-017", "NSR-2019-018", "NSR-2019-019", "NSR-2019-020",
+          "NSR-2025-021", "NSR-2026-022", "NSR-PDG-2019-23", "NSR-PDG-2019-24", "NSR-PDG-2019-25",
+          "NSR-PDG-2019-26", "NSR-PDG-2019-27", "NSR-PDG-2019-28", "NSR-PDG-2019-29", "NSR-MKS-2019-30",
+          "NSR-MKS-2019-31", "NSR-MKS-2019-32", "NSR-MKS-2020-33", "NSR-MKS-2021-34", "NSR-MKS-2020-35",
+          "NSR-MKS-2019-36", "NSR-MKS-2019-37", "NSR-BDG-2020-38", "NSR-BDG-2020-39", "NSR-BDG-2020-40",
+          "NSR-BDG-2020-41", "NSR-BDG-2020-42", "NSR-BDG-2020-43", "NSR-PLB-2022-44", "NSR-PLB-2022-45",
+          "NSR-PLB-2022-46", "NSR-PLB-2022-47", "NSR-PLB-2022-48"
+        ];
+
+        let isNikValid = MASTER_48_NIKS.includes(cleanInput);
+        let employeeData = null;
+
+        // Verifikasi ke endpoint backend server
+        try {
+          const resp = await fetch('backend/absensi-data-handler.php?action=cekKaryawan&nik=' + encodeURIComponent(cleanInput), {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include'
+          });
+          const resJson = await resp.json().catch(() => null);
+          if (resJson && (resJson.status === 'success' || resJson.success)) {
+            isNikValid = true;
+            employeeData = resJson;
+          } else if (resJson && resJson.status === 'error' && resp.status === 404) {
+            isNikValid = false;
+          }
+        } catch (_) {
+          try {
+            const respFallback = await fetch('absensi-data-handler.php?action=cekKaryawan&nik=' + encodeURIComponent(cleanInput), {
+              method: 'GET',
+              headers: { 'Accept': 'application/json' },
+              credentials: 'include'
+            });
+            const resFallback = await respFallback.json().catch(() => null);
+            if (resFallback && (resFallback.status === 'success' || resFallback.success)) {
+              isNikValid = true;
+              employeeData = resFallback;
+            } else if (resFallback && resFallback.status === 'error' && respFallback.status === 404) {
+              isNikValid = false;
+            }
+          } catch (_) {}
+        }
+
+        if (isNikValid) {
+          // 1. Simpan NIK ke sesi peramban
+          sessionStorage.setItem('auth_nik', cleanInput);
+          sessionStorage.setItem('nsr_presensi_active_nik', cleanInput);
+          sessionStorage.setItem('nsr_presensi_session_nik', cleanInput);
+          if (employeeData) {
+            sessionStorage.setItem('nsr_presensi_session_user', JSON.stringify(employeeData));
+            sessionStorage.setItem('nsr_presensi_active_user', JSON.stringify(employeeData));
+          }
+
+          if (btnSubmit) {
+            btnSubmit.innerHTML = '<span>NIK Terverifikasi! Mengalihkan ke Presensi... 🚀</span>';
+          }
+
+          // 2. Langsung alihkan detik itu juga ke portal presensi
+          window.location.href = 'portal-presensi.html';
+          return;
+        } else {
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<span id="btn-submit-text">Verifikasi &amp; Masuk</span> <svg class="w-4 h-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+          }
+          if (errEl) errEl.classList.remove('hidden');
+          if (errText) {
+            errText.innerText = 'NIK Karyawan tidak terdaftar dalam database resmi KJPP NSR.';
+          }
+          inputEl.select();
+          return;
+        }
+      }
+
+      // =====================================================================
+      // KONDISI B: INPUT ADALAH TOKEN OPERASIONAL (BUKAN FORMAT NIK)
+      // =====================================================================
+      const input = rawInput;
 
       if (errEl) errEl.classList.add('hidden');
       if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerHTML = '<span>Memverifikasi...</span>'; }

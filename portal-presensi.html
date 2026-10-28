@@ -2077,6 +2077,7 @@
       const labelUser = document.getElementById('locked-user-label');
       const statusNik = document.getElementById('badge-lock-status');
       const preview = document.getElementById('auth-nik-preview');
+      const pinInput = document.getElementById('auth-pin-input');
 
       if (inp) {
         inp.value = nik;
@@ -2096,6 +2097,13 @@
         badge.classList.remove('hidden');
       }
       if (preview) preview.classList.add('hidden');
+
+      // Fokus kursor otomatis berpindah ke kolom PIN Presensi (6 Digit)
+      if (pinInput && (!sessionToken || sessionToken === '')) {
+        setTimeout(() => {
+          pinInput.focus();
+        }, 200);
+      }
     }
 
     async function logoutSesiDanKembaliKeGerbang() {
@@ -2900,12 +2908,23 @@
 
         if (boundNik) {
           kunciInputNikSecaraMutlak(boundNik, boundUser);
+          if (!boundUser) {
+            callBackend('cekKaryawan', { nik: boundNik }).then(res => {
+              const data = (res && res.data) ? res.data : res;
+              if (data && (res.status === 'success' || res.success || data.nama)) {
+                kunciInputNikSecaraMutlak(boundNik, data);
+              }
+            }).catch(() => {});
+          }
           if (boundToken) {
             sessionToken = boundToken;
             sessionNik = boundNik;
             sessionUser = boundUser || { nik: boundNik, nama: boundNik };
             pasangStateTerverifikasi();
             return;
+          } else {
+            const pinInp = document.getElementById('auth-pin-input');
+            if (pinInp) setTimeout(() => pinInp.focus(), 250);
           }
         }
 

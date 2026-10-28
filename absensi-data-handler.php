@@ -950,7 +950,7 @@ try {
     // AKSI 2: CEK KARYAWAN (NIK VERIFICATION - STRICT EXACT MATCH)
     // ---------------------------------------------------------------------
     if ($action === 'cekKaryawan') {
-        $nik = $payload['nik'] ?? $_GET['nik'] ?? '';
+        $nik = $payload['nik'] ?? $_POST['nik'] ?? $_GET['nik'] ?? '';
         if (!$nik) {
             http_response_code(400);
             echo json_encode(['status' => 'error', 'success' => false, 'message' => 'NIK Karyawan wajib dicantumkan.']);
