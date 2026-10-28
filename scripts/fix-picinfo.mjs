@@ -1,22 +1,19 @@
 import fs from 'node:fs';
 
-let content = fs.readFileSync('portal-tracking.html', 'utf8');
+const content = fs.readFileSync('portal-tracking.html', 'utf8');
+const lines = content.split(/\r?\n/);
 
-const target = `        const isCompleted = item.status === 'completed';
-        const isInProgress = item.status === 'in_progress';
+let newLines = [];
+let added = false;
 
-        let nodeIcon = '';`;
-
-const replacement = `        const isCompleted = item.status === 'completed';
-        const isInProgress = item.status === 'in_progress';
-        const picInfo = getPicAssignment(key, activeJob || {});
-
-        let nodeIcon = '';`;
-
-if (content.includes('const isInProgress = item.status === \'in_progress\';') && !content.includes('const picInfo = getPicAssignment(key, activeJob || {});')) {
-  content = content.replace(target, replacement);
-  fs.writeFileSync('portal-tracking.html', content, 'utf8');
-  console.log('✓ Successfully fixed picInfo in portal-tracking.html');
-} else {
-  console.log('Target not found or already fixed');
+for (let i = 0; i < lines.length; i++) {
+  const line = lines[i];
+  newLines.push(line);
+  if (line.includes("const isInProgress = item.status === 'in_progress';") && !added) {
+    newLines.push("        const picInfo = getPicAssignment(key, activeJob || {});");
+    added = true;
+  }
 }
+
+fs.writeFileSync('portal-tracking.html', newLines.join('\n'), 'utf8');
+console.log('Added picInfo line:', added);
