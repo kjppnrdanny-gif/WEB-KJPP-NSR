@@ -8062,6 +8062,29 @@ function scrollKeLacakPenugasan(e) {
       if (el) el.classList.add('hidden');
     }
     window.tutupModalTrackingPublik = tutupModalTrackingPublik;
+    // Auto-trigger pencarian dari parameter URL (?track= atau ?jo=)
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('track') || params.get('jo');
+        if (code) {
+          const inp = document.getElementById('track-jo-input');
+          if (inp) {
+            inp.value = code.trim();
+            const el = document.getElementById('lacak-penugasan');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+              if (typeof eksekusiLacakPenugasanPublik === 'function') {
+                eksekusiLacakPenugasanPublik();
+              }
+            }, 600);
+          }
+        }
+      } catch (e) {
+        console.warn('Parameter track error:', e);
+      }
+    });
+
   </script>
 
 </body>

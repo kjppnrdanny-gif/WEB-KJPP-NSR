@@ -60,7 +60,7 @@ async function main() {
     // Verify modal is open and check hotline link
     const modalCheck = await send('Runtime.evaluate', {
       expression: `(() => {
-        const modal = document.getElementById('modal-stepper-publik');
+        const modal = document.getElementById('modal-tracking-stepper-publik');
         const waLink = document.getElementById('pub-btn-wa-admin')?.href;
         const picCard = document.getElementById('pub-team-pelaksana')?.innerText;
         return {
