@@ -360,7 +360,7 @@ function handlePublicTrack_(joInput, phoneInput) {
  * 2. ACTION: GET_ACTIVE_JOBS (Task Board Internal)
  * =========================================================================
  */
-function handleGetActiveJobs_() {
+function handleGetActiveJobs_(e) {
   const ss = getSpreadsheet_();
   const sheet = ss.getSheetByName(CONFIG_TRACKING.SHEET_DATA);
   if (!sheet) {
@@ -417,10 +417,17 @@ function handleGetActiveJobs_() {
     });
   }
 
+    const filterKantor = e && e.parameter && (e.parameter.kantor || e.parameter.cabang || e.parameter.kantor_code) ? String(e.parameter.kantor || e.parameter.cabang || e.parameter.kantor_code).trim().toUpperCase() : '';
+  const filteredJobs = filterKantor && filterKantor !== 'ALL' && filterKantor !== 'SEMUA' ? jobs.filter(j => {
+    const jBranch = String(j.kantor_code || '').toUpperCase();
+    const targetBranch = filterKantor === 'JKT' ? 'PUSAT' : filterKantor;
+    return jBranch === targetBranch || String(j.kantor || '').toUpperCase().includes(targetBranch);
+  }) : jobs;
+
   return createJsonResponse_({
     status: 'success',
-    count: jobs.length,
-    data: jobs
+    count: filteredJobs.length,
+    data: filteredJobs
   });
 }
 
@@ -580,16 +587,21 @@ function handleAdvanceMilestone_(payload) {
     sheetData.getRange(targetRowIdx, colMap['tanggal_selesai'] + 1).setValue(nowStr.split(' ')[0]);
   }
 
-  // Tulis riwayat baru ke LOG_PROGRESS
-  const logId = 'LOG-' + idJo + '-' + nextM + '-' + Date.now();
+  // Tulis riwayat baru ke LOG_PROGRESS (8 Kolom Standar SSOT)
+  const kodeLacak = (colMap['kode_lacak'] !== undefined && currentRowValues[colMap['kode_lacak']]) ? String(currentRowValues[colMap['kode_lacak']]) : (payload.kode_lacak || '');
+  const executorNama = payload.eksekutor_nama || payload.nama || 'Staf Operasional';
+  const executorJabatan = payload.jabatan_cabang || payload.jabatan || 'Tim Teknis';
+  const progressNote = payload.catatan_progres || payload.catatan_internal || payload.note || (def.title + ' disahkan.');
+
   sheetLog.appendRow([
-    logId,
-    idJo,
-    nextM,
     nowStr,
+    idJo,
+    kodeLacak,
+    nextM,
     executorNik,
-    internalNote,
-    publicMsg
+    executorNama,
+    executorJabatan,
+    progressNote
   ]);
 
   return createJsonResponse_({
@@ -732,7 +744,7 @@ function handleSetupDatabase_() {
     sheetLog = ss.insertSheet(CONFIG_TRACKING.SHEET_LOG);
   }
   const headersLog = [
-    'id_log', 'id_jo', 'milestone_tujuan', 'timestamp', 'eksekutor_nik', 'catatan_internal', 'pesan_publik'
+    'timestamp', 'nomor_jo', 'kode_lacak', 'milestone_baru', 'nik_eksekutor', 'nama_eksekutor', 'jabatan_cabang', 'catatan_progres'
   ];
   sheetLog.getRange(1, 1, 1, headersLog.length).setValues([headersLog])
     .setBackground('#1e293b').setFontColor('#f8fafc').setFontWeight('bold');
