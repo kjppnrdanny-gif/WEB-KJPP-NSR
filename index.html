@@ -3947,15 +3947,18 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-semibold block">Instansi Pemohon:</span>
-              <strong id="pub-modal-instansi" class="text-white">PT Bank Tabungan Negara (Persero) Tbk</strong>
-              <p id="pub-modal-unit-kerja" class="text-[11px] text-sky-400">KC Jakarta Harmoni</p>
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-slate-400 uppercase font-semibold block">Pemberi Tugas (Client - SPI 103):</span>
+              <strong id="pub-modal-pemberi-tugas" class="text-white block">-</strong>
+              <p class="text-[11px] text-slate-400">Pengguna Laporan: <span id="pub-modal-pengguna-laporan" class="text-sky-300 font-medium">-</span></p>
+              <p id="pub-modal-unit-kerja" class="text-[10px] text-slate-500 font-mono">-</p>
+              <input type="hidden" id="pub-modal-instansi">
             </div>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-semibold block">Nama Debitur:</span>
-              <strong id="pub-modal-debitur" class="text-amber-300">PT Bangun Prima Perkasa</strong>
-              <p id="pub-modal-pic-contact" class="text-[11px] text-slate-400">PIC: Bambang Sudarsono (081288997766)</p>
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-slate-400 uppercase font-semibold block">Nama Debitur / Entitas:</span>
+              <strong id="pub-modal-debitur" class="text-amber-300 block">-</strong>
+              <p class="text-[11px] text-slate-300">PIC Pemberi Tugas: <span id="pub-modal-pic-contact" class="text-emerald-400 font-mono font-medium">-</span></p>
+              <p id="pub-modal-tujuan" class="text-[10px] text-slate-400 font-medium"></p>
             </div>
           </div>
 
@@ -7978,10 +7981,13 @@ function scrollKeLacakPenugasan(e) {
       document.getElementById('pub-modal-jo-number').textContent = job.jo_number || '-';
       const elKode = document.getElementById('pub-modal-kode-lacak'); if (elKode) { elKode.textContent = job.kode_lacak ? ('Kode: ' + job.kode_lacak) : ''; elKode.style.display = job.kode_lacak ? 'inline-flex' : 'none'; }
       document.getElementById('pub-modal-spk-number').textContent = job.spk_number || '-';
-      document.getElementById('pub-modal-instansi').textContent = job.instansi || '-';
-      document.getElementById('pub-modal-unit-kerja').textContent = job.unit_kerja || job.kantor || '-';
-      document.getElementById('pub-modal-debitur').textContent = job.debitur || '-';
-      document.getElementById('pub-modal-pic-contact').textContent = 'PIC: ' + (job.pic_pemohon || '-') + ' (' + (job.pic_contact || '-') + ')';
+      const elPem = document.getElementById('pub-modal-pemberi-tugas'); if (elPem) elPem.textContent = job.pemberi_tugas || job.instansi || '-';
+      const elPeng = document.getElementById('pub-modal-pengguna-laporan'); if (elPeng) elPeng.textContent = job.pengguna_laporan || job.pemberi_tugas || job.instansi || '-';
+      const elInst = document.getElementById('pub-modal-instansi'); if (elInst) elInst.textContent = job.pemberi_tugas || job.instansi || '-';
+      const elUnit = document.getElementById('pub-modal-unit-kerja'); if (elUnit) elUnit.textContent = job.unit_kerja || job.kantor || '-';
+      const elDeb = document.getElementById('pub-modal-debitur'); if (elDeb) elDeb.textContent = job.debitur || '-';
+      const elPic = document.getElementById('pub-modal-pic-contact'); if (elPic) elPic.textContent = (job.client_pic_name || job.pic_pemohon || '-') + ' (' + (job.client_pic_phone || job.pic_contact || '-') + ')';
+      const elTuj = document.getElementById('pub-modal-tujuan'); if (elTuj) elTuj.textContent = job.tujuan_penilaian ? ('Tujuan: ' + job.tujuan_penilaian) : '';
       document.getElementById('pub-modal-objek').textContent = job.jenis_properti + (job.luas_tanah ? ' • LT: ' + job.luas_tanah + ' / LB: ' + (job.luas_bangunan || '-') : '');
       document.getElementById('pub-modal-lokasi').textContent = job.lokasi_aset || '-';
       document.getElementById('pub-modal-sla-target').textContent = job.sla_deadline || '-';

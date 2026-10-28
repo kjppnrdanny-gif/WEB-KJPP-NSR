@@ -1,0 +1,49 @@
+import fs from 'node:fs';
+import { spawn } from 'node:child_process';
+
+async function main() {
+  const chrome = spawn('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+    '--headless=new', '--remote-debugging-port=9375', '--no-sandbox', '--disable-gpu', '--window-size=1280,1050', 'about:blank'
+  ]);
+  await new Promise(r => setTimeout(r, 2000));
+  const tRes = await fetch('http://127.0.0.1:9375/json/new?about:blank', { method: 'PUT' });
+  const tData = await tRes.json();
+  const ws = new globalThis.WebSocket(tData.webSocketDebuggerUrl);
+  await new Promise(r => ws.onopen = r);
+
+  let id = 1;
+  function send(method, params = {}) {
+    return new Promise((res) => {
+      const reqId = id++;
+      const handler = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.id === reqId) { ws.removeEventListener('message', handler); res(msg); }
+      };
+      ws.addEventListener('message', handler);
+      ws.send(JSON.stringify({ id: reqId, method, params }));
+    });
+  }
+
+  await send('Page.enable');
+  await send('Runtime.enable');
+  
+  await send('Page.navigate', { url: 'https://kjppnanangrahayu.com/portal-tracking.html' });
+  await new Promise(r => setTimeout(r, 3500));
+
+  await send('Runtime.evaluate', {
+    expression: `(() => {
+      const btn = document.querySelector('button[title*="Lihat 7 Milestone"]');
+      if (btn) btn.click();
+    })()`
+  });
+  await new Promise(r => setTimeout(r, 1200));
+
+  const shot = await send('Page.captureScreenshot', { format: 'png' });
+  fs.writeFileSync('C:/Users/HP/.gemini/antigravity/brain/5aa9abf1-bae3-4edf-b938-adfbb1b9bf9d/bukti_cpanel_live_portal_stepper_pic_card.png', Buffer.from(shot.result.data, 'base64'));
+  console.log('✓ Successfully captured bukti_cpanel_live_portal_stepper_pic_card.png');
+
+  ws.close();
+  chrome.kill();
+}
+
+main().catch(console.error);

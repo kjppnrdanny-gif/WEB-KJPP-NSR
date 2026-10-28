@@ -320,71 +320,160 @@
 
         <form id="form-registrasi-jo" onsubmit="eksekusiRegistrasiJO(event)" class="space-y-5">
           
-          <!-- Section 1: Informasi Dokumen & Instansi -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Nomor SPK / Surat Penugasan Bank <span class="text-rose-400">*</span></label>
-              <input type="text" id="reg-spk-number" required placeholder="Contoh: 045/BTN-JKT/SPK/X/2026" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+          <!-- Section 1: Informasi Dokumen & Lingkup Penugasan (SPI 103 & KEPI) -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-4">
+            <h3 class="text-xs font-extrabold uppercase text-amber-400 tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              Dasar Dokumen Penugasan &amp; Lingkup Penilaian (SPI 103)
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Nomor SPK / Surat Tugas Bank <span class="text-rose-400">*</span></label>
+                <input type="text" id="reg-spk-number" required placeholder="Contoh: 045/BTN-JKT/SPK/X/2026" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Tanggal SPK Terbit <span class="text-rose-400">*</span></label>
+                <input type="date" id="reg-spk-date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Tanggal SPK Terbit <span class="text-rose-400">*</span></label>
-              <input type="date" id="reg-spk-date" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Tujuan Penilaian (SPI 103) <span class="text-rose-400">*</span></label>
+                <input type="text" id="reg-tujuan-penilaian" list="list-tujuan-saran" required placeholder="Pilih atau ketik tujuan..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                <datalist id="list-tujuan-saran">
+                  <option value="Penjaminan Utang / Agunan Kredit">
+                  <option value="Pelaporan Keuangan (PSAK / IFRS)">
+                  <option value="Pengadaan Tanah (SPI 204)">
+                  <option value="Lelang / Eksekusi Hak Tanggungan">
+                  <option value="Transaksi Jual Beli / Akuisisi">
+                  <option value="Tujuan Internal Manajemen">
+                </datalist>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Klasifikasi Kompetensi Izin Objek <span class="text-rose-400">*</span></label>
+                <select id="reg-klasifikasi-izin-objek" onchange="periksaKepatuhanSpm()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+                  <option value="PS">PS - Properti Sederhana (Retail / Rumah / Ruko)</option>
+                  <option value="P">P - Properti Kompleks / Komersial / Industri / SPI 204</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Dokumen Kepemilikan / Bukti Hak</label>
+                <input type="text" id="reg-dokumen-kepemilikan" placeholder="Contoh: SHM No. 402, SHGB No. 120, Girik" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Nomor Dokumen Lingkup Penugasan (LP)</label>
+                <input type="text" id="reg-lingkup-penugasan" placeholder="Contoh: 0416/2.0160-00/LP/X/2026" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Tanggal Dokumen Lingkup Penugasan</label>
+                <input type="date" id="reg-tgl-lingkup" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+              </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Lingkup Penugasan / Dokumen LP</label>
-              <input type="text" id="reg-lingkup-penugasan" placeholder="Contoh: Penilaian Agunan Properti / 0416/2.0160-00/LP/X/2026" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Tanggal Dokumen Lingkup Penugasan</label>
-              <input type="date" id="reg-tgl-lingkup" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
-            </div>
-          </div>
+          <!-- Section 2: Pemisahan Entitas Penugasan & Kontak Resmi (KEPI & SPI 103) -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-4">
+            <h3 class="text-xs font-extrabold uppercase text-amber-400 tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              Pemisahan Entitas Klien &amp; Jalur Kontak Resmi (Kerahasiaan KEPI)
+            </h3>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Instansi Pemohon (Isian Bebas) <span class="text-rose-400">*</span></label>
-              <input type="text" id="reg-instansi" list="list-instansi-saran" required placeholder="Ketik atau pilih instansi..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
-              <datalist id="list-instansi-saran">
-                <option value="PT Bank Tabungan Negara (Persero) Tbk">
-                <option value="PT Bank Mandiri (Persero) Tbk">
-                <option value="PT Bank Rakyat Indonesia (Persero) Tbk">
-                <option value="PT Bank Central Asia Tbk">
-                <option value="PT Bank Negara Indonesia (Persero) Tbk">
-                <option value="PT Bank Syariah Indonesia Tbk">
-                <option value="PT Bank DKI">
-                <option value="PT Bank Nagari">
-                <option value="PT Bank Sumsel Babel">
-                <option value="BUMN / Instansi Korporasi Lain">
-              </datalist>
+            <!-- Entitas Klien -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Pemberi Tugas (Client) <span class="text-rose-400">*</span></label>
+                <input type="text" id="reg-pemberi-tugas" list="list-instansi-saran" oninput="sinkronkanPenggunaLaporan()" required placeholder="Pihak yang berkontrak dengan KJPP..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                <datalist id="list-instansi-saran">
+                  <option value="PT Bank Tabungan Negara (Persero) Tbk">
+                  <option value="PT Bank Mandiri (Persero) Tbk">
+                  <option value="PT Bank Rakyat Indonesia (Persero) Tbk">
+                  <option value="PT Bank Central Asia Tbk">
+                  <option value="PT Bank Negara Indonesia (Persero) Tbk">
+                  <option value="PT Bank Syariah Indonesia Tbk">
+                  <option value="PT Bank DKI">
+                  <option value="PT Bank Nagari">
+                  <option value="PT Bank Sumsel Babel">
+                  <option value="PT PLN (Persero) Unit Induk Pembangunan">
+                  <option value="BUMN / Instansi Korporasi Lain">
+                </datalist>
+                <input type="hidden" id="reg-instansi">
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-xs font-bold text-slate-300">Pengguna Laporan (Intended User) <span class="text-rose-400">*</span></label>
+                  <label class="inline-flex items-center gap-1 text-[10px] text-amber-400 cursor-pointer font-semibold">
+                    <input type="checkbox" id="check-pengguna-sama" onchange="togglePenggunaSama(this.checked)" checked class="rounded border-slate-700 bg-slate-900 text-amber-400 focus:ring-0">
+                    <span>Sama dg Klien</span>
+                  </label>
+                </div>
+                <input type="text" id="reg-pengguna-laporan" required placeholder="Pengguna laporan yang dituju..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Nama Debitur / Objek Entitas <span class="text-rose-400">*</span></label>
+                <input type="text" id="reg-debitur" required placeholder="Contoh: PT Bangun Prima Perkasa / Hendra Wijaya" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Unit Kerja / Cabang Bank</label>
-              <input type="text" id="reg-unit-kerja" placeholder="Contoh: KC Jakarta Kuningan" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Kantor Pelaksana Penilaian <span class="text-rose-400">*</span></label>
-              <select id="reg-kantor" onchange="sesuaikanDropdownWilayah(this.value)" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
-                <option value="Kantor Pusat Jakarta">Kantor Pusat Jakarta</option>
-                <option value="Cabang Bandung">Cabang Bandung</option>
-                <option value="Cabang Padang">Cabang Padang</option>
-                <option value="Cabang Makassar">Cabang Makassar</option>
-                <option value="Cabang Palembang">Cabang Palembang</option>
-              </select>
-            </div>
-          </div>
 
-          <!-- Section 2: Informasi Debitur & Objek Agunan -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Nama Debitur / Pemohon <span class="text-rose-400">*</span></label>
-              <input type="text" id="reg-debitur" required placeholder="Contoh: PT Bangun Prima Perkasa" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Unit Kerja / Cabang Bank</label>
+                <input type="text" id="reg-unit-kerja" placeholder="Contoh: KC Jakarta Harmoni / Divisi Kredit Komersial" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Kantor Pelaksana Penilaian <span class="text-rose-400">*</span></label>
+                <select id="reg-kantor" onchange="sesuaikanDropdownWilayah(this.value)" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+                  <option value="Kantor Pusat Jakarta">Kantor Pusat Jakarta</option>
+                  <option value="Cabang Bandung">Cabang Bandung</option>
+                  <option value="Cabang Padang">Cabang Padang</option>
+                  <option value="Cabang Makassar">Cabang Makassar</option>
+                  <option value="Cabang Palembang">Cabang Palembang</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-300 mb-1.5">Nomor WhatsApp PIC Debitur <span class="text-rose-400">*</span></label>
-              <input type="text" id="reg-pic-contact" required placeholder="Contoh: 081288997766" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+
+            <!-- Pemisahan 2 Jalur Kontak WhatsApp -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              
+              <!-- Kontak Pemberi Tugas (Eksklusif Penerima Kode Lacak) -->
+              <div class="p-3.5 rounded-xl bg-slate-900/90 border border-amber-500/30 space-y-2">
+                <div class="flex items-center gap-1.5 text-amber-300 font-bold text-xs">
+                  <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                  <span>Kontak Resmi Pemberi Tugas (Penerima Kode Lacak)</span>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-tight">Khusus Penerima Resmi Kode Lacak Penugasan (TRK-...). Sesuai KEPI, kode lacak eksklusif hanya untuk Pemberi Tugas.</p>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama PIC Pemberi Tugas <span class="text-rose-400">*</span></label>
+                  <input type="text" id="reg-client-pic-name" required placeholder="Contoh: Rian Pratama, S.E. (Loan Officer)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 mb-1">No. WhatsApp PIC Pemberi Tugas <span class="text-rose-400">*</span></label>
+                  <input type="text" id="reg-client-pic-phone" required placeholder="Contoh: 081288997766" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                  <input type="hidden" id="reg-pic-contact">
+                </div>
+              </div>
+
+              <!-- Kontak Pendamping Lapangan (Hanya Koordinasi Survei) -->
+              <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+                <div class="flex items-center gap-1.5 text-slate-200 font-bold text-xs">
+                  <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  <span>Kontak Pendamping Lapangan / Debitur</span>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-tight">Khusus Koordinasi Jadwal Survei Fisik M-03. <strong class="text-rose-300 font-normal">Tidak Diberikan Kode Lacak Penugasan</strong>.</p>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama Pendamping Lapangan / Debitur</label>
+                  <input type="text" id="reg-survey-contact-name" placeholder="Contoh: Bambang Sudarsono (Debitur / Pengelola)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 mb-1">No. WhatsApp Pendamping Lapangan</label>
+                  <input type="text" id="reg-survey-contact-phone" placeholder="Contoh: 081399887711" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -453,7 +542,7 @@
               <!-- PENILAI PUBLIK BERIZIN RESMI DROPDOWN -->
               <div>
                 <label class="block text-xs font-bold text-slate-300 mb-1.5">Penilai Publik Berizin Kemenkeu RI <span class="text-rose-400">*</span></label>
-                <select id="reg-penilai" onchange="cekPenilaiCustom(this.value)" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
+                <select id="reg-penilai" onchange="cekPenilaiCustom(this.value); periksaKepatuhanSpm();" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
                   <option value="Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.) - Pemimpin Rekan (Pusat / P-1.09.00218)">Ir. Nanang Rahayu, M.Ec.Dev. (Pusat / P-1.09.00218)</option>
                   <option value="Deni Siswandi, S.T., MAPPI (Cert.) - Pemimpin Cabang Bandung / Rekan (P-1.20.00581)">Deni Siswandi, S.T. (Bandung / P-1.20.00581)</option>
                   <option value="Hernita, S.Si., MAPPI (Cert.) - Pemimpin Cabang Padang / Rekan (PS-1.15.00046)">Hernita, S.Si. (Padang / PS-1.15.00046)</option>
@@ -484,6 +573,15 @@
               </div>
             </div>
 
+          </div>
+
+          <!-- Guardrail Kepatuhan SPM Banner -->
+          <div id="warning-spm-klasifikasi" class="hidden p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-300 text-xs flex items-start gap-2.5">
+            <svg class="w-5 h-5 text-rose-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div>
+              <strong class="text-rose-200 block mb-0.5">Peringatan Kepatuhan SPM (Klasifikasi Kompetensi Izin):</strong>
+              <span id="warning-spm-text">Objek klasifikasi Properti (P) wajib diotorisasi oleh Penilai Publik berizin P (Ir. Nanang Rahayu atau Deni Siswandi). Penilai Publik berizin PS hanya berwenang untuk Properti Sederhana (PS).</span>
+            </div>
           </div>
 
           <!-- Submit Button -->
@@ -546,16 +644,30 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-semibold block">Instansi Pemohon:</span>
-              <strong id="modal-instansi" class="text-white">PT Bank Tabungan Negara (Persero) Tbk</strong>
-              <p id="modal-unit-kerja" class="text-[11px] text-sky-400">KC Jakarta Harmoni</p>
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-slate-400 uppercase font-semibold block">Pemberi Tugas (Client - SPI 103):</span>
+              <strong id="modal-pemberi-tugas" class="text-white block">-</strong>
+              <p class="text-[11px] text-slate-400">Pengguna Laporan: <span id="modal-pengguna-laporan" class="text-sky-300 font-medium">-</span></p>
+              <p id="modal-unit-kerja" class="text-[10px] text-slate-500 font-mono">-</p>
             </div>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-semibold block">Nama Debitur:</span>
-              <strong id="modal-debitur" class="text-amber-300">PT Bangun Prima Perkasa</strong>
-              <p id="modal-pic-contact" class="text-[11px] text-slate-400">PIC: Bambang Sudarsono (081288997766)</p>
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-slate-400 uppercase font-semibold block">Nama Debitur / Entitas:</span>
+              <strong id="modal-debitur" class="text-amber-300 block">-</strong>
+              <p class="text-[11px] text-slate-300">PIC Pemberi Tugas: <span id="modal-client-pic" class="text-emerald-400 font-mono font-medium">-</span></p>
+              <p class="text-[10px] text-slate-400">Pendamping Survei: <span id="modal-survey-pic" class="text-slate-300">-</span></p>
             </div>
+          </div>
+
+          <!-- Tombol WhatsApp Aksi Langsung Modal -->
+          <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800/80">
+            <button type="button" onclick="if(activeJob) kirimWaKodeLacak(activeJob.id)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition active:scale-95" title="Kirim Kode Lacak TRK eksklusif ke Pemberi Tugas">
+              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
+              <span>Kirim Kode Lacak ke Pemberi Tugas</span>
+            </button>
+            <button type="button" id="btn-modal-survey-wa" onclick="if(activeJob) hubungiPendampingSurvei(activeJob.id)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white font-medium text-xs border border-slate-700 transition active:scale-95" title="Koordinasi jadwal survei fisik tanpa kode lacak">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>Hubungi Pendamping Survei</span>
+            </button>
           </div>
 
           <div class="pt-2 border-t border-slate-800/80 text-[11px] text-slate-300 space-y-1">
@@ -713,7 +825,7 @@
         <!-- Target Milestone Selection -->
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1.5">Pilih Milestone Target Baru <span class="text-rose-400">*</span></label>
-          <select id="update-target-milestone" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+          <select id="update-target-milestone" onchange="sesuaikanFieldMilestone(this.value)" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
             <option value="M-01">M-01: Registrasi SPK &amp; Terbit Kode Lacak (Admin Pusat/Cabang)</option>
             <option value="M-02">M-02: Surat Tugas &amp; Penunjukan Tim (Manajemen / Kepala Cabang)</option>
             <option value="M-03">M-03: Inspeksi &amp; Survei Fisik Lapangan (Penilai Pelaksana / Surveyor)</option>
@@ -722,6 +834,46 @@
             <option value="M-06">M-06: Otorisasi Opini &amp; Penomoran Laporan (5 Penilai Publik / NoLap)</option>
             <option value="M-07">M-07: Serah Terima Laporan Final ke Klien (Admin Pusat &amp; Cabang)</option>
           </select>
+        </div>
+
+        <!-- Dynamic Field M-03 & M-04: Tanggal Penilaian & Dokumen Kepemilikan -->
+        <div id="container-field-m03-m04" class="hidden p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5 text-xs">
+          <div class="flex items-center gap-1.5 text-amber-400 font-bold text-[11px] uppercase tracking-wider">
+            <span>Substansi Survei &amp; Kertas Kerja (SPI 103)</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Tanggal Penilaian (Cut-Off Valuation Date)</label>
+              <input type="date" id="update-tanggal-penilaian" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400">
+            </div>
+            <div>
+              <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Dokumen Kepemilikan Terverifikasi</label>
+              <input type="text" id="update-dokumen-kepemilikan" placeholder="Cth: SHM No. 402/Kuningan" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Field M-06: NoLap & Otorisasi Opini Nilai (Internal Eksklusif) -->
+        <div id="container-field-m06" class="hidden p-3.5 rounded-xl bg-slate-950 border border-amber-500/40 space-y-2.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Substansi NoLap &amp; Opini Nilai (SPI 105)</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30">INTERNAL STAF SAJA</span>
+          </div>
+          <div>
+            <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Nomor Laporan Resmi (NoLap) <span class="text-rose-400">*</span></label>
+            <input type="text" id="update-nomor-laporan-resmi" placeholder="Contoh: 0042/2.0160-01/PI/X/2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Kesimpulan Nilai Pasar / NPW (Rp) <span class="text-rose-400">*</span></label>
+              <input type="text" id="update-opini-nilai-pasar" placeholder="Contoh: 2.850.000.000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-400">
+            </div>
+            <div>
+              <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Indikasi Nilai Likuidasi (Rp)</label>
+              <input type="text" id="update-opini-nilai-likuidasi" placeholder="Contoh: 2.280.000.000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-sky-300 focus:outline-none focus:border-amber-400">
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-tight">Sesuai KEPI &amp; SPI 105, nilai pasar &amp; likuidasi ini otomatis diseka (di-strip) dari endpoint publik.</p>
         </div>
 
         <!-- NIK & PIN INPUT (OPSI B) -->
@@ -1255,7 +1407,10 @@
               <div class="w-28 bg-slate-800 rounded-full h-1.5 mt-1.5 overflow-hidden">
                 <div class="${isDone ? "bg-emerald-500" : "bg-amber-400"} h-1.5 rounded-full transition-all" style="width: ${j.progress_percent}%;"></div>
               </div>
-              <span class="text-[9px] font-mono text-slate-400 mt-0.5 block">${j.progress_percent}% Progres</span>
+              <div class="flex items-center justify-between text-[9px] mt-0.5">
+                <span class="font-mono text-slate-400">${j.progress_percent}%</span>
+                <span class="text-amber-300 font-semibold truncate max-w-[130px]" title="PIC Tahap: ${getPicAssignment(j.current_milestone, j).name}">PIC: ${getPicAssignment(j.current_milestone, j).name}</span>
+              </div>
             </td>
             <td class="py-3 px-4 text-center whitespace-nowrap">
               <div class="flex items-center justify-center gap-1.5">
@@ -1303,11 +1458,110 @@
       }
     }
 
+    
+    // Helper SPI 103: Sinkronisasi Pengguna Laporan & Klien
+    function togglePenggunaSama(checked) {
+      const penggunaInput = document.getElementById('reg-pengguna-laporan');
+      const pemberiInput = document.getElementById('reg-pemberi-tugas');
+      if (!penggunaInput || !pemberiInput) return;
+      if (checked) {
+        penggunaInput.value = pemberiInput.value;
+        penggunaInput.readOnly = true;
+        penggunaInput.classList.add('opacity-75');
+      } else {
+        penggunaInput.readOnly = false;
+        penggunaInput.classList.remove('opacity-75');
+        penggunaInput.focus();
+      }
+    }
+
+    function sinkronkanPenggunaLaporan() {
+      const check = document.getElementById('check-pengguna-sama');
+      const pemberiInput = document.getElementById('reg-pemberi-tugas');
+      const penggunaInput = document.getElementById('reg-pengguna-laporan');
+      if (check && check.checked && pemberiInput && penggunaInput) {
+        penggunaInput.value = pemberiInput.value;
+      }
+      const instansiHidden = document.getElementById('reg-instansi');
+      if (instansiHidden && pemberiInput) {
+        instansiHidden.value = pemberiInput.value;
+      }
+    }
+
+    // Guardrail SPM: Klasifikasi Kompetensi Izin Objek vs Penilai Publik
+    function periksaKepatuhanSpm() {
+      const klasifikasi = document.getElementById('reg-klasifikasi-izin-objek')?.value || 'PS';
+      const penilai = document.getElementById('reg-penilai')?.value || '';
+      const warningEl = document.getElementById('warning-spm-klasifikasi');
+      const warningText = document.getElementById('warning-spm-text');
+      if (!warningEl) return;
+
+      const isPenilaiPS = penilai.includes('PS-1.') || penilai.includes('Hernita') || penilai.includes('Amin Sade') || penilai.includes('Dharma Priyanto');
+
+      if (klasifikasi === 'P' && isPenilaiPS) {
+        warningEl.classList.remove('hidden');
+        if (warningText) {
+          warningText.innerHTML = 'Objek berklasifikasi Properti (P) wajib ditandatangani oleh Penilai Publik berizin P (Ir. Nanang Rahayu atau Deni Siswandi). Penilai yang Anda pilih berizin PS (Properti Sederhana) sehingga tidak memenuhi syarat kompetensi izin SPI/KEPI.';
+        }
+      } else {
+        warningEl.classList.add('hidden');
+      }
+    }
+
+    // Dynamic Fields Modal Update Milestone
+    function sesuaikanFieldMilestone(targetM) {
+      const m3m4Box = document.getElementById('container-field-m03-m04');
+      const m6Box = document.getElementById('container-field-m06');
+      
+      if (m3m4Box) {
+        if (targetM === 'M-03' || targetM === 'M-04') {
+          m3m4Box.classList.remove('hidden');
+        } else {
+          m3m4Box.classList.add('hidden');
+        }
+      }
+
+      if (m6Box) {
+        if (targetM === 'M-06') {
+          m6Box.classList.remove('hidden');
+        } else {
+          m6Box.classList.add('hidden');
+        }
+      }
+    }
+
+    // Hubungi Pendamping Lapangan (Tanpa Kode Lacak)
+    function hubungiPendampingSurvei(joId) {
+      const job = globalJobs.find(x => x.id === joId || x.jo_number === joId);
+      if (!job) return alert('Data penugasan tidak ditemukan.');
+      
+      let surveyPhone = (job.survey_contact_phone || '').replace(/[^0-9]/g, '');
+      if (surveyPhone.startsWith('0')) surveyPhone = '62' + surveyPhone.slice(1);
+      if (!surveyPhone || surveyPhone.length < 8) {
+        return alert('Nomor WhatsApp pendamping survei fisik belum didaftarkan untuk penugasan ini.');
+      }
+
+      const surveyName = job.survey_contact_name || 'Bapak/Ibu Pendamping Lapangan';
+      const pesan = `Halo Bapak/Ibu ${surveyName},
+Saya dari Tim Penilai Properti KJPP Nanang Rahayu Sigit Paryanto & Rekan (KJPP NSR).
+
+Kami ingin berkoordinasi mengenai jadwal konfirmasi dan pendampingan inspeksi fisik lapangan untuk penugasan penilaian properti:
+• Debitur / Objek: ${job.debitur}
+• Objek: ${job.jenis_properti}
+• Lokasi: ${job.lokasi_aset}
+
+Mohon informasi kesiapan jadwal dan waktu pelaksanaan inspeksi di lokasi. Terima kasih.`;
+
+      const waUrl = `https://wa.me/${surveyPhone}?text=${encodeURIComponent(pesan)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    }
+
     function kirimWaKodeLacak(joId) {
       const job = globalJobs.find(x => x.id === joId || x.jo_number === joId);
       if (!job) return alert('Data penugasan tidak ditemukan.');
 
-      let picContact = (job.pic_contact || '').replace(/[^0-9]/g, '');
+      // Sesuai KEPI & SPI 103: HANYA kirim Kode Lacak ke Kontak Resmi Pemberi Tugas (client_pic_phone)
+      let picContact = (job.client_pic_phone || job.pic_contact || '').replace(/[^0-9]/g, '');
       if (picContact.startsWith('0')) {
         picContact = '62' + picContact.slice(1);
       }
@@ -1315,18 +1569,24 @@
         picContact = '6285110513157';
       }
 
-      const picName = job.pic_pemohon || 'Bapak/Ibu PIC Pemohon';
+      const picName = job.client_pic_name || job.pic_pemohon || 'Bapak/Ibu PIC Pemberi Tugas';
+      const pemberiTugas = job.pemberi_tugas || job.instansi || 'Pemberi Tugas';
+      const penggunaLaporan = job.pengguna_laporan || pemberiTugas;
+      const kodeLacak = job.kode_lacak || job.jo_number;
+
       const pesan = `Yth. Bapak/Ibu ${picName},
 Terima kasih atas kepercayaan penugasan penilaian properti kepada KJPP Nanang Rahayu Sigit Paryanto & Rekan.
 
 Penugasan Anda telah resmi teregistrasi pada sistem OPINI NSR:
-• No. SPK / JO: ${job.jo_number}
-• Debitur: ${job.debitur}
+• No. SPK / JO: ${job.jo_number} (${job.spk_number || '-'})
+• Pemberi Tugas: ${pemberiTugas}
+• Pengguna Laporan: ${penggunaLaporan}
+• Debitur / Entitas: ${job.debitur}
 • Objek & Lokasi: ${job.jenis_properti} - ${job.lokasi_aset}
-• Kode Unik Lacak: ${job.kode_lacak || '-'}
+• Kode Unik Lacak: ${kodeLacak}
 
 Anda dapat memantau tahapan progres pekerjaan secara langsung dan real-time melalui tautan berikut:
-https://kjppnanangrahayu.com?track=${job.kode_lacak || job.jo_number}
+https://kjppnanangrahayu.com/?track=${encodeURIComponent(kodeLacak)}
 
 Salam hormat,
 Administrasi Operasional KJPP NSR`;
@@ -1369,10 +1629,30 @@ Administrasi Operasional KJPP NSR`;
       }
       document.getElementById('modal-spk-number').textContent = job.spk_number || '-';
       document.getElementById('modal-kantor-tag').textContent = job.kantor || 'Kantor Pusat Jakarta';
-      document.getElementById('modal-instansi').textContent = job.instansi;
-      document.getElementById('modal-unit-kerja').textContent = job.unit_kerja || job.kantor;
-      document.getElementById('modal-debitur').textContent = job.debitur;
-      document.getElementById('modal-pic-contact').textContent = 'PIC: ' + (job.pic_pemohon || '-') + ' (' + (job.pic_contact || '-') + ')';
+      // SPI 103 Entitas Penugasan & Kontak
+      const elPemberi = document.getElementById('modal-pemberi-tugas');
+      if (elPemberi) elPemberi.textContent = job.pemberi_tugas || job.instansi || '-';
+      
+      const elPengguna = document.getElementById('modal-pengguna-laporan');
+      if (elPengguna) elPengguna.textContent = job.pengguna_laporan || job.pemberi_tugas || job.instansi || '-';
+
+      const elInstansiOld = document.getElementById('modal-instansi');
+      if (elInstansiOld) elInstansiOld.textContent = job.pemberi_tugas || job.instansi || '-';
+
+      const elUnit = document.getElementById('modal-unit-kerja');
+      if (elUnit) elUnit.textContent = job.unit_kerja || job.kantor || '-';
+
+      const elDeb = document.getElementById('modal-debitur');
+      if (elDeb) elDeb.textContent = job.debitur || '-';
+
+      const elClientPic = document.getElementById('modal-client-pic');
+      if (elClientPic) elClientPic.textContent = (job.client_pic_name || job.pic_pemohon || '-') + ' (' + (job.client_pic_phone || job.pic_contact || '-') + ')';
+
+      const elSurveyPic = document.getElementById('modal-survey-pic');
+      if (elSurveyPic) elSurveyPic.textContent = job.survey_contact_name ? (job.survey_contact_name + ' (' + (job.survey_contact_phone || '-') + ')') : 'Sama dengan Debitur';
+
+      const elPicContactOld = document.getElementById('modal-pic-contact');
+      if (elPicContactOld) elPicContactOld.textContent = 'PIC: ' + (job.client_pic_name || job.pic_pemohon || '-') + ' (' + (job.client_pic_phone || job.pic_contact || '-') + ')';
       document.getElementById('modal-objek').textContent = job.jenis_properti + (job.luas_tanah ? ' • LT: ' + job.luas_tanah + ' / LB: ' + job.luas_bangunan : '');
       document.getElementById('modal-lokasi').textContent = job.lokasi_aset;
       document.getElementById('modal-sla-target').textContent = job.sla_deadline;
@@ -1542,7 +1822,27 @@ Administrasi Operasional KJPP NSR`;
       const mKeys = ['M-01', 'M-02', 'M-03', 'M-04', 'M-05', 'M-06', 'M-07'];
       const curIdx = mKeys.indexOf(job.current_milestone);
       const nextM = mKeys[Math.min(mKeys.length - 1, curIdx + 1)];
-      document.getElementById('update-target-milestone').value = nextM;
+      const targetSelect = document.getElementById('update-target-milestone');
+      if (targetSelect) {
+        targetSelect.value = nextM;
+        sesuaikanFieldMilestone(nextM);
+      }
+
+      // Pre-fill SPI dynamic fields
+      const tglPenEl = document.getElementById('update-tanggal-penilaian');
+      if (tglPenEl) tglPenEl.value = job.tanggal_penilaian || new Date().toISOString().split('T')[0];
+
+      const dokHakEl = document.getElementById('update-dokumen-kepemilikan');
+      if (dokHakEl) dokHakEl.value = job.dokumen_kepemilikan || '';
+
+      const noLapEl = document.getElementById('update-nomor-laporan-resmi');
+      if (noLapEl) noLapEl.value = job.nomor_laporan_resmi || '';
+
+      const nilaiPasarEl = document.getElementById('update-opini-nilai-pasar');
+      if (nilaiPasarEl) nilaiPasarEl.value = job.opini_nilai_pasar || '';
+
+      const nilaiLiqEl = document.getElementById('update-opini-nilai-likuidasi');
+      if (nilaiLiqEl) nilaiLiqEl.value = job.opini_nilai_likuidasi || '';
 
       const titleEl = document.getElementById('modal-update-milestone-title');
       if (titleEl) {
@@ -1577,7 +1877,12 @@ Administrasi Operasional KJPP NSR`;
         target_milestone: document.getElementById('update-target-milestone').value,
         nik: document.getElementById('update-auth-nik').value.trim(),
         pin: document.getElementById('update-auth-pin').value.trim(),
-        note: document.getElementById('update-auth-note').value.trim()
+        note: document.getElementById('update-auth-note').value.trim(),
+        tanggal_penilaian: document.getElementById('update-tanggal-penilaian')?.value || '',
+        dokumen_kepemilikan: document.getElementById('update-dokumen-kepemilikan')?.value.trim() || '',
+        nomor_laporan_resmi: document.getElementById('update-nomor-laporan-resmi')?.value.trim() || '',
+        opini_nilai_pasar: document.getElementById('update-opini-nilai-pasar')?.value.trim() || '',
+        opini_nilai_likuidasi: document.getElementById('update-opini-nilai-likuidasi')?.value.trim() || ''
       };
 
       try {
@@ -1655,19 +1960,34 @@ Administrasi Operasional KJPP NSR`;
       const s = joSuggestions.find(x => x.id_jo === joId);
       if (!s) return;
 
-      // Auto-populate seluruh field (Tetap isian bebas dan dapat diedit fleksibel)
-      document.getElementById('reg-instansi').value = s.instansi || '';
-      document.getElementById('reg-spk-number').value = s.nomor_spk || '';
-      document.getElementById('reg-spk-date').value = s.tanggal_spk || new Date().toISOString().split('T')[0];
-      document.getElementById('reg-lingkup-penugasan').value = s.lingkup_penugasan || '';
-      document.getElementById('reg-tgl-lingkup').value = s.tanggal_lingkup || (s.tanggal_spk || new Date().toISOString().split('T')[0]);
-      document.getElementById('reg-unit-kerja').value = s.unit_kerja || '';
-      document.getElementById('reg-debitur').value = s.debitur || '';
-      document.getElementById('reg-pic-contact').value = s.pic_contact || '';
-      document.getElementById('reg-jenis-properti').value = s.jenis_properti || 'Tanah & Bangunan';
-      document.getElementById('reg-luas-tanah').value = s.luas_tanah || '';
-      document.getElementById('reg-luas-bangunan').value = s.luas_bangunan || '';
-      document.getElementById('reg-lokasi-aset').value = s.lokasi_aset || '';
+      // Auto-populate seluruh field SPI 103 (Tetap isian bebas dan dapat diedit fleksibel)
+      const pTugas = s.pemberi_tugas || s.instansi || '';
+      const pLaporan = s.pengguna_laporan || pTugas;
+      const cPicPhone = s.client_pic_phone || s.pic_contact || '';
+      const cPicName = s.client_pic_name || s.pic_pemohon || '';
+      const sPicPhone = s.survey_contact_phone || '';
+      const sPicName = s.survey_contact_name || '';
+
+      const elPemberi = document.getElementById('reg-pemberi-tugas'); if (elPemberi) elPemberi.value = pTugas;
+      const elPengguna = document.getElementById('reg-pengguna-laporan'); if (elPengguna) elPengguna.value = pLaporan;
+      const elInstansi = document.getElementById('reg-instansi'); if (elInstansi) elInstansi.value = pTugas;
+      const elSpk = document.getElementById('reg-spk-number'); if (elSpk) elSpk.value = s.nomor_spk || s.spk_number || '';
+      const elSpkDate = document.getElementById('reg-spk-date'); if (elSpkDate) elSpkDate.value = s.tanggal_spk || s.spk_date || new Date().toISOString().split('T')[0];
+      const elTujuan = document.getElementById('reg-tujuan-penilaian'); if (elTujuan) elTujuan.value = s.tujuan_penilaian || 'Penjaminan Utang / Agunan Kredit';
+      const elKlas = document.getElementById('reg-klasifikasi-izin-objek'); if (elKlas) elKlas.value = s.klasifikasi_izin_objek || 'PS';
+      const elDok = document.getElementById('reg-dokumen-kepemilikan'); if (elDok) elDok.value = s.dokumen_kepemilikan || '';
+      const elLingkup = document.getElementById('reg-lingkup-penugasan'); if (elLingkup) elLingkup.value = s.lingkup_penugasan || '';
+      const elTglLingkup = document.getElementById('reg-tgl-lingkup'); if (elTglLingkup) elTglLingkup.value = s.tanggal_lingkup || (s.tanggal_spk || new Date().toISOString().split('T')[0]);
+      const elUnit = document.getElementById('reg-unit-kerja'); if (elUnit) elUnit.value = s.unit_kerja || '';
+      const elDebitur = document.getElementById('reg-debitur'); if (elDebitur) elDebitur.value = s.debitur || '';
+      const elClientPic = document.getElementById('reg-client-pic-name'); if (elClientPic) elClientPic.value = cPicName;
+      const elClientPhone = document.getElementById('reg-client-pic-phone'); if (elClientPhone) elClientPhone.value = cPicPhone;
+      const elSurveyPic = document.getElementById('reg-survey-contact-name'); if (elSurveyPic) elSurveyPic.value = sPicName;
+      const elSurveyPhone = document.getElementById('reg-survey-contact-phone'); if (elSurveyPhone) elSurveyPhone.value = sPicPhone;
+      const elJenis = document.getElementById('reg-jenis-properti'); if (elJenis) elJenis.value = s.jenis_properti || 'Tanah & Bangunan';
+      const elLuasT = document.getElementById('reg-luas-tanah'); if (elLuasT) elLuasT.value = s.luas_tanah || '';
+      const elLuasB = document.getElementById('reg-luas-bangunan'); if (elLuasB) elLuasB.value = s.luas_bangunan || '';
+      const elLokasi = document.getElementById('reg-lokasi-aset'); if (elLokasi) elLokasi.value = s.lokasi_aset || '';
 
       // Tentukan kantor pelaksana
       const kantorEl = document.getElementById('reg-kantor');
@@ -1748,16 +2068,37 @@ Administrasi Operasional KJPP NSR`;
         penilaiVal = document.getElementById('reg-penilai-custom').value.trim() || 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
       }
 
+      const pemberiTugas = (document.getElementById('reg-pemberi-tugas')?.value || document.getElementById('reg-instansi')?.value || '').trim();
+      const penggunaLaporan = (document.getElementById('reg-pengguna-laporan')?.value || pemberiTugas).trim();
+      const clientPicName = (document.getElementById('reg-client-pic-name')?.value || '').trim();
+      const clientPicPhone = (document.getElementById('reg-client-pic-phone')?.value || '').trim();
+      const surveyContactName = (document.getElementById('reg-survey-contact-name')?.value || '').trim();
+      const surveyContactPhone = (document.getElementById('reg-survey-contact-phone')?.value || '').trim();
+      const tujuanPenilaian = (document.getElementById('reg-tujuan-penilaian')?.value || 'Penjaminan Utang / Agunan Kredit').trim();
+      const klasifikasiIzin = document.getElementById('reg-klasifikasi-izin-objek')?.value || 'PS';
+      const dokumenKepemilikan = (document.getElementById('reg-dokumen-kepemilikan')?.value || '').trim();
+
       const payload = {
+        pemberi_tugas: pemberiTugas,
+        pengguna_laporan: penggunaLaporan,
+        instansi: pemberiTugas,
+        client_name: pemberiTugas,
+        client_pic_name: clientPicName,
+        client_pic_phone: clientPicPhone,
+        pic_pemohon: clientPicName,
+        pic_contact: clientPicPhone,
+        survey_contact_name: surveyContactName,
+        survey_contact_phone: surveyContactPhone,
+        tujuan_penilaian: tujuanPenilaian,
+        klasifikasi_izin_objek: klasifikasiIzin,
+        dokumen_kepemilikan: dokumenKepemilikan,
         spk_number: document.getElementById('reg-spk-number').value.trim(),
         spk_date: document.getElementById('reg-spk-date').value,
         lingkup_penugasan: document.getElementById('reg-lingkup-penugasan').value.trim(),
         tanggal_lingkup: document.getElementById('reg-tgl-lingkup').value,
-        instansi: document.getElementById('reg-instansi').value.trim(),
         unit_kerja: document.getElementById('reg-unit-kerja').value.trim(),
         kantor: document.getElementById('reg-kantor').value,
         debitur: document.getElementById('reg-debitur').value.trim(),
-        pic_contact: document.getElementById('reg-pic-contact').value.trim(),
         jenis_properti: document.getElementById('reg-jenis-properti').value.trim(),
         luas_tanah: document.getElementById('reg-luas-tanah').value.trim(),
         luas_bangunan: document.getElementById('reg-luas-bangunan').value.trim(),
@@ -1779,10 +2120,19 @@ Administrasi Operasional KJPP NSR`;
         btn.textContent = 'Daftarkan Penugasan & Terbitkan JO';
 
         if (res && res.status === 'success') {
-          alert('✓ Sukses! Job Order baru berhasil diterbitkan:\n\n• Nomor JO: ' + res.data.jo_number + '\n• Kode Lacak Unik: ' + (res.data.kode_lacak || '-') + '\n• Debitur: ' + (res.data.debitur || '-') + '\n• Kantor: ' + (res.data.kantor || '-') + '\n\nKode Lacak ini dapat diberikan langsung kepada PIC Pemohon / Debitur untuk melacak penugasan di halaman beranda.');
+          newlyCreatedJobForDispatch = res.data;
+
+          // Isi data modal konfirmasi registrasi
+          const elJoNum = document.getElementById('confirm-jo-number'); if (elJoNum) elJoNum.textContent = res.data.jo_number || '-';
+          const elTrk = document.getElementById('confirm-kode-lacak'); if (elTrk) elTrk.textContent = res.data.kode_lacak || '-';
+          const elPem = document.getElementById('confirm-pemberi-tugas'); if (elPem) elPem.textContent = res.data.pemberi_tugas || res.data.instansi || '-';
+          const elDeb = document.getElementById('confirm-debitur'); if (elDeb) elDeb.textContent = res.data.debitur || '-';
+          const elPic = document.getElementById('confirm-pic'); if (elPic) elPic.textContent = (res.data.client_pic_name || res.data.pic_pemohon || 'PIC') + ' (' + (res.data.client_pic_phone || res.data.pic_contact || '-') + ')';
+
+          document.getElementById('modal-konfirmasi-registrasi').classList.remove('hidden');
+
           document.getElementById('form-registrasi-jo').reset();
           document.getElementById('tarik-feedback-banner')?.classList.add('hidden');
-          switchTab('board');
           await muatDataTaskBoard();
         } else {
           alert('Gagal registrasi: ' + (res.message || 'Terjadi kesalahan sistem'));
@@ -1828,31 +2178,36 @@ Administrasi Operasional KJPP NSR`;
         </button>
       </div>
       <div class="p-5 space-y-3.5 text-xs">
-        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
-          <div class="flex justify-between">
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <div class="flex justify-between items-center">
             <span class="text-slate-400">Nomor JO:</span>
-            <strong id="confirm-jo-number" class="font-mono text-white">-</strong>
+            <strong id="confirm-jo-number" class="font-mono text-white text-xs">-</strong>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-slate-400">Kode Lacak Unik:</span>
             <span id="confirm-kode-lacak" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">-</span>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Debitur:</span>
-            <span id="confirm-debitur" class="text-slate-200 font-medium">-</span>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Pemberi Tugas:</span>
+            <span id="confirm-pemberi-tugas" class="text-slate-200 font-medium text-right text-[11px]">-</span>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">WhatsApp PIC:</span>
-            <span id="confirm-pic" class="text-emerald-400 font-mono">-</span>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Debitur / Entitas:</span>
+            <span id="confirm-debitur" class="text-amber-300 font-medium text-right text-[11px]">-</span>
+          </div>
+          <div class="flex justify-between items-center border-t border-slate-800/80 pt-1.5">
+            <span class="text-slate-400">Penerima Resmi WA:</span>
+            <span id="confirm-pic" class="text-emerald-400 font-mono text-[11px]">-</span>
           </div>
         </div>
-        <p class="text-[11px] text-slate-400 leading-relaxed">
-          Kirimkan kode lacak pelacakan ini langsung ke WhatsApp PIC Pemohon agar klien bank dapat memantau progres tahapan M-01 s/d M-07 secara mandiri.
-        </p>
+        <div class="p-2.5 rounded-lg bg-amber-400/10 border border-amber-400/20 text-[10.5px] text-amber-300 leading-snug flex items-start gap-2">
+          <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span>Sesuai standar etika KEPI dan SPI 103, Kode Unik Pelacakan <strong>HANYA diberikan kepada Pemberi Tugas</strong>. Pendamping lapangan dan debitur tidak diberikan kode lacak.</span>
+        </div>
         <div class="space-y-2 pt-1">
           <button type="button" id="btn-dispatch-wa-modal" onclick="eksekusiDispatchWaBaru()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.99] cursor-pointer">
             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
-            <span>Kirim Kode Lacak ke WhatsApp Klien</span>
+            <span>Kirim Kode Lacak ke Pemberi Tugas</span>
           </button>
           <button type="button" onclick="tutupModalKonfirmasiRegistrasi()" class="w-full py-2 px-4 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-xs transition">
             Selesai &amp; Kembali ke Task Board

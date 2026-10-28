@@ -810,10 +810,13 @@ if ($action === 'track' || $action === 'track_public') {
     if (!empty($cleanJo) || !empty($cleanPhone)) {
         $gasTrack = callGASTrackingService('track', ['id_jo' => $cleanJo, 'telepon_pic' => $cleanPhone], 'GET');
         if ($gasTrack && isset($gasTrack['status']) && $gasTrack['status'] === 'success' && !empty($gasTrack['data'])) {
+            $gasData = $gasTrack['data'];
+            unset($gasData['opini_nilai_pasar']);
+            unset($gasData['opini_nilai_likuidasi']);
             echo json_encode([
                 'status' => 'success',
                 'source' => 'GAS_SSOT_LIVE',
-                'data' => $gasTrack['data']
+                'data' => $gasData
             ]);
             exit;
         }
@@ -836,7 +839,7 @@ if ($action === 'track' || $action === 'track_public') {
     // Pencarian nomor telepon
     if (!$found && !empty($cleanPhone)) {
         foreach ($jobs as $id => $job) {
-            $jPhone = preg_replace('/[^0-9]/', '', (string)($job['pic_contact'] ?? ''));
+            $jPhone = preg_replace('/[^0-9]/', '', (string)($job['client_pic_phone'] ?? $job['pic_contact'] ?? ''));
             if (!empty($jPhone) && strlen($cleanPhone) >= 6 && substr($jPhone, -6) === substr($cleanPhone, -6)) {
                 $found = $job;
                 break;
@@ -866,10 +869,16 @@ if ($action === 'track' || $action === 'track_public') {
         exit;
     }
 
+    $publicData = $found;
+    // Proteksi Kerahasiaan Publik (KEPI & Standar Penilaian):
+    // Nilai Opini Rupiah (Pasar & Likuidasi) HANYA tampil di Task Board internal staf dan DISEKA dari publik.
+    unset($publicData['opini_nilai_pasar']);
+    unset($publicData['opini_nilai_likuidasi']);
+
     echo json_encode([
         'status' => 'success',
         'message' => 'Status penugasan ditemukan.',
-        'data' => $found
+        'data' => $publicData
     ]);
     exit;
 }
@@ -1048,6 +1057,23 @@ if ($action === 'advance_milestone' || $action === 'update_milestone') {
         }
     }
 
+    // Tangkap input substansi SPI & NoLap
+    if (!empty($payload['tanggal_penilaian'])) {
+        $job['tanggal_penilaian'] = trim((string)$payload['tanggal_penilaian']);
+    }
+    if (!empty($payload['dokumen_kepemilikan'])) {
+        $job['dokumen_kepemilikan'] = trim((string)$payload['dokumen_kepemilikan']);
+    }
+    if (!empty($payload['nomor_laporan_resmi'])) {
+        $job['nomor_laporan_resmi'] = trim((string)$payload['nomor_laporan_resmi']);
+    }
+    if (isset($payload['opini_nilai_pasar']) && $payload['opini_nilai_pasar'] !== '') {
+        $job['opini_nilai_pasar'] = (float)str_replace(['.', ',', ' ', 'Rp', 'rp'], '', (string)$payload['opini_nilai_pasar']);
+    }
+    if (isset($payload['opini_nilai_likuidasi']) && $payload['opini_nilai_likuidasi'] !== '') {
+        $job['opini_nilai_likuidasi'] = (float)str_replace(['.', ',', ' ', 'Rp', 'rp'], '', (string)$payload['opini_nilai_likuidasi']);
+    }
+
     $job['current_milestone'] = $targetM;
     $job['current_milestone_title'] = $job['milestones'][$targetM]['title'];
     $job['progress_percent'] = calculateProgress($targetM);
@@ -1163,6 +1189,17 @@ if ($action === 'create' || $action === 'create_job_order') {
         $slaTargetText = "SLA H+{$slaDays} (Dalam Proses)";
     }
 
+    $pemberiTugas = trim((string)($payload['pemberi_tugas'] ?? $payload['instansi'] ?? 'PT Bank Tabungan Negara (Persero) Tbk'));
+    $penggunaLaporan = trim((string)($payload['pengguna_laporan'] ?? $pemberiTugas));
+    $debitur = trim((string)($payload['debitur'] ?? 'Debitur Baru'));
+    $clientPicName = trim((string)($payload['client_pic_name'] ?? $payload['pic_pemohon'] ?? 'PIC Pemberi Tugas'));
+    $clientPicPhone = trim((string)($payload['client_pic_phone'] ?? $payload['pic_contact'] ?? '081288997766'));
+    $surveyContactName = trim((string)($payload['survey_contact_name'] ?? ($debitur . ' (Pendamping Lapangan)')));
+    $surveyContactPhone = trim((string)($payload['survey_contact_phone'] ?? ''));
+    $tujuanPenilaian = trim((string)($payload['tujuan_penilaian'] ?? 'Penjaminan Utang / Agunan Kredit'));
+    $klasifikasiIzinObjek = trim((string)($payload['klasifikasi_izin_objek'] ?? 'PS'));
+    $dokumenKepemilikan = trim((string)($payload['dokumen_kepemilikan'] ?? 'SHM / Bukti Hak'));
+
     $newJob = [
         'id' => $joNumber,
         'jo_number' => $joNumber,
@@ -1171,12 +1208,25 @@ if ($action === 'create' || $action === 'create_job_order') {
         'spk_date' => $spkDate,
         'lingkup_penugasan' => $lingkupPenugasan,
         'tanggal_lingkup' => $tanggalLingkup,
-        'instansi' => $payload['instansi'] ?? 'PT Bank Tabungan Negara (Persero) Tbk',
+        'pemberi_tugas' => $pemberiTugas,
+        'pengguna_laporan' => $penggunaLaporan,
+        'instansi' => $pemberiTugas,
         'instansi_singkat' => $payload['instansi_singkat'] ?? 'Bank Rekanan',
         'unit_kerja' => $payload['unit_kerja'] ?? '-',
-        'debitur' => $payload['debitur'] ?? 'Debitur Baru',
-        'pic_pemohon' => $payload['pic_pemohon'] ?? 'PIC Bank',
-        'pic_contact' => $payload['pic_contact'] ?? '081234567890',
+        'debitur' => $debitur,
+        'client_pic_name' => $clientPicName,
+        'client_pic_phone' => $clientPicPhone,
+        'survey_contact_name' => $surveyContactName,
+        'survey_contact_phone' => $surveyContactPhone,
+        'pic_pemohon' => $clientPicName,
+        'pic_contact' => $clientPicPhone,
+        'tujuan_penilaian' => $tujuanPenilaian,
+        'klasifikasi_izin_objek' => $klasifikasiIzinObjek,
+        'dokumen_kepemilikan' => $dokumenKepemilikan,
+        'tanggal_penilaian' => $spkDate,
+        'nomor_laporan_resmi' => '',
+        'opini_nilai_pasar' => 0,
+        'opini_nilai_likuidasi' => 0,
         'kantor' => $kantor,
         'kantor_code' => $kantorCode,
         'jenis_properti' => $payload['jenis_properti'] ?? 'Tanah & Bangunan',
@@ -1256,10 +1306,19 @@ if ($action === 'get_jo_suggestions') {
             'id_jo' => $j['jo_number'] ?? $id,
             'nomor_spk' => $j['spk_number'] ?? '-',
             'tanggal_spk' => $j['spk_date'] ?? date('Y-m-d'),
-            'instansi' => $j['instansi'] ?? '',
+            'pemberi_tugas' => $j['pemberi_tugas'] ?? ($j['instansi'] ?? ''),
+            'pengguna_laporan' => $j['pengguna_laporan'] ?? ($j['pemberi_tugas'] ?? ($j['instansi'] ?? '')),
+            'instansi' => $j['pemberi_tugas'] ?? ($j['instansi'] ?? ''),
             'unit_kerja' => $j['unit_kerja'] ?? '',
             'debitur' => $j['debitur'] ?? '',
-            'pic_contact' => $j['pic_contact'] ?? '',
+            'client_pic_name' => $j['client_pic_name'] ?? ($j['pic_pemohon'] ?? ''),
+            'client_pic_phone' => $j['client_pic_phone'] ?? ($j['pic_contact'] ?? ''),
+            'survey_contact_name' => $j['survey_contact_name'] ?? '',
+            'survey_contact_phone' => $j['survey_contact_phone'] ?? '',
+            'pic_contact' => $j['client_pic_phone'] ?? ($j['pic_contact'] ?? ''),
+            'tujuan_penilaian' => $j['tujuan_penilaian'] ?? 'Penjaminan Utang / Agunan Kredit',
+            'klasifikasi_izin_objek' => $j['klasifikasi_izin_objek'] ?? 'PS',
+            'dokumen_kepemilikan' => $j['dokumen_kepemilikan'] ?? '',
             'jenis_properti' => $j['jenis_properti'] ?? '',
             'lokasi_aset' => $j['lokasi_aset'] ?? '',
             'kantor' => $j['kantor'] ?? 'Kantor Pusat Jakarta',
