@@ -881,6 +881,7 @@ if ($action === 'list' || $action === 'get_active_jobs') {
     $authNik = trim((string)($_GET['auth_nik'] ?? $_POST['auth_nik'] ?? ''));
     $authPin = trim((string)($_GET['auth_pin'] ?? $_POST['auth_pin'] ?? ''));
     $filterKantor = strtoupper(trim((string)($_GET['kantor'] ?? $_POST['kantor'] ?? '')));
+    $branchParam = strtoupper(trim((string)($_GET['branch'] ?? $_POST['branch'] ?? '')));
 
     $currentUser = null;
     $isIsolatedBranch = false;
@@ -893,6 +894,9 @@ if ($action === 'list' || $action === 'get_active_jobs') {
             $userBranchCode = getUserBranchCode($user);
             $isIsolatedBranch = !isCentralManagement($user);
         }
+    } elseif (!empty($branchParam) && in_array($branchParam, ['BDG', 'PDG', 'MKS', 'PLM', 'PLB'])) {
+        $isIsolatedBranch = true;
+        $userBranchCode = ($branchParam === 'PLB') ? 'PLM' : $branchParam;
     }
 
     $filteredJobs = [];

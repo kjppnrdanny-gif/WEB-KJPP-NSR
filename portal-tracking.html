@@ -669,7 +669,7 @@
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
           </div>
           <div>
-            <h3 class="text-sm font-black text-white uppercase tracking-wider">Otorisasi Pembaruan Milestone</h3>
+            <h3 id="modal-update-milestone-title" class="text-sm font-black text-white uppercase tracking-wider">Verifikasi Otoritas Milestone</h3>
             <p class="text-[11px] text-slate-400">Verifikasi NIK + PIN Presensi 6-Digit &bull; Audit Trail LOG_PROGRESS</p>
           </div>
         </div>
@@ -902,26 +902,85 @@
     function initUserSession() {
       const urlParams = new URLSearchParams(window.location.search);
       const urlNik = urlParams.get('nik') || urlParams.get('auth_nik');
+      const urlBranch = (urlParams.get('branch') || urlParams.get('kantor') || '').toUpperCase();
 
       try {
-        const rawPresensi = sessionStorage.getItem('nsr_presensi_session_user') || sessionStorage.getItem('NSR_USER_SESSION');
-        if (rawPresensi) {
-          const parsed = JSON.parse(rawPresensi);
-          if (parsed && parsed.nik) {
-            currentUserSession.nik = parsed.nik;
-            currentUserSession.nama = parsed.nama || currentUserSession.nama;
-            currentUserSession.jabatan = parsed.jabatan || currentUserSession.jabatan;
-            currentUserSession.kantor = parsed.office || parsed.kantor || parsed.cabang || currentUserSession.kantor;
+        const rawTokenSession = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('NSR_USER_SESSION');
+        const rawPresensi = sessionStorage.getItem('nsr_presensi_session_user');
+        
+        let sessionData = null;
+        if (rawTokenSession) {
+          try { sessionData = JSON.parse(rawTokenSession); } catch (_) {}
+        }
+        if (!sessionData && rawPresensi) {
+          try { sessionData = JSON.parse(rawPresensi); } catch (_) {}
+        }
+
+        if (sessionData) {
+          const isCab = Boolean(sessionData.isCabang || sessionData.mode === 'CABANG');
+          const wil = sessionData.wilayah || sessionData.branch || sessionData.kantor || sessionData.cabang || '';
+          const wCode = (sessionData.wilayahCode || sessionData.branch_code || sessionData.branchCode || '').toUpperCase();
+
+          if (isCab || (wCode && wCode !== 'PUSAT' && wCode !== 'JKT')) {
+            currentUserSession.is_central = false;
+            currentUserSession.access_level = 'BRANCH_ISOLATED';
+            currentUserSession.kantor = wil.includes('Cabang') ? wil : ('Cabang ' + wil.replace(/^Kantor\s+/i, ''));
             currentUserSession.cabang = currentUserSession.kantor;
+            currentUserSession.branch_code = wCode || (wil.toUpperCase().includes('MAKASSAR') ? 'MKS' : wil.toUpperCase().includes('BANDUNG') ? 'BDG' : wil.toUpperCase().includes('PADANG') ? 'PDG' : wil.toUpperCase().includes('PALEMBANG') ? 'PLM' : 'PUSAT');
+            currentUserSession.nama = sessionData.nama || sessionData.displayName || ('Staf Operasional ' + currentUserSession.kantor);
+            currentUserSession.jabatan = sessionData.roleLabel || sessionData.role || 'Staf Cabang';
+            currentUserSession.nik = sessionData.nik || '';
+          } else {
+            currentUserSession.is_central = true;
+            currentUserSession.access_level = 'NATIONWIDE_FULL_ACCESS';
+            currentUserSession.kantor = 'Kantor Pusat Jakarta';
+            currentUserSession.cabang = 'Kantor Pusat Jakarta';
+            currentUserSession.branch_code = 'PUSAT';
+            currentUserSession.nama = sessionData.nama || sessionData.displayName || 'Danny Taufik Hidayat, S.H.';
+            currentUserSession.jabatan = sessionData.roleLabel || sessionData.role || 'Manager Admin & Umum';
+            currentUserSession.nik = sessionData.nik || 'NSR-2019-005';
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Gagal membaca sesi token:', e);
+      }
+
+      if (urlBranch) {
+        if (['MKS', 'MAKASSAR'].includes(urlBranch)) {
+          currentUserSession.is_central = false;
+          currentUserSession.access_level = 'BRANCH_ISOLATED';
+          currentUserSession.kantor = 'Cabang Makassar';
+          currentUserSession.cabang = 'Cabang Makassar';
+          currentUserSession.branch_code = 'MKS';
+          currentUserSession.nama = 'Staf Cabang Makassar';
+        } else if (['BDG', 'BANDUNG'].includes(urlBranch)) {
+          currentUserSession.is_central = false;
+          currentUserSession.access_level = 'BRANCH_ISOLATED';
+          currentUserSession.kantor = 'Cabang Bandung';
+          currentUserSession.cabang = 'Cabang Bandung';
+          currentUserSession.branch_code = 'BDG';
+          currentUserSession.nama = 'Staf Cabang Bandung';
+        } else if (['PDG', 'PADANG'].includes(urlBranch)) {
+          currentUserSession.is_central = false;
+          currentUserSession.access_level = 'BRANCH_ISOLATED';
+          currentUserSession.kantor = 'Cabang Padang';
+          currentUserSession.cabang = 'Cabang Padang';
+          currentUserSession.branch_code = 'PDG';
+          currentUserSession.nama = 'Staf Cabang Padang';
+        } else if (['PLM', 'PLB', 'PALEMBANG'].includes(urlBranch)) {
+          currentUserSession.is_central = false;
+          currentUserSession.access_level = 'BRANCH_ISOLATED';
+          currentUserSession.kantor = 'Cabang Palembang';
+          currentUserSession.cabang = 'Cabang Palembang';
+          currentUserSession.branch_code = 'PLM';
+          currentUserSession.nama = 'Staf Cabang Palembang';
+        }
+      }
 
       if (urlNik) {
         currentUserSession.nik = urlNik.trim().toUpperCase();
       }
 
-      // Sinkronkan access level
       sinkronkanLevelAkses(currentUserSession);
       updateUserSessionUI();
     }
@@ -943,7 +1002,7 @@
 
     function updateUserSessionUI() {
       document.getElementById('user-display-name').textContent = currentUserSession.nama;
-      document.getElementById('user-display-nik').textContent = currentUserSession.nik;
+      document.getElementById('user-display-nik').textContent = currentUserSession.nik ? currentUserSession.nik : (currentUserSession.access_level === 'BRANCH_ISOLATED' ? 'Otorisasi Token Cabang' : 'Otorisasi Token Pusat');
       document.getElementById('user-display-jabatan').textContent = currentUserSession.jabatan;
       document.getElementById('user-display-cabang').textContent = currentUserSession.kantor;
 
@@ -1103,9 +1162,14 @@
       tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500">Memuat data penugasan aktif...</td></tr>';
       
       const filterKantor = document.getElementById('filter-kantor')?.value || '';
-      const params = {
-        auth_nik: currentUserSession.nik
-      };
+      const params = {};
+      if (currentUserSession.nik) {
+        params.auth_nik = currentUserSession.nik;
+      }
+      if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
+        params.branch = currentUserSession.branch_code;
+        params.kantor = currentUserSession.branch_code;
+      }
       if (filterKantor) {
         params.kantor = filterKantor;
       }
@@ -1449,6 +1513,11 @@
       const curIdx = mKeys.indexOf(job.current_milestone);
       const nextM = mKeys[Math.min(mKeys.length - 1, curIdx + 1)];
       document.getElementById('update-target-milestone').value = nextM;
+
+      const titleEl = document.getElementById('modal-update-milestone-title');
+      if (titleEl) {
+        titleEl.textContent = 'Verifikasi Otoritas Milestone [' + nextM + ']';
+      }
 
       // Pre-fill NIK staf aktif
       document.getElementById('update-auth-nik').value = currentUserSession.nik;
