@@ -41,8 +41,8 @@ $masterKaryawanFile = $dataDir . '/.master_karyawan_cache.json';
 /**
  * Smart Proxy Forwarder ke SSOT Google Apps Script Web App
  */
-function callGASTrackingService($action, $data = [], $method = 'POST', $timeout = 8) {
-    if (!defined('GAS_TRACKING_URL') || empty(GAS_TRACKING_URL)) {
+function callGASTrackingService($action, $data = [], $method = 'POST', $timeout = 2) {
+    if (!defined('GAS_TRACKING_URL') || empty(GAS_TRACKING_URL) || (defined('DISABLE_REMOTE_GAS') && DISABLE_REMOTE_GAS)) {
         return null;
     }
 
@@ -692,14 +692,25 @@ function getInitialSeedData() {
 
 // Muat data dari file penyimpanan lokal
 function loadData($storageFile) {
+    $initial = getInitialSeedData();
     if (file_exists($storageFile)) {
         $content = @file_get_contents($storageFile);
         $json = @json_decode($content, true);
         if (is_array($json) && !empty($json) && isset($json['JO-JKT-2026-0001'])) {
+            // Pastikan seluruh 5 kantor wilayah dari seed ada dalam database
+            $updated = false;
+            foreach ($initial as $k => $item) {
+                if (!isset($json[$k])) {
+                    $json[$k] = $item;
+                    $updated = true;
+                }
+            }
+            if ($updated) {
+                @file_put_contents($storageFile, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            }
             return $json;
         }
     }
-    $initial = getInitialSeedData();
     @file_put_contents($storageFile, json_encode($initial, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     return $initial;
 }
