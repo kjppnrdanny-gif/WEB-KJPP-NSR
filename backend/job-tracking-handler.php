@@ -371,6 +371,92 @@ function getMilestoneTemplate() {
     ];
 }
 
+// Master Template 10 Indikator Baku Kendali Mutu SPM (SPI 105 & KEPI)
+function getDefaultSpmChecklist() {
+    return [
+        [
+            'id' => 1,
+            'code' => 'SPI-103',
+            'title' => 'Kesesuaian Lingkup Penugasan (SPI 103)',
+            'desc' => 'Identitas Pemberi Tugas, Pengguna Laporan, dan Tujuan Penilaian selaras dengan SPK/Kontrak penugasan.',
+            'status' => 'SESUAI',
+            'note' => 'Identitas bank pemohon & debitur sesuai dokumen penugasan.'
+        ],
+        [
+            'id' => 2,
+            'code' => 'YURIDIS',
+            'title' => 'Keabsahan Dokumen Yuridis / Sertifikat Hak',
+            'desc' => 'Dokumen sertifikat/bukti kepemilikan terverifikasi keaslian, kepemilikan sah, dan masa berlakunya.',
+            'status' => 'SESUAI',
+            'note' => 'Sertifikat hak atas tanah dan dokumen kepemilikan lengkap.'
+        ],
+        [
+            'id' => 3,
+            'code' => 'SPI-104',
+            'title' => 'Validitas Inspeksi Lapangan & Geotagging (SPI 104)',
+            'desc' => 'Geotagging GPS (-6.x, 106.x), dokumentasi batas fisik aset, dan tanggal cut-off penilaian sesuai fakta fisik.',
+            'status' => 'SESUAI',
+            'note' => 'Koordinat GPS dan dokumentasi foto survei terverifikasi valid.'
+        ],
+        [
+            'id' => 4,
+            'code' => 'SPI-105-A',
+            'title' => 'Kecukupan Minimal 3 Data Pasar Pembanding',
+            'desc' => 'Tersedia minimal 3 objek pembanding sejenis, sebanding, dan berada dalam radius pasar yang wajar.',
+            'status' => 'SESUAI',
+            'note' => 'Minimal 3 data pasar pembanding terdekat telah dipenuhi.'
+        ],
+        [
+            'id' => 5,
+            'code' => 'SPI-105-B',
+            'title' => 'Konfirmasi Sumber Data Pembanding',
+            'desc' => 'Data transaksi/penawaran telah dikonfirmasi langsung ke narasumber yang kredibel (cross-check kontak).',
+            'status' => 'SESUAI',
+            'note' => 'Kontak narasumber/agen properti pembanding telah divalidasi.'
+        ],
+        [
+            'id' => 6,
+            'code' => 'SPI-105-C',
+            'title' => 'Kewajaran Analisis Penyesuaian (Adjustment Rate)',
+            'desc' => 'Total net adjustment dan gross adjustment berada dalam batas toleransi wajar metodologi perbandingan pasar.',
+            'status' => 'SESUAI',
+            'note' => 'Tingkat penyesuaian pasar berada dalam koridor toleransi wajar.'
+        ],
+        [
+            'id' => 7,
+            'code' => 'SPI-105-D',
+            'title' => 'Kewajaran Kalkulasi Pendekatan Biaya (DRC)',
+            'desc' => 'Estimasi RCN dan penyusutan fisik, fungsional, serta ekonomis didukung dasar teknis MAPPI/BPS.',
+            'status' => 'SESUAI',
+            'note' => 'Kalkulasi RCN dan depresiasi DRC bangunan akurat.'
+        ],
+        [
+            'id' => 8,
+            'code' => 'SPI-105-E',
+            'title' => 'Kesesuaian Dasar Nilai (Pasar & Likuidasi)',
+            'desc' => 'Penentuan Nilai Pasar dan Indikasi Nilai Likuidasi sesuai ketentuan agunan/kebutuhan penjaminan utang.',
+            'status' => 'SESUAI',
+            'note' => 'Nilai Pasar dan Nilai Likuidasi rasional berdasar analisis pasar.'
+        ],
+        [
+            'id' => 9,
+            'code' => 'GUARDRAIL',
+            'title' => 'Kepatuhan Kompetensi Izin Penilai (P vs PS)',
+            'desc' => 'Penilai Publik memiliki kualifikasi izin yang sah (P untuk komersial/kompleks, PS untuk sederhana).',
+            'status' => 'SESUAI',
+            'note' => 'Klasifikasi izin penilai publik memenuhi persyaratan objek.'
+        ],
+        [
+            'id' => 10,
+            'code' => 'KEPI',
+            'title' => 'Kepatuhan Kode Etik (KEPI) & Independensi',
+            'desc' => 'Bebas benturan kepentingan dan menandatangani pakta integritas profesional penilai.',
+            'status' => 'SESUAI',
+            'note' => 'Bebas benturan kepentingan dan mematuhi etika profesi KEPI.'
+        ]
+    ];
+}
+
 // Generator Kode Unik Pelacakan SPK / JO: TRK-[KANTOR]-[TAHUN]-[4 ALFANUMERIK]
 function generateTrackingCode($kantorCode = 'PUSAT', $year = null) {
     $kantor = 'JKT';
@@ -671,6 +757,8 @@ function getInitialSeedData() {
         'reviewer_spm' => 'Angga Malid Cahyadi',
         'penilai_publik' => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
         'current_milestone' => 'M-07',
+        'spm_checklist_data' => getDefaultSpmChecklist(),
+        'spm_status' => 'LULUS_AUDIT',
         'current_milestone_title' => 'Penyerahan Laporan Final',
         'progress_percent' => 100,
         'milestones' => $mTemplate6,
@@ -1138,6 +1226,52 @@ if ($action === 'advance_milestone' || $action === 'update_milestone') {
         $job['opini_nilai_likuidasi'] = (float)str_replace(['.', ',', ' ', 'Rp', 'rp'], '', (string)$payload['opini_nilai_likuidasi']);
     }
 
+    // Tangkap Checklist & Evaluasi Kendali Mutu SPM (SPI 105)
+    if (isset($payload['spm_checklist_data'])) {
+        $checklistInput = $payload['spm_checklist_data'];
+        if (is_string($checklistInput)) {
+            $checklistInput = @json_decode($checklistInput, true);
+        }
+        if (is_array($checklistInput)) {
+            // Validasi Kepatuhan: Jika target milestone adalah pengesahan M-05 (bukan rollback ke M-04),
+            // pastikan tidak ada butir yang berstatus 'TEMUAN' atau 'BELUM_SESUAI'
+            if ($targetM === 'M-05') {
+                $hasTemuan = false;
+                $temuanItems = [];
+                foreach ($checklistInput as $item) {
+                    $st = strtoupper(trim((string)($item['status'] ?? '')));
+                    if ($st === 'TEMUAN' || $st === 'BELUM_SESUAI' || $st === 'FAIL') {
+                        $hasTemuan = true;
+                        $temuanItems[] = $item['title'] ?? ('Butir ' . ($item['id'] ?? ''));
+                    }
+                }
+                if ($hasTemuan) {
+                    http_response_code(422);
+                    echo json_encode([
+                        'status' => 'error',
+                        'message' => 'Persetujuan Kendali Mutu SPM Ditolak: Terdapat temuan audit yang belum diselesaikan (' . implode(', ', $temuanItems) . '). Silakan pilih opsi "Kembalikan ke M-04" untuk perbaikan kertas kerja.',
+                        'temuan_items' => $temuanItems
+                    ]);
+                    exit;
+                }
+            }
+
+            $job['spm_checklist_data'] = $checklistInput;
+            $job['spm_review_notes'] = trim((string)($payload['spm_review_notes'] ?? $customNote));
+            $job['spm_status'] = ($targetM === 'M-04') ? 'PERLU_REVISI' : 'LULUS_AUDIT';
+            $job['spm_reviewed_by'] = [
+                'nik' => $user['nik'],
+                'nama' => $user['nama'],
+                'jabatan' => $user['jabatan'],
+                'kantor' => $user['kantor'] ?? $user['cabang'] ?? 'KJPP NSR',
+                'timestamp' => date('Y-m-d H:i:s', $now)
+            ];
+        }
+    }
+    if (!empty($payload['spm_review_notes'])) {
+        $job['spm_review_notes'] = trim((string)$payload['spm_review_notes']);
+    }
+
     $job['current_milestone'] = $targetM;
     $job['current_milestone_title'] = $job['milestones'][$targetM]['title'];
     $job['progress_percent'] = calculateProgress($targetM);
@@ -1516,6 +1650,60 @@ if ($action === 'get_audit_log') {
 }
 
 // =========================================================================
+// 8C. ACTION: GET_SPM_CHECKLIST (Pengambilan Data Lembar Kendali Mutu SPM)
+// =========================================================================
+if ($action === 'get_spm_checklist') {
+    $joParam = trim((string)($_GET['jo'] ?? $_POST['jo'] ?? ''));
+    if (!isset($jobs[$joParam])) {
+        foreach ($jobs as $id => $j) {
+            if ($j['jo_number'] === $joParam || ($j['kode_lacak'] ?? '') === $joParam) {
+                $joParam = $id;
+                break;
+            }
+        }
+    }
+
+    if (!isset($jobs[$joParam])) {
+        http_response_code(404);
+        echo json_encode(['status' => 'error', 'message' => 'Job Order ' . $joParam . ' tidak ditemukan.']);
+        exit;
+    }
+
+    $targetJob = $jobs[$joParam];
+    $checklist = $targetJob['spm_checklist_data'] ?? getDefaultSpmChecklist();
+
+    echo json_encode([
+        'status' => 'success',
+        'data' => [
+            'jo_number' => $targetJob['jo_number'],
+            'spk_number' => $targetJob['spk_number'] ?? '-',
+            'pemberi_tugas' => $targetJob['pemberi_tugas'] ?? $targetJob['instansi'] ?? '-',
+            'pengguna_laporan' => $targetJob['pengguna_laporan'] ?? $targetJob['pemberi_tugas'] ?? '-',
+            'debitur' => $targetJob['debitur'] ?? '-',
+            'jenis_properti' => $targetJob['jenis_properti'] ?? '-',
+            'lokasi_aset' => $targetJob['lokasi_aset'] ?? '-',
+            'tanggal_penilaian' => $targetJob['tanggal_penilaian'] ?? date('Y-m-d'),
+            'penilai_pelaksana' => $targetJob['penilai_pelaksana'] ?? '-',
+            'surveyor' => $targetJob['surveyor'] ?? '-',
+            'reviewer' => $targetJob['reviewer'] ?? 'Reviewer SPM',
+            'penilai_publik' => $targetJob['penilai_publik'] ?? '-',
+            'current_milestone' => $targetJob['current_milestone'],
+            'spm_status' => $targetJob['spm_status'] ?? 'PENDING',
+            'spm_review_notes' => $targetJob['spm_review_notes'] ?? 'Kertas kerja telah diverifikasi memenuhi standar mutu SPI 105 dan pedoman operasional KJPP NSR.',
+            'spm_reviewed_by' => $targetJob['spm_reviewed_by'] ?? [
+                'nik' => 'NSR-2019-007',
+                'nama' => 'Tedi Setiadi',
+                'jabatan' => 'Reviewer SPM Pusat',
+                'kantor' => 'Kantor Pusat Jakarta',
+                'timestamp' => date('Y-m-d H:i:s')
+            ],
+            'checklist' => $checklist
+        ]
+    ]);
+    exit;
+}
+
+// =========================================================================
 // 8B. ACTION: GENERATE_NOLAP (Otomasi Penerbitan Nomor Laporan Resmi M-06 SSOT)
 // =========================================================================
 if ($action === 'generate_nolap' || $action === 'request_nolap') {
@@ -1769,5 +1957,5 @@ if ($action === 'reset_demo') {
 echo json_encode([
     'status' => 'success',
     'endpoint' => 'KJPP NSR Job Tracking Staging API',
-    'actions' => ['verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap']
+    'actions' => ['verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap', 'get_spm_checklist']
 ]);

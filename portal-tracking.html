@@ -893,19 +893,56 @@
           </select>
         </div>
 
-        <!-- Dynamic Field M-05: Kendali Mutu SPM & Opsi Kembalikan ke M-04 -->
-        <div id="container-field-m05-spm" class="hidden p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-amber-300 uppercase tracking-wider text-[11px]">Kendali Mutu SPM (Reviewer Gateway)</span>
-            <span class="px-2 py-0.5 rounded text-[9.5px] font-black bg-amber-400 text-slate-950">SPM GATEWAY</span>
+        <!-- Dynamic Field M-05: Lembar Kendali Mutu SPM (SPI 105 & KEPI) -->
+        <div id="container-field-m05-spm" class="hidden p-4 rounded-xl bg-slate-950 border border-amber-500/40 text-xs space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-amber-300 uppercase tracking-wider text-xs">Lembar Kendali Mutu SPM (SPI 105 &amp; KEPI)</span>
+                <span class="px-2 py-0.5 rounded text-[9.5px] font-black bg-amber-400 text-slate-950">SPM GATEWAY</span>
+              </div>
+              <p class="text-[10.5px] text-slate-400 mt-0.5">10 Indikator Baku Uji Kepatuhan Standar Penilaian Indonesia &amp; Kode Etik</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="tandaiSemuaSpmSesuai()" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-[10.5px] font-bold transition flex items-center gap-1 cursor-pointer">
+                <span>✓ Penuhi Semua</span>
+              </button>
+              <button type="button" onclick="resetChecklistSpm()" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10.5px] font-medium transition cursor-pointer">
+                <span>↺ Reset</span>
+              </button>
+            </div>
           </div>
-          <p class="text-[11px] text-slate-300 leading-relaxed">
-            Jika ditemukan ketidaksesuaian analisis, kelengkapan data pembanding, atau deviasi kertas kerja, Reviewer SPM berhak mengembalikan berkas ke tahap M-04.
-          </p>
-          <button type="button" onclick="kembalikanKeM04Revisi()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition cursor-pointer">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-            <span>Kembalikan ke M-04 (Revisi Kertas Kerja)</span>
-          </button>
+
+          <!-- Daftar 10 Butir Pengujian Kepatuhan SPI 105 -->
+          <div class="space-y-2 max-h-72 overflow-y-auto pr-1" id="spm-checklist-container">
+            <!-- Diisi otomatis oleh renderChecklistSpmForm() -->
+          </div>
+
+          <!-- Catatan Evaluasi & Rekomendasi Reviewer SPM -->
+          <div>
+            <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Catatan Evaluasi / Rekomendasi Reviewer SPM</label>
+            <textarea id="update-spm-notes" rows="2" placeholder="Tuliskan temuan audit, dasar koreksi data pembanding, atau rekomendasi teknis untuk penyempurnaan kertas kerja..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"></textarea>
+          </div>
+
+          <!-- Banner Peringatan Temuan Audit -->
+          <div id="spm-warning-temuan" class="hidden p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/40 text-[11px] text-rose-300 flex items-start gap-2">
+            <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div>
+              <strong class="font-bold">Perhatian Reviewer SPM:</strong> Terdapat butir pengujian yang ditandai <span class="font-bold text-rose-200">"Temuan / Belum Sesuai"</span>. Berkas wajib dikembalikan ke M-04 untuk revisi penilai pelaksana sebelum dapat diluluskan ke M-06.
+            </div>
+          </div>
+
+          <!-- Action Buttons SPM: Kembalikan vs Cetak PDF -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/80">
+            <button type="button" onclick="eksekusiRollbackM04Spm()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+              <span>Kembalikan ke M-04 (Revisi Kertas Kerja)</span>
+            </button>
+            <button type="button" onclick="cetakLembarSPMAktif()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              <span>📄 Cetak Lembar SPM (PDF)</span>
+            </button>
+          </div>
         </div>
 
         <!-- Dynamic Field M-03 & M-04: Tanggal Penilaian & Dokumen Kepemilikan -->
@@ -1741,6 +1778,12 @@
                     <span class="hidden xl:inline">Laporan Selesai</span>
                   </button>
                 ` : ''}
+                ${(['M-05', 'M-06', 'M-07'].includes(j.current_milestone) || j.spm_checklist_data) ? `
+                  <button type="button" onclick="cetakLembarSPM('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold transition active:scale-95" title="Cetak Lembar Kendali Mutu SPM (PDF)">
+                    <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span class="hidden 2xl:inline">Lembar SPM</span>
+                  </button>
+                ` : ''}
                 ${!isDone ? `
                   <button type="button" onclick="bukaModalUpdateMilestone('${j.id}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-bold transition active:scale-95" title="Menaikkan Milestone (Otorisasi NIK + PIN)">
                     <span>Majukan</span>
@@ -1858,6 +1901,276 @@
         }
       }
     }
+
+    // =========================================================================
+    // MODUL LEMBAR KENDALI MUTU DIGITAL SPM (SPI 105 & KEPI)
+    // =========================================================================
+    const MASTER_SPM_INDICATORS = [
+      { id: 1, code: 'SPI-103', title: 'Kesesuaian Lingkup Penugasan (SPI 103)', desc: 'Identitas Pemberi Tugas, Pengguna Laporan, dan Tujuan Penilaian selaras dengan SPK/Kontrak.' },
+      { id: 2, code: 'YURIDIS', title: 'Keabsahan Dokumen Yuridis / Sertifikat Hak', desc: 'Sertifikat hak atas tanah dan dokumen kepemilikan terverifikasi keaslian dan masa berlakunya.' },
+      { id: 3, code: 'SPI-104', title: 'Validitas Inspeksi Lapangan & Geotagging (SPI 104)', desc: 'Geotagging GPS, batas fisik aset, dan tanggal cut-off penilaian sesuai fakta fisik lapangan.' },
+      { id: 4, code: 'SPI-105-A', title: 'Kecukupan Minimal 3 Data Pasar Pembanding', desc: 'Tersedia minimal 3 data pasar pembanding sejenis, sebanding, dan berada pada radius wajar.' },
+      { id: 5, code: 'SPI-105-B', title: 'Konfirmasi Sumber Data Pembanding', desc: 'Data transaksi/penawaran telah dikonfirmasi langsung ke narasumber kredibel (cross-check telepon).' },
+      { id: 6, code: 'SPI-105-C', title: 'Kewajaran Analisis Penyesuaian (Adjustment Rate)', desc: 'Total net adjustment dan gross adjustment berada dalam batas toleransi metodologi yang wajar.' },
+      { id: 7, code: 'SPI-105-D', title: 'Kewajaran Kalkulasi Pendekatan Biaya (DRC)', desc: 'Estimasi RCN dan penyusutan fisik, fungsional, serta ekonomis didukung dasar teknis MAPPI/BPS.' },
+      { id: 8, code: 'SPI-105-E', title: 'Kesesuaian Dasar Nilai (Pasar & Likuidasi)', desc: 'Penentuan Nilai Pasar dan Indikasi Nilai Likuidasi sesuai ketentuan agunan kredit / penjaminan utang.' },
+      { id: 9, code: 'GUARDRAIL', title: 'Kepatuhan Kompetensi Izin Penilai (P vs PS)', desc: 'Penilai Publik memiliki kualifikasi izin yang sah (P untuk kompleks/komersial, PS untuk sederhana).' },
+      { id: 10, code: 'KEPI', title: 'Kepatuhan Kode Etik (KEPI) & Independensi', desc: 'Bebas benturan kepentingan dan menandatangani pakta integritas profesional penilai.' }
+    ];
+
+    function renderChecklistSpmForm(job) {
+      const container = document.getElementById('spm-checklist-container');
+      if (!container) return;
+
+      const savedData = job.spm_checklist_data || [];
+      let html = '';
+
+      MASTER_SPM_INDICATORS.forEach((ind, idx) => {
+        const existing = savedData.find(x => x.id === ind.id) || {};
+        const curStatus = existing.status || 'SESUAI';
+        const curNote = existing.note || '';
+
+        html += `
+          <div class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-[11px] space-y-1.5 transition">
+            <div class="flex flex-wrap items-start justify-between gap-1.5">
+              <div class="flex-1 min-w-[200px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">${ind.code}</span>
+                  <span class="font-bold text-slate-200">${ind.id}. ${ind.title}</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-0.5 leading-snug">${ind.desc}</p>
+              </div>
+              <div class="flex items-center gap-1 shrink-0 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition hover:bg-emerald-500/10 has-[:checked]:bg-emerald-500 has-[:checked]:text-slate-950 text-emerald-400">
+                  <input type="radio" name="spm_item_${ind.id}" value="SESUAI" ${curStatus === 'SESUAI' ? 'checked' : ''} onchange="periksaStatusChecklistSpm()" class="hidden">
+                  <span>✓ Sesuai</span>
+                </label>
+                <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition hover:bg-rose-500/10 has-[:checked]:bg-rose-500 has-[:checked]:text-white text-rose-400">
+                  <input type="radio" name="spm_item_${ind.id}" value="TEMUAN" ${curStatus === 'TEMUAN' ? 'checked' : ''} onchange="periksaStatusChecklistSpm()" class="hidden">
+                  <span>✗ Temuan</span>
+                </label>
+                <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition hover:bg-slate-700/20 has-[:checked]:bg-slate-700 has-[:checked]:text-slate-200 text-slate-400">
+                  <input type="radio" name="spm_item_${ind.id}" value="NA" ${curStatus === 'NA' ? 'checked' : ''} onchange="periksaStatusChecklistSpm()" class="hidden">
+                  <span>N/A</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <input type="text" id="spm_note_${ind.id}" value="${curNote ? curNote.replace(/"/g, '&quot;') : ''}" placeholder="Catatan spesifik reviewer untuk butir ini (opsional)..." class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 placeholder-slate-600 focus:outline-none focus:border-amber-400/60">
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+
+      // Prefill SPM Notes
+      const notesEl = document.getElementById('update-spm-notes');
+      if (notesEl) {
+        notesEl.value = job.spm_review_notes || '';
+      }
+
+      periksaStatusChecklistSpm();
+    }
+
+    function tandaiSemuaSpmSesuai() {
+      MASTER_SPM_INDICATORS.forEach(ind => {
+        const radio = document.querySelector(`input[name="spm_item_${ind.id}"][value="SESUAI"]`);
+        if (radio) radio.checked = true;
+      });
+      periksaStatusChecklistSpm();
+    }
+
+    function resetChecklistSpm() {
+      tandaiSemuaSpmSesuai();
+      MASTER_SPM_INDICATORS.forEach(ind => {
+        const noteInput = document.getElementById(`spm_note_${ind.id}`);
+        if (noteInput) noteInput.value = '';
+      });
+      const notesEl = document.getElementById('update-spm-notes');
+      if (notesEl) notesEl.value = '';
+      periksaStatusChecklistSpm();
+    }
+
+    function periksaStatusChecklistSpm() {
+      const warningEl = document.getElementById('spm-warning-temuan');
+      const submitBtn = document.getElementById('btn-submit-update-m');
+      const targetM = document.getElementById('update-target-milestone')?.value;
+
+      let hasTemuan = false;
+      MASTER_SPM_INDICATORS.forEach(ind => {
+        const checked = document.querySelector(`input[name="spm_item_${ind.id}"]:checked`);
+        if (checked && checked.value === 'TEMUAN') {
+          hasTemuan = true;
+        }
+      });
+
+      if (hasTemuan) {
+        if (warningEl) warningEl.classList.remove('hidden');
+        if (targetM === 'M-05' && submitBtn) {
+          submitBtn.classList.add('opacity-50', 'pointer-events-none');
+          submitBtn.title = 'Selesaikan atau kembalikan ke M-04 untuk memperbaiki temuan audit';
+        }
+      } else {
+        if (warningEl) warningEl.classList.add('hidden');
+        if (submitBtn) {
+          submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+          submitBtn.title = '';
+        }
+      }
+
+      return !hasTemuan;
+    }
+
+    function kumpulkanDataChecklistSpm() {
+      return MASTER_SPM_INDICATORS.map(ind => {
+        const checked = document.querySelector(`input[name="spm_item_${ind.id}"]:checked`);
+        const noteEl = document.getElementById(`spm_note_${ind.id}`);
+        return {
+          id: ind.id,
+          code: ind.code,
+          title: ind.title,
+          desc: ind.desc,
+          status: checked ? checked.value : 'SESUAI',
+          note: noteEl ? noteEl.value.trim() : ''
+        };
+      });
+    }
+
+    function eksekusiRollbackM04Spm() {
+      const notesEl = document.getElementById('update-spm-notes');
+      const spmNotes = notesEl ? notesEl.value.trim() : '';
+
+      if (!spmNotes) {
+        alert('Wajib mengisi Catatan Evaluasi Reviewer SPM di atas sebelum mengembalikan berkas ke M-04 untuk perbaikan.');
+        notesEl?.focus();
+        return;
+      }
+
+      const selectEl = document.getElementById('update-target-milestone');
+      if (selectEl) {
+        selectEl.value = 'M-04';
+        sesuaikanFieldMilestone('M-04');
+      }
+
+      const noteEl = document.getElementById('update-auth-note');
+      if (noteEl) {
+        noteEl.value = '[REVISI SPM]: ' + spmNotes;
+      }
+
+      // Pastikan tombol submit aktif untuk aksi rollback
+      const submitBtn = document.getElementById('btn-submit-update-m');
+      if (submitBtn) {
+        submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+      }
+
+      // Scroll ke bagian kredensial otorisasi
+      document.getElementById('update-auth-nik')?.focus();
+    }
+
+    function cetakLembarSPMAktif() {
+      const joId = document.getElementById('update-jo-id')?.value;
+      if (joId) cetakLembarSPM(joId);
+    }
+
+    async function cetakLembarSPM(joId) {
+      let job = globalJobs.find(x => x.id === joId || x.jo_number === joId);
+      if (!job) {
+        alert('Data penugasan tidak ditemukan.');
+        return;
+      }
+
+      // Muat data SPM checklist terbaru dari backend jika tersedia
+      let spmData = null;
+      try {
+        const res = await callApi('get_spm_checklist', { jo: joId });
+        if (res && res.status === 'success' && res.data) {
+          spmData = res.data;
+        }
+      } catch (e) {
+        console.warn('Fallback ke cache lokal job:', e);
+      }
+
+      const info = spmData || job;
+      const checklist = (spmData && spmData.checklist) ? spmData.checklist : (job.spm_checklist_data || MASTER_SPM_INDICATORS.map(m => ({ ...m, status: 'SESUAI', note: 'Terverifikasi memenuhi standar SPI 105.' })));
+
+      // Populate Modal Metadata
+      document.getElementById('print-spm-jo-badge').textContent = info.jo_number;
+      document.getElementById('print-spm-jo').textContent = info.jo_number + (info.spk_number ? ' (' + info.spk_number + ')' : '');
+      document.getElementById('print-spm-cutoff').textContent = info.tanggal_penilaian || info.spk_date || '-';
+      document.getElementById('print-spm-pemberi').textContent = info.pemberi_tugas || info.instansi || '-';
+      document.getElementById('print-spm-pengguna').textContent = info.pengguna_laporan || info.pemberi_tugas || '-';
+      document.getElementById('print-spm-debitur').textContent = info.debitur || '-';
+      document.getElementById('print-spm-kantor').textContent = info.kantor || 'Kantor Pusat Jakarta';
+      document.getElementById('print-spm-pelaksana').textContent = info.penilai_pelaksana || info.surveyor || '-';
+      document.getElementById('print-spm-reviewer').textContent = info.reviewer || info.reviewer_spm || 'Andri Kusmandana, S.E.';
+      document.getElementById('print-spm-lokasi').textContent = (info.jenis_properti || '-') + ' — ' + (info.lokasi_aset || '-');
+
+      // Populate Table Rows
+      const tbody = document.getElementById('print-spm-tbody');
+      let rowsHtml = '';
+      let countTemuan = 0;
+
+      checklist.forEach((item, idx) => {
+        let badgeHtml = '';
+        const st = (item.status || 'SESUAI').toUpperCase();
+        if (st === 'SESUAI') {
+          badgeHtml = '<span class="px-2 py-0.5 rounded text-[9.5px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">✓ MEMENUHI</span>';
+        } else if (st === 'TEMUAN' || st === 'BELUM_SESUAI') {
+          badgeHtml = '<span class="px-2 py-0.5 rounded text-[9.5px] font-bold bg-rose-100 text-rose-800 border border-rose-300">✗ TEMUAN</span>';
+          countTemuan++;
+        } else {
+          badgeHtml = '<span class="px-2 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 text-slate-700 border border-slate-300">N/A</span>';
+        }
+
+        rowsHtml += `
+          <tr class="${idx % 2 === 1 ? 'bg-slate-50/60' : ''}">
+            <td class="border border-slate-300 px-2 py-1.5 text-center font-mono">${item.id || (idx + 1)}</td>
+            <td class="border border-slate-300 px-2 py-1.5 font-mono font-bold text-slate-800">${item.code || '-'}</td>
+            <td class="border border-slate-300 px-3 py-1.5">
+              <strong class="text-slate-900">${item.title}</strong>
+              <p class="text-[9.5px] text-slate-500 mt-0.5">${item.desc || ''}</p>
+            </td>
+            <td class="border border-slate-300 px-2 py-1.5 text-center whitespace-nowrap">${badgeHtml}</td>
+            <td class="border border-slate-300 px-3 py-1.5 text-slate-700 italic">${item.note || 'Sesuai dengan ketentuan pedoman teknis KJPP NSR.'}</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = rowsHtml;
+
+      // Populate Notes & Status
+      const statusBadge = document.getElementById('print-spm-status-badge');
+      if (countTemuan > 0) {
+        statusBadge.textContent = 'PERLU REVISI KERTAS KERJA (' + countTemuan + ' TEMUAN)';
+        statusBadge.className = 'text-rose-800 font-bold';
+      } else {
+        statusBadge.textContent = 'LULUS AUDIT KENDALI MUTU (MEMENUHI SYARAT)';
+        statusBadge.className = 'text-emerald-800 font-bold';
+      }
+
+      const defaultNotes = (countTemuan > 0)
+        ? 'Ditemukan ketidaksesuaian/kekurangan data pada butir pemeriksaan di atas. Kertas kerja dikembalikan ke Penilai Pelaksana untuk revisi perbaikan.'
+        : 'Kertas kerja telah ditelaah dan diverifikasi memenuhi seluruh standar mutu Standar Penilaian Indonesia (SPI 105) serta Kode Etik Penilai Indonesia (KEPI). Dokumen dinyatakan LULUS AUDIT SPM dan siap untuk otorisasi Penilai Publik.';
+      
+      document.getElementById('print-spm-notes').textContent = info.spm_review_notes || defaultNotes;
+
+      // Signer Information
+      const reviewerName = (info.spm_reviewed_by && info.spm_reviewed_by.nama) || info.reviewer || 'Andri Kusmandana, S.E.';
+      const reviewerNik = (info.spm_reviewed_by && info.spm_reviewed_by.nik) || 'NSR-BDG-2020-40';
+      document.getElementById('print-spm-reviewer-sign').textContent = reviewerName;
+      document.getElementById('print-spm-nik-sign').textContent = 'NIK: ' + reviewerNik + ' • Reviewer SPM Terdaftar';
+
+      const dateNow = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      const city = info.kantor ? info.kantor.replace('Kantor Cabang ', '').replace('Kantor Pusat ', '') : 'Bandung';
+      document.getElementById('print-spm-city-date').textContent = city + ', ' + dateNow;
+
+      document.getElementById('modal-cetak-spm-pdf').classList.remove('hidden');
+    }
+
+    function tutupModalCetakSPM() {
+      document.getElementById('modal-cetak-spm-pdf').classList.add('hidden');
+    }
+
 
     function kembalikanKeM04Revisi() {
       const selectEl = document.getElementById('update-target-milestone');
@@ -2372,6 +2685,8 @@ Administrasi Operasional KJPP NSR`;
         sesuaikanFieldMilestone(nextM);
       }
 
+      // Render Lembar Kendali Mutu SPM jika target M-05 atau berkas penugasan
+      renderChecklistSpmForm(job);
       // Pre-fill SPI dynamic fields
       const tglPenEl = document.getElementById('update-tanggal-penilaian');
       if (tglPenEl) tglPenEl.value = job.tanggal_penilaian || new Date().toISOString().split('T')[0];
@@ -2451,7 +2766,9 @@ Administrasi Operasional KJPP NSR`;
         dokumen_kepemilikan: document.getElementById('update-dokumen-kepemilikan')?.value.trim() || '',
         nomor_laporan_resmi: document.getElementById('update-nomor-laporan-resmi')?.value.trim() || '',
         opini_nilai_pasar: document.getElementById('update-opini-nilai-pasar')?.value.trim() || '',
-        opini_nilai_likuidasi: document.getElementById('update-opini-nilai-likuidasi')?.value.trim() || ''
+        opini_nilai_likuidasi: document.getElementById('update-opini-nilai-likuidasi')?.value.trim() || '',
+        spm_checklist_data: kumpulkanDataChecklistSpm(),
+        spm_review_notes: document.getElementById('update-spm-notes')?.value.trim() || ''
       };
 
       try {
@@ -2781,6 +3098,137 @@ Administrasi Operasional KJPP NSR`;
           <button type="button" onclick="tutupModalKonfirmasiRegistrasi()" class="w-full py-2 px-4 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-xs transition">
             Selesai &amp; Kembali ke Task Board
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== MODAL CETAK LEMBAR KENDALI MUTU SPM (PDF / PRINT-READY) ==================== -->
+  <div id="modal-cetak-spm-pdf" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white text-slate-900 rounded-2xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl relative print:p-0 print:shadow-none print:w-full print:max-w-none print:rounded-none">
+      <!-- Toolbar Atas (Sembunyi saat cetak) -->
+      <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200 no-print">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">Dokumen Kendali Mutu Resmi</span>
+          <span class="text-xs text-slate-500 font-mono" id="print-spm-jo-badge">JO-...</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-2 shadow transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>🖨️ Cetak / Simpan PDF</span>
+          </button>
+          <button type="button" onclick="tutupModalCetakSPM()" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- KONTEN DOKUMEN CETAK RESMI A4 -->
+      <div id="spm-printable-content" class="text-slate-900 text-xs leading-normal">
+        <!-- KOP SURAT RESMI KJPP NSR -->
+        <div class="border-b-2 border-slate-900 pb-3 mb-4 text-center">
+          <h2 class="text-sm sm:text-base font-extrabold uppercase tracking-wide text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
+          <p class="text-[10px] sm:text-[11px] font-semibold text-slate-700">KANTOR JASA PENILAI PUBLIK (KJPP) • IZIN USAHA KMK NO. 2.19.0160</p>
+          <p class="text-[9px] text-slate-600 mt-0.5">Kantor Pusat Jakarta • Cabang: Bandung | Padang | Makassar | Palembang</p>
+          <p class="text-[9px] text-slate-500 font-mono">Website: kjppnanangrahayu.com • Hotline: +62 851-1051-3157</p>
+        </div>
+
+        <!-- JUDUL FORMULIR -->
+        <div class="text-center my-3">
+          <h3 class="text-sm font-black uppercase tracking-wider text-slate-900">LEMBAR KENDALI MUTU PENILAIAN (SPM)</h3>
+          <p class="text-[10.5px] font-serif italic text-slate-600">Quality Assurance Checklist — Berpedoman pada SPI 105 &amp; Kode Etik Penilai Indonesia (KEPI)</p>
+        </div>
+
+        <!-- TABEL METADATA PENUGASAN -->
+        <div class="bg-slate-50 border border-slate-300 rounded-lg p-3 my-3">
+          <table class="w-full text-[11px]">
+            <tbody>
+              <tr>
+                <td class="w-28 font-semibold text-slate-600 py-0.5">No. SPK / JO</td>
+                <td class="w-3 text-slate-400">:</td>
+                <td class="font-mono font-bold text-slate-900" id="print-spm-jo">-</td>
+                <td class="w-28 font-semibold text-slate-600 py-0.5">Tanggal Penilaian</td>
+                <td class="w-3 text-slate-400">:</td>
+                <td class="font-mono" id="print-spm-cutoff">-</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-slate-600 py-0.5">Pemberi Tugas</td>
+                <td class="text-slate-400">:</td>
+                <td class="font-semibold text-slate-900" id="print-spm-pemberi">-</td>
+                <td class="font-semibold text-slate-600 py-0.5">Kantor Pelaksana</td>
+                <td class="text-slate-400">:</td>
+                <td id="print-spm-kantor">-</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-slate-600 py-0.5">Pengguna Laporan</td>
+                <td class="text-slate-400">:</td>
+                <td id="print-spm-pengguna">-</td>
+                <td class="font-semibold text-slate-600 py-0.5">Penilai Pelaksana</td>
+                <td class="text-slate-400">:</td>
+                <td id="print-spm-pelaksana">-</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-slate-600 py-0.5">Debitur / Objek</td>
+                <td class="text-slate-400">:</td>
+                <td class="font-semibold" id="print-spm-debitur">-</td>
+                <td class="font-semibold text-slate-600 py-0.5">Reviewer SPM</td>
+                <td class="text-slate-400">:</td>
+                <td class="font-bold text-slate-900" id="print-spm-reviewer">-</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-slate-600 py-0.5">Lokasi Objek</td>
+                <td class="text-slate-400">:</td>
+                <td colspan="4" id="print-spm-lokasi">-</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- TABEL 10 INDIKATOR BAKU PENGUJIAN KEPATUHAN SPI 105 -->
+        <table class="w-full border-collapse border border-slate-300 text-[10.5px] my-3">
+          <thead>
+            <tr class="bg-slate-100 text-slate-800">
+              <th class="border border-slate-300 px-2 py-1.5 text-center w-8">No</th>
+              <th class="border border-slate-300 px-2 py-1.5 text-left w-24">Kode SPI</th>
+              <th class="border border-slate-300 px-3 py-1.5 text-left">Indikator Baku Pengujian Kepatuhan Mutu</th>
+              <th class="border border-slate-300 px-2 py-1.5 text-center w-28">Status Pemenuhan</th>
+              <th class="border border-slate-300 px-3 py-1.5 text-left">Catatan / Dasar Telaah Reviewer</th>
+            </tr>
+          </thead>
+          <tbody id="print-spm-tbody">
+            <!-- Diisi otomatis oleh javascript -->
+          </tbody>
+        </table>
+
+        <!-- KESIMPULAN REVIEWER & CATATAN EVALUASI -->
+        <div class="border border-slate-300 rounded-lg p-3 my-3 bg-slate-50">
+          <h4 class="font-bold text-slate-800 uppercase text-[10px] mb-1">Kesimpulan &amp; Rekomendasi Reviewer SPM:</h4>
+          <p id="print-spm-notes" class="text-[10.5px] text-slate-700 italic leading-relaxed">
+            Kertas kerja telah diverifikasi memenuhi standar mutu Standar Penilaian Indonesia (SPI 105) dan pedoman operasional KJPP NSR. Dokumen dinyatakan LULUS AUDIT KENDALI MUTU dan direkomendasikan untuk otorisasi Penilai Publik berizin.
+          </p>
+        </div>
+
+        <!-- KOLOM PENGESAHAN TANDA TANGAN DIGITAL REVIEWER -->
+        <div class="grid grid-cols-2 gap-4 mt-6 pt-2 text-[10.5px]">
+          <div>
+            <p class="text-slate-500 font-mono text-[9px]">Status Verifikasi Sistem:</p>
+            <div class="mt-1 inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold">
+              <span id="print-spm-status-badge">LULUS AUDIT (MEMENUHI SYARAT)</span>
+            </div>
+            <p class="text-[9px] text-slate-400 mt-1 font-mono" id="print-spm-hash">ID Transaksi: AUTH-SPM-SECURE</p>
+          </div>
+          <div class="text-right">
+            <p class="text-slate-600 font-medium" id="print-spm-city-date">Bandung, 30 Oktober 2026</p>
+            <p class="text-slate-800 font-bold mt-1">Reviewer Kendali Mutu (SPM)</p>
+            <div class="h-14 flex items-center justify-end">
+              <span class="inline-block px-3 py-1 rounded border border-dashed border-slate-400 text-slate-400 font-mono text-[9px] uppercase tracking-wider">
+                [ Tanda Tangan Digital Terotentikasi ]
+              </span>
+            </div>
+            <p class="font-extrabold text-slate-900 uppercase" id="print-spm-reviewer-sign">Andri Kusmandana, S.E.</p>
+            <p class="text-[9.5px] text-slate-600 font-mono" id="print-spm-nik-sign">NIK: NSR-BDG-2020-40 • MAPPI (Cert.)</p>
+          </div>
         </div>
       </div>
     </div>
