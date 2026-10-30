@@ -4234,35 +4234,44 @@
       <!-- MENU PORTAL OPERASIONAL OPINI NSR (AUTHENTICATED VIEW) -->
       <div id="panel-layanan" class="hidden flex-1 flex flex-col min-h-0 overflow-hidden p-3.5 sm:p-4 md:p-5">
         
-        <!-- TOP UTILITY BAR (1 BARIS TERPADU: KOP OPINI NSR + STATUS VERIFIKASI + TOMBOL TUTUP TUNGGAL) -->
-        <div class="flex items-center justify-between gap-2 sm:gap-3 pb-2.5 sm:pb-3 border-b border-slate-800 mb-2.5 shrink-0">
+        <!-- TOP UTILITY BAR (RESPONSIF: 2-BARIS DI MOBILE, 1-BARIS DI TABLET/DESKTOP) -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3 pb-2 sm:pb-2.5 border-b border-slate-800 mb-2 sm:mb-2.5 shrink-0">
           
-          <!-- Sisi Kiri: Judul OPINI NSR + Lencana KMK Ringkas -->
-          <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <h3 class="text-base sm:text-lg font-black tracking-wide text-amber-400 uppercase shrink-0">
-              OPINI NSR
-            </h3>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400/10 text-amber-300 border border-amber-400/30 shrink-0">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
-              <span>KMK NO. 2.19.0160</span>
-            </span>
-            <span class="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium text-slate-400 bg-slate-900 border border-slate-800 shrink-0">
-              5 Wilayah Terpadu
-            </span>
-          </div>
-
-          <!-- Sisi Kanan: Status Verifikasi Pill + Ganti Token + Tombol Tutup Tunggal -->
-          <div class="flex items-center gap-2 shrink-0">
-            <!-- Pill Status Verifikasi Horizontal -->
-            <div class="inline-flex items-center gap-2 py-1 px-2.5 sm:px-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px] sm:text-xs">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
-              <span class="text-slate-200 font-medium truncate max-w-[150px] sm:max-w-xs" id="label-lokasi">Token Terverifikasi</span>
-              <span class="text-slate-600">&bull;</span>
-              <button type="button" onclick="resetTokenSesi()" class="font-semibold text-slate-400 hover:text-rose-400 underline cursor-pointer shrink-0 transition" title="Ganti token autentikasi">Ganti / Keluar</button>
+          <!-- Baris 1 di Mobile / Sisi Kiri di Tablet & Desktop: Judul OPINI NSR + Lencana KMK + Tombol Tutup Mobile -->
+          <div class="flex items-center justify-between w-full sm:w-auto gap-2">
+            <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <h3 class="text-base sm:text-lg font-black tracking-wide text-amber-400 uppercase shrink-0">
+                OPINI NSR
+              </h3>
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400/10 text-amber-300 border border-amber-400/30 shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                <span>KMK NO. 2.19.0160</span>
+              </span>
+              <span class="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium text-slate-400 bg-slate-900 border border-slate-800 shrink-0">
+                5 Wilayah Terpadu
+              </span>
             </div>
 
-            <!-- Tombol Tutup Tunggal Bersih (Bebas Efek Ganda) -->
-            <button type="button" onclick="tutupModalPortal()" class="text-slate-400 hover:text-white text-lg font-bold w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 flex items-center justify-center cursor-pointer shrink-0 transition" aria-label="Tutup Dialog Modal">&times;</button>
+            <!-- Tombol Tutup Tunggal Mobile (< 640px) -->
+            <button type="button" onclick="tutupModalPortal()" class="sm:hidden text-slate-400 hover:text-white text-lg font-bold w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 flex items-center justify-center cursor-pointer shrink-0 transition" aria-label="Tutup Dialog Modal">&times;</button>
+          </div>
+
+          <!-- Baris 2 di Mobile / Sisi Kanan di Tablet & Desktop: Status Verifikasi Pill + Ganti Token + Tombol Tutup Desktop -->
+          <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+            <!-- Pill Status Verifikasi Horizontal -->
+            <div class="inline-flex items-center justify-between sm:justify-start gap-2 py-1 px-2.5 sm:px-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px] sm:text-xs w-full sm:w-auto">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+                <span class="text-slate-200 font-medium truncate max-w-[210px] sm:max-w-xs" id="label-lokasi">Token Terverifikasi</span>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0 ml-auto">
+                <span class="text-slate-600">&bull;</span>
+                <button type="button" onclick="resetTokenSesi()" class="font-semibold text-slate-400 hover:text-rose-400 underline cursor-pointer shrink-0 transition" title="Ganti token autentikasi">Ganti / Keluar</button>
+              </div>
+            </div>
+
+            <!-- Tombol Tutup Tunggal Desktop (≥ 640px) -->
+            <button type="button" onclick="tutupModalPortal()" class="hidden sm:flex text-slate-400 hover:text-white text-lg font-bold w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 items-center justify-center cursor-pointer shrink-0 transition" aria-label="Tutup Dialog Modal">&times;</button>
           </div>
 
         </div>
@@ -4270,13 +4279,13 @@
         <!-- VIP HERO BANNER KHUSUS TOKEN KING (COMPACT ACTION STRIP 1 BARIS) -->
         <div id="governance-hero-slot" class="hidden mb-2.5 shrink-0" style="display: none;"></div>
 
-        <div id="container-kartu-layanan" class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5 overflow-y-auto pr-1 custom-scrollbar-thin flex-1">
+        <div id="container-kartu-layanan" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 lg:gap-3.5 overflow-y-auto pr-1 custom-scrollbar-thin flex-1">
           
           <!-- KARTU 1: LINGKUP PENUGASAN & JOB ORDER (JO) -->
-          <div class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+          <div class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 md:p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-3 min-w-0">
-                <span class="w-11 h-11 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
+                <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 </span>
                 <div class="min-w-0">
@@ -4284,7 +4293,7 @@
                   <p id="sub-portal-penugasan" class="text-[11px] sm:text-xs text-slate-400 leading-normal line-clamp-1 mt-0.5">Sistem Otomasi SPK, Surat Representasi &amp; 7 Dokumen Bundel JO</p>
                 </div>
               </div>
-              <a id="link-portal-penugasan" href="portal-penugasan-jo.html" onclick="if (!dapatkanSesiTervalidasi()) { event.preventDefault(); bukaModalPortal('penugasan'); }" class="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
+              <a id="link-portal-penugasan" href="portal-penugasan-jo.html" onclick="if (!dapatkanSesiTervalidasi()) { event.preventDefault(); bukaModalPortal('penugasan'); }" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
                 <span id="btn-text-portal-penugasan">Masuk Portal &nearr;</span>
               </a>
             </div>
@@ -4295,10 +4304,10 @@
           </div>
 
           <!-- KARTU 2: PORTAL NOMOR LAPORAN (NOLAP) -->
-          <div id="box-card-nolap" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+          <div id="box-card-nolap" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 md:p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-3 min-w-0">
-                <span id="icon-box-nolap" class="w-11 h-11 rounded-xl bg-sky-500/20 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
+                <span id="icon-box-nolap" class="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-sky-500/20 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-sky-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
                 </span>
                 <div class="min-w-0">
@@ -4306,7 +4315,7 @@
                   <p id="sub-portal-nolap" class="text-[11px] sm:text-xs text-slate-400 leading-normal line-clamp-1 mt-0.5">Registrasi 7 Segmen Kemenkeu &amp; SPM Mitigasi</p>
                 </div>
               </div>
-              <a id="link-portal-nolap" href="portal-nolap.html" class="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
+              <a id="link-portal-nolap" href="portal-nolap.html" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
                 <span id="btn-text-portal-nolap">Masuk Portal &nearr;</span>
               </a>
             </div>
@@ -4317,10 +4326,10 @@
           </div>
 
           <!-- KARTU 3: PORTAL KWITANSI & KEUANGAN -->
-          <div class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+          <div class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 md:p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-3 min-w-0">
-                <span class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
                 </span>
                 <div class="min-w-0">
@@ -4328,7 +4337,7 @@
                   <p id="sub-portal-kwitansi" class="text-[11px] sm:text-xs text-slate-400 leading-normal line-clamp-1 mt-0.5">Draf Tagihan Cabang &amp; Verifikasi Keuangan Pusat</p>
                 </div>
               </div>
-              <a id="link-portal-kwitansi" href="portal-kwitansi.html" class="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
+              <a id="link-portal-kwitansi" href="portal-kwitansi.html" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
                 <span id="btn-text-portal-kwitansi">Masuk Portal &nearr;</span>
               </a>
             </div>
@@ -4339,10 +4348,10 @@
           </div>
 
           <!-- KARTU 4: PORTAL BIAYA OPERASIONAL (e-OPERASIONAL) -->
-          <div id="kartu-e-operasional" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+          <div id="kartu-e-operasional" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 md:p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-3 min-w-0">
-                <span class="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="m9 14 2 2 4-4"/></svg>
                 </span>
                 <div class="min-w-0">
@@ -4353,17 +4362,17 @@
                   <p id="sub-portal-operasional" class="text-[11px] sm:text-xs text-slate-400 leading-normal line-clamp-1 mt-0.5">Pengajuan Survey, Meeting &amp; Beban Umum Kantor</p>
                 </div>
               </div>
-              <a id="link-portal-operasional" href="portal-operasional.html" class="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
+              <a id="link-portal-operasional" href="portal-operasional.html" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
                 <span id="btn-text-portal-operasional">Masuk Portal &nearr;</span>
               </a>
             </div>
           </div>
 
           <!-- KARTU 5: BUKU AGENDA SURAT UMUM (SU - PUSAT ONLY) -->
-          <div id="kartu-surat-umum" data-access="pusat-only" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+          <div id="kartu-surat-umum" data-access="pusat-only" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 md:p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-3 min-w-0">
-                <span class="w-11 h-11 rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 flex items-center justify-center shrink-0">
+                <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </span>
                 <div class="min-w-0">
@@ -4374,17 +4383,17 @@
                   <p class="text-[11px] sm:text-xs text-slate-400 leading-normal line-clamp-1 mt-0.5">Penomoran Surat Keluar Resmi &amp; Arsip Drive</p>
                 </div>
               </div>
-              <a id="link-portal-surat-umum" href="portal-surat-umum.html" class="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
+              <a id="link-portal-surat-umum" href="portal-surat-umum.html" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
                 <span>Masuk Portal &nearr;</span>
               </a>
             </div>
           </div>
 
           <!-- KARTU 6: FOLDER DOKUMEN & SOP CABANG -->
-          <div id="kartu-sop-wrapper" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+          <div id="kartu-sop-wrapper" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 md:p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-3 min-w-0">
-                <span class="w-11 h-11 rounded-xl bg-violet-500/20 border border-violet-500/30 text-violet-400 flex items-center justify-center shrink-0">
+                <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-violet-500/20 border border-violet-500/30 text-violet-400 flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-violet-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
                 </span>
                 <div class="min-w-0">
@@ -4392,17 +4401,17 @@
                   <p id="sub-portal-sop" class="text-[11px] sm:text-xs text-slate-400 leading-normal line-clamp-1 mt-0.5">Format Laporan, Template &amp; SOP Internal</p>
                 </div>
               </div>
-              <a id="link-portal-sop" href="javascript:void(0)" class="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
+              <a id="link-portal-sop" href="javascript:void(0)" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm">
                 <span id="btn-text-portal-sop">Buka Dokumen &nearr;</span>
               </a>
             </div>
           </div>
 
                     <!-- KARTU 8: MANAJEMEN & REGISTRASI PENUGASAN (7-MILESTONE) -->
-          <div id="kartu-tracking-wrapper" class="bg-slate-900/80 border border-amber-500/30 hover:border-amber-400/50 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+          <div id="kartu-tracking-wrapper" class="bg-slate-900/80 border border-amber-500/30 hover:border-amber-400/50 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 md:p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-3 min-w-0">
-                <span class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 </span>
                 <div class="min-w-0">
@@ -4413,17 +4422,17 @@
                   <p class="text-[11px] sm:text-xs text-slate-400 leading-normal line-clamp-1 mt-0.5">Registrasi SPK, Penunjukan Tim &amp; Kendali Mutu SPM</p>
                 </div>
               </div>
-              <a id="link-portal-tracking" href="portal-tracking.html" class="px-3.5 py-1.5 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm shadow-amber-400/20">
+              <a id="link-portal-tracking" href="portal-tracking.html" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm shadow-amber-400/20">
                 <span>Buka Task Board &nearr;</span>
               </a>
             </div>
           </div>
 
           <!-- KARTU 7: PRESENSI KEHADIRAN ONLINE -->
-          <div id="kartu-presensi-wrapper" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+          <div id="kartu-presensi-wrapper" class="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 md:p-4 transition-all duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-3 min-w-0">
-                <span class="w-11 h-11 rounded-xl bg-teal-500/20 border border-teal-500/30 text-teal-400 flex items-center justify-center shrink-0">
+                <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-teal-500/20 border border-teal-500/30 text-teal-400 flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-teal-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </span>
                 <div class="min-w-0">
@@ -4431,7 +4440,7 @@
                   <p class="text-[11px] sm:text-xs text-slate-400 leading-normal line-clamp-1 mt-0.5">Presensi Kehadiran, Titik WFH &amp; Layanan Cuti</p>
                 </div>
               </div>
-              <a id="link-portal-absen" href="portal-presensi.html" class="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm cursor-pointer">
+              <a id="link-portal-absen" href="portal-presensi.html" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition shrink-0 inline-flex items-center gap-1 shadow-sm cursor-pointer">
                 <span>Buka Form &nearr;</span>
               </a>
             </div>
@@ -6312,27 +6321,27 @@
 
       if (isKing) {
         containerHero.innerHTML = `
-          <div class="mb-2.5 py-2 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-slate-900 via-amber-950/20 to-slate-900 border border-amber-500/40 shadow-md relative overflow-hidden flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5" title="Pusat Komando Tata Kelola Lintas 5 Wilayah: Audit SLA Berjenjang, Mitigasi Kritis SPM, dan Mesin Intervensi Cepat 1-Klik">
-            <!-- Kiri: Badge + Judul Compact -->
+          <div class="mb-2 sm:mb-2.5 py-2 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-slate-900 via-amber-950/20 to-slate-900 border border-amber-500/40 shadow-md relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-2.5" title="Pusat Komando Tata Kelola Lintas 5 Wilayah: Audit SLA Berjenjang, Mitigasi Kritis SPM, dan Mesin Intervensi Cepat 1-Klik">
+            <!-- Atas di Mobile / Kiri di Tablet & Desktop: Badge + Judul Rapi Tanpa Truncate Canggung -->
             <div class="flex items-center gap-2 min-w-0">
               <span class="px-2 py-0.5 rounded text-[9.5px] font-black bg-amber-500 text-slate-950 uppercase tracking-wider font-mono shrink-0">MANAGEMENT</span>
-              <h4 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate">
+              <h4 class="text-xs sm:text-sm font-bold text-white tracking-wide leading-tight">
                 EXECUTIVE CONTROL TOWER &amp; SPM HUB
               </h4>
             </div>
 
-            <!-- Tengah & Kanan: Indikator Ringkas + Tombol Buka Proporsional -->
-            <div class="flex items-center gap-2.5 shrink-0 ml-auto">
+            <!-- Bawah di Mobile / Kanan di Tablet & Desktop: Indikator + Tombol Buka -->
+            <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
               <!-- Indikator Inline -->
-              <div class="hidden sm:flex items-center gap-2 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px] font-mono">
+              <div class="flex items-center gap-2 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800 text-[10.5px] sm:text-[11px] font-mono">
                 <span class="text-slate-400">Kepatuhan: <strong class="text-emerald-400 font-semibold">94.8%</strong></span>
-                <span class="text-slate-600">|</span>
-                <span class="text-slate-400">Anomali Kritis: <strong id="live-critical-count" class="text-rose-400 font-semibold">2 Kasus</strong></span>
+                <span class="hidden md:inline text-slate-600">|</span>
+                <span class="hidden md:inline text-slate-400">Anomali: <strong id="live-critical-count" class="text-rose-400 font-semibold">2 Kasus</strong></span>
               </div>
 
               <!-- Tombol Buka -->
               <a href="portal-governance.html?token=${encodeURIComponent(['NSR', '8899'].join(''))}" 
-                 class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5 shrink-0">
+                 class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5 shrink-0">
                 <span>Buka Menara Kendali</span>
                 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
               </a>
