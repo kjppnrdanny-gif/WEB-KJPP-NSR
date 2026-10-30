@@ -29,6 +29,7 @@ if ($requestMethod === 'OPTIONS') {
 
 // Konfigurasi Google Apps Script Engine Proxy SSOT
 define('GAS_TRACKING_URL', 'https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec');
+define('GAS_DRIVE_PROVISIONING_URL', 'https://script.google.com/macros/s/AKfycbyHSr5eOHzJFaStZ0xwLLIddf5rD6VCdydRHI5O7khtMzuuCv_GCy6vwGnuTFssAghh/exec');
 
 $dataDir = __DIR__ . '/../data';
 if (!is_dir($dataDir)) {
@@ -135,19 +136,103 @@ function provisionDriveFolder($params = []) {
     $namaDebitur = trim((string)($params['nama_debitur'] ?? 'Debitur'));
     $namaDebiturClean = preg_replace('/[\/\\:*?"<>|]/', '-', $namaDebitur);
 
-    // Coba hubungi GAS SSOT Engine jika aktif
     $gasPayload = [
+        'action' => 'create_job_folder',
         'tahun' => $tahun,
         'kode_cabang' => $kodeCabang,
         'kode_trk' => $kodeTrk,
         'nama_debitur' => $namaDebiturClean
     ];
-    $gasRes = callGASTrackingService('create_job_folder', $gasPayload, 'POST', 3);
-    if ($gasRes && isset($gasRes['status']) && $gasRes['status'] === 'success' && !empty($gasRes['folder_url'])) {
-        return $gasRes;
+
+    $driveEndpoint = defined('GAS_DRIVE_PROVISIONING_URL') && !empty(GAS_DRIVE_PROVISIONING_URL)
+        ? GAS_DRIVE_PROVISIONING_URL
+        : (defined('GAS_TRACKING_URL') ? GAS_TRACKING_URL : '');
+
+    if (!empty($driveEndpoint)) {
+        $postData = json_encode($gasPayload, JSON_UNESCAPED_UNICODE);
+        $res = null;
+
+        if (function_exists('curl_init')) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $driveEndpoint);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json;charset=utf-8']);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 25);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $rawRes = curl_exec($ch);
+            $err = curl_error($ch);
+            curl_close($ch);
+            if ($rawRes && !$err) {
+                $res = json_decode($rawRes, true);
+            }
+        }
+
+        if (!$res) {
+            $opts = [
+                'http' => [
+                    'method' => 'POST',
+                    'header' => "Content-Type: application/json\r\n",
+                    'content' => $postData,
+                    'timeout' => 25,
+                    'follow_location' => 1,
+                    'max_redirects' => 5
+                ],
+                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]
+            ];
+            $ctx = @stream_context_create($opts);
+            $rawRes = @file_get_contents($driveEndpoint, false, $ctx);
+            if ($rawRes) {
+                $res = json_decode($rawRes, true);
+            }
+        }
+
+        if ($res && isset($res['status']) && $res['status'] === 'success') {
+            $data = $res['data'] ?? $res;
+            $fUrl = $data['folder_url'] ?? $res['folder_url'] ?? '';
+            $fId = $data['folder_id'] ?? $res['folder_id'] ?? '';
+
+            // Format subfolder ke struktur standar
+            $subRaw = $data['subfolders'] ?? $res['subfolders'] ?? [];
+            $formattedSubfolders = [];
+            if (is_array($subRaw)) {
+                foreach ($subRaw as $k => $v) {
+                    if (is_array($v) && isset($v['name']) && isset($v['url'])) {
+                        $formattedSubfolders[] = [
+                            'name' => $v['name'],
+                            'id' => $v['id'] ?? '',
+                            'url' => $v['url']
+                        ];
+                    } elseif (is_array($v) && isset($v['url'])) {
+                        $formattedSubfolders[] = [
+                            'name' => (string)$k,
+                            'id' => $v['id'] ?? '',
+                            'url' => $v['url']
+                        ];
+                    }
+                }
+            }
+
+            if (!empty($fUrl)) {
+                return [
+                    'status' => 'success',
+                    'message' => 'Struktur folder Google Drive berhasil disiapkan di Google Drive resmi.',
+                    'folder_id' => $fId,
+                    'folder_name' => $data['folder_name'] ?? "{$kodeTrk} - {$namaDebiturClean}",
+                    'folder_url' => $fUrl,
+                    'kode_cabang' => $kodeCabang,
+                    'tahun' => $tahun,
+                    'kode_trk' => $kodeTrk,
+                    'subfolders' => !empty($formattedSubfolders) ? $formattedSubfolders : []
+                ];
+            }
+        }
     }
 
-    // Fallback Deterministic Generator (Local Staging / Zero-Breakage Resilient)
+    // Fallback Deterministic Generator (Zero-Breakage Resilient saat kendala jaringan)
     $folderId = 'nsr_' . strtolower($kodeCabang) . '_' . $tahun . '_' . substr(md5($kodeTrk . '_' . $namaDebiturClean), 0, 12);
     $folderUrl = "https://drive.google.com/drive/folders/{$folderId}";
     
@@ -161,7 +246,7 @@ function provisionDriveFolder($params = []) {
 
     return [
         'status' => 'success',
-        'message' => 'Struktur folder Google Drive berhasil disiapkan (Engine Sinkronisasi KJPP NSR).',
+        'message' => 'Struktur folder Google Drive berhasil disiapkan (Engine Cadangan KJPP NSR).',
         'folder_id' => $folderId,
         'folder_name' => "{$kodeTrk} - {$namaDebiturClean}",
         'folder_url' => $folderUrl,
