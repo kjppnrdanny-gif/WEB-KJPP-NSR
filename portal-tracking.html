@@ -932,8 +932,20 @@
             <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30">INTERNAL STAF SAJA</span>
           </div>
           <div>
-            <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Nomor Laporan Resmi (NoLap) <span class="text-rose-400">*</span></label>
-            <input type="text" id="update-nomor-laporan-resmi" placeholder="Contoh: 0042/2.0160-01/PI/X/2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400">
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[10.5px] font-semibold text-slate-300">Nomor Laporan Resmi (NoLap) <span class="text-rose-400">*</span></label>
+              <span id="badge-nolap-status" class="hidden px-2 py-0.5 rounded text-[9.5px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                Terkunci Resmi di SSOT NoLap
+              </span>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="text" id="update-nomor-laporan-resmi" placeholder="Contoh: 0042/2.0160-04/PI/07/00045/1/X/2026" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400">
+              <button type="button" id="btn-generate-nolap" onclick="generateNoLapOtomatisM06()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 shadow transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95">
+                <span>⚡ Ambil No. Laporan Otomatis</span>
+              </button>
+            </div>
+            <p id="helper-nolap-info" class="text-[10px] text-slate-400 mt-1 leading-tight">Penilai Publik Berizin dapat mengklik tombol petir untuk mengalokasikan nomor urut resmi atomik dari master NoLap.</p>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -1860,6 +1872,75 @@
       }
     }
 
+    // Otomasi Penerbitan NoLap Resmi M-06 Terpadu SSOT
+    async function generateNoLapOtomatisM06() {
+      const joId = document.getElementById('update-jo-id')?.value;
+      const nik = document.getElementById('update-auth-nik')?.value.trim();
+      const pin = document.getElementById('update-auth-pin')?.value.trim();
+      const errBanner = document.getElementById('update-error-banner');
+      const errText = document.getElementById('update-error-text');
+      const btn = document.getElementById('btn-generate-nolap');
+      const inputEl = document.getElementById('update-nomor-laporan-resmi');
+      const badgeNoLap = document.getElementById('badge-nolap-status');
+
+      if (!joId) return alert('Data penugasan belum dipilih.');
+
+      if (!nik || !pin) {
+        if (errBanner && errText) {
+          errText.textContent = 'Harap isi NIK dan PIN Penilai Publik Berizin / Admin terlebih dahulu di kolom otorisasi bawah sebelum mengambil NoLap.';
+          errBanner.classList.remove('hidden');
+        }
+        document.getElementById('update-auth-nik')?.focus();
+        return;
+      }
+
+      errBanner?.classList.add('hidden');
+      const originalBtnText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="w-3.5 h-3.5 animate-spin text-slate-950" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg><span>Mengalokasikan NoLap...</span>`;
+
+      try {
+        const res = await callApi('generate_nolap', {}, 'POST', {
+          jo: joId,
+          nik: nik,
+          pin: pin
+        });
+
+        btn.disabled = false;
+        btn.innerHTML = originalBtnText;
+
+        if (res && res.status === 'success' && res.data && res.data.nomor_laporan_resmi) {
+          const noLap = res.data.nomor_laporan_resmi;
+          if (inputEl) {
+            inputEl.value = noLap;
+            inputEl.readOnly = true;
+            inputEl.classList.add('border-emerald-500/60', 'bg-emerald-950/30', 'text-emerald-300', 'font-bold');
+          }
+          if (badgeNoLap) badgeNoLap.classList.remove('hidden');
+          btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+          const targetJob = globalJobs.find(x => x.id === joId || x.jo_number === joId);
+          if (targetJob) {
+            targetJob.nomor_laporan_resmi = noLap;
+          }
+
+          alert(`✓ Sukses! Nomor Laporan Resmi berhasil diterbitkan:\n\n${noLap}\n\nNomor ini telah terkunci secara atomik dan tersinkronisasi ke Master Register NoLap KJPP NSR.`);
+        } else {
+          if (errBanner && errText) {
+            errText.textContent = res.message || 'Gagal menerbitkan NoLap otomatis.';
+            errBanner.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = originalBtnText;
+        if (errBanner && errText) {
+          errText.textContent = 'Gagal memproses alokasi NoLap: ' + err.message;
+          errBanner.classList.remove('hidden');
+        }
+      }
+    }
+
     // Hubungi Pendamping Lapangan (Tanpa Kode Lacak)
     function hubungiPendampingSurvei(joId) {
       const job = globalJobs.find(x => x.id === joId || x.jo_number === joId);
@@ -2299,7 +2380,28 @@ Administrasi Operasional KJPP NSR`;
       if (dokHakEl) dokHakEl.value = job.dokumen_kepemilikan || '';
 
       const noLapEl = document.getElementById('update-nomor-laporan-resmi');
-      if (noLapEl) noLapEl.value = job.nomor_laporan_resmi || '';
+      const badgeNoLap = document.getElementById('badge-nolap-status');
+      const btnGenNoLap = document.getElementById('btn-generate-nolap');
+      if (noLapEl) {
+        noLapEl.value = job.nomor_laporan_resmi || '';
+        if (job.nomor_laporan_resmi) {
+          noLapEl.readOnly = true;
+          noLapEl.classList.add('border-emerald-500/60', 'bg-emerald-950/30', 'text-emerald-300', 'font-bold');
+          if (badgeNoLap) badgeNoLap.classList.remove('hidden');
+          if (btnGenNoLap) {
+            btnGenNoLap.classList.add('opacity-50', 'cursor-not-allowed');
+            btnGenNoLap.title = 'NoLap resmi sudah terkunci untuk penugasan ini';
+          }
+        } else {
+          noLapEl.readOnly = false;
+          noLapEl.classList.remove('border-emerald-500/60', 'bg-emerald-950/30', 'text-emerald-300', 'font-bold');
+          if (badgeNoLap) badgeNoLap.classList.add('hidden');
+          if (btnGenNoLap) {
+            btnGenNoLap.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnGenNoLap.title = 'Alokasikan nomor laporan resmi atomik';
+          }
+        }
+      }
 
       const nilaiPasarEl = document.getElementById('update-opini-nilai-pasar');
       if (nilaiPasarEl) nilaiPasarEl.value = job.opini_nilai_pasar || '';

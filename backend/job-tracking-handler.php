@@ -1516,6 +1516,241 @@ if ($action === 'get_audit_log') {
 }
 
 // =========================================================================
+// 8B. ACTION: GENERATE_NOLAP (Otomasi Penerbitan Nomor Laporan Resmi M-06 SSOT)
+// =========================================================================
+if ($action === 'generate_nolap' || $action === 'request_nolap') {
+    $rawInput = file_get_contents('php://input');
+    $payload = @json_decode($rawInput, true);
+    if (!is_array($payload)) $payload = $_POST;
+
+    $joId = trim((string)($payload['jo'] ?? $payload['id'] ?? $payload['id_jo'] ?? ''));
+    $nik = trim((string)($payload['nik'] ?? $payload['auth_nik'] ?? ''));
+    $pin = trim((string)($payload['pin'] ?? $payload['auth_pin'] ?? ''));
+
+    // 1. Verifikasi Kredensial NIK + PIN
+    if (empty($nik) || empty($pin)) {
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Otorisasi gagal: NIK Karyawan dan PIN Keamanan wajib diisi untuk menerbitkan Nomor Laporan Resmi (NoLap).'
+        ]);
+        exit;
+    }
+
+    $authRes = verifyNikPin($nik, $pin);
+    if (!$authRes['success']) {
+        http_response_code(401);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Verifikasi Gagal: ' . $authRes['message']
+        ]);
+        exit;
+    }
+    $user = $authRes['user'];
+
+    // 2. Cari Job Order
+    if (!isset($jobs[$joId])) {
+        foreach ($jobs as $id => $j) {
+            if ($j['jo_number'] === $joId || ($j['kode_lacak'] ?? '') === $joId) {
+                $joId = $id;
+                break;
+            }
+        }
+    }
+
+    if (!isset($jobs[$joId])) {
+        http_response_code(404);
+        echo json_encode(['status' => 'error', 'message' => 'Job Order ' . $joId . ' tidak ditemukan.']);
+        exit;
+    }
+
+    $job = &$jobs[$joId];
+
+    // 3. Validasi Otoritas Khusus M-06 (Penilai Publik Berizin / Admin Pusat)
+    $authCheck = checkMilestoneAuthority($user, 'M-06');
+    if (!$authCheck['allowed']) {
+        http_response_code(403);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Akses Ditolak: Penerbitan Nomor Laporan Resmi (NoLap) mutlak menjadi wewenang Penilai Publik Berizin Kemenkeu RI atau Admin Pusat.'
+        ]);
+        exit;
+    }
+
+    // 4. Pembatasan Wilayah Kerja Cabang
+    if (!checkBranchAccess($user, $job['kantor_code'])) {
+        http_response_code(403);
+        $userCabang = $user['kantor'] ?? $user['cabang'] ?? 'Cabang Terdaftar';
+        echo json_encode([
+            'status' => 'error',
+            'message' => "Akses Ditolak: Anda berwenang di {$userCabang}, tidak memiliki hak akses menerbitkan NoLap untuk penugasan wilayah {$job['kantor']}."
+        ]);
+        exit;
+    }
+
+    // 5. Idempotensi: Jika nomor sudah ada, kembalikan tanpa membuat nomor baru
+    if (!empty($job['nomor_laporan_resmi'])) {
+        echo json_encode([
+            'status' => 'success',
+            'already_issued' => true,
+            'message' => 'Nomor Laporan Resmi sudah diterbitkan sebelumnya dan telah terkunci untuk penugasan ini.',
+            'data' => [
+                'nomor_laporan_resmi' => $job['nomor_laporan_resmi'],
+                'jo_number' => $job['jo_number'],
+                'kantor' => $job['kantor']
+            ]
+        ]);
+        exit;
+    }
+
+    // 6. Concurrency Safe Allocation via Lock
+    $lockFile = $dataDir . '/nolap_allocator.lock';
+    $fpLock = @fopen($lockFile, 'c+');
+    if ($fpLock) {
+        @flock($fpLock, LOCK_EX);
+    }
+
+    $now = time();
+    $year = date('Y');
+    $romawiBulan = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][(int)date('n') - 1];
+
+    // Kode Kantor Resmi Kemenkeu RI
+    $officeCodeMap = [
+        'PUSAT' => '2.0160-00',
+        'JKT'   => '2.0160-00',
+        'PDG'   => '2.0160-02',
+        'MKS'   => '2.0160-03',
+        'BDG'   => '2.0160-04',
+        'PLM'   => '2.0160-05'
+    ];
+    $kantorCode = strtoupper(trim((string)($job['kantor_code'] ?? 'PUSAT')));
+    $signingOfficeCode = $officeCodeMap[$kantorCode] ?? '2.0160-00';
+
+    // Kode Penilai Publik Izin Segmen
+    $appraiserLicenseMap = [
+        'NSR-2019-001' => '00581', // Ir. Nanang Rahayu
+        'NSR-2019-002' => '00045', // Deni Siswandi
+        'NSR-2019-003' => '00028', // Sigit Paryanto
+        'NSR-2019-004' => '00312', // Dharma Priyanto
+        'NSR-2019-005' => '00350', // Hernita
+        'NSR-2019-006' => '00421'  // Muhammad Amin Sade
+    ];
+    $appraiserLicenseCode = $appraiserLicenseMap[$user['nik']] ?? '00581';
+
+    // Bidang & Sektor
+    $reportServiceCode = 'PI'; // Standar SPI 105: Penilaian Properti (Dilarang PS)
+    $industrySector = '07'; // Komersial / Umum
+
+    // Cari sequence nomor urut terakhir
+    $highestSeq = 525; // Base sequence awal tahun
+
+    // Periksa dari database nolap
+    $nolapDbFile = $dataDir . '/nolap_database.json';
+    if (file_exists($nolapDbFile)) {
+        $nData = @json_decode(@file_get_contents($nolapDbFile), true);
+        if (is_array($nData)) {
+            foreach ($nData as $item) {
+                $no = trim((string)($item['nomorLaporan'] ?? ''));
+                if (preg_match('/^(\d{4,5})\//', $no, $m)) {
+                    $val = (int)$m[1];
+                    if ($val > $highestSeq) $highestSeq = $val;
+                }
+            }
+        }
+    }
+
+    // Periksa dari seluruh active jobs
+    foreach ($jobs as $j) {
+        $no = trim((string)($j['nomor_laporan_resmi'] ?? ''));
+        if (preg_match('/^(\d{4,5})\//', $no, $m)) {
+            $val = (int)$m[1];
+            if ($val > $highestSeq) $highestSeq = $val;
+        }
+    }
+
+    $nextSeq = $highestSeq + 1;
+    $seqStr = str_pad($nextSeq, 5, '0', STR_PAD_LEFT);
+    $statusNpwp = '1';
+
+    // Format Resmi 8-Segmen: 00526/2.0160-04/PI/07/00045/1/X/2026
+    $newNoLap = "{$seqStr}/{$signingOfficeCode}/{$reportServiceCode}/{$industrySector}/{$appraiserLicenseCode}/{$statusNpwp}/{$romawiBulan}/{$year}";
+
+    // Simpan ke Job Order
+    $job['nomor_laporan_resmi'] = $newNoLap;
+    $job['updated_at'] = date('Y-m-d H:i:s', $now);
+    saveData($storageFile, $jobs);
+
+    // Sinkronisasi ke Master NoLap Database (data/nolap_database.json)
+    $nolapRecords = [];
+    if (file_exists($nolapDbFile)) {
+        $rawNolap = @file_get_contents($nolapDbFile);
+        $parsedNolap = @json_decode($rawNolap, true);
+        if (is_array($parsedNolap)) $nolapRecords = $parsedNolap;
+    }
+
+    $nolapEntry = [
+        'origin_branch_id' => $job['kantor'],
+        'namaKlien' => $job['pemberi_tugas'] ?? $job['instansi'],
+        'nama_debitur' => $job['debitur'],
+        'kodeIndustri' => $industrySector,
+        'namaPemohon' => $user['nama'],
+        'waPemohon' => '6285110513157',
+        'isDraft' => false,
+        'modePengajuan' => 'JOB_TRACKING_M06',
+        'noPermintaan' => 'REQ-TRK-' . substr(preg_replace('/[^0-9]/', '', $job['jo_number']), -4),
+        'cabang' => $job['kantor'],
+        'origin_branch_code' => $signingOfficeCode,
+        'signing_office_code' => $signingOfficeCode,
+        'assigned_public_appraiser_id' => $user['nama'],
+        'appraiser_license_code' => $appraiserLicenseCode,
+        'nomorLaporan' => $newNoLap,
+        'nomor_jo' => $job['jo_number'],
+        'kode_lacak' => $job['kode_lacak'] ?? '',
+        'tglTerbit' => date('Y-m-d'),
+        'status' => 'APPROVED',
+        'statusElsa' => 'TERCATAT_SSOT',
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
+    $nolapRecords[] = $nolapEntry;
+    @file_put_contents($nolapDbFile, json_encode($nolapRecords, JSON_PRETTY_PRINT));
+
+    // Audit Trail
+    $auditEntry = [
+        'timestamp' => date('Y-m-d H:i:s', $now),
+        'nomor_jo' => $job['jo_number'],
+        'kode_lacak' => $job['kode_lacak'] ?? '',
+        'milestone_baru' => 'M-06-NOLAP',
+        'nik_eksekutor' => $user['nik'],
+        'nama_eksekutor' => $user['nama'],
+        'jabatan_cabang' => $user['jabatan'] . ' / ' . ($user['kantor'] ?? $user['cabang'] ?? 'KJPP NSR'),
+        'catatan_progres' => "⚡ Penerbitan & Penguncian NoLap Resmi {$newNoLap} oleh Penilai Publik {$user['nama']}."
+    ];
+    appendAuditLog($auditLogFile, $auditEntry);
+
+    // Release Lock
+    if ($fpLock) {
+        @flock($fpLock, LOCK_UN);
+        @fclose($fpLock);
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => "Nomor Laporan Resmi {$newNoLap} berhasil dialokasikan dan terkunci di Master Register NoLap.",
+        'data' => [
+            'nomor_laporan_resmi' => $newNoLap,
+            'jo_number' => $job['jo_number'],
+            'kode_lacak' => $job['kode_lacak'] ?? '',
+            'kantor' => $job['kantor'],
+            'signing_office_code' => $signingOfficeCode,
+            'penilai_publik' => $user['nama'],
+            'penilai_izin' => $appraiserLicenseCode,
+            'timestamp' => date('Y-m-d H:i:s', $now)
+        ]
+    ]);
+    exit;
+}
+
+// =========================================================================
 // 8. ACTION: RESET_DEMO (Mengembalikan Seed Data Awal 5 Kantor Wilayah)
 // =========================================================================
 if ($action === 'reset_demo') {
@@ -1534,5 +1769,5 @@ if ($action === 'reset_demo') {
 echo json_encode([
     'status' => 'success',
     'endpoint' => 'KJPP NSR Job Tracking Staging API',
-    'actions' => ['verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo']
+    'actions' => ['verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap']
 ]);
