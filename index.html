@@ -1993,6 +1993,8 @@
               <span>Lacak Status</span>
             </button>
           </form>
+          <!-- Feedback Peringatan Lacak Publik (Inline Alert) -->
+          <div id="feedback-lacak-publik" class="hidden mt-3 p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 shadow-lg"></div>
 
         </div>
       </div>
@@ -3903,6 +3905,27 @@
 
       <div class="mt-6 pt-4 border-t border-slate-200 flex justify-end gap-2">
         <button onclick="tutupModal('modal-regulasi-psak')" class="px-4 py-2 rounded-lg bg-blue-950 text-white text-xs font-semibold hover:bg-blue-900">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL PERINGATAN PELACAKAN PUBLIK (ANTI-SILENT FAIL) ==================== -->
+  <div id="modal-lacak-warning" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden" role="dialog" aria-modal="true">
+    <div class="relative w-full max-w-md bg-slate-900 border border-amber-500/50 rounded-2xl shadow-2xl p-5 text-center space-y-4">
+      <div class="w-12 h-12 mx-auto rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-2xl">
+        ⚠️
+      </div>
+      <div>
+        <h4 class="text-sm font-bold text-white uppercase tracking-wider" id="modal-lacak-warning-title">Periksa Kembali Data Anda</h4>
+        <p class="text-xs text-slate-300 mt-2 leading-relaxed" id="modal-lacak-warning-msg"></p>
+      </div>
+      <div class="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+        <a href="https://wa.me/6285110513157?text=Halo%20Admin%20KJPP%20NSR%2C%20saya%20mengalami%20kendala%20saat%20melacak%20status%20penugasan." target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition inline-flex items-center justify-center gap-1.5">
+          <span>💬 Bantuan Admin WA</span>
+        </a>
+        <button type="button" onclick="tutupModalLacakWarning()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition cursor-pointer">
+          Tutup
+        </button>
       </div>
     </div>
   </div>
@@ -7920,28 +7943,89 @@ function scrollKeLacakPenugasan(e) {
     }
     window.scrollKeLacakPenugasan = scrollKeLacakPenugasan;
 
-    // Eksekusi Pencarian Publik
+    // Normalisasi Format Nomor Telepon (Anti-Mismatch Sanitization)
+    function normalisasiNoHp(hp) {
+      return String(hp || '').replace(/\D/g, '').replace(/^0/, '62');
+    }
+    window.normalisasiNoHp = normalisasiNoHp;
+
+    // Tampilkan Peringatan Hasil Lacak (Anti-Silent Fail)
+    function tampilkanPeringatanLacak(pesan, title = 'Periksa Kembali Data Anda') {
+      // 1. Toast
+      if (typeof tampilkanToast === 'function') {
+        tampilkanToast(pesan);
+      }
+      // 2. Inline Feedback
+      const feedback = document.getElementById('feedback-lacak-publik');
+      if (feedback) {
+        feedback.className = 'mt-3 p-3.5 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs flex items-center justify-between gap-3 shadow-lg';
+        feedback.innerHTML = '<div class="flex items-center gap-2"><span>⚠️</span><span>' + pesan.replace(/\n/g, '<br>') + '</span></div>' +
+          '<button type="button" onclick="this.parentElement.classList.add(\'hidden\')" class="text-rose-300 hover:text-white font-bold text-sm">&times;</button>';
+        feedback.classList.remove('hidden');
+      }
+      // 3. Modal Warning Dialog
+      const modal = document.getElementById('modal-lacak-warning');
+      const msgEl = document.getElementById('modal-lacak-warning-msg');
+      const titleEl = document.getElementById('modal-lacak-warning-title');
+      if (modal && msgEl) {
+        msgEl.textContent = pesan;
+        if (titleEl) titleEl.textContent = title;
+        modal.classList.remove('hidden');
+      } else {
+        alert(pesan);
+      }
+    }
+    window.tampilkanPeringatanLacak = tampilkanPeringatanLacak;
+
+    function tutupModalLacakWarning() {
+      const modal = document.getElementById('modal-lacak-warning');
+      if (modal) modal.classList.add('hidden');
+    }
+    window.tutupModalLacakWarning = tutupModalLacakWarning;
+
+    // Eksekusi Pencarian Publik (7 Milestone Live)
     async function eksekusiLacakPenugasanPublik(e) {
-      if (e) e.preventDefault();
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
       const joInput = (document.getElementById('track-jo-input')?.value || '').trim();
-      const picInput = (document.getElementById('track-pic-input')?.value || '').trim();
+      const rawPicInput = (document.getElementById('track-pic-input')?.value || '').trim();
+      const normPicInput = normalisasiNoHp(rawPicInput);
       const btn = document.getElementById('btn-submit-lacak');
+
+      // Sembunyikan inline feedback sebelumnya
+      const feedback = document.getElementById('feedback-lacak-publik');
+      if (feedback) feedback.classList.add('hidden');
+
+      if (!joInput) {
+        tampilkanPeringatanLacak("Silakan masukkan Nomor JO atau Kode Lacak penugasan.");
+        document.getElementById('track-jo-input')?.focus();
+        return;
+      }
+
+      if (!rawPicInput) {
+        tampilkanPeringatanLacak("Silakan masukkan Nomor WhatsApp PIC Pemohon.");
+        document.getElementById('track-pic-input')?.focus();
+        return;
+      }
 
       if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span>Mencari...</span>';
       }
 
-      let jobResult = null;
+      let json = null;
       try {
-        const url = 'backend/job-tracking-handler.php?action=track&jo=' + encodeURIComponent(joInput) + '&phone=' + encodeURIComponent(picInput);
-        const res = await fetch(url);
-        const json = await res.json();
-        if (json && json.status === 'success' && json.data) {
-          jobResult = json.data;
+        const url = 'backend/job-tracking-handler.php?action=track&jo=' + encodeURIComponent(joInput) + '&phone=' + encodeURIComponent(normPicInput);
+        let res = await fetch(url);
+        if (!res.ok && res.status === 404) {
+          try {
+            const fbUrl = 'job-tracking-handler.php?action=track&jo=' + encodeURIComponent(joInput) + '&phone=' + encodeURIComponent(normPicInput);
+            const fbRes = await fetch(fbUrl);
+            if (fbRes.ok) res = fbRes;
+          } catch (_) {}
         }
+        json = await res.json();
       } catch (err) {
-        console.warn("Backend API tidak merespons, menggunakan simulasi lokal Bank BTN:", err);
+        console.warn("Backend API tidak merespons langsung:", err);
       }
 
       if (btn) {
@@ -7949,14 +8033,32 @@ function scrollKeLacakPenugasan(e) {
         btn.innerHTML = '<svg class="h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><span>Lacak Status</span>';
       }
 
-      // Gunakan jobResult atau fallback ke Mock BTN
-            if (jobResult) {
-        bukaModalTrackingPublik(jobResult);
-      } else {
-        alert("Status penugasan dengan Nomor JO / Kode Lacak atau Nomor WhatsApp tersebut tidak ditemukan.\n\nSilakan periksa kembali nomor Anda atau hubungi Admin Operasional KJPP NSR.");
+      // 1. Sukses -> Buka Modal Stepper Publik
+      if (json && json.status === 'success' && json.data) {
+        bukaModalTrackingPublik(json.data);
+        return;
       }
+
+      // 2. Gagal: Penanganan Respons Terbuka (Anti-Silent Fail)
+      if (json && json.code === 'PHONE_MISMATCH') {
+        tampilkanPeringatanLacak("Nomor WhatsApp PIC tidak cocok dengan data pendaftaran penugasan ini. Silakan periksa kembali atau hubungi Admin Operasional KJPP NSR.");
+        document.getElementById('track-pic-input')?.focus();
+        return;
+      }
+
+      if (json && json.code === 'JO_NOT_FOUND') {
+        tampilkanPeringatanLacak("Nomor JO / Kode TRK tidak ditemukan dalam sistem.");
+        document.getElementById('track-jo-input')?.focus();
+        return;
+      }
+
+      const pesanGagal = (json && json.message) ? json.message : "Status penugasan dengan Nomor JO / Kode Lacak atau Nomor WhatsApp tersebut tidak ditemukan.\n\nSilakan periksa kembali nomor Anda atau hubungi Admin Operasional KJPP NSR.";
+      tampilkanPeringatanLacak(pesanGagal);
     }
+
     window.eksekusiLacakPenugasanPublik = eksekusiLacakPenugasanPublik;
+    window.lacakStatusPublik = eksekusiLacakPenugasanPublik;
+    window.trackingPenugasan = eksekusiLacakPenugasanPublik;
 
     
     function getPicAssignmentPublik(milestoneKey, job) {
@@ -8018,6 +8120,7 @@ function scrollKeLacakPenugasan(e) {
         const item = milestones[key] || { id: key, title: 'Milestone ' + key, status: 'pending', note: '-' };
         const isCompleted = item.status === 'completed';
         const isInProgress = item.status === 'in_progress';
+        const picInfo = getPicAssignmentPublik(key, job);
 
         let nodeIcon = '';
         let titleColor = 'text-slate-400';

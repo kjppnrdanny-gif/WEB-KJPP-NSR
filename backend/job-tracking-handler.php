@@ -708,6 +708,8 @@ function getInitialSeedData() {
         'debitur' => 'PT Sentosa Abadi Makmur',
         'pic_pemohon' => 'Dewi Sartika, S.T.',
         'pic_contact' => '081322445566',
+        'client_pic_name' => 'Dewi Sartika, S.T.',
+        'client_pic_phone' => '081322445566',
         'kantor' => 'Cabang Bandung',
         'kantor_code' => 'BDG',
         'jenis_properti' => 'Gedung Kantor & Showroom Komersial',
@@ -1013,6 +1015,16 @@ function saveData($storageFile, $data) {
 }
 
 // Helper persentase progres
+
+// Helper Normalisasi Format Nomor Telepon / WA (Anti-Mismatch Sanitization)
+function normalisasiNoHp($hp) {
+    $digits = preg_replace('/\D/', '', (string)$hp);
+    if (strpos($digits, '0') === 0) {
+        $digits = '62' . substr($digits, 1);
+    }
+    return $digits;
+}
+
 function calculateProgress($currentM) {
     $weights = [
         'M-01' => 14,
@@ -1172,85 +1184,110 @@ if ($action === 'verify_auth') {
 }
 
 // =========================================================================
-// 2. ACTION: TRACK (Pencarian Publik 7 Milestone Berbasis JO / Kode Lacak)
+// 2. ACTION: TRACK (Pencarian Publik 7 Milestone Berbasis JO / Kode Lacak & Nomor WA)
 // =========================================================================
 if ($action === 'track' || $action === 'track_public') {
-    $joInput = trim((string)($_GET['jo'] ?? $_POST['jo'] ?? $_GET['id_jo'] ?? $_POST['id_jo'] ?? ''));
-    $phoneInput = trim((string)($_GET['phone'] ?? $_POST['phone'] ?? $_GET['telepon_pic'] ?? $_POST['telepon_pic'] ?? ''));
+    $rawInput = @file_get_contents('php://input');
+    $payload = @json_decode($rawInput, true);
+    if (!is_array($payload)) $payload = array_merge($_GET, $_POST);
+
+    $joInput = trim((string)($payload['jo'] ?? $payload['id_jo'] ?? $payload['kode_lacak'] ?? ''));
+    $phoneInput = trim((string)($payload['phone'] ?? $payload['telepon_pic'] ?? $payload['wa'] ?? ''));
 
     $cleanJo = strtoupper(preg_replace('/[^a-zA-Z0-9-]/', '', $joInput));
-    $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
+    $normPhoneInput = normalisasiNoHp($phoneInput);
 
-    // Coba query SSOT Google Apps Script terlebih dahulu
-    if (!empty($cleanJo) || !empty($cleanPhone)) {
-        $gasTrack = callGASTrackingService('track', ['id_jo' => $cleanJo, 'telepon_pic' => $cleanPhone], 'GET');
-        if ($gasTrack && isset($gasTrack['status']) && $gasTrack['status'] === 'success' && !empty($gasTrack['data'])) {
-            $gasData = $gasTrack['data'];
-            unset($gasData['opini_nilai_pasar']);
-            unset($gasData['opini_nilai_likuidasi']);
-            unset($gasData['evidence_link']);
-            unset($gasData['drive_folder_url']);
-            unset($gasData['link_folder_drive']);
-            unset($gasData['subfolders']);
-            echo json_encode([
-                'status' => 'success',
-                'source' => 'GAS_SSOT_LIVE',
-                'data' => $gasData
-            ]);
-            exit;
-        }
-    }
-
-    $found = null;
-
-    // Pencarian exact match JO Number atau Kode Lacak
-    if (!empty($cleanJo)) {
-        foreach ($jobs as $id => $job) {
-            $jJo = strtoupper((string)($job['jo_number'] ?? ''));
-            $jKode = strtoupper((string)($job['kode_lacak'] ?? ''));
-            if ($jJo === $cleanJo || $jKode === $cleanJo) {
-                $found = $job;
-                break;
-            }
-        }
-    }
-
-    // Pencarian nomor telepon
-    if (!$found && !empty($cleanPhone)) {
-        foreach ($jobs as $id => $job) {
-            $jPhone = preg_replace('/[^0-9]/', '', (string)($job['client_pic_phone'] ?? $job['pic_contact'] ?? ''));
-            if (!empty($jPhone) && strlen($cleanPhone) >= 6 && substr($jPhone, -6) === substr($cleanPhone, -6)) {
-                $found = $job;
-                break;
-            }
-        }
-    }
-
-    // Pencarian parsial nomor JO / Kode Lacak
-    if (!$found && !empty($cleanJo)) {
-        foreach ($jobs as $id => $job) {
-            $jJo = strtoupper((string)($job['jo_number'] ?? ''));
-            $jKode = strtoupper((string)($job['kode_lacak'] ?? ''));
-            if ((!empty($jJo) && strpos($jJo, $cleanJo) !== false) || (!empty($jKode) && strpos($jKode, $cleanJo) !== false)) {
-                $found = $job;
-                break;
-            }
-        }
-    }
-
-    if (!$found) {
-        http_response_code(404);
+    // Validasi kelengkapan parameter
+    if (empty($cleanJo)) {
+        http_response_code(400);
         echo json_encode([
             'status' => 'error',
-            'message' => 'Status penugasan dengan Nomor JO / Kode Lacak atau Nomor WhatsApp tersebut tidak ditemukan.',
+            'code' => 'JO_REQUIRED',
+            'message' => 'Silakan masukkan Nomor JO atau Kode Lacak penugasan.',
             'data' => null
         ]);
         exit;
     }
 
-    $publicData = $found;
-    // Proteksi Kerahasiaan Publik (KEPI & Standar Penilaian):
-    // Nilai Opini Rupiah (Pasar & Likuidasi) serta Bukti Kerja Internal DISEKA dari endpoint lacak publik.
+    if (empty($normPhoneInput)) {
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'code' => 'PHONE_REQUIRED',
+            'message' => 'Silakan masukkan Nomor WhatsApp PIC Pemohon.',
+            'data' => null
+        ]);
+        exit;
+    }
+
+    // 1. Cari Penugasan berdasarkan Nomor JO, Kode Lacak, atau ID
+    $foundJob = null;
+    foreach ($jobs as $id => $job) {
+        $jJo = strtoupper((string)($job['jo_number'] ?? ''));
+        $jKode = strtoupper((string)($job['kode_lacak'] ?? ''));
+        $jId = strtoupper((string)($job['id'] ?? ''));
+        if ($jJo === $cleanJo || $jKode === $cleanJo || $jId === $cleanJo) {
+            $foundJob = $job;
+            break;
+        }
+    }
+
+    // Pencarian parsial nomor JO / Kode Lacak jika belum ketemu
+    if (!$foundJob && strlen($cleanJo) >= 5) {
+        foreach ($jobs as $id => $job) {
+            $jJo = strtoupper((string)($job['jo_number'] ?? ''));
+            $jKode = strtoupper((string)($job['kode_lacak'] ?? ''));
+            if ((!empty($jJo) && strpos($jJo, $cleanJo) !== false) || (!empty($jKode) && strpos($jKode, $cleanJo) !== false)) {
+                $foundJob = $job;
+                break;
+            }
+        }
+    }
+
+    // A. Jika Nomor JO / Kode Lacak TIDAK DITEMUKAN:
+    if (!$foundJob) {
+        http_response_code(404);
+        echo json_encode([
+            'status' => 'error',
+            'code' => 'JO_NOT_FOUND',
+            'message' => 'Nomor JO / Kode TRK tidak ditemukan dalam sistem.',
+            'data' => null
+        ]);
+        exit;
+    }
+
+    // B. Jika Nomor JO Ditemukan, lakukan validasi Nomor WhatsApp PIC
+    $p1 = normalisasiNoHp($foundJob['client_pic_phone'] ?? '');
+    $p2 = normalisasiNoHp($foundJob['pic_contact'] ?? '');
+    $p3 = normalisasiNoHp($foundJob['survey_contact_phone'] ?? '');
+
+    $phoneMatched = false;
+    foreach ([$p1, $p2, $p3] as $pTarget) {
+        if (!empty($pTarget)) {
+            if ($pTarget === $normPhoneInput) {
+                $phoneMatched = true;
+                break;
+            }
+            if (strlen($pTarget) >= 8 && strlen($normPhoneInput) >= 8 && substr($pTarget, -8) === substr($normPhoneInput, -8)) {
+                $phoneMatched = true;
+                break;
+            }
+        }
+    }
+
+    if (!$phoneMatched) {
+        http_response_code(403);
+        echo json_encode([
+            'status' => 'error',
+            'code' => 'PHONE_MISMATCH',
+            'message' => 'Nomor WhatsApp PIC tidak cocok dengan data pendaftaran penugasan ini. Silakan periksa kembali atau hubungi Admin Operasional KJPP NSR.',
+            'data' => null
+        ]);
+        exit;
+    }
+
+    // C. Proteksi Kerahasiaan Publik (KEPI):
+    $publicData = $foundJob;
     unset($publicData['opini_nilai_pasar']);
     unset($publicData['opini_nilai_likuidasi']);
     unset($publicData['evidence_link']);
