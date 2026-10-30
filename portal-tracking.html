@@ -2056,6 +2056,10 @@
                     <svg class="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     <span class="hidden xl:inline">Laporan Selesai</span>
                   </button>
+                  <button type="button" onclick="bukaDrafKwitansiPenagihan('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold transition active:scale-95 cursor-pointer" title="Terbitkan Draf Kwitansi Penagihan ke Portal Keuangan">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span class="hidden xl:inline">🧾 Kwitansi</span>
+                  </button>
                 ` : ''}
                 ${(['M-05', 'M-06', 'M-07'].includes(j.current_milestone) || j.spm_checklist_data) ? `
                   <button type="button" onclick="cetakLembarSPM('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold transition active:scale-95" title="Cetak Lembar Kendali Mutu SPM (PDF)">
@@ -2639,6 +2643,74 @@ Izin Usaha KMK No. 2.19.0160`;
       window.open(waUrl, '_blank', 'noopener,noreferrer');
     }
 
+    // Handshake Pipeline Penagihan Keuangan (Tahap M-07)
+    async function bukaDrafKwitansiPenagihan(joId) {
+      const job = (globalJobs || []).find(x => x.id === joId || x.jo_number === joId || x.kode_lacak === joId) || activeJob;
+      if (!job) {
+        alert('Data penugasan tidak ditemukan.');
+        return;
+      }
+
+      const targetId = job.id || job.jo_number;
+      // Inisiasi pembaruan billing status ke backend
+      try {
+        const sessionNik = currentUserSession.nik || sessionStorage.getItem('kjpp_auth_nik') || '';
+        const sessionNama = currentUserSession.nama || 'Staf Operasional';
+        await callApi('init_billing_draft', {
+          id_jo: targetId,
+          billing_status: 'DRAFT_CREATED',
+          actor: sessionNama,
+          auth_nik: sessionNik
+        }, 'POST');
+        job.billing_status = 'DRAFT_CREATED';
+      } catch (err) {
+        console.warn('Gagal mencatat inisiasi penagihan ke backend:', err);
+      }
+
+      // Buka modul Kwitansi di tab baru dengan query handshake lengkap
+      const targetUrl = 'portal-kwitansi.html?source=tracking&jo_id=' + encodeURIComponent(targetId) +
+        '&ref=' + encodeURIComponent(job.jo_number || targetId) +
+        '&spk=' + encodeURIComponent(job.spk_number || '') +
+        '&token=' + Date.now();
+      window.open(targetUrl, '_blank');
+    }
+
+    // Salin Rincian Penagihan ke Papan Klip
+    function salinRincianPenagihan(joId) {
+      const job = (globalJobs || []).find(x => x.id === joId || x.jo_number === joId || x.kode_lacak === joId) || activeJob;
+      if (!job) {
+        alert('Data penugasan tidak ditemukan.');
+        return;
+      }
+
+      const feeStr = Number(job.fee_penilaian || 15000000).toLocaleString('id-ID');
+      const text = 'RINCIAN PENAGIHAN PENILAIAN - KJPP NSR\n' +
+        '======================================\n' +
+        'No. Penugasan (JO) : ' + (job.jo_number || '-') + '\n' +
+        'No. SPK / Kontrak  : ' + (job.spk_number || '-') + '\n' +
+        'No. Laporan Resmi  : ' + (job.nomor_laporan_resmi || '-') + '\n' +
+        'Pemberi Tugas      : ' + (job.pemberi_tugas || job.instansi || '-') + '\n' +
+        'Pengguna Laporan   : ' + (job.pengguna_laporan || job.pemberi_tugas || job.instansi || '-') + '\n' +
+        'Nama Debitur       : ' + (job.debitur || '-') + '\n' +
+        'Objek Penilaian    : ' + (job.jenis_properti || '-') + ' (' + (job.lokasi_aset || '-') + ')\n' +
+        'Kantor Wilayah     : ' + (job.kantor || '-') + '\n' +
+        'Status Penugasan   : Selesai 100% (M-07)\n' +
+        'Estimasi Fee (DPP) : Rp ' + feeStr + '\n' +
+        'Status Penagihan   : ' + (job.billing_status || 'DRAFT_CREATED') + '\n' +
+        '======================================\n' +
+        'Tautan Tracking    : ' + window.location.origin + '/portal-tracking.html?track=' + (job.kode_lacak || '');
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('✅ Rincian data penagihan penugasan berhasil disalin ke papan klip!\nAnda dapat menempelkannya langsung ke draf invoice atau pesan WA ke bagian Keuangan.');
+        }).catch(() => {
+          prompt('Salin rincian penagihan berikut:', text);
+        });
+      } else {
+        prompt('Salin rincian penagihan berikut:', text);
+      }
+    }
+
     // Ekspor Data Penugasan Terfilter ke CSV/Excel
     function eksporDataPenugasanCSV() {
       const jobsToExport = filteredJobs && filteredJobs.length > 0 ? filteredJobs : globalJobs;
@@ -2953,6 +3025,18 @@ Administrasi Operasional KJPP NSR`;
               <div class="mt-1 text-[10px] text-slate-400">
                 <span class="text-slate-500 font-medium">Catatan:</span> ${item.note || '-'}
               </div>
+              ${(key === 'M-07' && (isCompleted || (activeJob && (activeJob.current_milestone === 'M-07' || activeJob.sla_status === 'completed')))) ? `
+                <div class="mt-3 pt-2.5 border-t border-emerald-500/30 flex flex-wrap items-center gap-2">
+                  <button type="button" onclick="bukaDrafKwitansiPenagihan('${activeJob ? activeJob.id : ''}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition active:scale-95 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>🧾 Terbitkan Draf Kwitansi Penagihan</span>
+                  </button>
+                  <button type="button" onclick="salinRincianPenagihan('${activeJob ? activeJob.id : ''}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition active:scale-95 cursor-pointer" title="Salin ringkasan data penagihan ke papan klip">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                    <span>📋 Salin Rincian Penagihan</span>
+                  </button>
+                </div>
+              ` : ''}
             </div>
           </div>
         `;

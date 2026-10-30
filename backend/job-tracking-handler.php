@@ -670,6 +670,11 @@ function getInitialSeedData() {
         'reviewer' => 'Tedi Setiadi',
         'reviewer_spm' => 'Tedi Setiadi',
         'penilai_publik' => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
+        'nomor_laporan_resmi' => '00192/2.0160-00/PI/03/0192/1/X/2026',
+        'fee_penilaian' => 17500000,
+        'billing_status' => 'UNBILLED',
+        'alamat_klien' => 'Menara BCA Lt. 28, Jl. M.H. Thamrin No. 1, Menteng, Jakarta Pusat',
+        'klien_npwp' => '01.000.012.3-031.000',
         'current_milestone' => 'M-04',
         'current_milestone_title' => 'Analisis Penilaian & Kalkulasi Nilai',
         'progress_percent' => 57,
@@ -1118,7 +1123,9 @@ function appendAuditLog($auditLogFile, $entry) {
 }
 
 // Routing Aksi
-$action = $_GET['action'] ?? $_POST['action'] ?? 'list';
+$rawInputGlobal = @file_get_contents('php://input');
+$jsonBodyGlobal = !empty($rawInputGlobal) ? @json_decode($rawInputGlobal, true) : null;
+$action = $_GET['action'] ?? $_POST['action'] ?? ($jsonBodyGlobal['action'] ?? 'list');
 $jobs = loadData($storageFile);
 
 // =========================================================================
@@ -2504,6 +2511,111 @@ if ($action === 'get_workload_analytics') {
 }
 
 // =========================================================================
+// ACTION: GET_JOB_DETAIL (Data Lengkap Penugasan untuk Handshake Lintas Portal)
+// =========================================================================
+if ($action === 'get_job_detail' || $action === 'get_job') {
+    $joParam = trim((string)($_GET['id_jo'] ?? $_GET['jo'] ?? $_GET['ref'] ?? $_POST['id_jo'] ?? $_POST['jo'] ?? ''));
+    $foundJob = null;
+    if (isset($jobs[$joParam])) {
+        $foundJob = $jobs[$joParam];
+    } else {
+        foreach ($jobs as $id => $j) {
+            if ($j['jo_number'] === $joParam || ($j['kode_lacak'] ?? '') === $joParam || ($j['spk_number'] ?? '') === $joParam) {
+                $foundJob = $j;
+                break;
+            }
+        }
+    }
+
+    if (!$foundJob) {
+        http_response_code(404);
+        echo json_encode([
+            'status' => 'error',
+            'message' => "Penugasan dengan referensi '{$joParam}' tidak ditemukan."
+        ]);
+        exit;
+    }
+
+    // Format deskripsi pembayaran baku OPINI NSR
+    $pemberiTugas = $foundJob['pemberi_tugas'] ?? $foundJob['instansi'] ?? '';
+    $noSpk = $foundJob['spk_number'] ?? '';
+    $noLap = $foundJob['nomor_laporan_resmi'] ?? '';
+    $debitur = $foundJob['debitur'] ?? '';
+    $jenisProperti = $foundJob['jenis_properti'] ?? '';
+    $foundJob['keterangan_kwitansi'] = "Pembayaran Imbalan Jasa Penilaian Properti atas aset {$debitur}" . ($jenisProperti ? " ({$jenisProperti})" : "") . ", berdasarkan SPK No. {$noSpk}" . ($noLap ? " dan Laporan Penilaian No. {$noLap}" : "") . ".";
+
+    echo json_encode([
+        'status' => 'success',
+        'data' => $foundJob
+    ]);
+    exit;
+}
+
+// =========================================================================
+// ACTION: INIT_BILLING_DRAFT / UPDATE_BILLING_STATUS (M-07 Penagihan Keuangan)
+// =========================================================================
+if ($action === 'init_billing_draft' || $action === 'update_billing_status') {
+    $rawInput = file_get_contents('php://input');
+    $payload = @json_decode($rawInput, true);
+    if (!is_array($payload)) $payload = array_merge($_GET, $_POST);
+
+    $joParam = trim((string)($payload['id_jo'] ?? $payload['jo'] ?? $payload['ref'] ?? ''));
+    $billingStatus = trim((string)($payload['billing_status'] ?? 'DRAFT_CREATED'));
+    $actor = trim((string)($payload['actor'] ?? $payload['nama'] ?? 'Staf Operasional'));
+    $actorNik = trim((string)($payload['nik'] ?? $payload['auth_nik'] ?? ''));
+
+    $targetKey = null;
+    if (isset($jobs[$joParam])) {
+        $targetKey = $joParam;
+    } else {
+        foreach ($jobs as $id => $j) {
+            if ($j['jo_number'] === $joParam || ($j['kode_lacak'] ?? '') === $joParam || ($j['spk_number'] ?? '') === $joParam) {
+                $targetKey = $id;
+                break;
+            }
+        }
+    }
+
+    if (!$targetKey) {
+        http_response_code(404);
+        echo json_encode([
+            'status' => 'error',
+            'message' => "Penugasan '{$joParam}' tidak ditemukan."
+        ]);
+        exit;
+    }
+
+    $jobs[$targetKey]['billing_status'] = $billingStatus;
+    $jobs[$targetKey]['updated_at'] = date('Y-m-d H:i:s');
+    saveData($storageFile, $jobs);
+
+    // Catat Audit Trail Penagihan
+    $auditLogs = [];
+    if (file_exists($auditLogFile)) {
+        $rawAudit = @file_get_contents($auditLogFile);
+        $auditLogs = @json_decode($rawAudit, true) ?: [];
+    }
+    $auditLogs[] = [
+        'timestamp' => date('d M Y, H:i \W\I\B'),
+        'no_jo' => $jobs[$targetKey]['jo_number'],
+        'milestone_baru' => 'M-07 (DRAF-KWITANSI)',
+        'nama_eksekutor' => $actor,
+        'nik_eksekutor' => $actorNik ?: 'SYS-BILLING',
+        'jabatan_cabang' => 'Admin Penagihan & Keuangan',
+        'catatan_progres' => "Draf kwitansi penagihan berhasil diinisiasi ke portal keuangan (Status: {$billingStatus})."
+    ];
+    @file_put_contents($auditLogFile, json_encode($auditLogs, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Status penagihan penugasan berhasil diperbarui ke draf kwitansi.',
+        'billing_status' => $billingStatus,
+        'data' => $jobs[$targetKey]
+    ]);
+    exit;
+}
+
+// =========================================================================
 // 8. ACTION: RESET_DEMO (Mengembalikan Seed Data Awal 5 Kantor Wilayah)
 // =========================================================================
 if ($action === 'reset_demo') {
@@ -2522,5 +2634,5 @@ if ($action === 'reset_demo') {
 echo json_encode([
     'status' => 'success',
     'endpoint' => 'KJPP NSR Job Tracking Staging API',
-    'actions' => ['verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap', 'get_spm_checklist', 'provision_drive_folder', 'get_workload_analytics']
+    'actions' => ['verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap', 'get_spm_checklist', 'provision_drive_folder', 'get_workload_analytics', 'get_job_detail', 'init_billing_draft', 'update_billing_status']
 ]);

@@ -3801,8 +3801,122 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       'select[name="klasifikasi_objek"]', 'select[name="klasifikasi"]', 'select[name="klasifikasi_jasa_penilaian"]'
     ], klasifikasi);
 
+    // 6. DETEKSI & PREFILL HANDSHAKE DARI PORTAL TRACKING (TAHAP M-07)
+    const isFromTracking = params.get('source') === 'tracking' || !!params.get('jo_id');
+    const joIdParam = params.get('jo_id') || params.get('ref') || jo;
+
+    if (isFromTracking && joIdParam) {
+      (async function() {
+        try {
+          let res = await fetch('backend/job-tracking-handler.php?action=get_job_detail&id_jo=' + encodeURIComponent(joIdParam));
+          if (!res.ok) {
+            res = await fetch('job-tracking-handler.php?action=get_job_detail&id_jo=' + encodeURIComponent(joIdParam));
+          }
+          const result = await res.json();
+          if (result && result.status === 'success' && result.data) {
+            const j = result.data;
+
+            // 1. No SPK & Bridge Input
+            const elBridge = document.getElementById('cari-spk-kwitansi-bridge');
+            if (elBridge) elBridge.value = j.spk_number || j.jo_number;
+
+            const elNoSpk = document.getElementById('no-spk');
+            if (elNoSpk) elNoSpk.value = j.spk_number || '';
+
+            // 2. Identitas Klien (Sudah Terima Dari - SPI 103)
+            const elKlien = document.getElementById('identitas-klien');
+            if (elKlien) {
+              const namaKlien = j.pemberi_tugas || j.instansi || '';
+              const alamatKlien = j.alamat_klien ? (', ' + j.alamat_klien) : '';
+              elKlien.value = namaKlien + alamatKlien;
+            }
+
+            // 3. Keterangan Penugasan & Objek Penilaian (Lengkap No. SPK & NoLap Resmi)
+            const elKet = document.getElementById('keterangan-penugasan');
+            if (elKet) {
+              const noLapStr = j.nomor_laporan_resmi ? (' dan Laporan Penilaian No. ' + j.nomor_laporan_resmi) : '';
+              elKet.value = j.keterangan_kwitansi || ('Pembayaran Imbalan Jasa Penilaian Properti atas aset ' + j.debitur + ' (' + j.jenis_properti + '), berdasarkan SPK No. ' + (j.spk_number || '-') + noLapStr + '.');
+            }
+
+            // 4. Termin Pembayaran
+            const elTermin = document.getElementById('banyaknya-termin');
+            if (elTermin && !elTermin.value) {
+              elTermin.value = '100% Pelunasan';
+            }
+
+            // 5. Nilai Kontrak & DPP (Harga Dasar)
+            const feeVal = Number(j.fee_penilaian || 15000000);
+            const elKontrak = document.getElementById('nilai-kontrak-spk');
+            const elHarga = document.getElementById('harga-dasar');
+            if (elKontrak) elKontrak.value = feeVal;
+            if (elHarga) elHarga.value = feeVal;
+
+            // 6. Kantor Cabang Pengaju
+            const elCabang = document.getElementById('cabang-pengaju');
+            if (elCabang && j.kantor) {
+              for (let opt of elCabang.options) {
+                if (opt.value && (j.kantor.toLowerCase().includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(j.kantor.toLowerCase()) || (j.kantor_code && (opt.value.toUpperCase().includes(j.kantor_code) || opt.text.toUpperCase().includes(j.kantor_code))))) {
+                  elCabang.value = opt.value;
+                  if (typeof saatCabangBerubah === 'function') saatCabangBerubah(opt.value);
+                  break;
+                }
+              }
+            }
+
+            // 7. PIC Staf Pengaju & No WA
+            const elPic = document.getElementById('nama-staf-pengaju');
+            if (elPic && !elPic.value) {
+              elPic.value = j.penilai_pelaksana || 'Admin Cabang';
+            }
+            const elWa = document.getElementById('wa-staf-pengaju');
+            if (elWa && !elWa.value) {
+              elWa.value = j.pic_contact || '085110513157';
+            }
+
+            // 8. Hitung Kwitansi Otomatis (DPP + PPN)
+            if (typeof hitungKwitansi === 'function') {
+              hitungKwitansi();
+            }
+
+            // 9. Tampilkan Banner Status Tarik Data Sukses
+            const statusEl = document.getElementById('status-tarik-kwitansi');
+            if (statusEl) {
+              statusEl.className = 'p-3.5 rounded-xl bg-emerald-950/90 border border-emerald-500 text-emerald-200 text-xs flex items-center justify-between gap-3 shadow-xl ring-2 ring-emerald-500/30';
+              statusEl.innerHTML = '<div class="flex items-center gap-3">' +
+                '<span class="text-xl">🧾</span>' +
+                '<div>' +
+                  '<div class="font-extrabold text-white text-sm">Draf Kwitansi Berhasil Ditarik dari Penugasan Selesai (M-07)!</div>' +
+                  '<div class="text-[11.5px] text-emerald-300 mt-0.5">' +
+                    'No. JO: <strong class="font-mono text-white">' + j.jo_number + '</strong> | No. SPK: <strong class="font-mono text-white">' + (j.spk_number || '-') + '</strong> | NoLap: <strong class="font-mono text-amber-300">' + (j.nomor_laporan_resmi || '-') + '</strong>' +
+                  '</div>' +
+                  '<div class="text-[11px] text-slate-300 mt-0.5">' +
+                    'Pemberi Tugas (SPI 103): <strong class="text-white">' + (j.pemberi_tugas || j.instansi) + '</strong> &bull; Nilai DPP: <strong class="text-emerald-400 font-mono">Rp ' + feeVal.toLocaleString('id-ID') + '</strong>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+              '<button type="button" onclick="this.parentElement.classList.add(\'hidden\')" class="px-2.5 py-1.5 rounded-lg bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 font-bold text-xs transition cursor-pointer">Tutup</button>';
+              statusEl.classList.remove('hidden');
+            }
+
+            // Highlight bidang terisi
+            [elNoSpk, elKlien, elKet, elHarga, elKontrak].forEach(el => {
+              if (el) {
+                el.classList.add('ring-2', 'ring-emerald-400');
+                setTimeout(() => el.classList.remove('ring-2', 'ring-emerald-400'), 3000);
+              }
+            });
+
+            // Tampilkan floating notice
+            showAutofillNotice(j.jo_number, 7);
+          }
+        } catch (e) {
+          console.warn('Autofill dari backend tracking gagal:', e);
+        }
+      })();
+    }
+
     // Tampilkan notifikasi banner jika ada data yang berhasil diisi
-    if (populatedCount > 0 && jo) {
+    if (populatedCount > 0 && jo && !isFromTracking) {
       showAutofillNotice(jo, populatedCount);
     }
   });
