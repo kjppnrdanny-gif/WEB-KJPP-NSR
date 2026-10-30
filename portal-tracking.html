@@ -264,10 +264,16 @@
             </h2>
             <p class="text-xs text-slate-400 mt-0.5">Pantau kepatuhan SLA perbankan, penanggung jawab penilaian, dan kendali mutu berjenjang.</p>
           </div>
-          <button type="button" onclick="muatDataTaskBoard()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            <span>Segarkan Data</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="eksporDataPenugasanCSV()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Ekspor daftar penugasan ke format CSV/Excel">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Ekspor CSV</span>
+            </button>
+            <button type="button" onclick="muatDataTaskBoard()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Segarkan Data</span>
+            </button>
+          </div>
         </div>
 
         <!-- Table Container -->
@@ -698,6 +704,10 @@
               <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               <span>Hubungi Pendamping Survei</span>
             </button>
+            <button type="button" id="btn-modal-selesai-wa" onclick="if(activeJob) kabariPemberiTugasLaporanSelesai(activeJob.id)" class="hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow transition active:scale-95" title="Kabari Pemberi Tugas bahwa Laporan Final telah selesai">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span>Kabari Pemberi Tugas: Laporan Selesai</span>
+            </button>
           </div>
 
           <div class="pt-2 border-t border-slate-800/80 text-[11px] text-slate-300 space-y-1">
@@ -883,6 +893,21 @@
           </select>
         </div>
 
+        <!-- Dynamic Field M-05: Kendali Mutu SPM & Opsi Kembalikan ke M-04 -->
+        <div id="container-field-m05-spm" class="hidden p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-300 uppercase tracking-wider text-[11px]">Kendali Mutu SPM (Reviewer Gateway)</span>
+            <span class="px-2 py-0.5 rounded text-[9.5px] font-black bg-amber-400 text-slate-950">SPM GATEWAY</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            Jika ditemukan ketidaksesuaian analisis, kelengkapan data pembanding, atau deviasi kertas kerja, Reviewer SPM berhak mengembalikan berkas ke tahap M-04.
+          </p>
+          <button type="button" onclick="kembalikanKeM04Revisi()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+            <span>Kembalikan ke M-04 (Revisi Kertas Kerja)</span>
+          </button>
+        </div>
+
         <!-- Dynamic Field M-03 & M-04: Tanggal Penilaian & Dokumen Kepemilikan -->
         <div id="container-field-m03-m04" class="hidden p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5 text-xs">
           <div class="flex items-center gap-1.5 text-amber-400 font-bold text-[11px] uppercase tracking-wider">
@@ -921,6 +946,12 @@
             </div>
           </div>
           <p class="text-[10px] text-slate-400 leading-tight">Sesuai KEPI &amp; SPI 105, nilai pasar &amp; likuidasi ini otomatis diseka (di-strip) dari endpoint publik.</p>
+        </div>
+
+        <!-- Tautan Bukti Kerja / Cloud Link -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">Tautan Bukti Kerja / Cloud Link (Opsional)</label>
+          <input type="url" id="update-evidence-link" placeholder="https://drive.google.com/... atau link cloud dokumen kerja" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
         </div>
 
         <!-- NIK & PIN INPUT (OPSI B) -->
@@ -1608,12 +1639,33 @@
         const isM04 = j.current_milestone === 'M-04';
         const isDone = j.sla_status === 'completed';
         
-        // SLA Badge Class
+        // SLA Badge Class & Status Indikator Otomatis (🟢 Aman, 🟡 H-1, 🔴 Overdue)
         let slaBadgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
-        if (j.sla_status === 'on_track') {
-          slaBadgeClass = 'bg-amber-500/10 text-amber-300 border-amber-500/30 font-bold';
-        } else if (j.sla_status === 'completed') {
-          slaBadgeClass = 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 font-bold';
+        let slaLabelDisplay = j.sla_label || ('H+' + (j.sla_days || 3));
+        let slaDot = '🟢';
+
+        if (isDone) {
+          slaBadgeClass = 'bg-slate-800 text-emerald-400 border-slate-700 font-semibold';
+          slaDot = '🟢';
+          slaLabelDisplay = 'Selesai 100%';
+        } else if (j.sla_status === 'overdue') {
+          slaBadgeClass = 'bg-rose-500/15 text-rose-300 border-rose-500/30 font-bold';
+          slaDot = '🔴';
+          slaLabelDisplay = 'Overdue';
+        } else {
+          // Evaluasi selisih tanggal deadline
+          const deadlineDate = new Date(j.sla_deadline);
+          const now = new Date();
+          const diffDays = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
+          if (!isNaN(diffDays) && diffDays <= 1) {
+            slaBadgeClass = 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-bold';
+            slaDot = '🟡';
+            slaLabelDisplay = diffDays <= 0 ? 'Hari Ini (H-0)' : 'H-1 Mendesak';
+          } else {
+            slaBadgeClass = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-medium';
+            slaDot = '🟢';
+            slaLabelDisplay = 'Aman (' + (j.sla_label || ('H+' + (j.sla_days || 3))) + ')';
+          }
         }
 
         // Milestone Pill
@@ -1644,8 +1696,9 @@
               <span class="block text-slate-500 text-[9px]"><span class="text-slate-500">Izin:</span> ${j.penilai_publik ? j.penilai_publik.split('-')[0] : '-'}</span>
             </td>
             <td class="py-3 px-4 whitespace-nowrap">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border ${slaBadgeClass}">
-                ${j.sla_label || ('H+' + (j.sla_days || 3))}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] border ${slaBadgeClass}">
+                <span>${slaDot}</span>
+                <span>${slaLabelDisplay}</span>
               </span>
               <span class="block text-[10px] text-slate-400 font-mono mt-0.5">Target: ${j.sla_deadline}</span>
             </td>
@@ -1670,6 +1723,12 @@
                   <svg class="w-3.5 h-3.5 fill-current text-emerald-400" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
                   <span class="hidden xl:inline">Kirim WA</span>
                 </button>
+                ${(isDone || j.current_milestone === 'M-07') ? `
+                  <button type="button" onclick="kabariPemberiTugasLaporanSelesai('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[10px] font-bold transition active:scale-95" title="Kabari Pemberi Tugas: Laporan Selesai &amp; NoLap Terbit">
+                    <svg class="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <span class="hidden xl:inline">Laporan Selesai</span>
+                  </button>
+                ` : ''}
                 ${!isDone ? `
                   <button type="button" onclick="bukaModalUpdateMilestone('${j.id}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-bold transition active:scale-95" title="Menaikkan Milestone (Otorisasi NIK + PIN)">
                     <span>Majukan</span>
@@ -1760,6 +1819,7 @@
     // Dynamic Fields Modal Update Milestone
     function sesuaikanFieldMilestone(targetM) {
       const m3m4Box = document.getElementById('container-field-m03-m04');
+      const m5Box = document.getElementById('container-field-m05-spm');
       const m6Box = document.getElementById('container-field-m06');
       
       if (m3m4Box) {
@@ -1770,12 +1830,33 @@
         }
       }
 
+      if (m5Box) {
+        if (targetM === 'M-05') {
+          m5Box.classList.remove('hidden');
+        } else {
+          m5Box.classList.add('hidden');
+        }
+      }
+
       if (m6Box) {
         if (targetM === 'M-06') {
           m6Box.classList.remove('hidden');
         } else {
           m6Box.classList.add('hidden');
         }
+      }
+    }
+
+    function kembalikanKeM04Revisi() {
+      const selectEl = document.getElementById('update-target-milestone');
+      if (selectEl) {
+        selectEl.value = 'M-04';
+        sesuaikanFieldMilestone('M-04');
+      }
+      const noteEl = document.getElementById('update-auth-note');
+      if (noteEl) {
+        noteEl.value = '[REVISI SPM]: ';
+        noteEl.focus();
       }
     }
 
@@ -1803,6 +1884,114 @@ Mohon informasi kesiapan jadwal dan waktu pelaksanaan inspeksi di lokasi. Terima
 
       const waUrl = `https://wa.me/${surveyPhone}?text=${encodeURIComponent(pesan)}`;
       window.open(waUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    // Kabari Pemberi Tugas: Laporan Selesai (M-07 / Final)
+    function kabariPemberiTugasLaporanSelesai(joId) {
+      const job = globalJobs.find(x => x.id === joId || x.jo_number === joId);
+      if (!job) return alert('Data penugasan tidak ditemukan.');
+
+      let clientPhone = (job.client_pic_phone || job.pic_contact || '').replace(/[^0-9]/g, '');
+      if (clientPhone.startsWith('0')) clientPhone = '62' + clientPhone.slice(1);
+      if (!clientPhone || clientPhone.length < 8) {
+        return alert('Nomor WhatsApp PIC Pemberi Tugas belum terdaftar untuk penugasan ini.');
+      }
+
+      const picName = job.client_pic_name || job.pic_name || 'Bapak/Ibu PIC Pemberi Tugas';
+      const pemberiTugas = job.pemberi_tugas || job.instansi || 'Pemberi Tugas';
+      const noLap = job.nomor_laporan_resmi || '(Telah terbit pada M-06)';
+      const trackBase = window.location.origin + window.location.pathname.replace('portal-tracking.html', '');
+      const trackUrl = trackBase + (trackBase.endsWith('/') ? '' : '/') + '?track=' + encodeURIComponent(job.kode_lacak || job.jo_number);
+
+      const pesan = `Yth. Bapak/Ibu ${picName},
+Perwakilan ${pemberiTugas}
+
+Terima kasih atas kepercayaan Anda kepada KJPP Nanang Rahayu Sigit Paryanto & Rekan.
+Kami menginformasikan bahwa laporan penilaian properti Anda telah selesai dan siap diserahterimakan:
+
+• No. SPK / JO: ${job.jo_number}
+• No. Laporan Resmi: ${noLap}
+• Pemberi Tugas: ${pemberiTugas}
+• Debitur: ${job.debitur}
+• Objek & Lokasi: ${job.jenis_properti} - ${job.lokasi_aset}
+• Status: Selesai 100% (M-07 Laporan Final)
+
+Anda dapat memantau dan memverifikasi status penyelesaian penugasan ini melalui tautan resmi berikut:
+🔗 ${trackUrl}
+
+Salam hormat,
+KJPP Nanang Rahayu Sigit Paryanto & Rekan (KJPP NSR)
+Izin Usaha KMK No. 2.19.0160`;
+
+      const waUrl = `https://wa.me/${clientPhone}?text=${encodeURIComponent(pesan)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    // Ekspor Data Penugasan Terfilter ke CSV/Excel
+    function eksporDataPenugasanCSV() {
+      const jobsToExport = filteredJobs && filteredJobs.length > 0 ? filteredJobs : globalJobs;
+      if (!jobsToExport || jobsToExport.length === 0) {
+        return alert('Tidak ada data penugasan untuk diekspor.');
+      }
+
+      const headers = [
+        'Nomor JO',
+        'Kode Lacak',
+        'No SPK',
+        'Pemberi Tugas (Client)',
+        'Pengguna Laporan',
+        'Nama Debitur',
+        'Jenis Properti',
+        'Lokasi Aset',
+        'Kantor Cabang',
+        'Penilai Pelaksana',
+        'Reviewer SPM',
+        'Penilai Publik',
+        'Batas Target SLA',
+        'Status SLA',
+        'Milestone Aktif',
+        'Judul Milestone',
+        'Progres (%)',
+        'No. Laporan Resmi (NoLap)'
+      ];
+
+      const csvRows = [headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',')];
+
+      jobsToExport.forEach(j => {
+        const row = [
+          j.jo_number || '',
+          j.kode_lacak || '',
+          j.spk_number || '',
+          j.pemberi_tugas || j.instansi || '',
+          j.pengguna_laporan || j.pemberi_tugas || j.instansi || '',
+          j.debitur || '',
+          j.jenis_properti || '',
+          j.lokasi_aset || '',
+          j.kantor || '',
+          j.penilai_pelaksana || j.surveyor || '',
+          j.reviewer || j.reviewer_spm || '',
+          j.penilai_publik || '',
+          j.sla_deadline || '',
+          j.sla_status || '',
+          j.current_milestone || '',
+          j.current_milestone_title || '',
+          (j.progress_percent || 0) + '%',
+          j.nomor_laporan_resmi || ''
+        ];
+        csvRows.push(row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','));
+      });
+
+      const csvContent = '\uFEFF' + csvRows.join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const nowStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `rekap_penugasan_kjpp_nsr_${nowStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     function kirimWaKodeLacak(joId) {
@@ -1920,6 +2109,25 @@ Administrasi Operasional KJPP NSR`;
         waBtn.href = `https://wa.me/${job.wa_admin || '6285110513157'}?text=${textMsg}`;
       }
 
+      // Toggle WhatsApp Buttons in Stepper Modal
+      const btnSurveyWa = document.getElementById('btn-modal-survey-wa');
+      if (btnSurveyWa) {
+        if (job.survey_contact_phone) {
+          btnSurveyWa.classList.remove('hidden');
+        } else {
+          btnSurveyWa.classList.add('hidden');
+        }
+      }
+
+      const btnSelesaiWa = document.getElementById('btn-modal-selesai-wa');
+      if (btnSelesaiWa) {
+        if (job.current_milestone === 'M-07' || job.sla_status === 'completed' || job.status === 'SELESAI') {
+          btnSelesaiWa.classList.remove('hidden');
+        } else {
+          btnSelesaiWa.classList.add('hidden');
+        }
+      }
+
       // Render Vertical Stepper
       renderVerticalStepper(job.milestones, job.current_milestone);
 
@@ -2011,7 +2219,10 @@ Administrasi Operasional KJPP NSR`;
               <div class="mt-2 pt-2 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2 text-[10px]">
                 <div class="flex items-center gap-1.5 ${isInProgress ? 'text-amber-300 font-bold' : 'text-slate-300'}">
                   <svg class="w-3.5 h-3.5 ${isInProgress ? 'text-amber-400' : 'text-slate-500'} shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                  <span>${picInfo.role}: <strong class="${isInProgress ? 'text-amber-300 font-extrabold' : 'text-slate-200'}">${picInfo.name}</strong></span>
+                  <div>
+                    <span>${picInfo.role}: <strong class="${isInProgress ? 'text-amber-300 font-extrabold' : 'text-slate-200'}">${picInfo.name}</strong></span>
+                    ${(isCompleted && item.actor) ? `<span class="block text-[9.5px] text-emerald-400 font-medium">✓ Disahkan: ${item.actor}</span>` : ''}
+                  </div>
                 </div>
                 <span class="font-mono text-slate-400">${item.timestamp || '-'}</span>
               </div>
@@ -2096,6 +2307,9 @@ Administrasi Operasional KJPP NSR`;
       const nilaiLiqEl = document.getElementById('update-opini-nilai-likuidasi');
       if (nilaiLiqEl) nilaiLiqEl.value = job.opini_nilai_likuidasi || '';
 
+      const evidenceEl = document.getElementById('update-evidence-link');
+      if (evidenceEl) evidenceEl.value = job.evidence_link || '';
+
       const titleEl = document.getElementById('modal-update-milestone-title');
       if (titleEl) {
         titleEl.textContent = 'Verifikasi Otoritas Milestone [' + nextM + ']';
@@ -2130,6 +2344,7 @@ Administrasi Operasional KJPP NSR`;
         nik: document.getElementById('update-auth-nik').value.trim(),
         pin: document.getElementById('update-auth-pin').value.trim(),
         note: document.getElementById('update-auth-note').value.trim(),
+        evidence_link: document.getElementById('update-evidence-link')?.value.trim() || '',
         tanggal_penilaian: document.getElementById('update-tanggal-penilaian')?.value || '',
         dokumen_kepemilikan: document.getElementById('update-dokumen-kepemilikan')?.value.trim() || '',
         nomor_laporan_resmi: document.getElementById('update-nomor-laporan-resmi')?.value.trim() || '',

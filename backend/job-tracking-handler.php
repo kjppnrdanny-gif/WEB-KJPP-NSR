@@ -240,11 +240,11 @@ function checkMilestoneAuthority($user, $targetMilestone) {
             }
             return ['allowed' => false, 'message' => 'Tahap M-03 (Inspeksi & Survei Lapangan) hanya dapat disahkan oleh Penilai Pelaksana atau Surveyor penugasan.'];
 
-        case 'M-04': // Analisis Penilaian & Kertas Kerja: Penilai Pelaksana / Tim Teknis cabang terkait
-            if (strpos($jabatan, 'PENILAI') !== false || strpos($jabatan, 'ANALISIS') !== false || strpos($divisi, 'TEKNIS') !== false || strpos($jabatan, 'SURVEYOR') !== false || $isLeadership) {
+        case 'M-04': // Analisis Penilaian & Kertas Kerja: Penilai Pelaksana / Tim Teknis cabang terkait ATAU Reviewer SPM (Revisi Kertas Kerja)
+            if (strpos($jabatan, 'REVIEWER') !== false || strpos($jabatan, 'SPM') !== false || strpos($jabatan, 'PENILAI') !== false || strpos($jabatan, 'ANALISIS') !== false || strpos($divisi, 'TEKNIS') !== false || strpos($jabatan, 'SURVEYOR') !== false || $isLeadership) {
                 return ['allowed' => true];
             }
-            return ['allowed' => false, 'message' => 'Tahap M-04 (Analisis Penilaian & Kertas Kerja) hanya dapat disahkan oleh Penilai Pelaksana atau Tim Teknis.'];
+            return ['allowed' => false, 'message' => 'Tahap M-04 (Analisis Penilaian & Kertas Kerja) hanya dapat disahkan oleh Penilai Pelaksana, Tim Teknis, atau Reviewer SPM.'];
 
         case 'M-05': // Kendali Mutu SPM: Reviewer SPM Cabang & Pusat
             $nama = strtoupper(trim((string)($user['nama'] ?? '')));
@@ -850,6 +850,7 @@ if ($action === 'track' || $action === 'track_public') {
             $gasData = $gasTrack['data'];
             unset($gasData['opini_nilai_pasar']);
             unset($gasData['opini_nilai_likuidasi']);
+            unset($gasData['evidence_link']);
             echo json_encode([
                 'status' => 'success',
                 'source' => 'GAS_SSOT_LIVE',
@@ -908,9 +909,10 @@ if ($action === 'track' || $action === 'track_public') {
 
     $publicData = $found;
     // Proteksi Kerahasiaan Publik (KEPI & Standar Penilaian):
-    // Nilai Opini Rupiah (Pasar & Likuidasi) HANYA tampil di Task Board internal staf dan DISEKA dari publik.
+    // Nilai Opini Rupiah (Pasar & Likuidasi) serta Bukti Kerja Internal DISEKA dari endpoint lacak publik.
     unset($publicData['opini_nilai_pasar']);
     unset($publicData['opini_nilai_likuidasi']);
+    unset($publicData['evidence_link']);
 
     echo json_encode([
         'status' => 'success',
@@ -1070,31 +1072,56 @@ if ($action === 'advance_milestone' || $action === 'update_milestone') {
     $wibFormat = 'd M Y, H:i \W\I\B';
     $targetIndex = array_search($targetM, $mKeys);
 
-    for ($i = 0; $i <= $targetIndex; $i++) {
-        $k = $mKeys[$i];
-        if ($i < $targetIndex) {
-            $job['milestones'][$k]['status'] = 'completed';
-            if ($job['milestones'][$k]['timestamp'] === '-') {
-                $job['milestones'][$k]['timestamp'] = date($wibFormat, $now - (($targetIndex - $i) * 3600));
-            }
-        } elseif ($i === $targetIndex) {
-            if ($targetM === 'M-07') {
+    $isRollback = ($targetIndex < $currentIndex);
+
+    if ($isRollback) {
+        // Rollback / Revisi SPM: target milestone aktif kembali, milestone berikutnya direset ke pending
+        for ($i = 0; $i < count($mKeys); $i++) {
+            $k = $mKeys[$i];
+            if ($i < $targetIndex) {
                 $job['milestones'][$k]['status'] = 'completed';
-                $job['milestones'][$k]['timestamp'] = date($wibFormat, $now);
-                if (!empty($customNote)) $job['milestones'][$k]['note'] = $customNote;
-                $job['milestones'][$k]['actor'] = $user['nama'] . ' (' . $user['jabatan'] . ')';
-                $job['sla_status'] = 'completed';
-                $job['sla_label'] = 'Selesai 100%';
-            } else {
+            } elseif ($i === $targetIndex) {
                 $job['milestones'][$k]['status'] = 'in_progress';
                 $job['milestones'][$k]['timestamp'] = date($wibFormat, $now);
                 if (!empty($customNote)) $job['milestones'][$k]['note'] = $customNote;
                 $job['milestones'][$k]['actor'] = $user['nama'] . ' (' . $user['jabatan'] . ')';
+            } else {
+                $job['milestones'][$k]['status'] = 'pending';
+                $job['milestones'][$k]['timestamp'] = '-';
+            }
+        }
+        $job['sla_status'] = 'on_track';
+        $job['sla_label'] = 'Revisi (' . $targetM . ')';
+    } else {
+        for ($i = 0; $i <= $targetIndex; $i++) {
+            $k = $mKeys[$i];
+            if ($i < $targetIndex) {
+                $job['milestones'][$k]['status'] = 'completed';
+                if ($job['milestones'][$k]['timestamp'] === '-') {
+                    $job['milestones'][$k]['timestamp'] = date($wibFormat, $now - (($targetIndex - $i) * 3600));
+                }
+            } elseif ($i === $targetIndex) {
+                if ($targetM === 'M-07') {
+                    $job['milestones'][$k]['status'] = 'completed';
+                    $job['milestones'][$k]['timestamp'] = date($wibFormat, $now);
+                    if (!empty($customNote)) $job['milestones'][$k]['note'] = $customNote;
+                    $job['milestones'][$k]['actor'] = $user['nama'] . ' (' . $user['jabatan'] . ')';
+                    $job['sla_status'] = 'completed';
+                    $job['sla_label'] = 'Selesai 100%';
+                } else {
+                    $job['milestones'][$k]['status'] = 'in_progress';
+                    $job['milestones'][$k]['timestamp'] = date($wibFormat, $now);
+                    if (!empty($customNote)) $job['milestones'][$k]['note'] = $customNote;
+                    $job['milestones'][$k]['actor'] = $user['nama'] . ' (' . $user['jabatan'] . ')';
+                }
             }
         }
     }
 
     // Tangkap input substansi SPI & NoLap
+    if (!empty($payload['evidence_link'])) {
+        $job['evidence_link'] = trim((string)$payload['evidence_link']);
+    }
     if (!empty($payload['tanggal_penilaian'])) {
         $job['tanggal_penilaian'] = trim((string)$payload['tanggal_penilaian']);
     }
