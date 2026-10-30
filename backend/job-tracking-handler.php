@@ -1221,7 +1221,8 @@ if ($action === 'create' || $action === 'create_job_order') {
 
     $year = date('Y');
     $nextSeq = str_pad(count($jobs) + 1, 4, '0', STR_PAD_LEFT);
-    $joNumber = 'JO-' . ($kantorCode === 'PUSAT' ? 'JKT' : $kantorCode) . '-' . $year . '-' . $nextSeq;
+    $customJo = trim((string)($payload['jo_number'] ?? $payload['id_jo'] ?? ''));
+    $joNumber = !empty($customJo) ? $customJo : ('JO-' . ($kantorCode === 'PUSAT' ? 'JKT' : $kantorCode) . '-' . $year . '-' . $nextSeq);
     $kodeLacak = generateTrackingCode($kantorCode, $year);
 
     $now = time();
