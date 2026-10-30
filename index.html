@@ -4045,6 +4045,7 @@
       
       <!-- Tombol Tutup Modal (Global Sudut Kanan Atas) -->
       <button type="button"
+              id="btn-close-modal-portal"
               onclick="tutupModalPortal()"
               class="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 text-slate-400 hover:text-white text-xl font-bold w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 flex items-center justify-center cursor-pointer transition btn-tactile shadow-md"
               aria-label="Tutup Dialog Modal">
@@ -4231,48 +4232,43 @@
       </form>
 
       <!-- MENU PORTAL OPERASIONAL OPINI NSR (AUTHENTICATED VIEW) -->
-      <div id="panel-layanan" class="hidden flex-1 flex flex-col min-h-0 overflow-hidden p-4 sm:p-6">
+      <div id="panel-layanan" class="hidden flex-1 flex flex-col min-h-0 overflow-hidden p-3.5 sm:p-4 md:p-5">
         
-        <!-- Header Modal OPINI NSR (Tampil Saat Sudah Terverifikasi) -->
-        <div class="flex items-start justify-between pb-3 sm:pb-3.5 border-b border-slate-800/80 mb-3 sm:mb-4 shrink-0">
-          <div class="min-w-0 pr-3 sm:pr-4 flex-1">
-            <div class="flex flex-wrap items-center gap-2 mb-2">
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-amber-400/10 text-amber-400 border border-amber-400/30 shadow-sm">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
-                <span class="leading-snug break-words">KJPP Nanang Rahayu Sigit Paryanto dan Rekan • Izin KMK No. 2.19.0160</span>
-              </div>
-              <div class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold text-slate-300 bg-slate-800/80 border border-slate-700/80">
-                Akses Terpadu 5 Kantor
-              </div>
-            </div>
-            <div class="space-y-0.5">
-              <div class="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-                <h3 class="text-lg sm:text-xl font-black tracking-wide text-amber-400 uppercase">
-                  OPINI NSR
-                </h3>
-                <span class="text-xs sm:text-sm font-medium text-slate-300">
-                  (Otorisasi Penilaian, Informasi &amp; Navigasi Internal KJPP NSR)
-                </span>
-              </div>
-              <p class="text-[11px] sm:text-xs text-slate-400 font-mono">
-                OPINI NSR &bull; Dari Data Lapangan Menjadi Opini yang Andal
-              </p>
-            </div>
+        <!-- TOP UTILITY BAR (1 BARIS TERPADU: KOP OPINI NSR + STATUS VERIFIKASI + TOMBOL TUTUP TUNGGAL) -->
+        <div class="flex items-center justify-between gap-2 sm:gap-3 pb-2.5 sm:pb-3 border-b border-slate-800 mb-2.5 shrink-0">
+          
+          <!-- Sisi Kiri: Judul OPINI NSR + Lencana KMK Ringkas -->
+          <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <h3 class="text-base sm:text-lg font-black tracking-wide text-amber-400 uppercase shrink-0">
+              OPINI NSR
+            </h3>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400/10 text-amber-300 border border-amber-400/30 shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+              <span>KMK NO. 2.19.0160</span>
+            </span>
+            <span class="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium text-slate-400 bg-slate-900 border border-slate-800 shrink-0">
+              5 Wilayah Terpadu
+            </span>
           </div>
-          <button onclick="tutupModalPortal()" class="text-slate-400 hover:text-white text-xl font-bold w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 flex items-center justify-center cursor-pointer shrink-0 transition" aria-label="Tutup Modal">&times;</button>
+
+          <!-- Sisi Kanan: Status Verifikasi Pill + Ganti Token + Tombol Tutup Tunggal -->
+          <div class="flex items-center gap-2 shrink-0">
+            <!-- Pill Status Verifikasi Horizontal -->
+            <div class="inline-flex items-center gap-2 py-1 px-2.5 sm:px-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px] sm:text-xs">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+              <span class="text-slate-200 font-medium truncate max-w-[150px] sm:max-w-xs" id="label-lokasi">Token Terverifikasi</span>
+              <span class="text-slate-600">&bull;</span>
+              <button type="button" onclick="resetTokenSesi()" class="font-semibold text-slate-400 hover:text-rose-400 underline cursor-pointer shrink-0 transition" title="Ganti token autentikasi">Ganti / Keluar</button>
+            </div>
+
+            <!-- Tombol Tutup Tunggal Bersih (Bebas Efek Ganda) -->
+            <button type="button" onclick="tutupModalPortal()" class="text-slate-400 hover:text-white text-lg font-bold w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 flex items-center justify-center cursor-pointer shrink-0 transition" aria-label="Tutup Dialog Modal">&times;</button>
+          </div>
+
         </div>
 
-        <!-- Bar Status Verifikasi -->
-        <div class="p-2.5 sm:p-3 rounded-xl bg-slate-900 border border-slate-800 mb-3 flex items-center justify-between text-xs sm:text-sm shrink-0">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
-            <p class="text-slate-200 font-semibold text-xs sm:text-sm truncate" id="label-lokasi">Token Terverifikasi</p>
-          </div>
-          <button type="button" onclick="resetTokenSesi()" class="text-[11px] font-semibold text-slate-400 hover:text-rose-400 underline cursor-pointer shrink-0 ml-2 transition">Ganti Token / Keluar</button>
-        </div>
-
-        <!-- VIP HERO BANNER KHUSUS TOKEN KING -->
-        <div id="governance-hero-slot" class="hidden mb-3 shrink-0" style="display: none;"></div>
+        <!-- VIP HERO BANNER KHUSUS TOKEN KING (COMPACT ACTION STRIP 1 BARIS) -->
+        <div id="governance-hero-slot" class="hidden mb-2.5 shrink-0" style="display: none;"></div>
 
         <div id="container-kartu-layanan" class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5 overflow-y-auto pr-1 custom-scrollbar-thin flex-1">
           
@@ -6316,41 +6312,30 @@
 
       if (isKing) {
         containerHero.innerHTML = `
-          <div class="mb-3 sm:mb-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-amber-950/30 to-slate-900 border-2 border-amber-500/40 shadow-2xl relative overflow-hidden">
-            <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
-              <div class="space-y-1">
-                <div class="flex items-center gap-2">
-                  <span class="px-2.5 py-0.5 rounded text-[10.5px] font-black bg-amber-500 text-slate-950 uppercase tracking-wider font-mono">MANAGEMENT EXCLUSIVE</span>
-                  <span class="text-xs text-amber-400 font-semibold">• Akses Terverifikasi Token KING</span>
-                </div>
-                <h2 class="text-base sm:text-lg font-black text-white tracking-wide flex items-center gap-2">
-                  EXECUTIVE CONTROL TOWER &amp; SPM HUB
-                </h2>
-                <p class="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                  Pusat Komando Tata Kelola Lintas 5 Wilayah: Audit SLA Berjenjang, Mitigasi Kritis SPM, dan Mesin Intervensi Cepat 1-Klik.
-                </p>
-              </div>
-              
-              <div class="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end flex-wrap sm:flex-nowrap">
-                <div class="flex items-center gap-3 bg-slate-950/80 px-3.5 py-2 rounded-xl border border-amber-500/30 text-xs">
-                  <div>
-                    <span class="block text-[10px] text-slate-400">Kepatuhan Global</span>
-                    <strong class="text-emerald-400 font-mono text-xs sm:text-sm">94.8%</strong>
-                  </div>
-                  <div class="w-px h-6 bg-slate-800"></div>
-                  <div>
-                    <span class="block text-[10px] text-slate-400">Anomali Kritis</span>
-                    <strong id="live-critical-count" class="text-rose-400 font-mono text-xs sm:text-sm">2 Kasus</strong>
-                  </div>
-                </div>
+          <div class="mb-2.5 py-2 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-slate-900 via-amber-950/20 to-slate-900 border border-amber-500/40 shadow-md relative overflow-hidden flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5" title="Pusat Komando Tata Kelola Lintas 5 Wilayah: Audit SLA Berjenjang, Mitigasi Kritis SPM, dan Mesin Intervensi Cepat 1-Klik">
+            <!-- Kiri: Badge + Judul Compact -->
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="px-2 py-0.5 rounded text-[9.5px] font-black bg-amber-500 text-slate-950 uppercase tracking-wider font-mono shrink-0">MANAGEMENT</span>
+              <h4 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate">
+                EXECUTIVE CONTROL TOWER &amp; SPM HUB
+              </h4>
+            </div>
 
-                <a href="portal-governance.html?token=${encodeURIComponent(['NSR', '8899'].join(''))}" 
-                   class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center gap-2 shrink-0">
-                  <span>Buka Menara Kendali</span>
-                  <span>➔</span>
-                </a>
+            <!-- Tengah & Kanan: Indikator Ringkas + Tombol Buka Proporsional -->
+            <div class="flex items-center gap-2.5 shrink-0 ml-auto">
+              <!-- Indikator Inline -->
+              <div class="hidden sm:flex items-center gap-2 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px] font-mono">
+                <span class="text-slate-400">Kepatuhan: <strong class="text-emerald-400 font-semibold">94.8%</strong></span>
+                <span class="text-slate-600">|</span>
+                <span class="text-slate-400">Anomali Kritis: <strong id="live-critical-count" class="text-rose-400 font-semibold">2 Kasus</strong></span>
               </div>
+
+              <!-- Tombol Buka -->
+              <a href="portal-governance.html?token=${encodeURIComponent(['NSR', '8899'].join(''))}" 
+                 class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5 shrink-0">
+                <span>Buka Menara Kendali</span>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              </a>
             </div>
           </div>
         `;
@@ -6505,9 +6490,11 @@
 
               // General launcher: tampilkan panel layanan dengan status verifikasi
               if (labelLokasi) {
-                labelLokasi.innerHTML = `Terverifikasi: <strong>${sess.branch || sess.wilayah}</strong> &bull; <span class="uppercase text-emerald-800 font-extrabold">${sess.roleLabel || sess.role}</span>`;
+                labelLokasi.innerHTML = `Terverifikasi: <strong>${sess.branch || sess.wilayah}</strong> &bull; <span class="uppercase text-emerald-400 font-bold">${sess.roleLabel || sess.role}</span>`;
               }
               if (formToken) formToken.classList.add('hidden');
+              const btnCloseGlobal = document.getElementById('btn-close-modal-portal');
+              if (btnCloseGlobal) btnCloseGlobal.classList.add('hidden');
               if (panelLayanan) {
                 panelLayanan.classList.remove('hidden');
                 updateDynamicSmartCards(sess);
@@ -6526,6 +6513,8 @@
         updateDynamicSmartCards(null);
         if (formToken) formToken.classList.remove('hidden');
         if (panelLayanan) panelLayanan.classList.add('hidden');
+        const btnCloseGlobal2 = document.getElementById('btn-close-modal-portal');
+        if (btnCloseGlobal2) btnCloseGlobal2.classList.remove('hidden');
         const inp = document.getElementById('input-token');
         if (inp) {
           inp.value = '';
@@ -6713,9 +6702,11 @@
       const labelLokasi = document.getElementById('label-lokasi');
 
       if (labelLokasi) {
-        labelLokasi.innerHTML = `Terverifikasi: <strong>${auth.wilayah}</strong> &bull; <span class="uppercase text-emerald-800 font-extrabold">${auth.roleLabel || auth.role}</span>`;
+        labelLokasi.innerHTML = `Terverifikasi: <strong>${auth.wilayah}</strong> &bull; <span class="uppercase text-emerald-400 font-bold">${auth.roleLabel || auth.role}</span>`;
       }
       if (formToken) formToken.classList.add('hidden');
+      const btnCloseGlobal = document.getElementById('btn-close-modal-portal');
+      if (btnCloseGlobal) btnCloseGlobal.classList.add('hidden');
       if (panelLayanan) {
         panelLayanan.classList.remove('hidden');
         window.updateDynamicSmartCards(auth);
@@ -6896,6 +6887,8 @@
       if (errEl) errEl.classList.add('hidden');
       if (formToken) formToken.classList.remove('hidden');
       if (panelLayanan) panelLayanan.classList.add('hidden');
+      const btnCloseGlobal3 = document.getElementById('btn-close-modal-portal');
+      if (btnCloseGlobal3) btnCloseGlobal3.classList.remove('hidden');
       const inp = document.getElementById('input-token');
       if (inp) {
         inp.value = '';
