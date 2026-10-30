@@ -16,6 +16,7 @@ const CONFIG_TRACKING = {
   // Biarkan kosong jika skrip ditempelkan langsung pada Spreadsheet (Bound Script),
   // atau isi ID Spreadsheet jika dipasang sebagai Standalone Script Web App.
   SPREADSHEET_ID: '',
+  ROOT_DRIVE_FOLDER_ID: '', // ID Folder Root Drive Arsip KJPP NSR (opsional)
   SHEET_DATA: 'DATA_PENUGASAN',
   SHEET_LOG: 'LOG_PROGRESS',
   SHEET_MITRA: 'MITRA_DAN_SLA',
@@ -143,6 +144,11 @@ function doGet(e) {
 
     if (action === 'setup_database') {
       return handleSetupDatabase_();
+    }
+
+    if (action === 'create_job_folder' || action === 'provision_drive_folder') {
+      const res = createJobFolderStructure(e.parameter || {});
+      return createJsonResponse_(res, res.status === 'success' ? 200 : 500);
     }
 
     return createJsonResponse_({ status: 'error', message: 'Aksi GET tidak valid: ' + action }, 400);
@@ -473,6 +479,26 @@ function handleCreateJobOrder_(payload) {
   const slaDeadlineStr = Utilities.formatDate(deadlineDate, CONFIG_TRACKING.TIMEZONE, 'yyyy-MM-dd');
 
   // Baris Baru DATA_PENUGASAN (20 Kolom termasuk kode_lacak)
+  let driveFolderUrl = payload.link_folder_drive || payload.drive_folder_url || '';
+  let subfoldersList = [];
+  if (!driveFolderUrl) {
+    try {
+      const driveRes = createJobFolderStructure({
+        tahun: year,
+        kode_cabang: kantorCode === 'JKT' ? 'PST' : kantorCode,
+        kode_trk: kodeLacak,
+        nama_debitur: payload.debitur || payload.nama_debitur || 'Debitur'
+      });
+      if (driveRes && driveRes.status === 'success') {
+        driveFolderUrl = driveRes.folder_url;
+        subfoldersList = driveRes.subfolders || [];
+      }
+    } catch (eDrive) {
+      // Continue even if Drive provisioning has a warning
+    }
+  }
+
+  // Baris Baru DATA_PENUGASAN (20 Kolom termasuk kode_lacak & link_folder_drive)
   const newRow = [
     idJo,
     kodeLacak,
@@ -493,7 +519,7 @@ function handleCreateJobOrder_(payload) {
     slaDeadlineStr,
     '', // tanggal_selesai
     'Aktif',
-    payload.link_folder_drive || ''
+    driveFolderUrl
   ];
 
   sheetData.appendRow(newRow);
@@ -526,9 +552,13 @@ function handleCreateJobOrder_(payload) {
     message: 'Job Order ' + idJo + ' berhasil didaftarkan.',
     data: {
       id_jo: idJo,
-      nomor_spk: newRow[1],
-      nama_debitur: newRow[3],
-      target_sla: slaDeadlineStr
+      kode_lacak: kodeLacak,
+      nomor_spk: newRow[2],
+      nama_debitur: newRow[4],
+      target_sla: slaDeadlineStr,
+      link_folder_drive: driveFolderUrl,
+      drive_folder_url: driveFolderUrl,
+      subfolders: subfoldersList
     }
   });
 }
@@ -808,4 +838,125 @@ function handleSetupDatabase_() {
     status: 'success',
     message: 'Database 4 Tab Google Spreadsheet "DATABASE TRACING PENUGASAN" berhasil diinisialisasi lengkap dengan formula & mock data.'
   });
+}
+
+
+/**
+ * =========================================================================
+ * 7. ACTION: CREATE_JOB_FOLDER_STRUCTURE (Otomasi Google Drive M-01)
+ * =========================================================================
+ * Menghasilkan repositori arsip digital terstandarisasi untuk penugasan baru.
+ * Struktur Direktori:
+ * [ROOT] / ARSIP PENUGASAN [TAHUN] / [CABANG] / [KODE_TRK] - [DEBITUR] /
+ *   ├── 01_Dokumen_Yuridis_SPK/
+ *   ├── 02_Foto_Inspeksi_Geotag/
+ *   ├── 03_Data_Pasar_Pembanding/
+ *   ├── 04_Kertas_Kerja_Analisis/
+ *   └── 05_Laporan_Final_PDF/
+ */
+function createJobFolderStructure(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(CONFIG_TRACKING.LOCK_TIMEOUT_MS || 30000);
+
+    const tahun = String(payload.tahun || payload.year || Utilities.formatDate(new Date(), CONFIG_TRACKING.TIMEZONE, 'yyyy')).trim();
+    let rawCabang = String(payload.kode_cabang || payload.kantor_code || payload.kantor || 'PST').trim().toUpperCase();
+    let kodeCabang = 'PST';
+    if (rawCabang.includes('BANDUNG') || rawCabang === 'BDG') kodeCabang = 'BDG';
+    else if (rawCabang.includes('MAKASSAR') || rawCabang === 'MKS') kodeCabang = 'MKS';
+    else if (rawCabang.includes('PADANG') || rawCabang === 'PDG') kodeCabang = 'PDG';
+    else if (rawCabang.includes('PALEMBANG') || rawCabang === 'PLM' || rawCabang === 'PLB') kodeCabang = 'PLB';
+    else kodeCabang = 'PST';
+
+    const kodeTrk = String(payload.kode_trk || payload.kode_lacak || 'TRK-NSR').trim().toUpperCase();
+    const namaDebitur = String(payload.nama_debitur || payload.debitur || 'Debitur').trim().replace(/[\/\\:*?"<>|]/g, '-');
+
+    // 1. Tentukan Root Folder
+    let rootFolder;
+    if (CONFIG_TRACKING.ROOT_DRIVE_FOLDER_ID && CONFIG_TRACKING.ROOT_DRIVE_FOLDER_ID.trim() !== '') {
+      rootFolder = DriveApp.getFolderById(CONFIG_TRACKING.ROOT_DRIVE_FOLDER_ID.trim());
+    } else {
+      const rootFolders = DriveApp.getRootFolder().getFoldersByName('ARSIP PENUGASAN KJPP NSR');
+      rootFolder = rootFolders.hasNext() ? rootFolders.next() : DriveApp.getRootFolder().createFolder('ARSIP PENUGASAN KJPP NSR');
+    }
+
+    // 2. Folder Tahun
+    const namaFolderTahun = 'ARSIP PENUGASAN ' + tahun;
+    const yearFolders = rootFolder.getFoldersByName(namaFolderTahun);
+    const yearFolder = yearFolders.hasNext() ? yearFolders.next() : rootFolder.createFolder(namaFolderTahun);
+
+    // 3. Folder Cabang (PST / BDG / MKS / PDG / PLB)
+    const branchFolders = yearFolder.getFoldersByName(kodeCabang);
+    const branchFolder = branchFolders.hasNext() ? branchFolders.next() : yearFolder.createFolder(kodeCabang);
+
+    // 4. Folder Induk Penugasan: [KODE_TRK] - [NAMA_DEBITUR] (Idempotensi: Hindari Duplikasi)
+    const targetFolderName = kodeTrk + ' - ' + namaDebitur;
+    const existingFolders = branchFolder.getFoldersByName(targetFolderName);
+    let jobFolder;
+
+    if (existingFolders.hasNext()) {
+      jobFolder = existingFolders.next();
+    } else {
+      // Periksa kecocokan awalan kode_trk jika nama debitur sedikit berbeda
+      let foundByPrefix = null;
+      const allSub = branchFolder.getFolders();
+      while (allSub.hasNext()) {
+        const f = allSub.next();
+        if (f.getName().startsWith(kodeTrk)) {
+          foundByPrefix = f;
+          break;
+        }
+      }
+      jobFolder = foundByPrefix || branchFolder.createFolder(targetFolderName);
+    }
+
+    // Atur Hak Akses View Publik Terbatas
+    try {
+      jobFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (_) {}
+
+    // 5. 5 Subfolder Standar Penugasan SPI 105
+    const standardSubfolders = [
+      '01_Dokumen_Yuridis_SPK',
+      '02_Foto_Inspeksi_Geotag',
+      '03_Data_Pasar_Pembanding',
+      '04_Kertas_Kerja_Analisis',
+      '05_Laporan_Final_PDF'
+    ];
+
+    const subfoldersResult = [];
+    standardSubfolders.forEach(subName => {
+      const existingSub = jobFolder.getFoldersByName(subName);
+      let subF;
+      if (existingSub.hasNext()) {
+        subF = existingSub.next();
+      } else {
+        subF = jobFolder.createFolder(subName);
+      }
+      subfoldersResult.push({
+        name: subName,
+        id: subF.getId(),
+        url: subF.getUrl()
+      });
+    });
+
+    return {
+      status: 'success',
+      message: 'Struktur folder Google Drive penugasan berhasil disiapkan.',
+      folder_id: jobFolder.getId(),
+      folder_name: jobFolder.getName(),
+      folder_url: jobFolder.getUrl(),
+      kode_cabang: kodeCabang,
+      tahun: tahun,
+      kode_trk: kodeTrk,
+      subfolders: subfoldersResult
+    };
+  } catch (err) {
+    return {
+      status: 'error',
+      message: 'Gagal menyiapkan struktur folder Drive: ' + err.toString()
+    };
+  } finally {
+    try { lock.releaseLock(); } catch (_) {}
+  }
 }
