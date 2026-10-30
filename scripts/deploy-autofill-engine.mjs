@@ -68,18 +68,6 @@ const autofillEngineCode = `
       'select[name="klasifikasi_objek"]', 'select[name="klasifikasi"]', 'select[name="klasifikasi_jasa_penilaian"]'
     ], klasifikasi);
 
-    // Auto-trigger search jika portal memiliki input pencarian bridge
-    if (jo) {
-      const bridgeInputs = ['#cari-spk-kwitansi-bridge', '#input_cari_spk_bridge', '#input_lookup_nolap'];
-      for (const bSel of bridgeInputs) {
-        const bEl = document.querySelector(bSel);
-        if (bEl && bEl.value === jo) {
-          const searchBtn = bEl.parentElement?.querySelector('button');
-          if (searchBtn) searchBtn.click();
-        }
-      }
-    }
-
     // Tampilkan notifikasi banner jika ada data yang berhasil diisi
     if (populatedCount > 0 && jo) {
       showAutofillNotice(jo, populatedCount);
@@ -110,20 +98,24 @@ const autofillEngineCode = `
 </script>
 `;
 
-function injectAutofill(filePath) {
-  if (!fs.existsSync(filePath)) {
-    console.error('File not found:', filePath);
-    return;
-  }
+function injectOrReplaceAutofill(filePath) {
+  if (!fs.existsSync(filePath)) return;
   let content = fs.readFileSync(filePath, 'utf8');
-  if (content.includes('OPINI NSR CONTEXT AUTOFILL ENGINE')) {
-    console.log(`- Already contains autofill engine: ${filePath}`);
-    return;
-  }
-
   const isCRLF = content.includes('\r\n');
   let norm = content.replace(/\r\n/g, '\n');
 
+  // Hapus versi lama jika ada
+  const startMarker = '<!-- OPINI NSR CONTEXT AUTOFILL ENGINE (NON-REGRESSION) -->';
+  const endMarker = '</script>\n';
+  const sIdx = norm.indexOf(startMarker);
+  if (sIdx !== -1) {
+    const eIdx = norm.indexOf(endMarker, sIdx);
+    if (eIdx !== -1) {
+      norm = norm.slice(0, sIdx) + norm.slice(eIdx + endMarker.length);
+    }
+  }
+
+  // Masukkan versi bersih baru sebelum </body>
   if (norm.includes('</body>')) {
     norm = norm.replace('</body>', `${autofillEngineCode}\n</body>`);
   } else {
@@ -131,23 +123,18 @@ function injectAutofill(filePath) {
   }
 
   fs.writeFileSync(filePath, isCRLF ? norm.replace(/\n/g, '\r\n') : norm, 'utf8');
-  console.log(`✓ Injected autofill engine into ${filePath}`);
+  console.log(`✓ Updated autofill engine in ${filePath}`);
 }
 
-// 1. Inject into existing canonical portals
-injectAutofill('portal-penugasan-jo.html');
-injectAutofill('portal-operasional.html');
-injectAutofill('portal-nolap.html');
-injectAutofill('portal-kwitansi.html');
+const targetFiles = [
+  'portal-penugasan-jo.html',
+  'portal-operasional.html',
+  'portal-nolap.html',
+  'portal-kwitansi.html',
+  'portal-spk.html',
+  'portal-bop.html',
+  'portal-keuangan.html'
+];
 
-// 2. Create alias/entry files: portal-spk.html, portal-bop.html, portal-keuangan.html
-fs.copyFileSync('portal-penugasan-jo.html', 'portal-spk.html');
-console.log('✓ Created portal-spk.html (alias of portal-penugasan-jo.html)');
-
-fs.copyFileSync('portal-operasional.html', 'portal-bop.html');
-console.log('✓ Created portal-bop.html (alias of portal-operasional.html)');
-
-fs.copyFileSync('portal-kwitansi.html', 'portal-keuangan.html');
-console.log('✓ Created portal-keuangan.html (alias of portal-kwitansi.html)');
-
-console.log('All 4 target portals now equipped with Universal Autofill Engine!');
+targetFiles.forEach(injectOrReplaceAutofill);
+console.log('All portal files updated cleanly with safe autofill engine!');
