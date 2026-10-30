@@ -704,7 +704,170 @@
       </div>
     </section>
 
-  </main>
+
+    <!-- ==================== TAB 3: MATRIKS BEBAN KERJA & SLA NASIONAL ==================== -->
+    <section id="panel-tab-workload" class="hidden space-y-6">
+
+      <!-- Ringkasan Eksekutif KPI SLA Nasional -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI 1: TAT Rata-rata -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Rata-rata TAT Nasional</span>
+            <span class="w-7 h-7 rounded-lg bg-sky-500/15 border border-sky-400/30 text-sky-400 flex items-center justify-center font-bold text-xs">
+              ⏱️
+            </span>
+          </div>
+          <div class="mt-2.5 flex items-baseline gap-2">
+            <span id="wk-stat-avg-tat" class="text-2xl sm:text-3xl font-black text-sky-300 font-mono">1.8 Hari</span>
+            <span class="text-[11px] text-slate-400 font-medium">Turnaround</span>
+          </div>
+          <div class="mt-2 text-[10px] text-emerald-400 flex items-center gap-1 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>Target Nasional: &le; 7.0 Hari Kerja</span>
+          </div>
+        </div>
+
+        <!-- KPI 2: Kepatuhan SLA -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kepatuhan SLA Nasional</span>
+            <span class="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-400/30 text-emerald-400 flex items-center justify-center font-bold text-xs">
+              🎯
+            </span>
+          </div>
+          <div class="mt-2.5 flex items-baseline gap-2">
+            <span id="wk-stat-sla-rate" class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">92.5%</span>
+            <span class="text-[11px] text-emerald-300/80 font-medium">On-Time</span>
+          </div>
+          <div class="mt-2 text-[10px] text-slate-400 flex items-center gap-1 font-mono">
+            <span>Standar Perbankan Mitra</span>
+          </div>
+        </div>
+
+        <!-- KPI 3: Berkas Tersendat -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-rose-500/30 shadow-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-rose-300 uppercase tracking-wider">Early Warning Tersendat</span>
+            <span class="w-7 h-7 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 flex items-center justify-center font-bold text-xs">
+              🚨
+            </span>
+          </div>
+          <div class="mt-2.5 flex items-baseline gap-2">
+            <span id="wk-stat-bottlenecks" class="text-2xl sm:text-3xl font-black text-rose-400 font-mono">0</span>
+            <span class="text-[11px] text-rose-300/80 font-medium">Berkas Perlu Intervensi</span>
+          </div>
+          <div class="mt-2 text-[10px] text-rose-300 flex items-center gap-1">
+            <span>Melebihi SLA per Tahap SPM</span>
+          </div>
+        </div>
+
+        <!-- KPI 4: Total Penugasan Berjalan -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Penugasan Berjalan</span>
+            <span class="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-400/30 text-amber-300 flex items-center justify-center font-bold text-xs">
+              📋
+            </span>
+          </div>
+          <div class="mt-2.5 flex items-baseline gap-2">
+            <span id="wk-stat-active-jobs" class="text-2xl sm:text-3xl font-black text-white font-mono">0</span>
+            <span class="text-[11px] text-slate-400 font-medium">M-01 s/d M-06</span>
+          </div>
+          <div class="mt-2 text-[10px] text-amber-400 flex items-center gap-1 font-medium">
+            <span>5 Kantor Wilayah Operasional</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BANNER EARLY WARNING BOTTLENECK ALERT -->
+      <div id="workload-bottlenecks-wrapper" class="space-y-3">
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div class="flex items-center gap-2.5">
+              <span class="p-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs">🚨</span>
+              <div>
+                <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                  <span>Peringatan Dini Penugasan Tersendat (Early Warning Bottleneck Alert)</span>
+                </h3>
+                <p class="text-xs text-slate-400">Aturan SPM: M-03 &gt; 3 hari sejak M-02 &bull; M-04 &gt; 4 hari sejak survei &bull; M-05 &gt; 2 hari di meja Reviewer SPM</p>
+              </div>
+            </div>
+            <button type="button" onclick="muatWorkloadAnalytics()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Segarkan Analitik</span>
+            </button>
+          </div>
+          <div id="workload-bottlenecks-list" class="mt-4 space-y-3">
+            <div class="p-4 text-center text-xs text-slate-500">Memeriksa status penugasan...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATRIKS KAPASITAS PENILAI PELAKSANA / SURVEYOR -->
+      <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+              <span class="p-1.5 rounded-lg bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs">⚖️</span>
+              <span>Matriks Kapasitas per Penilai Pelaksana / Surveyor</span>
+            </h3>
+            <p class="text-xs text-slate-400">Distribusi beban kerja penilai untuk mencegah penumpukan berkas dan menjaga standar mutu penilaian.</p>
+          </div>
+          <!-- Legend Kapasitas -->
+          <div class="flex items-center gap-2 text-[10px] font-semibold flex-wrap">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Optimal (1-3)
+            </span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Padat (4-5)
+            </span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-300 border border-rose-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Overload (&gt;5)
+            </span>
+          </div>
+        </div>
+
+        <div id="appraiser-workload-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full py-8 text-center text-xs text-slate-500">Memuat matriks beban kerja...</div>
+        </div>
+      </div>
+
+      <!-- REKAPITULASI BEBAN & KINERJA 5 KANTOR WILAYAH -->
+      <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
+        <div class="pb-3 border-b border-slate-800">
+          <h3 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-blue-500/20 text-sky-300 border border-blue-500/30 text-xs">🏛️</span>
+            <span>Rekapitulasi Kinerja 5 Kantor Wilayah Operasional</span>
+          </h3>
+          <p class="text-xs text-slate-400">Monitoring real-time volume penugasan, tingkat ketepatan waktu, dan rata-rata turnaround time per cabang.</p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-950/70 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <th class="py-3 px-4">Kantor Wilayah</th>
+                <th class="py-3 px-4 text-center">Berkas Berjalan</th>
+                <th class="py-3 px-4 text-center">Tuntas Bulan Ini</th>
+                <th class="py-3 px-4 text-center">Ketepatan Waktu</th>
+                <th class="py-3 px-4 text-center">Rata-rata TAT</th>
+                <th class="py-3 px-4 text-center">Status Berkas</th>
+                <th class="py-3 px-4 text-center">Aksi Cepat</th>
+              </tr>
+            </thead>
+            <tbody id="branch-summary-tbody" class="divide-y divide-slate-800 text-slate-300">
+              <tr>
+                <td colspan="7" class="py-6 text-center text-slate-500">Memuat data rekap wilayah...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    </main>
 
   <!-- ==================== MODAL TANGGA PROGRES 7 MILESTONE ==================== -->
   <div id="modal-tracking-stepper" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md hidden">
@@ -1414,24 +1577,35 @@
     function switchTab(tabId) {
       const panelBoard = document.getElementById('panel-tab-board');
       const panelRegister = document.getElementById('panel-tab-register');
+      const panelWorkload = document.getElementById('panel-tab-workload');
       const btnBoard = document.getElementById('tab-btn-board');
       const btnRegister = document.getElementById('tab-btn-register');
+      const btnWorkload = document.getElementById('tab-btn-workload');
+
+      if (panelBoard) panelBoard.classList.add('hidden');
+      if (panelRegister) panelRegister.classList.add('hidden');
+      if (panelWorkload) panelWorkload.classList.add('hidden');
+
+      const activeCls = 'px-4 py-2 rounded-xl text-xs font-bold tracking-wide bg-amber-400 text-slate-950 shadow-sm transition flex items-center gap-2 whitespace-nowrap cursor-pointer';
+      const inactiveCls = 'px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-2 whitespace-nowrap cursor-pointer';
+
+      if (btnBoard) btnBoard.className = inactiveCls;
+      if (btnRegister) btnRegister.className = inactiveCls;
+      if (btnWorkload) btnWorkload.className = inactiveCls;
 
       if (tabId === 'board') {
-        panelBoard.classList.remove('hidden');
-        panelRegister.classList.add('hidden');
-        btnBoard.className = 'px-4 py-2 rounded-xl text-xs font-bold tracking-wide bg-amber-400 text-slate-950 shadow-sm transition flex items-center gap-2 whitespace-nowrap';
-        btnRegister.className = 'px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-2 whitespace-nowrap';
-      } else {
-        panelBoard.classList.add('hidden');
-        panelRegister.classList.remove('hidden');
-        btnRegister.className = 'px-4 py-2 rounded-xl text-xs font-bold tracking-wide bg-amber-400 text-slate-950 shadow-sm transition flex items-center gap-2 whitespace-nowrap';
-        btnBoard.className = 'px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-2 whitespace-nowrap';
-        
-        // Muat daftar JO untuk fitur Tarik Data jika belum ada
+        if (panelBoard) panelBoard.classList.remove('hidden');
+        if (btnBoard) btnBoard.className = activeCls;
+      } else if (tabId === 'register') {
+        if (panelRegister) panelRegister.classList.remove('hidden');
+        if (btnRegister) btnRegister.className = activeCls;
         if (joSuggestions.length === 0) {
           muatSaranJO();
         }
+      } else if (tabId === 'workload') {
+        if (panelWorkload) panelWorkload.classList.remove('hidden');
+        if (btnWorkload) btnWorkload.className = activeCls;
+        muatWorkloadAnalytics();
       }
     }
 
@@ -1482,6 +1656,17 @@
         const res = await callApi('list', params);
         if (res && res.status === 'success' && Array.isArray(res.data)) {
           globalJobs = res.data;
+          // Perbarui badge jumlah berkas tersendat (Early Warning)
+          const stuckJobs = globalJobs.filter(j => j.is_bottleneck || j.sla_status === 'overdue');
+          const badgeStuck = document.getElementById('badge-bottleneck-count');
+          if (badgeStuck) {
+            badgeStuck.textContent = stuckJobs.length;
+            if (stuckJobs.length > 0) {
+              badgeStuck.classList.remove('hidden');
+            } else {
+              badgeStuck.classList.add('hidden');
+            }
+          }
           renderDynamicPartnerTabs();
           executeJobFiltering();
           updateKPIStats(globalJobs);
@@ -1625,6 +1810,11 @@
 
       const jobs = globalJobs || [];
       const filtered = jobs.filter(job => {
+        // 0. Filter Khusus Berkas Tersendat / Overdue (Early Warning SPM)
+        if (isFilterBottleneckOnly) {
+          const isStuck = Boolean(job.is_bottleneck || job.sla_status === 'overdue' || (job.bottleneck_warning && job.bottleneck_warning.length > 0));
+          if (!isStuck) return false;
+        }
         // 1. Filter Scope (Active vs All)
         const isDone = (job.current_milestone === 'M-07' || job.milestone === 'M-07' || job.sla_status === 'completed' || job.status === 'SELESAI');
         if (activeScopeFilter === 'active' && isDone) return false;
@@ -1842,6 +2032,15 @@
                 <span class="font-mono text-slate-400">${j.progress_percent}%</span>
                 <span class="text-amber-300 font-semibold truncate max-w-[130px]" title="PIC Tahap: ${getPicAssignment(j.current_milestone, j).name}">PIC: ${getPicAssignment(j.current_milestone, j).name}</span>
               </div>
+            
+              ${(j.is_bottleneck || (j.bottleneck_warning && j.bottleneck_warning.length > 0)) ? `
+                <div class="mt-1">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40" title="${j.bottleneck_warning || 'Tersendat melebihi SLA'}">
+                    <span>⚠️</span>
+                    <span>${j.bottleneck_warning || 'Tersendat di ' + j.current_milestone}</span>
+                  </span>
+                </div>
+              ` : ''}
             </td>
             <td class="py-3 px-4 text-center whitespace-nowrap">
               <div class="flex items-center justify-center gap-1.5">
@@ -3184,6 +3383,230 @@ Administrasi Operasional KJPP NSR`;
         }
       } catch (err) {
         alert('Gagal reset: ' + err.message);
+      }
+    }
+
+    // =========================================================================
+    // MODUL ANALITIK BEBAN KERJA & MONITORING SLA NASIONAL (PRIORITAS 4)
+    // =========================================================================
+    let isFilterBottleneckOnly = false;
+    function toggleBottleneckFilter() {
+      isFilterBottleneckOnly = !isFilterBottleneckOnly;
+      const btn = document.getElementById('btn-filter-bottlenecks');
+      if (btn) {
+        if (isFilterBottleneckOnly) {
+          btn.className = 'rounded-lg border border-rose-500 bg-rose-600/30 px-3 py-1 text-xs font-bold text-rose-200 shadow-sm transition hover:bg-rose-600/40 cursor-pointer flex items-center gap-1.5 ring-1 ring-rose-500/50';
+        } else {
+          btn.className = 'rounded-lg border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition hover:bg-slate-700 cursor-pointer flex items-center gap-1.5';
+        }
+      }
+      executeJobFiltering();
+    }
+
+    let workloadAnalyticsData = null;
+    async function muatWorkloadAnalytics() {
+      const bListEl = document.getElementById('workload-bottlenecks-list');
+      const appGridEl = document.getElementById('appraiser-workload-grid');
+      const branchTbody = document.getElementById('branch-summary-tbody');
+
+      if (bListEl) bListEl.innerHTML = '<div class="p-6 text-center text-xs text-slate-500">Memuat analisis berkas tersendat...</div>';
+      if (appGridEl) appGridEl.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-slate-500">Menghitung kapasitas beban kerja penilai...</div>';
+      if (branchTbody) branchTbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500">Memuat data rekap wilayah...</td></tr>';
+
+      const params = {};
+      const activePin = currentUserSession.pin || sessionStorage.getItem('kjpp_auth_pin') || '';
+      if (activePin) params.auth_pin = activePin;
+      if (currentUserSession.nik) {
+        params.auth_nik = currentUserSession.nik;
+      }
+      if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
+        params.branch = currentUserSession.branch_code;
+      }
+
+      try {
+        const res = await callApi('get_workload_analytics', params);
+        if (res && res.status === 'success' && res.data) {
+          workloadAnalyticsData = res.data;
+          renderWorkloadKPIs(res.data.summary);
+          renderWorkloadBottlenecks(res.data.bottlenecks);
+          renderAppraiserWorkload(res.data.appraiser_workload);
+          renderBranchSummary(res.data.branch_summary);
+        } else {
+          if (bListEl) bListEl.innerHTML = '<div class="p-4 text-center text-xs text-rose-400">Gagal memuat analitik: ' + (res.message || 'Respons tidak valid') + '</div>';
+        }
+      } catch (err) {
+        if (bListEl) bListEl.innerHTML = '<div class="p-4 text-center text-xs text-rose-400">Terjadi kesalahan: ' + err.message + '</div>';
+      }
+    }
+
+    function renderWorkloadKPIs(summary) {
+      if (!summary) return;
+      const elTat = document.getElementById('wk-stat-avg-tat');
+      const elSla = document.getElementById('wk-stat-sla-rate');
+      const elBottlenecks = document.getElementById('wk-stat-bottlenecks');
+      const elActive = document.getElementById('wk-stat-active-jobs');
+
+      if (elTat) elTat.textContent = (summary.avg_tat_days || 0) + ' Hari';
+      if (elSla) elSla.textContent = (summary.national_sla_compliance || 0) + '%';
+      if (elBottlenecks) elBottlenecks.textContent = (summary.total_bottlenecks || 0);
+      if (elActive) elActive.textContent = (summary.total_active_jobs || 0);
+
+      const badgeStuck = document.getElementById('badge-bottleneck-count');
+      if (badgeStuck) {
+        badgeStuck.textContent = summary.total_bottlenecks || 0;
+        if (summary.total_bottlenecks > 0) badgeStuck.classList.remove('hidden');
+        else badgeStuck.classList.add('hidden');
+      }
+    }
+
+    function renderWorkloadBottlenecks(bottlenecks) {
+      const container = document.getElementById('workload-bottlenecks-list');
+      if (!container) return;
+
+      if (!bottlenecks || bottlenecks.length === 0) {
+        container.innerHTML = '<div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center"><span class="text-xs font-bold text-emerald-400 flex items-center justify-center gap-1.5"><span>🟢</span><span>Seluruh penugasan berjalan lancar dan tepat waktu dalam koridor standar durasi SPM.</span></span></div>';
+        return;
+      }
+
+      let bHtml = '';
+      bottlenecks.forEach(bn => {
+        bHtml += '<div class="p-3.5 rounded-xl bg-slate-950/70 border border-rose-500/40 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-rose-400 transition">' +
+          '<div class="space-y-1">' +
+            '<div class="flex items-center gap-2 flex-wrap">' +
+              '<span class="font-mono font-bold text-xs text-white">' + bn.jo_number + '</span>' +
+              '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">' + bn.kode_lacak + '</span>' +
+              '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/25 text-rose-300 border border-rose-500/40">⚠️ ' + bn.warning + '</span>' +
+              '<span class="text-[10px] text-sky-400 font-medium">' + bn.kantor + '</span>' +
+            '</div>' +
+            '<p class="text-xs text-slate-300"><strong class="text-white">' + bn.instansi + '</strong> &bull; Debitur: <span class="text-amber-300 font-medium">' + bn.debitur + '</span></p>' +
+            '<div class="flex items-center gap-3 text-[10.5px] text-slate-400 flex-wrap">' +
+              '<span>Pelaksana: <strong class="text-slate-300">' + bn.penilai_pelaksana + '</strong></span>' +
+              '<span>SPM: <strong class="text-slate-300">' + bn.reviewer_spm + '</strong></span>' +
+              '<span>Durasi: <span class="text-rose-400 font-mono font-bold">' + bn.days_in_stage + ' Hari</span> (Batas: ' + bn.threshold_days + ' Hari)</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center gap-2 shrink-0 self-end md:self-center">' +
+            '<button type="button" onclick="bukaModalTracking(\'\'' + bn.id + '\'\')" class="px-3 py-1.5 rounded-xl bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 border border-rose-500/50 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95">' +
+              '<span>🔍 Periksa di Stepper</span>' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+      });
+      container.innerHTML = bHtml;
+    }
+
+    function renderAppraiserWorkload(appraisers) {
+      const grid = document.getElementById('appraiser-workload-grid');
+      if (!grid) return;
+
+      if (!appraisers || appraisers.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-slate-500">Tidak ada penilai yang sedang aktif menangani berkas.</div>';
+        return;
+      }
+
+      let aHtml = '';
+      appraisers.forEach(app => {
+        let badgeColorCls = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+        let ringColor = 'border-emerald-500/30';
+        let dotColor = 'bg-emerald-400';
+
+        if (app.capacity_status === 'OVERLOAD') {
+          badgeColorCls = 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold animate-pulse';
+          ringColor = 'border-rose-500/50 shadow-rose-950/30';
+          dotColor = 'bg-rose-400';
+        } else if (app.capacity_status === 'PADAT') {
+          badgeColorCls = 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold';
+          ringColor = 'border-amber-500/40';
+          dotColor = 'bg-amber-400';
+        }
+
+        const initials = app.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+
+        aHtml += '<div class="p-4 rounded-2xl bg-slate-950/70 border ' + ringColor + ' shadow-md flex flex-col justify-between gap-3 hover:bg-slate-950 transition">' +
+          '<div>' +
+            '<div class="flex items-center justify-between gap-2">' +
+              '<div class="flex items-center gap-2.5">' +
+                '<div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 text-amber-300 flex items-center justify-center font-bold text-xs uppercase shrink-0">' + initials + '</div>' +
+                '<div>' +
+                  '<h4 class="text-xs font-bold text-white leading-tight">' + app.name + '</h4>' +
+                  '<span class="text-[10px] text-slate-400 block">' + app.kantor + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] border ' + badgeColorCls + '">' +
+                '<span class="w-1.5 h-1.5 rounded-full ' + dotColor + '"></span>' +
+                '<span>' + app.capacity_badge + '</span>' +
+              '</span>' +
+            '</div>' +
+            '<div class="mt-3 pt-3 border-t border-slate-800/80 flex items-baseline justify-between text-xs">' +
+              '<span class="text-slate-400">Berkas Aktif (M-01 s/d M-05):</span>' +
+              '<span class="font-mono font-black text-amber-300 text-sm">' + app.active_count + ' Berkas</span>' +
+            '</div>' +
+            '<div class="mt-2.5 flex items-center gap-1.5 flex-wrap">' +
+              app.jobs.slice(0, 4).map(j => {
+                const bColor = j.is_bottleneck ? 'border-rose-500/50 text-rose-300 bg-rose-500/10' : 'border-slate-800 text-slate-300 hover:text-white';
+                return '<button type="button" onclick="bukaModalTracking(\'\'' + j.id + '\'\')" class="px-2 py-0.5 rounded text-[9.5px] font-mono font-medium bg-slate-900 border ' + bColor + ' transition" title="' + j.debitur + ' (' + j.current_milestone + ')">' +
+                  j.jo_number.split('-').slice(0, 2).join('-') + ' (' + j.current_milestone + ') ' + (j.is_bottleneck ? '⚠️' : '') +
+                '</button>';
+              }).join('') +
+              (app.jobs.length > 4 ? '<span class="text-[9px] text-slate-500">+' + (app.jobs.length - 4) + ' lainnya</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">' +
+            '<span class="text-slate-500">' + (app.capacity_status === 'OVERLOAD' ? '⚠️ Tunda penugasan baru' : 'Siap terima penugasan') + '</span>' +
+            '<button type="button" onclick="filterTaskBoardAppraiser(\'\'' + app.name + '\'\')" class="text-sky-400 hover:text-sky-300 font-semibold cursor-pointer">Lihat di Board &rarr;</button>' +
+          '</div>' +
+        '</div>';
+      });
+      grid.innerHTML = aHtml;
+    }
+
+    function renderBranchSummary(branches) {
+      const tbody = document.getElementById('branch-summary-tbody');
+      if (!tbody) return;
+
+      if (!branches || branches.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500">Data rekap wilayah kosong.</td></tr>';
+        return;
+      }
+
+      let brHtml = '';
+      branches.forEach(b => {
+        const hasBottleneck = b.bottlenecks_count > 0;
+        brHtml += '<tr class="hover:bg-slate-800/40 transition">' +
+          '<td class="py-3 px-4">' +
+            '<strong class="text-white text-xs block">' + b.name + '</strong>' +
+            '<span class="text-[10px] text-slate-400 font-mono">Kode: ' + b.code + '</span>' +
+          '</td>' +
+          '<td class="py-3 px-4 text-center"><span class="font-mono font-bold text-white text-xs">' + b.active_jobs + '</span><span class="block text-[9.5px] text-slate-400">Berkas</span></td>' +
+          '<td class="py-3 px-4 text-center"><span class="font-mono font-bold text-emerald-400 text-xs">' + b.completed_month_jobs + '</span><span class="block text-[9.5px] text-slate-400">Selesai (M-07)</span></td>' +
+          '<td class="py-3 px-4 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ' + (b.on_time_rate >= 80 ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-300 border border-amber-500/30') + '">' + b.on_time_rate + '%</span></td>' +
+          '<td class="py-3 px-4 text-center font-mono text-xs text-sky-300">' + b.avg_tat_days + ' Hari</td>' +
+          '<td class="py-3 px-4 text-center">' +
+            (hasBottleneck ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse"><span>🚨</span><span>' + b.bottlenecks_count + ' Berkas</span></span>' : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"><span>🟢</span><span>Lancar</span></span>') +
+          '</td>' +
+          '<td class="py-3 px-4 text-center">' +
+            '<button type="button" onclick="filterTaskBoardBranch(\'\'' + b.code + '\'\')" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white border border-slate-700 text-xs font-semibold transition cursor-pointer">Filter Wilayah</button>' +
+          '</td>' +
+        '</tr>';
+      });
+      tbody.innerHTML = brHtml;
+    }
+
+    function filterTaskBoardBranch(branchCode) {
+      switchTab('board');
+      const sel = document.getElementById('filter-kantor');
+      if (sel) {
+        sel.value = branchCode;
+        filterTaskBoard();
+      }
+    }
+
+    function filterTaskBoardAppraiser(appraiserName) {
+      switchTab('board');
+      const kw = document.getElementById('filter-keyword');
+      if (kw) {
+        kw.value = appraiserName;
+        filterTaskBoard();
       }
     }
   </script>
