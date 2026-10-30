@@ -24,6 +24,74 @@
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
+    /* Aturan Cetak Presisi Dokumen SPM A4 & Floating Action Toolbar */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      table {
+        page-break-inside: auto;
+      }
+      tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+      }
+
+      /* Saat modal SPM aktif dibuka, sembunyikan portal di belakangnya */
+      body.modal-spm-open header,
+      body.modal-spm-open main,
+      body.modal-spm-open #modal-ganti-pengguna,
+      body.modal-spm-open #modal-update-milestone,
+      body.modal-spm-open #modal-filter-lanjutan,
+      body.modal-spm-open #modal-detail-history {
+        display: none !important;
+      }
+
+      #modal-cetak-spm-pdf:not(.hidden), [data-modal="modal-pratinjau-spm"]:not(.hidden) {
+        position: static !important;
+        inset: auto !important;
+        display: block !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        width: 100% !important;
+        box-shadow: none !important;
+      }
+
+      #modal-cetak-spm-pdf:not(.hidden) > div, [data-modal="modal-pratinjau-spm"]:not(.hidden) > div {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        overflow: visible !important;
+      }
+
+      #spm-printable-content-scroll {
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+
+      #spm-printable-content {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+    }
     /* Keyframe Pulse Glow removed per antislop-ui */
   </style>
 </head>
@@ -2177,11 +2245,50 @@
       document.getElementById('print-spm-city-date').textContent = city + ', ' + dateNow;
 
       document.getElementById('modal-cetak-spm-pdf').classList.remove('hidden');
+      document.body.classList.add('modal-spm-open');
     }
 
     function tutupModalCetakSPM() {
-      document.getElementById('modal-cetak-spm-pdf').classList.add('hidden');
+      const modal = document.getElementById('modal-cetak-spm-pdf');
+      if (modal) modal.classList.add('hidden');
+      document.body.classList.remove('modal-spm-open');
     }
+
+    // Alias fungsi global untuk kompatibilitas integrasi SPM
+    window.cetakLembarSPM = cetakLembarSPM;
+    window.cetakLembarKendaliMutu = cetakLembarSPM;
+    window.tutupModalCetakSPM = tutupModalCetakSPM;
+    window.tutupModalSpm = tutupModalCetakSPM;
+
+    // Kompatibilitas alias selector modal pratinjau SPM
+    try {
+      const _origGetElem = document.getElementById.bind(document);
+      document.getElementById = function(id) {
+        if (id === 'modal-pratinjau-spm') {
+          return _origGetElem('modal-cetak-spm-pdf') || _origGetElem(id);
+        }
+        return _origGetElem(id);
+      };
+      const _origQS = document.querySelector.bind(document);
+      document.querySelector = function(selector) {
+        if (selector === '#modal-pratinjau-spm') {
+          return _origGetElem('modal-cetak-spm-pdf') || _origQS(selector);
+        }
+        return _origQS(selector);
+      };
+    } catch (e) {
+      console.warn('Init alias modal pratinjau spm:', e);
+    }
+
+    // Listener tombol ESC untuk menutup modal pratinjau SPM
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('modal-cetak-spm-pdf');
+        if (modal && !modal.classList.contains('hidden')) {
+          tutupModalCetakSPM();
+        }
+      }
+    });
 
 
     function kembalikanKeM04Revisi() {
@@ -3145,27 +3252,30 @@ Administrasi Operasional KJPP NSR`;
 
 
   <!-- ==================== MODAL CETAK LEMBAR KENDALI MUTU SPM (PDF / PRINT-READY) ==================== -->
-  <div id="modal-cetak-spm-pdf" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-    <div class="bg-white text-slate-900 rounded-2xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl relative print:p-0 print:shadow-none print:w-full print:max-w-none print:rounded-none">
-      <!-- Toolbar Atas (Sembunyi saat cetak) -->
-      <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200 no-print">
-        <div class="flex items-center gap-2">
-          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">Dokumen Kendali Mutu Resmi</span>
-          <span class="text-xs text-slate-500 font-mono" id="print-spm-jo-badge">JO-...</span>
+  <div id="modal-cetak-spm-pdf" data-modal="modal-pratinjau-spm" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white text-slate-900 rounded-2xl max-w-4xl w-full shadow-2xl relative overflow-hidden flex flex-col print:p-0 print:shadow-none print:w-full print:max-w-none print:rounded-none">
+      
+      <!-- FLOATING ACTION TOOLBAR (Hanya Tampil di Layar / Tidak Tercetak) -->
+      <div class="no-print sticky top-0 left-0 right-0 z-50 bg-slate-900 border-b-2 border-slate-700 px-4 sm:px-6 py-3 flex items-center justify-between shadow-xl font-sans rounded-t-2xl">
+        <div class="flex items-center gap-2.5 sm:gap-3">
+          <span class="bg-sky-600 text-white text-[11px] font-black px-2 py-1 rounded tracking-wide shrink-0">SPI 105</span>
+          <span class="text-slate-100 text-xs sm:text-sm font-bold">Pratinjau Lembar Kendali Mutu SPM — KJPP NSR</span>
+          <span class="hidden sm:inline-block px-2 py-0.5 rounded bg-slate-800 text-amber-400 font-mono text-[10px] border border-slate-700" id="print-spm-jo-badge">JO-...</span>
         </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-2 shadow transition cursor-pointer">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-            <span>🖨️ Cetak / Simpan PDF</span>
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <button type="button" onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white border-0 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold cursor-pointer inline-flex items-center gap-1.5 shadow transition">
+            🖨️ Cetak / Simpan PDF
           </button>
-          <button type="button" onclick="tutupModalCetakSPM()" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <button type="button" onclick="tutupModalCetakSPM()" class="bg-slate-600 hover:bg-slate-700 text-white border-0 px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition">
+            ✕ Kembali ke Menu
           </button>
         </div>
       </div>
 
-      <!-- KONTEN DOKUMEN CETAK RESMI A4 -->
-      <div id="spm-printable-content" class="text-slate-900 text-xs leading-normal">
+      <!-- KONTEN DOKUMEN CETAK RESMI A4 (BUNGKUS SCROLLABLE) -->
+      <div id="spm-printable-content-scroll" class="overflow-y-auto max-h-[82vh] p-6 sm:p-8 bg-white text-slate-900">
+        <!-- KONTEN DOKUMEN CETAK RESMI A4 -->
+        <div id="spm-printable-content" class="text-slate-900 text-xs leading-normal">
         <!-- KOP SURAT RESMI KJPP NSR -->
         <div class="border-b-2 border-slate-900 pb-3 mb-4 text-center">
           <h2 class="text-sm sm:text-base font-extrabold uppercase tracking-wide text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h2>
@@ -3270,6 +3380,7 @@ Administrasi Operasional KJPP NSR`;
             <p class="text-[9.5px] text-slate-600 font-mono" id="print-spm-nik-sign">NIK: NSR-BDG-2020-40 • MAPPI (Cert.)</p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>
