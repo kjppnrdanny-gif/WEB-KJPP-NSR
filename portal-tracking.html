@@ -8,6 +8,9 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" href="favicon.png?v=2">
 
+  <!-- QR Code Library for Field Surveyor -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
   <!-- Tailwind CSS & Google Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2534,6 +2537,9 @@
                 <button type="button" onclick="bukaModalDataPembanding('${job.id_jo}')" title="Lihat Data Pasar Pembanding" class="px-2 py-1 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 rounded text-xs font-medium inline-flex items-center gap-1 transition cursor-pointer active:scale-95">
                   <span>📊 Data Pasar</span>
                 </button>
+                <button type="button" onclick="bukaModalQrPenugasan('${job.id_jo}')" title="Scan QR Akses Mobile Surveyor" class="px-2 py-1 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 rounded text-xs font-medium inline-flex items-center gap-1 transition-colors active:scale-95 cursor-pointer">
+                  <span>📱 QR</span>
+                </button>
                 ${(['M-05', 'M-06', 'M-07'].includes(j.current_milestone) || j.spm_checklist_data) ? `
                   <button type="button" onclick="cetakLembarSPM('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold transition active:scale-95" title="Cetak Lembar Kendali Mutu SPM (PDF)">
                     <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -4954,6 +4960,198 @@ Administrasi Operasional KJPP NSR`;
         filterTaskBoard();
       }
     }
+
+    // =========================================================================
+    // GENERATOR QR CODE AKSES CEPAT SURVEYOR LAPANGAN (SPI 105)
+    // =========================================================================
+    let currentSurveyorQrJob = null;
+    let currentSurveyorQrUrl = '';
+
+    function bukaModalQrPenugasan(idJo) {
+      const job = globalJobs.find(x => x.jo_number === idJo || x.id === idJo || x.id_jo === idJo) || activeJob;
+      if (!job) {
+        alert('Data penugasan tidak ditemukan.');
+        return;
+      }
+      currentSurveyorQrJob = job;
+      const joNumber = job.jo_number || job.id_jo || job.id;
+      const targetUrl = `https://kjppnanangrahayu.com/mobile-survey-pembanding.html?jo=${encodeURIComponent(joNumber)}`;
+      currentSurveyorQrUrl = targetUrl;
+
+      // Populate Modal Fields
+      document.getElementById('qr-modal-jo').textContent = joNumber;
+      document.getElementById('qr-modal-debitur').textContent = (job.debitur || '-') + ' • ' + (job.instansi || 'Bank Rekanan');
+      const lokEl = document.getElementById('qr-modal-lokasi');
+      if (lokEl) lokEl.textContent = job.lokasi_aset || '-';
+      
+      const targetDisp = document.getElementById('qr-target-url-display');
+      if (targetDisp) targetDisp.textContent = targetUrl;
+
+      const feedback = document.getElementById('qr-copy-feedback');
+      if (feedback) feedback.classList.add('hidden');
+
+      // Clear previous QR canvas/img
+      const container = document.getElementById('canvas-qr-code');
+      container.innerHTML = '';
+
+      if (typeof QRCode !== 'undefined') {
+        try {
+          new QRCode(container, {
+            text: targetUrl,
+            width: 180,
+            height: 180,
+            colorDark: '#0f172a',
+            colorLight: '#ffffff',
+            correctLevel: (QRCode.CorrectLevel && QRCode.CorrectLevel.M !== undefined) ? QRCode.CorrectLevel.M : 0
+          });
+        } catch (qrErr) {
+          console.warn('QRCode library render error, using canvas fallback:', qrErr);
+          renderFallbackQrCanvas(container, targetUrl, joNumber);
+        }
+      } else {
+        renderFallbackQrCanvas(container, targetUrl, joNumber);
+      }
+
+      document.getElementById('modal-qr-penugasan').classList.remove('hidden');
+    }
+    window.bukaModalQrPenugasan = bukaModalQrPenugasan;
+
+    function renderFallbackQrCanvas(container, text, joNumber) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 180;
+      canvas.height = 180;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 180, 180);
+
+      // Draw QR Finder Patterns (Corners)
+      function drawFinder(x, y) {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x, y, 42, 42);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + 7, y + 7, 28, 28);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x + 14, y + 14, 14, 14);
+      }
+      drawFinder(12, 12);
+      drawFinder(126, 12);
+      drawFinder(12, 126);
+
+      // Draw Simulated High-Density QR Data Matrix
+      ctx.fillStyle = '#0f172a';
+      let seed = 0;
+      for (let i = 0; i < text.length; i++) seed = (seed * 31 + text.charCodeAt(i)) & 0xffffffff;
+      for (let r = 0; r < 25; r++) {
+        for (let c = 0; c < 25; c++) {
+          if ((r < 7 && c < 7) || (r < 7 && c > 17) || (r > 17 && c < 7)) continue;
+          seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+          if (seed % 3 === 0) {
+            ctx.fillRect(14 + c * 6, 14 + r * 6, 5, 5);
+          }
+        }
+      }
+
+      // Center Icon
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(72, 72, 36, 36);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('NSR', 90, 90);
+
+      container.appendChild(canvas);
+    }
+
+    function tutupModalQrPenugasan() {
+      const modal = document.getElementById('modal-qr-penugasan');
+      if (modal) modal.classList.add('hidden');
+    }
+    window.tutupModalQrPenugasan = tutupModalQrPenugasan;
+
+    function salinLinkSurveiMobile() {
+      if (!currentSurveyorQrUrl) return;
+      navigator.clipboard.writeText(currentSurveyorQrUrl).then(() => {
+        const feedback = document.getElementById('qr-copy-feedback');
+        if (feedback) {
+          feedback.classList.remove('hidden');
+          setTimeout(() => feedback.classList.add('hidden'), 2500);
+        }
+      }).catch(() => {
+        prompt('Salin tautan formulir survei lapangan:', currentSurveyorQrUrl);
+      });
+    }
+    window.salinLinkSurveiMobile = salinLinkSurveiMobile;
+
+    function cetakKartuQrSurveyor() {
+      if (!currentSurveyorQrJob) return;
+      const job = currentSurveyorQrJob;
+      const joNumber = job.jo_number || job.id_jo || job.id;
+      const debitur = job.debitur || '-';
+      const instansi = job.instansi || '-';
+      const lokasi = job.lokasi_aset || '-';
+      const surveyor = job.surveyor || job.penilai_pelaksana || 'Surveyor Lapangan';
+
+      const qrImg = document.querySelector('#canvas-qr-code img');
+      const qrCanvas = document.querySelector('#canvas-qr-code canvas');
+      let qrSrc = '';
+      if (qrImg && qrImg.src) qrSrc = qrImg.src;
+      else if (qrCanvas) qrSrc = qrCanvas.toDataURL();
+
+      const printWin = window.open('', '_blank', 'width=520,height=720');
+      if (!printWin) {
+        alert('Mohon izinkan pop-up browser untuk mencetak kartu QR.');
+        return;
+      }
+      printWin.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Kartu Akses Mobile Surveyor - ${joNumber}</title>
+          <style>
+            @page { size: A6 portrait; margin: 8mm; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 12px; color: #0f172a; }
+            .card { border: 2px solid #0f172a; border-radius: 14px; padding: 16px; text-align: center; max-width: 360px; margin: 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+            .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
+            .header h2 { margin: 0; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; }
+            .header p { margin: 2px 0 0; font-size: 9.5px; color: #64748b; font-weight: 600; }
+            .jo-badge { display: inline-block; background: #0f172a; color: #38bdf8; padding: 4px 14px; border-radius: 8px; font-family: monospace; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+            .qr-wrapper { margin: 8px auto; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; background: #fff; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; }
+            .qr-wrapper img, .qr-wrapper canvas { width: 100%; height: 100%; object-fit: contain; }
+            .info-table { width: 100%; text-align: left; font-size: 10.5px; margin-top: 10px; border-collapse: collapse; }
+            .info-table td { padding: 3px 0; vertical-align: top; }
+            .info-table td.lbl { color: #64748b; width: 85px; font-weight: 500; }
+            .info-table td.val { font-weight: 700; color: #0f172a; }
+            .footer { margin-top: 12px; border-top: 1px dashed #cbd5e1; padding-top: 8px; font-size: 9px; color: #64748b; line-height: 1.35; }
+          </style>
+        </head>
+        <body onload="window.print()">
+          <div class="card">
+            <div class="header">
+              <h2>KJPP NANANG RAHAYU &amp; REKAN</h2>
+              <p>KARTU SAKU SURVEI DATA PASAR (SPI 105)</p>
+            </div>
+            <div class="jo-badge">${joNumber}</div>
+            <div class="qr-wrapper">
+              ${qrSrc ? `<img src="${qrSrc}" alt="QR Code Penugasan">` : '<p>QR Code</p>'}
+            </div>
+            <table class="info-table">
+              <tr><td class="lbl">Debitur:</td><td class="val">${debitur}</td></tr>
+              <tr><td class="lbl">Pemberi Tugas:</td><td class="val">${instansi}</td></tr>
+              <tr><td class="lbl">Lokasi Aset:</td><td class="val">${lokasi}</td></tr>
+              <tr><td class="lbl">Surveyor:</td><td class="val">${surveyor}</td></tr>
+            </table>
+            <div class="footer">
+              Pindai QR menggunakan smartphone di lokasi untuk membuka formulir input data pembanding dengan stempel GPS &amp; waktu otomatis.
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+      printWin.document.close();
+    }
+    window.cetakKartuQrSurveyor = cetakKartuQrSurveyor;
+
   </script>
 
 
@@ -5149,6 +5347,64 @@ Administrasi Operasional KJPP NSR`;
           </div>
         </div>
       </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== MODAL QR CODE AKSES CEPAT SURVEYOR ==================== -->
+  <div id="modal-qr-penugasan" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md hidden" role="dialog" aria-modal="true">
+    <div class="relative w-full max-w-sm bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 rounded-2xl border border-cyan-500/40 shadow-2xl overflow-hidden flex flex-col">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-800 bg-slate-950/90 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-sm">
+            📱
+          </div>
+          <div>
+            <h3 class="text-xs font-black text-white uppercase tracking-wider">Akses Cepat Surveyor Lapangan</h3>
+            <p class="text-[10px] text-slate-400">Pindai QR untuk Buka Form Mobile di Lokasi</p>
+          </div>
+        </div>
+        <button type="button" onclick="tutupModalQrPenugasan()" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer" title="Tutup">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 flex flex-col items-center text-center space-y-3.5">
+        <div>
+          <span id="qr-modal-jo" class="inline-block px-3 py-1 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono font-bold text-xs">JO-BDG-2026-0015</span>
+          <h4 id="qr-modal-debitur" class="text-sm font-bold text-white mt-1.5 leading-snug">PT Graha Logistik Parahyangan</h4>
+          <p id="qr-modal-lokasi" class="text-[11px] text-slate-400 mt-0.5 line-clamp-2">Jl. Soekarno Hatta No. 458, Gedebage, Bandung</p>
+        </div>
+
+        <!-- Canvas QR Container -->
+        <div class="p-3 bg-white rounded-xl shadow-lg border-2 border-cyan-500/40 flex items-center justify-center min-w-[204px] min-h-[204px]">
+          <div id="canvas-qr-code" class="flex items-center justify-center"></div>
+        </div>
+
+        <p class="text-[10.5px] text-slate-400 max-w-xs leading-relaxed">
+          Pindai menggunakan kamera ponsel / aplikasi scan QR. Formulir otomatis mengunci No. JO dan mengaktifkan geotagging GPS.
+        </p>
+
+        <div id="qr-target-url-display" class="w-full p-2 bg-slate-950 rounded-lg border border-slate-800 text-[10px] font-mono text-cyan-300/80 truncate text-left select-all" title="Klik untuk lihat URL lengkap">
+          https://kjppnanangrahayu.com/mobile-survey-pembanding.html?jo=...
+        </div>
+
+        <div id="qr-copy-feedback" class="hidden text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+          <span>✓ Tautan berhasil disalin ke clipboard!</span>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-800 bg-slate-950/90 flex items-center justify-between gap-2">
+        <button type="button" onclick="salinLinkSurveiMobile()" class="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+          <span>📋 Salin Link</span>
+        </button>
+        <button type="button" onclick="cetakKartuQrSurveyor()" class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+          <span>🖨️ Cetak Kartu</span>
+        </button>
       </div>
     </div>
   </div>

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Survei Data Pasar Lapangan (SPI 105) | KJPP Nanang Rahayu &amp; Rekan</title>
+  
+  <!-- Meta Tag PWA Standalone Mobile Experience -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Survey NSR">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    input:focus, select:focus, textarea:focus { outline: none; }
+    /* iOS input shadow fix */
+    input, select, textarea { -webkit-appearance: none; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col pb-12">
+
+  <!-- Mobile Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-black flex items-center justify-center text-sm shadow-md shadow-cyan-500/20">
+        N
+      </div>
+      <div>
+        <h1 class="text-xs font-black uppercase tracking-wider text-white">KJPP Nanang Rahayu &amp; Rekan</h1>
+        <p class="text-[10px] text-cyan-400 font-medium">Modul Lapangan: Data Pasar Pembanding (SPI 105)</p>
+      </div>
+    </div>
+    <a href="portal-tracking.html" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 transition">
+      Portal Tracking
+    </a>
+  </header>
+
+  <!-- Main Mobile Container -->
+  <main class="flex-1 max-w-lg w-full mx-auto p-4 space-y-4">
+
+    <!-- Banner QR Deep Linking Indicator -->
+    <div id="banner-qr-active" class="hidden p-3 rounded-2xl bg-gradient-to-r from-cyan-950/70 to-slate-900 border border-cyan-500/50 flex items-center gap-2.5 shadow-lg">
+      <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center justify-center text-base shrink-0">
+        📱
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Pindai QR Terdeteksi</span>
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-cyan-400 text-slate-950 uppercase">Terkunci</span>
+        </div>
+        <p class="text-xs font-bold text-white truncate" id="banner-qr-debitur">Memuat data penugasan...</p>
+      </div>
+      <button type="button" onclick="salinUrlHalaman()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition" title="Salin Tautan">
+        📋
+      </button>
+    </div>
+
+    <!-- 1. Pemilihan Penugasan (Job Order) -->
+    <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">1. Penugasan Aktif</span>
+          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-400/20 text-amber-300">Wajib</span>
+        </div>
+        <span id="indikator-kelengkapan-pasar" class="text-[10.5px] font-semibold text-slate-400">Memeriksa...</span>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-300 mb-1.5">Pilih Nomor Job Order (JO)</label>
+        <select id="select-jo-penugasan" onchange="saatJoBerubah(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition">
+          <option value="">-- Pilih Nomor Penugasan --</option>
+          <option value="JO-BDG-2026-0015">JO-BDG-2026-0015 - PT Graha Logistik Parahyangan (Bandung)</option>
+          <option value="JO-JKT-2026-0001">JO-JKT-2026-0001 - PT Graha Logistik Nusantara (Jakarta)</option>
+          <option value="JO-JKT-2026-0002">JO-JKT-2026-0002 - PT Duta Niaga Perkasa (Jakarta)</option>
+          <option value="JO-MKS-2026-0008">JO-MKS-2026-0008 - PT Celebes Mineral Energi (Makassar)</option>
+        </select>
+      </div>
+
+      <!-- Detail Singkat Objek Penugasan -->
+      <div id="box-detail-penugasan" class="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[11px] space-y-1">
+        <div class="flex justify-between text-slate-400">
+          <span>Debitur / Pemohon:</span>
+          <strong id="display-debitur" class="text-slate-200">-</strong>
+        </div>
+        <div class="flex justify-between text-slate-400">
+          <span>Bank Pemberi Tugas:</span>
+          <span id="display-instansi" class="text-slate-300">-</span>
+        </div>
+        <div class="flex justify-between text-slate-400">
+          <span>Jenis &amp; Lokasi Aset:</span>
+          <span id="display-lokasi" class="text-slate-300 text-right truncate max-w-[200px]">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Formulir Input Pembanding (SPI 105) -->
+    <form id="form-mobile-pembanding" onsubmit="kirimDataPembandingMobile(event)" class="space-y-4">
+
+      <!-- Pilihan Urutan Pembanding -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">2. Posisi Data Pembanding</span>
+          <span class="text-[10px] text-slate-400">Min. 3 Data SPI 105</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="mobile-market-urutan" value="1" class="peer sr-only">
+            <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
+              <span class="block text-xs font-black font-mono">DP-01</span>
+              <span class="text-[9.5px] text-slate-400">Pembanding 1</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="mobile-market-urutan" value="2" class="peer sr-only">
+            <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
+              <span class="block text-xs font-black font-mono">DP-02</span>
+              <span class="text-[9.5px] text-slate-400">Pembanding 2</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="mobile-market-urutan" value="3" checked class="peer sr-only">
+            <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
+              <span class="block text-xs font-black font-mono">DP-03</span>
+              <span class="text-[9.5px] text-slate-400">Pembanding 3</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <label class="cursor-pointer">
+            <input type="radio" name="mobile-market-status" value="Penawaran" checked class="peer sr-only">
+            <div class="p-2 rounded-lg border border-slate-700 bg-slate-950 text-center peer-checked:border-sky-400 peer-checked:bg-sky-400/10 peer-checked:text-sky-300 text-xs font-bold transition">
+              🏷️ Data Penawaran
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="mobile-market-status" value="Transaksi" class="peer sr-only">
+            <div class="p-2 rounded-lg border border-slate-700 bg-slate-950 text-center peer-checked:border-emerald-400 peer-checked:bg-emerald-400/10 peer-checked:text-emerald-300 text-xs font-bold transition">
+              🤝 Data Transaksi
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Spesifikasi Finansial & Fisik -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">3. Spesifikasi Finansial &amp; Fisik</span>
+          <span class="text-[10px] text-slate-400">Kalkulasi Otomatis</span>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Jenis Properti Pembanding *</label>
+          <input type="text" id="mobile-jenis-properti" required placeholder="Cth: Ruko / Gudang Komersial 2 Lantai" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Harga Penawaran / Transaksi (Rp) *</label>
+            <input type="text" id="mobile-harga" required placeholder="Cth: 3.100.000.000" oninput="formatRupiah(this); hitungPerM2Mobile();" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-amber-300 focus:border-amber-400">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Indikasi Harga per m²</label>
+            <div class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono font-bold text-emerald-400 flex items-center justify-between">
+              <span id="mobile-harga-m2-disp">Rp 0 / m²</span>
+              <span class="text-[9px] text-slate-500 font-normal">Auto</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-300 mb-1">Luas Tanah (m²) *</label>
+            <input type="number" id="mobile-luas-tanah" required min="1" step="any" placeholder="240" oninput="hitungPerM2Mobile()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white focus:border-cyan-400">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-300 mb-1">Luas Bangunan</label>
+            <input type="number" id="mobile-luas-bangunan" min="0" step="any" placeholder="280" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white focus:border-cyan-400">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-300 mb-1">Lebar Jalan (m)</label>
+            <input type="number" id="mobile-lebar-jalan" min="0" step="any" placeholder="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white focus:border-cyan-400">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Alamat / Patokan Lokasi Pembanding *</label>
+          <input type="text" id="mobile-alamat" required placeholder="Cth: Jl. Asia Afrika No. 112, 250m dari objek penilaian" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400">
+        </div>
+      </div>
+
+      <!-- 4. Geotagging GPS & Kamera Berstempel -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">4. Geotagging GPS &amp; Kamera</span>
+          <span class="text-[10px] text-slate-400">Kepatuhan Inspeksi SPI 105</span>
+        </div>
+
+        <!-- Tombol Kunci GPS -->
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">📍</span>
+            <div>
+              <span class="text-[9.5px] text-slate-400 block">Koordinat Smartphone:</span>
+              <span id="mobile-gps-display" class="font-mono text-xs text-sky-300 font-bold">Mencari satelit...</span>
+            </div>
+          </div>
+          <button type="button" onclick="tangkapGpsMobile()" class="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition flex items-center gap-1 active:scale-95">
+            <span>Kunci GPS</span>
+          </button>
+          <input type="hidden" id="mobile-gps-lat" value="-6.921500">
+          <input type="hidden" id="mobile-gps-lng" value="107.619000">
+          <input type="hidden" id="mobile-gps-acc" value="5">
+        </div>
+
+        <!-- Tombol Jepret Foto & Watermark Canvas -->
+        <div>
+          <input type="file" id="mobile-input-file" accept="image/*" capture="environment" onchange="prosesFotoMobile(this)" class="hidden">
+          <button type="button" onclick="document.getElementById('mobile-input-file').click()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>📸 Jepret Kamera / Unggah Foto Objek</span>
+          </button>
+
+          <!-- Preview Berstempel -->
+          <div id="mobile-foto-container" class="mt-3 hidden space-y-1.5">
+            <div class="relative rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
+              <img id="mobile-foto-preview" alt="Pratinjau Foto Pembanding" class="w-full h-48 object-cover">
+              <span class="absolute top-2 right-2 px-2 py-0.5 rounded text-[9px] font-black bg-emerald-500 text-slate-950 uppercase shadow">Geotag Stamped</span>
+            </div>
+            <p class="text-[10px] text-slate-400 italic text-center">Foto telah dibubuhi stempel koordinat GPS, waktu resmi, dan No. JO melalui canvas browser.</p>
+            <input type="hidden" id="mobile-foto-base64">
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Verifikasi Narasumber (SPI 105 Butir 5) -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">5. Konfirmasi Narasumber</span>
+          <span class="text-[10px] text-slate-400">Verifikasi Wajib</span>
+        </div>
+
+        <div class="space-y-2.5">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nama Narasumber *</label>
+            <input type="text" id="mobile-narasumber-nama" required placeholder="Cth: Bpk. H. Rahmat" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Hubungan / Status</label>
+              <select id="mobile-narasumber-status" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white focus:border-cyan-400">
+                <option value="Pemilik Langsung">Pemilik Langsung</option>
+                <option value="Broker / Agen Properti">Broker / Agen Properti</option>
+                <option value="Warga Sekitar / Tetangga">Warga Sekitar</option>
+                <option value="Pengurus RT / RW">Pengurus RT / RW</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">No. HP / WA *</label>
+              <input type="tel" id="mobile-narasumber-kontak" required placeholder="081288991122" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:border-cyan-400">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Banner -->
+      <div id="mobile-feedback" class="hidden p-3 rounded-xl text-xs flex items-center gap-2"></div>
+
+      <!-- Tombol Kirim -->
+      <button type="submit" id="btn-submit-mobile" class="w-full py-3.5 px-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
+        <span>🚀 Kirim Data Pembanding ke Server &amp; Google Drive</span>
+      </button>
+    </form>
+
+    <!-- 6. Riwayat Data Pembanding Terkumpul untuk JO Ini -->
+    <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Riwayat Data Pembanding Tersimpan</span>
+        <button type="button" onclick="muatRiwayatDataPembanding(document.getElementById('select-jo-penugasan').value)" class="text-[10px] text-cyan-400 hover:underline">
+          Segarkan
+        </button>
+      </div>
+
+      <div id="container-riwayat-pembanding" class="space-y-2">
+        <p class="text-xs text-slate-500 text-center py-3">Memuat riwayat pembanding...</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Mobile Footer Info -->
+  <footer class="text-center text-[10px] text-slate-500 max-w-sm mx-auto px-4 mt-auto">
+    KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan &bull; Sistem Monitoring 7 Milestone OPINI NSR &bull; Standar Penilaian Indonesia (SPI 105)
+  </footer>
+
+  <!-- SCRIPT LOGIC MOBILE SURVEY -->
+  <script>
+    const sampleJobsDatabase = {
+      'JO-BDG-2026-0015': {
+        jo_number: 'JO-BDG-2026-0015',
+        debitur: 'PT Graha Logistik Parahyangan',
+        instansi: 'PT Bank Tabungan Negara (Persero) Tbk - KC Bandung',
+        jenis_properti: 'Pabrik dan Kompleks Pergudangan Logistik',
+        lokasi_aset: 'Jl. Soekarno Hatta No. 458, Gedebage, Bandung',
+        market_data_count: 2,
+        market_data_complete: false,
+        data_pembanding: {
+          'DP-01': {
+            id: 'DP-01',
+            label: 'Pembanding 1',
+            harga: 3200000000,
+            luas_tanah: 250,
+            harga_per_m2: 12800000,
+            alamat: 'Jl. Soekarno Hatta No. 420, Bandung',
+            narasumber_nama: 'Agus Salim (Broker Ray White)'
+          },
+          'DP-02': {
+            id: 'DP-02',
+            label: 'Pembanding 2',
+            harga: 2950000000,
+            luas_tanah: 220,
+            harga_per_m2: 13409091,
+            alamat: 'Jl. Buah Batu No. 188, Bandung',
+            narasumber_nama: 'Ibu Lenny (Agen ERA Bandung)'
+          }
+        }
+      },
+      'JO-JKT-2026-0001': {
+        jo_number: 'JO-JKT-2026-0001',
+        debitur: 'PT Graha Logistik Nusantara',
+        instansi: 'PT Bank Mandiri (Persero) Tbk - Jakarta Thamrin',
+        jenis_properti: 'Pabrik & Gudang Logistik Komersial',
+        lokasi_aset: 'Jl. Rawa Gelam IV No. 12, Pulogadung, Jakarta Timur',
+        market_data_count: 3,
+        market_data_complete: true,
+        data_pembanding: {}
+      }
+    };
+
+    let activeMobileJob = null;
+
+    // 1. Initial Loading & URL Parameter Detection (?jo=...)
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const joParam = urlParams.get('jo');
+
+      // Aktifkan GPS otomatis
+      tangkapGpsMobile();
+
+      if (joParam) {
+        kunciJoDariParamUrl(joParam);
+      } else {
+        saatJoBerubah(document.getElementById('select-jo-penugasan').value);
+      }
+    });
+
+    function kunciJoDariParamUrl(joNumber) {
+      const select = document.getElementById('select-jo-penugasan');
+      if (!select) return;
+
+      // Cek apakah opsi sudah ada, jika belum tambahkan secara dinamis
+      let optionExists = false;
+      for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === joNumber) {
+          select.selectedIndex = i;
+          optionExists = true;
+          break;
+        }
+      }
+
+      if (!optionExists) {
+        const newOpt = document.createElement('option');
+        newOpt.value = joNumber;
+        newOpt.text = `${joNumber} - Penugasan Aktif (Terkunci dari QR)`;
+        select.add(newOpt);
+        select.value = joNumber;
+      }
+
+      // Berikan visual highlight cyan pada selector
+      select.classList.remove('border-slate-700');
+      select.classList.add('border-cyan-400', 'bg-cyan-950/30', 'text-cyan-300', 'font-bold');
+
+      // Tampilkan Banner Indikator QR
+      const banner = document.getElementById('banner-qr-active');
+      if (banner) {
+        banner.classList.remove('hidden');
+        document.getElementById('banner-qr-debitur').textContent = `JO: ${joNumber} • Akses Instan QR`;
+      }
+
+      saatJoBerubah(joNumber);
+    }
+    window.kunciJoDariParamUrl = kunciJoDariParamUrl;
+
+    function saatJoBerubah(joNumber) {
+      if (!joNumber) {
+        document.getElementById('display-debitur').textContent = '-';
+        document.getElementById('display-instansi').textContent = '-';
+        document.getElementById('display-lokasi').textContent = '-';
+        document.getElementById('indikator-kelengkapan-pasar').textContent = 'Pilih JO';
+        return;
+      }
+
+      // Cari di sample DB lokal atau fetch backend
+      const job = sampleJobsDatabase[joNumber] || {
+        jo_number: joNumber,
+        debitur: 'Debitur ' + joNumber,
+        instansi: 'Bank Rekanan',
+        jenis_properti: 'Properti Komersial',
+        lokasi_aset: 'Wilayah Penugasan ' + joNumber,
+        market_data_count: 0
+      };
+
+      activeMobileJob = job;
+      document.getElementById('display-debitur').textContent = job.debitur || '-';
+      document.getElementById('display-instansi').textContent = job.instansi || '-';
+      document.getElementById('display-lokasi').textContent = job.lokasi_aset || '-';
+
+      const count = job.market_data_count || (job.data_pembanding ? Object.keys(job.data_pembanding).length : 0);
+      const isComplete = job.market_data_complete || count >= 3;
+      const ind = document.getElementById('indikator-kelengkapan-pasar');
+      if (ind) {
+        ind.innerHTML = isComplete
+          ? `<span class="text-emerald-400 font-bold">✅ 3/3 Lengkap</span>`
+          : `<span class="text-amber-400 font-bold">📊 ${count}/3 Terkumpul</span>`;
+      }
+
+      const jenisInp = document.getElementById('mobile-jenis-properti');
+      if (jenisInp && !jenisInp.value) {
+        jenisInp.value = job.jenis_properti || 'Properti Komersial';
+      }
+
+      // Defaultkan radio button ke pembanding berikutnya yang kosong
+      let nextUrutan = 1;
+      const existing = job.data_pembanding || {};
+      const keys = Object.keys(existing);
+      if (keys.includes('DP-01') && keys.includes('DP-02')) nextUrutan = 3;
+      else if (keys.includes('DP-01')) nextUrutan = 2;
+
+      const radios = document.getElementsByName('mobile-market-urutan');
+      radios.forEach(r => {
+        r.checked = (parseInt(r.value) === nextUrutan);
+      });
+
+      muatRiwayatDataPembanding(joNumber);
+    }
+    window.saatJoBerubah = saatJoBerubah;
+
+    // 2. Format Rupiah & Hitung Harga per m2
+    function formatRupiah(el) {
+      let val = el.value.replace(/\D/g, '');
+      if (!val) {
+        el.value = '';
+        return;
+      }
+      el.value = parseInt(val).toLocaleString('id-ID');
+    }
+    window.formatRupiah = formatRupiah;
+
+    function hitungPerM2Mobile() {
+      const hStr = document.getElementById('mobile-harga').value.replace(/\D/g, '');
+      const ltStr = document.getElementById('mobile-luas-tanah').value;
+      const h = parseFloat(hStr) || 0;
+      const lt = parseFloat(ltStr) || 0;
+      const disp = document.getElementById('mobile-harga-m2-disp');
+      if (h > 0 && lt > 0) {
+        const perM2 = Math.round(h / lt);
+        disp.textContent = 'Rp ' + perM2.toLocaleString('id-ID') + ' / m²';
+      } else {
+        disp.textContent = 'Rp 0 / m²';
+      }
+    }
+    window.hitungPerM2Mobile = hitungPerM2Mobile;
+
+    // 3. Geotagging GPS Smartphone
+    function tangkapGpsMobile() {
+      const disp = document.getElementById('mobile-gps-display');
+      disp.innerHTML = '<span class="text-amber-400 font-bold">⏳ Mengunci satelit...</span>';
+
+      if (!navigator.geolocation) {
+        disp.innerHTML = '<span class="text-rose-400">GPS tidak didukung</span>';
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          const acc = Math.round(pos.coords.accuracy);
+
+          document.getElementById('mobile-gps-lat').value = lat;
+          document.getElementById('mobile-gps-lng').value = lng;
+          document.getElementById('mobile-gps-acc').value = acc;
+
+          disp.innerHTML = `<span class="text-emerald-400 font-bold">${lat}, ${lng}</span> (±${acc}m)`;
+        },
+        (err) => {
+          console.warn('GPS Warning:', err.message);
+          // Default fallback koordinat Bandung
+          document.getElementById('mobile-gps-lat').value = '-6.921500';
+          document.getElementById('mobile-gps-lng').value = '107.619000';
+          document.getElementById('mobile-gps-acc').value = '10';
+          disp.innerHTML = '<span class="text-amber-400">-6.921500, 107.619000 (Standar)</span>';
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+    }
+    window.tangkapGpsMobile = tangkapGpsMobile;
+
+    // 4. Pengolahan Foto & Watermark Canvas Client-Side
+    function prosesFotoMobile(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Gambar Watermark Stempel Resmi SPI 105
+          const bannerHeight = Math.round(height * 0.16);
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          ctx.fillRect(0, height - bannerHeight, width, bannerHeight);
+
+          // Garis aksen
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(0, height - bannerHeight, width, 4);
+
+          const fontSize = Math.max(12, Math.round(width * 0.024));
+          const paddingLeft = Math.round(width * 0.03);
+          const startY = height - bannerHeight + (fontSize * 1.3);
+
+          const joVal = document.getElementById('select-jo-penugasan').value || 'JO-LAPANGAN';
+          const urutanRadio = Array.from(document.getElementsByName('mobile-market-urutan')).find(r => r.checked);
+          const urutanVal = urutanRadio ? `DP-0${urutanRadio.value}` : 'DP-01';
+          const lat = document.getElementById('mobile-gps-lat').value || '-';
+          const lng = document.getElementById('mobile-gps-lng').value || '-';
+          const acc = document.getElementById('mobile-gps-acc').value || '5';
+          const timeStr = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+          const perM2 = document.getElementById('mobile-harga-m2-disp').textContent;
+
+          // Header Watermark
+          ctx.font = `bold ${fontSize + 1}px monospace`;
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillText(`KJPP NANANG RAHAYU & REKAN • DOKUMENTASI DATA PASAR (SPI 105)`, paddingLeft, startY);
+
+          // Data Finansial & Objek
+          ctx.font = `bold ${fontSize}px monospace`;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(`PENUGASAN: ${joVal} | ${urutanVal} | ${perM2}`, paddingLeft, startY + (fontSize * 1.35));
+
+          // Geotag & Waktu
+          ctx.font = `${fontSize - 1}px monospace`;
+          ctx.fillStyle = '#4ade80';
+          ctx.fillText(`GPS: ${lat}, ${lng} (±${acc}m) | WAKTU: ${timeStr} WIB`, paddingLeft, startY + (fontSize * 2.7));
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          document.getElementById('mobile-foto-base64').value = dataUrl;
+          const previewImg = document.getElementById('mobile-foto-preview');
+          previewImg.src = dataUrl;
+          document.getElementById('mobile-foto-container').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    window.prosesFotoMobile = prosesFotoMobile;
+
+    // 5. Submit Data Pembanding ke Backend
+    async function kirimDataPembandingMobile(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit-mobile');
+      const fb = document.getElementById('mobile-feedback');
+      const joId = document.getElementById('select-jo-penugasan').value;
+
+      if (!joId) {
+        alert('Silakan pilih Nomor Job Order (JO) terlebih dahulu.');
+        return;
+      }
+
+      const urutanRadio = Array.from(document.getElementsByName('mobile-market-urutan')).find(r => r.checked);
+      const statusRadio = Array.from(document.getElementsByName('mobile-market-status')).find(r => r.checked);
+
+      const payload = {
+        jo: joId,
+        urutan: urutanRadio ? parseInt(urutanRadio.value) : 1,
+        status_data: statusRadio ? statusRadio.value : 'Penawaran',
+        jenis_properti: document.getElementById('mobile-jenis-properti').value.trim(),
+        harga: document.getElementById('mobile-harga').value.trim(),
+        luas_tanah: document.getElementById('mobile-luas-tanah').value.trim(),
+        luas_bangunan: document.getElementById('mobile-luas-bangunan').value.trim(),
+        lebar_jalan: document.getElementById('mobile-lebar-jalan').value.trim(),
+        alamat: document.getElementById('mobile-alamat').value.trim(),
+        narasumber_nama: document.getElementById('mobile-narasumber-nama').value.trim(),
+        narasumber_status: document.getElementById('mobile-narasumber-status').value,
+        narasumber_kontak: document.getElementById('mobile-narasumber-kontak').value.trim(),
+        gps_lat: parseFloat(document.getElementById('mobile-gps-lat').value) || -6.9215,
+        gps_lng: parseFloat(document.getElementById('mobile-gps-lng').value) || 107.6190,
+        gps_accuracy: parseFloat(document.getElementById('mobile-gps-acc').value) || 5,
+        image_base64: document.getElementById('mobile-foto-base64').value || '',
+        surveyor_nik: 'SURVEYOR-MOBILE',
+        surveyor_nama: 'Surveyor Lapangan'
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ Menyimpan ke Google Drive &amp; SSOT...</span>';
+
+      fb.className = 'p-3 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs flex items-center gap-2';
+      fb.innerHTML = '<span>⏳ Mengunggah foto berstempel GPS ke Google Drive subfolder 03_Data_Pasar_Pembanding...</span>';
+      fb.classList.remove('hidden');
+
+      try {
+        const res = await fetch('backend/job-tracking-handler.php?action=submit_market_data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        btn.disabled = false;
+        btn.innerHTML = '<span>🚀 Kirim Data Pembanding ke Server &amp; Google Drive</span>';
+
+        if (res && res.status === 'success') {
+          fb.className = 'p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs flex items-center gap-2';
+          fb.innerHTML = '<span>✓ ' + res.message + '</span>';
+          // Update database lokal jika ada
+          if (sampleJobsDatabase[joId]) {
+            if (!sampleJobsDatabase[joId].data_pembanding) sampleJobsDatabase[joId].data_pembanding = {};
+            const code = 'DP-0' + payload.urutan;
+            sampleJobsDatabase[joId].data_pembanding[code] = {
+              id: code,
+              label: 'Pembanding ' + payload.urutan,
+              harga: payload.harga,
+              luas_tanah: payload.luas_tanah,
+              harga_per_m2: Math.round(parseInt(payload.harga.replace(/\D/g,'')) / (parseFloat(payload.luas_tanah) || 1)),
+              alamat: payload.alamat,
+              narasumber_nama: payload.narasumber_nama
+            };
+            sampleJobsDatabase[joId].market_data_count = Object.keys(sampleJobsDatabase[joId].data_pembanding).length;
+          }
+          saatJoBerubah(joId);
+          // Reset form input foto & harga
+          document.getElementById('mobile-harga').value = '';
+          document.getElementById('mobile-foto-container').classList.add('hidden');
+          document.getElementById('mobile-foto-base64').value = '';
+        } else {
+          fb.className = 'p-3 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs flex items-center gap-2';
+          fb.innerHTML = '<span>⚠️ ' + (res.message || 'Gagal menyimpan data') + '</span>';
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>🚀 Kirim Data Pembanding ke Server &amp; Google Drive</span>';
+        fb.className = 'p-3 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs flex items-center gap-2';
+        fb.innerHTML = '<span>⚠️ Gagal koneksi: ' + err.message + '</span>';
+      }
+    }
+    window.kirimDataPembandingMobile = kirimDataPembandingMobile;
+
+    // 6. Muat Riwayat Data Pembanding
+    async function muatRiwayatDataPembanding(joNumber) {
+      const container = document.getElementById('container-riwayat-pembanding');
+      if (!joNumber) {
+        container.innerHTML = '<p class="text-xs text-slate-500 text-center py-2">Pilih No. JO untuk melihat riwayat data pasar.</p>';
+        return;
+      }
+
+      container.innerHTML = '<p class="text-xs text-slate-400 text-center py-2">Memeriksa data pembanding di server...</p>';
+
+      let comparables = [];
+      try {
+        const res = await fetch(`backend/job-tracking-handler.php?action=get_market_data&jo=${encodeURIComponent(joNumber)}`).then(r => r.json());
+        if (res && res.status === 'success' && res.data && res.data.comparables) {
+          comparables = res.data.comparables;
+        }
+      } catch (e) {
+        // Fallback ke sample database
+        if (sampleJobsDatabase[joNumber] && sampleJobsDatabase[joNumber].data_pembanding) {
+          comparables = Object.values(sampleJobsDatabase[joNumber].data_pembanding);
+        }
+      }
+
+      if (!comparables || comparables.length === 0) {
+        container.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-dashed border-slate-800 text-center text-xs text-slate-500">
+            Belum ada data pembanding tersimpan untuk penugasan ini.
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      comparables.forEach(c => {
+        html += `
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2 text-xs">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-1.5 py-0.5 rounded font-mono font-bold bg-amber-400/20 text-amber-300 text-[10px]">${c.id || 'DP'}</span>
+                <strong class="text-white">${c.alamat || 'Alamat Objek'}</strong>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-0.5">
+                Rp ${parseInt(c.harga || 0).toLocaleString('id-ID')} &bull; LT: ${c.luas_tanah || '-'} m² &bull; <span class="text-emerald-400 font-mono">Rp ${(c.harga_per_m2 || 0).toLocaleString('id-ID')}/m²</span>
+              </p>
+              <p class="text-[9.5px] text-slate-500">Narasumber: ${c.narasumber_nama || '-'}</p>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              ${c.gps_latitude ? `
+                <a href="https://www.google.com/maps?q=${c.gps_latitude},${c.gps_longitude}" target="_blank" rel="noopener" class="px-2 py-1 rounded bg-slate-800 text-[9.5px] text-sky-300 font-medium border border-slate-700">
+                  📍 Maps
+                </a>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+    window.muatRiwayatDataPembanding = muatRiwayatDataPembanding;
+
+    function salinUrlHalaman() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Tautan halaman mobile berhasil disalin ke clipboard.');
+      });
+    }
+    window.salinUrlHalaman = salinUrlHalaman;
+  </script>
+</body>
+</html>

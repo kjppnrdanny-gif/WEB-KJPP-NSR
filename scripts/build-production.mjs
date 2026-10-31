@@ -34,6 +34,7 @@ const ALLOWED_FILES = [
   "portal-operasional.html",
   "portal-governance.html",
   "portal-tracking.html",
+  "mobile-survey-pembanding.html",
   "portal-spk.html",
   "portal-bop.html",
   "portal-keuangan.html",
