@@ -159,6 +159,7 @@ function auditPortalHardcodedTokens(distDir) {
     /MAP_OPINI_TO_NIK\s*=/i,
     /MASTER_TOKEN\s*=/i,
     /MASTER_USER_ACCOUNTS\s*=/i,
+    /MASTER_48_NIKS\s*=/i,
     /TOKEN_CABANG_MAP\s*=/i,
     /TOKEN_CABANG_NSR\s*=/i,
     /TOKEN_PUSAT_VALID\s*=/i,
@@ -178,6 +179,18 @@ function auditPortalHardcodedTokens(distDir) {
     /['"]NSR-APP-2026['"]/i,
     /11wF3BxOVDp3uraA3a0iIQdkYPizflQHz/i
   ];
+
+    // Audit khusus index.html publik: dilarang keras membocorkan array NIK maupun string NIK individual
+  const indexPath = path.join(distDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    const indexContent = fs.readFileSync(indexPath, 'utf8');
+    if (/MASTER_48_NIKS/i.test(indexContent)) {
+      throw new Error('[SECURITY_GATE_FAIL] Array MASTER_48_NIKS terdeteksi pada berkas publik index.html!');
+    }
+    if (/NSR(-\w+)?-\d{4}-\d{2,3}/i.test(indexContent)) {
+      throw new Error('[SECURITY_GATE_FAIL] String NIK karyawan individual terdeteksi pada berkas publik index.html!');
+    }
+  }
 
   for (const pf of portalFiles) {
     const filePath = path.join(distDir, pf);

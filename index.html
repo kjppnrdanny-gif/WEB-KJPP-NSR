@@ -6592,19 +6592,7 @@
     }
     window.toggleTokenVisibility = toggleTokenVisibility;
 
-    // Master 48 NIK Karyawan Resmi KJPP NSR (Pusat & 4 Cabang)
-    const MASTER_48_NIKS = [
-      "NSR-2019-001", "NSR-2019-002", "NSR-2019-003", "NSR-2019-004", "NSR-2019-005",
-      "NSR-2019-006", "NSR-2019-007", "NSR-2019-008", "NSR-2019-009", "NSR-2019-010",
-      "NSR-2019-011", "NSR-2019-012", "NSR-2019-013", "NSR-2019-014", "NSR-2019-015",
-      "NSR-2019-016", "NSR-2019-017", "NSR-2019-018", "NSR-2019-019", "NSR-2019-020",
-      "NSR-2025-021", "NSR-2026-022", "NSR-PDG-2019-23", "NSR-PDG-2019-24", "NSR-PDG-2019-25",
-      "NSR-PDG-2019-26", "NSR-PDG-2019-27", "NSR-PDG-2019-28", "NSR-PDG-2019-29", "NSR-MKS-2019-30",
-      "NSR-MKS-2019-31", "NSR-MKS-2019-32", "NSR-MKS-2020-33", "NSR-MKS-2021-34", "NSR-MKS-2020-35",
-      "NSR-MKS-2019-36", "NSR-MKS-2019-37", "NSR-BDG-2020-38", "NSR-BDG-2020-39", "NSR-BDG-2020-40",
-      "NSR-BDG-2020-41", "NSR-BDG-2020-42", "NSR-BDG-2020-43", "NSR-PLB-2022-44", "NSR-PLB-2022-45",
-      "NSR-PLB-2022-46", "NSR-PLB-2022-47", "NSR-PLB-2022-48"
-    ];
+    // Validasi NIK Karyawan dialihkan 100% ke Server-Side API demi keamanan data
 
     function tampilkanPesanErrorModal(pesan) {
       const errEl = document.getElementById('pesan-error');
@@ -6765,25 +6753,23 @@
         return;
       }
 
-      // ==========================================
+            // ==========================================
       // JALUR 1: DETEKSI NIK KARYAWAN (PRESENSI)
       // ==========================================
-      // Format NIK resmi KJPP NSR berakhiran nomor urut karyawan (-005, -30, -38, dsb)
-      // Contoh: NSR-2019-005, NSR-MKS-2019-30, NSR-BDG-2020-38
+      // Validasi pola format NIK resmi KJPP NSR (Server-Side Validation via absensi-data-handler.php)
       const isNikPattern = /^NSR(-\w+)?-\d{4}-\d{2,3}$/i.test(cleanInput);
-      const isKnownNik = MASTER_48_NIKS.includes(cleanInput);
 
-      if (isKnownNik || isNikPattern) {
+      if (isNikPattern) {
         if (errEl) errEl.classList.add('hidden');
         if (btnSubmit) {
           btnSubmit.disabled = true;
           btnSubmit.innerHTML = '<span>Memverifikasi NIK Karyawan...</span>';
         }
 
-        let isNikValid = isKnownNik;
+        let isNikValid = false;
         let employeeData = null;
 
-        // Validasi ke endpoint backend jika server web aktif
+        // Validasi asinkron langsung ke endpoint backend server-side
         try {
           const resp = await fetch('backend/absensi-data-handler.php?action=cekKaryawan&nik=' + encodeURIComponent(cleanInput), {
             method: 'GET',
@@ -6793,9 +6779,7 @@
           const resJson = await resp.json().catch(() => null);
           if (resJson && (resJson.status === 'success' || resJson.success)) {
             isNikValid = true;
-            employeeData = resJson;
-          } else if (resJson && resJson.status === 'error' && resp.status === 404) {
-            isNikValid = false;
+            employeeData = resJson.data || resJson;
           }
         } catch (_) {
           try {
@@ -6807,9 +6791,7 @@
             const resFallback = await respFallback.json().catch(() => null);
             if (resFallback && (resFallback.status === 'success' || resFallback.success)) {
               isNikValid = true;
-              employeeData = resFallback;
-            } else if (resFallback && resFallback.status === 'error' && respFallback.status === 404) {
-              isNikValid = false;
+              employeeData = resFallback.data || resFallback;
             }
           } catch (_) {}
         }
@@ -6829,7 +6811,7 @@
           window.location.href = 'portal-presensi.html';
           return;
         } else {
-          tampilkanPesanErrorModal('NIK Karyawan tidak terdaftar dalam database resmi KJPP NSR.');
+          tampilkanPesanErrorModal('NIK Karyawan tidak terdaftar atau sistem verifikasi sedang offline. Pastikan format NIK sesuai kartu identitas.');
           return;
         }
       }
