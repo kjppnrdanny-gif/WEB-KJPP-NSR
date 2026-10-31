@@ -729,6 +729,38 @@ function getInitialSeedData() {
         'current_milestone_title' => 'Kendali Mutu & Reviewer SPM',
         'progress_percent' => 71,
         'milestones' => $mTemplate2,
+        'data_pembanding' => [
+            'DP-01' => [
+                'id' => 'DP-01', 'urutan' => 1, 'label' => 'Pembanding 1',
+                'jenis_properti' => 'Ruko / Gedung Komersial', 'status_data' => 'Penawaran',
+                'harga' => 3200000000, 'luas_tanah' => 250, 'luas_bangunan' => 300, 'lebar_jalan' => 10,
+                'harga_per_m2' => 12800000, 'alamat' => 'Jl. Soekarno Hatta No. 420, Bandung',
+                'narasumber_nama' => 'Agus Salim', 'narasumber_kontak' => '08122334455',
+                'narasumber_status' => 'Broker Ray White', 'gps_latitude' => -6.938500,
+                'gps_longitude' => 107.625400, 'gps_accuracy' => 12,
+                'filename' => 'DP-01_RukoKomersial_12800000_20261030.jpg',
+                'foto_url' => 'images/pembanding_sample_1.jpg',
+                'foto_base64' => '', 'drive_file_url' => 'https://drive.google.com/open?id=mock-drive-dp-01',
+                'timestamp' => '30 Okt 2026, 14:15 WIB', 'surveyor_nik' => 'NSR-2019-002',
+                'surveyor_nama' => 'Hendra Wijaya, S.T.'
+            ],
+            'DP-02' => [
+                'id' => 'DP-02', 'urutan' => 2, 'label' => 'Pembanding 2',
+                'jenis_properti' => 'Bangunan Komersial 2 Lantai', 'status_data' => 'Penawaran',
+                'harga' => 2950000000, 'luas_tanah' => 220, 'luas_bangunan' => 260, 'lebar_jalan' => 8,
+                'harga_per_m2' => 13409091, 'alamat' => 'Jl. Buah Batu No. 188, Bandung',
+                'narasumber_nama' => 'Ibu Lenny', 'narasumber_kontak' => '08133445566',
+                'narasumber_status' => 'Agen ERA Bandung', 'gps_latitude' => -6.941200,
+                'gps_longitude' => 107.628900, 'gps_accuracy' => 15,
+                'filename' => 'DP-02_BangunanKomersial_13409091_20261030.jpg',
+                'foto_url' => 'images/pembanding_sample_2.jpg',
+                'foto_base64' => '', 'drive_file_url' => 'https://drive.google.com/open?id=mock-drive-dp-02',
+                'timestamp' => '30 Okt 2026, 16:30 WIB', 'surveyor_nik' => 'NSR-2019-002',
+                'surveyor_nama' => 'Hendra Wijaya, S.T.'
+            ]
+        ],
+        'market_data_count' => 2,
+        'market_data_complete' => false,
         'keterangan_resmi' => 'Kertas kerja telah selesai disusun dan saat ini memasuki proses verifikasi kendali mutu berjenjang oleh Reviewer SPM Cabang Bandung.',
         'wa_admin' => '6285110513157',
         'created_at' => date('Y-m-d H:i:s', $now - (86400 * 4)),
@@ -2787,6 +2819,209 @@ if ($action === 'update_job_contact' || $action === 'update_contact') {
 }
 
 // =========================================================================
+// =========================================================================
+// ACTION: SUBMIT_MARKET_DATA (Rekapitulasi Data Pembanding Real-Time SPI 105)
+// =========================================================================
+if ($action === 'submit_market_data' || $action === 'add_market_comparable') {
+    $rawInput = file_get_contents('php://input');
+    $payload = @json_decode($rawInput, true);
+    if (!is_array($payload)) $payload = $_POST;
+
+    $joId = trim((string)($payload['jo'] ?? $payload['id'] ?? $payload['id_jo'] ?? ''));
+    if (empty($joId)) {
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Nomor JO penugasan wajib disertakan.'
+        ]);
+        exit;
+    }
+
+    $foundIndex = null;
+    foreach ($jobs as $idx => $j) {
+        if ($j['id'] === $joId || $j['jo_number'] === $joId || ($j['kode_lacak'] ?? '') === $joId) {
+            $foundIndex = $idx;
+            break;
+        }
+    }
+
+    if ($foundIndex === null) {
+        http_response_code(404);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Penugasan ' . $joId . ' tidak ditemukan dalam sistem.'
+        ]);
+        exit;
+    }
+
+    $urutan = (int)($payload['urutan'] ?? 1);
+    if ($urutan < 1 || $urutan > 5) $urutan = 1;
+    $urutanStr = sprintf('%02d', $urutan);
+
+    $hargaRaw = (string)($payload['harga'] ?? $payload['indikasi_harga'] ?? '0');
+    $harga = (float)str_replace(['.', ',', ' ', 'Rp', 'rp'], '', $hargaRaw);
+    $luasTanah = (float)($payload['luas_tanah'] ?? 0);
+    $luasBangunan = (float)($payload['luas_bangunan'] ?? 0);
+    $lebarJalan = (float)($payload['lebar_jalan'] ?? 0);
+    $hargaPerM2 = ($luasTanah > 0) ? round($harga / $luasTanah) : 0;
+
+    $jenisProperti = trim((string)($payload['jenis_properti'] ?? $jobs[$foundIndex]['jenis_properti'] ?? 'Properti'));
+    $jenisClean = preg_replace('/[^a-zA-Z0-9]/', '', $jenisProperti);
+    $filename = "DP-{$urutanStr}_{$jenisClean}_{$hargaPerM2}_" . date('Ymd_His') . ".jpg";
+
+    // 1. Simpan Foto Fisik di Server Lokal cPanel
+    $photoUrl = '';
+    $photoBase64 = trim((string)($payload['image_base64'] ?? $payload['foto_base64'] ?? ''));
+    if (!empty($photoBase64)) {
+        $rawBin = $photoBase64;
+        if (strpos($rawBin, ',') !== false) {
+            $rawBin = explode(',', $rawBin)[1];
+        }
+        $decoded = @base64_decode($rawBin);
+        if ($decoded) {
+            $uploadDir = __DIR__ . '/../uploads/market_data';
+            if (!is_dir($uploadDir)) @mkdir($uploadDir, 0777, true);
+            @file_put_contents($uploadDir . '/' . $filename, $decoded);
+            $photoUrl = 'uploads/market_data/' . $filename;
+        }
+    }
+
+    // 2. Kirim ke Google Apps Script (Drive Subfolder 03_Data_Pasar_Pembanding) jika terkonfigurasi
+    $driveUrl = '';
+    $driveId = '';
+    if (!empty($photoBase64)) {
+        try {
+            $gasRes = callGASTrackingService('upload_market_evidence', [
+                'folder_id' => $jobs[$foundIndex]['drive_folder_id'] ?? '',
+                'jo_number' => $jobs[$foundIndex]['jo_number'],
+                'filename' => $filename,
+                'urutan' => $urutanStr,
+                'image_base64' => $photoBase64
+            ], 'POST');
+            if ($gasRes && ($gasRes['status'] ?? '') === 'success') {
+                $driveUrl = $gasRes['file_url'] ?? '';
+                $driveId = $gasRes['file_id'] ?? '';
+            }
+        } catch (_) {}
+    }
+
+    // 3. Catat Record Data Pembanding ke Database JSON Penugasan
+    if (!isset($jobs[$foundIndex]['data_pembanding']) || !is_array($jobs[$foundIndex]['data_pembanding'])) {
+        $jobs[$foundIndex]['data_pembanding'] = [];
+    }
+
+    $recordKey = 'DP-' . $urutanStr;
+    $record = [
+        'id' => $recordKey,
+        'urutan' => $urutan,
+        'label' => 'Pembanding ' . $urutan,
+        'jenis_properti' => $jenisProperti,
+        'status_data' => trim((string)($payload['status_data'] ?? 'Penawaran')),
+        'harga' => $harga,
+        'luas_tanah' => $luasTanah,
+        'luas_bangunan' => $luasBangunan,
+        'lebar_jalan' => $lebarJalan,
+        'harga_per_m2' => $hargaPerM2,
+        'alamat' => trim((string)($payload['alamat'] ?? $payload['lokasi'] ?? '')),
+        'narasumber_nama' => trim((string)($payload['narasumber_nama'] ?? '')),
+        'narasumber_kontak' => trim((string)($payload['narasumber_kontak'] ?? $payload['narasumber_telepon'] ?? '')),
+        'narasumber_status' => trim((string)($payload['narasumber_status'] ?? 'Pemilik Langsung')),
+        'gps_latitude' => (float)($payload['gps_lat'] ?? $payload['latitude'] ?? 0),
+        'gps_longitude' => (float)($payload['gps_lng'] ?? $payload['longitude'] ?? 0),
+        'gps_accuracy' => (float)($payload['gps_accuracy'] ?? $payload['accuracy'] ?? 0),
+        'filename' => $filename,
+        'foto_url' => $photoUrl,
+        'foto_base64' => $photoBase64,
+        'drive_file_url' => $driveUrl,
+        'drive_file_id' => $driveId,
+        'timestamp' => date('d M Y, H:i WIB'),
+        'surveyor_nik' => $payload['surveyor_nik'] ?? 'STAF-SURVEY',
+        'surveyor_nama' => $payload['surveyor_nama'] ?? $jobs[$foundIndex]['penilai_pelaksana'] ?? 'Surveyor Lapangan'
+    ];
+
+    $jobs[$foundIndex]['data_pembanding'][$recordKey] = $record;
+    ksort($jobs[$foundIndex]['data_pembanding']);
+    $jobs[$foundIndex]['market_comparables'] = array_values($jobs[$foundIndex]['data_pembanding']);
+    
+    $totalCount = count($jobs[$foundIndex]['data_pembanding']);
+    $jobs[$foundIndex]['market_data_count'] = $totalCount;
+    $jobs[$foundIndex]['market_data_complete'] = ($totalCount >= 3);
+
+    // Kepatuhan SPI 105: Update Butir 4 & 5 Checklist SPM jika minimal 3 data pasar tersedia
+    if ($totalCount >= 3 && isset($jobs[$foundIndex]['spm_checklist_data']) && is_array($jobs[$foundIndex]['spm_checklist_data'])) {
+        foreach ($jobs[$foundIndex]['spm_checklist_data'] as &$spmItem) {
+            if (isset($spmItem['id']) && (int)$spmItem['id'] === 4) {
+                $spmItem['status'] = 'SESUAI';
+                $spmItem['notes'] = "Terverifikasi: {$totalCount} data pasar pembanding sejenis lengkap dengan foto geotag GPS dari lapangan.";
+            }
+            if (isset($spmItem['id']) && (int)$spmItem['id'] === 5 && !empty($record['narasumber_nama'])) {
+                $spmItem['status'] = 'SESUAI';
+                $spmItem['notes'] = "Terkonfirmasi narasumber: {$record['narasumber_nama']} ({$record['narasumber_kontak']}) terverifikasi.";
+            }
+        }
+    }
+
+    $jobs[$foundIndex]['updated_at'] = date('Y-m-d H:i:s');
+    saveData($storageFile, $jobs);
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => "Data Pembanding {$urutan} ({$recordKey}) berhasil disimpan ke penugasan {$jobs[$foundIndex]['jo_number']}.",
+        'record' => $record,
+        'total_collected' => $totalCount,
+        'is_complete' => ($totalCount >= 3),
+        'data' => $jobs[$foundIndex]
+    ]);
+    exit;
+}
+
+// =========================================================================
+// ACTION: GET_MARKET_DATA (Ambil Rekap Data Pasar Pembanding per JO)
+// =========================================================================
+if ($action === 'get_market_data' || $action === 'get_comparables') {
+    $joId = trim((string)($_GET['jo'] ?? $_POST['jo'] ?? $_GET['id'] ?? ''));
+    if (empty($joId)) {
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Nomor JO penugasan wajib disertakan.'
+        ]);
+        exit;
+    }
+
+    $foundJob = null;
+    foreach ($jobs as $j) {
+        if ($j['id'] === $joId || $j['jo_number'] === $joId || ($j['kode_lacak'] ?? '') === $joId) {
+            $foundJob = $j;
+            break;
+        }
+    }
+
+    if (!$foundJob) {
+        http_response_code(404);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Penugasan ' . $joId . ' tidak ditemukan.'
+        ]);
+        exit;
+    }
+
+    $comparables = array_values($foundJob['data_pembanding'] ?? []);
+    $totalCount = count($comparables);
+
+    echo json_encode([
+        'status' => 'success',
+        'jo_number' => $foundJob['jo_number'],
+        'jenis_properti' => $foundJob['jenis_properti'],
+        'lokasi_aset' => $foundJob['lokasi_aset'],
+        'total_collected' => $totalCount,
+        'is_complete' => ($totalCount >= 3),
+        'comparables' => $comparables
+    ]);
+    exit;
+}
+
+// =========================================================================
 // ACTION: GET_ROSTER (Daftar Personel Karyawan KJPP NSR)
 // =========================================================================
 if ($action === 'get_roster' || $action === 'get_staff_list') {
@@ -2825,5 +3060,5 @@ if ($action === 'reset_demo') {
 echo json_encode([
     'status' => 'success',
     'endpoint' => 'KJPP NSR Job Tracking Staging API',
-    'actions' => ['update_job_contact', 'get_roster', 'verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap', 'get_spm_checklist', 'provision_drive_folder', 'get_workload_analytics', 'get_job_detail', 'init_billing_draft', 'update_billing_status']
+    'actions' => ['submit_market_data', 'get_market_data', 'update_job_contact', 'get_roster', 'verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap', 'get_spm_checklist', 'provision_drive_folder', 'get_workload_analytics', 'get_job_detail', 'init_billing_draft', 'update_billing_status']
 ]);

@@ -94,7 +94,8 @@ const ALLOWED_FILES = [
 const ALLOWED_DIRS = [
   "images",
   "components",
-  "lib"
+  "lib",
+  "uploads"
 ];
 
 // 3. DENYLIST STRICT (Jika ada berkas ini di dist, BUILD DIBATALKAN)
@@ -194,7 +195,7 @@ export function buildProduction(options = {}) {
   const isIndexOnly = options.indexOnly || process.argv.includes("--index-only") || process.env.INDEX_ONLY === "true";
 
   console.log("=======================================================");
-  console.log(`🔒 MEMULAI BUILD PRODUKSI ALLOWLIST KJPP NSR -> dist/ [Target: ${isCpanel ? "cPanel" : "Lokal/Lengkap"}${isIndexOnly ? " | INDEX ONLY" : ""}]`);
+  console.log(`ðŸ”’ MEMULAI BUILD PRODUKSI ALLOWLIST KJPP NSR -> dist/ [Target: ${isCpanel ? "cPanel" : "Lokal/Lengkap"}${isIndexOnly ? " | INDEX ONLY" : ""}]`);
   console.log("=======================================================");
 
   // Reset dist/
@@ -207,10 +208,10 @@ export function buildProduction(options = {}) {
   let filesToCopy = [...ALLOWED_FILES];
   if (isIndexOnly) {
     filesToCopy = ["index.html"];
-    console.log("⚡ Mode Isolasi Maksimum: HANYA index.html yang disalin ke paket deployment.");
+    console.log("âš¡ Mode Isolasi Maksimum: HANYA index.html yang disalin ke paket deployment.");
   } else if (isCpanel) {
     // Seluruh portal operasional tervalidasi (JO, NoLap, Kwitansi, SU, Absensi) disertakan lengkap
-    console.log("🛡️ cPanel Build Active: Seluruh paket web & portal tervalidasi disertakan.");
+    console.log("ðŸ›¡ï¸ cPanel Build Active: Seluruh paket web & portal tervalidasi disertakan.");
   }
 
   // Salin File Allowlist (dengan sanitasi log sensitif & whitespace)
@@ -235,7 +236,7 @@ export function buildProduction(options = {}) {
       console.warn(`[Warning] File allowlist tidak ditemukan: ${file}`);
     }
   }
-  console.log(`✓ Menyalin ${fileCount} berkas web publik resmi (tersanitasi).`);
+  console.log(`âœ“ Menyalin ${fileCount} berkas web publik resmi (tersanitasi).`);
 
   // 2. Salin Direktori Allowlist (dilewati bila mode index-only)
   if (!isIndexOnly) {
@@ -244,7 +245,7 @@ export function buildProduction(options = {}) {
       const dest = path.join(DIST_DIR, d);
       if (fs.existsSync(src)) {
         copyDirRecursive(src, dest);
-        console.log(`✓ Menyalin direktori aset: ${d}/`);
+        console.log(`âœ“ Menyalin direktori aset: ${d}/`);
       }
     }
 
@@ -253,14 +254,14 @@ export function buildProduction(options = {}) {
   }
 
   // 3. Audit Keamanan & Anti-Kebocoran
-  console.log("\n🔍 Melakukan audit integritas dan pemindaian anti-kebocoran...");
+  console.log("\nðŸ” Melakukan audit integritas dan pemindaian anti-kebocoran...");
   auditDistSecurity(DIST_DIR);
-  console.log("✓ Audit Keamanan LULUS: Tidak ada berkas pengembangan/tests/preview di dist/.");
+  console.log("âœ“ Audit Keamanan LULUS: Tidak ada berkas pengembangan/tests/preview di dist/.");
 
   // 3B. Audit Pemindaian Token Frontend Lama & URL Bypass pada Portal Kandidat Produksi
-  console.log("🔍 Memindai token hardcoded dan URL bypass pada portal di dist/...");
+  console.log("ðŸ” Memindai token hardcoded dan URL bypass pada portal di dist/...");
   auditPortalHardcodedTokens(DIST_DIR);
-  console.log("✓ Audit Token LULUS: Portal bebas dari kamus token lama dan parameter bypass URL.");
+  console.log("âœ“ Audit Token LULUS: Portal bebas dari kamus token lama dan parameter bypass URL.");
 
   // 4. Verifikasi Keberadaan Berkas Kunci
   const requiredFiles = isIndexOnly ? ["index.html"] : [
@@ -281,10 +282,10 @@ export function buildProduction(options = {}) {
       throw new Error(`[Verifikasi Gagal] Berkas kunci tidak ada di dist/: ${rf}`);
     }
   }
-  console.log(`✓ Seluruh ${requiredFiles.length} berkas utama publik terverifikasi lengkap.`);
+  console.log(`âœ“ Seluruh ${requiredFiles.length} berkas utama publik terverifikasi lengkap.`);
 
   console.log("=======================================================");
-  console.log("✨ BUILD SELESAI: Paket publikasi aman siap di 'dist/'!");
+  console.log("âœ¨ BUILD SELESAI: Paket publikasi aman siap di 'dist/'!");
   console.log("=======================================================\n");
 }
 
@@ -292,3 +293,4 @@ export function buildProduction(options = {}) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   buildProduction();
 }
+

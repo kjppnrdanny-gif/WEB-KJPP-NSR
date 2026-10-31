@@ -142,6 +142,11 @@ function doGet(e) {
       return handleGetMitraSla_();
     }
 
+    if (action === 'upload_market_evidence' || action === 'upload_data_pembanding') {
+      const uploadRes = simpanFotoPembandingKeDrive(payload);
+      return createJsonResponse_(uploadRes, uploadRes.status === 'success' ? 200 : 500);
+    }
+
     if (action === 'setup_database') {
       return handleSetupDatabase_();
     }
@@ -958,5 +963,145 @@ function createJobFolderStructure(payload) {
     };
   } finally {
     try { lock.releaseLock(); } catch (_) {}
+  }
+}
+
+
+/**
+ * Upload Foto Data Pasar Pembanding ke Google Drive:
+ * Jalur Subfolder: ARSIP OPERASIONAL... / [Tahun] / [Cabang] / [JO] / 03_Data_Pasar_Pembanding /
+ * Format Nama File: DP-01_[Jenis]_[HargaPerM2]_[Tgl].jpg
+ */
+function simpanFotoPembandingKeDrive(payload) {
+  try {
+    let targetFolder = null;
+
+    // 1. Jika ada folder_id penugasan
+    if (payload.folder_id) {
+      try {
+        const parentFolder = DriveApp.getFolderById(payload.folder_id);
+        const subFolders = parentFolder.getFoldersByName("03_Data_Pasar_Pembanding");
+        if (subFolders.hasNext()) {
+          targetFolder = subFolders.next();
+        } else {
+          targetFolder = parentFolder.createFolder("03_Data_Pasar_Pembanding");
+        }
+      } catch (_) {}
+    }
+
+    // 2. Jika belum ditemukan, coba cari folder induk penugasan berdasarkan Nomor JO
+    if (!targetFolder && payload.jo_number) {
+      try {
+        const folders = DriveApp.getFoldersByName(payload.jo_number);
+        if (folders.hasNext()) {
+          const pf = folders.next();
+          const subFolders = pf.getFoldersByName("03_Data_Pasar_Pembanding");
+          targetFolder = subFolders.hasNext() ? subFolders.next() : pf.createFolder("03_Data_Pasar_Pembanding");
+        }
+      } catch (_) {}
+    }
+
+    // 3. Fallback ke Root Folder jika belum ada
+    if (!targetFolder) {
+      targetFolder = DriveApp.getRootFolder();
+    }
+
+    let base64Data = payload.image_base64 || '';
+    if (base64Data.indexOf(',') !== -1) {
+      base64Data = base64Data.split(',')[1];
+    }
+
+    const filename = payload.filename || ('DP_' + (payload.urutan || '01') + '_' + Utilities.formatDate(new Date(), CONFIG_TRACKING.TIMEZONE, 'yyyyMMdd_HHmmss') + '.jpg');
+    const decodedBlob = Utilities.newBlob(Utilities.base64Decode(base64Data), 'image/jpeg', filename);
+
+    const driveFile = targetFolder.createFile(decodedBlob);
+    try {
+      driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (_) {}
+
+    return {
+      status: 'success',
+      message: 'Foto pembanding berhasil disimpan ke Google Drive.',
+      file_id: driveFile.getId(),
+      file_url: driveFile.getUrl(),
+      file_name: filename,
+      subfolder: "03_Data_Pasar_Pembanding",
+      jo_number: payload.jo_number || ''
+    };
+  } catch (err) {
+    return {
+      status: 'error',
+      message: 'Gagal mengunggah foto ke Drive: ' + err.toString()
+    };
+  }
+}
+
+
+/**
+ * Upload Foto Data Pasar Pembanding ke Google Drive:
+ * Jalur Subfolder: ARSIP OPERASIONAL... / [Tahun] / [Cabang] / [JO] / 03_Data_Pasar_Pembanding /
+ * Format Nama File: DP-01_[Jenis]_[HargaPerM2]_[Tgl].jpg
+ */
+function simpanFotoPembandingKeDrive(payload) {
+  try {
+    let targetFolder = null;
+
+    // 1. Jika ada folder_id penugasan
+    if (payload.folder_id) {
+      try {
+        const parentFolder = DriveApp.getFolderById(payload.folder_id);
+        const subFolders = parentFolder.getFoldersByName("03_Data_Pasar_Pembanding");
+        if (subFolders.hasNext()) {
+          targetFolder = subFolders.next();
+        } else {
+          targetFolder = parentFolder.createFolder("03_Data_Pasar_Pembanding");
+        }
+      } catch (_) {}
+    }
+
+    // 2. Jika belum ditemukan, coba cari folder induk penugasan berdasarkan Nomor JO
+    if (!targetFolder && payload.jo_number) {
+      try {
+        const folders = DriveApp.getFoldersByName(payload.jo_number);
+        if (folders.hasNext()) {
+          const pf = folders.next();
+          const subFolders = pf.getFoldersByName("03_Data_Pasar_Pembanding");
+          targetFolder = subFolders.hasNext() ? subFolders.next() : pf.createFolder("03_Data_Pasar_Pembanding");
+        }
+      } catch (_) {}
+    }
+
+    // 3. Fallback ke Root Folder jika belum ada
+    if (!targetFolder) {
+      targetFolder = DriveApp.getRootFolder();
+    }
+
+    let base64Data = payload.image_base64 || '';
+    if (base64Data.indexOf(',') !== -1) {
+      base64Data = base64Data.split(',')[1];
+    }
+
+    const filename = payload.filename || ('DP_' + (payload.urutan || '01') + '_' + Utilities.formatDate(new Date(), CONFIG_TRACKING.TIMEZONE, 'yyyyMMdd_HHmmss') + '.jpg');
+    const decodedBlob = Utilities.newBlob(Utilities.base64Decode(base64Data), 'image/jpeg', filename);
+
+    const driveFile = targetFolder.createFile(decodedBlob);
+    try {
+      driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (_) {}
+
+    return {
+      status: 'success',
+      message: 'Foto pembanding berhasil disimpan ke Google Drive.',
+      file_id: driveFile.getId(),
+      file_url: driveFile.getUrl(),
+      file_name: filename,
+      subfolder: "03_Data_Pasar_Pembanding",
+      jo_number: payload.jo_number || ''
+    };
+  } catch (err) {
+    return {
+      status: 'error',
+      message: 'Gagal mengunggah foto ke Drive: ' + err.toString()
+    };
   }
 }
