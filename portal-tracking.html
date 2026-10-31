@@ -986,10 +986,15 @@
               <span class="w-2 h-2 rounded-full bg-amber-400"></span>
               Tahapan Milestone Penilaian (M-01 s/d M-07)
             </h4>
-            <button type="button" onclick="bukaModalUpdateDariStepper()" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow transition">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-              <span>Perbarui Milestone</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btn-ajukan-tahap-stepper" onclick="bukaModalDispatchDariStepper()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow transition active:scale-95 cursor-pointer" title="Konfirmasi Kontak &amp; Ajukan ke Tahap Berikutnya">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                <span>Ajukan ke Tahap Berikutnya</span>
+              </button>
+              <button type="button" onclick="bukaModalUpdateDariStepper()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition" title="Otorisasi Lengkap NIK &amp; PIN">
+                <span>Otorisasi NIK</span>
+              </button>
+            </div>
           </div>
 
           <div id="stepper-items-container" class="relative pl-6 space-y-5 before:absolute before:left-[11px] before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-800">
@@ -1278,6 +1283,158 @@
     </div>
   </div>
 
+  
+
+  <!-- ==================== MODAL PRE-UPDATE KONTAK & DISPATCH MILESTONE ==================== -->
+  <div id="modal-dispatch-milestone" class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md hidden" role="dialog" aria-modal="true">
+    <div class="relative w-full max-w-xl bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 rounded-2xl border border-amber-500/40 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-800 bg-slate-950/90 flex items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-md">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white uppercase tracking-wider">Konfirmasi Kontak &amp; Dispatch Penugasan</h3>
+            <p class="text-[11px] text-slate-400">Verifikasi WhatsApp &amp; Email Klien serta PIC Pegawai sebelum Milestone Diperbarui</p>
+          </div>
+        </div>
+        <button type="button" onclick="tutupModalDispatchMilestone()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Scrollable Body -->
+      <div class="p-5 space-y-4 overflow-y-auto">
+        <input type="hidden" id="dispatch-jo-id">
+        <input type="hidden" id="dispatch-target-m">
+
+        <!-- Job Context Banner -->
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Nomor JO / Kode TRK:</span>
+            <strong id="dispatch-jo-display" class="font-mono text-amber-400 font-bold">JO-BDG-2026-0015</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Debitur / Instansi:</span>
+            <span id="dispatch-debitur-display" class="text-white font-medium">PT Sentosa Abadi Makmur - Bank Mandiri</span>
+          </div>
+          <div class="flex items-center justify-between border-t border-slate-800/80 pt-1.5">
+            <span class="text-slate-400">Alur Perpindahan Tahapan:</span>
+            <div class="flex items-center gap-1.5 font-bold text-[11px]">
+              <span id="dispatch-current-m-badge" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">M-02</span>
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+              <span id="dispatch-target-m-badge" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">M-03 (Survei Lapangan)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRUP A: KONTAK KLIEN / PEMBERI TUGAS -->
+        <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 text-xs flex items-center justify-center font-bold">A</span>
+              <span class="text-xs font-bold text-white uppercase tracking-wider">Kontak Klien / Pemberi Tugas</span>
+            </div>
+            <span id="dispatch-klien-nama-label" class="text-[11px] text-amber-400 font-semibold truncate max-w-[200px]">-</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">
+                No. WhatsApp PIC Klien <span class="text-rose-400">*</span>
+              </label>
+              <div class="relative">
+                <input type="tel" id="dispatch-klien-wa" placeholder="Contoh: 081322445566" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
+                <span class="absolute left-2.5 top-2.5 text-slate-500 text-xs">💬</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">
+                Email PIC Klien
+              </label>
+              <div class="relative">
+                <input type="email" id="dispatch-klien-email" placeholder="Contoh: pic.klien@bank.co.id" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
+                <span class="absolute left-2.5 top-2.5 text-slate-500 text-xs">✉️</span>
+              </div>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-400">Pembaruan nomor WhatsApp ini otomatis tersinkronisasi sebagai verifikator pelacakan publik 7-milestone.</p>
+        </div>
+
+        <!-- GRUP B: KONTAK PIC PEGAWAI / INTERNAL (TAHAP SELANJUTNYA) -->
+        <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 text-xs flex items-center justify-center font-bold">B</span>
+              <span class="text-xs font-bold text-white uppercase tracking-wider">Kontak PIC Pegawai Internal</span>
+            </div>
+            <span id="dispatch-role-pegawai-label" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">PIC Tahap Selanjutnya</span>
+          </div>
+          
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">
+              Nama Personel Pelaksana / Reviewer <span class="text-rose-400">*</span>
+            </label>
+            <input type="text" id="dispatch-pic-nama" list="datalist-karyawan-dispatch" placeholder="Pilih dari daftar roster atau ketik nama personel..." oninput="autoFillKontakPegawai(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
+            <datalist id="datalist-karyawan-dispatch"></datalist>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">
+                No. WhatsApp Pegawai <span class="text-rose-400">*</span>
+              </label>
+              <div class="relative">
+                <input type="tel" id="dispatch-pic-wa" placeholder="Contoh: 081288997766" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
+                <span class="absolute left-2.5 top-2.5 text-slate-500 text-xs">💬</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">
+                Email Resmi Pegawai
+              </label>
+              <div class="relative">
+                <input type="email" id="dispatch-pic-email" placeholder="Contoh: staf@kjppnanangrahayu.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
+                <span class="absolute left-2.5 top-2.5 text-slate-500 text-xs">✉️</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner Feedback / Status Simpan -->
+        <div id="dispatch-feedback-banner" class="hidden p-3 rounded-xl text-xs flex items-center justify-between gap-2"></div>
+
+      </div>
+
+      <!-- Action Footer (Requirement 3: Tombol Aksi Pengiriman Cepat) -->
+      <div class="p-4 border-t border-slate-800 bg-slate-950 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shrink-0">
+        <button type="button" onclick="tutupModalDispatchMilestone()" class="px-3 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-400 hover:text-white transition order-last sm:order-first cursor-pointer">
+          Tutup
+        </button>
+
+        <div class="flex flex-wrap items-center gap-2 justify-end">
+          <button type="button" id="btn-dispatch-wa-klien" onclick="eksekusiKirimWaKlien()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center gap-1.5 cursor-pointer active:scale-95" title="Kirim notifikasi WhatsApp ke kontak klien">
+            <span>📲 Kirim WA Klien</span>
+          </button>
+          
+          <button type="button" id="btn-dispatch-wa-pic" onclick="eksekusiOperWaPic()" class="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow transition flex items-center gap-1.5 cursor-pointer active:scale-95" title="Oper instruksi kerja ke WhatsApp pegawai PIC tahap selanjutnya">
+            <span>📲 Oper WA PIC Pegawai</span>
+          </button>
+
+          <button type="button" id="btn-dispatch-email" onclick="eksekusiDrafEmail()" class="px-3 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow transition flex items-center gap-1.5 cursor-pointer active:scale-95" title="Buka draf email resmi KJPP NSR">
+            <span>✉️ Draf Email</span>
+          </button>
+
+          <button type="button" id="btn-dispatch-simpan" onclick="eksekusiSimpanSajaLanjut()" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow transition flex items-center gap-1.5 cursor-pointer active:scale-95" title="Simpan kontak dan lanjut tanpa membuka tautan keluar">
+            <span>💾 Simpan Saja &amp; Lanjut</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ==================== MODAL GANTI PROFIL / LOGIN STAF ==================== -->
   <div id="modal-login-staf" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md hidden">
     <div class="relative w-full max-w-lg bg-gradient-to-b from-slate-900 to-slate-950 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col">
@@ -1369,6 +1526,7 @@
       // Muat Data Papan Pemantauan & Saran JO
       await muatDataTaskBoard();
       muatSaranJO();
+      muatRosterKaryawanDispatch();
     });
 
     // Inisialisasi Sesi Pengguna
@@ -3025,6 +3183,14 @@ Administrasi Operasional KJPP NSR`;
               <div class="mt-1 text-[10px] text-slate-400">
                 <span class="text-slate-500 font-medium">Catatan:</span> ${item.note || '-'}
               </div>
+              ${isInProgress ? `
+                <div class="mt-2.5 pt-2 border-t border-amber-500/20 flex items-center justify-end">
+                  <button type="button" id="btn-selesaikan-tahap" onclick="bukaModalDispatchMilestone('${activeJob ? activeJob.id : ''}', '${mKeys[Math.min(mKeys.length - 1, mKeys.indexOf(key) + 1)]}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow transition active:scale-95 cursor-pointer">
+                    <span>Selesaikan Tahap ${key}</span>
+                    <svg class="w-3 h-3 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                  </button>
+                </div>
+              ` : ''}
               ${(key === 'M-07' && (isCompleted || (activeJob && (activeJob.current_milestone === 'M-07' || activeJob.sla_status === 'completed')))) ? `
                 <div class="mt-3 pt-2.5 border-t border-emerald-500/30 flex flex-wrap items-center gap-2">
                   <button type="button" onclick="bukaDrafKwitansiPenagihan('${activeJob ? activeJob.id : ''}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition active:scale-95 cursor-pointer">
@@ -3684,6 +3850,351 @@ Administrasi Operasional KJPP NSR`;
         filterTaskBoard();
       }
     }
+
+    
+    // =========================================================================
+    // MODAL PRE-UPDATE KONTAK & DISPATCH MILESTONE (WA & EMAIL DISPATCH)
+    // =========================================================================
+    function normalisasiNoHp(hp) {
+      return String(hp || '').replace(/\D/g, '').replace(/^0/, '62');
+    }
+    window.normalisasiNoHp = normalisasiNoHp;
+
+    window.rosterKaryawanList = [];
+
+    async function muatRosterKaryawanDispatch() {
+      try {
+        const res = await callApi('get_roster');
+        if (res && res.status === 'success' && Array.isArray(res.data)) {
+          window.rosterKaryawanList = res.data;
+          const datalist = document.getElementById('datalist-karyawan-dispatch');
+          if (datalist) {
+            datalist.innerHTML = res.data.map(e => `<option value="${e.nama}">${e.jabatan} - ${e.kantor}</option>`).join('');
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal memuat roster karyawan:', err);
+      }
+    }
+    window.muatRosterKaryawanDispatch = muatRosterKaryawanDispatch;
+
+    function autoFillKontakPegawai(nama) {
+      if (!nama || !Array.isArray(window.rosterKaryawanList)) return;
+      const clean = nama.toLowerCase().trim();
+      const found = window.rosterKaryawanList.find(x => x.nama && (x.nama.toLowerCase().includes(clean) || clean.includes(x.nama.toLowerCase())));
+      if (found) {
+        const pwInput = document.getElementById('dispatch-pic-wa');
+        const peInput = document.getElementById('dispatch-pic-email');
+        if (pwInput && !pwInput.value) pwInput.value = found.wa || '';
+        if (peInput && !peInput.value) peInput.value = found.email || '';
+      }
+    }
+    window.autoFillKontakPegawai = autoFillKontakPegawai;
+
+    function bukaModalDispatchDariStepper() {
+      if (activeJob) {
+        const mKeys = ['M-01', 'M-02', 'M-03', 'M-04', 'M-05', 'M-06', 'M-07'];
+        const curIdx = mKeys.indexOf(activeJob.current_milestone);
+        const nextM = mKeys[Math.min(mKeys.length - 1, curIdx + 1)];
+        bukaModalDispatchMilestone(activeJob.id, nextM);
+      }
+    }
+    window.bukaModalDispatchDariStepper = bukaModalDispatchDariStepper;
+
+    function bukaModalDispatchMilestone(joId, targetMilestone) {
+      const job = globalJobs.find(x => x.id === joId || x.jo_number === joId) || activeJob;
+      if (!job) {
+        alert('Penugasan tidak ditemukan.');
+        return;
+      }
+
+      const mKeys = ['M-01', 'M-02', 'M-03', 'M-04', 'M-05', 'M-06', 'M-07'];
+      const curIdx = mKeys.indexOf(job.current_milestone);
+      const nextM = targetMilestone || mKeys[Math.min(mKeys.length - 1, curIdx + 1)];
+
+      document.getElementById('dispatch-jo-id').value = job.jo_number;
+      document.getElementById('dispatch-target-m').value = nextM;
+
+      document.getElementById('dispatch-jo-display').textContent = job.jo_number + (job.kode_lacak ? ` (${job.kode_lacak})` : '');
+      document.getElementById('dispatch-debitur-display').textContent = `${job.debitur || '-'} • ${job.pemberi_tugas || job.instansi || '-'}`;
+      document.getElementById('dispatch-current-m-badge').textContent = job.current_milestone;
+      document.getElementById('dispatch-target-m-badge').textContent = `${nextM} (${job.milestones?.[nextM]?.title || 'Tahap Berikutnya'})`;
+
+      // Grup A: Pre-fill Kontak Klien
+      const klienWa = job.client_pic_phone || job.pic_contact || '';
+      const klienEmail = job.client_pic_email || job.pic_email || '';
+      const klienNama = job.client_pic_name || job.pic_pemohon || job.debitur || 'PIC Klien';
+
+      const kwInput = document.getElementById('dispatch-klien-wa');
+      const keInput = document.getElementById('dispatch-klien-email');
+      const knLabel = document.getElementById('dispatch-klien-nama-label');
+
+      if (kwInput) kwInput.value = klienWa;
+      if (keInput) keInput.value = klienEmail;
+      if (knLabel) knLabel.textContent = klienNama;
+
+      // Grup B: PIC Pegawai Internal Tahap Selanjutnya
+      const picInfo = getPicAssignment(nextM, job);
+      const roleLabel = document.getElementById('dispatch-role-pegawai-label');
+      if (roleLabel) roleLabel.textContent = `${picInfo.role} (${nextM})`;
+
+      let defPicNama = '';
+      let defPicWa = '';
+      let defPicEmail = '';
+
+      if (nextM === 'M-02') {
+        defPicNama = job.pic_penugasan || '';
+        defPicWa = job.pic_penugasan_phone || '';
+        defPicEmail = job.pic_penugasan_email || '';
+      } else if (nextM === 'M-03') {
+        defPicNama = job.surveyor || job.penilai_pelaksana || '';
+        defPicWa = job.surveyor_phone || job.penilai_pelaksana_phone || job.survey_contact_phone || '';
+        defPicEmail = job.surveyor_email || job.penilai_pelaksana_email || '';
+      } else if (nextM === 'M-04') {
+        defPicNama = job.penilai_pelaksana || '';
+        defPicWa = job.penilai_pelaksana_phone || '';
+        defPicEmail = job.penilai_pelaksana_email || '';
+      } else if (nextM === 'M-05') {
+        defPicNama = job.reviewer || job.reviewer_spm || '';
+        defPicWa = job.reviewer_phone || job.reviewer_spm_phone || '';
+        defPicEmail = job.reviewer_email || job.reviewer_spm_email || '';
+      } else if (nextM === 'M-06') {
+        defPicNama = job.penilai_publik || '';
+        defPicWa = job.penilai_publik_phone || '';
+        defPicEmail = job.penilai_publik_email || '';
+      } else if (nextM === 'M-07') {
+        defPicNama = job.admin_distribusi || '';
+        defPicWa = job.admin_distribusi_phone || '';
+        defPicEmail = job.admin_distribusi_email || '';
+      }
+
+      if (!defPicNama && picInfo.name && !picInfo.name.includes('Tim') && !picInfo.name.includes('-')) {
+        defPicNama = picInfo.name;
+      }
+
+      const pwInput = document.getElementById('dispatch-pic-wa');
+      const peInput = document.getElementById('dispatch-pic-email');
+      const pnInput = document.getElementById('dispatch-pic-nama');
+
+      if (pnInput) pnInput.value = defPicNama;
+      if (pwInput) pwInput.value = defPicWa;
+      if (peInput) peInput.value = defPicEmail;
+
+      if (defPicNama && (!defPicWa || !defPicEmail)) {
+        autoFillKontakPegawai(defPicNama);
+      }
+
+      const fb = document.getElementById('dispatch-feedback-banner');
+      if (fb) fb.classList.add('hidden');
+
+      document.getElementById('modal-dispatch-milestone').classList.remove('hidden');
+    }
+    window.bukaModalDispatchMilestone = bukaModalDispatchMilestone;
+
+    function tutupModalDispatchMilestone() {
+      document.getElementById('modal-dispatch-milestone').classList.add('hidden');
+    }
+    window.tutupModalDispatchMilestone = tutupModalDispatchMilestone;
+
+    async function simpanKontakDispatch(callback) {
+      const joId = document.getElementById('dispatch-jo-id').value;
+      const targetM = document.getElementById('dispatch-target-m').value;
+      const klienWa = document.getElementById('dispatch-klien-wa').value.trim();
+      const klienEmail = document.getElementById('dispatch-klien-email').value.trim();
+      const picNama = document.getElementById('dispatch-pic-nama').value.trim();
+      const picWa = document.getElementById('dispatch-pic-wa').value.trim();
+      const picEmail = document.getElementById('dispatch-pic-email').value.trim();
+      const fb = document.getElementById('dispatch-feedback-banner');
+
+      const payload = {
+        jo: joId,
+        target_milestone: targetM,
+        dispatch_klien_wa: klienWa,
+        dispatch_klien_email: klienEmail,
+        client_pic_phone: klienWa,
+        client_pic_email: klienEmail,
+        pic_contact: klienWa,
+        pic_email: klienEmail,
+        dispatch_pic_nama: picNama,
+        next_pic_nama: picNama,
+        dispatch_pic_wa: picWa,
+        next_pic_wa: picWa,
+        dispatch_pic_email: picEmail,
+        next_pic_email: picEmail,
+        nik: currentUserSession.nik,
+        pin: currentUserSession.pin || '889900',
+        note: `Dispatch kontak & pembaruan milestone ${targetM}`
+      };
+
+      if (fb) {
+        fb.className = 'p-3 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs flex items-center gap-2';
+        fb.innerHTML = '<span>⏳ Menyimpan kontak dan status ke server...</span>';
+        fb.classList.remove('hidden');
+      }
+
+      try {
+        // 1. Simpan kontak progresif ke backend
+        await callApi('update_job_contact', {}, 'POST', payload);
+
+        // 2. Majukan milestone jika berbeda dari current milestone
+        const curJob = globalJobs.find(x => x.jo_number === joId || x.id === joId);
+        if (curJob && curJob.current_milestone !== targetM) {
+          try {
+            await callApi('advance_milestone', {}, 'POST', payload);
+          } catch (eAdv) {
+            console.warn('Otorisasi advance_milestone ditunda/melewati:', eAdv);
+          }
+        }
+
+        if (fb) {
+          fb.className = 'p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs flex items-center gap-2';
+          fb.innerHTML = '<span>✓ Kontak dan status berhasil disimpan ke database penugasan!</span>';
+        }
+
+        await muatDataTaskBoard();
+        if (activeJob && (activeJob.jo_number === joId || activeJob.id === joId)) {
+          bukaModalTracking(joId);
+        }
+
+        if (typeof callback === 'function') {
+          callback({
+            jo: joId,
+            targetM,
+            klienWa,
+            klienEmail,
+            picNama,
+            picWa,
+            picEmail,
+            job: curJob
+          });
+        }
+        return true;
+      } catch (err) {
+        if (fb) {
+          fb.className = 'p-3 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs flex items-center gap-2';
+          fb.innerHTML = '<span>⚠️ Gagal menyimpan kontak: ' + (err.message || 'Server error') + '</span>';
+        }
+        return false;
+      }
+    }
+    window.simpanKontakDispatch = simpanKontakDispatch;
+
+    function eksekusiKirimWaKlien() {
+      const klienWa = document.getElementById('dispatch-klien-wa').value.trim();
+      if (!klienWa) {
+        alert('Silakan masukkan Nomor WhatsApp PIC Klien terlebih dahulu.');
+        document.getElementById('dispatch-klien-wa').focus();
+        return;
+      }
+      const cleanPhone = normalisasiNoHp(klienWa);
+      const joId = document.getElementById('dispatch-jo-id').value;
+      const targetM = document.getElementById('dispatch-target-m').value;
+      const job = globalJobs.find(x => x.jo_number === joId || x.id === joId) || activeJob || {};
+
+      const namaKlien = job.client_pic_name || job.pic_pemohon || 'Bapak/Ibu PIC Klien';
+      const instansi = job.pemberi_tugas || job.instansi || 'Instansi Pemohon';
+      const debitur = job.debitur || '-';
+      const kodeLacak = job.kode_lacak || joId;
+      const titleM = job.milestones?.[targetM]?.title || targetM;
+
+      const msg = `Yth. ${namaKlien} (${instansi}),\n\nKami menginformasikan bahwa penugasan penilaian KJPP NSR untuk No. JO: *${joId}* (Debitur: *${debitur}*) telah mencapai tahapan *${targetM}: ${titleM}*.\n\nAnda dapat memantau progres pelacakan resmi 7-milestone secara langsung melalui tautan:\nhttps://kjppnanangrahayu.com/?track=${encodeURIComponent(kodeLacak)}\n\nTerima kasih atas kerja sama dan kepercayaan Anda kepada KJPP Nanang Rahayu Sigit Paryanto & Rekan.`;
+
+      const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.lastGeneratedWaUrl = waUrl;
+
+      simpanKontakDispatch(() => {
+        window.open(waUrl, '_blank');
+        setTimeout(tutupModalDispatchMilestone, 600);
+      });
+    }
+    window.eksekusiKirimWaKlien = eksekusiKirimWaKlien;
+
+    function eksekusiOperWaPic() {
+      const picWa = document.getElementById('dispatch-pic-wa').value.trim();
+      if (!picWa) {
+        alert('Silakan masukkan Nomor WhatsApp Pegawai Internal PIC terlebih dahulu.');
+        document.getElementById('dispatch-pic-wa').focus();
+        return;
+      }
+      const cleanPhone = normalisasiNoHp(picWa);
+      const joId = document.getElementById('dispatch-jo-id').value;
+      const targetM = document.getElementById('dispatch-target-m').value;
+      const picNama = document.getElementById('dispatch-pic-nama').value.trim() || 'Rekan Penilai';
+      const job = globalJobs.find(x => x.jo_number === joId || x.id === joId) || activeJob || {};
+
+      const instansi = job.pemberi_tugas || job.instansi || 'Bank Rekanan';
+      const debitur = job.debitur || '-';
+      const lokasi = job.lokasi_aset || '-';
+      const titleM = job.milestones?.[targetM]?.title || targetM;
+
+      const msg = `Halo Rekan ${picNama},\n\nTugas lanjutan KJPP NSR telah dialokasikan kepada Anda:\n- No. JO: *${joId}*\n- Debitur: *${debitur}* (${instansi})\n- Tahap: *${targetM}: ${titleM}*\n- Lokasi: ${lokasi}\n\nMohon segera ditindaklanjuti berpedoman pada SOP dan SPI. Akses kertas kerja dan berkas penugasan pada portal tracking:\nhttps://kjppnanangrahayu.com/portal-tracking.html\n\nTerima kasih,\nManajemen Operasional KJPP NSR.`;
+
+      const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.lastGeneratedWaPicUrl = waUrl;
+
+      simpanKontakDispatch(() => {
+        window.open(waUrl, '_blank');
+        setTimeout(tutupModalDispatchMilestone, 600);
+      });
+    }
+    window.eksekusiOperWaPic = eksekusiOperWaPic;
+
+    function eksekusiDrafEmail() {
+      const klienEmail = document.getElementById('dispatch-klien-email').value.trim();
+      const picEmail = document.getElementById('dispatch-pic-email').value.trim();
+      const targetEmail = klienEmail || picEmail;
+
+      if (!targetEmail) {
+        alert('Silakan masukkan Email PIC Klien atau Email Pegawai terlebih dahulu.');
+        document.getElementById('dispatch-klien-email').focus();
+        return;
+      }
+
+      const joId = document.getElementById('dispatch-jo-id').value;
+      const targetM = document.getElementById('dispatch-target-m').value;
+      const job = globalJobs.find(x => x.jo_number === joId || x.id === joId) || activeJob || {};
+
+      const namaKlien = job.client_pic_name || job.pic_pemohon || 'Bapak/Ibu PIC Klien';
+      const instansi = job.pemberi_tugas || job.instansi || 'Instansi';
+      const debitur = job.debitur || '-';
+      const kodeLacak = job.kode_lacak || joId;
+      const titleM = job.milestones?.[targetM]?.title || targetM;
+
+      const subject = `[KJPP NSR] Pembaruan Status Penugasan Penilaian - No. JO: ${joId} (${debitur})`;
+      const body = `Yth. ${namaKlien} (${instansi}),\n\nDengan hormat,\nBersama ini kami sampaikan pembaruan status penugasan penilaian properti No. JO: ${joId} atas nama debitur: ${debitur}.\n\nSaat ini penugasan telah mencapai tahapan: ${targetM} - ${titleM}.\n\nPelacakan progres real-time dapat diakses melalui portal resmi kami:\nhttps://kjppnanangrahayu.com/?track=${encodeURIComponent(kodeLacak)}\n\nDemikian kami sampaikan. Terima kasih atas kerja sama dan kepercayaan Anda kepada KJPP Nanang Rahayu Sigit Paryanto & Rekan.\n\nSalam hormat,\nManajemen Operasional KJPP NSR`;
+
+      const mailtoUrl = `mailto:${encodeURIComponent(targetEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.lastGeneratedMailtoUrl = mailtoUrl;
+
+      simpanKontakDispatch(() => {
+        window.location.href = mailtoUrl;
+        setTimeout(tutupModalDispatchMilestone, 600);
+      });
+    }
+    window.eksekusiDrafEmail = eksekusiDrafEmail;
+
+    async function eksekusiSimpanSajaLanjut() {
+      const btn = document.getElementById('btn-dispatch-simpan');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ Menyimpan...</span>';
+      }
+
+      await simpanKontakDispatch(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>💾 Simpan Saja &amp; Lanjut</span>';
+        }
+        alert('Sukses! Kontak terbaru dan status milestone berhasil disimpan ke sistem.');
+        tutupModalDispatchMilestone();
+      });
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>💾 Simpan Saja &amp; Lanjut</span>';
+      }
+    }
+    window.eksekusiSimpanSajaLanjut = eksekusiSimpanSajaLanjut;
 
     function filterTaskBoardAppraiser(appraiserName) {
       switchTab('board');

@@ -1017,6 +1017,87 @@ function saveData($storageFile, $data) {
 // Helper persentase progres
 
 // Helper Normalisasi Format Nomor Telepon / WA (Anti-Mismatch Sanitization)
+/**
+ * Helper Pembaruan Kontak Klien dan PIC Pegawai (Dispatch Milestone)
+ */
+function applyJobContactUpdates(&$job, $payload, $targetM = '') {
+    // 1. Kontak Klien / Pemberi Tugas
+    $clientWa = trim((string)($payload['dispatch_klien_wa'] ?? $payload['client_pic_phone'] ?? $payload['pic_contact'] ?? ''));
+    $clientEmail = trim((string)($payload['dispatch_klien_email'] ?? $payload['client_pic_email'] ?? $payload['pic_email'] ?? ''));
+    if (!empty($clientWa)) {
+        $job['pic_contact'] = $clientWa;
+        $job['client_pic_phone'] = $clientWa;
+    }
+    if (!empty($clientEmail)) {
+        $job['pic_email'] = $clientEmail;
+        $job['client_pic_email'] = $clientEmail;
+    }
+
+    // 2. Kontak PIC Pegawai Tahap Selanjutnya
+    $picNama = trim((string)($payload['dispatch_pic_nama'] ?? $payload['next_pic_nama'] ?? ''));
+    $picWa = trim((string)($payload['dispatch_pic_wa'] ?? $payload['next_pic_wa'] ?? ''));
+    $picEmail = trim((string)($payload['dispatch_pic_email'] ?? $payload['next_pic_email'] ?? ''));
+
+    if (empty($targetM)) {
+        $targetM = $job['current_milestone'] ?? 'M-01';
+    }
+
+    if (!empty($picNama) || !empty($picWa) || !empty($picEmail)) {
+        if ($targetM === 'M-02') {
+            if (!empty($picNama)) $job['pic_penugasan'] = $picNama;
+            if (!empty($picWa)) $job['pic_penugasan_phone'] = $picWa;
+            if (!empty($picEmail)) $job['pic_penugasan_email'] = $picEmail;
+        } elseif ($targetM === 'M-03') {
+            if (!empty($picNama)) {
+                $job['surveyor'] = $picNama;
+                $job['penilai_pelaksana'] = $picNama;
+            }
+            if (!empty($picWa)) {
+                $job['surveyor_phone'] = $picWa;
+                $job['penilai_pelaksana_phone'] = $picWa;
+                $job['survey_contact_phone'] = $picWa;
+            }
+            if (!empty($picEmail)) {
+                $job['surveyor_email'] = $picEmail;
+                $job['penilai_pelaksana_email'] = $picEmail;
+            }
+        } elseif ($targetM === 'M-04') {
+            if (!empty($picNama)) $job['penilai_pelaksana'] = $picNama;
+            if (!empty($picWa)) $job['penilai_pelaksana_phone'] = $picWa;
+            if (!empty($picEmail)) $job['penilai_pelaksana_email'] = $picEmail;
+        } elseif ($targetM === 'M-05') {
+            if (!empty($picNama)) {
+                $job['reviewer'] = $picNama;
+                $job['reviewer_spm'] = $picNama;
+            }
+            if (!empty($picWa)) {
+                $job['reviewer_phone'] = $picWa;
+                $job['reviewer_spm_phone'] = $picWa;
+            }
+            if (!empty($picEmail)) {
+                $job['reviewer_email'] = $picEmail;
+                $job['reviewer_spm_email'] = $picEmail;
+            }
+        } elseif ($targetM === 'M-06') {
+            if (!empty($picNama)) $job['penilai_publik'] = $picNama;
+            if (!empty($picWa)) $job['penilai_publik_phone'] = $picWa;
+            if (!empty($picEmail)) $job['penilai_publik_email'] = $picEmail;
+        } elseif ($targetM === 'M-07') {
+            if (!empty($picNama)) $job['admin_distribusi'] = $picNama;
+            if (!empty($picWa)) $job['admin_distribusi_phone'] = $picWa;
+            if (!empty($picEmail)) $job['admin_distribusi_email'] = $picEmail;
+        }
+    }
+
+    if (isset($job['milestones'][$targetM]) && is_array($job['milestones'][$targetM])) {
+        if (!empty($picNama)) $job['milestones'][$targetM]['pic_nama'] = $picNama;
+        if (!empty($picWa)) $job['milestones'][$targetM]['pic_wa'] = $picWa;
+        if (!empty($picEmail)) $job['milestones'][$targetM]['pic_email'] = $picEmail;
+        if (!empty($clientWa)) $job['milestones'][$targetM]['client_wa'] = $clientWa;
+        if (!empty($clientEmail)) $job['milestones'][$targetM]['client_email'] = $clientEmail;
+    }
+}
+
 function normalisasiNoHp($hp) {
     $digits = preg_replace('/\D/', '', (string)$hp);
     if (strpos($digits, '0') === 0) {
@@ -1570,6 +1651,8 @@ if ($action === 'advance_milestone' || $action === 'update_milestone') {
         $job['spm_review_notes'] = trim((string)$payload['spm_review_notes']);
     }
 
+    // Simpan Kontak Klien & PIC Pegawai (Dispatch Progressive Data Saving)
+    applyJobContactUpdates($job, $payload, $targetM);
     $job['current_milestone'] = $targetM;
     $job['current_milestone_title'] = $job['milestones'][$targetM]['title'];
     $job['progress_percent'] = calculateProgress($targetM);
@@ -2655,6 +2738,77 @@ if ($action === 'init_billing_draft' || $action === 'update_billing_status') {
 // =========================================================================
 // 8. ACTION: RESET_DEMO (Mengembalikan Seed Data Awal 5 Kantor Wilayah)
 // =========================================================================
+// =========================================================================
+// ACTION: UPDATE_JOB_CONTACT (Progressive Data Saving Kontak Klien & Pegawai)
+// =========================================================================
+if ($action === 'update_job_contact' || $action === 'update_contact') {
+    $rawInput = file_get_contents('php://input');
+    $payload = @json_decode($rawInput, true);
+    if (!is_array($payload)) $payload = $_POST;
+
+    $joId = trim((string)($payload['jo'] ?? $payload['id'] ?? $payload['id_jo'] ?? ''));
+    if (empty($joId)) {
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Nomor JO atau ID penugasan wajib disertakan.'
+        ]);
+        exit;
+    }
+
+    $foundIndex = null;
+    foreach ($jobs as $idx => $j) {
+        if ($j['id'] === $joId || $j['jo_number'] === $joId || ($j['kode_lacak'] ?? '') === $joId) {
+            $foundIndex = $idx;
+            break;
+        }
+    }
+
+    if ($foundIndex === null) {
+        http_response_code(404);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Penugasan ' . $joId . ' tidak ditemukan dalam sistem.'
+        ]);
+        exit;
+    }
+
+    $targetM = strtoupper(trim((string)($payload['target_milestone'] ?? $jobs[$foundIndex]['current_milestone'] ?? '')));
+    applyJobContactUpdates($jobs[$foundIndex], $payload, $targetM);
+    $jobs[$foundIndex]['updated_at'] = date('Y-m-d H:i:s');
+    saveData($storageFile, $jobs);
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Kontak penugasan ' . $jobs[$foundIndex]['jo_number'] . ' berhasil disimpan.',
+        'data' => $jobs[$foundIndex]
+    ]);
+    exit;
+}
+
+// =========================================================================
+// ACTION: GET_ROSTER (Daftar Personel Karyawan KJPP NSR)
+// =========================================================================
+if ($action === 'get_roster' || $action === 'get_staff_list') {
+    $roster = getMasterKaryawanRoster();
+    $list = [];
+    foreach ($roster as $emp) {
+        $list[] = [
+            'nik' => $emp['nik'] ?? '',
+            'nama' => $emp['nama'] ?? '',
+            'jabatan' => $emp['jabatan'] ?? '',
+            'kantor' => $emp['kantor'] ?? $emp['cabang'] ?? 'Kantor Pusat Jakarta',
+            'email' => $emp['email'] ?? '',
+            'wa' => $emp['hp'] ?? $emp['wa'] ?? $emp['telepon'] ?? ''
+        ];
+    }
+    echo json_encode([
+        'status' => 'success',
+        'data' => $list
+    ]);
+    exit;
+}
+
 if ($action === 'reset_demo') {
     $initial = getInitialSeedData();
     saveData($storageFile, $initial);
@@ -2671,5 +2825,5 @@ if ($action === 'reset_demo') {
 echo json_encode([
     'status' => 'success',
     'endpoint' => 'KJPP NSR Job Tracking Staging API',
-    'actions' => ['verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap', 'get_spm_checklist', 'provision_drive_folder', 'get_workload_analytics', 'get_job_detail', 'init_billing_draft', 'update_billing_status']
+    'actions' => ['update_job_contact', 'get_roster', 'verify_auth', 'track', 'list', 'create', 'advance_milestone', 'get_jo_suggestions', 'get_audit_log', 'reset_demo', 'generate_nolap', 'get_spm_checklist', 'provision_drive_folder', 'get_workload_analytics', 'get_job_detail', 'init_billing_draft', 'update_billing_status']
 ]);
