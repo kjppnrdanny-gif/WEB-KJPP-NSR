@@ -348,8 +348,8 @@
         </div>
 
         <!-- Table Container -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
+        <div class="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700">
+          <table class="w-full text-left border-collapse min-w-[1240px] text-xs">
             <thead>
               <tr class="bg-slate-950/70 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 <th class="py-3 px-4">No. Registrasi &amp; SPK</th>
@@ -357,8 +357,8 @@
                 <th class="py-3 px-4">Objek &amp; Lokasi Aset</th>
                 <th class="py-3 px-4">Tim Penilai (Pelaksana / SPM)</th>
                 <th class="py-3 px-4">Batas SLA Target</th>
-                <th class="py-3 px-4">Status 7 Milestone</th>
-                <th class="py-3 px-4 text-center">Aksi Cepat</th>
+                <th class="py-3 px-4 min-w-[210px]">Status 7 Milestone</th>
+                <th class="w-[190px] min-w-[190px] px-3 py-2 text-right">Aksi Cepat</th>
               </tr>
             </thead>
             <tbody id="task-board-tbody" class="divide-y divide-slate-800 text-slate-300">
@@ -2393,6 +2393,37 @@
       renderDynamicPartnerTabs();
     }
 
+    // Wrapper tombol Aksi Cepat Task Board
+    function handleKirimWA(idJo) {
+      const job = globalJobs.find(x => x.id_jo === idJo || x.jo_number === idJo || x.id === idJo);
+      if (job) {
+        kirimWaKodeLacak(job.id);
+      } else {
+        kirimWaKodeLacak(idJo);
+      }
+    }
+    window.handleKirimWA = handleKirimWA;
+
+    function handleMajukanTahap(idJo) {
+      const job = globalJobs.find(x => x.id_jo === idJo || x.jo_number === idJo || x.id === idJo);
+      if (job) {
+        bukaModalUpdateMilestone(job.id);
+      } else {
+        bukaModalUpdateMilestone(idJo);
+      }
+    }
+    window.handleMajukanTahap = handleMajukanTahap;
+
+    function bukaModalDetail(idJo) {
+      const job = globalJobs.find(x => x.id_jo === idJo || x.jo_number === idJo || x.id === idJo);
+      if (job) {
+        bukaModalTracking(job.id);
+      } else {
+        bukaModalTracking(idJo);
+      }
+    }
+    window.bukaModalDetail = bukaModalDetail;
+
     // Render Table Task Board
     function renderTaskBoard(jobs) {
       const tbody = document.getElementById('task-board-tbody');
@@ -2481,26 +2512,29 @@
               </span>
               <span class="block text-[10px] text-slate-400 font-mono mt-0.5">Target: ${j.sla_deadline}</span>
             </td>
-            <td class="py-3 px-4">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] border ${mPillClass}">
-                <strong class="font-mono">${j.current_milestone}</strong>: ${j.current_milestone_title}
-              </span>
-              <div class="w-28 bg-slate-800 rounded-full h-1.5 mt-1.5 overflow-hidden">
+            <td class="py-3 px-4 min-w-[210px]">
+              <!-- Badge Milestone Anti-Patah (whitespace-nowrap) -->
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap ${mPillClass}">
+                <span class="font-bold font-mono">${j.current_milestone}</span>
+                <span class="text-slate-400">|</span>
+                <span class="truncate max-w-[180px]">${j.current_milestone_title}</span>
+              </div>
+              <div class="w-32 bg-slate-800 rounded-full h-1.5 mt-1.5 overflow-hidden">
                 <div class="${isDone ? "bg-emerald-500" : "bg-amber-400"} h-1.5 rounded-full transition-all" style="width: ${j.progress_percent}%;"></div>
               </div>
-              <div class="flex items-center justify-between text-[9px] mt-0.5">
+              <div class="flex items-center justify-between text-[9px] mt-1 w-32">
                 <span class="font-mono text-slate-400">${j.progress_percent}%</span>
-                <span class="text-amber-300 font-semibold truncate max-w-[130px]" title="PIC Tahap: ${getPicAssignment(j.current_milestone, j).name}">PIC: ${getPicAssignment(j.current_milestone, j).name}</span>
+                <span class="text-amber-300 font-semibold truncate max-w-[90px]" title="PIC Tahap: ${getPicAssignment(j.current_milestone, j).name}">PIC: ${getPicAssignment(j.current_milestone, j).name}</span>
               </div>
               ${(() => {
                 const count = j.market_data_count || (j.data_pembanding ? (Array.isArray(j.data_pembanding) ? j.data_pembanding.length : Object.keys(j.data_pembanding).length) : 0);
                 const isComplete = j.market_data_complete || count >= 3;
                 if (count > 0 || ['M-03', 'M-04', 'M-05'].includes(j.current_milestone)) {
                   return `
-                    <div class="mt-1">
-                      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-semibold ${isComplete ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}" title="${isComplete ? '3 Data Pembanding Terverifikasi Lengkap' : count + ' Data Terkumpul (Minimal 3 sesuai SPI 105)'}">
+                    <div class="mt-1.5">
+                      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-semibold whitespace-nowrap ${isComplete ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}" title="${isComplete ? 'Data Pembanding Terverifikasi Lengkap' : count + ' Data Terkumpul (Minimal 3 sesuai SPI 105)'}">
                         <span>${isComplete ? '✅' : '📊'}</span>
-                        <span>Data Pasar: ${count}/3 ${isComplete ? 'Lengkap' : 'Terkumpul'}</span>
+                        <span>Data Pasar: ${count} ${isComplete ? 'Lengkap' : 'Terkumpul'}</span>
                       </span>
                     </div>
                   `;
@@ -2509,54 +2543,42 @@
               })()}
             
               ${(j.is_bottleneck || (j.bottleneck_warning && j.bottleneck_warning.length > 0)) ? `
-                <div class="mt-1">
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40" title="${j.bottleneck_warning || 'Tersendat melebihi SLA'}">
+                <div class="mt-1.5">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-bold whitespace-nowrap bg-rose-500/20 text-rose-300 border border-rose-500/40" title="${j.bottleneck_warning || 'Tersendat melebihi SLA'}">
                     <span>⚠️</span>
                     <span>${j.bottleneck_warning || 'Tersendat di ' + j.current_milestone}</span>
                   </span>
                 </div>
               ` : ''}
             </td>
-            <td class="py-3 px-4 text-center whitespace-nowrap">
-              <div class="flex items-center justify-center gap-1.5">
-                <button type="button" onclick="bukaModalTracking('${j.id}')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white transition" title="Lihat 7 Milestone Stepper &amp; Riwayat Log">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                </button>
-                <button type="button" onclick="kirimWaKodeLacak('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold transition active:scale-95" title="Kirim Kode Lacak ke WhatsApp PIC Pemohon">
-                  <svg class="w-3.5 h-3.5 fill-current text-emerald-400" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
-                  <span class="hidden xl:inline">Kirim WA</span>
-                </button>
-                ${(isDone || j.current_milestone === 'M-07') ? `
-                  <button type="button" onclick="kabariPemberiTugasLaporanSelesai('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[10px] font-bold transition active:scale-95" title="Kabari Pemberi Tugas: Laporan Selesai &amp; NoLap Terbit">
-                    <svg class="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    <span class="hidden xl:inline">Laporan Selesai</span>
+            <!-- Kolom AKSI CEPAT Kompak & Anti-Potong -->
+            <td class="w-[190px] min-w-[190px] px-3 py-2 text-right">
+              <div class="flex flex-col gap-1.5 items-end">
+                <!-- Baris 1: Tombol Operasional Utama -->
+                <div class="flex items-center gap-1 w-full justify-end">
+                  <button onclick="handleKirimWA('${job.id_jo}')" title="Kirim Pesan WhatsApp" class="px-2 py-1 bg-emerald-600/90 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded inline-flex items-center gap-1 shadow-sm transition-all cursor-pointer active:scale-95">
+                    <span>💬 WA</span>
                   </button>
-                  <button type="button" onclick="bukaDrafKwitansiPenagihan('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold transition active:scale-95 cursor-pointer" title="Terbitkan Draf Kwitansi Penagihan ke Portal Keuangan">
-                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span class="hidden xl:inline">🧾 Kwitansi</span>
+                  ${!isDone ? `
+                    <button onclick="handleMajukanTahap('${job.id_jo}')" title="Majukan Milestone" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold rounded inline-flex items-center gap-1 shadow-sm transition-all cursor-pointer active:scale-95">
+                      <span>Majukan ➔</span>
+                    </button>
+                  ` : `
+                    <span class="px-2 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold rounded">Tuntas ✓</span>
+                  `}
+                </div>
+                <!-- Baris 2: Tombol Alat Teknis & Lapangan -->
+                <div class="flex items-center gap-1 w-full justify-end">
+                  <button onclick="bukaModalDetail('${job.id_jo}')" title="Lihat Status &amp; Detail" class="p-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded text-xs transition-all cursor-pointer active:scale-95">
+                    👁️
                   </button>
-                ` : ''}
-                <!-- Tombol Permanen Data Pasar Pembanding -->
-                <button type="button" onclick="bukaModalDataPembanding('${job.id_jo}')" title="Lihat Data Pasar Pembanding" class="px-2 py-1 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 rounded text-xs font-medium inline-flex items-center gap-1 transition cursor-pointer active:scale-95">
-                  <span>📊 Data Pasar</span>
-                </button>
-                <button type="button" onclick="bukaModalQrPenugasan('${job.id_jo}')" title="Scan QR Akses Mobile Surveyor" class="px-2 py-1 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 rounded text-xs font-medium inline-flex items-center gap-1 transition-colors active:scale-95 cursor-pointer">
-                  <span>📱 QR</span>
-                </button>
-                ${(['M-05', 'M-06', 'M-07'].includes(j.current_milestone) || j.spm_checklist_data) ? `
-                  <button type="button" onclick="cetakLembarSPM('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold transition active:scale-95" title="Cetak Lembar Kendali Mutu SPM (PDF)">
-                    <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span class="hidden 2xl:inline">Lembar SPM</span>
+                  <button onclick="bukaModalDataPembanding('${job.id_jo}')" title="Data Pasar Pembanding SPI 105" class="px-2 py-1 bg-indigo-950 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 rounded text-[11px] font-medium inline-flex items-center gap-1 transition-all cursor-pointer active:scale-95">
+                    <span>📊 Pasar</span>
                   </button>
-                ` : ''}
-                ${!isDone ? `
-                  <button type="button" onclick="bukaModalUpdateMilestone('${j.id}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-bold transition active:scale-95" title="Menaikkan Milestone (Otorisasi NIK + PIN)">
-                    <span>Majukan</span>
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                  <button onclick="bukaModalQrPenugasan('${job.id_jo}')" title="Scan QR Mobile Surveyor" class="px-2 py-1 bg-cyan-950 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 rounded text-[11px] font-medium inline-flex items-center gap-1 transition-all cursor-pointer active:scale-95">
+                    <span>📱 QR</span>
                   </button>
-                ` : `
-                  <span class="text-[10px] text-emerald-400 font-bold px-2 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20">Tuntas</span>
-                `}
+                </div>
               </div>
             </td>
           </tr>
