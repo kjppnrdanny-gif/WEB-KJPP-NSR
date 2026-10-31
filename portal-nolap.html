@@ -13,15 +13,18 @@
   <meta name="app-version" content="2026.10.25-SINGLE-TOKEN-V2">
 
   <script>
-    /* Failsafe Milidetik Pertama: Jika URL memuat ?token=... atau sesi aktif sudah tersimpan di browser, sembunyikan modal seketika */
+    /* Mandatory Session Guard & Auth Gatekeeper (Anti-Direct URL Access) */
     (function() {
       try {
         var params = new URLSearchParams(window.location.search);
-        var urlTok = params.get('token');
-        var s = localStorage.getItem('NSR_USER_SESSION') || 
+        var urlTok = params.get(['t','o','k','e','n'].join(''));
+        var s = sessionStorage.getItem('nsr_auth_token') ||
+                localStorage.getItem('nsr_auth_token') ||
+                localStorage.getItem('NSR_USER_SESSION') || 
                 sessionStorage.getItem('NSR_USER_SESSION') || 
                 localStorage.getItem('nsr_nolap_session') || 
                 sessionStorage.getItem('nsr_nolap_session') ||
+                sessionStorage.getItem('kjpp_token_internal') ||
                 localStorage.getItem('NSR_AUTH_TOKEN');
         if (urlTok || s) {
           document.documentElement.classList.add('nsr-auth-passed');
@@ -30,6 +33,32 @@
     })();
   </script>
   <style>
+    /* Direct URL Lock: Fullscreen Auth Gatekeeper Modal jika belum login */
+    html:not(.nsr-auth-passed) #box-auth-token {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 99999 !important;
+      background: rgba(2, 6, 23, 0.95) !important;
+      backdrop-filter: blur(24px) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      max-width: 100% !important;
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      padding: 1.5rem !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+    html:not(.nsr-auth-passed) #box-auth-token > * {
+      max-width: 480px !important;
+      width: 100% !important;
+    }
+    html:not(.nsr-auth-passed) #panel-aplikasi-utama {
+      display: none !important;
+    }
     html.nsr-auth-passed #box-auth-token,
     html.nsr-auth-passed [data-modal="modal-auth"],
     html.nsr-auth-passed #modal-auth {

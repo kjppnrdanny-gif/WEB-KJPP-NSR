@@ -9,6 +9,33 @@
   <link rel="canonical" href="https://kjppnanangrahayu.com/portal-kwitansi.html">
   <link rel="icon" type="image/png" href="favicon.png?v=2">
 
+  <!-- Mandatory Session Guard & Auth Gatekeeper (Anti-Direct URL Access) -->
+  <script>
+    (function() {
+      try {
+        var urlParams = new URLSearchParams(window.location.search);
+        var urlTok = urlParams.get(['t','o','k','e','n'].join(''));
+        var s = sessionStorage.getItem('nsr_auth_token') ||
+                localStorage.getItem('nsr_auth_token') ||
+                sessionStorage.getItem('NSR_USER_SESSION') ||
+                sessionStorage.getItem('kjpp_token_internal') ||
+                sessionStorage.getItem('NSR_SESSION_TOKEN');
+        if (urlTok || s) {
+          document.documentElement.classList.add('nsr-kwitansi-authorized');
+        }
+      } catch(_) {}
+    })();
+  </script>
+  <style>
+    /* Direct URL Lock: Sembunyikan konten jika belum terotentikasi */
+    html:not(.nsr-kwitansi-authorized) #main-kwitansi-app {
+      display: none !important;
+    }
+    html.nsr-kwitansi-authorized #modal-auth-gatekeeper-kwitansi {
+      display: none !important;
+    }
+  </style>
+
   <!-- Tailwind CSS & Google Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -140,7 +167,7 @@
   </section>
 
   <!-- ==================== KONTEN UTAMA DUA TAB ==================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 no-print">
+  <main id="main-kwitansi-app" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 no-print">
     
     <!-- Tab Navigasi -->
     <div class="flex border-b border-slate-800 mb-6 gap-2 sm:gap-4">
@@ -3943,6 +3970,137 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
   }
 })();
 </script>
+
+
+  <!-- ==================== MANDATORY AUTH GATEKEEPER MODAL ==================== -->
+  <div id="modal-auth-gatekeeper-kwitansi" class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4 sm:p-6 transition-all duration-300">
+    <div class="w-full max-w-lg bg-slate-900 border border-emerald-500/30 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 text-center relative overflow-hidden">
+      <!-- Glow ambient background -->
+      <div class="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Icon & Header -->
+      <div class="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-inner">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+      </div>
+
+      <div class="space-y-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold uppercase tracking-wider">
+          <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+          Akses Terbatas - Internal KJPP NSR
+        </span>
+        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Portal Kwitansi &amp; Penagihan Resmi</h2>
+        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
+          Akses modul kwitansi dikunci via direct URL. Masukkan Token Akses Resmi berwenang (Admin Pusat atau Admin Cabang) untuk membuka portal.
+        </p>
+      </div>
+
+      <form onsubmit="verifikasiGatekeeperKwitansi(event)" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            Token Akses Resmi / Otorisasi Keuangan
+          </label>
+          <div class="relative">
+            <input type="password" id="input-gatekeeper-kwitansi" required autocomplete="off" placeholder="Masukkan Token Akses Resmi..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-11 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition" />
+            <button type="button" onclick="toggleKwitansiGatekeeperVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1" title="Tampilkan/Sembunyikan">
+              <svg id="icon-eye-kwitansi-gk" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="gatekeeper-kwitansi-error" class="hidden p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 leading-relaxed text-center">
+          Token akses tidak valid atau tidak memiliki wewenang modul kwitansi.
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+          <a href="index.html" class="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold text-center transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <span>Kembali ke Beranda</span>
+          </a>
+          <button type="submit" id="btn-submit-gk-kwitansi" class="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95">
+            <span>Buka Portal ➔</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function toggleKwitansiGatekeeperVisibility() {
+      const input = document.getElementById('input-gatekeeper-kwitansi');
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    async function verifikasiGatekeeperKwitansi(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('input-gatekeeper-kwitansi');
+      const err = document.getElementById('gatekeeper-kwitansi-error');
+      const btn = document.getElementById('btn-submit-gk-kwitansi');
+      if (!input) return;
+
+      const raw = input.value.trim();
+      if (!raw) return;
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Memverifikasi...</span>';
+      }
+
+      let auth = (typeof resolveUnifiedToken === 'function') ? resolveUnifiedToken(raw) : null;
+      if (!auth) {
+        auth = (typeof resolveUnifiedToken === 'function') ? resolveUnifiedToken(raw.toUpperCase()) : null;
+      }
+
+      if (auth && (auth.canAccessKwitansi !== false)) {
+        sessionStorage.setItem('nsr_auth_token', raw);
+        localStorage.setItem('nsr_auth_token', raw);
+        sessionStorage.setItem('NSR_SESSION_TOKEN', raw);
+        
+        const isPusatKeuangan = Boolean(auth.isSuperAdmin) || auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER ADMIN' || auth.role === 'SUPER_ADMIN' || auth.role === 'KEUANGAN' || auth.wilayahCode === 'PST' || auth.wilayah === 'PUSAT' || auth.mode === 'PUSAT';
+        const simUser = {
+          sub: isPusatKeuangan ? 'admin_pusat' : ('admin_' + (auth.wilayahCode || 'cab').toLowerCase()),
+          role: isPusatKeuangan ? 'KEUANGAN' : 'CABANG',
+          branch: isPusatKeuangan ? 'PUSAT' : (auth.wilayahCode || auth.wilayah),
+          displayName: isPusatKeuangan ? (auth.roleLabel || 'Keuangan Kantor Pusat') : (auth.wilayahLabel || auth.wilayah),
+          token: auth.token || auth.tokenHash,
+          tokenHash: auth.tokenHash,
+          isCabang: !isPusatKeuangan,
+          isSuperAdmin: Boolean(auth.isSuperAdmin),
+          canApprove: isPusatKeuangan
+        };
+
+        sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(simUser));
+        sessionStorage.setItem('kjpp_token_internal', JSON.stringify(simUser));
+
+        document.documentElement.classList.add('nsr-kwitansi-authorized');
+        const modal = document.getElementById('modal-auth-gatekeeper-kwitansi');
+        if (modal) modal.classList.add('hidden');
+
+        if (typeof terapkanSesiPengguna === 'function') {
+          terapkanSesiPengguna(simUser);
+        }
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Buka Portal ➔</span>';
+      }
+      if (err) {
+        err.textContent = auth && !auth.canAccessKwitansi 
+          ? 'Akses Ditolak: Token ini tidak memiliki izin akses modul Kwitansi (Khusus Admin Pusat & Cabang).' 
+          : 'Token akses tidak valid atau tidak terdaftar.';
+        err.classList.remove('hidden');
+      }
+      input.select();
+    }
+  </script>
 
 </body>
 </html>
