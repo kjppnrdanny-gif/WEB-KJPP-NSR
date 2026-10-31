@@ -349,16 +349,16 @@
 
         <!-- Table Container -->
         <div class="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700">
-          <table class="w-full text-left border-collapse min-w-[1240px] text-xs">
+          <table class="w-full text-left border-collapse min-w-[1195px] text-xs">
             <thead>
               <tr class="bg-slate-950/70 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                <th class="py-3 px-4">No. Registrasi &amp; SPK</th>
-                <th class="py-3 px-4">Instansi &amp; Debitur</th>
-                <th class="py-3 px-4">Objek &amp; Lokasi Aset</th>
-                <th class="py-3 px-4">Tim Penilai (Pelaksana / SPM)</th>
-                <th class="py-3 px-4">Batas SLA Target</th>
-                <th class="py-3 px-4 min-w-[210px]">Status 7 Milestone</th>
-                <th class="w-[190px] min-w-[190px] px-3 py-2 text-right">Aksi Cepat</th>
+                <th class="w-[140px] min-w-[140px] px-3 py-3">No. Registrasi &amp; SPK</th>
+                <th class="w-[170px] min-w-[170px] px-3 py-3">Instansi &amp; Debitur</th>
+                <th class="max-w-[220px] px-3 py-3">Objek &amp; Lokasi Aset</th>
+                <th class="w-[150px] min-w-[150px] px-3 py-3 text-[11px]">Tim Penilai (Pelaksana / SPM)</th>
+                <th class="w-[120px] min-w-[120px] px-3 py-3 text-center">Batas SLA Target</th>
+                <th class="w-[210px] min-w-[210px] px-3 py-3">Status 7 Milestone</th>
+                <th class="w-[185px] min-w-[185px] pl-2 pr-4 py-3 text-right">Aksi Cepat</th>
               </tr>
             </thead>
             <tbody id="task-board-tbody" class="divide-y divide-slate-800 text-slate-300">
@@ -2477,7 +2477,7 @@
 
         html += `
           <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-3 px-4">
+            <td class="w-[140px] min-w-[140px] px-3 py-3">
               <strong class="font-mono text-white text-xs block">${j.jo_number}</strong>
               <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
                 ${j.kode_lacak ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-400/15 text-amber-300 border border-amber-400/30">${j.kode_lacak}</span>` : ''}
@@ -2491,28 +2491,28 @@
               <span class="text-[10px] text-slate-400 font-mono block">${j.spk_number || '-'}</span>
               <span class="block text-[9px] text-sky-400 font-medium">${j.kantor}</span>
             </td>
-            <td class="py-3 px-4">
+            <td class="w-[170px] min-w-[170px] px-3 py-3">
               <strong class="text-white block">${j.instansi}</strong>
               <span class="text-amber-300 font-medium">${j.debitur}</span>
               <span class="block text-[10px] text-slate-400">${j.unit_kerja || '-'}</span>
             </td>
-            <td class="py-3 px-4 max-w-xs">
+            <td class="max-w-[220px] px-3 py-3">
               <span class="text-slate-200 font-medium block truncate" title="${j.jenis_properti}">${j.jenis_properti}</span>
-              <span class="text-[10px] text-slate-400 block line-clamp-2" title="${j.lokasi_aset}">${j.lokasi_aset}</span>
+              <span class="line-clamp-2 text-slate-400 text-[11px] block" title="${j.lokasi_aset}">${j.lokasi_aset}</span>
             </td>
-            <td class="py-3 px-4">
+            <td class="w-[150px] min-w-[150px] px-3 py-3 text-[11px]">
               <span class="block text-slate-300"><span class="text-slate-500">Pelaksana:</span> ${j.penilai_pelaksana || j.surveyor || '-'}</span>
               <span class="block text-slate-400 text-[10px]"><span class="text-slate-500">SPM:</span> ${j.reviewer || j.reviewer_spm || '-'}</span>
               <span class="block text-slate-500 text-[9px]"><span class="text-slate-500">Izin:</span> ${j.penilai_publik ? j.penilai_publik.split('-')[0] : '-'}</span>
             </td>
-            <td class="py-3 px-4 whitespace-nowrap">
+            <td class="w-[120px] min-w-[120px] px-3 py-3 text-center whitespace-nowrap">
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] border ${slaBadgeClass}">
                 <span>${slaDot}</span>
                 <span>${slaLabelDisplay}</span>
               </span>
               <span class="block text-[10px] text-slate-400 font-mono mt-0.5">Target: ${j.sla_deadline}</span>
             </td>
-            <td class="py-3 px-4 min-w-[210px]">
+            <td class="w-[210px] min-w-[210px] px-3 py-3">
               <!-- Badge Milestone Anti-Patah (whitespace-nowrap) -->
               <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap ${mPillClass}">
                 <span class="font-bold font-mono">${j.current_milestone}</span>
@@ -2551,31 +2551,31 @@
                 </div>
               ` : ''}
             </td>
-            <!-- Kolom AKSI CEPAT Kompak & Anti-Potong -->
-            <td class="w-[190px] min-w-[190px] px-3 py-2 text-right">
-              <div class="flex flex-col gap-1.5 items-end">
-                <!-- Baris 1: Tombol Operasional Utama -->
-                <div class="flex items-center gap-1 w-full justify-end">
-                  <button onclick="handleKirimWA('${job.id_jo}')" title="Kirim Pesan WhatsApp" class="px-2 py-1 bg-emerald-600/90 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded inline-flex items-center gap-1 shadow-sm transition-all cursor-pointer active:scale-95">
+            <!-- Kolom AKSI CEPAT Kompak & Pas di Dalam Batas -->
+            <td class="w-[185px] min-w-[185px] pl-2 pr-4 py-3 text-right">
+              <div class="flex flex-col gap-1.5 items-end justify-center w-full">
+                <!-- Baris 1: WA & Majukan -->
+                <div class="flex items-center gap-1.5 justify-end w-full">
+                  <button onclick="handleKirimWA('${j.id_jo}')" title="Kirim WA Klien" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
                     <span>💬 WA</span>
                   </button>
                   ${!isDone ? `
-                    <button onclick="handleMajukanTahap('${job.id_jo}')" title="Majukan Milestone" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold rounded inline-flex items-center gap-1 shadow-sm transition-all cursor-pointer active:scale-95">
+                    <button onclick="handleMajukanTahap('${j.id_jo}')" title="Eskalasi Milestone" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold rounded shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
                       <span>Majukan ➔</span>
                     </button>
                   ` : `
                     <span class="px-2 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold rounded">Tuntas ✓</span>
                   `}
                 </div>
-                <!-- Baris 2: Tombol Alat Teknis & Lapangan -->
-                <div class="flex items-center gap-1 w-full justify-end">
-                  <button onclick="bukaModalDetail('${job.id_jo}')" title="Lihat Status &amp; Detail" class="p-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded text-xs transition-all cursor-pointer active:scale-95">
+                <!-- Baris 2: Alat Detail, Pasar, dan QR -->
+                <div class="flex items-center gap-1 justify-end w-full">
+                  <button onclick="bukaModalDetail('${j.id_jo}')" title="Detail Progres" class="p-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded text-xs transition-all cursor-pointer active:scale-95">
                     👁️
                   </button>
-                  <button onclick="bukaModalDataPembanding('${job.id_jo}')" title="Data Pasar Pembanding SPI 105" class="px-2 py-1 bg-indigo-950 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 rounded text-[11px] font-medium inline-flex items-center gap-1 transition-all cursor-pointer active:scale-95">
+                  <button onclick="bukaModalDataPembanding('${job.id_jo}')" title="Data Pasar SPI 105" class="px-2 py-0.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 rounded text-[11px] font-medium flex items-center gap-1 transition-all cursor-pointer active:scale-95">
                     <span>📊 Pasar</span>
                   </button>
-                  <button onclick="bukaModalQrPenugasan('${job.id_jo}')" title="Scan QR Mobile Surveyor" class="px-2 py-1 bg-cyan-950 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 rounded text-[11px] font-medium inline-flex items-center gap-1 transition-all cursor-pointer active:scale-95">
+                  <button onclick="bukaModalQrPenugasan('${job.id_jo}')" title="QR Surveyor Mobile" class="px-2 py-0.5 bg-cyan-950 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 rounded text-[11px] font-medium flex items-center gap-1 transition-all cursor-pointer active:scale-95">
                     <span>📱 QR</span>
                   </button>
                 </div>
