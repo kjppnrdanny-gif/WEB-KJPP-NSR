@@ -317,6 +317,27 @@
     <!-- ==================== TAB 1: TASK BOARD TABLE ==================== -->
     <section id="panel-tab-board" class="space-y-4">
 
+      <!-- SMART LANDING QUEUE (SISTEM LAPIS 2 BERBASIS PIC NIK PERSONAL) -->
+      <div id="smart-queue-container" class="rounded-2xl border border-slate-800 bg-slate-900/90 p-3 sm:p-4 shadow-lg backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <button type="button" id="tab-queue-my-tasks" onclick="setQueueTab('my_tasks')"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 cursor-pointer shadow-md bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 border border-amber-300 whitespace-nowrap active:scale-95">
+            <span>📌 Tugas Saya (PIC Terdaftar)</span>
+            <span id="badge-my-tasks-count" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-slate-950/80 text-amber-300 border border-amber-400/30">0</span>
+          </button>
+          <button type="button" id="tab-queue-all-tasks" onclick="setQueueTab('all_tasks')"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 whitespace-nowrap active:scale-95">
+            <span>🌐 Semua Penugasan Cabang/Nasional</span>
+            <span id="badge-all-tasks-count" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-slate-900 text-slate-400">0</span>
+          </button>
+        </div>
+
+        <div id="queue-filter-info" class="text-xs text-slate-400 font-medium flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="queue-filter-info-text">Menyaring berkas sesuai Surat Tugas PIC Anda</span>
+        </div>
+      </div>
+
       <!-- FILTER MITRA & KENDALI STATUS (NON-REGRESSION TOOLBAR) -->
       <div id="dynamic-partner-filter-bar" class="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-lg backdrop-blur-md">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -1801,6 +1822,231 @@
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script>
     let globalJobs = [];
+    let currentQueueTab = 'my_tasks'; // Default aktif: Antrean Tugas Saya (PIC Terdaftar)
+
+    // Kamus 48 Personel Resmi KJPP NSR untuk Validasi Identitas Personal Lapis 2
+    const ROSTER_PEGAWAI_NSR = [{"nik":"NSR-2019-001","nama":"Nanang Rahayu","jabatan":"Pemimpin Rekan","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-002","nama":"Deni Siswandi","jabatan":"Rekan","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-003","nama":"Mini Intan Cahyani","jabatan":"Rekan","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-004","nama":"Milda Hidayati Dewi","jabatan":"Manager Keuangan","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-005","nama":"Danny Taufik Hidayat","jabatan":"Manager Admin & Umum","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-006","nama":"Arie Indra Permana","jabatan":"Manager Marketing","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-007","nama":"Tedi Setiadi","jabatan":"Reviewer","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-008","nama":"Ricca Noer Farikha","jabatan":"Accounting & Tax","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-009","nama":"Angga Malid Cahyadi","jabatan":"Reviewer","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-010","nama":"Fadri Nurdin","jabatan":"Surveyor","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-011","nama":"Erwandi","jabatan":"Kurir","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-012","nama":"Latief Satihi","jabatan":"Kurir","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-013","nama":"Aryanto","jabatan":"Umum","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-014","nama":"Yanto","jabatan":"Driver","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-015","nama":"Lasiman","jabatan":"Driver","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-016","nama":"Sukirno","jabatan":"Office Boy","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-017","nama":"Muhammad Syahrul Ruly","jabatan":"Surveyor","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-018","nama":"Uci Sanusi","jabatan":"Surveyor","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-019","nama":"Yasir Rizal","jabatan":"Surveyor","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-020","nama":"Udin Syamsudin","jabatan":"Security","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2025-021","nama":"Dhea Shafitri Ningrum","jabatan":"Staf Admin","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2026-022","nama":"Siti Nuraeni Ependi","jabatan":"Staf Admin","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-PDG-2019-23","nama":"Hernita","jabatan":"Rekan","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-24","nama":"Rahmad Andika","jabatan":"Penilai","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-25","nama":"Muhammad Al Amin","jabatan":"Penilai","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-26","nama":"Rien Soneta","jabatan":"Admin Keuangan","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-27","nama":"Kiki Yeza","jabatan":"Tenaga Suporting","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-28","nama":"Siti Syarah","jabatan":"Admin","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-29","nama":"Oki Oktianil Putra","jabatan":"Tenaga Suporting","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-MKS-2019-30","nama":"Muhammad Amin Sade","jabatan":"Rekan","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2019-31","nama":"Wawan Kurniawan","jabatan":"Penilai","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2019-32","nama":"Alauddin Amin","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2020-33","nama":"M Fajrullah Danial","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2021-34","nama":"Rahmad Dwi Susanto","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2020-35","nama":"Andika Rifky Rifaldy","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2019-36","nama":"Ilyas Tandialla","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2019-37","nama":"Arman Mustajab","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-BDG-2020-38","nama":"Heru Kurnia","jabatan":"Business Development","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-39","nama":"Ardi Nurmayadi","jabatan":"Penilai","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-40","nama":"Andri Kusmandana","jabatan":"Penilai","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-41","nama":"Tiara Hurairah","jabatan":"Admin Keuangan","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-42","nama":"Achmad Ilham Fauzan","jabatan":"Admin","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-43","nama":"Rahmat Muhammad Hussein","jabatan":"Surveyor","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-PLB-2022-44","nama":"Dharma Priyanto Sih Budi Susilo","jabatan":"Rekan","kantor":"Cabang Palembang","cabang":"Cabang Palembang"},{"nik":"NSR-PLB-2022-45","nama":"Rafdinal Ardhi","jabatan":"Penilai","kantor":"Cabang Palembang","cabang":"Cabang Palembang"},{"nik":"NSR-PLB-2022-46","nama":"Arwin Saputra","jabatan":"Surveyor","kantor":"Cabang Palembang","cabang":"Cabang Palembang"},{"nik":"NSR-PLB-2022-47","nama":"Hadyan Fikhri","jabatan":"Surveyor","kantor":"Cabang Palembang","cabang":"Cabang Palembang"},{"nik":"NSR-PLB-2022-48","nama":"M.Deo Tansila Putra","jabatan":"Admin","kantor":"Cabang Palembang","cabang":"Cabang Palembang"}];
+
+    // Auto-detect & Feedback NIK Karyawan pada Modal Gatekeeper
+    function handleGatekeeperNikInput(val) {
+      const clean = (val || '').trim().toUpperCase();
+      const previewEl = document.getElementById('gatekeeper-nik-detected');
+      const namaPreview = document.getElementById('gatekeeper-nik-nama-preview');
+
+      if (!clean) {
+        if (previewEl) previewEl.classList.add('hidden');
+        return;
+      }
+
+      const found = ROSTER_PEGAWAI_NSR.find(k => k.nik.toUpperCase() === clean);
+      if (found) {
+        if (namaPreview) namaPreview.textContent = found.nama;
+        if (previewEl) previewEl.classList.remove('hidden');
+
+        // Jika input token belum diisi, otomatis sarankan token sesuai jabatan
+        const tokenInput = document.getElementById('gatekeeper-token-input');
+        if (tokenInput && !tokenInput.value) {
+          const jabUpper = (found.jabatan || '').toUpperCase();
+          if (jabUpper.includes('SURVEYOR')) {
+            tokenInput.placeholder = 'Disarankan: NSR-SRV-2026';
+          } else if (jabUpper.includes('REVIEWER')) {
+            tokenInput.placeholder = 'Disarankan: NSR-REV-2026';
+          } else if (jabUpper.includes('REKAN') || jabUpper.includes('PEMIMPIN')) {
+            tokenInput.placeholder = 'Kunci Induk Master';
+          }
+        }
+      } else {
+        if (previewEl) previewEl.classList.add('hidden');
+      }
+    }
+    window.handleGatekeeperNikInput = handleGatekeeperNikInput;
+
+    // Auto-fill NIK untuk Super Admin Master (NSR8899)
+    function handleGatekeeperTokenInput(val) {
+      const clean = (val || '').trim().toUpperCase();
+      const nikInput = document.getElementById('gatekeeper-nik-input');
+      const TOKEN_SUPER = ['NSR', '8899'].join('');
+
+      if (clean === TOKEN_SUPER) {
+        if (nikInput) {
+          nikInput.value = 'NSR-2019-001';
+          handleGatekeeperNikInput('NSR-2019-001');
+        }
+      }
+    }
+    window.handleGatekeeperTokenInput = handleGatekeeperTokenInput;
+
+    // Helper Pencocokan PIC Penugasan (Sistem Lapis 2)
+    function isPicMatch(job, role, nik, nama) {
+      if (!job) return false;
+      const cleanNik = (nik || '').trim().toUpperCase();
+      const cleanNama = (nama || '').trim().toLowerCase();
+      const roleUpper = (role || '').trim().toUpperCase();
+
+      // Super Admin Master: Pengawasan penuh seluruh penugasan
+      if (roleUpper === 'SUPER ADMIN' || roleUpper === 'SUPER_ADMIN' || cleanNik === 'NSR-2019-001') {
+        return true;
+      }
+
+      // Admin Kantor Wilayah: Seluruh berkas di yurisdiksinya
+      if (['ADMIN_PUSAT', 'ADMIN_CABANG', 'PIC_CABANG', 'KEPALA_CABANG'].includes(roleUpper)) {
+        return true;
+      }
+
+      function isTextMatch(targetText, targetNik) {
+        if (cleanNik && targetNik && String(targetNik).trim().toUpperCase() === cleanNik) return true;
+        if (!cleanNama || !targetText) return false;
+        const t = String(targetText).toLowerCase().trim();
+        if (t === cleanNama || t.includes(cleanNama) || cleanNama.includes(t)) return true;
+        const words = cleanNama.split(/[\s,.]+/).filter(w => w.length >= 3 && !['dan','st','se','ir','sh','dr','pt'].includes(w));
+        return words.some(w => t.includes(w));
+      }
+
+      if (roleUpper === 'SURVEYOR') {
+        return isTextMatch(job.surveyor, job.pic_surveyor_nik) ||
+               isTextMatch(job.penilai_pelaksana, job.pic_pelaksana_nik) ||
+               isTextMatch(job.pic_surveyor, job.surveyor_nik);
+      }
+
+      if (roleUpper === 'PENILAI_PELAKSANA' || roleUpper === 'ANALIS') {
+        return isTextMatch(job.penilai_pelaksana, job.pic_penilai_nik) ||
+               isTextMatch(job.analis, job.pic_analis_nik) ||
+               isTextMatch(job.surveyor, job.pic_surveyor_nik);
+      }
+
+      if (roleUpper === 'REVIEWER_SPM' || roleUpper === 'PENGENDALI_MUTU') {
+        return isTextMatch(job.reviewer || job.reviewer_spm, job.pic_reviewer_nik);
+      }
+
+      if (roleUpper === 'PENILAI_PUBLIK') {
+        return isTextMatch(job.penilai_publik, job.pic_penilai_publik_nik);
+      }
+
+      return isTextMatch(job.surveyor) || isTextMatch(job.penilai_pelaksana) || isTextMatch(job.reviewer);
+    }
+    window.isPicMatch = isPicMatch;
+
+    // Helper Validasi Hak Eksekusi PIC per Tahapan Aktif
+    function cekPicWewenangEksekutor(job, currentMilestone, currentProfile) {
+      if (!job) return { diizinkan: false, pic: '-' };
+      const profile = currentProfile || window.stateApp?.currentProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
+      const token = (profile?.token || '').trim();
+      const roleUpper = (profile?.role || '').trim().toUpperCase();
+      const activeNik = (profile?.nik || '').trim().toUpperCase();
+      const activeNama = (profile?.nama || '').trim().toLowerCase();
+
+      // Super Admin Master: Bypass Penuh
+      if (token === ['NSR', '8899'].join('') || roleUpper === 'SUPER ADMIN' || activeNik === 'NSR-2019-001') {
+        return { diizinkan: true };
+      }
+
+      const picInfo = (typeof getPicAssignment === 'function') ? getPicAssignment(currentMilestone, job) : { name: '-' };
+      const namaPicTerdaftar = picInfo.name || '-';
+
+      function isUserMatch(targetNama, targetNik) {
+        if (activeNik && targetNik && String(targetNik).trim().toUpperCase() === activeNik) return true;
+        if (!activeNama || !targetNama) return false;
+        const t = String(targetNama).toLowerCase().trim();
+        if (t === activeNama || t.includes(activeNama) || activeNama.includes(t)) return true;
+        const words = activeNama.split(/[\s,.]+/).filter(w => w.length >= 3 && !['dan','st','se','ir','sh','dr','pt'].includes(w));
+        return words.some(w => t.includes(w));
+      }
+
+      // M-01 & M-02: Wewenang Admin Kantor
+      if (currentMilestone === 'M-01' || currentMilestone === 'M-02') {
+        if (['ADMIN_PUSAT', 'ADMIN_CABANG', 'PIC_CABANG'].includes(roleUpper)) {
+          return { diizinkan: true, pic: namaPicTerdaftar };
+        }
+        return { diizinkan: false, pic: 'Admin Operasional Kantor' };
+      }
+
+      // M-03: PIC Lapangan (Surveyor / Pelaksana yang ditugaskan)
+      if (currentMilestone === 'M-03') {
+        const isSurveyorMatch = isUserMatch(job.surveyor, job.pic_surveyor_nik) ||
+                                isUserMatch(job.penilai_pelaksana, job.pic_pelaksana_nik) ||
+                                isUserMatch(namaPicTerdaftar);
+        if (isSurveyorMatch) {
+          return { diizinkan: true, pic: namaPicTerdaftar };
+        }
+        return { diizinkan: false, pic: namaPicTerdaftar };
+      }
+
+      // M-04: PIC Analisis (Penilai Pelaksana yang ditugaskan)
+      if (currentMilestone === 'M-04') {
+        const isPenilaiMatch = isUserMatch(job.penilai_pelaksana, job.pic_penilai_nik) ||
+                               isUserMatch(job.analis, job.pic_analis_nik) ||
+                               isUserMatch(namaPicTerdaftar);
+        if (isPenilaiMatch) {
+          return { diizinkan: true, pic: namaPicTerdaftar };
+        }
+        return { diizinkan: false, pic: namaPicTerdaftar };
+      }
+
+      // M-05: PIC Kendali Mutu (Reviewer SPM yang ditugaskan)
+      if (currentMilestone === 'M-05') {
+        const isReviewerMatch = isUserMatch(job.reviewer || job.reviewer_spm, job.pic_reviewer_nik) ||
+                                isUserMatch(namaPicTerdaftar);
+        if (isReviewerMatch) {
+          return { diizinkan: true, pic: namaPicTerdaftar };
+        }
+        return { diizinkan: false, pic: namaPicTerdaftar };
+      }
+
+      // M-06: PIC Otorisasi (Penilai Publik yang ditugaskan)
+      if (currentMilestone === 'M-06') {
+        const isAppraiserMatch = isUserMatch(job.penilai_publik, job.pic_penilai_publik_nik) ||
+                                 isUserMatch(namaPicTerdaftar);
+        if (isAppraiserMatch) {
+          return { diizinkan: true, pic: namaPicTerdaftar };
+        }
+        return { diizinkan: false, pic: namaPicTerdaftar };
+      }
+
+      // M-07: PIC Distribusi (Admin Kantor)
+      if (currentMilestone === 'M-07') {
+        if (['ADMIN_PUSAT', 'ADMIN_CABANG', 'PIC_CABANG'].includes(roleUpper)) {
+          return { diizinkan: true, pic: namaPicTerdaftar };
+        }
+        return { diizinkan: false, pic: 'Admin Pengiriman Laporan' };
+      }
+
+      return { diizinkan: false, pic: namaPicTerdaftar };
+    }
+    window.cekPicWewenangEksekutor = cekPicWewenangEksekutor;
+
+    // Tab Switcher Antrean Penugasan (Smart Landing Queue)
+    function setQueueTab(tab) {
+      currentQueueTab = tab; if (window.stateApp) { window.stateApp.activeQueueTab = tab; }
+      const btnMy = document.getElementById('tab-queue-my-tasks');
+      const btnAll = document.getElementById('tab-queue-all-tasks');
+      const infoText = document.getElementById('queue-filter-info-text');
+
+      if (tab === 'my_tasks') {
+        if (btnMy) {
+          btnMy.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 cursor-pointer shadow-md bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 border border-amber-300 whitespace-nowrap active:scale-95';
+        }
+        if (btnAll) {
+          btnAll.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 whitespace-nowrap active:scale-95';
+        }
+        if (infoText) {
+          infoText.textContent = `Menyaring berkas khusus PIC: ${currentUserSession?.nama || 'Anda'}`;
+        }
+      } else {
+        if (btnMy) {
+          btnMy.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 whitespace-nowrap active:scale-95';
+        }
+        if (btnAll) {
+          btnAll.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 cursor-pointer shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white border border-blue-400 whitespace-nowrap active:scale-95';
+        }
+        if (infoText) {
+          infoText.textContent = 'Menampilkan seluruh penugasan cabang/nasional';
+        }
+      }
+
+      executeJobFiltering();
+    }
+    window.setQueueTab = setQueueTab;
+
     let activeJob = null;
     let joSuggestions = [];
 
@@ -2061,6 +2307,10 @@
     function keluarSesiTracking() {
       try {
         sessionStorage.removeItem('nsr_tracking_auth_token');
+        sessionStorage.removeItem('nsr_active_user_nik');
+        sessionStorage.removeItem('nsr_active_user_name');
+        sessionStorage.removeItem('nsr_active_user_role');
+        sessionStorage.removeItem('nsr_active_user_jabatan');
         sessionStorage.removeItem('nsr_auth_token');
         sessionStorage.removeItem('NSR_SESSION_TOKEN');
       } catch (_) {}
@@ -2090,6 +2340,17 @@
       if (inputEl) {
         inputEl.value = '';
         inputEl.focus();
+      }
+
+      const inputNikEl = document.getElementById('gatekeeper-nik-input');
+      if (inputNikEl) {
+        inputNikEl.value = '';
+      }
+
+      const nikDetected = document.getElementById('gatekeeper-nik-detected');
+      if (nikDetected) {
+        nikDetected.textContent = '';
+        nikDetected.classList.add('hidden');
       }
 
       const errorMsg = document.getElementById('gatekeeper-error-msg');
@@ -2138,38 +2399,66 @@
         event.stopPropagation();
       }
 
-      const inputEl = document.getElementById('gatekeeper-token-input');
+      const inputTokenEl = document.getElementById('gatekeeper-token-input');
+      const inputNikEl = document.getElementById('gatekeeper-nik-input');
       const btnSubmit = document.getElementById('btn-submit-gatekeeper');
       const errEl = document.getElementById('gatekeeper-error-msg');
 
       if (errEl) errEl.classList.add('hidden');
 
-      const rawInput = (inputEl ? inputEl.value : '').trim();
-      if (!rawInput) {
+      const rawToken = (inputTokenEl ? inputTokenEl.value : '').trim();
+      const rawNik = (inputNikEl ? inputNikEl.value : '').trim().toUpperCase();
+
+      if (!rawToken) {
         tampilkanErrorGatekeeper('Silakan masukkan Token Akses Resmi KJPP NSR.');
-        if (inputEl) inputEl.focus();
+        if (inputTokenEl) inputTokenEl.focus();
         return;
       }
 
       if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<span>Memverifikasi...</span>';
+        btnSubmit.innerHTML = '<span>Memverifikasi Otorisasi Lapis 2...</span>';
       }
 
       try {
-        const profilValid = resolveTrackingToken(rawInput);
+        const profilValid = resolveTrackingToken(rawToken);
 
         if (!profilValid) {
           tampilkanErrorGatekeeper('Token otorisasi tidak valid atau tidak memiliki hak akses portal.');
-          if (inputEl) {
-            inputEl.select();
-            inputEl.focus();
+          if (inputTokenEl) {
+            inputTokenEl.select();
+            inputTokenEl.focus();
           }
           return;
         }
 
-        // Token Valid: Simpan HANYA ke sessionStorage khusus modul tracking
+        // Resolusi Identitas Personal Lapis 2
+        let eksekutorNik = rawNik;
+        let eksekutorNama = profilValid.nama;
+        let eksekutorJabatan = profilValid.jabatan;
+
+        // Auto-assign Super Admin Master
+        if (profilValid.token === ['NSR', '8899'].join('')) {
+          eksekutorNik = 'NSR-2019-001';
+          eksekutorNama = 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
+          eksekutorJabatan = 'Pemimpin Rekan & Pengendali Mutu';
+        } else if (rawNik) {
+          // Cari nama pegawai riil dari kamus roster
+          const foundKaryawan = ROSTER_PEGAWAI_NSR.find(k => k.nik.toUpperCase() === rawNik);
+          if (foundKaryawan) {
+            eksekutorNama = foundKaryawan.nama;
+            eksekutorJabatan = `${foundKaryawan.jabatan} (${profilValid.roleLabel})`;
+          } else {
+            eksekutorNama = `${profilValid.nama} [${rawNik}]`;
+          }
+        }
+
+        // Simpan sesi mandiri Lapis 2 ke sessionStorage
         sessionStorage.setItem('nsr_tracking_auth_token', profilValid.token);
+        sessionStorage.setItem('nsr_active_user_nik', eksekutorNik);
+        sessionStorage.setItem('nsr_active_user_name', eksekutorNama);
+        sessionStorage.setItem('nsr_active_user_role', profilValid.role);
+        sessionStorage.setItem('nsr_active_user_jabatan', eksekutorJabatan);
 
         // Tambahkan CSS class otorisasi
         document.documentElement.classList.add('nsr-tracking-authorized');
@@ -2262,22 +2551,18 @@
 
       if (!profilValid) {
         // KONDISI GAGAL / TANPA TOKEN (KOSONG):
-        // 1. Pastikan main-tracking-app TETAP display: none !important
         const appEl = document.getElementById('main-tracking-app');
         if (appEl) appEl.style.setProperty('display', 'none', 'important');
 
-        // 2. KOSONGKAN isi tabel agar tidak ada data perbankan yang dirender
         const tbody = document.getElementById('task-board-tbody');
         if (tbody) tbody.innerHTML = '';
 
-        // 3. TAMPILKAN modal penahan layar penuh (Modal Gatekeeper)
         const gatekeeper = document.getElementById('modal-auth-gatekeeper');
         if (gatekeeper) {
           gatekeeper.classList.remove('hidden');
           gatekeeper.style.display = 'flex';
         }
 
-        // 4. Reset Profil ke null
         currentUserSession = null;
         window.stateApp = window.stateApp || {};
         window.stateApp.currentUserProfile = null;
@@ -2288,23 +2573,29 @@
         return false;
       }
 
+      // Ambil identitas personal Lapis 2
+      const personalNik = sessionStorage.getItem('nsr_active_user_nik') || profilValid.nik || '';
+      const personalNama = sessionStorage.getItem('nsr_active_user_name') || profilValid.nama || 'Staf Internal';
+      const personalJabatan = sessionStorage.getItem('nsr_active_user_jabatan') || profilValid.jabatan || 'Staf Operasional';
+      const personalRole = sessionStorage.getItem('nsr_active_user_role') || profilValid.role || 'STAF';
+
       // KONDISI LOLOS / TOKEN SAH:
       currentUserSession = {
-        nik: profilValid.nik || '',
-        nama: profilValid.nama || profilValid.displayName || 'Staf Internal',
-        jabatan: profilValid.jabatan || profilValid.roleLabel || profilValid.role || 'Staf Operasional',
+        nik: personalNik,
+        nama: personalNama,
+        jabatan: personalJabatan,
         kantor: profilValid.wilayah || 'Kantor Pusat Jakarta',
         cabang: profilValid.wilayah || 'Kantor Pusat Jakarta',
         branch_code: profilValid.wilayahCode || (profilValid.isCabang ? 'CAB' : 'PUSAT'),
         is_central: !profilValid.isCabang,
         access_level: profilValid.access_level || (profilValid.isCabang ? 'BRANCH_ISOLATED' : 'NATIONWIDE_FULL_ACCESS'),
         token: profilValid.token,
-        role: profilValid.role
+        role: personalRole
       };
 
       window.stateApp = window.stateApp || {};
       window.stateApp.currentUserProfile = currentUserSession;
-      window.stateApp.currentProfile = currentUserSession;
+      window.stateApp.currentProfile = currentUserSession; window.stateApp.activeQueueTab = currentQueueTab;
 
       // 1. Buka tampilan utama
       const appEl = document.getElementById('main-tracking-app');
@@ -2558,12 +2849,66 @@
 
     // Update KPI Header Cards
     function updateKPIStats(jobs) {
-      document.getElementById('stat-total-jobs').textContent = jobs.length;
+      const userProfile = window.stateApp?.currentUserProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
+      const userRole = (userProfile?.role || '').toUpperCase();
+      const userNik = userProfile?.nik || '';
+      const userNama = userProfile?.nama || '';
+
+      const totalEl = document.getElementById('stat-total-jobs');
+      const m04El = document.getElementById('stat-m04-jobs');
+      const spmEl = document.getElementById('stat-spm-jobs');
+      const completedEl = document.getElementById('stat-completed-jobs');
+      const officeBreakdown = document.getElementById('stat-office-breakdown');
+
+      if (!jobs || !Array.isArray(jobs)) return;
+
+      if (userRole === 'SURVEYOR') {
+        // KPI Kontekstual Surveyor: Fokus M-03 (Inspeksi Fisik)
+        const myJobs = jobs.filter(j => isPicMatch(j, 'SURVEYOR', userNik, userNama));
+        const myM03 = myJobs.filter(j => j.current_milestone === 'M-03');
+        const myCompletedSurvei = myJobs.filter(j => ['M-04','M-05','M-06','M-07'].includes(j.current_milestone) || j.sla_status === 'completed');
+
+        if (totalEl) totalEl.textContent = myJobs.length;
+        if (m04El) m04El.textContent = myM03.length;
+        if (spmEl) spmEl.textContent = myCompletedSurvei.length;
+        if (completedEl) completedEl.textContent = myJobs.filter(j => j.sla_status === 'completed').length;
+        if (officeBreakdown) officeBreakdown.textContent = `PIC Lapangan: ${userProfile?.nama || 'Surveyor'}`;
+        return;
+      }
+
+      if (userRole === 'PENILAI_PELAKSANA' || userRole === 'ANALIS') {
+        // KPI Kontekstual Analis: Fokus M-04 (Kalkulasi Nilai)
+        const myJobs = jobs.filter(j => isPicMatch(j, 'PENILAI_PELAKSANA', userNik, userNama));
+        const myM04 = myJobs.filter(j => j.current_milestone === 'M-04');
+
+        if (totalEl) totalEl.textContent = myJobs.length;
+        if (m04El) m04El.textContent = myM04.length;
+        if (spmEl) spmEl.textContent = myJobs.filter(j => j.current_milestone === 'M-05').length;
+        if (completedEl) completedEl.textContent = myJobs.filter(j => j.sla_status === 'completed').length;
+        if (officeBreakdown) officeBreakdown.textContent = `PIC Analis: ${userProfile?.nama || 'Penilai'}`;
+        return;
+      }
+
+      if (userRole === 'REVIEWER_SPM' || userRole === 'PENGENDALI_MUTU') {
+        // KPI Kontekstual Reviewer: Fokus M-05 (Kendali Mutu SPM)
+        const spmM05 = jobs.filter(j => j.current_milestone === 'M-05');
+        const myReview = jobs.filter(j => isPicMatch(j, 'REVIEWER_SPM', userNik, userNama));
+
+        if (totalEl) totalEl.textContent = jobs.length;
+        if (m04El) m04El.textContent = jobs.filter(j => j.current_milestone === 'M-04').length;
+        if (spmEl) spmEl.textContent = spmM05.length;
+        if (completedEl) completedEl.textContent = jobs.filter(j => j.sla_status === 'completed').length;
+        if (officeBreakdown) officeBreakdown.textContent = `Telaah SPM Siap: ${spmM05.length} Berkas`;
+        return;
+      }
+
+      // Default: Metrik Agregat Global / Kantor Wilayah
+      if (totalEl) totalEl.textContent = jobs.length;
       let m04Count = 0;
       let spmCount = 0;
       let completedCount = 0;
-
       const offices = new Set();
+
       jobs.forEach(j => {
         if (j.kantor) offices.add(j.kantor);
         if (j.current_milestone === 'M-04') m04Count++;
@@ -2571,15 +2916,16 @@
         if (j.current_milestone === 'M-07' && j.sla_status === 'completed') completedCount++;
       });
 
-      document.getElementById('stat-m04-jobs').textContent = m04Count;
-      document.getElementById('stat-spm-jobs').textContent = spmCount;
-      document.getElementById('stat-completed-jobs').textContent = completedCount;
-      
-      const officeBreakdown = document.getElementById('stat-office-breakdown');
-      if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
-        officeBreakdown.textContent = `Wilayah: ${currentUserSession.kantor}`;
-      } else {
-        officeBreakdown.textContent = `${offices.size} Wilayah Aktif Terpantau`;
+      if (m04El) m04El.textContent = m04Count;
+      if (spmEl) spmEl.textContent = spmCount;
+      if (completedEl) completedEl.textContent = completedCount;
+
+      if (officeBreakdown) {
+        if (currentUserSession?.access_level === 'BRANCH_ISOLATED') {
+          officeBreakdown.textContent = `Wilayah: ${currentUserSession.kantor}`;
+        } else {
+          officeBreakdown.textContent = `${offices.size} Wilayah Aktif Terpantau`;
+        }
       }
     }
 
@@ -2688,30 +3034,52 @@
       const kantor = document.getElementById('filter-kantor')?.value || '';
 
       const jobs = globalJobs || [];
+      const userProfile = window.stateApp?.currentUserProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
+      const userRole = userProfile?.role || '';
+      const userNik = userProfile?.nik || '';
+      const userNama = userProfile?.nama || '';
+
+      // Hitung badge antrean secara live
+      const myCount = jobs.filter(j => isPicMatch(j, userRole, userNik, userNama)).length;
+      const allCount = jobs.length;
+
+      const badgeMy = document.getElementById('badge-my-tasks-count');
+      const badgeAll = document.getElementById('badge-all-tasks-count');
+      if (badgeMy) badgeMy.textContent = myCount;
+      if (badgeAll) badgeAll.textContent = allCount;
+
       const filtered = jobs.filter(job => {
-        // 0. Filter Khusus Berkas Tersendat / Overdue (Early Warning SPM)
+        // A. FILTER TAB ANTREAN (SMART QUEUE PIC TERDAFTAR)
+        if (currentQueueTab === 'my_tasks') {
+          if (!isPicMatch(job, userRole, userNik, userNama)) {
+            return false;
+          }
+        }
+
+        // B. Filter Khusus Berkas Tersendat / Overdue (Early Warning SPM)
         if (isFilterBottleneckOnly) {
           const isStuck = Boolean(job.is_bottleneck || job.sla_status === 'overdue' || (job.bottleneck_warning && job.bottleneck_warning.length > 0));
           if (!isStuck) return false;
         }
-        // 1. Filter Scope (Active vs All)
+
+        // C. Filter Scope (Active vs All)
         const isDone = (job.current_milestone === 'M-07' || job.milestone === 'M-07' || job.sla_status === 'completed' || job.status === 'SELESAI');
         if (activeScopeFilter === 'active' && isDone) return false;
 
-        // 2. Filter Partner
+        // D. Filter Partner
         if (selectedPartnerFilter !== 'ALL') {
           const partner = (job.pemberi_tugas || job.instansi || 'Non-Bank / Perorangan').trim();
           if (partner !== selectedPartnerFilter) return false;
         }
 
-        // 3. Filter Wilayah Kantor (Preserve Branch Isolation)
-        if (kantor && currentUserSession.access_level !== 'BRANCH_ISOLATED') {
+        // E. Filter Wilayah Kantor (Preserve Branch Isolation)
+        if (kantor && currentUserSession && currentUserSession.access_level !== 'BRANCH_ISOLATED') {
           let jCode = (job.kantor_code || '').toUpperCase();
           if (jCode === 'JKT') jCode = 'PUSAT';
           if (jCode !== kantor.toUpperCase()) return false;
         }
 
-        // 4. Filter Kotak Pencarian
+        // F. Filter Kotak Pencarian
         if (query) {
           const searchBlob = [
             job.jo_number,
@@ -2738,14 +3106,16 @@
 
       const countBadge = document.getElementById('badge-partner-count');
       if (countBadge) {
+        const queueLabel = (currentQueueTab === 'my_tasks') ? 'Tugas Saya (PIC)' : 'Semua Penugasan';
         if (selectedPartnerFilter === 'ALL') {
-          countBadge.textContent = `Menampilkan ${filtered.length} dari ${jobs.length} Penugasan`;
+          countBadge.textContent = `[${queueLabel}] Menampilkan ${filtered.length} dari ${jobs.length} Penugasan`;
         } else {
-          countBadge.textContent = `Mitra: ${selectedPartnerFilter} (${filtered.length} Berkas)`;
+          countBadge.textContent = `[${queueLabel}] Mitra: ${selectedPartnerFilter} (${filtered.length} Berkas)`;
         }
       }
 
       renderTaskBoard(filtered);
+      updateKPIStats(jobs);
     }
 
     /**
@@ -2826,13 +3196,18 @@
       const auth = (typeof resolveTrackingToken === 'function') ? resolveTrackingToken(activeToken) : null;
       if (!auth) return null;
 
+      const personalNik = sessionStorage.getItem('nsr_active_user_nik') || auth.nik || '';
+      const personalNama = sessionStorage.getItem('nsr_active_user_name') || auth.nama || 'Staf Operasional';
+      const personalJabatan = sessionStorage.getItem('nsr_active_user_jabatan') || auth.jabatan || auth.roleLabel || 'Staf Operasional';
+      const personalRole = sessionStorage.getItem('nsr_active_user_role') || auth.role || 'STAF';
+
       return {
         token: auth.token || activeToken,
-        role: (auth.role || 'STAF').toUpperCase(),
+        role: personalRole.toUpperCase(),
         wilayah: auth.wilayahCode || 'JKT',
-        nama: auth.nama || 'Staf Operasional',
-        jabatan: auth.jabatan || auth.roleLabel || 'Staf Operasional',
-        nik: auth.nik || ''
+        nama: personalNama,
+        jabatan: personalJabatan,
+        nik: personalNik
       };
     }
     window.getCurrentUserProfile = getCurrentUserProfile;
@@ -2887,8 +3262,12 @@
         return { diizinkan: false, pesan: 'Tahap M-03 adalah wewenang teknis Tim Surveyor dan Penilai Lapangan.' };
       }
 
-      // 4. TAHAP M-04 (Analisis Nilai & Kalkulasi Properti) -> SURVEYOR DITOLAK KERAS!
+      // 4. TAHAP M-04 (Penyerahan Survei Fisik Lapangan M-03 ke Analisis Properti M-04)
       if (targetMilestone === 'M-04') {
+        const curM = job?.current_milestone || job?.milestone;
+        if (role === 'SURVEYOR' && curM === 'M-03') {
+          return { diizinkan: true };
+        }
         if (role === 'SURVEYOR') {
           return { 
             diizinkan: false, 
@@ -2896,7 +3275,7 @@
           };
         }
         const peranM04 = ['PENILAI_PELAKSANA', 'ANALIS', 'ADMIN_CABANG', 'ADMIN_PUSAT'];
-        if (peranM04.includes(role) || token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+        if (peranM04.includes(role) || token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-') || token === ['NSR','SRV','2026'].join('-')) {
           return { diizinkan: true };
         }
         return { diizinkan: false, pesan: 'Tahap M-04 adalah wewenang teknis Tim Penilai Pelaksana dan Analis Properti.' };
@@ -3023,12 +3402,37 @@
     // Render Table Task Board
     function renderTaskBoard(jobs) {
       const tbody = document.getElementById('task-board-tbody');
+      if (!tbody) return;
+
       if (!jobs || jobs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-500">Tidak ada penugasan yang sesuai filter wilayah Anda.</td></tr>';
+        if (currentQueueTab === 'my_tasks') {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-12 text-center">
+                <div class="max-w-md mx-auto space-y-3">
+                  <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center text-xl shadow-inner">
+                    📌
+                  </div>
+                  <h3 class="text-sm font-bold text-white">Belum Ada Penugasan Aktif yang Ditugaskan kepada Anda</h3>
+                  <p class="text-xs text-slate-400 leading-relaxed">
+                    Sistem tidak menemukan berkas dengan NIK / Nama Anda sebagai PIC Terdaftar pada Surat Tugas. Anda dapat membuka tab <strong>[🌐 Semua Penugasan Cabang/Nasional]</strong> untuk memantau status operasional secara luas.
+                  </p>
+                  <button type="button" onclick="setQueueTab('all_tasks')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-slate-700 transition cursor-pointer">
+                    Buka Semua Penugasan Cabang/Nasional &rarr;
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-500">Tidak ada penugasan yang sesuai filter wilayah Anda.</td></tr>';
+        }
         return;
       }
 
       let html = '';
+      const uProf = window.stateApp?.currentProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
+
       jobs.forEach((j) => {
         const job = j;
         const idJo = j.id_jo || j.jo_number || j.id || '';
@@ -3036,8 +3440,8 @@
         job.id_jo = idJo;
         const isM04 = j.current_milestone === 'M-04';
         const isDone = j.sla_status === 'completed';
-        
-        // SLA Badge Class & Status Indikator Otomatis (🟢 Aman, 🟡 H-1, 🔴 Overdue)
+
+        // SLA Badge Class & Status Indikator
         let slaBadgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
         let slaLabelDisplay = j.sla_label || ('H+' + (j.sla_days || 3));
         let slaDot = '🟢';
@@ -3051,7 +3455,6 @@
           slaDot = '🔴';
           slaLabelDisplay = 'Overdue';
         } else {
-          // Evaluasi selisih tanggal deadline
           const deadlineDate = new Date(j.sla_deadline);
           const now = new Date();
           const diffDays = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
@@ -3072,7 +3475,7 @@
         if (isDone) mPillClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold';
 
         html += `
-          <tr class="hover:bg-slate-800/40 transition">
+          <tr id="job-row-${idJo}" class="hover:bg-slate-800/40 transition">
             <td class="w-[140px] min-w-[140px] px-3 py-3">
               <strong class="font-mono text-white text-xs block">${j.jo_number}</strong>
               <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
@@ -3147,7 +3550,7 @@
                 </div>
               ` : ''}
             </td>
-            <!-- Kolom AKSI CEPAT Kompak & Pas di Dalam Batas -->
+            <!-- Kolom AKSI CEPAT: Penguncian Wewenang Berbasis PIC -->
             <td class="w-[185px] min-w-[185px] pl-2 pr-4 py-3 text-right">
               <div class="flex flex-col gap-1.5 items-end justify-center w-full">
                 <!-- Baris 1: WA & Majukan -->
@@ -3158,26 +3561,30 @@
                   ${!isDone ? (() => {
                     const mFlow = { 'M-01':'M-02', 'M-02':'M-03', 'M-03':'M-04', 'M-04':'M-05', 'M-05':'M-06', 'M-06':'M-07', 'M-07':'COMPLETED' };
                     const targetM = mFlow[j.current_milestone] || 'M-02';
-                    const uProf = window.stateApp?.currentProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
                     const chk = cekIzinEskalasiTahap(j, targetM, uProf);
-                    const peranWewenangPerTahap = {
-                      'M-02': 'Admin Kantor',
-                      'M-03': 'Surveyor / Penilai Pelaksana',
-                      'M-04': 'Penilai Pelaksana / Analis',
-                      'M-05': 'Reviewer SPM (Anti Self-Review)',
-                      'M-06': 'Penilai Publik (Izin Menkeu)',
-                      'M-07': 'Admin Kantor'
-                    };
-                    const namaWewenang = peranWewenangPerTahap[targetM] || 'Admin';
-                    const tooltip = chk.diizinkan ? `Eskalasi Milestone ke ${targetM}` : `Wewenang: ${namaWewenang} (Klik untuk verifikasi izin)`;
-                    const btnClass = chk.diizinkan 
-                      ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' 
-                      : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30';
-                    return `
-                      <button onclick="handleMajukanTahap('${j.id_jo}')" title="${tooltip}" class="px-2.5 py-1 ${btnClass} text-[11px] font-bold rounded shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
-                        <span>Majukan ➔</span>
-                      </button>
-                    `;
+                    const picAuth = cekPicWewenangEksekutor(j, j.current_milestone, uProf);
+                    const picInfo = getPicAssignment(j.current_milestone, j);
+                    const namaPic = picInfo.name || 'PIC Terdaftar';
+
+                    // Tombol HANYA AKTIF jika lolos RBAC peran DAN cocok dengan PIC penugasan (atau Super Admin)
+                    const canAdvance = Boolean(chk.diizinkan && picAuth.diizinkan);
+
+                    if (canAdvance) {
+                      return `
+                        <button type="button" id="btn-majukan-${j.id_jo}" onclick="handleMajukanTahap('${j.id_jo}')" title="Eskalasi Milestone ke ${targetM} (PIC Resmi: ${namaPic})" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] rounded shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
+                          <span>Majukan ➔</span>
+                        </button>
+                      `;
+                    } else {
+                      const lockedReason = !picAuth.diizinkan 
+                        ? `Terkunci: Wewenang khusus PIC ${namaPic} sesuai Surat Tugas` 
+                        : (chk.pesan || 'Anda tidak berwenang pada tahapan ini');
+                      return `
+                        <button type="button" id="btn-majukan-${j.id_jo}" disabled title="${lockedReason}" class="px-2.5 py-1 bg-slate-800 text-slate-500 border border-slate-700/60 text-[11px] font-bold rounded shadow-none transition-all flex items-center gap-1 cursor-not-allowed opacity-50">
+                          <span>🔒 Majukan</span>
+                        </button>
+                      `;
+                    }
                   })() : `
                     <span class="px-2 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold rounded">Tuntas ✓</span>
                   `}
@@ -6171,16 +6578,36 @@ Administrasi Operasional KJPP NSR`;
 
       <!-- Form Token Gatekeeper -->
       <form onsubmit="handleGatekeeperSubmit(event); return false;" class="space-y-4 text-left">
+        <!-- Input 1: Token Akses Resmi -->
         <div>
           <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-            Token Akses Resmi / Otorisasi Wilayah
+            Token Akses Resmi / Otorisasi Wilayah <span class="text-amber-400">*</span>
           </label>
           <div class="relative">
-            <input type="password" id="gatekeeper-token-input" name="gatekeeper_token" required autocomplete="off" placeholder="Masukkan Token Akses Resmi (Contoh: NSR...)" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-11 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition" />
+            <input type="password" id="gatekeeper-token-input" name="gatekeeper_token" required autocomplete="off" oninput="handleGatekeeperTokenInput(this.value)" placeholder="Masukkan Token Akses Resmi (Contoh: NSR...)" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-11 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition" />
             <button type="button" id="btn-toggle-gatekeeper-eye" onclick="toggleGatekeeperEye(event)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1 cursor-pointer" title="Tampilkan/Sembunyikan Token" aria-label="Lihat token">
               <span id="icon-gatekeeper-eye">👁️</span>
             </button>
           </div>
+        </div>
+
+        <!-- Input 2: NIK Personal Eksekutor (Sistem Lapis 2) -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+              NIK Personal Eksekutor (Sistem Lapis 2)
+            </label>
+            <span id="gatekeeper-nik-badge" class="text-[10px] text-amber-400/90 font-mono">Format: NSR-xxxx-xxx</span>
+          </div>
+          <div class="relative">
+            <input type="text" id="gatekeeper-nik-input" name="gatekeeper_nik" autocomplete="off" placeholder="Masukkan NIK Karyawan (Contoh: NSR-2019-010)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition uppercase" oninput="handleGatekeeperNikInput(this.value)" />
+            <div id="gatekeeper-nik-detected" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
+              <span>✓</span> <span id="gatekeeper-nik-nama-preview" class="truncate max-w-[160px]"></span>
+            </div>
+          </div>
+          <p class="text-[10.5px] text-slate-400 mt-1 leading-normal">
+            * Menentukan filter otomatis <strong>Tugas Saya (PIC Terdaftar)</strong> dan menjamin keabsahan audit trail penugasan.
+          </p>
         </div>
 
         <div id="gatekeeper-error-msg" class="hidden mt-2 text-xs font-semibold text-rose-400 bg-rose-950/60 border border-rose-500/40 rounded-lg p-2 text-center"></div>
