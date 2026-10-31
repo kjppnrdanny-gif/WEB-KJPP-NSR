@@ -30,18 +30,16 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col pb-12">
 
   <!-- Mobile Top Navigation Bar -->
-  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-black flex items-center justify-center text-sm shadow-md shadow-cyan-500/20">
-        N
-      </div>
-      <div>
-        <h1 class="text-xs font-black uppercase tracking-wider text-white">KJPP Nanang Rahayu &amp; Rekan</h1>
-        <p class="text-[10px] text-cyan-400 font-medium">Modul Lapangan: Data Pasar Pembanding (SPI 105)</p>
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3.5 py-2.5 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <img src="/assets/img/logo-nsr.png" onerror="this.onerror=null; this.src='/favicon.png';" alt="Logo KJPP NSR" class="w-8 h-8 object-contain shrink-0 rounded-lg bg-slate-950 p-0.5 border border-slate-800 shadow-sm">
+      <div class="min-w-0">
+        <h1 class="text-[11px] sm:text-xs font-black uppercase tracking-wide text-white leading-tight truncate">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</h1>
+        <p class="text-[9.5px] text-cyan-400 font-semibold truncate">Modul Lapangan: Data Pasar Pembanding (SPI 105)</p>
       </div>
     </div>
-    <a href="portal-tracking.html" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 transition">
-      Portal Tracking
+    <a href="portal-tracking.html" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10.5px] font-semibold border border-slate-700 transition shrink-0">
+      Portal
     </a>
   </header>
 
@@ -301,7 +299,7 @@
 
   <!-- Mobile Footer Info -->
   <footer class="text-center text-[10px] text-slate-500 max-w-sm mx-auto px-4 mt-auto">
-    KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan &bull; Sistem Monitoring 7 Milestone OPINI NSR &bull; Standar Penilaian Indonesia (SPI 105)
+    &copy; 2026 KJPP Nanang Rahayu Sigit Paryanto dan Rekan &bull; Kepatuhan SPI 105 &amp; KEPI
   </footer>
 
   <!-- SCRIPT LOGIC MOBILE SURVEY -->
@@ -395,7 +393,7 @@
       const banner = document.getElementById('banner-qr-active');
       if (banner) {
         banner.classList.remove('hidden');
-        document.getElementById('banner-qr-debitur').textContent = `JO: ${joNumber} • Akses Instan QR`;
+        document.getElementById('banner-qr-debitur').textContent = `KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN • JO: ${joNumber}`;
       }
 
       saatJoBerubah(joNumber);
@@ -563,20 +561,20 @@
           const timeStr = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
           const perM2 = document.getElementById('mobile-harga-m2-disp').textContent;
 
-          // Header Watermark
+          // Header Watermark Garis 1: Nama Resmi Badan Hukum & Standar
           ctx.font = `bold ${fontSize + 1}px monospace`;
           ctx.fillStyle = '#38bdf8';
-          ctx.fillText(`KJPP NANANG RAHAYU & REKAN • DOKUMENTASI DATA PASAR (SPI 105)`, paddingLeft, startY);
+          ctx.fillText('KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN | SPI 105', paddingLeft, startY);
 
-          // Data Finansial & Objek
+          // Garis 2: Nomor JO, Kode DP, dan Indikasi Harga per m2
           ctx.font = `bold ${fontSize}px monospace`;
           ctx.fillStyle = '#ffffff';
-          ctx.fillText(`PENUGASAN: ${joVal} | ${urutanVal} | ${perM2}`, paddingLeft, startY + (fontSize * 1.35));
+          ctx.fillText(`JO: ${joVal} | ${urutanVal} | Indikasi: ${perM2}`, paddingLeft, startY + (fontSize * 1.35));
 
-          // Geotag & Waktu
+          // Garis 3: Geotagging GPS & Timestamp Waktu Resmi
           ctx.font = `${fontSize - 1}px monospace`;
           ctx.fillStyle = '#4ade80';
-          ctx.fillText(`GPS: ${lat}, ${lng} (±${acc}m) | WAKTU: ${timeStr} WIB`, paddingLeft, startY + (fontSize * 2.7));
+          ctx.fillText(`GPS: ${lat}, ${lng} (±${acc}m) | ${timeStr} WIB`, paddingLeft, startY + (fontSize * 2.7));
 
           const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
           document.getElementById('mobile-foto-base64').value = dataUrl;
