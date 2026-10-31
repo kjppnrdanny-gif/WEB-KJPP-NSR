@@ -1537,35 +1537,24 @@
           </div>
         </div>
 
-        <!-- Nilai Indikasi & Spesifikasi Fisik -->
+        <!-- Spesifikasi Finansial & Fisik Data Pasar Mentah -->
         <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
             <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Spesifikasi Finansial &amp; Fisik</span>
             <span class="text-[10px] text-slate-400">Parameter Tabel Penyesuaian</span>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-300 mb-1">
-                Harga Penawaran / Transaksi (Rp) <span class="text-rose-400">*</span>
-              </label>
-              <input type="text" id="market-harga" required placeholder="Contoh: 3.100.000.000" oninput="formatRupiahInput(this); hitungHargaPerM2()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-400 transition">
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-300 mb-1">
-                Indikasi Harga per m² Tanah
-              </label>
-              <div class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-emerald-400 font-bold flex items-center justify-between">
-                <span id="market-harga-m2-display">Rp 0 / m²</span>
-                <span class="text-[9.5px] text-slate-500 font-normal">Auto-calc</span>
-              </div>
-            </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1">
+              Harga Penawaran / Transaksi (Rp) <span class="text-rose-400">*</span>
+            </label>
+            <input type="text" id="market-harga" required placeholder="Contoh: 3.100.000.000" oninput="formatRupiahInput(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-400 transition">
           </div>
 
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Luas Tanah (m²) *</label>
-              <input type="number" id="market-luas-tanah" required min="1" step="any" placeholder="240" oninput="hitungHargaPerM2()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400">
+              <input type="number" id="market-luas-tanah" required min="1" step="any" placeholder="240" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400">
             </div>
             <div>
               <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">Luas Bangunan (m²)</label>
@@ -4593,19 +4582,13 @@ Administrasi Operasional KJPP NSR`;
             
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
-            // Penentuan label dinamis sesuai kaidah SPI 105 (Penawaran vs Transaksi)
+            // Penentuan status pasar faktual SPI 105 (Tanpa kata Indikasi)
             const statusRadio = Array.from(document.getElementsByName('market-status-data')).find(r => r.checked);
             const jenisStatus = (statusRadio ? statusRadio.value : 'Penawaran').toUpperCase();
             const labelPasar = jenisStatus === 'TRANSAKSI' ? 'Transaksi' : 'Penawaran';
             
             const urutanRadio = Array.from(document.getElementsByName('market-urutan')).find(r => r.checked);
             const kodeDp = urutanRadio ? ('DP-0' + urutanRadio.value) : 'DP-01';
-            
-            const rawPerM2 = document.getElementById('market-harga-m2-display')?.textContent || '';
-            const cleanPerM2 = rawPerM2.replace(/\D/g, '');
-            const teksHargaM2 = cleanPerM2 && cleanPerM2 !== '0'
-              ? `${labelPasar}: Rp ${Number(cleanPerM2).toLocaleString('id-ID')}/m²`
-              : `${labelPasar}: Belum dihitung`;
 
             // Dimensi banner watermark proporsional
             const bannerHeight = Math.max(76, Math.round(canvas.height * 0.16));
@@ -4625,10 +4608,10 @@ Administrasi Operasional KJPP NSR`;
             ctx.font = `bold ${baseFontSize + 1}px monospace`;
             ctx.fillText('KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN | SPI 105', paddingLeft, startY);
 
-            // Baris 2: Nomor JO, Kode DP, dan Status Pasar Riil (Penawaran / Transaksi)
+            // Baris 2: Faktual Murni Data Pasar (Tanpa kata Indikasi)
             ctx.fillStyle = '#fde047'; // Kuning amber kontras tinggi
             ctx.font = `bold ${baseFontSize}px monospace`;
-            ctx.fillText(`JO: ${noJo || 'PENUGASAN'} | ${kodeDp} | ${teksHargaM2}`, paddingLeft, startY + (baseFontSize * 1.35));
+            ctx.fillText(`JO: ${noJo || 'PENUGASAN'} | ${kodeDp} | Data ${labelPasar}`, paddingLeft, startY + (baseFontSize * 1.35));
 
             // Baris 3: Geotagging GPS & Timestamp Waktu Resmi
             ctx.fillStyle = '#4ade80';
@@ -4914,7 +4897,7 @@ Administrasi Operasional KJPP NSR`;
                 <!-- Konten Teknis -->
                 <div class="p-3.5 space-y-2 text-xs">
                   <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
-                    <span class="text-slate-400">Indikasi Harga:</span>
+                    <span class="text-slate-400">${isTransaksi ? 'Harga Transaksi' : 'Harga Penawaran'}:</span>
                     <strong class="font-mono text-amber-400 font-bold text-sm">Rp ${(item.harga || 0).toLocaleString('id-ID')}</strong>
                   </div>
                   <div class="flex items-center justify-between text-[11px]">
