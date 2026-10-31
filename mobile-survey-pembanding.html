@@ -559,17 +559,26 @@
           const lng = document.getElementById('mobile-gps-lng').value || '-';
           const acc = document.getElementById('mobile-gps-acc').value || '5';
           const timeStr = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-          const perM2 = document.getElementById('mobile-harga-m2-disp').textContent;
+          const rawPerM2 = document.getElementById('mobile-harga-m2-disp') ? document.getElementById('mobile-harga-m2-disp').textContent : '';
+
+          // Penentuan label dinamis sesuai kaidah SPI 105 (Penawaran vs Transaksi)
+          const statusRadio = Array.from(document.getElementsByName('mobile-market-status')).find(r => r.checked);
+          const jenisStatus = (statusRadio ? statusRadio.value : 'Penawaran').toUpperCase();
+          const labelPasar = jenisStatus === 'TRANSAKSI' ? 'Transaksi' : 'Penawaran';
+          const cleanPerM2 = rawPerM2.replace(/\D/g, '');
+          const teksHargaM2 = cleanPerM2 && cleanPerM2 !== '0'
+            ? `${labelPasar}: Rp ${Number(cleanPerM2).toLocaleString('id-ID')}/m²`
+            : `${labelPasar}: Belum dihitung`;
 
           // Header Watermark Garis 1: Nama Resmi Badan Hukum & Standar
           ctx.font = `bold ${fontSize + 1}px monospace`;
           ctx.fillStyle = '#38bdf8';
           ctx.fillText('KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN | SPI 105', paddingLeft, startY);
 
-          // Garis 2: Nomor JO, Kode DP, dan Indikasi Harga per m2
+          // Garis 2: Nomor JO, Kode DP, dan Status Pasar Riil (Penawaran / Transaksi)
           ctx.font = `bold ${fontSize}px monospace`;
-          ctx.fillStyle = '#ffffff';
-          ctx.fillText(`JO: ${joVal} | ${urutanVal} | Indikasi: ${perM2}`, paddingLeft, startY + (fontSize * 1.35));
+          ctx.fillStyle = '#fde047'; // Kuning amber kontras tinggi
+          ctx.fillText(`JO: ${joVal} | ${urutanVal} | ${teksHargaM2}`, paddingLeft, startY + (fontSize * 1.35));
 
           // Garis 3: Geotagging GPS & Timestamp Waktu Resmi
           ctx.font = `${fontSize - 1}px monospace`;
