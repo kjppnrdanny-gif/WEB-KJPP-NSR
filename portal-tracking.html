@@ -2219,6 +2219,7 @@
 
       container.innerHTML = html;
     }
+    window.renderMilestoneStepper = renderVerticalStepper;
 
     function handlePartnerSelect(partner) {
       selectedPartnerFilter = partner;
@@ -2396,6 +2397,10 @@
 
       let html = '';
       jobs.forEach((j) => {
+        const job = j;
+        const idJo = j.id_jo || j.jo_number || j.id || '';
+        j.id_jo = idJo;
+        job.id_jo = idJo;
         const isM04 = j.current_milestone === 'M-04';
         const isDone = j.sla_status === 'completed';
         
@@ -2525,16 +2530,10 @@
                     <span class="hidden xl:inline">🧾 Kwitansi</span>
                   </button>
                 ` : ''}
-                ${(['M-03', 'M-04', 'M-05', 'M-06'].includes(j.current_milestone) || (j.data_pembanding && (Array.isArray(j.data_pembanding) ? j.data_pembanding.length > 0 : Object.keys(j.data_pembanding).length > 0))) ? `
-                  <button type="button" onclick="bukaModalDataPembanding('${j.jo_number || j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold transition active:scale-95 cursor-pointer" title="Pratinjau Data Pembanding SPI 105 (3 Objek)">
-                    <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    <span class="hidden xl:inline">Data Pasar</span>
-                  </button>
-                  <button type="button" onclick="bukaModalInputPembanding('${j.jo_number || j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-[10px] font-bold transition active:scale-95 cursor-pointer" title="Input Data Pembanding Lapangan (Kamera & GPS)">
-                    <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span class="hidden 2xl:inline">+Pasar</span>
-                  </button>
-                ` : ''}
+                <!-- Tombol Permanen Data Pasar Pembanding -->
+                <button type="button" onclick="bukaModalDataPembanding('${job.id_jo}')" title="Lihat Data Pasar Pembanding" class="px-2 py-1 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 rounded text-xs font-medium inline-flex items-center gap-1 transition cursor-pointer active:scale-95">
+                  <span>📊 Data Pasar</span>
+                </button>
                 ${(['M-05', 'M-06', 'M-07'].includes(j.current_milestone) || j.spm_checklist_data) ? `
                   <button type="button" onclick="cetakLembarSPM('${j.id}')" class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold transition active:scale-95" title="Cetak Lembar Kendali Mutu SPM (PDF)">
                     <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -3432,6 +3431,9 @@ Administrasi Operasional KJPP NSR`;
     function renderVerticalStepper(milestones, currentM) {
       const container = document.getElementById('stepper-items-container');
       let html = '';
+      const job = activeJob || {};
+      const idJo = job.id_jo || job.jo_number || job.id || '';
+      job.id_jo = idJo;
 
       const mKeys = ['M-01', 'M-02', 'M-03', 'M-04', 'M-05', 'M-06', 'M-07'];
       mKeys.forEach(key => {
@@ -3511,6 +3513,16 @@ Administrasi Operasional KJPP NSR`;
                   <button type="button" id="btn-selesaikan-tahap" onclick="bukaModalDispatchMilestone('${activeJob ? activeJob.id : ''}', '${mKeys[Math.min(mKeys.length - 1, mKeys.indexOf(key) + 1)]}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow transition active:scale-95 cursor-pointer">
                     <span>Selesaikan Tahap ${key}</span>
                     <svg class="w-3 h-3 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                  </button>
+                </div>
+              ` : ''}
+              ${(key === 'M-04') ? `
+                <div class="mt-3 pt-2 border-t border-slate-700/60 flex items-center gap-2">
+                  <button type="button" onclick="bukaModalDataPembanding('${job.id_jo}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-md shadow-sm transition-all cursor-pointer">
+                    <span>📊 Buka Rekap Data Pembanding (3 Data Pasar & GPS)</span>
+                  </button>
+                  <button type="button" onclick="bukaModalInputPembanding('${job.id_jo}')" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium rounded-md transition-all cursor-pointer">
+                    <span>📷 + Tambah Pembanding</span>
                   </button>
                 </div>
               ` : ''}
