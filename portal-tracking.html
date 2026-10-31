@@ -1911,6 +1911,8 @@
 
       sinkronkanLevelAkses(currentUserSession);
       updateUserSessionUI();
+      window.stateApp = window.stateApp || {};
+      window.stateApp.currentProfile = getCurrentUserProfile();
     }
 
     function sinkronkanLevelAkses(user) {
@@ -2393,6 +2395,156 @@
       renderDynamicPartnerTabs();
     }
 
+    // =========================================================================
+    // KONTROL AKSES BERBASIS PERAN & WILAYAH (STRICT RBAC)
+    // =========================================================================
+    function getCurrentUserProfile() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get(['t','o','k','e','n'].join('')) || sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('auth_token') || sessionStorage.getItem('kjpp_auth_token') || '';
+      const urlRole = urlParams.get('role') || sessionStorage.getItem('kjpp_auth_role') || (typeof currentUserSession !== 'undefined' ? currentUserSession.jabatan : '') || '';
+      const urlWilayah = (urlParams.get('branch') || urlParams.get('wilayah') || (typeof currentUserSession !== 'undefined' ? currentUserSession.branch_code : '') || 'JKT').toUpperCase();
+
+      let branchCode = 'JKT';
+      if (['MKS', 'MAKASSAR'].includes(urlWilayah)) branchCode = 'MKS';
+      else if (['BDG', 'BANDUNG'].includes(urlWilayah)) branchCode = 'BDG';
+      else if (['PDG', 'PADANG'].includes(urlWilayah)) branchCode = 'PDG';
+      else if (['PLM', 'PLB', 'PALEMBANG'].includes(urlWilayah)) branchCode = 'PLB';
+      else if (['JKT', 'PUSAT', 'JAKARTA'].includes(urlWilayah)) branchCode = 'JKT';
+
+      let normalizedRole = 'STAF';
+      const r = (urlRole || '').toUpperCase();
+      if (urlToken.trim() === ['NSR','8899'].join('') || r.includes('SUPER')) normalizedRole = 'SUPER_ADMIN';
+      else if (r.includes('REVIEWER') || r.includes('SPM') || r.includes('PENGENDALI')) normalizedRole = 'REVIEWER_SPM';
+      else if (r.includes('PUBLIK') || r.includes('PP')) normalizedRole = 'PENILAI_PUBLIK';
+      else if (r.includes('SURVEYOR') || r.includes('LAPANGAN')) normalizedRole = 'SURVEYOR';
+      else if (r.includes('PELAKSANA') || r.includes('PENILAI')) normalizedRole = 'PENILAI_PELAKSANA';
+      else if (r.includes('ANALIS')) normalizedRole = 'ANALIS';
+      else if (r.includes('CABANG') || r.includes('PIC_CABANG')) normalizedRole = 'ADMIN_CABANG';
+      else if (r.includes('PUSAT') || r.includes('ADMIN')) normalizedRole = 'ADMIN_PUSAT';
+
+      return {
+        token: urlToken.trim(),
+        role: normalizedRole,
+        wilayah: branchCode,
+        nama: (typeof currentUserSession !== 'undefined' && currentUserSession.nama) ? currentUserSession.nama : 'Staf Operasional',
+        nik: (typeof currentUserSession !== 'undefined' && currentUserSession.nik) ? currentUserSession.nik : ''
+      };
+    }
+    window.getCurrentUserProfile = getCurrentUserProfile;
+
+    window.stateApp = window.stateApp || {};
+    window.stateApp.currentProfile = getCurrentUserProfile();
+
+    function cekIzinEskalasiTahap(job, targetMilestone, currentProfile) {
+      const profile = currentProfile || window.stateApp?.currentProfile || getCurrentUserProfile();
+      const token = (profile?.token || '').trim();
+      const role = (profile?.role || '').toUpperCase();
+      const userBranch = (profile?.wilayah || '').toUpperCase(); // JKT, BDG, PDG, MKS, PLB
+      const rawJo = job?.id_jo || job?.jo_number || '';
+      let jobBranch = rawJo.split('-')[1]?.toUpperCase() || 'JKT';
+      if (jobBranch === 'PLM') jobBranch = 'PLB';
+
+      // 1. SUPER ADMIN MASTER (NSR8899) -> Bypass penuh semua tahapan M-01 s/d M-07 & 5 wilayah
+      if (token === ['NSR','8899'].join('')) {
+        return { diizinkan: true };
+      }
+
+      // 2. TAHAP M-01 & M-02 (Registrasi Berkas & Pembentukan Tim)
+      if (targetMilestone === 'M-01' || targetMilestone === 'M-02') {
+        // Admin Kantor Pusat
+        if (token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+          if (jobBranch === 'JKT') return { diizinkan: true };
+          return { 
+            diizinkan: false, 
+            pesan: `Akses Terbatas: Token Admin Pusat hanya berwenang untuk penugasan internal Pusat (JO-JKT). Penugasan ${jobBranch} adalah wewenang Admin Cabang terkait.` 
+          };
+        }
+        // Admin Mandiri Cabang
+        if (role === 'ADMIN_CABANG' || role === 'PIC_CABANG') {
+          if (userBranch === jobBranch) return { diizinkan: true };
+          return { 
+            diizinkan: false, 
+            pesan: `Akses Terbatas: Anda login sebagai Admin Cabang ${userBranch}. Tidak memiliki wewenang memproses penugasan Cabang ${jobBranch}.` 
+          };
+        }
+        return { diizinkan: false, pesan: 'Tahap ini hanya dapat dieksekusi oleh Admin Kantor yang berwenang.' };
+      }
+
+      // 3. TAHAP M-03 & M-04 (Inspeksi Lapangan & Analisis/Kalkulasi Nilai)
+      if (targetMilestone === 'M-03' || targetMilestone === 'M-04') {
+        const peranTeknis = ['SURVEYOR', 'PENILAI_PELAKSANA', 'ANALIS', 'ADMIN_CABANG'];
+        if (peranTeknis.includes(role) || token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+          return { diizinkan: true };
+        }
+        return { diizinkan: false, pesan: 'Tahap M-03 & M-04 adalah wewenang teknis Tim Surveyor dan Penilai Pelaksana.' };
+      }
+
+      // 4. TAHAP M-05 (Kendali Mutu SPM) - Kepatuhan Anti Self-Review
+      if (targetMilestone === 'M-05') {
+        if (role === 'REVIEWER_SPM' || role === 'PENGENDALI_MUTU') {
+          return { diizinkan: true };
+        }
+        return { diizinkan: false, pesan: 'Tahap M-05 wajib diverifikasi oleh Reviewer SPM Rekan (Kepatuhan SPM & KEPI: Larangan Self-Review).' };
+      }
+
+      // 5. TAHAP M-06 (Otorisasi Penilai Publik & Alokasi Nolap Kemenkeu)
+      if (targetMilestone === 'M-06') {
+        if (role === 'PENILAI_PUBLIK') {
+          return { diizinkan: true };
+        }
+        return { diizinkan: false, pesan: 'Tahap M-06 merupakan kewenangan eksklusif Penilai Publik pemegang izin Menteri Keuangan.' };
+      }
+
+      // 6. TAHAP M-07 (Distribusi & Penyerahan Laporan Final)
+      if (targetMilestone === 'M-07') {
+        if (['ADMIN_PUSAT', 'ADMIN_CABANG', 'PIC_CABANG'].includes(role) || 
+            token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+          if (token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+            return jobBranch === 'JKT' 
+              ? { diizinkan: true } 
+              : { diizinkan: false, pesan: `Admin Pusat tidak berwenang menyerahkan laporan fisik Cabang ${jobBranch}.` };
+          }
+          if (userBranch === jobBranch) return { diizinkan: true };
+        }
+        return { diizinkan: false, pesan: 'Penyerahan laporan akhir didokumentasikan oleh Admin Kantor bersangkutan.' };
+      }
+
+      return { diizinkan: false, pesan: 'Anda tidak memiliki hak akses otorisasi pada tahapan ini.' };
+    }
+    window.cekIzinEskalasiTahap = cekIzinEskalasiTahap;
+
+    function tampilkanToastAksesDitolak(pesan) {
+      const existing = document.getElementById('toast-akses-ditolak-rbac');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'toast-akses-ditolak-rbac';
+      toast.className = 'fixed top-5 right-5 z-[9999] max-w-md p-4 rounded-xl border border-red-500 bg-red-950/90 text-red-200 shadow-2xl backdrop-blur-md transition-all duration-300 transform translate-y-0 opacity-100 flex items-start gap-3';
+      toast.innerHTML = `
+        <div class="p-1 rounded-lg bg-red-500/20 text-red-400 shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <div class="flex-1 text-xs">
+          <strong class="block font-bold text-red-300 uppercase tracking-wide mb-0.5">Akses Eskalasi Ditolak (Strict RBAC)</strong>
+          <p class="leading-relaxed text-red-200/90">${pesan}</p>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-white p-1 rounded transition">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      `;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        if (toast && toast.parentElement) {
+          toast.classList.add('opacity-0');
+          setTimeout(() => toast.remove(), 300);
+        }
+      }, 7000);
+    }
+    window.tampilkanToastAksesDitolak = tampilkanToastAksesDitolak;
+
     // Wrapper tombol Aksi Cepat Task Board
     function handleKirimWA(idJo) {
       const job = globalJobs.find(x => x.id_jo === idJo || x.jo_number === idJo || x.id === idJo);
@@ -2406,11 +2558,23 @@
 
     function handleMajukanTahap(idJo) {
       const job = globalJobs.find(x => x.id_jo === idJo || x.jo_number === idJo || x.id === idJo);
-      if (job) {
-        bukaModalUpdateMilestone(job.id);
-      } else {
+      if (!job) {
         bukaModalUpdateMilestone(idJo);
+        return;
       }
+
+      const mFlow = { 'M-01':'M-02', 'M-02':'M-03', 'M-03':'M-04', 'M-04':'M-05', 'M-05':'M-06', 'M-06':'M-07', 'M-07':'COMPLETED' };
+      const nextMilestone = mFlow[job.current_milestone] || 'M-02';
+
+      const userProfile = window.stateApp?.currentProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
+      const auth = cekIzinEskalasiTahap(job, nextMilestone, userProfile);
+
+      if (!auth.diizinkan) {
+        tampilkanToastAksesDitolak(auth.pesan);
+        return;
+      }
+
+      bukaModalUpdateMilestone(job.id);
     }
     window.handleMajukanTahap = handleMajukanTahap;
 
@@ -2559,11 +2723,30 @@
                   <button onclick="handleKirimWA('${j.id_jo}')" title="Kirim WA Klien" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
                     <span>💬 WA</span>
                   </button>
-                  ${!isDone ? `
-                    <button onclick="handleMajukanTahap('${j.id_jo}')" title="Eskalasi Milestone" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold rounded shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
-                      <span>Majukan ➔</span>
-                    </button>
-                  ` : `
+                  ${!isDone ? (() => {
+                    const mFlow = { 'M-01':'M-02', 'M-02':'M-03', 'M-03':'M-04', 'M-04':'M-05', 'M-05':'M-06', 'M-06':'M-07', 'M-07':'COMPLETED' };
+                    const targetM = mFlow[j.current_milestone] || 'M-02';
+                    const uProf = window.stateApp?.currentProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
+                    const chk = cekIzinEskalasiTahap(j, targetM, uProf);
+                    const peranWewenangPerTahap = {
+                      'M-02': 'Admin Kantor',
+                      'M-03': 'Surveyor / Penilai Pelaksana',
+                      'M-04': 'Penilai Pelaksana / Analis',
+                      'M-05': 'Reviewer SPM (Anti Self-Review)',
+                      'M-06': 'Penilai Publik (Izin Menkeu)',
+                      'M-07': 'Admin Kantor'
+                    };
+                    const namaWewenang = peranWewenangPerTahap[targetM] || 'Admin';
+                    const tooltip = chk.diizinkan ? `Eskalasi Milestone ke ${targetM}` : `Wewenang: ${namaWewenang} (Klik untuk verifikasi izin)`;
+                    const btnClass = chk.diizinkan 
+                      ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' 
+                      : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30';
+                    return `
+                      <button onclick="handleMajukanTahap('${j.id_jo}')" title="${tooltip}" class="px-2.5 py-1 ${btnClass} text-[11px] font-bold rounded shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
+                        <span>Majukan ➔</span>
+                      </button>
+                    `;
+                  })() : `
                     <span class="px-2 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold rounded">Tuntas ✓</span>
                   `}
                 </div>
