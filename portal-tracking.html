@@ -185,24 +185,24 @@
   </header>
 
   <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <main id="main-tracking-app" style="display: none !important;" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <!-- USER SESSION & ISOLATION STATUS BANNER -->
     <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-amber-400 font-bold flex items-center justify-center text-sm shrink-0">
-          <span id="user-display-avatar">OP</span>
+          <span id="user-display-avatar">--</span>
         </div>
         <div class="leading-tight">
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-400">Profil Staf:</span>
-            <strong id="user-display-name" class="text-xs sm:text-sm font-extrabold text-white">Sesi Internal Staf</strong>
+            <strong id="user-display-name" class="text-xs sm:text-sm font-extrabold text-white">-</strong>
             <span id="user-display-nik" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">-</span>
           </div>
           <div class="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
-            <span>Jabatan: <strong id="user-display-jabatan" class="text-slate-300 font-semibold">Staf Penilai</strong></span>
+            <span>Jabatan: <strong id="user-display-jabatan" class="text-slate-300 font-semibold">-</strong></span>
             <span>&bull;</span>
-            <span>Wilayah: <strong id="user-display-cabang" class="text-amber-400 font-bold">Kantor Pusat / Cabang</strong></span>
+            <span>Wilayah: <strong id="user-display-cabang" class="text-amber-400 font-bold">-</strong></span>
           </div>
         </div>
       </div>
@@ -1810,18 +1810,16 @@
     let activeJob = null;
     let joSuggestions = [];
 
-    // Profil Default Sesi Staf (Pusat / Super Admin Danny Taufik Hidayat, S.H.)
-    let currentUserSession = {
-      nik: '',
-      nama: 'Otorisasi Staf Penugasan',
-      jabatan: 'Staf Penilai',
-      divisi: 'Operasional Penilaian',
-      kantor: 'Kantor Pusat Jakarta',
-      cabang: 'Kantor Pusat Jakarta',
-      branch_code: 'PUSAT',
-      is_central: true,
-      access_level: 'NATIONWIDE_FULL_ACCESS'
-    };
+    // Zero-Trust State: Sesi awal WAJIB null sebelum token valid diverifikasi
+    let currentUserSession = null;
+    window.stateApp = window.stateApp || {};
+    window.stateApp.currentUserProfile = null;
+    window.stateApp.currentProfile = null;
+
+    function validasiTokenResmi(token) {
+      return (typeof resolveTrackingToken === 'function') ? resolveTrackingToken(token) : null;
+    }
+    window.validasiTokenResmi = validasiTokenResmi;
 
     // Reviewer SPM Roster Per Cabang
     const REVIEWERS_BY_BRANCH = {
@@ -1832,10 +1830,22 @@
       'Cabang Palembang': ['Rafdinal Ardhi']
     };
 
-    // Inisialisasi Halaman
+        // Inisialisasi Halaman
     document.addEventListener('DOMContentLoaded', async function() {
-      // Inisialisasi Sesi Staf dari Storage / URL
-      initUserSession();
+      // Verifikasi Strict Fail-Closed Gatekeeper sebelum memuat data
+      const isAuthorized = initUserSession();
+      if (!isAuthorized) {
+        const appEl = document.getElementById('main-tracking-app');
+        if (appEl) appEl.style.setProperty('display', 'none', 'important');
+        const tbody = document.getElementById('task-board-tbody');
+        if (tbody) tbody.innerHTML = '';
+        const gatekeeper = document.getElementById('modal-auth-gatekeeper');
+        if (gatekeeper) {
+          gatekeeper.classList.remove('hidden');
+          gatekeeper.style.display = 'flex';
+        }
+        return;
+      }
 
       // Set default date input registrasi ke hari ini
       const spkDateEl = document.getElementById('reg-spk-date');
@@ -1853,54 +1863,85 @@
       muatRosterKaryawanDispatch();
     });
 
-    // Inisialisasi Sesi Pengguna
+    // Inisialisasi Sesi Pengguna (Strict Fail-Closed)
     function initUserSession() {
       const urlParams = new URLSearchParams(window.location.search);
       const urlToken = urlParams.get(['t','o','k','e','n'].join(''));
-      const storedToken = sessionStorage.getItem('nsr_auth_token') || localStorage.getItem('nsr_auth_token');
-      const rawTokenSession = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('NSR_USER_SESSION');
-      
-      const candidate = urlToken || storedToken || rawTokenSession;
-      if (!candidate) {
+      const activeToken = sessionStorage.getItem('nsr_auth_token') || localStorage.getItem('nsr_auth_token') || urlToken;
+      const rawSession = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('NSR_USER_SESSION');
+
+      const profilValid = validasiTokenResmi(activeToken || rawSession);
+
+      if (!profilValid) {
+        // KONDISI GAGAL / TANPA TOKEN (INCOGNITO):
+        // 1. Pastikan main-tracking-app TETAP display: none !important
+        const appEl = document.getElementById('main-tracking-app');
+        if (appEl) appEl.style.setProperty('display', 'none', 'important');
+
+        // 2. KOSONGKAN isi tabel agar tidak ada data perbankan yang dirender
+        const tbody = document.getElementById('task-board-tbody');
+        if (tbody) tbody.innerHTML = '';
+
+        // 3. TAMPILKAN modal penahan layar penuh (Modal Gatekeeper)
+        const gatekeeper = document.getElementById('modal-auth-gatekeeper');
+        if (gatekeeper) {
+          gatekeeper.classList.remove('hidden');
+          gatekeeper.style.display = 'flex';
+        }
+
+        // 4. Reset Profil ke null
+        currentUserSession = null;
+        window.stateApp = window.stateApp || {};
+        window.stateApp.currentUserProfile = null;
+        window.stateApp.currentProfile = null;
+
         document.documentElement.classList.remove('nsr-tracking-authorized');
-        const modal = document.getElementById('modal-auth-gatekeeper');
-        if (modal) modal.classList.remove('hidden');
+        updateUserSessionUI();
         return false;
       }
 
-      const auth = resolveTrackingToken(candidate);
-      if (!auth) {
-        document.documentElement.classList.remove('nsr-tracking-authorized');
-        const modal = document.getElementById('modal-auth-gatekeeper');
-        if (modal) modal.classList.remove('hidden');
-        return false;
+      // KONDISI LOLOS / TOKEN SAH:
+      currentUserSession = {
+        nik: profilValid.nik || '',
+        nama: profilValid.nama || profilValid.displayName || 'Staf Internal',
+        jabatan: profilValid.roleLabel || profilValid.role || 'Staf Operasional',
+        kantor: profilValid.wilayah || 'Kantor Pusat Jakarta',
+        cabang: profilValid.wilayah || 'Kantor Pusat Jakarta',
+        branch_code: profilValid.wilayahCode || (profilValid.isCabang ? 'CAB' : 'PUSAT'),
+        is_central: !profilValid.isCabang,
+        access_level: profilValid.access_level || (profilValid.isCabang ? 'BRANCH_ISOLATED' : 'NATIONWIDE_FULL_ACCESS'),
+        token: profilValid.token
+      };
+
+      window.stateApp = window.stateApp || {};
+      window.stateApp.currentUserProfile = currentUserSession;
+      window.stateApp.currentProfile = currentUserSession;
+
+      // 1. Buka tampilan utama
+      const appEl = document.getElementById('main-tracking-app');
+      if (appEl) {
+        appEl.style.removeProperty('display');
+        appEl.style.display = 'block';
       }
 
-      // Valid: Set up currentUserSession
-      currentUserSession.nik = auth.nik || '';
-      currentUserSession.nama = auth.nama || auth.displayName || 'Staf Operasional';
-      currentUserSession.jabatan = auth.roleLabel || auth.role || 'Staf Operasional';
-      currentUserSession.kantor = auth.wilayah || 'Kantor Pusat Jakarta';
-      currentUserSession.cabang = auth.wilayah || 'Kantor Pusat Jakarta';
-      currentUserSession.branch_code = auth.wilayahCode || (auth.isCabang ? 'CAB' : 'PUSAT');
-      currentUserSession.is_central = !auth.isCabang;
-      currentUserSession.access_level = auth.access_level || (auth.isCabang ? 'BRANCH_ISOLATED' : 'NATIONWIDE_FULL_ACCESS');
+      // 2. Sembunyikan modal gatekeeper
+      const gatekeeper = document.getElementById('modal-auth-gatekeeper');
+      if (gatekeeper) {
+        gatekeeper.classList.add('hidden');
+        gatekeeper.style.display = 'none';
+      }
+
+      document.documentElement.classList.add('nsr-tracking-authorized');
 
       // Terapkan isolasi wilayah pada dropdown jika cabang
       const filterKantorEl = document.getElementById('filter-kantor');
-      if (filterKantorEl && auth.isCabang) {
-        filterKantorEl.value = auth.wilayah;
+      if (filterKantorEl && profilValid.isCabang) {
+        filterKantorEl.value = profilValid.wilayah;
         filterKantorEl.disabled = true;
       }
 
       sinkronkanLevelAkses(currentUserSession);
       updateUserSessionUI();
-      window.stateApp = window.stateApp || {};
-      window.stateApp.currentProfile = getCurrentUserProfile();
-
-      document.documentElement.classList.add('nsr-tracking-authorized');
-      const modal = document.getElementById('modal-auth-gatekeeper');
-      if (modal) modal.classList.add('hidden');
       return true;
     }
 
@@ -2389,34 +2430,22 @@
     // =========================================================================
     function getCurrentUserProfile() {
       const urlParams = new URLSearchParams(window.location.search);
-      const urlToken = urlParams.get(['t','o','k','e','n'].join('')) || sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('auth_token') || sessionStorage.getItem('kjpp_auth_token') || '';
-      const urlRole = urlParams.get('role') || sessionStorage.getItem('kjpp_auth_role') || (typeof currentUserSession !== 'undefined' ? currentUserSession.jabatan : '') || '';
-      const urlWilayah = (urlParams.get('branch') || urlParams.get('wilayah') || (typeof currentUserSession !== 'undefined' ? currentUserSession.branch_code : '') || 'JKT').toUpperCase();
+      const urlToken = urlParams.get(['t','o','k','e','n'].join(''));
+      const activeToken = sessionStorage.getItem('nsr_auth_token') || localStorage.getItem('nsr_auth_token') || urlToken;
+      const rawSession = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('NSR_USER_SESSION');
 
-      let branchCode = 'JKT';
-      if (['MKS', 'MAKASSAR'].includes(urlWilayah)) branchCode = 'MKS';
-      else if (['BDG', 'BANDUNG'].includes(urlWilayah)) branchCode = 'BDG';
-      else if (['PDG', 'PADANG'].includes(urlWilayah)) branchCode = 'PDG';
-      else if (['PLM', 'PLB', 'PALEMBANG'].includes(urlWilayah)) branchCode = 'PLB';
-      else if (['JKT', 'PUSAT', 'JAKARTA'].includes(urlWilayah)) branchCode = 'JKT';
+      const candidate = activeToken || rawSession;
+      if (!candidate) return null;
 
-      let normalizedRole = 'STAF';
-      const r = (urlRole || '').toUpperCase();
-      if (urlToken.trim() === ['NSR','8899'].join('') || r.includes('SUPER')) normalizedRole = 'SUPER_ADMIN';
-      else if (r.includes('REVIEWER') || r.includes('SPM') || r.includes('PENGENDALI')) normalizedRole = 'REVIEWER_SPM';
-      else if (r.includes('PUBLIK') || r.includes('PP')) normalizedRole = 'PENILAI_PUBLIK';
-      else if (r.includes('SURVEYOR') || r.includes('LAPANGAN')) normalizedRole = 'SURVEYOR';
-      else if (r.includes('PELAKSANA') || r.includes('PENILAI')) normalizedRole = 'PENILAI_PELAKSANA';
-      else if (r.includes('ANALIS')) normalizedRole = 'ANALIS';
-      else if (r.includes('CABANG') || r.includes('PIC_CABANG')) normalizedRole = 'ADMIN_CABANG';
-      else if (r.includes('PUSAT') || r.includes('ADMIN')) normalizedRole = 'ADMIN_PUSAT';
+      const auth = (typeof resolveTrackingToken === 'function') ? resolveTrackingToken(candidate) : null;
+      if (!auth) return null;
 
       return {
-        token: urlToken.trim(),
-        role: normalizedRole,
-        wilayah: branchCode,
-        nama: (typeof currentUserSession !== 'undefined' && currentUserSession.nama) ? currentUserSession.nama : 'Staf Operasional',
-        nik: (typeof currentUserSession !== 'undefined' && currentUserSession.nik) ? currentUserSession.nik : ''
+        token: auth.token || candidate,
+        role: (auth.role || 'STAF').toUpperCase(),
+        wilayah: auth.wilayahCode || 'JKT',
+        nama: auth.nama || 'Staf Operasional',
+        nik: auth.nik || ''
       };
     }
     window.getCurrentUserProfile = getCurrentUserProfile;
@@ -5435,69 +5464,6 @@ Administrasi Operasional KJPP NSR`;
               Pindai QR menggunakan smartphone di lokasi untuk membuka formulir input data pembanding dengan stempel GPS &amp; waktu otomatis.
             </div>
           </div>
-        
-  <!-- ==================== MANDATORY AUTH GATEKEEPER MODAL ==================== -->
-  <div id="modal-auth-gatekeeper" class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4 sm:p-6 transition-all duration-300">
-    <div class="w-full max-w-lg bg-slate-900 border border-amber-500/30 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 text-center relative overflow-hidden">
-      <!-- Glow ambient background -->
-      <div class="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-      <!-- Icon & Header -->
-      <div class="mx-auto w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-inner">
-        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-        </svg>
-      </div>
-
-      <div class="space-y-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold uppercase tracking-wider">
-          <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
-          Akses Terbatas - Internal KJPP NSR
-        </span>
-        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Portal Pelacakan Penugasan 7 Milestone</h2>
-        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
-          Akses langsung tanpa otorisasi dikunci. Masukkan Token Akses Resmi untuk membuka portal pemantauan dan kendali mutu.
-        </p>
-      </div>
-
-      <!-- Form Token Gatekeeper -->
-      <form onsubmit="verifikasiTokenGatekeeper(event)" class="space-y-4 text-left">
-        <div>
-          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-            Token Akses Resmi / Otorisasi Wilayah
-          </label>
-          <div class="relative">
-            <input type="password" id="gatekeeper-input-token" required autocomplete="off" placeholder="Masukkan Token Akses Resmi (Contoh: NSR...)" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-11 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition" />
-            <button type="button" onclick="toggleGatekeeperTokenVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1" title="Tampilkan/Sembunyikan Token">
-              <svg id="icon-eye-gatekeeper" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div id="gatekeeper-error-banner" class="hidden p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 leading-relaxed">
-          Token akses tidak valid atau tidak memiliki hak akses portal pelacakan penugasan.
-        </div>
-
-        <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
-          <a href="index.html" class="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold text-center transition flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            <span>Kembali ke Beranda</span>
-          </a>
-          <button type="submit" id="btn-submit-gatekeeper" class="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95">
-            <span>Buka Portal ➔</span>
-          </button>
-        </div>
-      </form>
-
-      <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-500">
-        Hak Cipta &copy; 2026 KJPP Nanang Rahayu Sigit Paryanto dan Rekan. Sistem Kendali Mutu &amp; Kepatuhan SPI 105.
-      </div>
-    </div>
-  </div>
 
 </body>
         </html>
@@ -5763,5 +5729,68 @@ Administrasi Operasional KJPP NSR`;
     </div>
   </div>
 
+
+  <!-- ==================== MANDATORY AUTH GATEKEEPER MODAL ==================== -->
+  <div id="modal-auth-gatekeeper" class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4 sm:p-6 transition-all duration-300">
+    <div class="w-full max-w-lg bg-slate-900 border border-amber-500/30 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 text-center relative overflow-hidden">
+      <!-- Glow ambient background -->
+      <div class="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Icon & Header -->
+      <div class="mx-auto w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-inner">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+
+      <div class="space-y-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold uppercase tracking-wider">
+          <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+          Akses Terbatas - Internal KJPP NSR
+        </span>
+        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Portal Pelacakan Penugasan 7 Milestone</h2>
+        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
+          Akses langsung tanpa otorisasi dikunci. Masukkan Token Akses Resmi untuk membuka portal pemantauan dan kendali mutu.
+        </p>
+      </div>
+
+      <!-- Form Token Gatekeeper -->
+      <form onsubmit="verifikasiTokenGatekeeper(event)" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            Token Akses Resmi / Otorisasi Wilayah
+          </label>
+          <div class="relative">
+            <input type="password" id="gatekeeper-input-token" required autocomplete="off" placeholder="Masukkan Token Akses Resmi (Contoh: NSR...)" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-11 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition" />
+            <button type="button" onclick="toggleGatekeeperTokenVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1" title="Tampilkan/Sembunyikan Token">
+              <svg id="icon-eye-gatekeeper" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="gatekeeper-error-banner" class="hidden p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 leading-relaxed">
+          Token akses tidak valid atau tidak memiliki hak akses portal pelacakan penugasan.
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+          <a href="index.html" class="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold text-center transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <span>Kembali ke Beranda</span>
+          </a>
+          <button type="submit" id="btn-submit-gatekeeper" class="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95">
+            <span>Buka Portal ➔</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-500">
+        Hak Cipta &copy; 2026 KJPP Nanang Rahayu Sigit Paryanto dan Rekan. Sistem Kendali Mutu &amp; Kepatuhan SPI 105.
+      </div>
+    </div>
+  </div>
 </body>
 </html>
