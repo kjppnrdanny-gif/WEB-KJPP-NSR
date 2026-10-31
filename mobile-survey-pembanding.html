@@ -108,31 +108,39 @@
       <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">2. Posisi Data Pembanding</span>
-          <span class="text-[10px] text-slate-400">Min. 3 Data SPI 105</span>
+          <span id="mobile-spi-status-text" class="text-[10px] text-slate-400 font-semibold bg-slate-950 px-2 py-0.5 rounded border border-slate-800">0 Data Terkumpul (Min. 3 Data SPI 105)</span>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
-          <label class="cursor-pointer">
-            <input type="radio" name="mobile-market-urutan" value="1" class="peer sr-only">
-            <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
-              <span class="block text-xs font-black font-mono">DP-01</span>
-              <span class="text-[9.5px] text-slate-400">Pembanding 1</span>
-            </div>
-          </label>
-          <label class="cursor-pointer">
-            <input type="radio" name="mobile-market-urutan" value="2" class="peer sr-only">
-            <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
-              <span class="block text-xs font-black font-mono">DP-02</span>
-              <span class="text-[9.5px] text-slate-400">Pembanding 2</span>
-            </div>
-          </label>
-          <label class="cursor-pointer">
-            <input type="radio" name="mobile-market-urutan" value="3" checked class="peer sr-only">
-            <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
-              <span class="block text-xs font-black font-mono">DP-03</span>
-              <span class="text-[9.5px] text-slate-400">Pembanding 3</span>
-            </div>
-          </label>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] text-slate-300 font-semibold">Pilih Slot Urutan DP:</span>
+            <button type="button" onclick="tambahSlotPembandingBaru()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-dashed border-cyan-500/60 text-cyan-400 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition cursor-pointer active:scale-95 shadow-sm">
+              <span>➕ Tambah DP</span>
+            </button>
+          </div>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-2" id="mobile-slots-container">
+            <label class="cursor-pointer" id="label-slot-mobile-1">
+              <input type="radio" name="mobile-market-urutan" value="1" class="peer sr-only" onchange="gantiSlotMobile(1)">
+              <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
+                <span class="block text-xs font-black font-mono">DP-01</span>
+                <span class="text-[9.5px] text-slate-400">Pembanding 1</span>
+              </div>
+            </label>
+            <label class="cursor-pointer" id="label-slot-mobile-2">
+              <input type="radio" name="mobile-market-urutan" value="2" class="peer sr-only" onchange="gantiSlotMobile(2)">
+              <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
+                <span class="block text-xs font-black font-mono">DP-02</span>
+                <span class="text-[9.5px] text-slate-400">Pembanding 2</span>
+              </div>
+            </label>
+            <label class="cursor-pointer" id="label-slot-mobile-3">
+              <input type="radio" name="mobile-market-urutan" value="3" checked class="peer sr-only" onchange="gantiSlotMobile(3)">
+              <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
+                <span class="block text-xs font-black font-mono">DP-03</span>
+                <span class="text-[9.5px] text-slate-400">Pembanding 3</span>
+              </div>
+            </label>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 pt-1" id="mobile-toggle-status-container">
@@ -157,7 +165,7 @@
       <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">3. Spesifikasi Finansial &amp; Fisik</span>
-          <span class="text-[10px] text-slate-400">Kalkulasi Otomatis</span>
+          <span class="text-[10px] text-emerald-400 font-semibold">Data Faktual Lapangan</span>
         </div>
 
         <div>
@@ -479,6 +487,112 @@
     }
     window.hitungPerM2Mobile = hitungPerM2Mobile;
 
+    // State manajemen slot data pembanding dinamis
+    const mobileSlotsData = {};
+    let currentActiveSlot = 3;
+
+    function simpanStateSlotMobile(slotNum) {
+      if (!slotNum) return;
+      const statusRadio = Array.from(document.getElementsByName('mobile-market-status')).find(r => r.checked);
+      mobileSlotsData[slotNum] = {
+        status: statusRadio ? statusRadio.value : 'Penawaran',
+        jenis_properti: document.getElementById('mobile-jenis-properti')?.value || '',
+        harga: document.getElementById('mobile-harga')?.value || '',
+        luas_tanah: document.getElementById('mobile-luas-tanah')?.value || '',
+        luas_bangunan: document.getElementById('mobile-luas-bangunan')?.value || '',
+        lebar_jalan: document.getElementById('mobile-lebar-jalan')?.value || '',
+        alamat: document.getElementById('mobile-alamat')?.value || '',
+        narasumber_nama: document.getElementById('mobile-narasumber-nama')?.value || '',
+        narasumber_status: document.getElementById('mobile-narasumber-status')?.value || 'Pemilik Langsung',
+        narasumber_kontak: document.getElementById('mobile-narasumber-kontak')?.value || '',
+        foto_base64: document.getElementById('mobile-foto-base64')?.value || ''
+      };
+    }
+    window.simpanStateSlotMobile = simpanStateSlotMobile;
+
+    function gantiSlotMobile(slotNum) {
+      if (currentActiveSlot && currentActiveSlot !== slotNum) {
+        simpanStateSlotMobile(currentActiveSlot);
+      }
+      currentActiveSlot = slotNum;
+
+      const data = mobileSlotsData[slotNum];
+      if (data) {
+        const statusRadios = document.getElementsByName('mobile-market-status');
+        statusRadios.forEach(r => { r.checked = (r.value === data.status); });
+        updateToggleStatusMobile(data.status);
+
+        if (document.getElementById('mobile-jenis-properti')) document.getElementById('mobile-jenis-properti').value = data.jenis_properti;
+        if (document.getElementById('mobile-harga')) document.getElementById('mobile-harga').value = data.harga;
+        if (document.getElementById('mobile-luas-tanah')) document.getElementById('mobile-luas-tanah').value = data.luas_tanah;
+        if (document.getElementById('mobile-luas-bangunan')) document.getElementById('mobile-luas-bangunan').value = data.luas_bangunan;
+        if (document.getElementById('mobile-lebar-jalan')) document.getElementById('mobile-lebar-jalan').value = data.lebar_jalan;
+        if (document.getElementById('mobile-alamat')) document.getElementById('mobile-alamat').value = data.alamat;
+        if (document.getElementById('mobile-narasumber-nama')) document.getElementById('mobile-narasumber-nama').value = data.narasumber_nama;
+        if (document.getElementById('mobile-narasumber-status')) document.getElementById('mobile-narasumber-status').value = data.narasumber_status;
+        if (document.getElementById('mobile-narasumber-kontak')) document.getElementById('mobile-narasumber-kontak').value = data.narasumber_kontak;
+        
+        const prevImg = document.getElementById('mobile-foto-preview');
+        const prevContainer = document.getElementById('mobile-foto-container');
+        const base64Input = document.getElementById('mobile-foto-base64');
+        if (data.foto_base64) {
+          if (prevImg) prevImg.src = data.foto_base64;
+          if (base64Input) base64Input.value = data.foto_base64;
+          if (prevContainer) prevContainer.classList.remove('hidden');
+        } else {
+          if (prevImg) prevImg.src = '';
+          if (base64Input) base64Input.value = '';
+          if (prevContainer) prevContainer.classList.add('hidden');
+        }
+      } else {
+        // Reset form untuk slot baru
+        if (document.getElementById('mobile-harga')) document.getElementById('mobile-harga').value = '';
+        if (document.getElementById('mobile-luas-tanah')) document.getElementById('mobile-luas-tanah').value = '';
+        if (document.getElementById('mobile-luas-bangunan')) document.getElementById('mobile-luas-bangunan').value = '';
+        if (document.getElementById('mobile-lebar-jalan')) document.getElementById('mobile-lebar-jalan').value = '';
+        if (document.getElementById('mobile-alamat')) document.getElementById('mobile-alamat').value = '';
+        if (document.getElementById('mobile-narasumber-nama')) document.getElementById('mobile-narasumber-nama').value = '';
+        if (document.getElementById('mobile-narasumber-kontak')) document.getElementById('mobile-narasumber-kontak').value = '';
+        const prevContainer = document.getElementById('mobile-foto-container');
+        if (prevContainer) prevContainer.classList.add('hidden');
+        const base64Input = document.getElementById('mobile-foto-base64');
+        if (base64Input) base64Input.value = '';
+      }
+    }
+    window.gantiSlotMobile = gantiSlotMobile;
+
+    function tambahSlotPembandingBaru() {
+      const container = document.getElementById('mobile-slots-container');
+      if (!container) return;
+      const existingRadios = document.getElementsByName('mobile-market-urutan');
+      let maxVal = 0;
+      existingRadios.forEach(r => {
+        const v = parseInt(r.value) || 0;
+        if (v > maxVal) maxVal = v;
+      });
+      const nextVal = maxVal + 1;
+      const dpCode = 'DP-' + String(nextVal).padStart(2, '0');
+
+      const labelEl = document.createElement('label');
+      labelEl.className = 'cursor-pointer';
+      labelEl.id = 'label-slot-mobile-' + nextVal;
+      labelEl.innerHTML = `
+        <input type="radio" name="mobile-market-urutan" value="${nextVal}" class="peer sr-only" onchange="gantiSlotMobile(${nextVal})">
+        <div class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-center peer-checked:border-amber-400 peer-checked:bg-amber-400/10 peer-checked:text-amber-300 transition">
+          <span class="block text-xs font-black font-mono">${dpCode}</span>
+          <span class="text-[9.5px] text-slate-400">Pembanding ${nextVal}</span>
+        </div>
+      `;
+      container.appendChild(labelEl);
+
+      const newRadio = labelEl.querySelector('input');
+      if (newRadio) {
+        newRadio.checked = true;
+        gantiSlotMobile(nextVal);
+      }
+    }
+    window.tambahSlotPembandingBaru = tambahSlotPembandingBaru;
+
     function updateToggleStatusMobile(status) {
       const btnPenawaran = document.getElementById('btn-toggle-penawaran-mobile');
       const btnTransaksi = document.getElementById('btn-toggle-transaksi-mobile');
@@ -587,7 +701,7 @@
 
           const joVal = document.getElementById('select-jo-penugasan').value || 'JO-LAPANGAN';
           const urutanRadio = Array.from(document.getElementsByName('mobile-market-urutan')).find(r => r.checked);
-          const urutanVal = urutanRadio ? `DP-0${urutanRadio.value}` : 'DP-01';
+          const urutanVal = urutanRadio ? `DP-${String(urutanRadio.value).padStart(2, '0')}` : 'DP-01';
           const lat = document.getElementById('mobile-gps-lat').value || '-';
           const lng = document.getElementById('mobile-gps-lng').value || '-';
           const acc = document.getElementById('mobile-gps-acc').value || '5';
@@ -717,6 +831,7 @@
     // 6. Muat Riwayat Data Pembanding
     async function muatRiwayatDataPembanding(joNumber) {
       const container = document.getElementById('container-riwayat-pembanding');
+      const statusTextEl = document.getElementById('mobile-spi-status-text');
       if (!joNumber) {
         container.innerHTML = '<p class="text-xs text-slate-500 text-center py-2">Pilih No. JO untuk melihat riwayat data pasar.</p>';
         return;
@@ -734,6 +849,17 @@
         // Fallback ke sample database
         if (sampleJobsDatabase[joNumber] && sampleJobsDatabase[joNumber].data_pembanding) {
           comparables = Object.values(sampleJobsDatabase[joNumber].data_pembanding);
+        }
+      }
+
+      const totalTerkumpul = comparables ? comparables.length : 0;
+      if (statusTextEl) {
+        if (totalTerkumpul >= 3) {
+          statusTextEl.className = 'text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30';
+          statusTextEl.textContent = `✅ ${totalTerkumpul} Data Terkumpul (Min. 3 Data SPI 105)`;
+        } else {
+          statusTextEl.className = 'text-[10px] text-amber-400 font-semibold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30';
+          statusTextEl.textContent = `📊 ${totalTerkumpul} Data Terkumpul (Min. 3 Data SPI 105)`;
         }
       }
 
