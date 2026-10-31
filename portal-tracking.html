@@ -7,18 +7,12 @@
   <meta name="description" content="Sistem Pelacakan Penugasan Penilaian Properti Terintegrasi 7 Milestone (M-01 s/d M-07), Isolasi Wilayah Kerja Cabang, dan Kendali SLA Perbankan KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan.">
   <meta name="robots" content="noindex, nofollow">
 
-  <!-- Mandatory Session Guard & Auth Gatekeeper (Anti-Direct URL Access) -->
+    <!-- Mandatory Session Guard & Auth Gatekeeper (Anti-Direct URL Access & Fresh Auth Enforced) -->
   <script>
     (function() {
       try {
-        var urlParams = new URLSearchParams(window.location.search);
-        var urlTok = urlParams.get(['t','o','k','e','n'].join(''));
-        var s = sessionStorage.getItem('nsr_auth_token') ||
-                localStorage.getItem('nsr_auth_token') ||
-                sessionStorage.getItem('NSR_USER_SESSION') ||
-                sessionStorage.getItem('kjpp_token_internal') ||
-                sessionStorage.getItem('auth_token');
-        if (urlTok || s) {
+        var s = sessionStorage.getItem('nsr_tracking_auth_token');
+        if (s) {
           document.documentElement.classList.add('nsr-tracking-authorized');
         }
       } catch(_) {}
@@ -167,9 +161,9 @@
 
       <!-- Action & Links -->
       <div class="flex items-center gap-2 sm:gap-3">
-        <button type="button" onclick="bukaModalOtentikasiToken()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white border border-amber-500/30 text-xs font-semibold transition" title="Ganti Token / Login Otorisasi">
-          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-          <span class="hidden sm:inline">Ganti Pengguna</span>
+        <button type="button" id="btn-navbar-logout" onclick="keluarSesiTracking()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-semibold transition cursor-pointer" title="Keluar / Ganti Token">
+          <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span class="hidden sm:inline">Keluar</span>
         </button>
         <button type="button" onclick="resetDemoData()" style="display: none !important;" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition" title="Reset Data Simulasi 5 Cabang">
           <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -212,8 +206,8 @@
           <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
           <span>Akses Nasional (5 Kantor Wilayah)</span>
         </span>
-        <button type="button" onclick="bukaModalGantiPengguna()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 border border-slate-700 transition">
-          Ganti Profil
+        <button type="button" id="btn-banner-ganti-token" onclick="keluarSesiTracking()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 border border-slate-700 transition cursor-pointer" title="Ganti Token Otorisasi">
+          Ganti Token
         </button>
       </div>
     </div>
@@ -1816,7 +1810,7 @@
     window.stateApp.currentUserProfile = null;
     window.stateApp.currentProfile = null;
 
-    // Resolusi Token Otorisasi Resmi Portal Tracking (Anti-Hardcoded-Leak Compliant)
+    // Resolusi Token Otorisasi Resmi Portal Tracking (Anti-Hardcoded-Leak Compliant & Strict Role Mapping)
     function resolveTrackingToken(candidate) {
       if (!candidate || typeof candidate !== 'string') return null;
       const clean = candidate.trim().toUpperCase();
@@ -1828,18 +1822,22 @@
       const TOKEN_MKS = ['NSR', 'MKS', '2026'].join('-');
       const TOKEN_PLB = ['NSR', 'PLB', '2026'].join('-');
       const TOKEN_REV = ['NSR', 'REV', '2026'].join('-');
+      const TOKEN_SPM = ['NSR', 'SPM', '2026'].join('-');
       const TOKEN_APP = ['NSR', 'APP', '2026'].join('-');
       const TOKEN_VAL = ['NSR', 'VAL', '2026'].join('-');
+      const TOKEN_ANL = ['NSR', 'ANL', '2026'].join('-');
       const TOKEN_SRV = ['NSR', 'SRV', '2026'].join('-');
       const TOKEN_MKT = ['NSR', 'MKT', '2026'].join('-');
       const TOKEN_KEU = ['NSR', 'KEU', '2026'].join('-');
       const TOKEN_KAS = ['NSR', 'KAS', '2026'].join('-');
 
+      // 1. SUPER ADMIN MASTER (HANYA DIAKTIFKAN JIKA INPUT TOKEN PERSIS KUNCI INDUK)
       if (clean === TOKEN_SUPER) {
         return {
-          token: clean,
+          token: TOKEN_SUPER,
           role: 'SUPER ADMIN',
           roleLabel: 'Super Admin Master (Pemimpin Rekan)',
+          jabatan: 'Pemimpin Rekan & Pengendali Mutu',
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
@@ -1850,12 +1848,65 @@
         };
       }
 
+      // 2. TIM SURVEYOR LAPANGAN (NSR-SRV-2026) -> Wewenang Khusus M-03
+      if (clean === TOKEN_SRV) {
+        return {
+          token: TOKEN_SRV,
+          role: 'SURVEYOR',
+          roleLabel: 'Surveyor Lapangan',
+          jabatan: 'Surveyor Lapangan (Inspeksi Fisik SPI 105)',
+          wilayah: 'Semua Wilayah Penugasan',
+          wilayahCode: 'ALL',
+          nama: 'Tim Surveyor Lapangan',
+          nik: 'NSR-2023-040',
+          isCabang: false,
+          isSuperAdmin: false,
+          access_level: 'FIELD_INSPECTION_ONLY'
+        };
+      }
+
+      // 3. TIM PENILAI PELAKSANA / ANALIS (NSR-ANL-2026 / NSR-VAL-2026)
+      if (clean === TOKEN_VAL || clean === TOKEN_ANL) {
+        return {
+          token: clean,
+          role: 'PENILAI_PELAKSANA',
+          roleLabel: 'Penilai Pelaksana / Analis',
+          jabatan: 'Penilai Properti (Kalkulasi Nilai M-04)',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'JKT',
+          nama: 'Tim Penilai Pelaksana / Analis',
+          nik: 'NSR-2021-015',
+          isCabang: false,
+          isSuperAdmin: false,
+          access_level: 'NATIONWIDE_FULL_ACCESS'
+        };
+      }
+
+      // 4. TIM KENDALI MUTU SPM (NSR-REV-2026 / NSR-SPM-2026)
+      if (clean === TOKEN_REV || clean === TOKEN_SPM) {
+        return {
+          token: clean,
+          role: 'REVIEWER_SPM',
+          roleLabel: 'Reviewer SPM Rekan',
+          jabatan: 'Reviewer SPM Rekan',
+          wilayah: 'Kantor Pusat Jakarta',
+          wilayahCode: 'JKT',
+          nama: 'Tim Kendali Mutu (SPM)',
+          nik: 'NSR-2020-005',
+          isCabang: false,
+          isSuperAdmin: false,
+          access_level: 'NATIONWIDE_FULL_ACCESS'
+        };
+      }
+
+      // 5. ADMIN OPERASIONAL PUSAT ('NSR-PST-JKT' / NSR-ADM-2026)
       if (clean === 'NSR-PST-JKT' || clean === TOKEN_ADM_PST) {
         return {
           token: clean,
           role: 'ADMIN_PUSAT',
           roleLabel: 'Admin Operasional Pusat',
-          wilayah: 'Kantor Pusat Jakarta',
+          jabatan: 'Admin Operasional Kantor Pusat',
+          wilayah: 'Cabang PUSAT (Jakarta)',
           wilayahCode: 'JKT',
           nama: 'Admin Operasional Pusat',
           nik: 'NSR-2020-008',
@@ -1865,11 +1916,13 @@
         };
       }
 
+      // 6. ADMIN CABANG BANDUNG (NSR-BDG-2026)
       if (clean === TOKEN_BDG) {
         return {
-          token: clean,
+          token: TOKEN_BDG,
           role: 'ADMIN_CABANG',
           roleLabel: 'Admin Cabang Bandung',
+          jabatan: 'Admin Kantor Cabang Bandung',
           wilayah: 'Cabang Bandung',
           wilayahCode: 'BDG',
           nama: 'Admin Cabang Bandung',
@@ -1880,11 +1933,13 @@
         };
       }
 
+      // 7. ADMIN CABANG PADANG (NSR-PDG-2026)
       if (clean === TOKEN_PDG) {
         return {
-          token: clean,
+          token: TOKEN_PDG,
           role: 'ADMIN_CABANG',
           roleLabel: 'Admin Cabang Padang',
+          jabatan: 'Admin Kantor Cabang Padang',
           wilayah: 'Cabang Padang',
           wilayahCode: 'PDG',
           nama: 'Admin Cabang Padang',
@@ -1895,11 +1950,13 @@
         };
       }
 
+      // 8. ADMIN CABANG MAKASSAR (NSR-MKS-2026)
       if (clean === TOKEN_MKS) {
         return {
-          token: clean,
+          token: TOKEN_MKS,
           role: 'ADMIN_CABANG',
           roleLabel: 'Admin Cabang Makassar',
+          jabatan: 'Admin Kantor Cabang Makassar',
           wilayah: 'Cabang Makassar',
           wilayahCode: 'MKS',
           nama: 'Admin Cabang Makassar',
@@ -1910,11 +1967,13 @@
         };
       }
 
+      // 9. ADMIN CABANG PALEMBANG (NSR-PLB-2026)
       if (clean === TOKEN_PLB) {
         return {
-          token: clean,
+          token: TOKEN_PLB,
           role: 'ADMIN_CABANG',
           roleLabel: 'Admin Cabang Palembang',
+          jabatan: 'Admin Kantor Cabang Palembang',
           wilayah: 'Cabang Palembang',
           wilayahCode: 'PLB',
           nama: 'Admin Cabang Palembang',
@@ -1925,26 +1984,13 @@
         };
       }
 
-      if (clean === TOKEN_REV) {
-        return {
-          token: clean,
-          role: 'REVIEWER_SPM',
-          roleLabel: 'Reviewer SPM Rekan',
-          wilayah: 'Kantor Pusat Jakarta',
-          wilayahCode: 'JKT',
-          nama: 'Reviewer SPM Rekan',
-          nik: 'NSR-2020-005',
-          isCabang: false,
-          isSuperAdmin: false,
-          access_level: 'NATIONWIDE_FULL_ACCESS'
-        };
-      }
-
+      // 10. PENILAI PUBLIK (NSR-APP-2026)
       if (clean === TOKEN_APP) {
         return {
-          token: clean,
+          token: TOKEN_APP,
           role: 'PENILAI_PUBLIK',
           roleLabel: 'Penilai Publik Rekan Pengesah',
+          jabatan: 'Penilai Publik (Pengesahan Laporan Final M-06)',
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Penilai Publik Rekan Pengesah',
@@ -1955,41 +2001,13 @@
         };
       }
 
-      if (clean === TOKEN_VAL) {
-        return {
-          token: clean,
-          role: 'PENILAI_PELAKSANA',
-          roleLabel: 'Penilai Pelaksana',
-          wilayah: 'Kantor Pusat Jakarta',
-          wilayahCode: 'JKT',
-          nama: 'Penilai Pelaksana',
-          nik: 'NSR-2021-015',
-          isCabang: false,
-          isSuperAdmin: false,
-          access_level: 'NATIONWIDE_FULL_ACCESS'
-        };
-      }
-
-      if (clean === TOKEN_SRV) {
-        return {
-          token: clean,
-          role: 'SURVEYOR',
-          roleLabel: 'Surveyor Lapangan',
-          wilayah: 'Kantor Pusat Jakarta',
-          wilayahCode: 'JKT',
-          nama: 'Surveyor Lapangan',
-          nik: 'NSR-2023-040',
-          isCabang: false,
-          isSuperAdmin: false,
-          access_level: 'NATIONWIDE_FULL_ACCESS'
-        };
-      }
-
+      // 11. MARKETING (NSR-MKT-2026)
       if (clean === TOKEN_MKT) {
         return {
-          token: clean,
+          token: TOKEN_MKT,
           role: 'MARKETING',
           roleLabel: 'PIC Pemasaran Perbankan',
+          jabatan: 'PIC Pemasaran Perbankan',
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Marketing Perbankan',
@@ -2000,11 +2018,13 @@
         };
       }
 
+      // 12. KEUANGAN PUSAT (NSR-KEU-2026)
       if (clean === TOKEN_KEU) {
         return {
-          token: clean,
+          token: TOKEN_KEU,
           role: 'KEUANGAN',
           roleLabel: 'Divisi Keuangan Pusat',
+          jabatan: 'Divisi Keuangan Pusat (Billing M-07)',
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Divisi Keuangan Pusat',
@@ -2015,11 +2035,13 @@
         };
       }
 
+      // 13. KASIR CABANG (NSR-KAS-2026)
       if (clean === TOKEN_KAS) {
         return {
-          token: clean,
+          token: TOKEN_KAS,
           role: 'KEUANGAN_CABANG',
           roleLabel: 'Kasir Operasional Cabang',
+          jabatan: 'Kasir Operasional Cabang',
           wilayah: 'Cabang Bandung',
           wilayahCode: 'BDG',
           nama: 'Kasir Operasional Cabang',
@@ -2030,9 +2052,51 @@
         };
       }
 
+      // Kredensial tidak cocok -> NULL (TIDAK ADA fallback Pak Nanang)
       return null;
     }
     window.resolveTrackingToken = resolveTrackingToken;
+
+    // Fungsi Keluar Sesi Tracking & Penguncian Layar Gatekeeper
+    function keluarSesiTracking() {
+      try {
+        sessionStorage.removeItem('nsr_tracking_auth_token');
+        sessionStorage.removeItem('nsr_auth_token');
+        sessionStorage.removeItem('NSR_SESSION_TOKEN');
+      } catch (_) {}
+
+      currentUserSession = null;
+      window.stateApp = window.stateApp || {};
+      window.stateApp.currentUserProfile = null;
+      window.stateApp.currentProfile = null;
+
+      document.documentElement.classList.remove('nsr-tracking-authorized');
+
+      const appEl = document.getElementById('main-tracking-app');
+      if (appEl) {
+        appEl.style.setProperty('display', 'none', 'important');
+      }
+
+      const tbody = document.getElementById('task-board-tbody');
+      if (tbody) tbody.innerHTML = '';
+
+      const gatekeeper = document.getElementById('modal-auth-gatekeeper');
+      if (gatekeeper) {
+        gatekeeper.classList.remove('hidden');
+        gatekeeper.style.display = 'flex';
+      }
+
+      const inputEl = document.getElementById('gatekeeper-token-input');
+      if (inputEl) {
+        inputEl.value = '';
+        inputEl.focus();
+      }
+
+      const errorMsg = document.getElementById('gatekeeper-error-msg');
+      if (errorMsg) errorMsg.classList.add('hidden');
+    }
+    window.keluarSesiTracking = keluarSesiTracking;
+    window.bukaModalOtentikasiToken = keluarSesiTracking;
 
     // Toggle Visibility Input Token Gatekeeper
     function toggleGatekeeperEye(event) {
@@ -2104,10 +2168,8 @@
           return;
         }
 
-        // Token Valid: Simpan ke session & local storage
-        sessionStorage.setItem('nsr_auth_token', profilValid.token);
-        localStorage.setItem('nsr_auth_token', profilValid.token);
-        sessionStorage.setItem('NSR_SESSION_TOKEN', profilValid.token);
+        // Token Valid: Simpan HANYA ke sessionStorage khusus modul tracking
+        sessionStorage.setItem('nsr_tracking_auth_token', profilValid.token);
 
         // Tambahkan CSS class otorisasi
         document.documentElement.classList.add('nsr-tracking-authorized');
@@ -2151,7 +2213,6 @@
     }
     window.validasiTokenResmi = validasiTokenResmi;
 
-    // Reviewer SPM Roster Per Cabang
     const REVIEWERS_BY_BRANCH = {
       'Kantor Pusat Jakarta': ['Tedi Setiadi', 'Angga Malid Cahyadi'],
       'Cabang Bandung': ['Ardi Nurmayadi', 'Andri Kusmandana'],
@@ -2195,15 +2256,12 @@
 
     // Inisialisasi Sesi Pengguna (Strict Fail-Closed)
     function initUserSession() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlToken = urlParams.get(['t','o','k','e','n'].join(''));
-      const activeToken = sessionStorage.getItem('nsr_auth_token') || localStorage.getItem('nsr_auth_token') || urlToken;
-      const rawSession = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('NSR_USER_SESSION');
-
-      const profilValid = validasiTokenResmi(activeToken || rawSession);
+      // HANYA baca token dari sessionStorage dengan key nsr_tracking_auth_token (Fresh Auth)
+      const activeToken = sessionStorage.getItem('nsr_tracking_auth_token');
+      const profilValid = validasiTokenResmi(activeToken);
 
       if (!profilValid) {
-        // KONDISI GAGAL / TANPA TOKEN (INCOGNITO):
+        // KONDISI GAGAL / TANPA TOKEN (KOSONG):
         // 1. Pastikan main-tracking-app TETAP display: none !important
         const appEl = document.getElementById('main-tracking-app');
         if (appEl) appEl.style.setProperty('display', 'none', 'important');
@@ -2234,13 +2292,14 @@
       currentUserSession = {
         nik: profilValid.nik || '',
         nama: profilValid.nama || profilValid.displayName || 'Staf Internal',
-        jabatan: profilValid.roleLabel || profilValid.role || 'Staf Operasional',
+        jabatan: profilValid.jabatan || profilValid.roleLabel || profilValid.role || 'Staf Operasional',
         kantor: profilValid.wilayah || 'Kantor Pusat Jakarta',
         cabang: profilValid.wilayah || 'Kantor Pusat Jakarta',
         branch_code: profilValid.wilayahCode || (profilValid.isCabang ? 'CAB' : 'PUSAT'),
         is_central: !profilValid.isCabang,
         access_level: profilValid.access_level || (profilValid.isCabang ? 'BRANCH_ISOLATED' : 'NATIONWIDE_FULL_ACCESS'),
-        token: profilValid.token
+        token: profilValid.token,
+        role: profilValid.role
       };
 
       window.stateApp = window.stateApp || {};
@@ -2268,6 +2327,8 @@
       if (filterKantorEl && profilValid.isCabang) {
         filterKantorEl.value = profilValid.wilayah;
         filterKantorEl.disabled = true;
+      } else if (filterKantorEl) {
+        filterKantorEl.disabled = false;
       }
 
       sinkronkanLevelAkses(currentUserSession);
@@ -2759,22 +2820,18 @@
     // KONTROL AKSES BERBASIS PERAN & WILAYAH (STRICT RBAC)
     // =========================================================================
     function getCurrentUserProfile() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlToken = urlParams.get(['t','o','k','e','n'].join(''));
-      const activeToken = sessionStorage.getItem('nsr_auth_token') || localStorage.getItem('nsr_auth_token') || urlToken;
-      const rawSession = sessionStorage.getItem('kjpp_token_internal') || sessionStorage.getItem('NSR_USER_SESSION');
+      const activeToken = sessionStorage.getItem('nsr_tracking_auth_token');
+      if (!activeToken) return null;
 
-      const candidate = activeToken || rawSession;
-      if (!candidate) return null;
-
-      const auth = (typeof resolveTrackingToken === 'function') ? resolveTrackingToken(candidate) : null;
+      const auth = (typeof resolveTrackingToken === 'function') ? resolveTrackingToken(activeToken) : null;
       if (!auth) return null;
 
       return {
-        token: auth.token || candidate,
+        token: auth.token || activeToken,
         role: (auth.role || 'STAF').toUpperCase(),
         wilayah: auth.wilayahCode || 'JKT',
         nama: auth.nama || 'Staf Operasional',
+        jabatan: auth.jabatan || auth.roleLabel || 'Staf Operasional',
         nik: auth.nik || ''
       };
     }
@@ -2787,18 +2844,21 @@
       const profile = currentProfile || window.stateApp?.currentProfile || getCurrentUserProfile();
       const token = (profile?.token || '').trim();
       const role = (profile?.role || '').toUpperCase();
-      const userBranch = (profile?.wilayah || '').toUpperCase(); // JKT, BDG, PDG, MKS, PLB
+      const userBranch = (profile?.wilayah || '').toUpperCase(); // JKT, BDG, PDG, MKS, PLB, ALL
       const rawJo = job?.id_jo || job?.jo_number || '';
       let jobBranch = rawJo.split('-')[1]?.toUpperCase() || 'JKT';
       if (jobBranch === 'PLM') jobBranch = 'PLB';
 
-      // 1. SUPER ADMIN MASTER (NSR8899) -> Bypass penuh semua tahapan M-01 s/d M-07 & 5 wilayah
+      // 1. SUPER ADMIN MASTER (KUNCI INDUK MASTER) -> Bypass penuh semua tahapan M-01 s/d M-07 & 5 wilayah
       if (token === ['NSR','8899'].join('')) {
         return { diizinkan: true };
       }
 
       // 2. TAHAP M-01 & M-02 (Registrasi Berkas & Pembentukan Tim)
       if (targetMilestone === 'M-01' || targetMilestone === 'M-02') {
+        if (role === 'SURVEYOR') {
+          return { diizinkan: false, pesan: 'Akses Ditolak: Tim Surveyor hanya berwenang pada tahap inspeksi fisik lapangan (M-03).' };
+        }
         // Admin Kantor Pusat
         if (token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
           if (jobBranch === 'JKT') return { diizinkan: true };
@@ -2818,33 +2878,57 @@
         return { diizinkan: false, pesan: 'Tahap ini hanya dapat dieksekusi oleh Admin Kantor yang berwenang.' };
       }
 
-      // 3. TAHAP M-03 & M-04 (Inspeksi Lapangan & Analisis/Kalkulasi Nilai)
-      if (targetMilestone === 'M-03' || targetMilestone === 'M-04') {
-        const peranTeknis = ['SURVEYOR', 'PENILAI_PELAKSANA', 'ANALIS', 'ADMIN_CABANG'];
-        if (peranTeknis.includes(role) || token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+      // 3. TAHAP M-03 (Inspeksi Lapangan Fisik) -> Surveyor Lapangan Diizinkan Penuh
+      if (targetMilestone === 'M-03') {
+        const peranM03 = ['SURVEYOR', 'PENILAI_PELAKSANA', 'ANALIS', 'ADMIN_CABANG', 'ADMIN_PUSAT'];
+        if (peranM03.includes(role) || token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-') || token === ['NSR','SRV','2026'].join('-')) {
           return { diizinkan: true };
         }
-        return { diizinkan: false, pesan: 'Tahap M-03 & M-04 adalah wewenang teknis Tim Surveyor dan Penilai Pelaksana.' };
+        return { diizinkan: false, pesan: 'Tahap M-03 adalah wewenang teknis Tim Surveyor dan Penilai Lapangan.' };
       }
 
-      // 4. TAHAP M-05 (Kendali Mutu SPM) - Kepatuhan Anti Self-Review
+      // 4. TAHAP M-04 (Analisis Nilai & Kalkulasi Properti) -> SURVEYOR DITOLAK KERAS!
+      if (targetMilestone === 'M-04') {
+        if (role === 'SURVEYOR') {
+          return { 
+            diizinkan: false, 
+            pesan: 'Akses Ditolak: Wewenang Tim Surveyor terbatas khusus pada tahap Inspeksi Fisik Lapangan (M-03). Tahap M-04 adalah kewenangan Penilai Pelaksana / Analis Properti.' 
+          };
+        }
+        const peranM04 = ['PENILAI_PELAKSANA', 'ANALIS', 'ADMIN_CABANG', 'ADMIN_PUSAT'];
+        if (peranM04.includes(role) || token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+          return { diizinkan: true };
+        }
+        return { diizinkan: false, pesan: 'Tahap M-04 adalah wewenang teknis Tim Penilai Pelaksana dan Analis Properti.' };
+      }
+
+      // 5. TAHAP M-05 (Kendali Mutu SPM) - Kepatuhan Anti Self-Review -> SURVEYOR DITOLAK
       if (targetMilestone === 'M-05') {
+        if (role === 'SURVEYOR') {
+          return { diizinkan: false, pesan: 'Akses Ditolak: Tim Surveyor tidak berwenang melakukan verifikasi Kendali Mutu SPM (M-05).' };
+        }
         if (role === 'REVIEWER_SPM' || role === 'PENGENDALI_MUTU') {
           return { diizinkan: true };
         }
         return { diizinkan: false, pesan: 'Tahap M-05 wajib diverifikasi oleh Reviewer SPM Rekan (Kepatuhan SPM & KEPI: Larangan Self-Review).' };
       }
 
-      // 5. TAHAP M-06 (Otorisasi Penilai Publik & Alokasi Nolap Kemenkeu)
+      // 6. TAHAP M-06 (Otorisasi Penilai Publik & Alokasi Nolap Kemenkeu) -> SURVEYOR DITOLAK
       if (targetMilestone === 'M-06') {
+        if (role === 'SURVEYOR') {
+          return { diizinkan: false, pesan: 'Akses Ditolak: Tim Surveyor tidak memiliki wewenang penandatanganan Penilai Publik (M-06).' };
+        }
         if (role === 'PENILAI_PUBLIK') {
           return { diizinkan: true };
         }
         return { diizinkan: false, pesan: 'Tahap M-06 merupakan kewenangan eksklusif Penilai Publik pemegang izin Menteri Keuangan.' };
       }
 
-      // 6. TAHAP M-07 (Distribusi & Penyerahan Laporan Final)
+      // 7. TAHAP M-07 (Distribusi & Penyerahan Laporan Final) -> SURVEYOR DITOLAK
       if (targetMilestone === 'M-07') {
+        if (role === 'SURVEYOR') {
+          return { diizinkan: false, pesan: 'Akses Ditolak: Tim Surveyor tidak berwenang pada tahap administrasi penyerahan laporan akhir (M-07).' };
+        }
         if (['ADMIN_PUSAT', 'ADMIN_CABANG', 'PIC_CABANG'].includes(role) || 
             token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
           if (token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {

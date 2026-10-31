@@ -223,7 +223,7 @@ server.listen(PORT, async () => {
           const mainApp = document.getElementById('main-tracking-app');
           const tbody = document.getElementById('task-board-tbody');
           const search = window.location.search;
-          const sessionToken = sessionStorage.getItem('nsr_auth_token');
+          const sessionToken = sessionStorage.getItem('nsr_tracking_auth_token') || sessionStorage.getItem('nsr_auth_token');
 
           return {
             gatekeeperHidden: !gatekeeper || window.getComputedStyle(gatekeeper).display === 'none' || gatekeeper.classList.contains('hidden'),
