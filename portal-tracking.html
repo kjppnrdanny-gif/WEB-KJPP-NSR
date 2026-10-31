@@ -1518,14 +1518,20 @@
             <label class="block text-[11px] font-semibold text-slate-300 mb-1">
               Status Data Pasar <span class="text-rose-400">*</span>
             </label>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-2" id="portal-toggle-status-container">
               <label class="cursor-pointer">
-                <input type="radio" name="market-status-data" value="Penawaran" class="peer hidden" checked>
-                <div class="p-2 rounded-lg border border-slate-700 bg-slate-900 text-center text-xs font-bold text-slate-300 peer-checked:bg-sky-500/20 peer-checked:text-sky-300 peer-checked:border-sky-500/50 transition">🏷️ Penawaran</div>
+                <input type="radio" name="market-status-data" value="Penawaran" class="sr-only" checked onchange="updateToggleStatusPortal('Penawaran')">
+                <div id="btn-toggle-penawaran-portal" class="p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 font-bold border-2 border-amber-300 shadow-md">
+                  <span id="icon-check-penawaran-portal" class="text-xs font-black">✓</span>
+                  <span>🏷️ Data Penawaran</span>
+                </div>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="market-status-data" value="Transaksi" class="peer hidden">
-                <div class="p-2 rounded-lg border border-slate-700 bg-slate-900 text-center text-xs font-bold text-slate-300 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border-emerald-500/50 transition">🤝 Transaksi</div>
+                <input type="radio" name="market-status-data" value="Transaksi" class="sr-only" onchange="updateToggleStatusPortal('Transaksi')">
+                <div id="btn-toggle-transaksi-portal" class="p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 border border-slate-700 opacity-60">
+                  <span id="icon-check-transaksi-portal" class="text-xs font-black hidden">✓</span>
+                  <span>🤝 Data Transaksi</span>
+                </div>
               </label>
             </div>
           </div>
@@ -1545,10 +1551,13 @@
           </div>
 
           <div>
-            <label class="block text-[11px] font-semibold text-slate-300 mb-1">
-              Harga Penawaran / Transaksi (Rp) <span class="text-rose-400">*</span>
+            <label id="portal-label-input-harga" class="block text-[11px] font-semibold text-slate-300 mb-1">
+              <span class="flex items-center justify-between">
+                <span>Harga Penawaran (Offering Price) - Rp <span class="text-rose-400">*</span></span>
+                <span class="bg-amber-950 text-amber-300 text-[10px] px-2 py-0.5 rounded font-bold border border-amber-700/60 uppercase">PENAWARAN</span>
+              </span>
             </label>
-            <input type="text" id="market-harga" required placeholder="Contoh: 3.100.000.000" oninput="formatRupiahInput(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-400 transition">
+            <input type="text" id="market-harga" required placeholder="Cth Penawaran: 3.500.000.000" oninput="formatRupiahInput(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-400 transition">
           </div>
 
           <div class="grid grid-cols-3 gap-2">
@@ -4688,6 +4697,40 @@ Administrasi Operasional KJPP NSR`;
     }
     window.hitungHargaPerM2 = hitungHargaPerM2;
 
+    function updateToggleStatusPortal(status) {
+      const btnPenawaran = document.getElementById('btn-toggle-penawaran-portal');
+      const btnTransaksi = document.getElementById('btn-toggle-transaksi-portal');
+      const checkPenawaran = document.getElementById('icon-check-penawaran-portal');
+      const checkTransaksi = document.getElementById('icon-check-transaksi-portal');
+      const labelHarga = document.getElementById('portal-label-input-harga');
+      const inputHarga = document.getElementById('market-harga');
+
+      const isTransaksi = (status || '').toLowerCase() === 'transaksi';
+
+      if (isTransaksi) {
+        if (btnTransaksi) btnTransaksi.className = 'p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-emerald-500 text-slate-950 font-bold border-2 border-emerald-300 shadow-md';
+        if (btnPenawaran) btnPenawaran.className = 'p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 border border-slate-700 opacity-60';
+        if (checkTransaksi) checkTransaksi.classList.remove('hidden');
+        if (checkPenawaran) checkPenawaran.classList.add('hidden');
+
+        if (labelHarga) {
+          labelHarga.innerHTML = '<span class="flex items-center justify-between"><span>Harga Transaksi Riil (Deal Price) - Rp <span class="text-rose-400">*</span></span><span class="bg-emerald-950 text-emerald-300 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-700/60 uppercase">TRANSAKSI</span></span>';
+        }
+        if (inputHarga) inputHarga.placeholder = 'Cth Transaksi: 3.200.000.000';
+      } else {
+        if (btnPenawaran) btnPenawaran.className = 'p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 font-bold border-2 border-amber-300 shadow-md';
+        if (btnTransaksi) btnTransaksi.className = 'p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 border border-slate-700 opacity-60';
+        if (checkPenawaran) checkPenawaran.classList.remove('hidden');
+        if (checkTransaksi) checkTransaksi.classList.add('hidden');
+
+        if (labelHarga) {
+          labelHarga.innerHTML = '<span class="flex items-center justify-between"><span>Harga Penawaran (Offering Price) - Rp <span class="text-rose-400">*</span></span><span class="bg-amber-950 text-amber-300 text-[10px] px-2 py-0.5 rounded font-bold border border-amber-700/60 uppercase">PENAWARAN</span></span>';
+        }
+        if (inputHarga) inputHarga.placeholder = 'Cth Penawaran: 3.500.000.000';
+      }
+    }
+    window.updateToggleStatusPortal = updateToggleStatusPortal;
+
     function bukaModalInputPembanding(joId) {
       const targetJob = globalJobs.find(x => x.jo_number === joId || x.id === joId) || activeJob;
       const effectiveJo = targetJob ? targetJob.jo_number : joId;
@@ -4698,6 +4741,8 @@ Administrasi Operasional KJPP NSR`;
       }
 
       sinkronisasiDataPasarForm(effectiveJo || (selectJo ? selectJo.value : ''));
+      const activeStatusRadio = Array.from(document.getElementsByName('market-status-data')).find(r => r.checked);
+      updateToggleStatusPortal(activeStatusRadio ? activeStatusRadio.value : 'Penawaran');
 
       // Kunci GPS awal otomatis jika belum ada
       if (!document.getElementById('market-gps-lat').value) {

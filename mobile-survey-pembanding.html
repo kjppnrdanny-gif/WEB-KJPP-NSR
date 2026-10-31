@@ -135,17 +135,19 @@
           </label>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 pt-1">
+        <div class="grid grid-cols-2 gap-2 pt-1" id="mobile-toggle-status-container">
           <label class="cursor-pointer">
-            <input type="radio" name="mobile-market-status" value="Penawaran" checked class="peer sr-only">
-            <div class="p-2 rounded-lg border border-slate-700 bg-slate-950 text-center peer-checked:border-sky-400 peer-checked:bg-sky-400/10 peer-checked:text-sky-300 text-xs font-bold transition">
-              🏷️ Data Penawaran
+            <input type="radio" name="mobile-market-status" value="Penawaran" checked class="sr-only" onchange="updateToggleStatusMobile('Penawaran')">
+            <div id="btn-toggle-penawaran-mobile" class="p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 font-bold border-2 border-amber-300 shadow-md">
+              <span id="icon-check-penawaran-mobile" class="text-xs font-black">✓</span>
+              <span>🏷️ Data Penawaran</span>
             </div>
           </label>
           <label class="cursor-pointer">
-            <input type="radio" name="mobile-market-status" value="Transaksi" class="peer sr-only">
-            <div class="p-2 rounded-lg border border-slate-700 bg-slate-950 text-center peer-checked:border-emerald-400 peer-checked:bg-emerald-400/10 peer-checked:text-emerald-300 text-xs font-bold transition">
-              🤝 Data Transaksi
+            <input type="radio" name="mobile-market-status" value="Transaksi" class="sr-only" onchange="updateToggleStatusMobile('Transaksi')">
+            <div id="btn-toggle-transaksi-mobile" class="p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 border border-slate-700 opacity-60">
+              <span id="icon-check-transaksi-mobile" class="text-xs font-black hidden">✓</span>
+              <span>🤝 Data Transaksi</span>
             </div>
           </label>
         </div>
@@ -164,8 +166,13 @@
         </div>
 
         <div>
-          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Harga Penawaran / Transaksi (Rp) *</label>
-          <input type="text" id="mobile-harga" required placeholder="Cth: 3.100.000.000" oninput="formatRupiah(this);" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-amber-300 focus:border-amber-400">
+          <label id="mobile-label-input-harga" class="block text-[11px] font-semibold text-slate-300 mb-1">
+            <span class="flex items-center justify-between">
+              <span>Harga Penawaran (Offering Price) - Rp <span class="text-rose-400">*</span></span>
+              <span class="bg-amber-950 text-amber-300 text-[10px] px-2 py-0.5 rounded font-bold border border-amber-700/60 uppercase">PENAWARAN</span>
+            </span>
+          </label>
+          <input type="text" id="mobile-harga" required placeholder="Cth Penawaran: 3.500.000.000" oninput="formatRupiah(this);" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-amber-300 focus:border-amber-400">
         </div>
 
         <div class="grid grid-cols-3 gap-2">
@@ -472,6 +479,40 @@
     }
     window.hitungPerM2Mobile = hitungPerM2Mobile;
 
+    function updateToggleStatusMobile(status) {
+      const btnPenawaran = document.getElementById('btn-toggle-penawaran-mobile');
+      const btnTransaksi = document.getElementById('btn-toggle-transaksi-mobile');
+      const checkPenawaran = document.getElementById('icon-check-penawaran-mobile');
+      const checkTransaksi = document.getElementById('icon-check-transaksi-mobile');
+      const labelHarga = document.getElementById('mobile-label-input-harga');
+      const inputHarga = document.getElementById('mobile-harga');
+
+      const isTransaksi = (status || '').toLowerCase() === 'transaksi';
+
+      if (isTransaksi) {
+        if (btnTransaksi) btnTransaksi.className = 'p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-emerald-500 text-slate-950 font-bold border-2 border-emerald-300 shadow-md';
+        if (btnPenawaran) btnPenawaran.className = 'p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 border border-slate-700 opacity-60';
+        if (checkTransaksi) checkTransaksi.classList.remove('hidden');
+        if (checkPenawaran) checkPenawaran.classList.add('hidden');
+
+        if (labelHarga) {
+          labelHarga.innerHTML = '<span class="flex items-center justify-between"><span>Harga Transaksi Riil (Deal Price) - Rp <span class="text-rose-400">*</span></span><span class="bg-emerald-950 text-emerald-300 text-[10px] px-2 py-0.5 rounded font-bold border border-emerald-700/60 uppercase">TRANSAKSI</span></span>';
+        }
+        if (inputHarga) inputHarga.placeholder = 'Cth Transaksi: 3.200.000.000';
+      } else {
+        if (btnPenawaran) btnPenawaran.className = 'p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 font-bold border-2 border-amber-300 shadow-md';
+        if (btnTransaksi) btnTransaksi.className = 'p-2.5 rounded-xl text-center text-xs transition-all flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 border border-slate-700 opacity-60';
+        if (checkPenawaran) checkPenawaran.classList.remove('hidden');
+        if (checkTransaksi) checkTransaksi.classList.add('hidden');
+
+        if (labelHarga) {
+          labelHarga.innerHTML = '<span class="flex items-center justify-between"><span>Harga Penawaran (Offering Price) - Rp <span class="text-rose-400">*</span></span><span class="bg-amber-950 text-amber-300 text-[10px] px-2 py-0.5 rounded font-bold border border-amber-700/60 uppercase">PENAWARAN</span></span>';
+        }
+        if (inputHarga) inputHarga.placeholder = 'Cth Penawaran: 3.500.000.000';
+      }
+    }
+    window.updateToggleStatusMobile = updateToggleStatusMobile;
+
     // 3. Geotagging GPS Smartphone
     function tangkapGpsMobile() {
       const disp = document.getElementById('mobile-gps-display');
@@ -707,15 +748,22 @@
 
       let html = '';
       comparables.forEach(c => {
+        const isTransaksi = (c.status_data || '').toLowerCase() === 'transaksi';
+        const badgeStatus = isTransaksi
+          ? '<span class="px-2 py-0.5 rounded text-[9.5px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">🤝 Transaksi</span>'
+          : '<span class="px-2 py-0.5 rounded text-[9.5px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">🏷️ Penawaran</span>';
+        const labelHarga = isTransaksi ? 'Harga Transaksi' : 'Harga Penawaran';
+
         html += `
           <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2 text-xs">
             <div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="px-1.5 py-0.5 rounded font-mono font-bold bg-amber-400/20 text-amber-300 text-[10px]">${c.id || 'DP'}</span>
+                ${badgeStatus}
                 <strong class="text-white">${c.alamat || 'Alamat Objek'}</strong>
               </div>
-              <p class="text-[10px] text-slate-400 mt-0.5">
-                Rp ${parseInt(c.harga || 0).toLocaleString('id-ID')} &bull; LT: ${c.luas_tanah || '-'} m² &bull; <span class="text-emerald-400 font-mono">Rp ${(c.harga_per_m2 || 0).toLocaleString('id-ID')}/m²</span>
+              <p class="text-[10px] text-slate-400 mt-1">
+                ${labelHarga}: <strong class="text-amber-300 font-mono">Rp ${parseInt(c.harga || 0).toLocaleString('id-ID')}</strong> &bull; LT: ${c.luas_tanah || '-'} m²
               </p>
               <p class="text-[9.5px] text-slate-500">Narasumber: ${c.narasumber_nama || '-'}</p>
             </div>
