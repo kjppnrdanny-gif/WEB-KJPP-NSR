@@ -32,6 +32,10 @@
   
     /* ISOLASI CETAK KHUSUS DRAF SURAT KOP RESMI A4 */
     @media print {
+      @page {
+        size: 210mm 297mm;
+        margin: 15mm 15mm 15mm 15mm;
+      }
       body * {
         visibility: hidden !important;
       }
@@ -59,7 +63,12 @@
         margin: 0 auto !important;
         width: 100% !important;
         max-width: 100% !important;
-        padding: 10mm 15mm !important;
+        padding: 0 !important;
+      }
+      .kop-surat-wrapper {
+        page-break-inside: avoid;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
       }
     }
 
@@ -717,58 +726,41 @@
         <div id="lembar-a4-draf" class="w-full max-w-[210mm] bg-white text-slate-900 shadow-2xl p-8 sm:p-12 min-h-[297mm] flex flex-col justify-between font-sans text-xs leading-relaxed border border-slate-200 relative select-text">
           
           <!-- KOP SURAT RESMI KJPP NSR -->
-          <div>
-            <div class="w-full pb-3 mb-5 border-b-[3.5px] border-double border-slate-900">
-              <div class="flex flex-row items-center justify-between gap-4">
-                
-                <!-- Logo & Identitas Resmi -->
-                <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                  <!-- Logo Vektor Resmi NSR -->
-                  <div class="flex-shrink-0">
-                    <svg class="h-14 w-auto drop-shadow-sm" viewBox="0 0 160 55" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo Resmi KJPP NSR">
-                      <defs>
-                        <linearGradient id="nsrKopBlueDraf" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stop-color="#38bdf8" />
-                          <stop offset="50%" stop-color="#2563eb" />
-                          <stop offset="100%" stop-color="#0f172a" />
-                        </linearGradient>
-                      </defs>
-                      <text x="4" y="42" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="44" letter-spacing="1" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round">NSR</text>
-                      <text x="4" y="42" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="44" letter-spacing="1" fill="url(#nsrKopBlueDraf)">NSR</text>
-                    </svg>
-                  </div>
+          <div class="kop-surat-wrapper pb-3 mb-4" style="font-family: 'Times New Roman', Times, serif; color: #000;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+              <!-- Kolom Kiri: Logo Resmi -->
+              <div style="flex-shrink: 0; width: 110px; text-align: center;">
+                <img src="assets/logo-nsr.png" alt="Logo KJPP NSR" style="max-width: 100px; height: auto;" onerror="this.outerHTML='<div style=\'font-weight:900; font-size:26px; color:#1e3a8a; letter-spacing:1px; line-height:1;\'>NSR<div style=\'font-size:8px; color:#d97706; font-weight:700;\'>APPRAISAL</div></div>'">
+              </div>
 
-                  <!-- Detail Legalitas & Izin -->
-                  <div class="sm:border-l-2 border-slate-800 sm:pl-3.5 space-y-0.5 text-center sm:text-left">
-                    <h2 class="text-sm sm:text-base font-black tracking-tight text-slate-950 uppercase leading-snug">
-                      KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN
-                    </h2>
-                    <p class="text-[11px] font-bold text-amber-700">
-                      Kantor Jasa Penilai Publik &bull; Izin Usaha KMK RI No. 2.19.0160
-                    </p>
-                    <p class="text-[10px] text-slate-700 leading-tight">
-                      Bidang Jasa: Penilaian Properti &amp; Bisnis (Klasifikasi P &amp; PS)
-                    </p>
-                    <p class="text-[9.5px] font-mono text-slate-600 pt-0.5">
-                      <span class="font-bold text-slate-900">Pusat:</span> Jakarta &bull; 
-                      <span class="font-bold text-slate-900">Cabang:</span> Bandung [P] &bull; Padang [PS] &bull; Makassar [PS] &bull; Palembang [PS]
-                    </p>
-                  </div>
+              <!-- Kolom Tengah / Utama: Identitas Kantor Pusat & Cabang -->
+              <div style="flex-grow: 1; text-align: center; line-height: 1.25;">
+                <div style="font-size: 15pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">
+                  KANTOR JASA PENILAI PUBLIK
                 </div>
-
-                <!-- Dokumen Standar Mutu SPM -->
-                <div class="text-right flex-shrink-0 hidden sm:block">
-                  <span class="inline-block px-2 py-0.5 rounded text-[9px] font-black tracking-wider uppercase bg-slate-100 text-slate-800 border border-slate-300">
-                    SISTEM KORESPONDENSI TERKENDALI
-                  </span>
-                  <p class="text-[9px] font-mono text-slate-500 mt-1">
-                    STANDAR SPM KJPP NSR &bull; 2026
-                  </p>
+                <div style="font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; color: #0f172a;">
+                  NANANG RAHAYU SIGIT PARYANTO DAN REKAN
+                </div>
+                <div style="font-size: 8.5pt; font-weight: bold; margin-top: 2px;">
+                  Izin Usaha KMK RI No. 2.19.0160 &bull; Klasifikasi Penilaian Properti & Bisnis (P & PS)
+                </div>
+                <div style="font-size: 8pt; margin-top: 3px;">
+                  <strong>Kantor Pusat:</strong> Jl. Hankam No. 5 RT.006/RW.001, Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550
+                </div>
+                <div style="font-size: 7.5pt;">
+                  Telp: (021) 7884 9996, 7884 8837 &bull; Fax: (021) 7884 9997 &bull; Email: nanang_kjpp@yahoo.co.id / admin@kjppnanangrahayu.com
+                </div>
+                <div style="font-size: 7pt; color: #334155; margin-top: 2px;">
+                  <strong>Kantor Cabang:</strong> Bandung [P] &bull; Padang [PS] &bull; Makassar [PS] &bull; Palembang [PS] &bull; Website: www.kjppnanangrahayu.com
                 </div>
               </div>
             </div>
 
-            <!-- METADATA KORESPONDENSI & TANGGAL -->
+            <!-- Garis Pembatas Kop Surat Standar (Double Border: Tebal & Tipis) -->
+            <div style="margin-top: 8px; border-top: 2.5px solid #000; border-bottom: 0.75px solid #000; height: 3px;"></div>
+          </div>
+
+          <!-- METADATA KORESPONDENSI & TANGGAL -->
             <div class="grid grid-cols-12 gap-2 text-xs mb-6 text-slate-800">
               <!-- Kolom Kiri: Nomor, Lampiran, Hal -->
               <div class="col-span-7 space-y-1">
@@ -2778,16 +2770,18 @@
           </style>
         </head>
         <body>
-          <table class="kop-table" border="0" cellspacing="0" cellpadding="0">
+          <table class="kop-table" border="0" cellspacing="0" cellpadding="0" style="width:100%; font-family:'Times New Roman', Times, serif; border-bottom: 2.5pt solid #000; padding-bottom: 8px; margin-bottom: 16px;">
             <tr>
-              <td width="90" valign="middle">
-                <span style="font-family:'Arial Black', Impact, sans-serif; font-size:36pt; font-weight:900; color:#2563eb;">NSR</span>
+              <td width="110" valign="middle" align="center" style="padding-right: 12px;">
+                <img src="assets/logo-nsr.png" width="95" height="auto" alt="Logo KJPP NSR" onerror="this.outerHTML='<span style=\'font-family:Arial,sans-serif; font-size:24pt; font-weight:900; color:#1e3a8a;\'>NSR</span>'">
               </td>
-              <td valign="middle" style="border-left: 2px solid #0f172a; padding-left: 12px;">
-                <div style="font-size:13pt; font-weight:bold; color:#0f172a;">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</div>
-                <div style="font-size:10pt; font-weight:bold; color:#b45309;">Kantor Jasa Penilai Publik &bull; Izin Usaha KMK RI No. 2.19.0160</div>
-                <div style="font-size:9pt; color:#374151;">Bidang Jasa: Penilaian Properti &amp; Bisnis (Klasifikasi P &amp; PS)</div>
-                <div style="font-size:8.5pt; color:#4b5563;">Pusat: Jakarta &bull; Cabang: Bandung [P] &bull; Padang [PS] &bull; Makassar [PS] &bull; Palembang [PS]</div>
+              <td valign="middle" align="center" style="line-height: 1.25;">
+                <div style="font-size: 15pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">KANTOR JASA PENILAI PUBLIK</div>
+                <div style="font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; color: #0f172a;">NANANG RAHAYU SIGIT PARYANTO DAN REKAN</div>
+                <div style="font-size: 8.5pt; font-weight: bold; margin-top: 2px;">Izin Usaha KMK RI No. 2.19.0160 &bull; Klasifikasi Penilaian Properti &amp; Bisnis (P &amp; PS)</div>
+                <div style="font-size: 8pt; margin-top: 3px;"><strong>Kantor Pusat:</strong> Jl. Hankam No. 5 RT.006/RW.001, Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550</div>
+                <div style="font-size: 7.5pt;">Telp: (021) 7884 9996, 7884 8837 &bull; Fax: (021) 7884 9997 &bull; Email: nanang_kjpp@yahoo.co.id / admin@kjppnanangrahayu.com</div>
+                <div style="font-size: 7pt; color: #334155; margin-top: 2px;"><strong>Kantor Cabang:</strong> Bandung [P] &bull; Padang [PS] &bull; Makassar [PS] &bull; Palembang [PS] &bull; Website: www.kjppnanangrahayu.com</div>
               </td>
             </tr>
           </table>

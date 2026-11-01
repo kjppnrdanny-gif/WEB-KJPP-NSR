@@ -94,6 +94,8 @@ const ALLOWED_FILES = [
 // 2. ALLOWLIST DIREKTORI PUBLIK
 const ALLOWED_DIRS = [
   "images",
+  "assets",
+  "img",
   "components",
   "lib",
   "uploads"
