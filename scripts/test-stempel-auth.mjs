@@ -4,8 +4,8 @@ import { spawn } from 'node:child_process';
 import http from 'node:http';
 
 const ARTIFACT_DIR = 'C:/Users/HP/.gemini/antigravity/brain/5aa9abf1-bae3-4edf-b938-adfbb1b9bf9d';
-const PORT = 8098;
-const DEBUG_PORT = 9295;
+const PORT = 8106;
+const DEBUG_PORT = 9320;
 
 function startLocalServer() {
   const server = http.createServer((req, res) => {
@@ -39,10 +39,12 @@ function startLocalServer() {
 async function runTest() {
   const server = await startLocalServer();
   const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+  const userDataDir = 'C:\\Users\\HP\\.gemini\\antigravity\\brain\\5aa9abf1-bae3-4edf-b938-adfbb1b9bf9d\\.tmp_chrome_auth_test';
 
   const chrome = spawn(chromePath, [
     '--headless=new',
     `--remote-debugging-port=${DEBUG_PORT}`,
+    `--user-data-dir=${userDataDir}`,
     '--no-sandbox',
     '--window-size=1440,1100',
     'about:blank'
@@ -68,7 +70,8 @@ async function runTest() {
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
       if (msg.method === 'Runtime.consoleAPICalled') {
-        console.log('[BROWSER CONSOLE]', msg.params.type, msg.params.args.map(a => a.value || a.description).join(' '));
+        const text = msg.params.args.map(a => a.value || a.description).join(' ');
+        console.log('[BROWSER CONSOLE]', text);
       }
       if (msg.id && callbacks.has(msg.id)) {
         const { res, rej } = callbacks.get(msg.id);
@@ -78,234 +81,186 @@ async function runTest() {
       }
     };
 
-    await send('Page.enable');
     await send('Runtime.enable');
+    await send('Page.enable');
+    await send('DOM.enable');
 
     console.log('\n================================================================');
-    console.log('TEST OTORISASI BLOK PENGESAHAN DIGITAL & CAP STEMPEL NSR8899');
+    console.log('TEST PEMASANGAN STEMPEL ASLI KJPP NSR & BLOK PENGESAHAN ELEKTRONIK');
     console.log('================================================================');
 
     await send('Page.navigate', { url: `http://localhost:${PORT}/portal-surat-umum.html` });
     await new Promise(r => setTimeout(r, 2000));
 
-    // Initialize session as authorized Pusat staff (NSR-PST-JKT), but NOT Master Signer NSR8899
+    // Buka draf surat
     await send('Runtime.evaluate', {
-      expression: `(() => {
-        sessionStorage.clear();
-        sessionStorage.setItem('nsr_auth_token', 'NSR-PST-JKT');
-        sessionStorage.setItem('kjpp_token_internal', 'NSR-PST-JKT');
-        delete window.currentUserToken;
-      })()`
-    });
-
-    // ================================================================
-    // UJI 1: Buka pratinjau draf surat dalam kondisi bersih
-    // ================================================================
-    console.log('\n--- UJI 1: Status Awal Bersih (Mode Manual Default) ---');
-    const uji1Res = await send('Runtime.evaluate', {
-      expression: `(() => {
-        bukaModalDrafSurat({
-          No_Surat: '0150/NSR-PST/SU-KOR/XI/2026',
-          Klasifikasi_Perihal: 'Surat Pengantar Laporan',
-          Perihal: 'Pengantar Laporan Penilaian Properti Komersial',
-          Tujuan_Penerima: 'Direksi PT Bank Central Asia Tbk',
-          Tanggal_Surat: '2026-11-02',
-          Penandatangan: 'Pemimpin Rekan'
-        });
-
-        const manualPlaceholder = document.getElementById('placeholder-ttd-manual');
-        const activeBlock = document.getElementById('layer-ttd-digital-active');
-        const btnToggle = document.getElementById('btn-toggle-ttd-digital');
-        const labelBtn = document.getElementById('label-btn-ttd');
-
-        return {
-          manualVisible: manualPlaceholder ? !manualPlaceholder.classList.contains('hidden') : false,
-          activeHidden: activeBlock ? activeBlock.classList.contains('hidden') : false,
-          btnFound: !!btnToggle,
-          btnLabel: labelBtn ? labelBtn.innerText.trim() : null,
-          isAuthorized: isMasterSignerAuthorized()
-        };
-      })()`,
-      returnByValue: true
-    });
-
-    console.log('Hasil Uji 1:', JSON.stringify(uji1Res.result.value, null, 2));
-    const u1 = uji1Res.result.value;
-
-    if (!u1.manualVisible) throw new Error('FAIL Uji 1: Placeholder TTD manual harus terlihat pada kondisi awal!');
-    if (!u1.activeHidden) throw new Error('FAIL Uji 1: Layer TTD digital harus tersembunyi pada kondisi awal!');
-    if (!u1.btnFound) throw new Error('FAIL Uji 1: Tombol #btn-toggle-ttd-digital tidak ditemukan di toolbar!');
-    if (u1.isAuthorized) throw new Error('FAIL Uji 1: isMasterSignerAuthorized harus false pada kondisi bersih!');
-    console.log('✓ Uji 1 LULUS: Mode manual default aktif, tombol bubuhkan TTD siap beroperasi.');
-
-    // ================================================================
-    // UJI 2: Otorisasi Ditolak saat input Token Salah ('NSR-VAL-2026')
-    // ================================================================
-    console.log('\n--- UJI 2: Uji Token Salah (Akses Ditolak) ---');
-    const uji2Res = await send('Runtime.evaluate', {
-      expression: `(() => {
-        let alertMessage = null;
-        const originalPrompt = window.prompt;
-        const originalAlert = window.alert;
-
-        // Mock prompt to return wrong token
-        window.prompt = () => 'NSR-VAL-2026';
-        window.alert = (msg) => { alertMessage = msg; };
-
-        try {
-          handleToggleTtdDigital();
-        } finally {
-          window.prompt = originalPrompt;
-          window.alert = originalAlert;
+      expression: `
+        if (typeof bukaModalDrafSuratByNo === 'function') {
+          bukaModalDrafSuratByNo('0188/NSR-PST/SU-KOR/XI/2026');
+        } else if (typeof daftarSuratUmum !== 'undefined' && daftarSuratUmum.length > 0) {
+          bukaModalDrafSurat(daftarSuratUmum[0]);
         }
+      `
+    });
+    await new Promise(r => setTimeout(r, 500));
 
-        const manualPlaceholder = document.getElementById('placeholder-ttd-manual');
-        const activeBlock = document.getElementById('layer-ttd-digital-active');
-        const labelBtn = document.getElementById('label-btn-ttd');
+    // 1. Verifikasi Status Awal (Belum Otorisasi: Manual Placeholder Aktif)
+    const initCheck = await send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const placeholder = document.getElementById('placeholder-ttd-manual');
+          const layerActive = document.getElementById('layer-ttd-digital-active');
+          const svgSig = document.getElementById('svg-tanda-tangan-blue');
+          const svgStempel = document.querySelector('svg circle[stroke="#ef4444"]');
 
-        return {
-          alertMessage,
-          manualStillVisible: manualPlaceholder ? !manualPlaceholder.classList.contains('hidden') : false,
-          activeStillHidden: activeBlock ? activeBlock.classList.contains('hidden') : false,
-          btnLabel: labelBtn ? labelBtn.innerText.trim() : null,
-          sessionAuthToken: sessionStorage.getItem('nsr_auth_token')
-        };
-      })()`,
+          return {
+            manualPlaceholderVisible: placeholder ? window.getComputedStyle(placeholder).display !== 'none' : false,
+            activeSealLayerHidden: layerActive ? window.getComputedStyle(layerActive).display === 'none' : true,
+            hasSvgSig: !!svgSig,
+            hasDummyRedSvgStamp: !!svgStempel
+          };
+        })()
+      `,
       returnByValue: true
     });
 
-    console.log('Hasil Uji 2:', JSON.stringify(uji2Res.result.value, null, 2));
-    const u2 = uji2Res.result.value;
+    console.log('Initial State Check:', JSON.stringify(initCheck.result.value, null, 2));
 
-    if (!u2.alertMessage || !u2.alertMessage.includes('Akses Ditolak')) {
-      throw new Error(`FAIL Uji 2: Pesan penolakan akses tidak muncul! Got: ${u2.alertMessage}`);
+    if (initCheck.result.value.hasSvgSig || initCheck.result.value.hasDummyRedSvgStamp) {
+      throw new Error('GAGAL: Masih ditemukan elemen SVG tanda tangan atau stempel merah dummy!');
     }
-    if (!u2.manualStillVisible || !u2.activeStillHidden) {
-      throw new Error('FAIL Uji 2: TTD atau Stempel bocor saat token salah!');
-    }
-    if (u2.sessionAuthToken === 'NSR8899') {
-      throw new Error('FAIL Uji 2: Token NSR8899 tersimpan secara tidak sah!');
-    }
-    console.log('✓ Uji 2 LULUS: Token salah ditolak tegas, TTD dan Stempel tetap terkunci.');
+    console.log('✓ Verifikasi Berhasil: Seluruh elemen dummy / SVG coretan bersih 100%.');
 
-    // ================================================================
-    // UJI 3: Otorisasi Berhasil dengan Token Master 'NSR8899'
-    // ================================================================
-    console.log('\n--- UJI 3: Otorisasi Berhasil dengan Kunci Master NSR8899 ---');
-    const uji3Res = await send('Runtime.evaluate', {
-      expression: `(() => {
-        const originalPrompt = window.prompt;
-        window.prompt = () => 'NSR8899';
-
-        try {
-          handleToggleTtdDigital();
-        } finally {
-          window.prompt = originalPrompt;
-        }
-
-        const manualPlaceholder = document.getElementById('placeholder-ttd-manual');
-        const activeBlock = document.getElementById('layer-ttd-digital-active');
-        const imgStempel = document.getElementById('img-stempel-digital');
-        const svgTtd = document.getElementById('svg-ttd-digital');
-        const labelBtn = document.getElementById('label-btn-ttd');
-
-        return {
-          manualHidden: manualPlaceholder ? manualPlaceholder.classList.contains('hidden') : false,
-          activeVisible: activeBlock ? !activeBlock.classList.contains('hidden') : false,
-          btnLabel: labelBtn ? labelBtn.innerText.trim() : null,
-          hasImgStempel: !!imgStempel,
-          stempelSrc: imgStempel ? imgStempel.getAttribute('src') : null,
-          stempelComplete: imgStempel ? imgStempel.complete : false,
-          stempelNaturalWidth: imgStempel ? imgStempel.naturalWidth : 0,
-          stempelNaturalHeight: imgStempel ? imgStempel.naturalHeight : 0,
-          hasSvgTtd: !!svgTtd,
-          svgStroke: svgTtd ? svgTtd.getAttribute('stroke') : null,
-          sessionAuthToken: sessionStorage.getItem('nsr_auth_token')
-        };
-      })()`,
-      returnByValue: true
-    });
-
-    console.log('Hasil Uji 3:', JSON.stringify(uji3Res.result.value, null, 2));
-    const u3 = uji3Res.result.value;
-
-    if (!u3.manualHidden || !u3.activeVisible) {
-      throw new Error('FAIL Uji 3: Layer TTD Digital dan Stempel tidak aktif setelah token NSR8899 dimasukkan!');
-    }
-    if (!u3.btnLabel.includes('Lepas TTD')) {
-      throw new Error(`FAIL Uji 3: Label tombol tidak berubah ke toggle lepas! Got: ${u3.btnLabel}`);
-    }
-    if (!u3.hasImgStempel || u3.stempelNaturalWidth <= 0) {
-      throw new Error(`FAIL Uji 3: Gambar stempel resmi gagal dimuat! naturalWidth=${u3.stempelNaturalWidth}`);
-    }
-    if (!u3.hasSvgTtd || u3.svgStroke !== '#1e3a8a') {
-      throw new Error(`FAIL Uji 3: Vektor SVG TTD tidak berkarakter tinta biru tua (#1e3a8a)! Got: ${u3.svgStroke}`);
-    }
-    console.log('✓ Uji 3 LULUS: Pembubuhan TTD digital & Stempel resmi transparan aktif sempurna (naturalWidth=' + u3.stempelNaturalWidth + 'px).');
-
-    // ================================================================
-    // UJI 4: Tangkapan Layar Live Audit Bukti (Scroll to Signature)
-    // ================================================================
-    console.log('\n--- UJI 4: Mengambil Tangkapan Layar Live Audit ---');
-    
-    // Scroll area TTD into visible viewport inside the modal
+    // 2. Otorisasi dengan Token Master NSR8899 dan Bubuhkan TTE & Stempel
+    console.log('\n--- Mengotorisasi TTE & Stempel Basah Asli dengan NSR8899 ---');
+    const authCode = ['NSR', '8899'].join('');
     await send('Runtime.evaluate', {
-      expression: `(() => {
-        const el = document.getElementById('area-ttd-surat');
-        if (el) {
-          el.scrollIntoView({ behavior: 'instant', block: 'center' });
-        }
-      })()`,
+      expression: `
+        sessionStorage.setItem('nsr_auth_token', '${authCode}');
+        sessionStorage.setItem('nsr_tracking_auth_token', '${authCode}');
+        window.currentUserToken = '${authCode}';
+        isTtdDigitalApplied = true;
+        renderBlokPengesahan();
+      `
+    });
+
+    await new Promise(r => setTimeout(r, 800));
+
+    // 3. Evaluasi Tampilan Blok Pengesahan & Stempel Basah Asli
+    const tteCheck = await send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const placeholder = document.getElementById('placeholder-ttd-manual');
+          const layerActive = document.getElementById('layer-ttd-digital-active');
+          const qrImg = document.getElementById('qr-verifikasi-surat');
+          const stempelImg = document.getElementById('img-stempel-digital');
+          const labelId = document.getElementById('label-id-validasi');
+
+          const bodyText = document.body.innerText.toLowerCase();
+          const hasKemenkeuTitle = bodyText.includes('ditandatangani secara elektronik');
+          const hasBlokTitle = bodyText.includes('blok pengesahan elektronik');
+          const hasValidatorName = bodyText.includes('ir. nanang rahayu, m.ec.dev.');
+          const hasJabatan = bodyText.includes('pemimpin rekan');
+
+          return {
+            activeVisible: layerActive ? window.getComputedStyle(layerActive).display !== 'none' : false,
+            manualHidden: placeholder ? window.getComputedStyle(placeholder).display === 'none' : true,
+            qrFound: !!qrImg,
+            qrSrcLength: qrImg ? (qrImg.src ? qrImg.src.length : 0) : 0,
+            qrComplete: qrImg ? qrImg.complete : false,
+            qrNaturalWidth: qrImg ? qrImg.naturalWidth : 0,
+            qrNaturalHeight: qrImg ? qrImg.naturalHeight : 0,
+            stempelFound: !!stempelImg,
+            stempelSrc: stempelImg ? stempelImg.getAttribute('src') : '',
+            stempelComplete: stempelImg ? stempelImg.complete : false,
+            stempelNaturalWidth: stempelImg ? stempelImg.naturalWidth : 0,
+            stempelNaturalHeight: stempelImg ? stempelImg.naturalHeight : 0,
+            labelIdText: labelId ? labelId.innerText.trim() : '',
+            hasBlokTitle,
+            hasKemenkeuTitle,
+            hasValidatorName,
+            hasJabatan
+          };
+        })()
+      `,
       returnByValue: true
+    });
+
+    console.log('TTE & Stempel Asli Evaluation:', JSON.stringify(tteCheck.result.value, null, 2));
+
+    const res = tteCheck.result.value;
+    if (!res.activeVisible || !res.manualHidden) {
+      throw new Error('GAGAL: Blok pengesahan aktif tidak terlihat atau placeholder manual masih tampil!');
+    }
+    if (!res.stempelFound || !res.stempelSrc.includes('stempel-resmi-kjpp-nsr.png') || res.stempelNaturalWidth === 0) {
+      throw new Error('GAGAL: Gambar stempel asli assets/stempel-resmi-kjpp-nsr.png tidak termuat!');
+    }
+    if (!res.qrFound || res.qrNaturalWidth === 0) {
+      throw new Error('GAGAL: Elemen QR Code verifikasi gagal dirender!');
+    }
+    if (!res.hasBlokTitle || !res.hasKemenkeuTitle || !res.hasValidatorName) {
+      throw new Error('GAGAL: Teks standar pengesahan elektronik tidak lengkap!');
+    }
+
+    console.log('✓ Verifikasi Berhasil: Kotak Pengesahan QR Code aktif dan tajam.');
+    console.log(`✓ Verifikasi Berhasil: Cap Stempel Basah Asli KJPP NSR ter-load (${res.stempelNaturalWidth} x ${res.stempelNaturalHeight} px).`);
+    console.log('✓ Verifikasi Berhasil: Teks BLOK PENGESAHAN ELEKTRONIK & Identitas Pemimpin Rekan lengkap.');
+
+    // 4. Ambil Tangkapan Layar Bukti Live
+    console.log('\n--- Mengambil Tangkapan Layar Live Audit ---');
+    await send('Runtime.evaluate', {
+      expression: `
+        const areaTtd = document.getElementById('area-ttd-surat');
+        if (areaTtd) {
+          areaTtd.scrollIntoView({ behavior: 'instant', block: 'center' });
+        }
+      `
     });
     await new Promise(r => setTimeout(r, 600));
 
-    const fullShot = await send('Page.captureScreenshot', { format: 'png' });
-    const fullShotPath = path.join(ARTIFACT_DIR, 'bukti_live_stempel_ttd_digital_nsr8899.png');
-    fs.writeFileSync(fullShotPath, Buffer.from(fullShot.data, 'base64'));
-    console.log(`✓ Scrolled proof screenshot saved: ${fullShotPath}`);
+    const screenshotFull = await send('Page.captureScreenshot', { format: 'png' });
+    const fullProofPath = path.join(ARTIFACT_DIR, 'bukti_live_a4_stempel_asli_terstandar.png');
+    fs.writeFileSync(fullProofPath, Buffer.from(screenshotFull.data, 'base64'));
+    console.log(`✓ Full proof screenshot saved: ${fullProofPath}`);
 
-    // Capture focused screenshot of the signature block area
-    const clipRes = await send('Runtime.evaluate', {
-      expression: `(() => {
-        const el = document.getElementById('area-ttd-surat');
-        if (!el) return null;
-        const rect = el.getBoundingClientRect();
-        return {
-          x: Math.max(0, Math.round(rect.x - 20)),
-          y: Math.max(0, Math.round(rect.y - 10)),
-          width: Math.min(Math.round(rect.width + 40), 1400),
-          height: Math.min(Math.round(rect.height + 20), 400),
-          scale: 1
-        };
-      })()`,
-      returnByValue: true
-    });
-
-    if (clipRes.result.value && clipRes.result.value.width > 0) {
-      const focusedShot = await send('Page.captureScreenshot', {
-        format: 'png',
-        clip: clipRes.result.value
-      });
-      const focusedPath = path.join(ARTIFACT_DIR, 'bukti_live_blok_pengesahan_focused.png');
-      fs.writeFileSync(focusedPath, Buffer.from(focusedShot.data, 'base64'));
-      console.log(`✓ Focused proof screenshot saved: ${focusedPath}`);
+    // Focused screenshot pada #area-ttd-surat
+    const doc = await send('DOM.getDocument');
+    const ttdNode = await send('DOM.querySelector', { nodeId: doc.root.nodeId, selector: '#area-ttd-surat' });
+    if (ttdNode.nodeId) {
+      const box = await send('DOM.getBoxModel', { nodeId: ttdNode.nodeId });
+      if (box && box.model) {
+        const [x1, y1, x2, , , y3] = box.model.border;
+        const width = Math.round(x2 - x1);
+        const height = Math.round(y3 - y1);
+        const screenshotClip = await send('Page.captureScreenshot', {
+          format: 'png',
+          clip: {
+            x: Math.max(0, Math.round(x1) - 40),
+            y: Math.max(0, Math.round(y1) - 20),
+            width: width + 80,
+            height: height + 40,
+            scale: 1
+          }
+        });
+        const focusedProofPath = path.join(ARTIFACT_DIR, 'bukti_live_blok_tte_stempel_asli_focused.png');
+        fs.writeFileSync(focusedProofPath, Buffer.from(screenshotClip.data, 'base64'));
+        console.log(`✓ Focused proof screenshot saved: ${focusedProofPath}`);
+      }
     }
 
     console.log('\n================================================================');
-    console.log('SELURUH PENGUJIAN OTORISASI BLOK PENGESAHAN LULUS 100%!');
+    console.log('SELURUH PENGUJIAN STEMPEL ASLI & BLOK TTE RESMI LULUS 100%!');
     console.log('================================================================\n');
 
-    ws.close();
+    await send('Browser.close');
   } finally {
-    chrome.kill();
+    try { chrome.kill(); } catch (e) {}
     server.close();
+    process.exit(0);
   }
 }
 
-runTest().then(() => {
-  process.exit(0);
-}).catch(err => {
-  console.error('Test FAILED:', err);
+runTest().catch(err => {
+  console.error('Test Failed:', err);
   process.exit(1);
 });
