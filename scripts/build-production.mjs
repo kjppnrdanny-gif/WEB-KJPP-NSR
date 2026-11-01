@@ -52,6 +52,8 @@ const ALLOWED_FILES = [
   "favicon.ico",
   "favicon.png",
   "logo-nsr.png",
+  "assets/kop-surat-kjpp-nsr.png",
+  "assets/stempel-resmi-kjpp-nsr.png",
   "og-image.jpg",
   "og-image.png",
   "company-profile-kjpp-nsr-2026.pdf",

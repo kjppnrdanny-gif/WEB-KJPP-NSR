@@ -52,6 +52,32 @@
       background-color: rgba(239, 246, 255, 0.3) !important;
     }
 
+    /* BLOK PENGESAHAN DIGITAL & STEMPEL */
+    .signature-block {
+      position: relative;
+      width: 320px;
+      height: 115px;
+      margin: 8px auto;
+    }
+    #img-stempel-digital {
+      position: absolute;
+      left: 20px;
+      top: 5px;
+      width: 120px;
+      height: 120px;
+      z-index: 2;
+      transform: rotate(-5deg);
+      opacity: 0.88;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+    #svg-ttd-digital {
+      position: absolute;
+      right: 10px;
+      top: 15px;
+      z-index: 1;
+    }
+
     /* ISOLASI CETAK KHUSUS DRAF SURAT KOP RESMI A4 */
     @media print {
       @page {
@@ -96,6 +122,33 @@
         margin-top: 0 !important;
         padding-top: 0 !important;
         margin-bottom: 4mm !important;
+      }
+      .signature-block {
+        position: relative !important;
+        width: 320px !important;
+        height: 115px !important;
+        margin: 8px auto !important;
+      }
+      #img-stempel-digital {
+        position: absolute !important;
+        left: 20px !important;
+        top: 5px !important;
+        width: 120px !important;
+        height: 120px !important;
+        z-index: 2 !important;
+        transform: rotate(-5deg) !important;
+        opacity: 0.88 !important;
+        mix-blend-mode: multiply !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      #svg-ttd-digital {
+        position: absolute !important;
+        right: 10px !important;
+        top: 15px !important;
+        z-index: 1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       [contenteditable="true"]:focus,
       [contenteditable="true"] {
@@ -718,6 +771,10 @@
 
         <!-- Action Buttons -->
         <div class="flex items-center gap-2">
+          <button type="button" id="btn-toggle-ttd-digital" onclick="handleToggleTtdDigital()"
+            class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer" title="Bubuhkan TTD &amp; Stempel Digital Resmi (Khusus Pemimpin Rekan)">
+            <span id="label-btn-ttd">✍️ Bubuhkan TTD &amp; Stempel Digital</span>
+          </button>
           <button type="button" onclick="cetakDrafSurat()"
             class="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition flex items-center gap-1.5 shadow cursor-pointer" title="Cetak / Simpan PDF (A4)">
             <span>🖨️</span>
@@ -803,26 +860,51 @@
             </div>
           </div>
 
-          <!-- BAGIAN TANDA TANGAN & PENGESAHAN -->
-          <div class="mt-8 pt-6 border-t border-slate-300" style="font-family: 'Times New Roman', Times, serif;">
+          <!-- BAGIAN TANDA TANGAN & PENGESAHAN (#area-ttd-surat) -->
+          <div id="area-ttd-surat" class="mt-8 pt-4 border-t border-slate-300" style="font-family: 'Times New Roman', Times, serif;">
             <div class="flex justify-end">
-              <div class="text-center w-72 space-y-1">
-                <p contenteditable="true" class="text-xs text-black outline-none">Hormat kami,</p>
-                <p contenteditable="true" class="text-xs font-bold text-black outline-none">KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
+              <div class="text-center w-80 space-y-1">
+                <p contenteditable="true" class="text-xs text-black outline-none font-normal">Hormat kami,</p>
+                <p contenteditable="true" class="text-xs font-bold text-black outline-none">KANTOR JASA PENILAI PUBLIK</p>
+                <p contenteditable="true" class="text-xs font-bold text-black outline-none">NANANG RAHAYU SIGIT PARYANTO DAN REKAN</p>
                 
-                <!-- Ruang Tanda Tangan Resmi -->
-                <div class="h-20 flex items-center justify-center">
-                  <span class="text-[10px] text-slate-400 italic font-mono">[ Tanda Tangan &amp; Stempel Basah / Digital ]</span>
+                <!-- WADAH TANDA TANGAN & CAP STEMPEL -->
+                <div class="signature-block" style="position: relative; width: 320px; height: 115px; margin: 8px auto;">
+                  
+                  <!-- MODE AKTIF: LAYER OVERLAPPING TTD DIGITAL & STEMPEL RESMI -->
+                  <div id="layer-ttd-digital-active" class="hidden" style="width: 100%; height: 100%; position: absolute; inset: 0;">
+                    <!-- Lapisan 1: Goresan Vektor SVG Tanda Tangan Digital Ir. Nanang Rahayu (#1e3a8a) -->
+                    <svg id="svg-ttd-digital" viewBox="0 0 220 90" width="195" height="85" style="position: absolute; right: 10px; top: 15px; z-index: 1;" fill="none" stroke="#1e3a8a" stroke-linecap="round" stroke-linejoin="round">
+                      <!-- Elemen tanda tangan dinamis Ir. Nanang Rahayu -->
+                      <path d="M 22 66 C 26 34, 32 16, 44 14 C 52 12, 57 32, 62 68 C 67 28, 74 18, 82 32 C 90 48, 97 62, 107 58 C 117 54, 127 28, 137 24 C 147 20, 152 42, 162 52 C 172 62, 187 58, 207 50" stroke-width="2.8" />
+                      <path d="M 38 46 C 65 40, 105 38, 145 40" stroke-width="2" />
+                      <path d="M 15 76 C 62 72, 132 70, 198 68" stroke-width="2.2" />
+                      <path d="M 178 60 C 188 68, 203 72, 215 70" stroke-width="2" />
+                    </svg>
+
+                    <!-- Lapisan 2: Cap Stempel Basah Transparan Resmi KJPP NSR -->
+                    <img id="img-stempel-digital" src="assets/stempel-resmi-kjpp-nsr.png" alt="Stempel Resmi KJPP NSR" 
+                         style="position: absolute; left: 20px; top: 5px; width: 120px; height: 120px; z-index: 2; transform: rotate(-5deg); opacity: 0.88; mix-blend-mode: multiply; pointer-events: none;" 
+                         onerror="this.onerror=null; this.src='dist/assets/stempel-resmi-kjpp-nsr.png';" />
+                  </div>
+
+                  <!-- MODE DEFAULT: RUANG TANDA TANGAN & STEMPEL MANUAL -->
+                  <div id="placeholder-ttd-manual" class="w-full h-full border border-dashed border-slate-300 rounded flex items-center justify-center text-slate-400 italic font-mono text-[10px]">
+                    [ Ruang Tanda Tangan &amp; Stempel Basah Manual ]
+                  </div>
+
                 </div>
 
-                <p id="draf-field-ttd-nama" contenteditable="true" class="font-bold text-black underline text-xs outline-none px-1 rounded">Ir. Nanang Rahayu Sigit Paryanto, M.Sc., MAPPI (Cert.)</p>
-                <p id="draf-field-ttd-jabatan" contenteditable="true" class="text-[11px] text-black font-medium outline-none px-1 rounded">Pemimpin Rekan / Penilai Publik P-1.19.00523</p>
-                <p id="draf-field-ttd-kantor" contenteditable="true" class="text-[9.5px] text-slate-700 outline-none px-1 rounded">Kantor Jasa Penilai Publik (KMK RI No. 2.19.0160)</p>
+                <!-- TEKS IDENTITAS PENANDATANGAN -->
+                <p id="draf-field-ttd-nama" contenteditable="true" class="font-bold text-black underline text-xs outline-none px-1 rounded pt-1">IR. NANANG RAHAYU, M.Ec.Dev., MAPPI (Cert.)</p>
+                <p id="draf-field-ttd-jabatan" contenteditable="true" class="text-[11px] text-black font-medium outline-none px-1 rounded">Pemimpin Rekan / Penilai Publik</p>
+                <p id="draf-field-ttd-izin" contenteditable="true" class="text-[9.5px] text-slate-700 outline-none px-1 rounded">Izin Penilai Publik No. P-1.19.00523</p>
+                <p id="draf-field-ttd-kantor" contenteditable="true" class="text-[9.5px] text-slate-700 outline-none px-1 rounded">Izin Usaha KJPP No. 2.19.0160</p>
               </div>
             </div>
           </div>
-
         </div>
+        
         <!-- ================= AKHIR LEMBAR RESMI A4 ================= -->
 
       </div>
@@ -2476,9 +2558,10 @@
       const j = String(jabatan || '').trim();
       if (j.includes('Pemimpin') || j === 'Pemimpin Rekan') {
         return {
-          jabatan: 'Pemimpin Rekan / Penilai Publik P-1.19.00523',
-          nama: 'Ir. Nanang Rahayu Sigit Paryanto, M.Sc., MAPPI (Cert.)',
-          keterangan: 'Kantor Jasa Penilai Publik (KMK RI No. 2.19.0160)'
+          jabatan: 'Pemimpin Rekan / Penilai Publik',
+          nama: 'IR. NANANG RAHAYU, M.Ec.Dev., MAPPI (Cert.)',
+          izin: 'Izin Penilai Publik No. P-1.19.00523',
+          keterangan: 'Izin Usaha KJPP No. 2.19.0160'
         };
       }
       if (j.includes('Rekan') || j === 'Rekan') {
@@ -2651,6 +2734,70 @@
       }
     }
 
+    let isTtdDigitalApplied = false;
+
+    function isMasterSignerAuthorized() {
+      const token = sessionStorage.getItem('nsr_tracking_auth_token') || 
+                    sessionStorage.getItem('nsr_auth_token') || 
+                    window.currentUserToken || '';
+      return String(token).trim().toUpperCase() === ['NSR', '8899'].join('');
+    }
+
+    function handleToggleTtdDigital() {
+      if (isTtdDigitalApplied) {
+        // Melepas TTD & Stempel
+        isTtdDigitalApplied = false;
+        renderBlokPengesahan();
+        return;
+      }
+
+      // Jika belum aktif, lakukan pemeriksaan otorisasi NSR8899
+      if (!isMasterSignerAuthorized()) {
+        const inputToken = window.prompt("Otorisasi Tertutup: Masukkan Kunci Induk Pemimpin Rekan Pemimpin Rekan untuk membubuhkan Tanda Tangan Digital & Stempel Resmi.");
+        
+        if (inputToken === null || inputToken === '') {
+          return; // Dibatalkan oleh pengguna
+        }
+
+        if (String(inputToken).trim().toUpperCase() !== ['NSR', '8899'].join('')) {
+          alert("Akses Ditolak: Pembubuhan Tanda Tangan Digital & Stempel Resmi merupakan wewenang eksklusif Pemimpin Rekan Pemimpin Rekan.");
+          return;
+        }
+
+        // Token terverifikasi NSR8899
+        sessionStorage.setItem('nsr_auth_token', ['NSR', '8899'].join(''));
+        sessionStorage.setItem('nsr_tracking_auth_token', ['NSR', '8899'].join(''));
+        window.currentUserToken = ['NSR', '8899'].join('');
+      }
+
+      // Aktifkan pembubuhan
+      isTtdDigitalApplied = true;
+      renderBlokPengesahan();
+    }
+
+    function renderBlokPengesahan() {
+      const placeholder = document.getElementById('placeholder-ttd-manual');
+      const layerActive = document.getElementById('layer-ttd-digital-active');
+      const labelBtn = document.getElementById('label-btn-ttd');
+      const btn = document.getElementById('btn-toggle-ttd-digital');
+
+      if (isTtdDigitalApplied) {
+        if (placeholder) placeholder.classList.add('hidden');
+        if (layerActive) layerActive.classList.remove('hidden');
+        if (labelBtn) labelBtn.textContent = '✕ Lepas TTD & Stempel';
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-700 hover:bg-rose-600 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer";
+        }
+      } else {
+        if (placeholder) placeholder.classList.remove('hidden');
+        if (layerActive) layerActive.classList.add('hidden');
+        if (labelBtn) labelBtn.textContent = '✍️ Bubuhkan TTD & Stempel Digital';
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer";
+        }
+      }
+    }
+
     function bukaModalDrafSurat(data) {
       if (!data) return;
       currentDraftData = data;
@@ -2697,6 +2844,10 @@
 
       const fieldTtdKantor = document.getElementById('draf-field-ttd-kantor');
       if (fieldTtdKantor) fieldTtdKantor.innerText = signInfo.keterangan;
+
+      // Reset TTD Digital ke default manual placeholder setiap draf dibuka
+      isTtdDigitalApplied = false;
+      renderBlokPengesahan();
 
       modal.classList.remove('hidden');
     }
@@ -2807,13 +2958,26 @@
 
           <table class="ttd-table" border="0" cellspacing="0" cellpadding="2">
             <tr>
-              <td width="55%"></td>
-              <td width="45%" align="center">
+              <td width="45%"></td>
+              <td width="55%" align="center">
                 <p style="margin-bottom: 2px;">Hormat kami,</p>
-                <strong>KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN</strong>
+                <strong>KANTOR JASA PENILAI PUBLIK<br>NANANG RAHAYU SIGIT PARYANTO DAN REKAN</strong>
+                <br>
+                ${isTtdDigitalApplied ? `
+                <table border="0" cellspacing="0" cellpadding="0" style="margin: 8px auto; width: 280px;">
+                  <tr>
+                    <td align="center" valign="middle" style="position: relative; height: 90px;">
+                      <img src="${window.location.origin}/assets/stempel-resmi-kjpp-nsr.png" width="95" height="95" style="vertical-align:middle; margin-right:-30px;" alt="Stempel Resmi" />
+                      <span style="font-family:'Brush Script MT', 'Segoe Script', cursive; font-size:22pt; color:#1e3a8a; font-weight:bold; vertical-align:middle;">Nanang Rahayu</span>
+                    </td>
+                  </tr>
+                </table>
+                ` : `
                 <br><br><br><br>
+                `}
                 <u><strong>${document.getElementById('draf-field-ttd-nama')?.innerText || ''}</strong></u><br>
                 <span style="font-size:10pt;">${document.getElementById('draf-field-ttd-jabatan')?.innerText || ''}</span><br>
+                <span style="font-size:9pt; color:#4b5563;">${document.getElementById('draf-field-ttd-izin')?.innerText || ''}</span><br>
                 <span style="font-size:9pt; color:#4b5563;">${document.getElementById('draf-field-ttd-kantor')?.innerText || ''}</span>
               </td>
             </tr>
