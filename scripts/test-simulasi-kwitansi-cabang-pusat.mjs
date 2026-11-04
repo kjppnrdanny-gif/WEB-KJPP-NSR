@@ -365,7 +365,7 @@ async function runSimulation() {
             isSuperAdmin: true,
             canAccessKwitansi: true,
             canApprove: true,
-            token: ['NSR', '8899'].join('')
+            tokenHash: '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6'
           };
           terapkanSesiPengguna(simUserPusat);
 

@@ -207,6 +207,22 @@ function auditPortalHardcodedTokens(distDir) {
         throw new Error(`[SECURITY_GATE_FAIL] Celah keamanan atau plaintext token/link terdeteksi di ${pf}: pola ${pat}`);
       }
     }
+
+    // Sensor Ketat Pembersihan Token (Zero Hardcoded Token Leak Guard): portal-kwitansi.html
+    if (pf === 'portal-kwitansi.html') {
+      const strictTokenPatterns = [
+        /\[.*8899.*\]\.join/i,
+        /NSR['"]\s*\+\s*['"]8899/i,
+        /NSR-PST-JKT/i,
+        /NSR-KEU-2026/i,
+        /8899/i
+      ];
+      for (const pat of strictTokenPatterns) {
+        if (pat.test(content)) {
+          throw new Error(`[SECURITY_GATE_FAIL] Kebocoran token terdeteksi di ${pf}: pola ${pat}`);
+        }
+      }
+    }
   }
 }
 

@@ -3250,12 +3250,35 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       // Indikator Tegas Akun Level Kantor Pusat / Verifikasi & Approval
       const pusatBranchCodes = ['PST', 'PUSAT', '00', 'JAKARTA', 'KANTOR PUSAT', 'KANTOR PUSAT JAKARTA'];
       const pusatRoles = [
-        'KEUANGAN', 'KEUANGAN_PUSAT', 'PUSAT_KEUANGAN', 'ADMIN_PUSAT', 'SUPER ADMIN', 'SUPER_ADMIN',
-        'PEMIMPIN_REKAN', 'REKAN', 'ADMIN', 'NSR-PST-JKT', 'NSR-KEU-2026', ['NSR', '8899'].join('')
+        'KEUANGAN', 'KEUANGAN_PUSAT', 'PUSAT_KEUANGAN', 'ADMIN_PUSAT',
+        'SUPER ADMIN', 'SUPER_ADMIN', 'PEMIMPIN_REKAN', 'REKAN', 'ADMIN'
       ];
 
-      const rawToken = String(user.token || user.tokenHash || user.sub || '').toUpperCase().trim();
-      const isPusatByToken = (rawToken === ['NSR', '8899'].join('') || rawToken === 'NSR-PST-JKT' || rawToken === 'NSR-KEU-2026');
+      // SHA-256 Hashes resmi akun Pusat (Pre-computed Authorizations)
+      const AUTHORIZED_PUSAT_HASHES = [
+        '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6', // Master Otoritas A
+        '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0', // Master Otoritas A (unsalted)
+        '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f', // Master Otoritas A (salted)
+        'e2e81ba4a88f2f21650b92ea180a04910cf91f1ad75b7501a4e10b19fa24d812', // Keuangan Pusat JKT
+        'af83b01a94f5e47fc4b9ab1d7d25bfb825e9702da8e02e9ca7f0185d915c0500', // Keuangan Pusat JKT (unsalted)
+        '6a978fa6eec74862b155a4b6f42211d3bb74475a27b4aa91034b4afe7a80acf6', // Keuangan Pusat JKT (salted)
+        '8e1467406857ea2ad8c8a14ec12fa1b03332ea395438bd43bfb8098c4f98d975', // Keuangan Pusat 2026
+        '107ee87beefd50d3ecf4c3ea6716c22cbff5330505ee747ce5d800f77c94f32d', // Keuangan Pusat 2026 (unsalted)
+        '57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0'  // Keuangan Pusat 2026 (salted)
+      ];
+
+      // Fungsi pencocokan hash aman
+      const rawCandidate = String(user.tokenHash || user.hash || (user.token ? (typeof sha256Hex === 'function' ? sha256Hex(user.token) : user.token) : '')).toLowerCase().trim();
+      const tokenHashCandidate = rawCandidate.length === 64 && /^[0-9a-f]{64}$/i.test(rawCandidate)
+        ? rawCandidate
+        : (typeof sha256Hex === 'function' && rawCandidate ? sha256Hex(rawCandidate).toLowerCase() : rawCandidate);
+
+      const saltedCandidate = typeof sha256Hex === 'function' && user.token
+        ? sha256Hex('KJPP_NSR_2026_CORE_AUTH::' + String(user.token).toUpperCase()).toLowerCase()
+        : '';
+
+      const isPusatByToken = AUTHORIZED_PUSAT_HASHES.includes(tokenHashCandidate) ||
+                             (Boolean(saltedCandidate) && AUTHORIZED_PUSAT_HASHES.includes(saltedCandidate));
 
       const isPusatByBranch = pusatBranchCodes.includes(branch) ||
                               displayName.includes('PUSAT') ||

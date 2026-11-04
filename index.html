@@ -6311,9 +6311,8 @@
 
       // Render VIP Hero Banner jika memegang token KING
       if (typeof renderGovernanceBannerIfAuthorized === 'function') {
-        const KING_AUTH_CODE = ['NSR', '8899'].join('');
-        const curToken = window._currentAuthToken || (auth && auth.isSuperAdmin ? KING_AUTH_CODE : '');
-        renderGovernanceBannerIfAuthorized(curToken, auth && (auth.role || auth.roleLabel));
+        const isSuper = Boolean(auth && (auth.isSuperAdmin || auth.role === 'SUPER ADMIN' || auth.role === 'SUPER_ADMIN'));
+        renderGovernanceBannerIfAuthorized(isSuper, auth && (auth.role || auth.roleLabel));
       }
 
       // Pastikan kartu penugasan melewati gerbang login jika belum ada sesi valid
@@ -6335,12 +6334,8 @@
       const containerHero = document.getElementById('governance-hero-slot');
       if (!containerHero) return;
 
-      const tokenClean = String(userToken || '').trim().toUpperCase();
       const roleClean = String(userRole || '').trim().toUpperCase();
-      const KING_AUTH_CODE = ['NSR', '8899'].join('');
-      const isKing = (tokenClean === KING_AUTH_CODE) ||
-                     (roleClean === 'SUPER_ADMIN' || roleClean === 'SUPER ADMIN') ||
-                     (window._currentAuthToken === KING_AUTH_CODE);
+      const isKing = Boolean(userToken) || (roleClean === 'SUPER_ADMIN' || roleClean === 'SUPER ADMIN');
 
       if (isKing) {
         containerHero.innerHTML = `
@@ -6363,7 +6358,7 @@
               </div>
 
               <!-- Tombol Buka -->
-              <a href="portal-governance.html?token=${encodeURIComponent(['NSR', '8899'].join(''))}" 
+              <a href="portal-governance.html" 
                  class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5 shrink-0">
                 <span>Buka Menara Kendali</span>
                 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>

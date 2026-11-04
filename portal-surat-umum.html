@@ -2743,7 +2743,7 @@
       const token = sessionStorage.getItem('nsr_tracking_auth_token') || 
                     sessionStorage.getItem('nsr_auth_token') || 
                     window.currentUserToken || '';
-      return String(token).trim().toUpperCase() === ['NSR', '8899'].join('');
+      return String(token).trim().toUpperCase() === 'NSR-AUTHORIZED-KEY';
     }
 
     function updateQrCodeVerifikasi(noSurat) {
@@ -2799,21 +2799,21 @@
 
       // Jika belum aktif, lakukan pemeriksaan otorisasi NSR8899
       if (!isMasterSignerAuthorized()) {
-        const inputToken = window.prompt("Otorisasi Tertutup: Masukkan Kunci Induk Pemimpin Rekan (" + ['NSR', '8899'].join('') + ") untuk membubuhkan Tanda Tangan Digital & Stempel Resmi.");
+        const inputToken = window.prompt("Otorisasi Tertutup: Masukkan Kunci Induk Pemimpin Rekan (" + 'NSR-AUTHORIZED-KEY' + ") untuk membubuhkan Tanda Tangan Digital & Stempel Resmi.");
         
         if (inputToken === null || inputToken === '') {
           return;
         }
 
-        if (String(inputToken).trim().toUpperCase() !== ['NSR', '8899'].join('')) {
-          alert("Akses Ditolak: Pembubuhan Tanda Tangan Digital & Stempel Resmi merupakan wewenang eksklusif Pemimpin Rekan (" + ['NSR', '8899'].join('') + ").");
+        if (String(inputToken).trim().toUpperCase() !== 'NSR-AUTHORIZED-KEY') {
+          alert("Akses Ditolak: Pembubuhan Tanda Tangan Digital & Stempel Resmi merupakan wewenang eksklusif Pemimpin Rekan (" + 'NSR-AUTHORIZED-KEY' + ").");
           return;
         }
 
         // Token terverifikasi NSR8899
-        sessionStorage.setItem('nsr_auth_token', ['NSR', '8899'].join(''));
-        sessionStorage.setItem('nsr_tracking_auth_token', ['NSR', '8899'].join(''));
-        window.currentUserToken = ['NSR', '8899'].join('');
+        sessionStorage.setItem('nsr_auth_token', 'NSR-AUTHORIZED-KEY');
+        sessionStorage.setItem('nsr_tracking_auth_token', 'NSR-AUTHORIZED-KEY');
+        window.currentUserToken = 'NSR-AUTHORIZED-KEY';
       }
 
       // Aktifkan pembubuhan

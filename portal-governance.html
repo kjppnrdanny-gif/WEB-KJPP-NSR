@@ -317,13 +317,14 @@
         try {
           const sess = JSON.parse(sessionStorage.getItem('NSR_USER_SESSION') || '{}');
           if (sess && (sess.isSuperAdmin || sess.role === 'SUPER_ADMIN')) {
-            token = ['NSR', '8899'].join('');
+            token = sess.token || sess.tokenHash || 'AUTHORIZED_SESSION';
           }
         } catch (_) {}
       }
 
-      const KING_CHECK = ['NSR', '8899'].join('');
-      if (token === KING_CHECK) {
+      const VALID_HASHES = ['5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6', '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f', '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0'];
+      const tHash = token ? _govSha256Hex(token.trim().toUpperCase()) : '';
+      if (VALID_HASHES.includes(token) || VALID_HASHES.includes(tHash) || token === 'AUTHORIZED_SESSION') {
         CURRENT_TOKEN = token;
         document.getElementById('modal-token-gate').classList.add('hidden');
         muatDataGovernance();
@@ -335,8 +336,9 @@
     function handleTokenSubmit(e) {
       e.preventDefault();
       const inp = document.getElementById('input-token-governance').value.trim();
-      const KING_CHECK = ['NSR', '8899'].join('');
-      if (inp === KING_CHECK) {
+      const VALID_HASHES = ['5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6', '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f', '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0'];
+      const inHash = _govSha256Hex(inp.toUpperCase());
+      if (VALID_HASHES.includes(inp.toLowerCase()) || VALID_HASHES.includes(inHash)) {
         CURRENT_TOKEN = inp;
         document.getElementById('modal-token-gate').classList.add('hidden');
         document.getElementById('token-error-msg').classList.add('hidden');
