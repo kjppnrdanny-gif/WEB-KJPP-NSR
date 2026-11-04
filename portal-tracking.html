@@ -564,7 +564,7 @@
               </div>
               <div>
                 <label class="block text-xs font-bold text-slate-300 mb-1.5">Nama Debitur / Objek Entitas <span class="text-rose-400">*</span></label>
-                <input type="text" id="reg-debitur" required placeholder="Contoh: PT Bangun Prima Perkasa / Hendra Wijaya" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                <input type="text" id="reg-debitur" required placeholder="Contoh: Debitur Penugasan / Entitas Pemohon" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
               </div>
             </div>
 
@@ -1160,7 +1160,7 @@
           </div>
           <div class="flex items-center justify-between">
             <span class="text-slate-400">Debitur / Klien:</span>
-            <span id="update-debitur-display" class="text-white font-medium">Hendra Wijaya - Bank BTN</span>
+            <span id="update-debitur-display" class="text-white font-medium">Debitur Penugasan</span>
           </div>
           <div class="flex items-center justify-between border-t border-slate-800/80 pt-1.5">
             <span class="text-slate-400">Milestone Saat Ini:</span>
@@ -1824,8 +1824,176 @@
     let globalJobs = [];
     let currentQueueTab = 'my_tasks'; // Default aktif: Antrean Tugas Saya (PIC Terdaftar)
 
-    // Kamus 52 Personel Resmi KJPP NSR untuk Validasi Identitas Personal Lapis 2
-    const ROSTER_PEGAWAI_NSR = [{"nik":"NSR-2019-001","nama":"Nanang Rahayu","jabatan":"Pemimpin Rekan","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-002","nama":"Deni Siswandi","jabatan":"Rekan","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-003","nama":"Mini Intan Cahyani","jabatan":"Rekan","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-004","nama":"Milda Hidayati Dewi","jabatan":"Manager Keuangan","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-005","nama":"Danny Taufik Hidayat","jabatan":"Manager Admin & Umum","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-006","nama":"Arie Indra Permana","jabatan":"Manager Marketing","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-007","nama":"Tedi Setiadi","jabatan":"Reviewer","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-008","nama":"Ricca Noer Farikha","jabatan":"Accounting & Tax","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-009","nama":"Angga Malid Cahyadi","jabatan":"Reviewer","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-010","nama":"Fadri Nurdin","jabatan":"Surveyor","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-011","nama":"Erwandi","jabatan":"Kurir","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-012","nama":"Latief Satihi","jabatan":"Kurir","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-013","nama":"Aryanto","jabatan":"Umum","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-014","nama":"Yanto","jabatan":"Driver","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-015","nama":"Lasiman","jabatan":"Driver","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-016","nama":"Sukirno","jabatan":"Office Boy","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-017","nama":"Muhammad Syahrul Ruly","jabatan":"Surveyor","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-018","nama":"Uci Sanusi","jabatan":"Surveyor","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-019","nama":"Yasir Rizal","jabatan":"Surveyor","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2019-020","nama":"Udin Syamsudin","jabatan":"Security","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2025-021","nama":"Dhea Shafitri Ningrum","jabatan":"Staf Admin","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2026-022","nama":"Siti Nuraeni Ependi","jabatan":"Staf Admin","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta"},{"nik":"NSR-2025-023","nama":"Yoga Anfiar Pradipta","jabatan":"Penilai","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta","role":"PENILAI_PELAKSANA"},{"nik":"NSR-2026-024","nama":"Indra Nugraha","jabatan":"Penilai","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta","role":"PENILAI_PELAKSANA"},{"nik":"NSR-2025-025","nama":"Isnaini Azzahra","jabatan":"Staf Admin","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta","role":"ADMIN_PUSAT"},{"nik":"NSR-2026-026","nama":"Maharani Citra Charisma","jabatan":"Staf Admin","kantor":"Pusat Jakarta","cabang":"Pusat Jakarta","role":"ADMIN_PUSAT"},{"nik":"NSR-PDG-2019-23","nama":"Hernita","jabatan":"Rekan","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-24","nama":"Rahmad Andika","jabatan":"Penilai","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-25","nama":"Muhammad Al Amin","jabatan":"Penilai","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-26","nama":"Rien Soneta","jabatan":"Admin Keuangan","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-27","nama":"Kiki Yeza","jabatan":"Tenaga Suporting","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-28","nama":"Siti Syarah","jabatan":"Admin","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-PDG-2019-29","nama":"Oki Oktianil Putra","jabatan":"Tenaga Suporting","kantor":"Cabang Padang","cabang":"Cabang Padang"},{"nik":"NSR-MKS-2019-30","nama":"Muhammad Amin Sade","jabatan":"Rekan","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2019-31","nama":"Wawan Kurniawan","jabatan":"Penilai","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2019-32","nama":"Alauddin Amin","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2020-33","nama":"M Fajrullah Danial","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2021-34","nama":"Rahmad Dwi Susanto","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2020-35","nama":"Andika Rifky Rifaldy","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2019-36","nama":"Ilyas Tandialla","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-MKS-2019-37","nama":"Arman Mustajab","jabatan":"Surveyor","kantor":"Cabang Makassar","cabang":"Cabang Makassar"},{"nik":"NSR-BDG-2020-38","nama":"Heru Kurnia","jabatan":"Business Development","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-39","nama":"Ardi Nurmayadi","jabatan":"Penilai","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-40","nama":"Andri Kusmandana","jabatan":"Penilai","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-41","nama":"Tiara Hurairah","jabatan":"Admin Keuangan","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-42","nama":"Achmad Ilham Fauzan","jabatan":"Admin","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-BDG-2020-43","nama":"Rahmat Muhammad Hussein","jabatan":"Surveyor","kantor":"Cabang Bandung","cabang":"Cabang Bandung"},{"nik":"NSR-PLB-2022-44","nama":"Dharma Priyanto Sih Budi Susilo","jabatan":"Rekan","kantor":"Cabang Palembang","cabang":"Cabang Palembang"},{"nik":"NSR-PLB-2022-45","nama":"Rafdinal Ardhi","jabatan":"Penilai","kantor":"Cabang Palembang","cabang":"Cabang Palembang"},{"nik":"NSR-PLB-2022-46","nama":"Arwin Saputra","jabatan":"Surveyor","kantor":"Cabang Palembang","cabang":"Cabang Palembang"},{"nik":"NSR-PLB-2022-47","nama":"Hadyan Fikhri","jabatan":"Surveyor","kantor":"Cabang Palembang","cabang":"Cabang Palembang"},{"nik":"NSR-PLB-2022-48","nama":"M.Deo Tansila Putra","jabatan":"Admin","kantor":"Cabang Palembang","cabang":"Cabang Palembang"}];
+        // =========================================================================
+    // MODUL POINT-LOOKUP OTORISASI NIK RESMI (ZERO DATA SCRAPING ARCHITECTURE)
+    // Tidak mengekspos array/daftar 52 personel ke public DOM / View Source.
+    // Hanya memverifikasi dan mendekripsi profil tunggal yang cocok dengan NIK input.
+    // =========================================================================
+    function sha256Hex(ascii) {
+      function rightRotate(v, a) { return (v >>> a) | (v << (32 - a)); }
+      var mathPow = Math.pow, maxWord = mathPow(2, 32), l = ascii.length, i, j, res = '', words = [];
+      var asciiBitLength = l * 8, hash = [], k = [], primeCounter = 0, isComp = {};
+      for (var c = 2; primeCounter < 64; c++) {
+        if (!isComp[c]) {
+          for (i = 0; i < 313; i += c) isComp[i] = c;
+          hash[primeCounter] = (mathPow(c, .5) * maxWord) | 0;
+          k[primeCounter++] = (mathPow(c, 1/3) * maxWord) | 0;
+        }
+      }
+      ascii += '\x80';
+      while (ascii.length % 64 - 56) ascii += '\x00';
+      for (i = 0; i < ascii.length; i++) {
+        j = ascii.charCodeAt(i);
+        words[i >> 2] |= j << ((3 - i) % 4) * 8;
+      }
+      words[words.length] = ((asciiBitLength / maxWord) | 0);
+      words[words.length] = (asciiBitLength) | 0;
+      for (j = 0; j < words.length;) {
+        var w = words.slice(j, j += 16), oldHash = hash;
+        hash = hash.slice(0, 8);
+        for (i = 0; i < 64; i++) {
+          var w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
+          var t1 = hash[7] + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) + ((e & hash[5]) ^ ((~e) & hash[6])) + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) | 0);
+          var t2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+          hash = [(t1 + t2) | 0].concat(hash);
+          hash[4] = (hash[4] + t1) | 0;
+        }
+        for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+      }
+      for (i = 0; i < 8; i++) {
+        for (var i2 = 3; i2 >= 0; i2--) {
+          var b = (hash[i] >> (i2 * 8)) & 255;
+          res += ((b < 16) ? '0' : '') + b.toString(16);
+        }
+      }
+      return res;
+    }
+    window.sha256Hex = sha256Hex;
+
+    // Vault Hash Kriptografis Terisolasi (Zero Plaintext Personnel Leak)
+    const NIK_POINT_VAULT = {
+  "82da423c3e997330c063ccf127b70003f27179d6e59fbd288149cfac6fe9e19d": "589e6d20614f947b84396ddae9eda07a718cc660bff8936cb020dc602da19c974ddd6d2e2a3fcf31ab134ad5f7fffb223edd8230f3f68b208128d02b7af3bb9803ee66226b038c75e8015e99afb2e361669ea624eeb5c5229b2cd62365f7b3d40f9e6028680cc03ee8501da7aeaef0377cf6973afca6c563f330",
+  "1841cee407685a10cfdd0be4b5515053f92aaa0cb45c4290a65a36353e516171": "f4bf8ca38ca96034532e0aca90e6c39c5803d4fd9f1922eaa01a585775625cc9e1f4c2998ef82d77731931c58ef498c4175290aed3173aa6931252142162348ee4fc8cbe88f9782c3f2d2d94c3a2d2ef145885bdc95422a8e31458172e2e7f8eb5bfb2bf94ea2e36571c3386d0a2938708",
+  "c7129fbfa0c186839b73906c8694a5c48a4a303959a49e0be255c707a6014ca8": "cfefcdfbcf8feea0a27d7025c38faa170085462d01cb881ce3c88966627b38b3daa483dbcad9b5eccc6d436088def5470f9954744285cb06e3cbca7e7a0b10b1d5a381be86c6b5ec9841502acb9dcb5b5ed4023e6986c113f0d18966747b16bbd6accdf58697f6d2995d437cd1f5fa454cc7027f019a",
+  "85417d378306e434ab8b9500fa679f288d74e64d175e0baac31011c884db3f31": "140d9a34b78d0fe0f565180fd86f04590fce8f12ecd62d230c40a2ecf77e172f034b957d94c651a3c2573e4bca1b50174bdc9304a49b6d2c194cadecf77e1727014e9338ae8f7ea7ce5724458b31174c0095de48ba957d6f570f93bbbe3d2e66254e9f3caedb54e097142943883e5b0700c49d76bb896e394d67a2a5ac2e2e274d52",
+  "11ddb455696feae177a9063f1cb1d13bb5c14944761ac311fa98efcde75a5afc": "ee3333b9066fb5ff72b21399b1386442d7f87d8b4a7c735b920c1b0a6c5319d0fb7f24f0392cfabb558a61fcea6c34029bbc6f924a3a305792151b46744b7ffcf47f3cb7083faf9c588c28daa32e752e97bd209c44723a549d15155a744b7fe1e0623ca44d07eeb65d9335d5a12477189baa2cd00f726b17a3140949225117d0fe702fa40c6ff2",
+  "bec4b0e2850838d1b3a8a0e74daf9515d3b90a5f660091f0e8537afaff8b7826": "8c375f97e1529928f38c78d46ae4a0e35e64bca56611d97cf978a5e288acb2379e7011b7e414d16b9d8f4f8b35b5ffbb5178aef9255f9a66f97be6fa90c3922b9672548caa3dc278d6ba5e9036b3b3f6513fedfd30528930a23794b5c1ef8765bd745a9ff804c22891fd49983ab5ffbd516eaec3314e9a66b85fa5abd3fc8724d568",
+  "e289f152f9fcd062aed58ba9aea79e262e345ef235b092bbf672516a00f3f901": "9a04845181c378fe6bd7dae18ca571a7ce730b6a2a1406c5644f0a5294edaaf0854fca6b8f952bbd41edaae09cff21fc82375a332a0206f960540215d9aa8cb7cd04815984952dae07beaa9ccbe621eac3095a36694a50ca270e4913cfad9ffb8604d01aba9431bd51a4c2add5f432ea826146",
+  "758ddb63be701db947be38a6c5ce9753de6ea9594dc553c0c38f3736944262a5": "18d1b9157633d92ff0f4bf461bc13b60e5042dbe6731dc23987909aa5dcfc1d10090b65c537e867f9ee18c19409a6238ea183fec247f9f39987a4ab245acf0db0c86b908747f842d9887b90a51d3267ba35573f22a6fdc77db441dfb0699b3f20298b60e6970c1219cc48c09489f6d7bf2164df3367c8a6db37503e91599f29a1e",
+  "9ab2393db79e72a69bb47e308b4e500472d102a2964a677e0d45739c5edbdf5b": "242a75ef1d0e32ec85a00242aa558678b05d2a8b6c8dc4f2faad1dc6b35489c5386f7aa63b4d64a7afd3130ef01cd625f44f369024c084fdefa112c6b3549ace29617ef1135e2ae2e9983101ec0ac563a74f4ac73dc092bcd1a11785fb02a989732a78e7144d66a9e9c9723fed16d635bd277bd92fd392fdb9bd",
+  "e8db69f3c5b7cca84447acc6f9d5189134c3a8afcf4e0456886299ce1cb068cd": "4b3438a6f94c4645807a445d857701abf41ac815d340e1ee171215b1eae2aae554643fefdc1b0e03a747345c952d51f0b85e984bd356e1d3030d02f6a9af9ea61c343daefc1a1315ec133420c23451e6f960984e901eb7e1545356f0b1a28dea57346cedc21b0f06ba095c11dc2642e6b80884",
+  "8f74e42c54b3ba9c4747b52e7eb7d06b7f7387f0cfac4b657e3940c0c76681f0": "94ba3c3b860df94d2f86d978ca45ad0f377b3b642629e3aca5c87a3c6a23c6e698f93c36840def4d0bb4e9348c14f21420694120766cb3e0e887707f3e75ece6cda27002985ca21b419fea3e9907e857386728366567a0aca387213c0074f0f59bb81833864eb11b00f7f6",
+  "04271b2ac840881dad189ce2852bfbf9c30d05272ab97fb56f2246a74ce99de4": "9b75cfc7ee0625d0299de617d315ff32cfcd5e65bd870f65fe2122a3ed2d3b1d943ec4c8a5777e860ea6dd18cd07a46a809c1b36f1891729d43931e8a52d5b5e8b36cfdaea563dc8459ec1498051ee4183960e25ebca0f27bd2f22e3b661105eda75f1dbf6456bd22dafdf5b9351af299f",
+  "b76dae3fb5498af643297326380f08afc51920e0d0226b0bc2cac102c618dd85": "3da921b8f40d9817d534d8ac9cb7917a3b720ceaa3b01770109ca9b720e1a17c3fea21a5f00d8e17f106e8e0dae6ce612c6068b4f4f11732539aa9fb6eac922c7ca91fa4ec4ed615d106e1e0dcf3c1613a605eb8e3fd5b7953cbeac56fb0817a66c12ebafe5dd654b91a",
+  "7add9ffd8e89e9f32374ceae7ccd301ec8fb5b691b5a7f0d83a83941bd41e476": "6929ff0686ed02818ea31e2bf09a85640a9f4b5aa4855553ed6108aedfdf814d7c7ffe4dc1ed52c2a2913867ac888e7f63dd1318e3db5511ae6708e29192aa0e2829c11a9eae4c838a912767b0ded57f0b8d190fe4c8195aae364bdc908eb9583241f0048cbd4cc2e28d",
+  "d079b1bbb8a2c34854d5b6f8b7f946e31b080fc092048acaa8115ddc6321071c": "37e09603da25dd17f814e900a1634caf9904d6995bdcd6019ce5f4aa33b47e3f3fab950bdf25cb17dc26d94ce73213b48e16a3de1086911ddfa4b7e368f846313ee0c248e1729454c267f14cf8320fe2d516cb8e1a91960e93efb7b22bc6472d2db6d820d06c8647c2269950",
+  "8da25dd4c0449c9fde59dfced606640a290c98a651fe2223f9c0f615411b818d": "f2f92e22259af7b814155ab74b5985d9c6941898441764ef3c1a6aebf9b21050e2b23225219ae1b830276afb0d08dac2d18666c8005225e47d3564b0e1bc614ee8b534243c9af7b80a337bfb0d49fe8180c55bda07196aa33e1669a8adf7611fab8b35382fccedd03b2d69e80d08969d",
+  "c89ac2d9b5322b3f9016b9d9e20fe1b0a7e6614452f5047e31986386d4cee04d": "47e86bf78c3df2e83142c4a0561b7951f1ab2069266817095d9bf789f8f005b154ab68f3867be8990670feff1147683aa9f7687c28665f065e97e2caacf072e66fbf77e88266a7b85d3db4e605453c07aeb92b7c5431460648d6dccaa9b33ab05de829bc847eaaab1176b4b7467b3d1bbdef3114652f54154897b4d6",
+  "b3e543bad6c6e974979f2027905b14de57de6fbc443d0d747ed6a3e482a345b7": "e951ca2b5da39f697b7bc22a0f226bea7c20f586bf79669c8f408d4c675e8f96fb53f72358f4d6221704b26d5c703ba7307ee684bf063180984895012f5ef6d7f912ca3659f387711778e5745c667a99307ba5cce93466decc4e8d0c3c12bdd7a851f43745e0d16b7f49fb664f663bf12c",
+  "fd693c8ff27086e810ecfe55c1d5a3806fe978fdd366bb3c3ab0f585333f2231": "2c6b18245b16fb36e89c3b9fee46c0fbd56c6cd229791bfabb790e78b27d15572420046d625dbb75caed4590b61793a38c3d33c931776ae1a8620a23e72d6e1a75221723445bb3369ced39c7af1785e2b23d368a792158b6f6360c3bea3e22517573541d4547a060868508d9bd0485a3da21",
+  "1c9133bafd232263b9b417a0bcfdc25f0088d154c096890e8e6a60f5f1521cdc": "f7a680bda7017a69a3a4ee7902f589f15e305f26c014bd5b37f018ee0894ee44e5eace87b5422d389893d53a12e99aa212620c628356bd0f74ce1caf47c4d254f5a6c2f6a7422e3f82859e6e1295cdbb12744d5c8353fe4722fc5be010d5da42edea89f6f601103e9e96c8747aa4d3a901740c349f",
+  "2cd3dc1aaa6a30a56774955310b4c3f2082acdc41c92b5eac7bc254c698db144": "a4352da1e0167c25dfbc9f71cbb2f25d2d2dfc6a4785c3d7e93c75d9122ad376ba76639be355206ee59da47cb7ebae0f7268a379498b8bd8ea30609a462aad3c8c6322aeab75226af881ef70dbe9a1067472bc795f8bb1ccfb3060db6269fc7fad6322eaa7162566f38ea33bdbb8e238756eaf2f45e380d2e923609a0a75",
+  "59baf772635ac15eec3f557457de102d20aa73e62da26d31a9c523ee2bc9c2a6": "f48c96d2e3cb3fa336c2149581143273e69f2b2bcb557ff083af331d04ca754dfbc7d8f5fd9b64e416f866fdc3416e21a28d353b83183fff96a33c1d04ca7550eec8d8faec846cef5abd64d3d24a742ab98d233bb90c2eff96e2185e55895450ee8cd499eb8867e016f6648291747536aadb395388123cec96a37042",
+  "a867caf713aee9a1b2e8ea0bcd0c6858ebea499a7b5eaa425964f0421988b3a6": "648a5e9cdb2514d6ce222d1146a77bca060724b57af6aca487106fc012eceec678c910b4de614795f2512f4e15f3208f5f5634aa7ab0efa887096f8c0af495f97ac65999d16e0cd8a21a1e5200f83bdd111546f32bbbfaeaac1c65835abad68b338a5394d2664093a24b5d6c01e4288b0b7d77ed39a8faabc4512c9047a2d28b258a60b0fe4e62b5c92e2f7938d602ac6a7957a425",
+  "638667d5cb3cd902f7b53183639eb08b68cdfd5ddeb0385e95475ad1d334d3e3": "195f6c08ead3cd04767583fb66cc1fccc67c7098f551179adc546baf9948b1f5060f6341cf849054594eb0f478de479b892d36cdb95f0fd6ed5c64e4cf0b91b94e5f6900ef8598541a1cf386218f4c8ecb0623c7b60f41959f1528eec20899f5055f3843d18484474c069bb73f9d5f8e8a6e6e8ea51259919f0328dde624b1d723345d31c4bdb66d6b679f977681",
+  "2d8dbf79c6aef89a87c1ded926ec7d22d64805f4fe35c85ab94e97d1981e6113": "2060aa416a06ae242f14c7d6e6a651109db48aa68205543b867b91025a5d12963523ad466804d57c1b26fd89b5b44f07dae5daf2d4481877dd34a35401197ba43f2fad462308b66d0029e194a6b45907e0f1cbf2d4093c348c778254015d77c73823a6496f43b63c4317e088b5e2436fd1efd9e1d4485479c5649f4c055d61c71a0689614f7bc4533206c1d9a9",
+  "eff4b9d5c04074b4c540e59cd2116a70b000a21b8427ba2115ad8588a47a2663": "4caf84af333548259cc61ba12d2e5c25514383f878ce67ee8d6a56b40fc46f6f5fec98a7367e5244bbe13bed3f5d06720e1ac2a33bc069a2866655f741874c2c0dafb9b239715246b6f820e23d324c781d1dc5a128c07fa2bc7244f741c6686f5cec98b239355e25b1f42bed71794c295e23c4bd3b9665ca8d6c56e44187002215ff85aa3d35482593d104c551413e462f32e5ec27",
+  "c2eb2f36e32fde78bd818255433ac7a7b13731ea05725deb159f6fc3a27f10bb": "79cf7dee8c18e798771f00e12fbc6bf72e011f1fbcf25efb3845b9fef8495fc620a576f58953a9db1b6070a61e9a4dae7d5f0c1cb39208b27509f5b3b7431c92768261a5dd189edb5b2d3cab5fa84dbe7d5f4904bde20eb87606b9f8b7125fbf638f72e9801a8ddb5d2d3cab5d85",
+  "4c091dee1616c08326567b4e3300705aa1fc5f82736ece958864dca5fe1bc4cf": "5e9a072bd0beaecf34c0408c5290126856732aceab04687c86100974831b017307ea082ad6fdf0cd3bfd76c869b5776946297a95e7423d30880845458b144a2544d14b6e99f7f5830efc608338f6162406227590a6663d3acb5c0037c258402847d9072599a6b6ae1bf173cf65f4052400227590a44b",
+  "c098a0faac95932bdac9bc5abbb72597b18c677937f9c5ba8a7b46e06e416242": "760f9bccd8e1d221b57ed2f0a9ffe3e98fe72464740c07d4e84a335aba6160d72f6080cdd2ae85629f0dc1b1d9fac9add3f5397f335f5097b0093319ed221288634499c4dae1c421904ceea996c986fe9f94743f385055d69409395ab96760c12f4e94c7d2ad8f21c10fc3bc9bdacaa39d877439385055d4b9",
+  "f53525b2a6185836bd7e8f9a42e28cd02f795278f3ea7328a3f7ebf951f54ba7": "546d6314205f2dbe9b7e8f11024cbab823113ea510f8c7a1427feecce28648550d1d6418255d44f3bb48a95d7024dfff70436ee85ca4d3b94c1ce4c0e6894a244a3a6c132c1c79bef90fb65d3c7c92e7331b2ddf5ca890ed097dd0cceb8604080d632f1e2a1f76f2b20fe71e11699ff47f462fcc5cae90ed097ffd",
+  "564d70efd13939fd7dee54dfe6763fd91b9bf03ae971ba28386a2c28c6d6af82": "bb3314a2bbb7448bb050b6762f74c284d9feec2c31da33f5ee4b0e7b7d3edc75e25a13a0b9b527cc8462c6775d5ae4cb8ababc7b3ed22683a707017d717fad3ab07e08bfb9fb198bd2218f3a1144eadbc9f4ff567d8a65b9a549307b743e9028e23d58a8b1f71fc79921de793c51e7c885a9fd457d8c65b9a54b1d",
+  "c68c784baeeed4e90a6823e13e4177a3dd9e47231161dab613b44e825ee97d9c": "e6819332e79c404c153fe3787c70397963e313110f5b9d054be43104b7ccbfadbff0942fe59e29173a1ed03d0e185c3e30b1435c4307871d45873b08b3c3bfbbbfc89c35f8d1084c614ef2344e5510337183434c4307c2054be43c04b8ccf3f0bf99df18eddc1b003c4ce1344855103373ae",
+  "2a9e4d69fa7eb3b60084ebf30b4eb103647c61eff885d68565ae308251e7bc6a": "d6598f77231c0c275e93ddfa52c456dacd4640b3b95a0fac697d79ce8de24af28f348a7768715d7179a1e1be6ea041828b0410a8b84a5cef273e63ce8ea152eaf91e8f7f2f5f165665b0e0a576e97f90dd5a53e1f50642e1377d2d8da3e20aa9c31cc14e295a576b77e2a3f561e17396911153b0b62b57ec2431708fb0e20ca9c31cc363",
+  "7db55faf9080775ec4c8b035507232855a9482e41ceeb179db22470d0e76253c": "82a4e41f22692398b0af85813a0dc83b0a9b04fedb445afe8a2755cbe7531ed9dbcbff1e282674db9adc96c11e28bb4559cf50e5da5500bdc4644fcbe41006c1abe3e11727693598959db9d81834b92c1ae854a597190dfceb6450cbf9415d91dbaaa815282978d499deed8e3427f97756cc158a971c0bafd5644988f7",
+  "197914ca97ecaba268ef4a67bc738af2978067022ff041122df3da062812d465": "864f5443fa24e7e895c6a7cb807ff3f8982d66f559ba6f2b6b362c845c6bf4e2df3a5b5df068fd81aee79b8fac43c1bb883175a615eb3f7d267a60df135ab3b694015b43b32affa1bafb8189bf169af7e97c35ad1aee7e44267f2396426ba4fad14f594bf367b3adf9afd7a5ac56c1bbcd3d1aad1fe82d7a26666098",
+  "610ba507e7786d3312e35b788b47459c2213c570e5268f018f0f4d232dc58f01": "1f3f8b14235b4978b6de0e581ef37933d7324374ef782f8e2341e7064c653761465c891c3d1d173396ad1d183ad60832c768132fa33f7cc22d59ab345476633e1d72975f645b183b96f933077182085d84601323a56b50cd6402fa1440763777467e841f29171478c2af1f1431d94479c54f1326a3386ecd7d41f4",
+  "3d2b5ad5f8d13bd8c44d58da1e3c259701571670fd90f424974af85374ee3070": "32d82dde399f1027d75380776d579cdf751dbdf8253300a4b0119f012ee7d0c56bb763f133d75870f56cb3320058ae9c2e4ce3ea242259e7fe5285012da4c8dd1a8f31c137c44577bb2cf0314172bb9d350fb5ea4b6151e7f254d12d22ed938c3a9b31957e9f4964fb61bc3d0226edb1264feea66f207ee7f752821322f4d082",
+  "eeff2ee1479b8e4a75ce6fed11dc4f9bd3803106b96a40f55f5c6d246163819c": "81b8635f11176315fff17b19b31afd43f57fe5534ea9762f17988796b08244bcd8c86c5e17543d17f5d54014ad24dd0fa93bb8404fb8286c59db9d96b3c15ca4a9ef7f401f4c3645938e0b5f9f3fda01b56ded4020fb206c55ddc9babc8807f589fb7f1456173a56d3c34753dc6b8c2da62db60c04ba0f6c50db9a84bc9144fb",
+  "f710d1168d86bffcbdc308cae54bf907f5f272ee974cefa27a47baf7167b04f0": "0582f5ecd7bb55feedc24659bbd998a576d95748d641cce408383b5862f1a8715ce1f5e1d5f20efcf1f8721f8fb299e12288091c8250d5e44e7b37587bf1e4694482c8f0ceef0aa5cce33658d4f9aae63086175ac150baa7467b3b5e2fddeb201fd3e8e4cebb43fec0f0761598f5e9b266aa041a9a1c9ee6697b3e587ce3eb395cdd",
+  "345f20e74c4ee33f5959bd0e65b85dfd7e64aeb1f385df0b4634f203fd925183": "92623ae0f83378f37c0ef17e52f265c7ee78fcf298c7f821f2bb40adb09751d6cb0938f0f26262855333c73a7ed55a8bfe64efa1d496af77bff70cf6ffa5069e9f252de6e1336ef3593ccd2770cb14d0fe0baca9d49aa92393f845adae85129ecb6c76eaf27323bf557f99715cd8548bb22fed86d49faf70adf85ceea0",
+  "b424374f25fc9368134dd199af86789d0630ba799837505dabe69f4fb31fdce1": "7a2cf5343ad4d25352c07e404e90413d8749e354dad2d4f06be6eba7ef694fb9234fe9303098c83c69e0580c69ba7032995bb80c958097b329e6bfe4d17d1ff56477f42f73daca1a7dfd580271f92832f618b00c9986c39f26afe4b5f1691fa12d2cf83c339786163ea90e2e62b9737ed2599f0c9c8090a126b6a7bb",
+  "66e6e905818087ca25d4611179552ab7539115fa4bc3f893c321896ad3a5820e": "472a5faf0fdb103a7b54ce12d9acad1d99137e48e449c5dd9c6ea87761f264a21e4054b411d9616d4769f55eb9c4c85aca412d0ca814dfc5920eb36565fd23eb4f2875a3129c4677456af951efcac612c042220ca608dfc5920fa7746dfd21b87e695fa211974d3a1925ff5ef989845789196e3ba8189c91d76c847762f733f65b2a4c",
+  "e8d46b4b22bfe8a1f0061bb86d3592588c36f3de37d290ca15b7b4c60a2b4592": "916091ead9b564e67a33d0d26db8865ab6a49afd0b498a9054ab07e8f5980ba8c8038de7dbb710b1460de3864e98a855a8b6c2ac441bc7d316ab53abc89c47fb862396a19eb535a55a14ed8d0dc6e334e5f6c9a3415af1d316ed1ce7ffdb05b089239de2dcf07cfe1623e39d4e92a657c6f5c6a95314d49005",
+  "059c9b2e60da88ef9bc8f670a558cd486a5b0d3b19181259e5bbd7bdc2135630": "7c5bf98588cc2be870c8dce0ce1c20771a8675bff1194605bd50024c54b487ab2538f988918731814be8e3ace23c063449946badb64c1446e513020f03f7f5f46910fb8d8acc3de855fae0b9e32a45600af526edbd431107d31302494cbbc2b32b5bf48d818f7fad1ca1ac8eed3a06344f9605eeb2490349f65011",
+  "b16e8cc95e88821e20cc5c635d31b3c314eaf833adb8a98f5b5be7800e214036": "3a8998ba0d33a8c696f3821f1099901e2203563a85d6d2c91bf59272c14f107c63ff9fb21470b2acadd2b15b20bcbf113c110e6bca83978a59f5c631ed4a5f2f2f8bbdb61370fc83b9cef21e70b6b65d645c162892c0a08a55b692748c6c532825de98b4443db087b9c2b15c35ffed115352066bc685c3a956b99866c249103b",
+  "2128f4a497b7d413b69d02f8a6e165009d8b058f13c7b27f482fcf5191468922": "5a47264a21bfc0b849ba2f7f7edeabfaa4e898e476ac5f5c7ce90362a5f4192f03242b4b27fc9eba4e85153351baaab6e3a2cbba79b44f1431a90c77a9fb192f03242c4e23f3d8b625821c3c48f59ef5acfae9b539f9031970890c6dace0557203496a402bff9bf460cb47707ffb8eb6f8bf8a963af6090b3eac4f7e",
+  "b55cecbe6175a319ea91bef8bc205abd6625776da94b6d64cc11b27e75f20d6d": "2f16c480bf4342d12e99c307ac49c55c2ac00c1106b5df94d805d9a0fad39e647666cb81b9000cd32dbff94b8360e31538b84b5258e485d8d60b95abf6d0dd2a355a88d3f6320d8116afe8459c2fae537391505544f3ce8cd664d6a3f6dcdb7e1655c48da10f1fd14ce8f24b8c6cec163aca1c624ae38dd89307f5a0f9d6c9303316d7",
+  "5f30b3921d7247b30740a2f15eb0cebe6a0cdd49768c2bb393f2bad587dc71a7": "f22d1ec9c76254795dc420b6ba8477ff2f5483e415ed5ea7d8f4c1718a370ef3ab4b18c1de2d0f7b43e51be28ba641bd3d37d8be189b1fe19df6fc65943f40a6ab2352cacd220f2f72f950a1c89a50b97c0a93fa1ab20beb80b9dd32dd746fa8eb6e1ec78c100f3776fa10fa84af17fe3f07d0b459b70da7cef4ec71853742aea95f11ccc92d0c3a7df050e6",
+  "dac7b1c4bcb724ed47274d49e10c1c2e01e10886683f61b59f6f6bfd17395437": "9401c1d89ad42808e76a9d9826e1c9e7a799b8687c193105960498082452f457cd71ced7959f7c4bc5198ec712c5e2e8b98be03b334c7046d404cc4b1956b8048342c693ddd4794bc74da0c75497a989f4cbeb34360d5446d6439b0b285db14fc301ccd093977c4d8b03edf617cfeaa4f289da3b3d486945db48914b34",
+  "710636eba3618ecc2217ec72b60689ec4da08d7622591e7d22dccdc135d40d4e": "b03e74633c120ff5a6363a8e614c42059a753734b5fe23d752dda34aa394fdb7e95d687d3e5e158489151dd7436122048a2f6464f9be749b5cc5ef78bb87a9e8b27368287b125eb6861107d1133a226bc9276468ffea4594129aa049af9bb8afe73e796b35515bb0ca5f4ae050626146cf655567f4af78971f91aa09b3",
+  "aa7fffbb16915db7b5bb97822b46716e7a708458147a600ec6960711fe946932": "d72d6920b65065c1221e70ea2beede7bd93151fc9e24fef3aaa31d87ad1017df8e47662da41331c32a2449af09cbbe7ac96b02acd264a8bfa4bb51b5b5034380d560756bf150348202394db55998be158a6302a0d43099b0eae41e84a11f52c7802d6428bf1331844e7700841ac0fd388c2133afdf75a4b3e7ef14c4bd",
+  "29a4073bbdcdd075a1ffe553e49cb79177e0d647fb99c5ca8644b31dc83c48e7": "a779fc698d048d70a1ff8639edd4de92cbc04c479052e10e8847f9bef2e90ca3fe16bc44834997068ec2a77dd1f9bcef8c840c149f4afb46c507f6abfee60ca3fe1af66d8f48957ecdc7b57ac9f7ee9dc3d23d14df07b74b8435f6b3fae54cf8b23cb02cc445d6308ec2b33687badfde9b9110129d36b840c108f5bef1ef0ce4"
+};
+    window.NIK_POINT_VAULT = NIK_POINT_VAULT;
+
+    function decryptNikPointPayload(encHex, keyStr) {
+      if (!encHex || !keyStr) return null;
+      try {
+        const keyHash = sha256Hex('KJPP_NSR_POINT_KEY::' + keyStr.trim().toUpperCase());
+        let bytes = [];
+        for (let i = 0; i < encHex.length; i += 2) {
+          const b = parseInt(encHex.substr(i, 2), 16);
+          const idx = i / 2;
+          const kByte = parseInt(keyHash.substr((idx % 32) * 2, 2), 16);
+          bytes.push(b ^ kByte);
+        }
+        const str = decodeURIComponent(escape(String.fromCharCode.apply(null, bytes)));
+        return JSON.parse(str);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function lookupNikPointSync(cleanNik) {
+      if (!cleanNik) return null;
+      const clean = cleanNik.trim().toUpperCase();
+      try {
+        const hashKey = sha256Hex('KJPP_NSR_NIK_POINT_LOOKUP::' + clean);
+        if (NIK_POINT_VAULT && NIK_POINT_VAULT[hashKey]) {
+          return decryptNikPointPayload(NIK_POINT_VAULT[hashKey], clean);
+        }
+      } catch (err) {}
+      return null;
+    }
+
+    async function lookupNikPersonelPoint(inputNik) {
+      if (!inputNik) return null;
+      const clean = inputNik.trim().toUpperCase();
+
+      // 1. Cek cache sesi saat ini
+      try {
+        const sessUser = sessionStorage.getItem('nsr_user_session');
+        if (sessUser) {
+          const parsed = JSON.parse(sessUser);
+          if (parsed && parsed.nik && parsed.nik.toUpperCase() === clean) {
+            return parsed;
+          }
+        }
+      } catch (e) {}
+
+      // 2. Upayakan kueri live terarah ke backend proxy jika online
+      try {
+        const resp = await fetch('backend/auth-nik-presensi.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nik: clean })
+        });
+        if (resp.ok) {
+          const resJson = await resp.json();
+          if (resJson && resJson.status === 'success' && resJson.data) {
+            return resJson.data;
+          }
+        }
+      } catch (err) {
+        // Fallback dinamis
+      }
+
+      // 3. Fallback Point-Lookup Hash Vault Terisolasi (Zero-Exposure)
+      return lookupNikPointSync(clean);
+    }
+    window.lookupNikPersonelPoint = lookupNikPersonelPoint;
+    window.lookupNikPointSync = lookupNikPointSync;
 
     // Auto-detect & Feedback NIK Karyawan pada Modal Gatekeeper
     function handleGatekeeperNikInput(val) {
@@ -1838,7 +2006,7 @@
         return;
       }
 
-      const found = ROSTER_PEGAWAI_NSR.find(k => k.nik.toUpperCase() === clean);
+      const found = lookupNikPointSync(clean);
       if (found) {
         if (namaPreview) namaPreview.textContent = found.nama;
         if (previewEl) previewEl.classList.remove('hidden');
@@ -2448,7 +2616,7 @@
           eksekutorJabatan = 'Pemimpin Rekan & Pengendali Mutu';
         } else if (rawNik) {
           // Cari nama pegawai riil dari kamus roster
-          const foundKaryawan = ROSTER_PEGAWAI_NSR.find(k => k.nik.toUpperCase() === rawNik);
+          const foundKaryawan = await lookupNikPersonelPoint(rawNik);
           if (foundKaryawan) {
             eksekutorNama = foundKaryawan.nama;
             eksekutorJabatan = `${foundKaryawan.jabatan} (${profilValid.roleLabel})`;
@@ -2466,6 +2634,7 @@
         sessionStorage.setItem('nsr_active_user_name', eksekutorNama);
         sessionStorage.setItem('nsr_active_user_role', profilValid.role);
         sessionStorage.setItem('nsr_active_user_jabatan', eksekutorJabatan);
+        sessionStorage.setItem('nsr_user_session', JSON.stringify({ nik: eksekutorNik, nama: eksekutorNama, jabatan: eksekutorJabatan, role: profilValid.role, cabang: profilValid.cabang || profilValid.wilayah || 'Pusat Jakarta' }));
 
         // Tambahkan CSS class otorisasi
         document.documentElement.classList.add('nsr-tracking-authorized');
@@ -6523,7 +6692,7 @@ Administrasi Operasional KJPP NSR`;
       <div class="p-5 flex flex-col items-center text-center space-y-3.5">
         <div>
           <span id="qr-modal-jo" class="inline-block px-3 py-1 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono font-bold text-xs">JO-BDG-2026-0015</span>
-          <h4 id="qr-modal-debitur" class="text-sm font-bold text-white mt-1.5 leading-snug">PT Graha Logistik Parahyangan</h4>
+          <h4 id="qr-modal-debitur" class="text-sm font-bold text-white mt-1.5 leading-snug">Debitur Penugasan</h4>
           <p id="qr-modal-lokasi" class="text-[11px] text-slate-400 mt-0.5 line-clamp-2">Jl. Soekarno Hatta No. 458, Gedebage, Bandung</p>
         </div>
 

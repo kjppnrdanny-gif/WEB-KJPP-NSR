@@ -366,7 +366,7 @@
               <div id="container-spk-database" class="space-y-1.5">
                 <div class="flex items-center gap-1.5">
                   <select id="pilih_spk_database" onchange="saatSpkDatabaseDipilih(this.value)" class="w-full h-10 px-3 rounded-lg bg-slate-900 border border-amber-500/50 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
-                    <option value="">-- 📂 Memuat Database SPK / JO... --</option>
+                    <option value="">-- 🔒 Autentikasi Diperlukan untuk Memuat Database SPK --</option>
                   </select>
                   <button type="button" onclick="muatDaftarSpkDatabase(true)" class="h-10 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 text-xs font-bold transition flex items-center justify-center shrink-0" title="Segarkan Data SPK">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -1344,6 +1344,12 @@
         dataKwitansiAktif.rekeningResmi = rek.teksCetak;
       }
 
+      if (typeof muatDaftarSpkDatabase === 'function') {
+        muatDaftarSpkDatabase();
+      }
+      if (typeof muatDaftarSpkDatabase === 'function') {
+        muatDaftarSpkDatabase();
+      }
       perbaruiPreviewKwitansi();
     }
 
@@ -3054,6 +3060,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
               }
               const isPusatKeuangan = Boolean(auth.isSuperAdmin) || auth.role === 'ADMIN_PUSAT' || auth.role === 'SUPER ADMIN' || auth.role === 'SUPER_ADMIN' || auth.role === 'KEUANGAN' || auth.wilayahCode === 'PST' || auth.wilayah === 'PUSAT' || auth.mode === 'PUSAT';
               const simUser = {
+          valid: true,
                 sub: isPusatKeuangan ? 'admin_pusat' : `admin_${(auth.wilayahCode || 'cab').toLowerCase()}`,
                 role: isPusatKeuangan ? 'KEUANGAN' : 'CABANG',
                 branch: isPusatKeuangan ? 'PUSAT' : (auth.wilayahCode || auth.wilayah),
@@ -3329,6 +3336,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       currentUser.isCabang = peran.isCabang;
       currentUser.role = peran.roleNormalized;
       currentUser.canApprove = peran.canApprove;
+      currentUser.valid = true;
 
       // Proteksi & Sembunyikan Navigasi Surat Umum (SU) jika Sesi Cabang
       const navSuratUmum = document.getElementById('nav-link-surat-umum') || 
@@ -3676,6 +3684,10 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         }
         if (containerManual) containerManual.classList.add('hidden');
         if (containerDb) containerDb.classList.remove('hidden');
+        if (typeof muatDaftarSpkDatabase === 'function') {
+          const sel = document.getElementById('pilih_spk_database');
+          if (sel && sel.options.length <= 1) muatDaftarSpkDatabase();
+        }
       }
     }
 
@@ -3690,12 +3702,18 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       const selectEl = document.getElementById('pilih_spk_database');
       if (!selectEl) return;
 
+      // Proteksi Privasi & Hak Akses Sesi: Database SPK hanya dimuat setelah terautentikasi resmi
+      if (!currentUser || (!currentUser.valid && !currentUser.role && !currentUser.branch && !currentUser.isPusat && !currentUser.isCabang)) {
+        selectEl.innerHTML = '<option value="">-- 🔒 Autentikasi Diperlukan untuk Memuat Database SPK --</option>';
+        return;
+      }
+
       const defaultFallbackSpk = [
         {
           nomor_spk: "042/BTN-JKT/KPR-SPK/X/2026",
           klien: "PT Bank Tabungan Negara (Persero) Tbk",
           alamat: "Menara BTN Lt. 14, Jl. Gajah Mada No. 1, Jakarta Pusat",
-          debitur: "Hendra Wijaya, S.T.",
+          debitur: "Debitur Fasilitas Kredit Pemilikan Rumah (KPR)",
           fee: 35000000,
           tujuan: "Penjaminan Utang / Agunan Kredit",
           cabang: "Kantor Pusat Jakarta"
@@ -3704,7 +3722,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           nomor_spk: "048/BTN-CBC/KOM-SPK/X/2026",
           klien: "PT Bank Tabungan Negara (Persero) Tbk - KC Cibubur",
           alamat: "Kawasan Industri Pulogadung, Jakarta Timur",
-          debitur: "PT Bangun Prima Perkasa",
+          debitur: "Debitur Fasilitas Kredit Komersial",
           fee: 50000000,
           tujuan: "Penjaminan Utang / Agunan Kredit",
           cabang: "Kantor Pusat Jakarta"
@@ -3713,7 +3731,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           nomor_spk: "SPK/BTN-BDG/0846/2026",
           klien: "PT Bank Tabungan Negara (Persero) Tbk - KC Bandung",
           alamat: "Jl. Soekarno Hatta No. 458, Gedebage, Bandung",
-          debitur: "PT Graha Logistik Parahyangan",
+          debitur: "Debitur Fasilitas Kredit Komersial Bandung",
           fee: 40000000,
           tujuan: "Pelaporan Keuangan (PSAK / IFRS)",
           cabang: "Cabang Bandung"
@@ -3722,7 +3740,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           nomor_spk: "B.341-AGR/MKS/10/2026",
           klien: "PT Bank Rakyat Indonesia (Persero) Tbk",
           alamat: "Kawasan Industri Makassar (KIMA) Kav. 10, Makassar",
-          debitur: "CV Celebes Bahari Agro",
+          debitur: "Debitur Fasilitas Kredit Komersial Makassar",
           fee: 45000000,
           tujuan: "Penjaminan Utang / Agunan Kredit",
           cabang: "Cabang Makassar"
@@ -3731,7 +3749,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
           nomor_spk: "BCA/KCK/APP-551/X/2026",
           klien: "PT Bank Central Asia Tbk",
           alamat: "Jl. Hayam Wuruk No. 108, Jakarta Barat",
-          debitur: "PT Surya Cipta Megah",
+          debitur: "Debitur Fasilitas Kredit Korporasi",
           fee: 60000000,
           tujuan: "Tujuan Internal Manajemen",
           cabang: "Kantor Pusat Jakarta"

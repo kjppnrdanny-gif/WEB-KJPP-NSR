@@ -165,6 +165,8 @@ function auditPortalHardcodedTokens(distDir) {
     /MASTER_TOKEN\s*=/i,
     /MASTER_USER_ACCOUNTS\s*=/i,
     /MASTER_48_NIKS\s*=/i,
+    /ROSTER_PEGAWAI_NSR\s*=/i,
+    /ROSTER_PEGAWAI\s*=/i,
     /TOKEN_CABANG_MAP\s*=/i,
     /TOKEN_CABANG_NSR\s*=/i,
     /TOKEN_PUSAT_VALID\s*=/i,
