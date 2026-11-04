@@ -196,6 +196,7 @@
               <span id="gps-accuracy-text" class="text-[10px] text-slate-400 font-mono">Akurasi: Menunggu</span>
             </div>
             <p id="gps-coord-text" class="text-xs text-slate-200 font-mono mt-0.5 truncate">Mencari koordinat satelit perangkat...</p>
+            <input type="hidden" id="hidden-gps-input" name="gps_coords" value="">
           </div>
         </div>
 
@@ -430,7 +431,7 @@
           </div>
 
           <div id="camera-container" class="hidden space-y-2">
-            <video id="camera-video" autoplay playsinline class="w-full h-48 bg-black rounded-xl object-cover"></video>
+            <video id="camera-video" autoplay playsinline muted class="w-full h-48 bg-black rounded-xl object-cover"></video>
             <div class="flex gap-2">
               <button type="button" onclick="ambilFotoSelfie()" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition btn-tactile">
                 Ambil Gambar
@@ -979,8 +980,9 @@
        role="dialog"
        aria-modal="true"
        aria-labelledby="modal-privasi-title"
+       style="z-index: 99999; pointer-events: auto;"
        class="fixed inset-0 z-[99999] hidden flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-md">
-    <div class="w-full sm:max-w-xl max-h-[92dvh] sm:max-h-[85vh] flex flex-col bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div style="pointer-events: auto;" class="w-full sm:max-w-xl max-h-[92dvh] sm:max-h-[85vh] flex flex-col bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
       
       <!-- Header Modal (Tetap di Atas) -->
       <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/90">
@@ -1030,15 +1032,16 @@
       </div>
 
       <!-- Footer Modal (STICKY DI BAWAH, TIDAK AKAN HILANG DI HP) -->
-      <div class="p-4 border-t border-slate-800 bg-slate-950/95 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+      <div style="pointer-events: auto;" class="p-4 border-t border-slate-800 bg-slate-950/95 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
         <span class="text-[10px] text-slate-400 text-center sm:text-left">
           Persetujuan ini mengikat sesuai UU PDP No. 27/2022
         </span>
         <button type="button" 
-                id="btn-setuju-privasi-presensi" 
-                onclick="konfirmasiSetujuPrivasi(event)" 
+                id="btn-setuju-privasi-presensi"
+                onclick="konfirmasiSetujuPrivasi(event)"
                 ontouchend="konfirmasiSetujuPrivasi(event)"
-                class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 min-h-[44px] rounded-xl font-black text-xs sm:text-sm bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 shadow-lg shadow-amber-500/20 active:scale-95 transition cursor-pointer select-none touch-manipulation">
+                style="touch-action: manipulation; -webkit-tap-highlight-color: transparent; pointer-events: auto; cursor: pointer;"
+                class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 min-h-[48px] rounded-xl font-black text-xs sm:text-sm bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 shadow-lg shadow-amber-500/20 active:scale-95 transition cursor-pointer select-none">
           Saya Menyetujui & Lanjutkan
         </button>
       </div>
@@ -2358,19 +2361,45 @@
           if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
           if (dotText) dotText.innerText = "GPS Terkunci";
 
+          // Simpan ke hidden input form
+          const inputGpsHidden = document.getElementById('hidden-gps-input') || document.querySelector('input[name="gps_coords"]');
+          if (inputGpsHidden) inputGpsHidden.value = gpsUser;
+
           updateNearestOffice(userLat, userLng);
           updateWFHDisplay();
         },
         function(err) {
+          let errorTitle = "GPS Gagal ❌";
+          let errorDetail = "Izin lokasi belum diberikan / sinyal satelit lemah.";
+          switch (err.code) {
+            case 1: // PERMISSION_DENIED
+              errorTitle = "Izin Lokasi Ditolak 🚫";
+              errorDetail = "Peramban belum diizinkan mengakses GPS. Silakan buka Pengaturan Browser > Izin Situs > Izinkan Lokasi untuk portal ini.";
+              break;
+            case 2: // POSITION_UNAVAILABLE
+              errorTitle = "Sinyal GPS Tidak Tersedia 📡";
+              errorDetail = "Sinyal satelit GPS lemah atau perangkat berada di dalam ruang tertutup. Silakan aktifkan Lokasi Berakurasi Tinggi atau dekati area terbuka.";
+              break;
+            case 3: // TIMEOUT
+              errorTitle = "Waktu Pencarian GPS Habis ⏳";
+              errorDetail = "Ponsel membutuhkan waktu lebih lama untuk mengunci sinyal GPS. Silakan klik tombol 'Uji GPS' sekali lagi.";
+              break;
+            default:
+              errorDetail = err.message || "Pastikan fitur GPS di bilah notifikasi ponsel Anda dalam keadaan aktif.";
+              break;
+          }
+
           if (badge) {
             badge.className = "px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30";
             badge.innerText = "GPS Gagal ❌";
           }
-          if (coordText) coordText.innerText = "Izin lokasi belum diberikan / sinyal satelit lemah.";
+          if (coordText) coordText.innerText = errorDetail;
           if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-amber-400";
           if (dotText) dotText.innerText = "Klik Uji GPS";
+
+          bukaModalNotif(errorTitle, errorDetail, false);
         },
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
       );
     }
     ambilGPS();
@@ -2386,18 +2415,37 @@
       }
 
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('Fitur kamera tidak didukung pada peramban web ini.');
+        bukaModalNotif("Kamera Tidak Didukung", "Fitur kamera tidak didukung pada peramban web ini.", false);
         return;
       }
 
+      const constraints = { video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } };
+
       try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-        });
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (initialErr) {
+          console.warn("Constraint kamera resolusi ideal gagal, mencoba fallback { video: true }:", initialErr);
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
+
         video.srcObject = cameraStream;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', '');
+        video.muted = true;
+        await video.play().catch(e => console.warn("Video play exception:", e));
         container.classList.remove('hidden');
       } catch (err) {
-        alert('Tidak dapat mengakses kamera: ' + (err.message || 'Izin kamera ditolak.'));
+        let errorTitle = "Izin Kamera Diperlukan 📷";
+        let errorDesc = "Tidak dapat mengakses kamera swafoto: " + (err.message || "Izin belum diberikan.");
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          errorTitle = "Izin Kamera Ditolak 🚫";
+          errorDesc = "Akses kamera diblokir oleh peramban. Silakan buka Pengaturan Browser > Izin Situs > Izinkan Kamera untuk KJPP NSR.";
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          errorTitle = "Kamera Tidak Ditemukan ⚠️";
+          errorDesc = "Kamera depan tidak terdeteksi pada perangkat Anda.";
+        }
+        bukaModalNotif(errorTitle, errorDesc, false);
       }
     }
 
@@ -2676,15 +2724,32 @@
     // 16. KEPATUHAN UU PDP PRIVACY GATE MODAL
     function periksaGatePrivasiAwal() {
       try {
+        const consentGranted = localStorage.getItem('nsr_presensi_consent_granted');
+        const consentDate = localStorage.getItem('nsr_presensi_consent_date');
+        const todayStr = new Date().toISOString().slice(0, 10);
+
+        // Jika staf sudah menyetujui hari ini, lewati gate modal
+        if (consentGranted === 'true' && consentDate === todayStr) {
+          privasiConfirmed = true;
+          const targetModal = document.getElementById('modal-privasi-karyawan') || 
+                              document.getElementById('modal-privacy-karyawan');
+          if (targetModal) {
+            targetModal.classList.add('hidden');
+            targetModal.style.setProperty('display', 'none', 'important');
+          }
+          return;
+        }
+
         const savedVersion = sessionStorage.getItem('nsr_privasi_confirmed_version');
         const savedAt = sessionStorage.getItem('nsr_privasi_confirmed_at');
         if (savedVersion === PRIVACY_NOTICE_VERSION && savedAt) {
           privasiConfirmed = true;
           return;
         }
-      } catch (e) {}
-      // Jika belum konfirmasi, munculkan gate setelah jeda singkat
-      setTimeout(tampilkanModalPrivasiGate, 600);
+      } catch (e) {
+        console.warn('Cek gate privasi storage:', e);
+      }
+      setTimeout(tampilkanModalPrivasiGate, 500);
     }
 
     function tampilkanModalPrivasiGate() {
@@ -2699,6 +2764,7 @@
       if (btnKonfirmasi) {
         btnKonfirmasi.textContent = 'Saya Menyetujui & Lanjutkan';
         btnKonfirmasi.onclick = konfirmasiSetujuPrivasi;
+        btnKonfirmasi.ontouchend = konfirmasiSetujuPrivasi;
       }
 
       if (modal) {
@@ -2708,18 +2774,28 @@
       }
     }
 
+    let consentActionInProgress = false;
     window.konfirmasiSetujuPrivasi = function(e) {
+      if (consentActionInProgress) return;
+      consentActionInProgress = true;
+      setTimeout(() => { consentActionInProgress = false; }, 800);
+
       if (e) {
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
       }
 
       try {
-        // 1. Simpan tanda persetujuan ke storage
-        sessionStorage.setItem('nsr_privasi_confirmed_version', 'PDP-2026-V1');
-        sessionStorage.setItem('nsr_privasi_confirmed_at', new Date().toISOString());
+        const todayStr = new Date().toISOString().slice(0, 10);
+        // 1. Simpan tanda persetujuan ke storage dengan validitas harian
+        localStorage.setItem('nsr_presensi_consent_granted', 'true');
+        localStorage.setItem('nsr_presensi_consent_date', todayStr);
         localStorage.setItem('nsr_presensi_privacy_ack', 'true');
         localStorage.setItem('nsr_presensi_privacy_accepted', 'true');
+        sessionStorage.setItem('nsr_privasi_confirmed_version', PRIVACY_NOTICE_VERSION);
+        sessionStorage.setItem('nsr_privasi_confirmed_at', new Date().toISOString());
+
+        privasiConfirmed = true;
 
         // 2. Tutup paksa modal
         const targetModal = document.getElementById('modal-privasi-karyawan') || 
@@ -2751,7 +2827,6 @@
 
       } catch (err) {
         console.error("Gagal menutup modal di HP:", err);
-        // Jalur darurat mutlak
         document.querySelectorAll('[id*="privasi"]').forEach(el => {
           el.style.setProperty('display', 'none', 'important');
         });
