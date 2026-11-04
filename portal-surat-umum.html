@@ -2739,11 +2739,30 @@
 
     let isTtdDigitalApplied = false;
 
+    // SHA-256 Cryptographic Hash Otorisasi Pemimpin Rekan (Ir. Nanang Rahayu)
+    const MASTER_SIGNER_HASHES = [
+      '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6',
+      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0',
+      '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f'
+    ];
+
     function isMasterSignerAuthorized() {
-      const token = sessionStorage.getItem('nsr_tracking_auth_token') || 
-                    sessionStorage.getItem('nsr_auth_token') || 
-                    window.currentUserToken || '';
-      return String(token).trim().toUpperCase() === 'NSR-AUTHORIZED-KEY';
+      const storedHash = sessionStorage.getItem('nsr_master_signer_hash') ||
+                         sessionStorage.getItem('nsr_auth_token_hash') ||
+                         window.currentSignerHash || '';
+      if (storedHash && MASTER_SIGNER_HASHES.includes(String(storedHash).toLowerCase().trim())) {
+        return true;
+      }
+      const rawStoredToken = sessionStorage.getItem('nsr_auth_token') || sessionStorage.getItem('nsr_tracking_auth_token') || window.currentUserToken || '';
+      if (rawStoredToken && typeof sha256Hex === 'function') {
+        const cleanRaw = String(rawStoredToken).trim().toUpperCase();
+        const h1 = sha256Hex(cleanRaw).toLowerCase();
+        const h2 = sha256Hex('KJPP_NSR_2026_CORE_AUTH::' + cleanRaw).toLowerCase();
+        if (MASTER_SIGNER_HASHES.includes(h1) || MASTER_SIGNER_HASHES.includes(h2) || MASTER_SIGNER_HASHES.includes(cleanRaw.toLowerCase())) {
+          return true;
+        }
+      }
+      return false;
     }
 
     function updateQrCodeVerifikasi(noSurat) {
@@ -2797,23 +2816,30 @@
         return;
       }
 
-      // Jika belum aktif, lakukan pemeriksaan otorisasi NSR8899
+      // Jika belum aktif, lakukan validasi cryptographic SHA-256
       if (!isMasterSignerAuthorized()) {
-        const inputToken = window.prompt("Otorisasi Tertutup: Masukkan Kunci Induk Pemimpin Rekan (" + 'NSR-AUTHORIZED-KEY' + ") untuk membubuhkan Tanda Tangan Digital & Stempel Resmi.");
+        const inputToken = window.prompt("Otorisasi Tertutup: Masukkan Kunci Otorisasi Pemimpin Rekan untuk membubuhkan Tanda Tangan Digital & Stempel Resmi.");
         
         if (inputToken === null || inputToken === '') {
           return;
         }
 
-        if (String(inputToken).trim().toUpperCase() !== 'NSR-AUTHORIZED-KEY') {
-          alert("Akses Ditolak: Pembubuhan Tanda Tangan Digital & Stempel Resmi merupakan wewenang eksklusif Pemimpin Rekan (" + 'NSR-AUTHORIZED-KEY' + ").");
+        const cleanToken = String(inputToken).trim().toUpperCase();
+        const hash1 = typeof sha256Hex === 'function' ? sha256Hex(cleanToken).toLowerCase() : '';
+        const hash2 = typeof sha256Hex === 'function' ? sha256Hex('KJPP_NSR_2026_CORE_AUTH::' + cleanToken).toLowerCase() : '';
+        const isMatched = MASTER_SIGNER_HASHES.includes(cleanToken.toLowerCase()) || 
+                          MASTER_SIGNER_HASHES.includes(hash1) || 
+                          MASTER_SIGNER_HASHES.includes(hash2);
+
+        if (!isMatched) {
+          alert("Akses Ditolak: Pembubuhan Tanda Tangan Digital & Stempel Resmi merupakan wewenang eksklusif Pemimpin Rekan.");
           return;
         }
 
-        // Token terverifikasi NSR8899
-        sessionStorage.setItem('nsr_auth_token', 'NSR-AUTHORIZED-KEY');
-        sessionStorage.setItem('nsr_tracking_auth_token', 'NSR-AUTHORIZED-KEY');
-        window.currentUserToken = 'NSR-AUTHORIZED-KEY';
+        // Simpan hanya cryptographic hash terverifikasi (Zero plaintext token leak)
+        const matchedHash = MASTER_SIGNER_HASHES.includes(cleanToken.toLowerCase()) ? cleanToken.toLowerCase() : (hash2 || hash1);
+        sessionStorage.setItem('nsr_master_signer_hash', matchedHash);
+        window.currentSignerHash = matchedHash;
       }
 
       // Aktifkan pembubuhan

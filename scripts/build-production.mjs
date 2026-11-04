@@ -208,8 +208,17 @@ function auditPortalHardcodedTokens(distDir) {
       }
     }
 
-    // Sensor Ketat Pembersihan Token (Zero Hardcoded Token Leak Guard): portal-kwitansi.html
-    if (pf === 'portal-kwitansi.html') {
+    // Sensor Ketat Pembersihan Token (Zero Hardcoded Token Leak Guard):
+    // portal-kwitansi.html, portal-surat-umum.html, portal-nolap.html, portal-tracking.html, portal-governance.html
+    const STRICT_ZERO_LEAK_PORTALS = [
+      'portal-kwitansi.html',
+      'portal-surat-umum.html',
+      'portal-nolap.html',
+      'portal-tracking.html',
+      'portal-governance.html'
+    ];
+
+    if (STRICT_ZERO_LEAK_PORTALS.includes(pf)) {
       const strictTokenPatterns = [
         /\[.*8899.*\]\.join/i,
         /NSR['"]\s*\+\s*['"]8899/i,

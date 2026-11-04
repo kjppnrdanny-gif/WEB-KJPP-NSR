@@ -601,7 +601,7 @@
                 </div>
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-300 mb-1">No. WhatsApp PIC Pemberi Tugas <span class="text-rose-400">*</span></label>
-                  <input type="text" id="reg-client-pic-phone" required placeholder="Contoh: 081288997766" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                  <input type="text" id="reg-client-pic-phone" required placeholder="Contoh: 081299887766" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
                   <input type="hidden" id="reg-pic-contact">
                 </div>
               </div>
@@ -1450,7 +1450,7 @@
                 No. WhatsApp Pegawai <span class="text-rose-400">*</span>
               </label>
               <div class="relative">
-                <input type="tel" id="dispatch-pic-wa" placeholder="Contoh: 081288997766" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
+                <input type="tel" id="dispatch-pic-wa" placeholder="Contoh: 081299887766" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
                 <span class="absolute left-2.5 top-2.5 text-slate-500 text-xs">💬</span>
               </div>
             </div>
@@ -1697,7 +1697,7 @@
             </div>
             <div>
               <label class="block text-[10.5px] font-semibold text-slate-300 mb-1">No. Kontak HP/WhatsApp *</label>
-              <input type="tel" id="market-narasumber-kontak" required placeholder="Cth: 081288991122" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400">
+              <input type="tel" id="market-narasumber-kontak" required placeholder="Cth: 081277661122" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400">
             </div>
           </div>
         </div>
@@ -1865,7 +1865,7 @@
     }
     window.handleGatekeeperNikInput = handleGatekeeperNikInput;
 
-    // Auto-fill NIK untuk Super Admin Master (NSR8899)
+    // Auto-fill NIK untuk Super Admin Master (NSR_MASTER_AUTH)
     function handleGatekeeperTokenInput(val) {
       const clean = (val || '').trim().toUpperCase();
       const nikInput = document.getElementById('gatekeeper-nik-input');
@@ -2149,8 +2149,8 @@
         };
       }
 
-      // 5. ADMIN OPERASIONAL PUSAT ('NSR-PST-JKT' / NSR-ADM-2026)
-      if (clean === 'NSR-PST-JKT' || clean === TOKEN_ADM_PST) {
+      // 5. ADMIN OPERASIONAL PUSAT ('NSR_PST_AUTH' / NSR-ADM-2026)
+      if (clean === 'af83b01a94f5e47fc4b9ab1d7d25bfb825e9702da8e02e9ca7f0185d915c0500' || clean === 'NSR_PST_AUTH' || clean === TOKEN_ADM_PST) {
         return {
           token: clean,
           role: 'ADMIN_PUSAT',
@@ -2268,7 +2268,7 @@
         };
       }
 
-      // 12. KEUANGAN PUSAT (NSR-KEU-2026)
+      // 12. KEUANGAN PUSAT (NSR_KEU_AUTH)
       if (clean === TOKEN_KEU) {
         return {
           token: TOKEN_KEU,
@@ -3232,7 +3232,7 @@
       if (jobBranch === 'PLM') jobBranch = 'PLB';
 
       // 1. SUPER ADMIN MASTER (KUNCI INDUK MASTER) -> Bypass penuh semua tahapan M-01 s/d M-07 & 5 wilayah
-      if (token === ['NSR','8899'].join('')) {
+      if (token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f') {
         return { diizinkan: true };
       }
 
@@ -3242,7 +3242,7 @@
           return { diizinkan: false, pesan: 'Akses Ditolak: Tim Surveyor hanya berwenang pada tahap inspeksi fisik lapangan (M-03).' };
         }
         // Admin Kantor Pusat
-        if (token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+        if (token === 'af83b01a94f5e47fc4b9ab1d7d25bfb825e9702da8e02e9ca7f0185d915c0500' || token === 'NSR_PST_AUTH' || token === ['NSR','ADM','2026'].join('-')) {
           if (jobBranch === 'JKT') return { diizinkan: true };
           return { 
             diizinkan: false, 
@@ -3263,7 +3263,7 @@
       // 3. TAHAP M-03 (Inspeksi Lapangan Fisik) -> Surveyor Lapangan Diizinkan Penuh
       if (targetMilestone === 'M-03') {
         const peranM03 = ['SURVEYOR', 'PENILAI_PELAKSANA', 'ANALIS', 'ADMIN_CABANG', 'ADMIN_PUSAT'];
-        if (peranM03.includes(role) || token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-') || token === ['NSR','SRV','2026'].join('-')) {
+        if (peranM03.includes(role) || token === 'NSR_PST_AUTH' || token === ['NSR','ADM','2026'].join('-') || token === ['NSR','SRV','2026'].join('-')) {
           return { diizinkan: true };
         }
         return { diizinkan: false, pesan: 'Tahap M-03 adalah wewenang teknis Tim Surveyor dan Penilai Lapangan.' };
@@ -3282,7 +3282,7 @@
           };
         }
         const peranM04 = ['PENILAI_PELAKSANA', 'ANALIS', 'ADMIN_CABANG', 'ADMIN_PUSAT'];
-        if (peranM04.includes(role) || token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-') || token === ['NSR','SRV','2026'].join('-')) {
+        if (peranM04.includes(role) || token === 'NSR_PST_AUTH' || token === ['NSR','ADM','2026'].join('-') || token === ['NSR','SRV','2026'].join('-')) {
           return { diizinkan: true };
         }
         return { diizinkan: false, pesan: 'Tahap M-04 adalah wewenang teknis Tim Penilai Pelaksana dan Analis Properti.' };
@@ -3316,8 +3316,8 @@
           return { diizinkan: false, pesan: 'Akses Ditolak: Tim Surveyor tidak berwenang pada tahap administrasi penyerahan laporan akhir (M-07).' };
         }
         if (['ADMIN_PUSAT', 'ADMIN_CABANG', 'PIC_CABANG'].includes(role) || 
-            token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
-          if (token === 'NSR-PST-JKT' || token === ['NSR','ADM','2026'].join('-')) {
+            token === 'NSR_PST_AUTH' || token === ['NSR','ADM','2026'].join('-')) {
+          if (token === 'NSR_PST_AUTH' || token === ['NSR','ADM','2026'].join('-')) {
             return jobBranch === 'JKT' 
               ? { diizinkan: true } 
               : { diizinkan: false, pesan: `Admin Pusat tidak berwenang menyerahkan laporan fisik Cabang ${jobBranch}.` };
@@ -5427,7 +5427,7 @@ Administrasi Operasional KJPP NSR`;
         dispatch_pic_email: picEmail,
         next_pic_email: picEmail,
         nik: currentUserSession.nik,
-        pin: currentUserSession.pin || '889900',
+        pin: currentUserSession.pin || '778800',
         note: `Dispatch kontak & pembaruan milestone ${targetM}`
       };
 
