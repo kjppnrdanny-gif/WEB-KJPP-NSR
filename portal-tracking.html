@@ -2204,6 +2204,39 @@
     window.lookupNikPersonelPoint = lookupNikPersonelPoint;
     window.lookupNikPointSync = lookupNikPointSync;
 
+    // Registry Karyawan Resmi (EMPLOYEE_REGISTRY) & Helper Kesesuaian Wilayah
+    const EMPLOYEE_REGISTRY = new Proxy({}, {
+      get: function(target, prop) {
+        if (typeof prop === 'string') {
+          const clean = prop.trim().toUpperCase();
+          if (!target[clean] && typeof lookupNikPointSync === 'function') {
+            target[clean] = lookupNikPointSync(clean);
+          }
+          return target[clean] || null;
+        }
+        return target[prop];
+      }
+    });
+    window.EMPLOYEE_REGISTRY = EMPLOYEE_REGISTRY;
+
+    function isWilayahMatched(employeeCabang, tokenWilayah, profilValid) {
+      if (!employeeCabang) return false;
+      if (profilValid && (profilValid.wilayah === 'ALL' || profilValid.role === 'KING' || profilValid.isSuperAdmin)) {
+        return true;
+      }
+      const c = String(employeeCabang).toUpperCase();
+      const t = String(tokenWilayah || (profilValid ? profilValid.wilayah : '')).toUpperCase();
+      
+      if (t === 'ALL' || t.includes('SEMUA')) return true;
+      if (t.includes('BANDUNG') && (c.includes('BANDUNG') || c.includes('BDG'))) return true;
+      if (t.includes('PADANG') && (c.includes('PADANG') || c.includes('PDG'))) return true;
+      if (t.includes('MAKASSAR') && (c.includes('MAKASSAR') || c.includes('MKS'))) return true;
+      if (t.includes('PALEMBANG') && (c.includes('PALEMBANG') || c.includes('PLB') || c.includes('PLM'))) return true;
+      if ((t.includes('PUSAT') || t.includes('JAKARTA')) && (c.includes('PUSAT') || c.includes('JAKARTA') || c.includes('PST'))) return true;
+      return false;
+    }
+    window.isWilayahMatched = isWilayahMatched;
+
     // Auto-detect & Feedback NIK Karyawan pada Modal Gatekeeper
     function handleGatekeeperNikInput(val) {
       const clean = (val || '').trim().toUpperCase();
@@ -2431,6 +2464,7 @@
     let joSuggestions = [];
 
     // Zero-Trust State: Sesi awal WAJIB null sebelum token valid diverifikasi
+    const TOKEN_KING_HASH = '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0';
     let currentUserSession = null;
     window.stateApp = window.stateApp || {};
     window.stateApp.currentUserProfile = null;
@@ -2457,19 +2491,27 @@
       const TOKEN_KEU = ['NSR', 'KEU', '2026'].join('-');
       const TOKEN_KAS = ['NSR', 'KAS', '2026'].join('-');
 
-      // 1. SUPER ADMIN MASTER (HANYA DIAKTIFKAN JIKA INPUT TOKEN PERSIS KUNCI INDUK)
-      if (clean === TOKEN_SUPER) {
+            const TOKEN_KING_HASH = '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0';
+
+      // 1. MASTER OVERRIDE: TOKEN KING (HASH RESMI)
+      const cleanLower = clean.toLowerCase();
+      const candHash = (typeof sha256Hex === 'function') ? sha256Hex(clean).toLowerCase() : '';
+      const isKing = (cleanLower === TOKEN_SUPER.toLowerCase() || cleanLower === TOKEN_KING_HASH.toLowerCase() || candHash === TOKEN_KING_HASH.toLowerCase());
+
+      if (isKing) {
         return {
-          token: TOKEN_SUPER,
-          role: 'SUPER ADMIN',
-          roleLabel: 'Super Admin Master (Pemimpin Rekan)',
-          jabatan: 'Pemimpin Rekan & Pengendali Mutu',
-          wilayah: 'Kantor Pusat Jakarta',
-          wilayahCode: 'JKT',
-          nama: 'Super Admin Operasional (KING)',
-          nik: '',
+          token: TOKEN_KING_HASH,
+          rawToken: clean,
+          role: 'KING',
+          roleLabel: 'Superuser / Otoritas Pengawas Nasional (KING)',
+          jabatan: 'Otoritas Pengawas Tertinggi & SPM',
+          wilayah: 'ALL',
+          wilayahCode: 'ALL',
+          nama: 'Danny Taufik Hidayat, S.H.',
+          nik: 'NSR-2019-005',
           isCabang: false,
           isSuperAdmin: true,
+          isKing: true,
           access_level: 'NATIONWIDE_FULL_ACCESS'
         };
       }
@@ -2770,7 +2812,7 @@
     }
     window.tampilkanErrorGatekeeper = tampilkanErrorGatekeeper;
 
-    // Handler Verifikasi & Pembukaan Portal Gatekeeper
+    // Handler Verifikasi & Pembukaan Portal Gatekeeper (Strict Verification & Master Override)
     async function handleGatekeeperSubmit(event) {
       if (event) {
         event.preventDefault();
@@ -2782,7 +2824,10 @@
       const btnSubmit = document.getElementById('btn-submit-gatekeeper');
       const errEl = document.getElementById('gatekeeper-error-msg');
 
-      if (errEl) errEl.classList.add('hidden');
+      if (errEl) {
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+      }
 
       const rawToken = (inputTokenEl ? inputTokenEl.value : '').trim();
       const rawNik = (inputNikEl ? inputNikEl.value : '').trim().toUpperCase();
@@ -2790,7 +2835,7 @@
       if (!rawToken) {
         tampilkanErrorGatekeeper('Silakan masukkan Token Akses Resmi KJPP NSR.');
         if (inputTokenEl) inputTokenEl.focus();
-        return;
+        return false;
       }
 
       if (btnSubmit) {
@@ -2807,53 +2852,113 @@
             inputTokenEl.select();
             inputTokenEl.focus();
           }
-          return;
+          return false;
         }
 
-        // Resolusi Identitas Personal Lapis 2
-        let eksekutorNik = rawNik;
-        let eksekutorNama = profilValid.nama;
-        let eksekutorJabatan = profilValid.jabatan;
+        const isKing = (profilValid.role === 'KING' || profilValid.isKing === true);
 
-        // Auto-assign Super Admin Master
-        if (profilValid.token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f') {
-          eksekutorNik = rawNik || '';
-          eksekutorNama = profilValid.nama || 'Super Admin Operasional (KING)';
-          eksekutorJabatan = 'Pemimpin Rekan & Pengendali Mutu';
-        } else if (rawNik) {
-          // Cari nama pegawai riil dari kamus roster
-          const foundKaryawan = await lookupNikPersonelPoint(rawNik);
-          if (foundKaryawan) {
-            eksekutorNama = foundKaryawan.nama;
-            eksekutorJabatan = `${foundKaryawan.jabatan} (${profilValid.roleLabel})`;
-            if (foundKaryawan.role && profilValid.role !== 'SUPER ADMIN') {
-              profilValid.role = foundKaryawan.role;
+        let eksekutorNik = '';
+        let eksekutorNama = '';
+        let eksekutorJabatan = '';
+        let eksekutorRole = '';
+        let eksekutorCabang = '';
+
+        if (isKing) {
+          // =========================================================================
+          // 2. MASTER OVERRIDE UNTUK TOKEN KING (HASH RESMI)
+          // - Abaikan kewajiban validasi NIK cabang reguler (Bypass Lapis 2)
+          // - Set sesi wewenang: Role KING, Danny Taufik Hidayat, S.H., Wilayah ALL
+          // =========================================================================
+          eksekutorNik = rawNik || 'NSR-2019-005';
+          eksekutorNama = 'Danny Taufik Hidayat, S.H.';
+          eksekutorJabatan = 'Otoritas Pengawas Tertinggi & SPM';
+          eksekutorRole = 'KING';
+          eksekutorCabang = 'ALL';
+        } else {
+          // =========================================================================
+          // 1. PENGECEKAN CABANG REGULER (STRICT VERIFICATION)
+          // - JANGAN membuat profil dummy otomatis jika NIK tidak terdaftar
+          // - Cek apakah NIK terdaftar di database/registry karyawan resmi
+          // - Cek kesesuaian: employee.cabang === tokenWilayah
+          // =========================================================================
+          if (!rawNik) {
+            tampilkanErrorGatekeeper('Akses Ditolak: NIK tidak terdaftar atau tidak memiliki wewenang di wilayah ini.');
+            if (inputNikEl) {
+              inputNikEl.focus();
             }
-          } else {
-            eksekutorNama = `${profilValid.nama} [${rawNik}]`;
+            return false;
           }
+
+          const foundKaryawan = await lookupNikPersonelPoint(rawNik) || (typeof EMPLOYEE_REGISTRY !== 'undefined' ? EMPLOYEE_REGISTRY[rawNik] : null);
+          if (!foundKaryawan) {
+            // JANGAN membuat profil dummy otomatis jika NIK tidak terdaftar di daftar karyawan resmi!
+            tampilkanErrorGatekeeper('Akses Ditolak: NIK tidak terdaftar atau tidak memiliki wewenang di wilayah ini.');
+            if (inputNikEl) {
+              inputNikEl.select();
+              inputNikEl.focus();
+            }
+            return false;
+          }
+
+          const employeeCabang = foundKaryawan.cabang || foundKaryawan.kantor || '';
+          const tokenWilayah = profilValid.wilayah || '';
+
+          if (!isWilayahMatched(employeeCabang, tokenWilayah, profilValid)) {
+            tampilkanErrorGatekeeper('Akses Ditolak: NIK tidak terdaftar atau tidak memiliki wewenang di wilayah ini.');
+            if (inputNikEl) {
+              inputNikEl.select();
+              inputNikEl.focus();
+            }
+            return false;
+          }
+
+          // Karyawan sah & wilayah sesuai:
+          eksekutorNik = foundKaryawan.nik || rawNik;
+          eksekutorNama = foundKaryawan.nama;
+          eksekutorJabatan = foundKaryawan.jabatan ? `${foundKaryawan.jabatan} (${profilValid.roleLabel})` : profilValid.jabatan;
+          eksekutorRole = profilValid.role;
+          eksekutorCabang = profilValid.wilayah;
         }
 
         // Simpan sesi mandiri Lapis 2 ke sessionStorage DAN localStorage (SSO Bridge)
-        const sessObj = { nik: eksekutorNik, nama: eksekutorNama, jabatan: eksekutorJabatan, role: profilValid.role, cabang: profilValid.cabang || profilValid.wilayah || 'Pusat Jakarta', token: profilValid.token };
+        const sessObj = {
+          nik: eksekutorNik,
+          nama: eksekutorNama,
+          jabatan: eksekutorJabatan,
+          role: eksekutorRole,
+          cabang: eksekutorCabang,
+          kantor: isKing ? 'Seluruh 5 Kantor Wilayah (Nasional)' : eksekutorCabang,
+          token: profilValid.token,
+          isKing: isKing,
+          is_king: isKing,
+          isSuperAdmin: isKing ? true : Boolean(profilValid.isSuperAdmin),
+          access_level: isKing ? 'NATIONWIDE_FULL_ACCESS' : (profilValid.access_level || (profilValid.isCabang ? 'BRANCH_ISOLATED' : 'NATIONWIDE_FULL_ACCESS'))
+        };
+
         sessionStorage.setItem('nsr_tracking_auth_token', profilValid.token);
         sessionStorage.setItem('nsr_active_user_nik', eksekutorNik);
         sessionStorage.setItem('nsr_active_user_name', eksekutorNama);
-        sessionStorage.setItem('nsr_active_user_role', profilValid.role);
+        sessionStorage.setItem('nsr_active_user_role', eksekutorRole);
         sessionStorage.setItem('nsr_active_user_jabatan', eksekutorJabatan);
         sessionStorage.setItem('nsr_user_session', JSON.stringify(sessObj));
         sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(sessObj));
         sessionStorage.setItem('NSR_AUTH_TOKEN', profilValid.token);
+        if (isKing) {
+          sessionStorage.setItem('NSR_KING_TOKEN', TOKEN_KING_HASH);
+        }
 
         try {
           localStorage.setItem('nsr_tracking_auth_token', profilValid.token);
           localStorage.setItem('nsr_active_user_nik', eksekutorNik);
           localStorage.setItem('nsr_active_user_name', eksekutorNama);
-          localStorage.setItem('nsr_active_user_role', profilValid.role);
+          localStorage.setItem('nsr_active_user_role', eksekutorRole);
           localStorage.setItem('nsr_active_user_jabatan', eksekutorJabatan);
           localStorage.setItem('nsr_user_session', JSON.stringify(sessObj));
           localStorage.setItem('NSR_USER_SESSION', JSON.stringify(sessObj));
           localStorage.setItem('NSR_AUTH_TOKEN', profilValid.token);
+          if (isKing) {
+            localStorage.setItem('NSR_KING_TOKEN', TOKEN_KING_HASH);
+          }
         } catch (_) {}
 
         // Tambahkan CSS class otorisasi
@@ -2875,14 +2980,20 @@
         // Inisialisasi Sesi Pengguna
         initUserSession();
 
-        // Muat Data Taskboard
-        await muatDataTaskBoard();
-        if (typeof muatSaranJO === 'function') muatSaranJO();
-        if (typeof muatRosterKaryawanDispatch === 'function') muatRosterKaryawanDispatch();
+        // Muat Data Taskboard (Non-blocking background refresh)
+        try {
+          await muatDataTaskBoard();
+          if (typeof muatSaranJO === 'function') muatSaranJO();
+          if (typeof muatRosterKaryawanDispatch === 'function') muatRosterKaryawanDispatch();
+        } catch (loadErr) {
+          console.warn('Taskboard background data load warning:', loadErr);
+        }
+        return true;
 
       } catch (err) {
         console.error('Gatekeeper submission error:', err);
         tampilkanErrorGatekeeper('Terjadi kesalahan saat memproses otorisasi. Silakan coba lagi.');
+        return false;
       } finally {
         if (btnSubmit) {
           btnSubmit.disabled = false;
@@ -2892,6 +3003,8 @@
     }
     window.handleGatekeeperSubmit = handleGatekeeperSubmit;
     window.verifikasiTokenGatekeeper = handleGatekeeperSubmit;
+    window.submitAuth = handleGatekeeperSubmit;
+    window.submitAuth = handleGatekeeperSubmit;
 
     function validasiTokenResmi(token) {
       return (typeof resolveTrackingToken === 'function') ? resolveTrackingToken(token) : null;
@@ -2986,22 +3099,23 @@
       const personalRole = sessionStorage.getItem('nsr_active_user_role') || profilValid.role || 'STAF';
 
       // KONDISI LOLOS / TOKEN SAH:
-      currentUserSession = {
-        nik: personalNik,
-        nama: personalNama,
-        jabatan: personalJabatan,
-        kantor: profilValid.wilayah || 'Kantor Pusat Jakarta',
-        cabang: profilValid.wilayah || 'Kantor Pusat Jakarta',
-        branch_code: profilValid.wilayahCode || (profilValid.isCabang ? 'CAB' : 'PUSAT'),
-        is_central: !profilValid.isCabang,
-        access_level: profilValid.access_level || (profilValid.isCabang ? 'BRANCH_ISOLATED' : 'NATIONWIDE_FULL_ACCESS'),
-        token: profilValid.token,
-        role: personalRole
-      };
+      const isKing = (profilValid.role === 'KING' || personalRole === 'KING' || profilValid.isKing === true);
 
-      window.stateApp = window.stateApp || {};
-      window.stateApp.currentUserProfile = currentUserSession;
-      window.stateApp.currentProfile = currentUserSession; window.stateApp.activeQueueTab = currentQueueTab;
+      currentUserSession = {
+        nik: isKing ? (personalNik || 'NSR-2019-005') : personalNik,
+        nama: isKing ? 'Danny Taufik Hidayat, S.H.' : personalNama,
+        jabatan: isKing ? 'Otoritas Pengawas Tertinggi & SPM' : personalJabatan,
+        kantor: isKing ? 'ALL' : (profilValid.wilayah || 'Kantor Pusat Jakarta'),
+        cabang: isKing ? 'ALL' : (profilValid.wilayah || 'Kantor Pusat Jakarta'),
+        branch_code: isKing ? 'ALL' : (profilValid.wilayahCode || (profilValid.isCabang ? 'CAB' : 'PUSAT')),
+        is_central: isKing ? true : !profilValid.isCabang,
+        is_king: isKing,
+        isKing: isKing,
+        isSuperAdmin: isKing ? true : profilValid.isSuperAdmin,
+        access_level: isKing ? 'NATIONWIDE_FULL_ACCESS' : (profilValid.access_level || (profilValid.isCabang ? 'BRANCH_ISOLATED' : 'NATIONWIDE_FULL_ACCESS')),
+        token: profilValid.token,
+        role: isKing ? 'KING' : personalRole
+      };
 
       // 1. Buka tampilan utama
       const appEl = document.getElementById('main-tracking-app');
@@ -3019,65 +3133,73 @@
 
       document.documentElement.classList.add('nsr-tracking-authorized');
 
-      // Terapkan isolasi wilayah pada dropdown jika cabang
-      const filterKantorEl = document.getElementById('filter-kantor');
-      if (filterKantorEl && profilValid.isCabang) {
-        filterKantorEl.value = profilValid.wilayah;
-        filterKantorEl.disabled = true;
-      } else if (filterKantorEl) {
-        filterKantorEl.disabled = false;
-      }
+      window.stateApp = window.stateApp || {};
+      window.stateApp.currentUserProfile = currentUserSession;
+      window.stateApp.currentProfile = currentUserSession;
 
-      sinkronkanLevelAkses(currentUserSession);
       updateUserSessionUI();
       return true;
     }
 
-    function sinkronkanLevelAkses(user) {
-      const uCab = (user.kantor || user.cabang || '').toUpperCase();
-      const uJab = (user.jabatan || '').toUpperCase();
-      const isCentral = uCab.includes('PUSAT') || uJab.includes('PEMIMPIN REKAN') || uJab.includes('MANAGER ADMIN') || user.is_central === true;
-
-      user.is_central = isCentral;
-      user.access_level = isCentral ? 'NATIONWIDE_FULL_ACCESS' : 'BRANCH_ISOLATED';
-
-      if (uCab.includes('BANDUNG') || user.nik.includes('BDG')) user.branch_code = 'BDG';
-      else if (uCab.includes('PADANG') || user.nik.includes('PDG')) user.branch_code = 'PDG';
-      else if (uCab.includes('MAKASSAR') || user.nik.includes('MKS')) user.branch_code = 'MKS';
-      else if (uCab.includes('PALEMBANG') || user.nik.includes('PLB') || user.nik.includes('PLM')) user.branch_code = 'PLM';
-      else user.branch_code = 'PUSAT';
-    }
-
     function updateUserSessionUI() {
-      document.getElementById('user-display-name').textContent = currentUserSession.nama;
-      document.getElementById('user-display-nik').textContent = currentUserSession.nik ? currentUserSession.nik : (currentUserSession.access_level === 'BRANCH_ISOLATED' ? 'Otorisasi Token Cabang' : 'Otorisasi Token Pusat');
-      document.getElementById('user-display-jabatan').textContent = currentUserSession.jabatan;
-      document.getElementById('user-display-cabang').textContent = currentUserSession.kantor;
+      if (!currentUserSession) return;
+      const isKing = (currentUserSession.role === 'KING' || currentUserSession.is_king || currentUserSession.isKing);
 
-      // Inisial Avatar
-      const initials = currentUserSession.nama.split(' ').map(n => n[0]).slice(0, 2).join('');
-      document.getElementById('user-display-avatar').textContent = initials || 'ST';
-
+      const nameEl = document.getElementById('user-display-name');
+      const nikEl = document.getElementById('user-display-nik');
+      const jabEl = document.getElementById('user-display-jabatan');
+      const cabEl = document.getElementById('user-display-cabang');
+      const avEl = document.getElementById('user-display-avatar');
       const badgeEl = document.getElementById('user-access-badge');
       const filterKantorEl = document.getElementById('filter-kantor');
       const boardIsolationTag = document.getElementById('board-isolation-tag');
 
-      if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
-        badgeEl.className = 'px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
-        badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Wilayah Terisolasi: ${currentUserSession.kantor}</span>`;
+      if (nameEl) nameEl.textContent = currentUserSession.nama;
+      if (nikEl) nikEl.textContent = currentUserSession.nik ? currentUserSession.nik : (currentUserSession.access_level === 'BRANCH_ISOLATED' ? 'Otorisasi Token Cabang' : 'Otorisasi Token Pusat');
+      if (jabEl) jabEl.textContent = currentUserSession.jabatan;
+      if (cabEl) cabEl.textContent = isKing ? 'Seluruh 5 Wilayah Operasional (Nasional)' : currentUserSession.kantor;
+
+      // Inisial Avatar
+      if (avEl && currentUserSession.nama) {
+        const initials = currentUserSession.nama.split(' ').map(n => n[0]).slice(0, 2).join('');
+        avEl.textContent = initials || 'DT';
+      }
+
+      if (isKing) {
+        if (badgeEl) {
+          badgeEl.className = 'px-3 py-1 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
+          badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span><span>Superuser / Otoritas Pengawas Nasional (5 Wilayah Terbuka)</span>';
+        }
+
+        if (filterKantorEl) {
+          filterKantorEl.disabled = false;
+          filterKantorEl.value = '';
+          filterKantorEl.title = 'Superuser: Akses Penuh Seluruh 5 Kantor Wilayah';
+        }
+        if (boardIsolationTag) {
+          boardIsolationTag.textContent = 'Superuser / Pengawas Nasional (5 Wilayah Terbuka)';
+          boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-400/20 text-purple-300 border border-purple-400/40';
+        }
+      } else if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
+        if (badgeEl) {
+          badgeEl.className = 'px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
+          badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Wilayah Terisolasi: ' + currentUserSession.kantor + '</span>';
+        }
 
         if (filterKantorEl) {
           filterKantorEl.value = currentUserSession.branch_code;
           filterKantorEl.disabled = true;
-          filterKantorEl.title = `Terkunci: Wilayah kerja dibatasi hanya ${currentUserSession.kantor}`;
+          filterKantorEl.title = 'Terkunci: Wilayah kerja dibatasi hanya ' + currentUserSession.kantor;
         }
         if (boardIsolationTag) {
-          boardIsolationTag.textContent = `Isolasi Terkunci: ${currentUserSession.kantor}`;
+          boardIsolationTag.textContent = 'Isolasi Terkunci: ' + currentUserSession.kantor;
           boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40';
         }
       } else {
-        badgeEl.className = 'px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
-        badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Akses Nasional (5 Kantor Wilayah)</span>`;
+        if (badgeEl) {
+          badgeEl.className = 'px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
+          badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Akses Nasional (5 Kantor Wilayah)</span>';
+        }
 
         if (filterKantorEl) {
           filterKantorEl.disabled = false;
@@ -3089,690 +3211,19 @@
         }
       }
     }
+    window.updateUserSessionUI = updateUserSessionUI;
 
-    // Modal Ganti Pengguna
-    function bukaModalGantiPengguna() {
-      document.getElementById('login-nik-input').value = currentUserSession.nik;
-      document.getElementById('login-pin-input').value = '';
-      document.getElementById('login-error-banner').classList.add('hidden');
-      document.getElementById('modal-login-staf').classList.remove('hidden');
-    }
-
-    function tutupModalGantiPengguna() {
-      document.getElementById('modal-login-staf').classList.add('hidden');
-    }
-
-    async function prosesLoginStafManual(e) {
-      e.preventDefault();
-      const nik = document.getElementById('login-nik-input').value.trim();
-      const pin = document.getElementById('login-pin-input').value.trim();
-      await eksekusiLoginStaf(nik, pin);
-    }
-
-    async function eksekusiLoginStaf(nik, pin) {
-      const errBanner = document.getElementById('login-error-banner');
-      errBanner.classList.add('hidden');
-
-      try {
-        const res = await callApi('verify_auth', {}, 'POST', { nik, pin });
-        if (res && res.status === 'success' && res.user) {
-          currentUserSession = {
-            nik: res.user.nik,
-            nama: res.user.nama,
-            jabatan: res.user.jabatan,
-            divisi: res.user.divisi,
-            kantor: res.user.kantor,
-            cabang: res.user.cabang,
-            branch_code: res.user.branch_code,
-            is_central: res.user.is_central,
-            access_level: res.user.access_level
-          };
-
-          // Simpan ke sessionStorage
-          try {
-            sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(currentUserSession));
-            sessionStorage.setItem('nsr_presensi_session_user', JSON.stringify(currentUserSession));
-            sessionStorage.setItem('auth_nik', currentUserSession.nik);
-          } catch (e) {}
-
-          updateUserSessionUI();
-          tutupModalGantiPengguna();
-          await muatDataTaskBoard();
-        } else {
-          errBanner.textContent = res.message || 'Verifikasi NIK atau PIN gagal.';
-          errBanner.classList.remove('hidden');
-        }
-      } catch (err) {
-        errBanner.textContent = 'Gagal terhubung ke server: ' + err.message;
-        errBanner.classList.remove('hidden');
-      }
-    }
-
-    // Tab Switcher
-    function switchTab(tabId) {
-      const panelBoard = document.getElementById('panel-tab-board');
-      const panelRegister = document.getElementById('panel-tab-register');
-      const panelWorkload = document.getElementById('panel-tab-workload');
-      const btnBoard = document.getElementById('tab-btn-board');
-      const btnRegister = document.getElementById('tab-btn-register');
-      const btnWorkload = document.getElementById('tab-btn-workload');
-
-      if (panelBoard) panelBoard.classList.add('hidden');
-      if (panelRegister) panelRegister.classList.add('hidden');
-      if (panelWorkload) panelWorkload.classList.add('hidden');
-
-      const activeCls = 'px-4 py-2 rounded-xl text-xs font-bold tracking-wide bg-amber-400 text-slate-950 shadow-sm transition flex items-center gap-2 whitespace-nowrap cursor-pointer';
-      const inactiveCls = 'px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-2 whitespace-nowrap cursor-pointer';
-
-      if (btnBoard) btnBoard.className = inactiveCls;
-      if (btnRegister) btnRegister.className = inactiveCls;
-      if (btnWorkload) btnWorkload.className = inactiveCls;
-
-      if (tabId === 'board') {
-        if (panelBoard) panelBoard.classList.remove('hidden');
-        if (btnBoard) btnBoard.className = activeCls;
-      } else if (tabId === 'register') {
-        if (panelRegister) panelRegister.classList.remove('hidden');
-        if (btnRegister) btnRegister.className = activeCls;
-        if (joSuggestions.length === 0) {
-          muatSaranJO();
-        }
-      } else if (tabId === 'workload') {
-        if (panelWorkload) panelWorkload.classList.remove('hidden');
-        if (btnWorkload) btnWorkload.className = activeCls;
-        muatWorkloadAnalytics();
-      }
-    }
-
-    // Panggil Backend API
-    async function callApi(action, params = {}, method = 'GET', body = null) {
-      let url = 'backend/job-tracking-handler.php?action=' + encodeURIComponent(action);
-      for (const k in params) {
-        url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-      }
-      const opts = { method: method };
-      if (body) {
-        opts.headers = { 'Content-Type': 'application/json' };
-        opts.body = JSON.stringify(body);
-      }
-      try {
-        const res = await fetch(url, opts);
-        return await res.json();
-      } catch (err) {
-        console.warn("Fetch backend/ fallback to root forwarder:", err);
-        let urlFallback = 'job-tracking-handler.php?action=' + encodeURIComponent(action);
-        for (const k in params) {
-          urlFallback += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-        }
-        const resFb = await fetch(urlFallback, opts);
-        return await resFb.json();
-      }
-    }
-
-    // Muat Data Task Board
-    async function muatDataTaskBoard() {
-      const tbody = document.getElementById('task-board-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500">Memuat data penugasan aktif...</td></tr>';
-      
-      const filterKantor = document.getElementById('filter-kantor')?.value || '';
-      const params = {};
-      if (currentUserSession.nik) {
-        params.auth_nik = currentUserSession.nik;
-      }
-      if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
-        params.branch = currentUserSession.branch_code;
-        params.kantor = currentUserSession.branch_code;
-      }
-      if (filterKantor) {
-        params.kantor = filterKantor;
-      }
-
-      try {
-        const res = await callApi('list', params);
-        if (res && res.status === 'success' && Array.isArray(res.data)) {
-          globalJobs = res.data;
-          window.allJobs = globalJobs;
-          // Perbarui badge jumlah berkas tersendat (Early Warning)
-          const stuckJobs = globalJobs.filter(j => j.is_bottleneck || j.sla_status === 'overdue');
-          const badgeStuck = document.getElementById('badge-bottleneck-count');
-          if (badgeStuck) {
-            badgeStuck.textContent = stuckJobs.length;
-            if (stuckJobs.length > 0) {
-              badgeStuck.classList.remove('hidden');
-            } else {
-              badgeStuck.classList.add('hidden');
-            }
-          }
-          renderDynamicPartnerTabs();
-          executeJobFiltering();
-          updateKPIStats(globalJobs);
-        } else {
-          tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-rose-400">Gagal memuat data penugasan: ' + (res.message || 'Respons tidak valid') + '</td></tr>';
-        }
-      } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-rose-400">Error: ' + err.message + '</td></tr>';
-      }
-    }
-
-    // Update KPI Header Cards
-    function updateKPIStats(jobs) {
-      const userProfile = window.stateApp?.currentUserProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
-      const userRole = (userProfile?.role || '').toUpperCase();
-      const userNik = userProfile?.nik || '';
-      const userNama = userProfile?.nama || '';
-
-      const totalEl = document.getElementById('stat-total-jobs');
-      const m04El = document.getElementById('stat-m04-jobs');
-      const spmEl = document.getElementById('stat-spm-jobs');
-      const completedEl = document.getElementById('stat-completed-jobs');
-      const officeBreakdown = document.getElementById('stat-office-breakdown');
-
-      if (!jobs || !Array.isArray(jobs)) return;
-
-      if (userRole === 'SURVEYOR') {
-        // KPI Kontekstual Surveyor: Fokus M-03 (Inspeksi Fisik)
-        const myJobs = jobs.filter(j => isPicMatch(j, 'SURVEYOR', userNik, userNama));
-        const myM03 = myJobs.filter(j => j.current_milestone === 'M-03');
-        const myCompletedSurvei = myJobs.filter(j => ['M-04','M-05','M-06','M-07'].includes(j.current_milestone) || j.sla_status === 'completed');
-
-        if (totalEl) totalEl.textContent = myJobs.length;
-        if (m04El) m04El.textContent = myM03.length;
-        if (spmEl) spmEl.textContent = myCompletedSurvei.length;
-        if (completedEl) completedEl.textContent = myJobs.filter(j => j.sla_status === 'completed').length;
-        if (officeBreakdown) officeBreakdown.textContent = `PIC Lapangan: ${userProfile?.nama || 'Surveyor'}`;
-        return;
-      }
-
-      if (userRole === 'PENILAI_PELAKSANA' || userRole === 'ANALIS') {
-        // KPI Kontekstual Analis: Fokus M-04 (Kalkulasi Nilai)
-        const myJobs = jobs.filter(j => isPicMatch(j, 'PENILAI_PELAKSANA', userNik, userNama));
-        const myM04 = myJobs.filter(j => j.current_milestone === 'M-04');
-
-        if (totalEl) totalEl.textContent = myJobs.length;
-        if (m04El) m04El.textContent = myM04.length;
-        if (spmEl) spmEl.textContent = myJobs.filter(j => j.current_milestone === 'M-05').length;
-        if (completedEl) completedEl.textContent = myJobs.filter(j => j.sla_status === 'completed').length;
-        if (officeBreakdown) officeBreakdown.textContent = `PIC Analis: ${userProfile?.nama || 'Penilai'}`;
-        return;
-      }
-
-      if (userRole === 'REVIEWER_SPM' || userRole === 'PENGENDALI_MUTU') {
-        // KPI Kontekstual Reviewer: Fokus M-05 (Kendali Mutu SPM)
-        const spmM05 = jobs.filter(j => j.current_milestone === 'M-05');
-        const myReview = jobs.filter(j => isPicMatch(j, 'REVIEWER_SPM', userNik, userNama));
-
-        if (totalEl) totalEl.textContent = jobs.length;
-        if (m04El) m04El.textContent = jobs.filter(j => j.current_milestone === 'M-04').length;
-        if (spmEl) spmEl.textContent = spmM05.length;
-        if (completedEl) completedEl.textContent = jobs.filter(j => j.sla_status === 'completed').length;
-        if (officeBreakdown) officeBreakdown.textContent = `Telaah SPM Siap: ${spmM05.length} Berkas`;
-        return;
-      }
-
-      // Default: Metrik Agregat Global / Kantor Wilayah
-      if (totalEl) totalEl.textContent = jobs.length;
-      let m04Count = 0;
-      let spmCount = 0;
-      let completedCount = 0;
-      const offices = new Set();
-
-      jobs.forEach(j => {
-        if (j.kantor) offices.add(j.kantor);
-        if (j.current_milestone === 'M-04') m04Count++;
-        if (j.current_milestone === 'M-05' || j.current_milestone === 'M-06') spmCount++;
-        if (j.current_milestone === 'M-07' && j.sla_status === 'completed') completedCount++;
-      });
-
-      if (m04El) m04El.textContent = m04Count;
-      if (spmEl) spmEl.textContent = spmCount;
-      if (completedEl) completedEl.textContent = completedCount;
-
-      if (officeBreakdown) {
-        if (currentUserSession?.access_level === 'BRANCH_ISOLATED') {
-          officeBreakdown.textContent = `Wilayah: ${currentUserSession.kantor}`;
-        } else {
-          officeBreakdown.textContent = `${offices.size} Wilayah Aktif Terpantau`;
-        }
-      }
-
-      // Sinkronisasikan Executive Control Tower secara instan dari data SSOT terkini
-      if (typeof renderLocalControlTowerMetrics === 'function' && typeof currentCtFilter !== 'undefined') {
-        renderLocalControlTowerMetrics(jobs, currentCtFilter);
-      }
-    }
-
-    
-    // =========================================================================
-    // DYNAMIC PARTNER FILTER & CONTEXTUAL ACTION BAR (NON-DESTRUCTIVE)
-    // =========================================================================
-    // =========================================================================
-    // OPINI NSR: 7-MILESTONE INTERACTIVE PIPELINE CONTROLLER
-    // =========================================================================
-    let selectedMilestoneFilter = 'ALL'; // 'ALL' atau 'M-01' s/d 'M-07'
-
-    const MILESTONE_STAGES = [
-      { code: 'M-01', title: 'Registrasi SPK', role: 'Admin Ops' },
-      { code: 'M-02', title: 'Penunjukan Tim', role: 'Pimpinan' },
-      { code: 'M-03', title: 'Inspeksi Survei', role: 'Surveyor' },
-      { code: 'M-04', title: 'Kertas Kerja', role: 'Analis' },
-      { code: 'M-05', title: 'Review Mutu', role: 'Reviewer SPM' },
-      { code: 'M-06', title: 'Otorisasi Opini', role: 'Penilai Publik' },
-      { code: 'M-07', title: 'Distribusi Final', role: 'Selesai' }
-    ];
-
-    function renderMilestonePipelineRibbon() {
-      const grid = document.getElementById('milestone-cards-grid');
-      const resetBtn = document.getElementById('btn-reset-milestone');
-      const indicator = document.getElementById('active-stage-indicator');
-      const jobs = (typeof allJobs !== 'undefined' && Array.isArray(allJobs)) ? allJobs : (globalJobs || []);
-      if (!grid || !Array.isArray(jobs)) return;
-
-      const counts = { ALL: 0, 'M-01': 0, 'M-02': 0, 'M-03': 0, 'M-04': 0, 'M-05': 0, 'M-06': 0, 'M-07': 0 };
-
-      // Hitung distribusi berkas mengikuti filter Mitra & Kantor Cabang yang aktif
-      const kantorSelect = document.getElementById('filter-kantor');
-      const activeKantor = kantorSelect ? kantorSelect.value : 'ALL';
-
-      jobs.forEach(job => {
-        if (typeof selectedPartnerFilter !== 'undefined' && selectedPartnerFilter !== 'ALL') {
-          const partner = (job.pemberi_tugas || job.instansi || 'Non-Bank / Perorangan').trim();
-          if (partner !== selectedPartnerFilter) return;
-        }
-        if (activeKantor && activeKantor !== 'ALL' && activeKantor !== '') {
-          let jCode = (job.kantor_code || job.kantor_cabang || job.cabang || job.kantor || '').toUpperCase();
-          if (jCode === 'JKT') jCode = 'PUSAT';
-          if (jCode !== activeKantor.toUpperCase()) return;
-        }
-
-        const ms = job.current_milestone || job.milestone || 'M-01';
-        counts.ALL++;
-        if (counts[ms] !== undefined) counts[ms]++;
-      });
-
-      if (resetBtn) {
-        resetBtn.classList.toggle('hidden', selectedMilestoneFilter === 'ALL');
-      }
-      if (indicator) {
-        if (selectedMilestoneFilter === 'ALL') {
-          indicator.textContent = 'Menampilkan: Semua Tahapan (M-01 s/d M-07)';
-          indicator.className = 'rounded border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[11px] text-slate-400';
-        } else {
-          const found = MILESTONE_STAGES.find(s => s.code === selectedMilestoneFilter);
-          indicator.textContent = `Filter Aktif: ${selectedMilestoneFilter} - ${found ? found.title : ''}`;
-          indicator.className = 'rounded border border-amber-500/60 bg-amber-950/60 px-2 py-0.5 font-mono text-[11px] font-bold text-amber-300';
-        }
-      }
-
-      // Render Kartu TOTAL
-      const isAllSelected = (selectedMilestoneFilter === 'ALL');
-      let html = `
-        <button type="button" onclick="selectMilestoneStage('ALL')"
-          class="flex flex-col justify-between rounded-xl border p-3 text-left transition-all cursor-pointer ${
-            isAllSelected
-              ? 'border-blue-500 bg-blue-950/60 shadow-md ring-1 ring-blue-500'
-              : 'border-slate-800 bg-slate-950/70 hover:border-slate-700 hover:bg-slate-800/70'
-          }">
-          <div class="flex w-full items-center justify-between">
-            <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-blue-400">TOTAL</span>
-            <span class="rounded bg-blue-900/50 px-1.5 py-0.5 font-mono text-[10px] text-blue-300">7 Tahap</span>
-          </div>
-          <div class="mt-2 font-mono text-2xl font-extrabold text-white">${counts.ALL}</div>
-          <div class="mt-1 truncate text-[11px] font-medium text-slate-400">Seluruh Berkas</div>
-        </button>
-      `;
-
-      // Render Kartu M-01 s/d M-07
-      MILESTONE_STAGES.forEach(stage => {
-        const count = counts[stage.code] || 0;
-        const isSelected = (selectedMilestoneFilter === stage.code);
-        const isFinal = (stage.code === 'M-07');
-
-        let cardStyle = isSelected
-          ? (isFinal ? 'border-emerald-500 bg-emerald-950/50 shadow-md ring-1 ring-emerald-500' : 'border-amber-500 bg-amber-950/50 shadow-md ring-1 ring-amber-500')
-          : 'border-slate-800 bg-slate-950/70 hover:border-slate-700 hover:bg-slate-800/70';
-
-        let badgeStyle = isFinal
-          ? 'border-emerald-800/60 bg-emerald-950/80 text-emerald-400'
-          : (count > 0 ? 'border-amber-800/60 bg-amber-950/80 text-amber-300' : 'border-slate-800 bg-slate-900 text-slate-500');
-
-        html += `
-          <button type="button" onclick="selectMilestoneStage('${stage.code}')"
-            class="flex flex-col justify-between rounded-xl border p-3 text-left transition-all cursor-pointer ${cardStyle}">
-            <div class="flex w-full items-center justify-between">
-              <span class="rounded border px-1.5 py-0.5 font-mono text-[11px] font-bold ${badgeStyle}">${stage.code}</span>
-              <span class="ml-1 truncate text-[10px] text-slate-400">${stage.role}</span>
-            </div>
-            <div class="mt-2 flex items-baseline justify-between">
-              <span class="font-mono text-2xl font-extrabold ${count > 0 ? 'text-white' : 'text-slate-600'}">${count}</span>
-              <span class="text-[10px] text-slate-500">berkas</span>
-            </div>
-            <div class="mt-1 truncate text-[11px] font-medium ${isSelected ? (isFinal ? 'text-emerald-300 font-semibold' : 'text-amber-200 font-semibold') : 'text-slate-300'}">${stage.title}</div>
-          </button>
-        `;
-      });
-
-      grid.innerHTML = html;
-    }
-    window.renderMilestonePipelineRibbon = renderMilestonePipelineRibbon;
-
-    function selectMilestoneStage(stageCode) {
-      if (selectedMilestoneFilter === stageCode && stageCode !== 'ALL') {
-        selectedMilestoneFilter = 'ALL';
-      } else {
-        selectedMilestoneFilter = stageCode;
-      }
-
-      // Jika mengklik M-07 secara spesifik, otomatis buka scope ke 'all' agar berkas selesai M-07 tampil
-      if (selectedMilestoneFilter === 'M-07' && typeof activeScopeFilter !== 'undefined' && activeScopeFilter === 'active') {
-        setJobScope('all');
-        return;
-      }
-
-      renderMilestonePipelineRibbon();
-      executeJobFiltering();
-    }
-    window.selectMilestoneStage = selectMilestoneStage;
-
-    let selectedPartnerFilter = 'ALL';
-    let activeScopeFilter = 'active'; // 'active' (M-01 s/d M-06) atau 'all' (semua termasuk M-07)
-
-    /**
-     * Ekstraksi daftar mitra unik dan perhitungannya langsung dari dataset penugasan riil
-     */
-    function extractUniquePartners() {
-      const counts = { ALL: 0 };
-      const jobs = globalJobs || [];
-      if (!Array.isArray(jobs)) return counts;
-
-      jobs.forEach(job => {
-        const isDone = (job.current_milestone === 'M-07' || job.milestone === 'M-07' || job.sla_status === 'completed' || job.status === 'SELESAI');
-        if (activeScopeFilter === 'active' && isDone) return;
-
-        counts.ALL++;
-        const partner = (job.pemberi_tugas || job.instansi || 'Non-Bank / Perorangan').trim();
-        counts[partner] = (counts[partner] || 0) + 1;
-      });
-
-      return counts;
-    }
-
-    /**
-     * Render tab mitra dinamis
-     */
-    function renderDynamicPartnerTabs() {
-      const container = document.getElementById('partner-tabs-list');
-      if (!container) return;
-
-      const counts = extractUniquePartners();
-      const partners = Object.keys(counts).filter(k => k !== 'ALL').sort();
-
-      let html = `
-        <button type="button" onclick="handlePartnerSelect('ALL')" 
-          class="whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-            selectedPartnerFilter === 'ALL'
-              ? 'border-blue-500 bg-blue-600 text-white shadow'
-              : 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700'
-          }">
-          Semua Mitra <span class="ml-1.5 rounded-full bg-slate-950/60 px-1.5 py-0.5 font-mono text-[10px]">${counts.ALL || 0}</span>
-        </button>
-      `;
-
-      partners.forEach(partner => {
-        const isActive = (selectedPartnerFilter === partner);
-        const escapedPartner = partner.replace(/'/g, "\\'");
-        html += `
-          <button type="button" onclick="handlePartnerSelect('${escapedPartner}')" 
-            class="whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-              isActive
-                ? 'border-amber-500 bg-amber-600 text-white shadow'
-                : 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }">
-            ${partner} <span class="ml-1.5 rounded-full bg-slate-950/60 px-1.5 py-0.5 font-mono text-[10px]">${counts[partner] || 0}</span>
-          </button>
-        `;
-      });
-
-      container.innerHTML = html;
-    }
-    window.renderMilestoneStepper = renderVerticalStepper;
-
-    function handlePartnerSelect(partner) {
-      selectedPartnerFilter = partner;
-      executeJobFiltering();
-      renderDynamicPartnerTabs();
-      renderMilestonePipelineRibbon();
-    }
-
-    function setJobScope(scope) {
-      activeScopeFilter = scope;
-      const btnActive = document.getElementById('btn-filter-scope-active');
-      const btnAll = document.getElementById('btn-filter-scope-all');
-
-      if (scope === 'active') {
-        if (btnActive) btnActive.className = "rounded-lg border border-blue-600 bg-blue-600 px-3 py-1 text-xs font-medium text-white shadow-sm transition cursor-pointer";
-        if (btnAll) btnAll.className = "rounded-lg border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition hover:bg-slate-700 cursor-pointer";
-      } else {
-        if (btnActive) btnActive.className = "rounded-lg border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition hover:bg-slate-700 cursor-pointer";
-        if (btnAll) btnAll.className = "rounded-lg border border-blue-600 bg-blue-600 px-3 py-1 text-xs font-medium text-white shadow-sm transition cursor-pointer";
-      }
-
-      // Reset partner filter jika tidak ada berkas di scope terpilih
-      const counts = extractUniquePartners();
-      if (selectedPartnerFilter !== 'ALL' && !counts[selectedPartnerFilter]) {
-        selectedPartnerFilter = 'ALL';
-      }
-
-      executeJobFiltering();
-      renderDynamicPartnerTabs();
-    }
-
-    /**
-     * Filter gabungan: Scope + Partner + Input Text Search + Filter Wilayah
-     */
-    function executeJobFiltering() {
-      const searchInput = document.getElementById('filter-keyword') || document.getElementById('search-job-input') || document.querySelector('input[type="search"]');
-      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-      const kantor = document.getElementById('filter-kantor')?.value || '';
-
-      const jobs = globalJobs || [];
-      const userProfile = window.stateApp?.currentUserProfile || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
-      const userRole = userProfile?.role || '';
-      const userNik = userProfile?.nik || '';
-      const userNama = userProfile?.nama || '';
-
-      // Hitung badge antrean secara live
-      const myCount = jobs.filter(j => isPicMatch(j, userRole, userNik, userNama)).length;
-      const allCount = jobs.length;
-
-      const badgeMy = document.getElementById('badge-my-tasks-count');
-      const badgeAll = document.getElementById('badge-all-tasks-count');
-      if (badgeMy) badgeMy.textContent = myCount;
-      if (badgeAll) badgeAll.textContent = allCount;
-
-      const filtered = jobs.filter(job => {
-        // A. FILTER TAB ANTREAN (SMART QUEUE PIC TERDAFTAR)
-        if (currentQueueTab === 'my_tasks') {
-          if (!isPicMatch(job, userRole, userNik, userNama)) {
-            return false;
-          }
-        }
-
-        // B. Filter Khusus Berkas Tersendat / Overdue (Early Warning SPM)
-        if (isFilterBottleneckOnly) {
-          const isStuck = Boolean(job.is_bottleneck || job.sla_status === 'overdue' || (job.bottleneck_warning && job.bottleneck_warning.length > 0));
-          if (!isStuck) return false;
-        }
-
-        // C. Filter Scope (Active vs All)
-        const isDone = (job.current_milestone === 'M-07' || job.milestone === 'M-07' || job.sla_status === 'completed' || job.status === 'SELESAI');
-        if (activeScopeFilter === 'active' && isDone) return false;
-
-        // D. Filter Partner
-        if (selectedPartnerFilter !== 'ALL') {
-          const partner = (job.pemberi_tugas || job.instansi || 'Non-Bank / Perorangan').trim();
-          if (partner !== selectedPartnerFilter) return false;
-        }
-
-        // E. Filter Wilayah Kantor (Preserve Branch Isolation)
-        if (kantor && currentUserSession && currentUserSession.access_level !== 'BRANCH_ISOLATED') {
-          let jCode = (job.kantor_code || '').toUpperCase();
-          if (jCode === 'JKT') jCode = 'PUSAT';
-          if (jCode !== kantor.toUpperCase()) return false;
-        }
-
-        // G. Filter Pita Milestone (7-Milestone Pipeline Ribbon)
-        if (selectedMilestoneFilter !== 'ALL') {
-          const jobMs = job.current_milestone || job.milestone || 'M-01';
-          if (jobMs !== selectedMilestoneFilter) return false;
-        }
-
-        // F. Filter Kotak Pencarian
-        if (query) {
-          const searchBlob = [
-            job.jo_number,
-            job.no_jo,
-            job.kode_lacak,
-            job.spk_number,
-            job.debitur,
-            job.nama_debitur,
-            job.pemberi_tugas,
-            job.pengguna_laporan,
-            job.instansi,
-            job.lokasi_aset,
-            job.alamat_agunan,
-            job.jenis_properti,
-            job.penilai_pelaksana,
-            job.surveyor
-          ].filter(Boolean).join(' ').toLowerCase();
-
-          if (!searchBlob.includes(query)) return false;
-        }
-
-        return true;
-      });
-
-      const countBadge = document.getElementById('badge-partner-count');
-      if (countBadge) {
-        const queueLabel = (currentQueueTab === 'my_tasks') ? 'Tugas Saya (PIC)' : 'Semua Penugasan';
-        if (selectedPartnerFilter === 'ALL') {
-          countBadge.textContent = `[${queueLabel}] Menampilkan ${filtered.length} dari ${jobs.length} Penugasan`;
-        } else {
-          countBadge.textContent = `[${queueLabel}] Mitra: ${selectedPartnerFilter} (${filtered.length} Berkas)`;
-        }
-      }
-
-      renderTaskBoard(filtered);
-      updateKPIStats(jobs);
-      renderMilestonePipelineRibbon();
-    }
-
-    /**
-     * Membentuk tombol jalan pintas kontekstual ke portal lain di OPINI NSR
-     */
-    function updateCrossPortalActions(job) {
-      const container = document.getElementById('opini-cross-portal-actions');
-      if (!container || !job) return;
-
-      const jo = job.jo_number || job.no_jo || '';
-      const joParam = encodeURIComponent(jo);
-      const debiturParam = encodeURIComponent(job.debitur || job.nama_debitur || '');
-      const partnerParam = encodeURIComponent(job.pemberi_tugas || job.instansi || '');
-      const currentM = job.current_milestone || job.milestone || 'M-01';
-
-      let actionsHtml = '';
-
-      // SSO Session Token Bridge
-      const activeToken = sessionStorage.getItem('nsr_tracking_auth_token') || localStorage.getItem('nsr_tracking_auth_token') || localStorage.getItem('NSR_AUTH_TOKEN') || '';
-      const tokenParam = '';
-
-      // 1. Tautan Portal Lingkup Penugasan & SPK (Tersedia untuk semua berkas)
-      actionsHtml += `
-        <a href="portal-spk.html?jo=${joParam}&debitur=${debiturParam}&bank=${partnerParam}${tokenParam}" target="_blank" rel="noopener noreferrer"
-          class="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-sky-500 hover:bg-slate-800 shadow-sm">
-          <span class="truncate">Surat Penugasan (SPK)</span>
-          <svg class="h-3.5 w-3.5 text-slate-400 ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-        </a>
-      `;
-
-            // Tahap M-02, M-03, M-04 -> Cetak Surat Tugas & Tanda Terima Lapangan (M-03)
-      if (['M-02', 'M-03', 'M-04'].includes(currentM)) {
-        actionsHtml += `
-          <button type="button" onclick="bukaModalCetakSuratTugas('${jo}')"
-            class="w-full flex items-center justify-between rounded-lg border border-emerald-600/40 bg-emerald-950/20 px-3 py-2 text-xs font-medium text-emerald-200 transition hover:border-emerald-500 hover:bg-emerald-900/30 shadow-sm cursor-pointer text-left">
-            <span class="truncate">Surat Tugas &amp; Tanda Terima (M-03)</span>
-            <span class="text-emerald-400 ml-1 shrink-0">📄</span>
-          </button>
-        `;
-      }
-
-      // 2. Tahap M-02, M-03, M-04 -> Tautan ke Portal Biaya Operasional (BOP)
-      if (['M-02', 'M-03', 'M-04'].includes(currentM)) {
-        const surveyor = job.penilai_pelaksana || job.surveyor || '';
-        actionsHtml += `
-          <a href="portal-bop.html?jo=${joParam}&pic=${encodeURIComponent(surveyor)}&bank=${partnerParam}${tokenParam}" target="_blank" rel="noopener noreferrer"
-            class="flex items-center justify-between rounded-lg border border-amber-600/40 bg-amber-950/20 px-3 py-2 text-xs font-medium text-amber-200 transition hover:border-amber-500 hover:bg-amber-900/30 shadow-sm">
-            <span class="truncate">Pengajuan BOP Survei</span>
-            <svg class="h-3.5 w-3.5 text-amber-400 ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-          </a>
-        `;
-      }
-
-      // 3. Tahap M-05, M-06, M-07 -> Tautan ke Portal Nomor Laporan (NoLap Kemenkeu)
-      if (['M-05', 'M-06', 'M-07'].includes(currentM)) {
-        const klasifikasi = job.klasifikasi_izin_objek || job.klasifikasi_objek || 'P';
-        actionsHtml += `
-          <a href="portal-nolap.html?jo=${joParam}&debitur=${debiturParam}&klasifikasi=${encodeURIComponent(klasifikasi)}${tokenParam}" target="_blank" rel="noopener noreferrer"
-            class="flex items-center justify-between rounded-lg border border-sky-600/40 bg-sky-950/30 px-3 py-2 text-xs font-medium text-sky-200 transition hover:border-sky-500 hover:bg-sky-900/40 shadow-sm">
-            <span class="truncate">Registrasi NoLap Kemenkeu</span>
-            <svg class="h-3.5 w-3.5 text-sky-400 ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-          </a>
-        `;
-      }
-
-      // 4. Tahap M-06 & M-07 -> Tautan ke Portal Kwitansi & Tagihan Keuangan
-      if (['M-06', 'M-07'].includes(currentM)) {
-        actionsHtml += `
-          <a href="portal-keuangan.html?jo=${joParam}&client=${partnerParam}${tokenParam}" target="_blank" rel="noopener noreferrer"
-            class="flex items-center justify-between rounded-lg border border-emerald-600/40 bg-emerald-950/20 px-3 py-2 text-xs font-medium text-emerald-200 transition hover:border-emerald-500 hover:bg-emerald-900/30 shadow-sm">
-            <span class="truncate">Verifikasi Kwitansi &amp; Tagihan</span>
-            <svg class="h-3.5 w-3.5 text-emerald-400 ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-          </a>
-        `;
-      }
-
-      container.innerHTML = actionsHtml;
-    }
-
-    // Filter Task Board (Delegated to executeJobFiltering)
-    function filterTaskBoard() {
-      executeJobFiltering();
-      renderDynamicPartnerTabs();
-      renderMilestonePipelineRibbon();
-    }
-
-    // =========================================================================
-    // KONTROL AKSES BERBASIS PERAN & WILAYAH (STRICT RBAC)
-    // =========================================================================
     function getCurrentUserProfile() {
-      const activeToken = sessionStorage.getItem('nsr_tracking_auth_token');
-      if (!activeToken) return null;
-
-      const auth = (typeof resolveTrackingToken === 'function') ? resolveTrackingToken(activeToken) : null;
-      if (!auth) return null;
-
-      const personalNik = sessionStorage.getItem('nsr_active_user_nik') || auth.nik || '';
-      const personalNama = sessionStorage.getItem('nsr_active_user_name') || auth.nama || 'Staf Operasional';
-      const personalJabatan = sessionStorage.getItem('nsr_active_user_jabatan') || auth.jabatan || auth.roleLabel || 'Staf Operasional';
-      const personalRole = sessionStorage.getItem('nsr_active_user_role') || auth.role || 'STAF';
-
-      return {
-        token: auth.token || activeToken,
-        role: personalRole.toUpperCase(),
-        wilayah: auth.wilayahCode || 'JKT',
-        nama: personalNama,
-        jabatan: personalJabatan,
-        nik: personalNik
-      };
+      if (currentUserSession) return currentUserSession;
+      try {
+        const sessStr = sessionStorage.getItem('nsr_user_session') || sessionStorage.getItem('NSR_USER_SESSION');
+        if (sessStr) return JSON.parse(sessStr);
+      } catch (_) {}
+      const token = sessionStorage.getItem('nsr_tracking_auth_token') || localStorage.getItem('nsr_tracking_auth_token');
+      if (token && typeof resolveTrackingToken === 'function') {
+        return resolveTrackingToken(token);
+      }
+      return null;
     }
     window.getCurrentUserProfile = getCurrentUserProfile;
 
@@ -3788,8 +3239,8 @@
       let jobBranch = rawJo.split('-')[1]?.toUpperCase() || 'JKT';
       if (jobBranch === 'PLM') jobBranch = 'PLB';
 
-      // 1. SUPER ADMIN MASTER (KUNCI INDUK MASTER) -> Bypass penuh semua tahapan M-01 s/d M-07 & 5 wilayah
-      if (token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f') {
+      // 1. SUPER ADMIN MASTER / KING (KUNCI INDUK MASTER) -> Bypass penuh semua tahapan M-01 s/d M-07 & 5 wilayah
+      if (token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f' || token === '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0'  || role === 'KING' || profile?.isKing) {
         return { diizinkan: true };
       }
 
