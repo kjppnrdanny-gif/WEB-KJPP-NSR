@@ -1403,6 +1403,10 @@ if ($action === 'track' || $action === 'track_public') {
     $publicData = $foundJob;
     unset($publicData['opini_nilai_pasar']);
     unset($publicData['opini_nilai_likuidasi']);
+    unset($publicData['status_kwitansi']);
+    unset($publicData['no_kwitansi']);
+    unset($publicData['nomor_kwitansi']);
+    unset($publicData['billing_status']);
     unset($publicData['evidence_link']);
     unset($publicData['drive_folder_url']);
     unset($publicData['link_folder_drive']);
@@ -1684,6 +1688,35 @@ if ($action === 'advance_milestone' || $action === 'update_milestone') {
     }
 
     // Simpan Kontak Klien & PIC Pegawai (Dispatch Progressive Data Saving)
+    // WORKFLOW HARD GATING: Kepatuhan SPM M-06 & Keuangan M-07
+    // 1. Kunci perpindahan ke M-06 jika Nomor Laporan (NoLap Kemenkeu 7 Segmen) masih kosong
+    if ($targetM === 'M-06') {
+        $noLapVal = trim((string)($payload['nomor_laporan_resmi'] ?? $payload['no_laporan'] ?? $job['nomor_laporan_resmi'] ?? $job['no_laporan'] ?? ''));
+        if (empty($noLapVal)) {
+            http_response_code(422);
+            echo json_encode([
+                'status' => 'error',
+                'code' => 'NOLAP_REQUIRED',
+                'message' => 'Persetujuan Otorisasi M-06 Ditolak: Nomor Laporan Resmi (NoLap 7 Segmen Kemenkeu) wajib diterbitkan dan diisi sebelum otorisasi Penilai Publik.'
+            ]);
+            exit;
+        }
+    }
+
+    // 2. Kunci perpindahan ke M-07 jika status kwitansi belum diverifikasi ("LUNAS" atau "RETENSI_BANK")
+    if ($targetM === 'M-07') {
+        $stKwitansi = strtoupper(trim((string)($payload['status_kwitansi'] ?? $job['status_kwitansi'] ?? $job['billing_status'] ?? '')));
+        if (!in_array($stKwitansi, ['LUNAS', 'RETENSI_BANK'])) {
+            http_response_code(422);
+            echo json_encode([
+                'status' => 'error',
+                'code' => 'KWITANSI_UNVERIFIED',
+                'message' => 'Pemberkasan dan Distribusi Final M-07 Ditolak: Status kwitansi keuangan belum diverifikasi (Wajib "LUNAS" atau "RETENSI_BANK"). Status saat ini: ' . (!empty($stKwitansi) ? $stKwitansi : 'BELUM DIVERIFIKASI') . '.'
+            ]);
+            exit;
+        }
+    }
+
     applyJobContactUpdates($job, $payload, $targetM);
     $job['current_milestone'] = $targetM;
     $job['current_milestone_title'] = $job['milestones'][$targetM]['title'];

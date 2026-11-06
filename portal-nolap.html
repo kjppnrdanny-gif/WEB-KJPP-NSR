@@ -23138,6 +23138,16 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       'input[name="pemberi_tugas"]', 'input[name="bank"]', 'select[name="pemberi_tugas"]', 'input[name="klien"]'
     ], bank);
 
+    // 5. SSO Token Session Sync
+    const ssoToken = localStorage.getItem('nsr_tracking_auth_token') || localStorage.getItem('NSR_AUTH_TOKEN') || '';
+    if (ssoToken && !sesiAktif) {
+      const tokInput = document.getElementById('input_token_auth');
+      if (tokInput && typeof handleLoginSubmit === 'function') {
+        tokInput.value = ssoToken;
+        handleLoginSubmit({ preventDefault: () => {} });
+      }
+    }
+
     // 4. Pemetaan Kolom PIC Surveyor / Penilai
     safeFill([
       '#pic_surveyor', '#pic-surveyor', '#penilai_pelaksana', '#surveyor', '#pic', 

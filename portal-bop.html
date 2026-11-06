@@ -3040,8 +3040,18 @@
         }
 
         if (r.status === 401) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const ssoToken = localStorage.getItem('nsr_tracking_auth_token') || localStorage.getItem('NSR_AUTH_TOKEN');
+          if (ssoToken) {
+            const tokInput = document.getElementById('input_token_auth');
+            if (tokInput && typeof handleTokenLogin === 'function') {
+              tokInput.value = ssoToken;
+              handleTokenLogin({ preventDefault: () => {} });
+              return;
+            }
+          }
           document.getElementById('modal-auth').classList.remove('hidden');
-        } else {
+        }
           document.getElementById('modal-auth').classList.add('hidden');
           document.getElementById('dot-sesi').className = 'w-2 h-2 rounded-full bg-emerald-400';
           document.getElementById('label-sesi-role').innerText = 'Petugas Terautentikasi';

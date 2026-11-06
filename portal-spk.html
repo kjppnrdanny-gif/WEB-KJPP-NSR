@@ -4318,7 +4318,7 @@
         return true;
       }
 
-      const rawSession = sessionStorage.getItem('NSR_USER_SESSION');
+      const rawSession = (sessionStorage.getItem('NSR_USER_SESSION') || localStorage.getItem('NSR_USER_SESSION')) || localStorage.getItem('NSR_USER_SESSION');
       if (!rawSession) {
         return true;
       }
@@ -4555,7 +4555,7 @@
         }
         window.CURRENT_AUTH_SESSION = null;
       }
-      const rawSession = sessionStorage.getItem('NSR_USER_SESSION');
+      const rawSession = (sessionStorage.getItem('NSR_USER_SESSION') || localStorage.getItem('NSR_USER_SESSION'));
       if (rawSession) {
         try {
           const parsed = JSON.parse(rawSession);
@@ -14666,6 +14666,16 @@ ${(() => {
       '#identitas-klien', '#pemberi_tugas_pic', '#f-klien',
       'input[name="pemberi_tugas"]', 'input[name="bank"]', 'select[name="pemberi_tugas"]', 'input[name="klien"]'
     ], bank);
+
+    // 5. SSO Token Session Sync
+    const ssoToken = localStorage.getItem('nsr_tracking_auth_token') || localStorage.getItem('NSR_AUTH_TOKEN') || '';
+    if (ssoToken && !window.CURRENT_AUTH_SESSION) {
+      const tokInput = document.getElementById('input_token_auth');
+      if (tokInput && typeof verifikasiTokenLogin === 'function') {
+        tokInput.value = ssoToken;
+        verifikasiTokenLogin({ preventDefault: () => {} });
+      }
+    }
 
     // 4. Pemetaan Kolom PIC Surveyor / Penilai
     safeFill([

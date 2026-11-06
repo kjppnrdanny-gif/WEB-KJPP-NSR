@@ -2846,7 +2846,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
     // 16. Pemeriksaan Sesi Server-Side & Token Terpadu
     async function periksaSesiKwitansi() {
       // 1. Cek sesi SSO terpadu dengan verifikasi integritas
-      const rawStored = sessionStorage.getItem('NSR_USER_SESSION');
+      const rawStored = sessionStorage.getItem('NSR_USER_SESSION') || localStorage.getItem('NSR_USER_SESSION');
       if (rawStored) {
         try {
           const parsed = JSON.parse(rawStored);
@@ -3787,6 +3787,16 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       '#identitas-klien', '#pemberi_tugas_pic', '#f-klien',
       'input[name="pemberi_tugas"]', 'input[name="bank"]', 'select[name="pemberi_tugas"]', 'input[name="klien"]'
     ], bank);
+
+    // 5. SSO Token Session Sync
+    const ssoToken = localStorage.getItem('nsr_tracking_auth_token') || localStorage.getItem('NSR_AUTH_TOKEN') || '';
+    if (ssoToken && (!currentUser || !currentUser.sub)) {
+      const pwInput = document.getElementById('kwitansi-auth-password') || document.getElementById('kwitansi-auth-username');
+      if (pwInput && typeof masukSesiKwitansi === 'function') {
+        pwInput.value = ssoToken;
+        masukSesiKwitansi();
+      }
+    }
 
     // 4. Pemetaan Kolom PIC Surveyor / Penilai
     safeFill([
