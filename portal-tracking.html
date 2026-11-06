@@ -5053,27 +5053,49 @@ Administrasi Operasional KJPP NSR`;
 
     // MODAL STEPPER & AUDIT TRAIL LOG PROGRESS
     // =========================================================================
-    async function bukaModalTracking(joId = null) {
+    async function bukaModalTracking(joRef = null) {
+      const cleanRef = String(joRef || '').trim();
       let job = null;
-      if (joId) {
-        job = globalJobs.find(x => x.id === joId || x.jo_number === joId);
+      if (cleanRef && typeof globalJobs !== 'undefined' && Array.isArray(globalJobs)) {
+        job = globalJobs.find(j => j.jo_number === cleanRef || j.nomor_jo === cleanRef || j.id == cleanRef || j.id_jo === cleanRef || j.kode_lacak === cleanRef);
+      }
+      if (!job && typeof activeJob !== 'undefined' && activeJob) {
+        job = activeJob;
+      }
+      if (!job && typeof globalJobs !== 'undefined' && Array.isArray(globalJobs) && globalJobs.length > 0) {
+        job = globalJobs.find(j => j.jo_number === 'JO-JKT-2026-0001') || globalJobs[0];
       }
       if (!job) {
-        job = globalJobs.find(x => x.jo_number === 'JO-JKT-2026-0001') || globalJobs[0];
+        console.warn('bukaModalTracking: Penugasan tidak ditemukan untuk referensi', joRef);
+        return;
       }
-      if (!job) return;
 
       activeJob = job;
 
-      // Populate Summary
-      document.getElementById('modal-jo-number').textContent = job.jo_number;
+      // Segera buka modal tracking stepper agar respon instan ke pengguna
+      const modal = document.getElementById('modal-tracking-stepper');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '70';
+      }
+
+      // Populate Summary dengan defensive element guards
+      const elJoNumber = document.getElementById('modal-jo-number');
+      if (elJoNumber) elJoNumber.textContent = job.jo_number || '-';
+
       const elKodeModal = document.getElementById('modal-kode-lacak');
       if (elKodeModal) {
         elKodeModal.textContent = job.kode_lacak ? ('Kode: ' + job.kode_lacak) : '';
         elKodeModal.style.display = job.kode_lacak ? 'inline-flex' : 'none';
       }
-      document.getElementById('modal-spk-number').textContent = job.spk_number || '-';
-      document.getElementById('modal-kantor-tag').textContent = job.kantor || 'Kantor Pusat Jakarta';
+
+      const elSpkNumber = document.getElementById('modal-spk-number');
+      if (elSpkNumber) elSpkNumber.textContent = job.spk_number || '-';
+
+      const elKantorTag = document.getElementById('modal-kantor-tag');
+      if (elKantorTag) elKantorTag.textContent = job.kantor || 'Kantor Pusat Jakarta';
+
       // SPI 103 Entitas Penugasan & Kontak
       const elPemberi = document.getElementById('modal-pemberi-tugas');
       if (elPemberi) elPemberi.textContent = job.pemberi_tugas || job.instansi || '-';
@@ -5098,16 +5120,36 @@ Administrasi Operasional KJPP NSR`;
 
       const elPicContactOld = document.getElementById('modal-pic-contact');
       if (elPicContactOld) elPicContactOld.textContent = 'PIC: ' + (job.client_pic_name || job.pic_pemohon || '-') + ' (' + (job.client_pic_phone || job.pic_contact || '-') + ')';
-      document.getElementById('modal-objek').textContent = job.jenis_properti + (job.luas_tanah ? ' • LT: ' + job.luas_tanah + ' / LB: ' + job.luas_bangunan : '');
-      document.getElementById('modal-lokasi').textContent = job.lokasi_aset;
-      document.getElementById('modal-sla-target').textContent = job.sla_deadline;
-      document.getElementById('modal-team-pelaksana').textContent = job.penilai_pelaksana || job.surveyor || '-';
-      document.getElementById('modal-team-reviewer').textContent = job.reviewer || job.reviewer_spm || '-';
-      document.getElementById('modal-team-penilaipublik').textContent = job.penilai_publik || 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
-      document.getElementById('modal-progress-percent').textContent = job.progress_percent + '%';
-      document.getElementById('modal-progress-bar').style.width = job.progress_percent + '%';
-      document.getElementById('modal-badge-sla').textContent = job.sla_label || ('SLA H+' + (job.sla_days || 3));
-      document.getElementById('modal-keterangan-resmi').textContent = job.keterangan_resmi || 'Tahapan berjalan sesuai koridor SLA.';
+
+      const elObjek = document.getElementById('modal-objek');
+      if (elObjek) elObjek.textContent = (job.jenis_properti || '-') + (job.luas_tanah ? ' • LT: ' + job.luas_tanah + ' / LB: ' + (job.luas_bangunan || '-') : '');
+
+      const elLokasi = document.getElementById('modal-lokasi');
+      if (elLokasi) elLokasi.textContent = job.lokasi_aset || '-';
+
+      const elSlaTarget = document.getElementById('modal-sla-target');
+      if (elSlaTarget) elSlaTarget.textContent = job.sla_deadline || '-';
+
+      const elTeamPelaksana = document.getElementById('modal-team-pelaksana');
+      if (elTeamPelaksana) elTeamPelaksana.textContent = job.penilai_pelaksana || job.surveyor || '-';
+
+      const elTeamReviewer = document.getElementById('modal-team-reviewer');
+      if (elTeamReviewer) elTeamReviewer.textContent = job.reviewer || job.reviewer_spm || '-';
+
+      const elTeamPenilaiPublik = document.getElementById('modal-team-penilaipublik');
+      if (elTeamPenilaiPublik) elTeamPenilaiPublik.textContent = job.penilai_publik || 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
+
+      const elProgressPercent = document.getElementById('modal-progress-percent');
+      if (elProgressPercent) elProgressPercent.textContent = (job.progress_percent || 0) + '%';
+
+      const elProgressBar = document.getElementById('modal-progress-bar');
+      if (elProgressBar) elProgressBar.style.width = (job.progress_percent || 0) + '%';
+
+      const elBadgeSla = document.getElementById('modal-badge-sla');
+      if (elBadgeSla) elBadgeSla.textContent = job.sla_label || ('SLA H+' + (job.sla_days || 3));
+
+      const elKetResmi = document.getElementById('modal-keterangan-resmi');
+      if (elKetResmi) elKetResmi.textContent = job.keterangan_resmi || 'Tahapan berjalan sesuai koridor SLA.';
 
       // Google Drive Button in Stepper Modal
       const modalDriveBtn = document.getElementById('btn-modal-drive');
@@ -5154,22 +5196,37 @@ Administrasi Operasional KJPP NSR`;
         }
       }
 
-      // Render Vertical Stepper
-      renderVerticalStepper(job.milestones, job.current_milestone);
+      // Render Vertical Stepper (dengan proteksi null-safety)
+      try {
+        renderVerticalStepper(job.milestones, job.current_milestone);
+      } catch (errStep) {
+        console.warn('Gagal render vertical stepper:', errStep);
+      }
 
       // Render Audit Trail Log
-      await renderAuditTrailLog(job.jo_number);
+      try {
+        await renderAuditTrailLog(job.jo_number);
+      } catch (errAudit) {
+        console.warn('Gagal render audit trail log:', errAudit);
+      }
 
       // Update Contextual Action Bar OPINI NSR
-      updateCrossPortalActions(job);
-
-      // Open Modal
-      document.getElementById('modal-tracking-stepper').classList.remove('hidden');
+      try {
+        updateCrossPortalActions(job);
+      } catch (errActions) {
+        console.warn('Gagal update cross portal actions:', errActions);
+      }
     }
+    window.bukaModalTracking = bukaModalTracking;
 
     function tutupModalTracking() {
-      document.getElementById('modal-tracking-stepper').classList.add('hidden');
+      const modal = document.getElementById('modal-tracking-stepper');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
     }
+    window.tutupModalTracking = tutupModalTracking;
 
     function bukaModalUpdateDariStepper() {
       if (activeJob) {
@@ -5180,17 +5237,19 @@ Administrasi Operasional KJPP NSR`;
     // Render 7 Milestone Stepper
     function renderVerticalStepper(milestones, currentM) {
       const container = document.getElementById('stepper-items-container');
+      if (!container) return;
       let html = '';
       const job = activeJob || {};
       const idJo = job.id_jo || job.jo_number || job.id || '';
       job.id_jo = idJo;
 
+      const safeMilestones = (milestones && typeof milestones === 'object') ? milestones : (job.milestones && typeof job.milestones === 'object' ? job.milestones : {});
       const mKeys = ['M-01', 'M-02', 'M-03', 'M-04', 'M-05', 'M-06', 'M-07'];
       mKeys.forEach(key => {
-        const item = milestones[key] || {
+        const item = safeMilestones[key] || {
           code: key,
           title: 'Milestone ' + key,
-          status: 'pending',
+          status: (key < (currentM || 'M-01') ? 'completed' : (key === currentM ? 'in_progress' : 'pending')),
           timestamp: '-',
           note: '-'
         };
@@ -5328,10 +5387,13 @@ Administrasi Operasional KJPP NSR`;
     // =========================================================================
     // MODAL UPDATE MILESTONE (NIK + PIN - OPSI B)
     // =========================================================================
-    function bukaModalUpdateMilestone(joId) {
-      const job = (typeof globalJobs !== 'undefined' && Array.isArray(globalJobs)) ? globalJobs.find(x => x.id === joId || x.jo_number === joId) : activeJob;
+    function bukaModalUpdateMilestone(joRef) {
+      const cleanRef = String(joRef || '').trim();
+      const job = (typeof globalJobs !== 'undefined' && Array.isArray(globalJobs)) 
+        ? globalJobs.find(j => j.jo_number === cleanRef || j.nomor_jo === cleanRef || j.id == cleanRef || j.id_jo === cleanRef || j.kode_lacak === cleanRef) 
+        : activeJob;
       if (!job) {
-        alert('Job Order tidak ditemukan.');
+        alert('Job Order tidak ditemukan (' + (joRef || '-') + ').');
         return;
       }
 
@@ -5461,13 +5523,31 @@ Administrasi Operasional KJPP NSR`;
       document.getElementById('update-auth-pin').value = '';
       document.getElementById('update-auth-note').value = '';
 
-      document.getElementById('update-error-banner').classList.add('hidden');
-      document.getElementById('modal-update-milestone').classList.remove('hidden');
+      const errBanner = document.getElementById('update-error-banner');
+      if (errBanner) errBanner.classList.add('hidden');
+      const modal = document.getElementById('modal-update-milestone');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '70';
+      }
     }
+    window.bukaModalUpdateMilestone = bukaModalUpdateMilestone;
+
+    function bukaModalUpdate(joRef) {
+      return bukaModalUpdateMilestone(joRef);
+    }
+    window.bukaModalUpdate = bukaModalUpdate;
 
     function tutupModalUpdateMilestone() {
-      document.getElementById('modal-update-milestone').classList.add('hidden');
+      const modal = document.getElementById('modal-update-milestone');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
     }
+    window.tutupModalUpdateMilestone = tutupModalUpdateMilestone;
+    window.tutupModalUpdate = tutupModalUpdateMilestone;
 
     async function eksekusiUpdateMilestone(e) {
       e.preventDefault();
@@ -6118,10 +6198,10 @@ const pemberiTugas = (document.getElementById('reg-pemberi-tugas')?.value || doc
             '</div>' +
           '</div>' +
           '<div class="flex items-center gap-2 shrink-0 self-end md:self-center">' +
-            '<button type="button" onclick="bukaModalTracking(\'' + joRef + '\')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95">' +
+            '<button type="button" class="btn-stepper px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95" onclick="window.bukaModalTracking(\'' + joRef + '\')" title="Buka Detail Stepper 7 Milestone">' +
               '<span>🔍 Stepper</span>' +
             '</button>' +
-            '<button type="button" onclick="bukaModalUpdate(\'' + joRef + '\')" class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95">' +
+            '<button type="button" class="btn-intervensi px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95" onclick="window.bukaModalUpdate(\'' + joRef + '\')" title="Intervensi & Pembaruan Milestone Berkas">' +
               '<span>⚡ Intervensi</span>' +
             '</button>' +
           '</div>' +
