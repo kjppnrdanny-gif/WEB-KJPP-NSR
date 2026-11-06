@@ -45,19 +45,46 @@ if (empty($token) && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
 $isKing = false;
 $tokenClean = strtoupper(trim($token));
 
-if ($tokenClean === 'NSR8899' || $tokenClean === 'NSR-KING-2026' || $tokenClean === 'NSR-MASTER-2026') {
+// Daftar hash kriptografis resmi KING / Super Admin
+$knownKingHashes = [
+    '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f', // Salted KING
+    '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0', // Unsalted uppercase KING
+    '3186e936994518a10f3506f1da37ea5050f16b55e66499d258d4fe85fde32119', // Alternate KING hash
+    '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6'  // Legacy KING hash
+];
+
+if (in_array(strtolower($token), $knownKingHashes, true) ||
+    $tokenClean === 'NSR8899' ||
+    $tokenClean === 'NSR-KING-2026' ||
+    $tokenClean === 'NSR-MASTER-2026') {
     $isKing = true;
 } else {
-    // Verifikasi via SHA-256 hash jika token mentah atau hash dikirimkan
-    $tokenHash = hash('sha256', $token);
-    $registryFile = __DIR__ . '/auth-registry-loader.php';
-    if (file_exists($registryFile)) {
-        require_once $registryFile;
-        if (function_exists('getOfficialTokenHashes')) {
-            $hashes = getOfficialTokenHashes();
-            $user = $hashes[$tokenHash] ?? $hashes[$token] ?? null;
-            if ($user && (!empty($user['isSuperAdmin']) || !empty($user['isKing']) || in_array(strtoupper($user['role'] ?? ''), ['SUPER_ADMIN', 'SUPER ADMIN'], true))) {
-                $isKing = true;
+    // Verifikasi via SHA-256 hash jika token mentah atau variasi hash dikirimkan
+    $rawHash = hash('sha256', $token);
+    $upperHash = hash('sha256', $tokenClean);
+    $saltedHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . $tokenClean);
+
+    if (in_array($rawHash, $knownKingHashes, true) ||
+        in_array($upperHash, $knownKingHashes, true) ||
+        in_array($saltedHash, $knownKingHashes, true)) {
+        $isKing = true;
+    } else {
+        $registryFile = __DIR__ . '/auth-registry-loader.php';
+        if (file_exists($registryFile)) {
+            require_once $registryFile;
+            if (function_exists('loadPrivateAuthRegistry')) {
+                $reg = loadPrivateAuthRegistry();
+                $hashes = $reg['token_hashes'] ?? [];
+                $candidates = [$token, strtolower($token), $rawHash, $upperHash, $saltedHash];
+                foreach ($candidates as $cand) {
+                    if (isset($hashes[$cand])) {
+                        $user = $hashes[$cand];
+                        if (!empty($user['isSuperAdmin']) || !empty($user['isKing']) || in_array(strtoupper($user['role'] ?? ''), ['SUPER_ADMIN', 'SUPER ADMIN'], true)) {
+                            $isKing = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
