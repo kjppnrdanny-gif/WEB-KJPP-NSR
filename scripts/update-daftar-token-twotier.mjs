@@ -7,7 +7,7 @@ let html = fs.readFileSync(filePath, 'utf8');
 // 1. Update Title and Header Badges
 html = html.replace(
   /<title>.*?<\/title>/i,
-  '<title>Direktori Rahasia Kredensial & Matriks Otorisasi 2-Lapis | KJPP Nanang Rahayu & Rekan</title>'
+  '<title>Direktori Rahasia Kredensial & Matriks Otorisasi 2-Lapis | KJPP Nanang Rahayu Sigit Paryanto dan Rekan</title>'
 );
 
 const newHeader = `        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -105,13 +105,13 @@ const EMPLOYEES = [
   // PUSAT (22)
   { no: 1, nik: 'NSR-2019-001', nama: 'Nanang Rahayu', jabatan: 'Pemimpin Rekan', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-01 s/d M-07 (Master Override & Penandatangan Opini M-06)', audit: 'Pemimpin Rekan / Master Otoritas' },
   { no: 2, nik: 'NSR-2019-002', nama: 'Deni Siswandi', jabatan: 'Rekan', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-02 (Surat Tugas) & M-06 (Opini Nilai Resmi Kemenkeu)', audit: 'Rekan Penilai Publik Berizin' },
-  { no: 3, nik: 'NSR-2019-003', nama: 'Mini Intan Cahyani', jabatan: 'Rekan', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-02 (Surat Tugas) & M-06 (Opini Nilai Resmi Kemenkeu)', audit: 'Rekan Penilai Publik Berizin' },
+  { no: 3, nik: 'NSR-2019-003', nama: 'Mini Intan Cahyani', jabatan: 'Rekan Non Penilai', kantor: 'Kantor Pusat Jakarta', wewenang: 'Tidak Ada Akses Milestone (Fungsi Business Development Saja)', audit: 'Rekan Non Penilai (Business Development)' },
   { no: 4, nik: 'NSR-2019-004', nama: 'Milda Hidayati Dewi', jabatan: 'Manager Keuangan', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-07 (Verifikasi Pelunasan Invoice & Kwitansi)', audit: 'Manager Keuangan Pusat' },
-  { no: 5, nik: 'NSR-2019-005', nama: 'Danny Taufik Hidayat', jabatan: 'Manager Admin & Umum', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-01 (Registrasi SPK & Kode Lacak) & M-07 (Serah Terima Laporan)', audit: 'Manager Admin & Pengendali JO' },
+  { no: 5, nik: 'NSR-2019-005', nama: 'Danny Taufik Hidayat, S.H.', jabatan: 'Manager Administrasi & Umum', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-01 (Registrasi SPK & Kode Lacak) & M-07 (Serah Terima Laporan Final)', audit: 'Manager Administrasi & Umum / Pengendali JO & Super Admin KING' },
   { no: 6, nik: 'NSR-2019-006', nama: 'Arie Indra Permana', jabatan: 'Manager Marketing', kantor: 'Kantor Pusat Jakarta', wewenang: 'Registrasi Order Klien Baru & Tracking Tahapan Progres', audit: 'Marketing & Business Development' },
-  { no: 7, nik: 'NSR-2019-007', nama: 'Tedi Setiadi', jabatan: 'Reviewer', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-05 (Kendali Mutu SPM SPI 102/103 & Anti Self-Review)', audit: 'Reviewer SPM Resmi (Komite Mutu)' },
+  { no: 7, nik: 'NSR-2019-007', nama: 'Tedi Setiadi', jabatan: 'Reviewer Teknis', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-04 (Review/Analisis Teknis) & M-05 (Review Kertas Kerja Surveyor/Penilai)', audit: 'Tim Reviewer Teknis & SPM (Supervisi Kepala SPM)' },
   { no: 8, nik: 'NSR-2019-008', nama: 'Ricca Noer Farikha', jabatan: 'Accounting & Tax', kantor: 'Kantor Pusat Jakarta', wewenang: 'Verifikasi Pembayaran & Faktur Pajak Resmi', audit: 'Divisi Akuntansi & Perpajakan' },
-  { no: 9, nik: 'NSR-2019-009', nama: 'Angga Malid Cahyadi', jabatan: 'Reviewer', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-05 (Kendali Mutu SPM SPI 102/103 & Anti Self-Review)', audit: 'Reviewer SPM Resmi (Komite Mutu)' },
+  { no: 9, nik: 'NSR-2019-009', nama: 'Angga Malid Cahyadi', jabatan: 'Reviewer Teknis', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-04 (Review/Analisis Teknis) & M-05 (Review Kertas Kerja Surveyor/Penilai)', audit: 'Tim Reviewer Teknis & SPM (Supervisi Kepala SPM)' },
   { no: 10, nik: 'NSR-2019-010', nama: 'Fadri Nurdin', jabatan: 'Surveyor', kantor: 'Kantor Pusat Jakarta', wewenang: 'M-03 (Inspeksi Fisik Lapangan, Upload BAPL & GPS)', audit: 'Surveyor Lapangan Pusat' },
   { no: 11, nik: 'NSR-2019-011', nama: 'Erwandi', jabatan: 'Kurir', kantor: 'Kantor Pusat Jakarta', wewenang: 'Ekspedisi Dokumen & Tanda Terima Penyerahan Fisik', audit: 'Staf Ekspedisi & Kurir' },
   { no: 12, nik: 'NSR-2019-012', nama: 'Latief Satihi', jabatan: 'Kurir', kantor: 'Kantor Pusat Jakarta', wewenang: 'Ekspedisi Dokumen & Tanda Terima Penyerahan Fisik', audit: 'Staf Ekspedisi & Kurir' },
@@ -172,11 +172,14 @@ function getBadgeOffice(kantor) {
 function getBadgeRole(jabatan) {
   const j = jabatan.toUpperCase();
   if (j.includes('PEMIMPIN REKAN')) return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-400 text-slate-950">👑 Pemimpin Rekan</span>';
+  if (j.includes('REKAN NON PENILAI')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700/40 text-slate-300 border border-slate-600/50">🤝 Rekan Non Penilai</span>';
   if (j.includes('REKAN')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">📜 Rekan Berizin</span>';
+  if (j.includes('REVIEWER TEKNIS')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">🔍 Reviewer Teknis</span>';
   if (j.includes('REVIEWER')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">🔍 Reviewer SPM</span>';
   if (j.includes('PENILAI')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-sky-300 border border-blue-500/30">📐 Penilai Properti</span>';
   if (j.includes('SURVEYOR')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">📍 Surveyor Lapangan</span>';
-  if (j.includes('ADMIN') || j.includes('MANAGER ADMIN')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">📑 Staf Admin</span>';
+  if (j.includes('MANAGER ADMIN')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">👔 Manager Administrasi &amp; Umum</span>';
+  if (j.includes('ADMIN')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">📑 Staf Admin</span>';
   if (j.includes('KEUANGAN') || j.includes('ACCOUNTING')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">💰 Keuangan / Kasir</span>';
   return '<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">' + jabatan + '</span>';
 }

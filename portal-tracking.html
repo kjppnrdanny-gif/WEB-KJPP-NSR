@@ -343,6 +343,11 @@
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           <span>Registrasi Job Order Baru</span>
         </button>
+        <button type="button" id="tab-btn-workload" onclick="switchTab('workload')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-2 whitespace-nowrap cursor-pointer">
+          <span class="text-amber-400">🏛️</span>
+          <span>Control Tower &amp; SPM Hub</span>
+          <span id="badge-bottleneck-tab" class="hidden px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500 text-white">0</span>
+        </button>
       </div>
 
       <div class="flex items-center gap-2">
@@ -825,76 +830,181 @@
     <!-- ==================== TAB 3: MATRIKS BEBAN KERJA & SLA NASIONAL ==================== -->
     <section id="panel-tab-workload" class="hidden space-y-6">
 
-      <!-- Ringkasan Eksekutif KPI SLA Nasional -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- KPI 1: TAT Rata-rata -->
-        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Rata-rata TAT Nasional</span>
-            <span class="w-7 h-7 rounded-lg bg-sky-500/15 border border-sky-400/30 text-sky-400 flex items-center justify-center font-bold text-xs">
-              ⏱️
+      <!-- ==================== EXECUTIVE CONTROL TOWER & SPM HUB ==================== -->
+      <!-- BANNER HEADER PUSAT KOMANDO -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-black text-xl shrink-0 shadow-inner">
+            🏛️
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-sm sm:text-base font-black text-white tracking-wide uppercase">
+                EXECUTIVE CONTROL TOWER &amp; SPM HUB
+              </h2>
+              <span class="px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                SSOT REAL-TIME
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Pusat Pengawasan Terpadu: Monitoring SLA Nasional, Kepatuhan SPM 1/2/5, dan Detektor Anomali Berkas Tersendat (Watchdog).
+            </p>
+          </div>
+        </div>
+
+        <!-- Sync Indicator & Last Updated -->
+        <div class="flex items-center gap-3">
+          <div class="text-right hidden sm:block">
+            <span class="text-[10px] text-slate-400 block font-mono">Status Sistem:</span>
+            <span class="text-[11px] font-bold text-emerald-400 flex items-center gap-1 justify-end">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Terhubung SSOT</span>
             </span>
           </div>
-          <div class="mt-2.5 flex items-baseline gap-2">
-            <span id="wk-stat-avg-tat" class="text-2xl sm:text-3xl font-black text-sky-300 font-mono">1.8 Hari</span>
-            <span class="text-[11px] text-slate-400 font-medium">Turnaround</span>
+          <button type="button" onclick="muatWorkloadAnalytics()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>Segarkan Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TOOLBAR FILTER INTERAKTIF PIMPINAN -->
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5 shrink-0">
+            <span>🔍</span> <span>Filter Pimpinan:</span>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 flex-1 max-w-3xl">
+          <!-- Filter 1: Kantor Cabang -->
+          <div>
+            <select id="ct-filter-branch" onchange="applyControlTowerFilters()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400 transition">
+              <option value="ALL">🏛️ Semua Kantor (5 Wilayah)</option>
+              <option value="PUSAT">Jakarta (Kantor Pusat)</option>
+              <option value="BDG">Cabang Bandung</option>
+              <option value="PDG">Cabang Padang</option>
+              <option value="MKS">Cabang Makassar</option>
+              <option value="PLM">Cabang Palembang</option>
+            </select>
           </div>
-          <div class="mt-2 text-[10px] text-emerald-400 flex items-center gap-1 font-medium">
+
+          <!-- Filter 2: Rentang Tanggal -->
+          <div>
+            <select id="ct-filter-range" onchange="applyControlTowerFilters()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400 transition">
+              <option value="all">📅 Semua Periode Penugasan</option>
+              <option value="7d">7 Hari Terakhir</option>
+              <option value="30d">30 Hari Terakhir (Bulan Berjalan)</option>
+              <option value="90d">90 Hari Terakhir (Kuartal)</option>
+            </select>
+          </div>
+
+          <!-- Filter 3: Kategori Penugasan -->
+          <div>
+            <select id="ct-filter-category" onchange="applyControlTowerFilters()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400 transition">
+              <option value="ALL">📑 Semua Kategori Penugasan</option>
+              <option value="APP">Perbankan / Agunan Kredit (APP)</option>
+              <option value="RTL">Retail / Non-Perbankan (RTL)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <button type="button" onclick="resetControlTowerFilters()" class="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-[11px] font-semibold text-slate-300 hover:text-white transition cursor-pointer">
+            Reset Filter
+          </button>
+        </div>
+      </div>
+
+      <!-- METRIK AGREGAT REAL-TIME (6 KARTU INDIKATOR UTAMA) -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        
+        <!-- Metrik 1: Total Volume & Aktif -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
+          <div class="flex items-center justify-between">
+            <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Volume JO</span>
+            <span class="text-xs">📊</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="ct-stat-total-jobs" class="text-2xl font-black text-white font-mono">0</span>
+            <span class="text-[10px] text-slate-400">Berkas</span>
+          </div>
+          <div class="mt-1 text-[9.5px] text-slate-400">
+            Aktif: <strong id="ct-stat-active-jobs" class="text-amber-400">0</strong> &bull; Selesai: <strong id="ct-stat-completed-jobs" class="text-emerald-400">0</strong>
+          </div>
+        </div>
+
+        <!-- Metrik 2: Kepatuhan Global SLA -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
+          <div class="flex items-center justify-between">
+            <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Kepatuhan SLA</span>
+            <span class="text-xs">🎯</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="ct-stat-sla-rate" class="text-2xl font-black text-emerald-400 font-mono">100%</span>
+          </div>
+          <div class="mt-1 text-[9.5px] text-slate-400 flex items-center gap-1 font-medium">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span>Target Nasional: &le; 7.0 Hari Kerja</span>
+            <span>Target: &ge; 90% Tepat Waktu</span>
           </div>
         </div>
 
-        <!-- KPI 2: Kepatuhan SLA -->
-        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+        <!-- Metrik 3: Turnaround Time (TAT) -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kepatuhan SLA Nasional</span>
-            <span class="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-400/30 text-emerald-400 flex items-center justify-center font-bold text-xs">
-              🎯
-            </span>
+            <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Rata-rata TAT</span>
+            <span class="text-xs">⏱️</span>
           </div>
-          <div class="mt-2.5 flex items-baseline gap-2">
-            <span id="wk-stat-sla-rate" class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">92.5%</span>
-            <span class="text-[11px] text-emerald-300/80 font-medium">On-Time</span>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="ct-stat-avg-tat" class="text-2xl font-black text-sky-300 font-mono">0.0 Hari</span>
           </div>
-          <div class="mt-2 text-[10px] text-slate-400 flex items-center gap-1 font-mono">
-            <span>Standar Perbankan Mitra</span>
+          <div class="mt-1 text-[9.5px] text-slate-400">
+            Standar SLA: &le; 7.0 Hari Kerja
           </div>
         </div>
 
-        <!-- KPI 3: Berkas Tersendat -->
-        <div class="p-4 rounded-2xl bg-slate-900/90 border border-rose-500/30 shadow-lg">
+        <!-- Metrik 4: SPM 1 NoLap Kemenkeu -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-rose-300 uppercase tracking-wider">Early Warning Tersendat</span>
-            <span class="w-7 h-7 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 flex items-center justify-center font-bold text-xs">
-              🚨
-            </span>
+            <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">SPM 1 NoLap</span>
+            <span class="text-xs">📜</span>
           </div>
-          <div class="mt-2.5 flex items-baseline gap-2">
-            <span id="wk-stat-bottlenecks" class="text-2xl sm:text-3xl font-black text-rose-400 font-mono">0</span>
-            <span class="text-[11px] text-rose-300/80 font-medium">Berkas Perlu Intervensi</span>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="ct-stat-spm1-rate" class="text-2xl font-black text-amber-300 font-mono">100%</span>
           </div>
-          <div class="mt-2 text-[10px] text-rose-300 flex items-center gap-1">
-            <span>Melebihi SLA per Tahap SPM</span>
+          <div class="mt-1 text-[9.5px] text-slate-400">
+            Format 7 Segmen Kemenkeu
           </div>
         </div>
 
-        <!-- KPI 4: Total Penugasan Berjalan -->
-        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg">
+        <!-- Metrik 5: SPM 2 Pakta Integritas -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Penugasan Berjalan</span>
-            <span class="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-400/30 text-amber-300 flex items-center justify-center font-bold text-xs">
-              📋
-            </span>
+            <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">SPM 2 Pakta</span>
+            <span class="text-xs">🛡️</span>
           </div>
-          <div class="mt-2.5 flex items-baseline gap-2">
-            <span id="wk-stat-active-jobs" class="text-2xl sm:text-3xl font-black text-white font-mono">0</span>
-            <span class="text-[11px] text-slate-400 font-medium">M-01 s/d M-06</span>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="ct-stat-spm2-rate" class="text-2xl font-black text-emerald-400 font-mono">100%</span>
           </div>
-          <div class="mt-2 text-[10px] text-amber-400 flex items-center gap-1 font-medium">
-            <span>5 Kantor Wilayah Operasional</span>
+          <div class="mt-1 text-[9.5px] text-slate-400">
+            Penilai Publik Berizin
           </div>
         </div>
+
+        <!-- Metrik 6: SPM 5 Review Berjenjang -->
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
+          <div class="flex items-center justify-between">
+            <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">SPM 5 Review</span>
+            <span class="text-xs">✅</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="ct-stat-spm5-rate" class="text-2xl font-black text-sky-400 font-mono">100%</span>
+          </div>
+          <div class="mt-1 text-[9.5px] text-slate-400">
+            Kepatuhan SPI 105 &amp; KEPI
+          </div>
+        </div>
+
       </div>
 
       <!-- BANNER EARLY WARNING BOTTLENECK ALERT -->
@@ -3224,6 +3334,11 @@
           officeBreakdown.textContent = `${offices.size} Wilayah Aktif Terpantau`;
         }
       }
+
+      // Sinkronisasikan Executive Control Tower secara instan dari data SSOT terkini
+      if (typeof renderLocalControlTowerMetrics === 'function' && typeof currentCtFilter !== 'undefined') {
+        renderLocalControlTowerMetrics(jobs, currentCtFilter);
+      }
     }
 
     
@@ -3992,8 +4107,8 @@
             
               ${(j.is_bottleneck || (j.bottleneck_warning && j.bottleneck_warning.length > 0)) ? `
                 <div class="mt-1.5">
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-bold whitespace-nowrap bg-rose-500/20 text-rose-300 border border-rose-500/40" title="${j.bottleneck_warning || 'Tersendat melebihi SLA'}">
-                    <span>⚠️</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9.5px] font-bold whitespace-nowrap ${j.bottleneck_level === 'critical' ? 'bg-rose-500/25 text-rose-300 border border-rose-500/50' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}" title="${j.bottleneck_warning || 'Tersendat melebihi SLA'}">
+                    <span>${j.bottleneck_level === 'critical' ? '🚨' : '⚠️'}</span>
                     <span>${j.bottleneck_warning || 'Tersendat di ' + j.current_milestone}</span>
                   </span>
                 </div>
@@ -5570,6 +5685,161 @@ Administrasi Operasional KJPP NSR`;
     }
 
     let workloadAnalyticsData = null;
+
+    // =========================================================================
+    // OPSI A: REAL-TIME EXECUTIVE CONTROL TOWER & SPM HUB ENGINE
+    // =========================================================================
+    let currentCtFilter = {
+      branch: 'ALL',
+      range: 'all',
+      category: 'ALL'
+    };
+
+    function applyControlTowerFilters() {
+      const bEl = document.getElementById('ct-filter-branch');
+      const rEl = document.getElementById('ct-filter-range');
+      const cEl = document.getElementById('ct-filter-category');
+
+      currentCtFilter.branch = bEl ? bEl.value : 'ALL';
+      currentCtFilter.range = rEl ? rEl.value : 'all';
+      currentCtFilter.category = cEl ? cEl.value : 'ALL';
+
+      // 1. Hitung langsung dari local cache (Zero Latency)
+      if (typeof globalJobs !== 'undefined' && Array.isArray(globalJobs)) {
+        renderLocalControlTowerMetrics(globalJobs, currentCtFilter);
+      }
+
+      // 2. Sinkronisasikan dengan backend API
+      muatWorkloadAnalytics();
+    }
+
+    function resetControlTowerFilters() {
+      const bEl = document.getElementById('ct-filter-branch');
+      const rEl = document.getElementById('ct-filter-range');
+      const cEl = document.getElementById('ct-filter-category');
+      if (bEl) bEl.value = 'ALL';
+      if (rEl) rEl.value = 'all';
+      if (cEl) cEl.value = 'ALL';
+      applyControlTowerFilters();
+    }
+
+    function getJobCategory(job) {
+      const instLower = (job.instansi_singkat || job.instansi || job.pemberi_tugas || '').toLowerCase();
+      const tujLower = (job.tujuan_penilaian || '').toLowerCase();
+      const bankKws = ['bank', 'btn', 'mandiri', 'bni', 'bri', 'bca', 'bsb', 'syariah', 'finance', 'bpr', 'kpr'];
+      for (let i = 0; i < bankKws.length; i++) {
+        if (instLower.includes(bankKws[i])) return 'APP';
+      }
+      if (tujLower.includes('agunan') || tujLower.includes('utang') || tujLower.includes('kredit')) {
+        return 'APP';
+      }
+      return 'RTL';
+    }
+
+    function renderLocalControlTowerMetrics(jobs, filter) {
+      if (!Array.isArray(jobs)) return;
+
+      const now = Date.now();
+      const filtered = jobs.filter(j => {
+        // Filter Cabang
+        const bCode = (j.kantor_code || (j.kantor && j.kantor.includes('Bandung') ? 'BDG' : j.kantor && j.kantor.includes('Padang') ? 'PDG' : j.kantor && j.kantor.includes('Makassar') ? 'MKS' : j.kantor && j.kantor.includes('Palembang') ? 'PLM' : 'PUSAT')).toUpperCase();
+        if (filter.branch && filter.branch !== 'ALL' && bCode !== filter.branch) return false;
+
+        // Filter Rentang Tanggal
+        const jTime = new Date(j.created_at || j.spk_date || Date.now()).getTime();
+        if (filter.range === '7d' && (now - jTime) > (7 * 86400000)) return false;
+        if (filter.range === '30d' && (now - jTime) > (30 * 86400000)) return false;
+        if (filter.range === '90d' && (now - jTime) > (90 * 86400000)) return false;
+
+        // Filter Kategori
+        const cat = getJobCategory(j);
+        if (filter.category && filter.category !== 'ALL' && cat !== filter.category) return false;
+
+        return true;
+      });
+
+      // Hitung Metrik Agregat
+      const totalCount = filtered.length;
+      let activeCount = 0;
+      let completedCount = 0;
+      let onTimeCount = 0;
+      let tats = [];
+
+      let spm1Eligible = 0, spm1Passed = 0;
+      let spm2Eligible = 0, spm2Passed = 0;
+      let spm5Eligible = 0, spm5Passed = 0;
+
+      filtered.forEach(j => {
+        const m = (j.current_milestone || 'M-01').toUpperCase();
+        const isDone = (m === 'M-07' || j.sla_status === 'completed');
+
+        if (isDone) {
+          completedCount++;
+          const cTime = new Date(j.created_at || j.spk_date || Date.now()).getTime();
+          const dTime = new Date(j.updated_at || Date.now()).getTime();
+          const tatDays = Math.max(1, Math.round(((dTime - cTime) / 86400000) * 10) / 10);
+          tats.push(tatDays);
+
+          if (j.sla_deadline) {
+            const deadTime = new Date(j.sla_deadline).getTime();
+            if (dTime <= deadTime + 86400000) onTimeCount++;
+          } else {
+            onTimeCount++;
+          }
+        } else {
+          activeCount++;
+        }
+
+        // SPM 1 NoLap
+        if (['M-06', 'M-07'].includes(m) || j.nomor_laporan_resmi) {
+          spm1Eligible++;
+          if (j.nomor_laporan_resmi && j.nomor_laporan_resmi.trim().length > 5) spm1Passed++;
+        }
+
+        // SPM 2 Pakta
+        spm2Eligible++;
+        if (j.penilai_publik && j.penilai_publik.trim() !== '-') spm2Passed++;
+
+        // SPM 5 Reviewer
+        if (['M-05', 'M-06', 'M-07'].includes(m)) {
+          spm5Eligible++;
+          if ((j.spm_status && j.spm_status.toUpperCase() === 'LULUS_AUDIT') || ['M-06', 'M-07'].includes(m)) {
+            spm5Passed++;
+          }
+        }
+      });
+
+      const slaRate = completedCount > 0 ? Math.round((onTimeCount / completedCount) * 1000) / 10 : 100.0;
+      const avgTat = tats.length > 0 ? Math.round((tats.reduce((a, b) => a + b, 0) / tats.length) * 10) / 10 : 3.5;
+      const spm1Rate = spm1Eligible > 0 ? Math.round((spm1Passed / spm1Eligible) * 1000) / 10 : 100.0;
+      const spm2Rate = spm2Eligible > 0 ? Math.round((spm2Passed / spm2Eligible) * 1000) / 10 : 100.0;
+      const spm5Rate = spm5Eligible > 0 ? Math.round((spm5Passed / spm5Eligible) * 1000) / 10 : 100.0;
+
+      // Update Elemen DOM Control Tower
+      const elTotal = document.getElementById('ct-stat-total-jobs');
+      if (elTotal) elTotal.textContent = totalCount;
+      const elActive = document.getElementById('ct-stat-active-jobs');
+      if (elActive) elActive.textContent = activeCount;
+      const elComp = document.getElementById('ct-stat-completed-jobs');
+      if (elComp) elComp.textContent = completedCount;
+      const elSla = document.getElementById('ct-stat-sla-rate');
+      if (elSla) elSla.textContent = slaRate + '%';
+      const elTat = document.getElementById('ct-stat-avg-tat');
+      if (elTat) elTat.textContent = avgTat + ' Hari';
+      const elSpm1 = document.getElementById('ct-stat-spm1-rate');
+      if (elSpm1) elSpm1.textContent = spm1Rate + '%';
+      const elSpm2 = document.getElementById('ct-stat-spm2-rate');
+      if (elSpm2) elSpm2.textContent = spm2Rate + '%';
+      const elSpm5 = document.getElementById('ct-stat-spm5-rate');
+      if (elSpm5) elSpm5.textContent = spm5Rate + '%';
+    }
+
+    // Sambungkan fungsi ke window global
+    window.applyControlTowerFilters = applyControlTowerFilters;
+    window.resetControlTowerFilters = resetControlTowerFilters;
+    window.renderLocalControlTowerMetrics = renderLocalControlTowerMetrics;
+
+
     async function muatWorkloadAnalytics() {
       const bListEl = document.getElementById('workload-bottlenecks-list');
       const appGridEl = document.getElementById('appraiser-workload-grid');
@@ -5587,6 +5857,14 @@ Administrasi Operasional KJPP NSR`;
       }
       if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
         params.branch = currentUserSession.branch_code;
+      } else if (currentCtFilter && currentCtFilter.branch && currentCtFilter.branch !== 'ALL') {
+        params.branch = currentCtFilter.branch;
+      }
+      if (currentCtFilter && currentCtFilter.range && currentCtFilter.range !== 'all') {
+        params.date_range = currentCtFilter.range;
+      }
+      if (currentCtFilter && currentCtFilter.category && currentCtFilter.category !== 'ALL') {
+        params.category = currentCtFilter.category;
       }
 
       try {
@@ -5617,6 +5895,35 @@ Administrasi Operasional KJPP NSR`;
       if (elBottlenecks) elBottlenecks.textContent = (summary.total_bottlenecks || 0);
       if (elActive) elActive.textContent = (summary.total_active_jobs || 0);
 
+      // Sinkronkan ke 6 Metrik Control Tower Baru
+      const ctTotal = document.getElementById('ct-stat-total-jobs');
+      if (ctTotal && summary.total_jobs !== undefined) ctTotal.textContent = summary.total_jobs;
+      const ctActive = document.getElementById('ct-stat-active-jobs');
+      if (ctActive && summary.total_active_jobs !== undefined) ctActive.textContent = summary.total_active_jobs;
+      const ctCompleted = document.getElementById('ct-stat-completed-jobs');
+      if (ctCompleted && summary.total_completed_jobs !== undefined) ctCompleted.textContent = summary.total_completed_jobs;
+      const ctSla = document.getElementById('ct-stat-sla-rate');
+      if (ctSla && summary.national_sla_compliance !== undefined) ctSla.textContent = summary.national_sla_compliance + '%';
+      const ctTat = document.getElementById('ct-stat-avg-tat');
+      if (ctTat && summary.avg_tat_days !== undefined) ctTat.textContent = summary.avg_tat_days + ' Hari';
+
+      if (summary.spm_metrics) {
+        const ctSpm1 = document.getElementById('ct-stat-spm1-rate');
+        if (ctSpm1) ctSpm1.textContent = summary.spm_metrics.spm1_nolap_ratio + '%';
+        const ctSpm2 = document.getElementById('ct-stat-spm2-rate');
+        if (ctSpm2) ctSpm2.textContent = summary.spm_metrics.spm2_pakta_ratio + '%';
+        const ctSpm5 = document.getElementById('ct-stat-spm5-rate');
+        if (ctSpm5) ctSpm5.textContent = summary.spm_metrics.spm5_review_ratio + '%';
+      }
+
+      // Update tab navbar bottleneck badge
+      const tabBadge = document.getElementById('badge-bottleneck-tab');
+      if (tabBadge) {
+        tabBadge.textContent = summary.total_bottlenecks || 0;
+        if (summary.total_bottlenecks > 0) tabBadge.classList.remove('hidden');
+        else tabBadge.classList.add('hidden');
+      }
+
       const badgeStuck = document.getElementById('badge-bottleneck-count');
       if (badgeStuck) {
         badgeStuck.textContent = summary.total_bottlenecks || 0;
@@ -5636,24 +5943,34 @@ Administrasi Operasional KJPP NSR`;
 
       let bHtml = '';
       bottlenecks.forEach(bn => {
-        bHtml += '<div class="p-3.5 rounded-xl bg-slate-950/70 border border-rose-500/40 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-rose-400 transition">' +
+        const isCritical = (bn.bottleneck_level === 'critical');
+        const badgeBorder = isCritical ? 'border-rose-500/60' : 'border-amber-500/50';
+        const badgeBg = isCritical ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+        const badgeIcon = isCritical ? '🚨' : '⚠️';
+        const cardBorder = isCritical ? 'border-rose-500/50 hover:border-rose-400' : 'border-amber-500/40 hover:border-amber-300';
+        const joRef = String(bn.jo_number || bn.id || '');
+
+        bHtml += '<div class="p-3.5 rounded-xl bg-slate-950/70 border ' + cardBorder + ' flex flex-col md:flex-row md:items-center justify-between gap-3 transition shadow-sm">' +
           '<div class="space-y-1">' +
             '<div class="flex items-center gap-2 flex-wrap">' +
               '<span class="font-mono font-bold text-xs text-white">' + bn.jo_number + '</span>' +
               '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">' + bn.kode_lacak + '</span>' +
-              '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/25 text-rose-300 border border-rose-500/40">⚠️ ' + bn.warning + '</span>' +
+              '<span class="px-2 py-0.5 rounded text-[10px] font-bold ' + badgeBg + ' border">' + badgeIcon + ' ' + bn.warning + '</span>' +
               '<span class="text-[10px] text-sky-400 font-medium">' + bn.kantor + '</span>' +
             '</div>' +
             '<p class="text-xs text-slate-300"><strong class="text-white">' + bn.instansi + '</strong> &bull; Debitur: <span class="text-amber-300 font-medium">' + bn.debitur + '</span></p>' +
             '<div class="flex items-center gap-3 text-[10.5px] text-slate-400 flex-wrap">' +
               '<span>Pelaksana: <strong class="text-slate-300">' + bn.penilai_pelaksana + '</strong></span>' +
               '<span>SPM: <strong class="text-slate-300">' + bn.reviewer_spm + '</strong></span>' +
-              '<span>Durasi: <span class="text-rose-400 font-mono font-bold">' + bn.days_in_stage + ' Hari</span> (Batas: ' + bn.threshold_days + ' Hari)</span>' +
+              '<span>Durasi: <span class="' + (isCritical ? 'text-rose-400' : 'text-amber-300') + ' font-mono font-bold">' + bn.days_in_stage + ' Hari</span> (Batas: ' + bn.threshold_days + ' Hari)</span>' +
             '</div>' +
           '</div>' +
           '<div class="flex items-center gap-2 shrink-0 self-end md:self-center">' +
-            '<button type="button" onclick="bukaModalTracking(\'\'' + bn.id + '\'\')" class="px-3 py-1.5 rounded-xl bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 border border-rose-500/50 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95">' +
-              '<span>🔍 Periksa di Stepper</span>' +
+            '<button type="button" onclick="bukaModalTracking(\'' + joRef + '\')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95">' +
+              '<span>🔍 Stepper</span>' +
+            '</button>' +
+            '<button type="button" onclick="bukaModalUpdate(\'' + joRef + '\')" class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95">' +
+              '<span>⚡ Intervensi</span>' +
             '</button>' +
           '</div>' +
         '</div>';
@@ -5710,7 +6027,7 @@ Administrasi Operasional KJPP NSR`;
             '<div class="mt-2.5 flex items-center gap-1.5 flex-wrap">' +
               app.jobs.slice(0, 4).map(j => {
                 const bColor = j.is_bottleneck ? 'border-rose-500/50 text-rose-300 bg-rose-500/10' : 'border-slate-800 text-slate-300 hover:text-white';
-                return '<button type="button" onclick="bukaModalTracking(\'\'' + j.id + '\'\')" class="px-2 py-0.5 rounded text-[9.5px] font-mono font-medium bg-slate-900 border ' + bColor + ' transition" title="' + j.debitur + ' (' + j.current_milestone + ')">' +
+                return '<button type="button" onclick="bukaModalTracking(\'' + (j.id || j.jo_number) + '\')" class="px-2 py-0.5 rounded text-[9.5px] font-mono font-medium bg-slate-900 border ' + bColor + ' transition" title="' + j.debitur + ' (' + j.current_milestone + ')">' +
                   j.jo_number.split('-').slice(0, 2).join('-') + ' (' + j.current_milestone + ') ' + (j.is_bottleneck ? '⚠️' : '') +
                 '</button>';
               }).join('') +
@@ -5719,7 +6036,7 @@ Administrasi Operasional KJPP NSR`;
           '</div>' +
           '<div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">' +
             '<span class="text-slate-500">' + (app.capacity_status === 'OVERLOAD' ? '⚠️ Tunda penugasan baru' : 'Siap terima penugasan') + '</span>' +
-            '<button type="button" onclick="filterTaskBoardAppraiser(\'\'' + app.name + '\'\')" class="text-sky-400 hover:text-sky-300 font-semibold cursor-pointer">Lihat di Board &rarr;</button>' +
+            '<button type="button" onclick="filterTaskBoardAppraiser(\'' + encodeURIComponent(app.name) + '\')" class="text-sky-400 hover:text-sky-300 font-semibold cursor-pointer">Lihat di Board &rarr;</button>' +
           '</div>' +
         '</div>';
       });

@@ -1180,6 +1180,7 @@ function evaluateJobBottleneck(&$job) {
 
     $job['is_bottleneck'] = false;
     $job['bottleneck_stage'] = '';
+    $job['bottleneck_level'] = 'none'; // 'warning' | 'critical'
     $job['days_in_stage'] = 0;
     $job['threshold_days'] = 0;
     $job['overdue_days'] = 0;
@@ -1191,8 +1192,38 @@ function evaluateJobBottleneck(&$job) {
 
     $createdAtTs = strtotime($job['created_at'] ?? '') ?: ($now - 86400);
 
+    // Watchdog Anomali Kritis: Berkas M-05 mendekati tenggat SPK Bank namun belum masuk M-06
+    $deadlineTs = strtotime($job['sla_deadline'] ?? '');
+    if ($currentM === 'M-05' && $deadlineTs) {
+        $diffHours = ($deadlineTs - $now) / 3600;
+        if ($diffHours <= 24) {
+            $job['is_bottleneck'] = true;
+            $job['bottleneck_stage'] = 'M-05';
+            $job['bottleneck_level'] = 'critical';
+            if ($diffHours <= 0) {
+                $job['bottleneck_warning'] = 'M-05 Melewati Tenggat Waktu SPK Bank (Overdue)';
+            } else {
+                $job['bottleneck_warning'] = 'M-05 Mendekati Tenggat SPK Bank (' . max(1, round($diffHours)) . ' Jam Tersisa)';
+            }
+        }
+    }
+
+    // Kriteria 0: M-02 > 2 hari kerja sejak M-01 belum survei / penunjukan surveyor
+    if ($currentM === 'M-02') {
+        $m01Ts = parseMilestoneTimestamp($job['milestones']['M-01']['timestamp'] ?? null, $createdAtTs);
+        $days = (int)floor(($now - $m01Ts) / 86400);
+        $job['days_in_stage'] = max(1, $days);
+        $job['threshold_days'] = 2;
+        if ($days > 2) {
+            $job['is_bottleneck'] = true;
+            $job['bottleneck_stage'] = 'M-02';
+            $job['overdue_days'] = $days - 2;
+            $job['bottleneck_level'] = ($days > 4) ? 'critical' : 'warning';
+            $job['bottleneck_warning'] = 'Tertahan di M-02 Penugasan (+' . ($days - 2) . ' Hari)';
+        }
+    }
     // Kriteria 1: M-03 > 3 hari kerja sejak M-02 tanpa survei
-    if ($currentM === 'M-03') {
+    elseif ($currentM === 'M-03') {
         $m02Ts = parseMilestoneTimestamp($job['milestones']['M-02']['timestamp'] ?? null, $createdAtTs);
         $days = (int)floor(($now - $m02Ts) / 86400);
         $job['days_in_stage'] = max(1, $days);
@@ -1201,6 +1232,7 @@ function evaluateJobBottleneck(&$job) {
             $job['is_bottleneck'] = true;
             $job['bottleneck_stage'] = 'M-03';
             $job['overdue_days'] = $days - 3;
+            $job['bottleneck_level'] = ($days > 5) ? 'critical' : 'warning';
             $job['bottleneck_warning'] = 'Tersendat di M-03 Inspeksi Lapangan (+' . ($days - 3) . ' Hari)';
         }
     }
@@ -1214,6 +1246,7 @@ function evaluateJobBottleneck(&$job) {
             $job['is_bottleneck'] = true;
             $job['bottleneck_stage'] = 'M-04';
             $job['overdue_days'] = $days - 4;
+            $job['bottleneck_level'] = ($days > 6) ? 'critical' : 'warning';
             $job['bottleneck_warning'] = 'Tersendat di M-04 Analisis Penilaian (+' . ($days - 4) . ' Hari)';
         }
     }
@@ -1227,7 +1260,10 @@ function evaluateJobBottleneck(&$job) {
             $job['is_bottleneck'] = true;
             $job['bottleneck_stage'] = 'M-05';
             $job['overdue_days'] = $days - 2;
-            $job['bottleneck_warning'] = 'Tersendat di M-05 Reviewer SPM (+' . ($days - 2) . ' Hari)';
+            $job['bottleneck_level'] = 'critical';
+            if (empty($job['bottleneck_warning'])) {
+                $job['bottleneck_warning'] = 'Tersendat di M-05 Reviewer SPM (+' . ($days - 2) . ' Hari)';
+            }
         }
     }
 }
@@ -2290,12 +2326,12 @@ if ($action === 'generate_nolap' || $action === 'request_nolap') {
 
     // Kode Penilai Publik Izin Segmen
     $appraiserLicenseMap = [
-        'NSR-2019-001' => '00581', // Ir. Nanang Rahayu
-        'NSR-2019-002' => '00045', // Deni Siswandi
-        'NSR-2019-003' => '00028', // Sigit Paryanto
-        'NSR-2019-004' => '00312', // Dharma Priyanto
-        'NSR-2019-005' => '00350', // Hernita
-        'NSR-2019-006' => '00421'  // Muhammad Amin Sade
+        'NSR-2019-001'   => '00581', // Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)
+        'NSR-2019-002'   => '00045', // Deni Siswandi, S.T., MAPPI (Cert.)
+        'NSR-PLB-2022-44' => '00312', // Dharma Priyanto S.B.S., S.T., MAPPI (Cert.)
+        'NSR-MKS-2019-30' => '00421', // Muhammad Amin Sade, S.M., MAPPI (Cert.)
+        'NSR-PDG-2019-23' => '00350', // Hernita, S.Si., MAPPI (Cert.)
+        'NSR-PLB-2019-44' => '00312'  // Palembang Alt
     ];
     $appraiserLicenseCode = $appraiserLicenseMap[$user['nik']] ?? '00581';
 
@@ -2489,6 +2525,8 @@ if ($action === 'get_workload_analytics') {
     $authNik = trim((string)($_GET['auth_nik'] ?? $_POST['auth_nik'] ?? ''));
     $authPin = trim((string)($_GET['auth_pin'] ?? $_POST['auth_pin'] ?? ''));
     $branchParam = strtoupper(trim((string)($_GET['branch'] ?? $_POST['branch'] ?? '')));
+    $dateRangeParam = strtolower(trim((string)($_GET['date_range'] ?? $_POST['date_range'] ?? 'all')));
+    $categoryParam = strtoupper(trim((string)($_GET['category'] ?? $_POST['category'] ?? 'ALL')));
 
     $currentUser = null;
     $isCentral = true;
@@ -2538,6 +2576,86 @@ if ($action === 'get_workload_analytics') {
         ];
     }
 
+    // 1. Selalu hitung Branch Summary menyeluruh (5 Cabang)
+    foreach ($jobs as $jobItem) {
+        $bCode = strtoupper(trim((string)($jobItem['kantor_code'] ?? 'PUSAT')));
+        if ($bCode === 'JKT') $bCode = 'PUSAT';
+        if ($bCode === 'PLB') $bCode = 'PLM';
+        if (!isset($branchStats[$bCode])) $bCode = 'PUSAT';
+
+        $branchStats[$bCode]['total_jobs']++;
+        $currentM = strtoupper(trim((string)($jobItem['current_milestone'] ?? 'M-01')));
+        $isDone = ($currentM === 'M-07' || ($jobItem['sla_status'] ?? '') === 'completed');
+
+        if ($isDone) {
+            $branchStats[$bCode]['completed_total_jobs']++;
+            $jobDate = substr($jobItem['updated_at'] ?? $jobItem['created_at'] ?? '', 0, 7);
+            if ($jobDate === $currentMonth) {
+                $branchStats[$bCode]['completed_month_jobs']++;
+            }
+            $createdTs = strtotime($jobItem['created_at'] ?? '') ?: strtotime($jobItem['spk_date'] ?? '');
+            $completedTs = strtotime($jobItem['updated_at'] ?? '') ?: $now;
+            $tatDays = max(1, round(($completedTs - $createdTs) / 86400, 1));
+            $branchStats[$bCode]['tat_total_days'] += $tatDays;
+            $branchStats[$bCode]['tat_count']++;
+
+            $deadlineTs = strtotime($jobItem['sla_deadline'] ?? '');
+            if ($deadlineTs && $completedTs <= ($deadlineTs + 86400)) {
+                $branchStats[$bCode]['on_time_completed']++;
+            }
+        } else {
+            $branchStats[$bCode]['active_jobs']++;
+        }
+        if (!empty($jobItem['is_bottleneck']) || ($jobItem['sla_status'] ?? '') === 'overdue') {
+            $branchStats[$bCode]['bottlenecks_count']++;
+        }
+    }
+
+    // 2. Filter Berkas untuk Kontrol Tower Pimpinan & Watchdog Sesuai Parameter
+    $filteredJobs = [];
+    $countApp = 0; $countRtl = 0;
+    foreach ($jobs as $jCandidate) {
+        $jbCode = strtoupper(trim((string)($jCandidate['kantor_code'] ?? 'PUSAT')));
+        if ($jbCode === 'JKT') $jbCode = 'PUSAT';
+        if ($jbCode === 'PLB') $jbCode = 'PLM';
+        if (!isset($branchConfigs[$jbCode])) $jbCode = 'PUSAT';
+
+        // Klasifikasi Kategori Penugasan
+        $instLower = strtolower(trim((string)($jCandidate['instansi_singkat'] ?? $jCandidate['instansi'] ?? $jCandidate['pemberi_tugas'] ?? '')));
+        $tujLower = strtolower(trim((string)($jCandidate['tujuan_penilaian'] ?? '')));
+        $isApp = false;
+        $bankKws = ['bank', 'btn', 'mandiri', 'bni', 'bri', 'bca', 'bsb', 'syariah', 'finance', 'bpr', 'kpr'];
+        foreach ($bankKws as $bk) {
+            if (strpos($instLower, $bk) !== false) { $isApp = true; break; }
+        }
+        if (!$isApp && (strpos($tujLower, 'agunan') !== false || strpos($tujLower, 'utang') !== false || strpos($tujLower, 'kredit') !== false)) {
+            $isApp = true;
+        }
+        if ($isApp) $countApp++; else $countRtl++;
+
+        // Filter Cabang
+        if ($branchParam && $branchParam !== 'ALL' && $jbCode !== $branchParam) continue;
+
+        // Filter Rentang Waktu
+        if ($dateRangeParam && $dateRangeParam !== 'all') {
+            $cTs = strtotime($jCandidate['created_at'] ?? '') ?: strtotime($jCandidate['spk_date'] ?? '');
+            if ($cTs) {
+                $daysAgo = ($now - $cTs) / 86400;
+                if ($dateRangeParam === '7d' && $daysAgo > 7) continue;
+                if ($dateRangeParam === '30d' && $daysAgo > 30) continue;
+                if ($dateRangeParam === '90d' && $daysAgo > 90) continue;
+            }
+        }
+
+        // Filter Kategori
+        if ($categoryParam !== 'ALL') {
+            if ($categoryParam === 'APP' && !$isApp) continue;
+            if ($categoryParam === 'RTL' && $isApp) continue;
+        }
+
+        $filteredJobs[] = $jCandidate;
+    }
+
     $appraiserMap = [];
     $allBottlenecks = [];
     $completedTats = [];
@@ -2545,7 +2663,7 @@ if ($action === 'get_workload_analytics') {
     $totalCompleted = 0;
     $totalOnTime = 0;
 
-    foreach ($jobs as $job) {
+    foreach ($filteredJobs as $job) {
         $bCode = strtoupper(trim((string)($job['kantor_code'] ?? 'PUSAT')));
         if ($bCode === 'JKT') $bCode = 'PUSAT';
         if ($bCode === 'PLB') $bCode = 'PLM';
@@ -2624,6 +2742,7 @@ if ($action === 'get_workload_analytics') {
                 'threshold_days' => $job['threshold_days'] ?? 0,
                 'overdue_days' => $job['overdue_days'] ?? 0,
                 'warning' => !empty($job['bottleneck_warning']) ? $job['bottleneck_warning'] : 'SLA Overdue',
+                'bottleneck_level' => $job['bottleneck_level'] ?? 'warning',
                 'penilai_pelaksana' => $job['penilai_pelaksana'] ?? $job['surveyor'] ?? '-',
                 'reviewer_spm' => $job['reviewer_spm'] ?? $job['reviewer'] ?? '-'
             ];
@@ -2674,10 +2793,42 @@ if ($action === 'get_workload_analytics') {
     $avgTat = count($completedTats) > 0 ? round(array_sum($completedTats) / count($completedTats), 1) : 5.0;
     $nationalOnTimeRate = $totalCompleted > 0 ? round(($totalOnTime / $totalCompleted) * 100, 1) : 100;
 
+    // Hitung Rasio Kepatuhan SPM Real-Time (SPM 1, SPM 2, SPM 5) dari $filteredJobs
+    $spm1Eligible = 0; $spm1Passed = 0;
+    $spm2Eligible = 0; $spm2Passed = 0;
+    $spm5Eligible = 0; $spm5Passed = 0;
+
+    foreach ($filteredJobs as $jItem) {
+        $mItem = strtoupper(trim((string)($jItem['current_milestone'] ?? 'M-01')));
+
+        // SPM 1 (NoLap Kemenkeu 7 Segmen): Wajib untuk M-06 / M-07
+        if (in_array($mItem, ['M-06', 'M-07']) || !empty($jItem['nomor_laporan_resmi'])) {
+            $spm1Eligible++;
+            if (!empty($jItem['nomor_laporan_resmi'])) $spm1Passed++;
+        }
+
+        // SPM 2 (Pakta Integritas & Otorisasi Penilai Publik Berizin)
+        $spm2Eligible++;
+        if (!empty($jItem['penilai_publik'])) $spm2Passed++;
+
+        // SPM 5 (Telaah Berjenjang Reviewer SPM - SPI 105)
+        if (in_array($mItem, ['M-05', 'M-06', 'M-07'])) {
+            $spm5Eligible++;
+            $stAudit = strtoupper(trim((string)($jItem['spm_status'] ?? '')));
+            if ($stAudit === 'LULUS_AUDIT' || in_array($mItem, ['M-06', 'M-07'])) $spm5Passed++;
+        }
+    }
+
+    $spm1Ratio = $spm1Eligible > 0 ? round(($spm1Passed / $spm1Eligible) * 100, 1) : 100.0;
+    $spm2Ratio = $spm2Eligible > 0 ? round(($spm2Passed / $spm2Eligible) * 100, 1) : 100.0;
+    $spm5Ratio = $spm5Eligible > 0 ? round(($spm5Passed / $spm5Eligible) * 100, 1) : 100.0;
+    $spmComposite = round(($spm1Ratio * 0.35) + ($spm2Ratio * 0.30) + ($spm5Ratio * 0.35), 1);
+
     echo json_encode([
         'status' => 'success',
         'data' => [
             'summary' => [
+                'total_jobs' => count($filteredJobs),
                 'total_active_jobs' => $totalActive,
                 'total_completed_jobs' => $totalCompleted,
                 'total_bottlenecks' => count($allBottlenecks),
@@ -2685,7 +2836,23 @@ if ($action === 'get_workload_analytics') {
                 'target_tat_days' => 7.0,
                 'national_sla_compliance' => $nationalOnTimeRate,
                 'total_branches' => count($branchConfigs),
-                'total_appraisers' => count($appraiserList)
+                'total_appraisers' => count($appraiserList),
+                'categories' => [
+                    'APP' => $countApp,
+                    'RTL' => $countRtl
+                ],
+                'spm_metrics' => [
+                    'spm1_nolap_ratio' => $spm1Ratio,
+                    'spm1_passed' => $spm1Passed,
+                    'spm1_eligible' => $spm1Eligible,
+                    'spm2_pakta_ratio' => $spm2Ratio,
+                    'spm2_passed' => $spm2Passed,
+                    'spm2_eligible' => $spm2Eligible,
+                    'spm5_review_ratio' => $spm5Ratio,
+                    'spm5_passed' => $spm5Passed,
+                    'spm5_eligible' => $spm5Eligible,
+                    'composite_score' => $spmComposite
+                ]
             ],
             'appraiser_workload' => $appraiserList,
             'branch_summary' => array_values($branchStats),

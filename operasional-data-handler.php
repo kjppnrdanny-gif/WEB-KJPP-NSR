@@ -153,7 +153,7 @@ if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD', 'OPTIONS'], t
 // -------------------------------------------------------------
 $OFFICIAL_TOKEN_HASHES = [
     // =============================================================
-    // TOKENS PRODUKSI RESMI KJPP NANANG RAHAYU & REKAN (RBAC KETAT)
+    // TOKENS PRODUKSI RESMI KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN (RBAC KETAT)
     // =============================================================
 
     // 1. KREDENSIAL RESMI MANAGER TEKNIK

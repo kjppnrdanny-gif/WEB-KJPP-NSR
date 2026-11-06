@@ -66,9 +66,9 @@ const prodDB = {
     ['NIK', 'Nama Karyawan', 'Jabatan', 'Divisi', 'Status', 'Alamat WFH', 'GPS WFH', 'Tanggal Registrasi WFH'],
     ['NSR-2019-001', 'Nanang Rahayu', 'Pemimpin Rekan', 'Manajemen', 'AKTIF', '', '', ''],
     ['NSR-2019-002', 'Deni Siswandi', 'Rekan', 'Manajemen', 'AKTIF', '', '', ''],
-    ['NSR-2019-003', 'Mini Intan Cahyani', 'Rekan', 'Manajemen', 'AKTIF', '', '', ''],
+    ['NSR-2019-003', 'Mini Intan Cahyani', 'Rekan Non Penilai', 'Business Development', 'AKTIF', '', '', ''],
     ['NSR-2019-004', 'Milda Hidayati Dewi', 'Manager Keuangan', 'Keuangan', 'AKTIF', '', '', ''],
-    ['NSR-2019-005', 'Danny Taufik Hidayat', 'Manager Admin & Umum', 'Operasional', 'AKTIF', '', '', '']
+    ['NSR-2019-005', 'Danny Taufik Hidayat, S.H.', 'Manager Administrasi & Umum', 'Operasional & SPM', 'AKTIF', '', '', '']
   ]),
   'ABSENSI': new MockSheet('ABSENSI', [
     [

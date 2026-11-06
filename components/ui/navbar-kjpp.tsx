@@ -82,7 +82,7 @@ export function NavbarKJPP() {
           </div>
           <div>
             <div className="font-black text-white text-base tracking-tight leading-none group-hover:text-amber-300 transition">
-              KJPP NANANG RAHAYU & REKAN
+              KJPP NANANG RAHAYU SIGIT PARYANTO DAN REKAN
             </div>
             <p className="text-[11px] text-amber-400/90 font-medium tracking-wide mt-0.5">
               Penilai Publik & Konsultan Properti Terlisensi
