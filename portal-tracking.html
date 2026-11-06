@@ -1349,7 +1349,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-300 mb-1.5">NIK Karyawan Eksekutor <span class="text-rose-400">*</span></label>
-            <input type="text" id="update-auth-nik" required placeholder="Masukkan NIK Karyawan" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 uppercase">
+            <input type="text" id="update-auth-nik" required placeholder="Masukkan NIK personal terdaftar" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 uppercase">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-300 mb-1.5">PIN Presensi (6 Digit) <span class="text-rose-400">*</span></label>
@@ -1838,7 +1838,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-slate-300 mb-1">NIK Karyawan</label>
-              <input type="text" id="login-nik-input" required placeholder="Masukkan NIK Karyawan" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-400 uppercase">
+              <input type="text" id="login-nik-input" required placeholder="Masukkan NIK personal terdaftar" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-400 uppercase">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-300 mb-1">PIN Presensi (6 Digit)</label>
@@ -2079,8 +2079,7 @@
 
       if (clean === TOKEN_SUPER) {
         if (nikInput) {
-          nikInput.value = 'NSR-2019-001';
-          handleGatekeeperNikInput('NSR-2019-001');
+          nikInput.placeholder = 'Super Admin Master (Bypass Penuh)';
         }
       }
     }
@@ -2094,7 +2093,7 @@
       const roleUpper = (role || '').trim().toUpperCase();
 
       // Super Admin Master: Pengawasan penuh seluruh penugasan
-      if (roleUpper === 'SUPER ADMIN' || roleUpper === 'SUPER_ADMIN' || cleanNik === 'NSR-2019-001') {
+      if (roleUpper === 'SUPER ADMIN' || roleUpper === 'SUPER_ADMIN') {
         return true;
       }
 
@@ -2146,7 +2145,7 @@
       const activeNama = (profile?.nama || '').trim().toLowerCase();
 
       // Super Admin Master: Bypass Penuh
-      if (token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f' || roleUpper === 'SUPER ADMIN' || activeNik === 'NSR-2019-001') {
+      if (token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f' || roleUpper === 'SUPER ADMIN' || roleUpper === 'SUPER_ADMIN') {
         return { diizinkan: true };
       }
 
@@ -2296,8 +2295,8 @@
           jabatan: 'Pemimpin Rekan & Pengendali Mutu',
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
-          nama: 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)',
-          nik: 'NSR-2019-001',
+          nama: 'Super Admin Operasional (KING)',
+          nik: '',
           isCabang: false,
           isSuperAdmin: true,
           access_level: 'NATIONWIDE_FULL_ACCESS'
@@ -2314,7 +2313,7 @@
           wilayah: 'Semua Wilayah Penugasan',
           wilayahCode: 'ALL',
           nama: 'Tim Surveyor Lapangan',
-          nik: 'NSR-2023-040',
+          nik: '',
           isCabang: false,
           isSuperAdmin: false,
           access_level: 'FIELD_INSPECTION_ONLY'
@@ -2331,7 +2330,7 @@
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Tim Penilai Pelaksana / Analis',
-          nik: 'NSR-2021-015',
+          nik: '',
           isCabang: false,
           isSuperAdmin: false,
           access_level: 'NATIONWIDE_FULL_ACCESS'
@@ -2348,7 +2347,7 @@
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Tim Kendali Mutu (SPM)',
-          nik: 'NSR-2020-005',
+          nik: '',
           isCabang: false,
           isSuperAdmin: false,
           access_level: 'NATIONWIDE_FULL_ACCESS'
@@ -2365,7 +2364,7 @@
           wilayah: 'Cabang PUSAT (Jakarta)',
           wilayahCode: 'JKT',
           nama: 'Admin Operasional Pusat',
-          nik: 'NSR-2020-008',
+          nik: '',
           isCabang: false,
           isSuperAdmin: false,
           access_level: 'NATIONWIDE_FULL_ACCESS'
@@ -2382,7 +2381,7 @@
           wilayah: 'Cabang Bandung',
           wilayahCode: 'BDG',
           nama: 'Admin Cabang Bandung',
-          nik: 'NSR-2021-012',
+          nik: '',
           isCabang: true,
           isSuperAdmin: false,
           access_level: 'BRANCH_ISOLATED'
@@ -2399,7 +2398,7 @@
           wilayah: 'Cabang Padang',
           wilayahCode: 'PDG',
           nama: 'Admin Cabang Padang',
-          nik: 'NSR-2021-019',
+          nik: '',
           isCabang: true,
           isSuperAdmin: false,
           access_level: 'BRANCH_ISOLATED'
@@ -2416,7 +2415,7 @@
           wilayah: 'Cabang Makassar',
           wilayahCode: 'MKS',
           nama: 'Admin Cabang Makassar',
-          nik: 'NSR-2022-025',
+          nik: '',
           isCabang: true,
           isSuperAdmin: false,
           access_level: 'BRANCH_ISOLATED'
@@ -2433,7 +2432,7 @@
           wilayah: 'Cabang Palembang',
           wilayahCode: 'PLB',
           nama: 'Admin Cabang Palembang',
-          nik: 'NSR-2022-031',
+          nik: '',
           isCabang: true,
           isSuperAdmin: false,
           access_level: 'BRANCH_ISOLATED'
@@ -2450,7 +2449,7 @@
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Penilai Publik Rekan Pengesah',
-          nik: 'NSR-2019-002',
+          nik: '',
           isCabang: false,
           isSuperAdmin: false,
           access_level: 'NATIONWIDE_FULL_ACCESS'
@@ -2467,7 +2466,7 @@
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Marketing Perbankan',
-          nik: 'NSR-2023-042',
+          nik: '',
           isCabang: false,
           isSuperAdmin: false,
           access_level: 'NATIONWIDE_FULL_ACCESS'
@@ -2484,7 +2483,7 @@
           wilayah: 'Kantor Pusat Jakarta',
           wilayahCode: 'JKT',
           nama: 'Divisi Keuangan Pusat',
-          nik: 'NSR-2020-009',
+          nik: '',
           isCabang: false,
           isSuperAdmin: false,
           access_level: 'NATIONWIDE_FULL_ACCESS'
@@ -2501,7 +2500,7 @@
           wilayah: 'Cabang Bandung',
           wilayahCode: 'BDG',
           nama: 'Kasir Operasional Cabang',
-          nik: 'NSR-2022-033',
+          nik: '',
           isCabang: true,
           isSuperAdmin: false,
           access_level: 'BRANCH_ISOLATED'
@@ -2647,8 +2646,8 @@
 
         // Auto-assign Super Admin Master
         if (profilValid.token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f') {
-          eksekutorNik = 'NSR-2019-001';
-          eksekutorNama = 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)';
+          eksekutorNik = rawNik || '';
+          eksekutorNama = profilValid.nama || 'Super Admin Operasional (KING)';
           eksekutorJabatan = 'Pemimpin Rekan & Pengendali Mutu';
         } else if (rawNik) {
           // Cari nama pegawai riil dari kamus roster
@@ -4383,7 +4382,7 @@
 
       // Signer Information
       const reviewerName = (info.spm_reviewed_by && info.spm_reviewed_by.nama) || info.reviewer || 'Andri Kusmandana, S.E.';
-      const reviewerNik = (info.spm_reviewed_by && info.spm_reviewed_by.nik) || 'NSR-BDG-2020-40';
+      const reviewerNik = (info.spm_reviewed_by && info.spm_reviewed_by.nik) || info.pic_reviewer_nik || '-';
       document.getElementById('print-spm-reviewer-sign').textContent = reviewerName;
       document.getElementById('print-spm-nik-sign').textContent = 'NIK: ' + reviewerNik + ' • Reviewer SPM Terdaftar';
 
@@ -6928,7 +6927,7 @@ Administrasi Operasional KJPP NSR`;
               </span>
             </div>
             <p class="font-extrabold text-slate-900 uppercase" id="print-spm-reviewer-sign">Andri Kusmandana, S.E.</p>
-            <p class="text-[9.5px] text-slate-600 font-mono" id="print-spm-nik-sign">NIK: NSR-BDG-2020-40 • MAPPI (Cert.)</p>
+            <p class="text-[9.5px] text-slate-600 font-mono" id="print-spm-nik-sign">NIK: - • Penelaah SPM</p>
           </div>
         </div>
       </div>
@@ -7041,10 +7040,10 @@ Administrasi Operasional KJPP NSR`;
             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
               NIK Personal Eksekutor (Sistem Lapis 2)
             </label>
-            <span id="gatekeeper-nik-badge" class="text-[10px] text-amber-400/90 font-mono">Format: NSR-xxxx-xxx</span>
+            <span id="gatekeeper-nik-badge" class="text-[10px] text-amber-400/90 font-mono">Format: NSR-XXXX-XXX</span>
           </div>
           <div class="relative">
-            <input type="text" id="gatekeeper-nik-input" name="gatekeeper_nik" autocomplete="off" placeholder="Masukkan NIK Karyawan (Contoh: NSR-2019-010)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition uppercase" oninput="handleGatekeeperNikInput(this.value)" />
+            <input type="text" id="gatekeeper-nik-input" name="gatekeeper_nik" autocomplete="off" placeholder="Masukkan NIK terdaftar (format: NSR-XXXX-XXX)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition uppercase" oninput="handleGatekeeperNikInput(this.value)" />
             <div id="gatekeeper-nik-detected" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
               <span>✓</span> <span id="gatekeeper-nik-nama-preview" class="truncate max-w-[160px]"></span>
             </div>
