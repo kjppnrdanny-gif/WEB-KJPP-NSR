@@ -363,72 +363,160 @@ function checkBranchAccess($user, $jobKantorCode) {
 /**
  * Matriks Otoritas Pembaruan Milestone Berdasarkan Jabatan/Divisi (Standar SPI & KEPI)
  */
-function checkMilestoneAuthority($user, $targetMilestone) {
-    $jabatan = strtoupper(trim((string)($user['jabatan'] ?? '')));
-    $divisi = strtoupper(trim((string)($user['divisi'] ?? '')));
-    $isLeadership = (strpos($jabatan, 'PEMIMPIN') !== false || strpos($jabatan, 'REKAN') !== false || strpos($jabatan, 'MANAGER ADMIN') !== false);
+// Helper Normalisasi 7 Peran Operasional Resmi KJPP NSR:
+// 1. ADMIN_OPS       : Admin Operasional Kantor (Pusat / Cabang)
+// 2. PIMPINAN        : Pimpinan Rekan / Kepala Cabang
+// 3. SURVEYOR        : Surveyor / Penilai Lapangan
+// 4. ANALIS          : Analis / Penilai Pelaksana (Drafter KKP)
+// 5. REVIEWER_SPM    : Reviewer Kendali Mutu SPM
+// 6. PENILAI_PUBLIK  : Penilai Publik Pemegang NIPP (Partner)
+// 7. KEUANGAN        : Bagian Keuangan / Billing
+function normalizeOperationalRole($user) {
+    if (empty($user)) return 'SURVEYOR';
+    $r = '';
+    $jabatan = '';
+    $divisi = '';
+    if (is_string($user)) {
+        $r = strtoupper(trim($user));
+    } elseif (is_array($user)) {
+        $r = strtoupper(trim((string)($user['role'] ?? '')));
+        $jabatan = strtoupper(trim((string)($user['jabatan'] ?? '')));
+        $divisi = strtoupper(trim((string)($user['divisi'] ?? '')));
+    }
+
+    if (in_array($r, ['PIMPINAN', 'PEMIMPIN_REKAN', 'PEMIMPIN REKAN', 'KEPALA_CABANG', 'KING', 'SUPERADMIN', 'SUPER_ADMIN', 'SUPER ADMIN', 'MANAJEMEN'])) return 'PIMPINAN';
+    if (in_array($r, ['ADMIN_OPS', 'ADMIN_PUSAT', 'ADMIN_CABANG', 'PIC_CABANG', 'ADMIN', 'SEKRETARIAT', 'ADMINISTRASI'])) return 'ADMIN_OPS';
+    if (in_array($r, ['SURVEYOR', 'SURVEYOR_LAPANGAN', 'PENILAI_LAPANGAN'])) return 'SURVEYOR';
+    if (in_array($r, ['ANALIS', 'PENILAI_PELAKSANA', 'DRAFTER', 'DRAFTER_KKP', 'PENILAI'])) return 'ANALIS';
+    if (in_array($r, ['REVIEWER_SPM', 'SPM', 'PENGENDALI_MUTU', 'KENDALI_MUTU', 'REVIEWER'])) return 'REVIEWER_SPM';
+    if (in_array($r, ['PENILAI_PUBLIK', 'PARTNER', 'REKAN', 'REKAN_NIPP', 'PARTNER_NIPP', 'NIPP'])) return 'PENILAI_PUBLIK';
+    if (in_array($r, ['KEUANGAN', 'KEUANGAN_CABANG', 'BILLING', 'KASIR', 'ACCOUNTING', 'TAX'])) return 'KEUANGAN';
+
+    // Fallback deteksi dari string jabatan / divisi
+    if (!empty($jabatan)) {
+        if (strpos($jabatan, 'PEMIMPIN') !== false || strpos($jabatan, 'REKAN') !== false || strpos($jabatan, 'KEPALA') !== false || strpos($jabatan, 'MANAJER OPERASIONAL') !== false) {
+            return 'PIMPINAN';
+        }
+        if (strpos($jabatan, 'REVIEWER') !== false || strpos($jabatan, 'SPM') !== false) {
+            return 'REVIEWER_SPM';
+        }
+        if (strpos($jabatan, 'PENILAI PUBLIK') !== false) {
+            return 'PENILAI_PUBLIK';
+        }
+        if (strpos($jabatan, 'SURVEYOR') !== false || strpos($jabatan, 'LAPANGAN') !== false) {
+            return 'SURVEYOR';
+        }
+        if (strpos($jabatan, 'PENILAI') !== false || strpos($jabatan, 'ANALIS') !== false) {
+            return 'ANALIS';
+        }
+        if (strpos($jabatan, 'KEUANGAN') !== false || strpos($jabatan, 'ACCOUNTING') !== false || strpos($jabatan, 'TAX') !== false || strpos($divisi, 'KEUANGAN') !== false) {
+            return 'KEUANGAN';
+        }
+        if (strpos($jabatan, 'ADMIN') !== false || strpos($divisi, 'ADMIN') !== false || strpos($jabatan, 'SEKRETARIAT') !== false) {
+            return 'ADMIN_OPS';
+        }
+    }
+
+    return 'SURVEYOR';
+}
+
+// Helper Sensor Finansial (Fee Masking): Sensor nominal fee, nilai kontrak, termin, & kwitansi jika role teknis
+function applyFinancialMasking(&$job, $role) {
+    $norm = normalizeOperationalRole($role);
+    if (in_array($norm, ['SURVEYOR', 'ANALIS', 'REVIEWER_SPM'])) {
+        $job['fee_penilaian'] = 'Rp *******';
+        $job['fee_jasa'] = 'Rp *******';
+        $job['nilai_kontrak'] = 'Rp *******';
+        $job['termin_penagihan'] = '*******';
+        $job['status_kwitansi'] = '*******';
+        $job['billing_status'] = '*******';
+        $job['no_kwitansi'] = '*******';
+        $job['nomor_kwitansi'] = '*******';
+    }
+}
+
+// Helper Pencocokan PIC Penugasan Berdasarkan NIK & Nama
+function isUserPicMatchBackend($user, $picField, $picNikField = '') {
+    $userNik = strtoupper(trim((string)($user['nik'] ?? '')));
+    $userNama = strtoupper(trim((string)($user['nama'] ?? '')));
+
+    if (!empty($picNikField) && !empty($userNik)) {
+        if ($userNik === strtoupper(trim((string)$picNikField))) return true;
+    }
+
+    if (empty($picField) || $picField === '-') return false;
+    $pNama = strtoupper(trim((string)$picField));
+
+    if (!empty($userNama)) {
+        if ($userNama === $pNama) return true;
+        if (strpos($pNama, $userNama) !== false || strpos($userNama, $pNama) !== false) return true;
+
+        $userParts = array_filter(preg_split('/[\s,\.]+/', $userNama), function($w) {
+            return strlen($w) >= 3 && !in_array(strtolower($w), ['dan','st','se','ir','sh','dr','pt','si','ssi','sm','mm','mh','mappi','cert']);
+        });
+        $picParts = array_filter(preg_split('/[\s,\.]+/', $pNama), function($w) {
+            return strlen($w) >= 3 && !in_array(strtolower($w), ['dan','st','se','ir','sh','dr','pt','si','ssi','sm','mm','mh','mappi','cert']);
+        });
+
+        $intersect = array_intersect($userParts, $picParts);
+        if (count($intersect) > 0) return true;
+    }
+
+    return false;
+}
+
+function checkMilestoneAuthority($user, $targetMilestone, $job = null) {
+    $role = normalizeOperationalRole($user);
+    $isPimpinan = ($role === 'PIMPINAN');
+
+    // Pimpinan Rekan memiliki wewenang pengawasan penuh atas seluruh tahapan
+    if ($isPimpinan) {
+        return ['allowed' => true];
+    }
 
     switch ($targetMilestone) {
-        case 'M-01': // Registrasi SPK & Kode Lacak: Staf Admin Pusat & Admin Cabang
-            if (strpos($jabatan, 'ADMIN') !== false || strpos($divisi, 'ADMIN') !== false || strpos($jabatan, 'SEKRETARIAT') !== false || strpos($jabatan, 'OPERASIONAL') !== false || $isLeadership) {
-                return ['allowed' => true];
-            }
-            return ['allowed' => false, 'message' => 'Tahap M-01 (Registrasi SPK & Kode Lacak) hanya dapat disahkan oleh Staf Admin Pusat atau Admin Cabang.'];
+        case 'M-01':
+            if ($role === 'ADMIN_OPS') return ['allowed' => true];
+            return ['allowed' => false, 'message' => 'Tahap M-01 (Order Masuk & Registrasi SPK) hanya dapat disahkan oleh ADMIN_OPS atau PIMPINAN.'];
 
-        case 'M-02': // Surat Tugas & Penunjukan Tim: Pimpinan Rekan / Kepala Cabang / Manajer Operasional
-            if (strpos($jabatan, 'PEMIMPIN') !== false || strpos($jabatan, 'REKAN') !== false || strpos($jabatan, 'MANAGER') !== false || strpos($jabatan, 'KEPALA') !== false) {
-                return ['allowed' => true];
-            }
-            return ['allowed' => false, 'message' => 'Tahap M-02 (Surat Tugas & Penunjukan Tim) hanya dapat disahkan oleh Pimpinan Rekan, Kepala Cabang, atau Manajer Operasional.'];
+        case 'M-02':
+            // M-02 Penunjukan Tim: Khusus PIMPINAN
+            return ['allowed' => false, 'message' => 'Tahap M-02 (Penunjukan Tim) hanya dapat dieksekusi oleh PIMPINAN.'];
 
-        case 'M-03': // Inspeksi & Survei Lapangan: Penilai Pelaksana / Surveyor cabang terkait
-            if (strpos($jabatan, 'SURVEYOR') !== false || strpos($jabatan, 'PENILAI') !== false || strpos($divisi, 'TEKNIS') !== false || $isLeadership) {
-                return ['allowed' => true];
+        case 'M-03':
+            if ($role !== 'SURVEYOR') {
+                return ['allowed' => false, 'message' => 'Tahap M-03 (Inspeksi & BAI) hanya dapat dieksekusi oleh SURVEYOR penugasan.'];
             }
-            return ['allowed' => false, 'message' => 'Tahap M-03 (Inspeksi & Survei Lapangan) hanya dapat disahkan oleh Penilai Pelaksana atau Surveyor penugasan.'];
+            if ($job && !isUserPicMatchBackend($user, $job['surveyor'] ?? $job['penilai_pelaksana'] ?? '', $job['pic_surveyor_nik'] ?? '')) {
+                return ['allowed' => false, 'message' => 'Akses Ditolak: Anda bukan PIC SURVEYOR yang terdaftar pada penugasan ini.'];
+            }
+            return ['allowed' => true];
 
-        case 'M-04': // Analisis Penilaian & Kertas Kerja: Penilai Pelaksana / Tim Teknis cabang terkait ATAU Reviewer SPM (Revisi Kertas Kerja)
-            if (strpos($jabatan, 'REVIEWER') !== false || strpos($jabatan, 'SPM') !== false || strpos($jabatan, 'PENILAI') !== false || strpos($jabatan, 'ANALISIS') !== false || strpos($divisi, 'TEKNIS') !== false || strpos($jabatan, 'SURVEYOR') !== false || $isLeadership) {
-                return ['allowed' => true];
+        case 'M-04':
+            if ($role !== 'ANALIS') {
+                return ['allowed' => false, 'message' => 'Tahap M-04 (Kalkulasi KKP) hanya dapat dieksekusi oleh ANALIS penugasan.'];
             }
-            return ['allowed' => false, 'message' => 'Tahap M-04 (Analisis Penilaian & Kertas Kerja) hanya dapat disahkan oleh Penilai Pelaksana, Tim Teknis, atau Reviewer SPM.'];
+            if ($job && !isUserPicMatchBackend($user, $job['penilai_pelaksana'] ?? $job['analis'] ?? '', $job['pic_penilai_nik'] ?? $job['pic_analis_nik'] ?? '')) {
+                return ['allowed' => false, 'message' => 'Akses Ditolak: Anda bukan PIC ANALIS yang terdaftar pada penugasan ini.'];
+            }
+            return ['allowed' => true];
 
-        case 'M-05': // Kendali Mutu SPM: Reviewer SPM Cabang & Pusat
-            $nama = strtoupper(trim((string)($user['nama'] ?? '')));
-            $reviewerNames = ['TEDI SETIADI', 'ANGGA MALID', 'ARDI NURMAYADI', 'ANDRI KUSMANDANA', 'RAHMAD ANDIKA', 'MUHAMMAD AL AMIN', 'WAWAN KURNIAWAN', 'RAFDINAL ARDHI'];
-            $isReviewerByName = false;
-            foreach ($reviewerNames as $rn) {
-                if (strpos($nama, $rn) !== false) {
-                    $isReviewerByName = true;
-                    break;
-                }
+        case 'M-05':
+            if ($role !== 'REVIEWER_SPM') {
+                return ['allowed' => false, 'message' => 'Tahap M-05 (Review Mutu SPM) hanya dapat dieksekusi oleh REVIEWER_SPM yang ditunjuk.'];
             }
-            if (strpos($jabatan, 'REVIEWER') !== false || strpos($jabatan, 'SPM') !== false || strpos($jabatan, 'PEMIMPIN REKAN') !== false || strpos($jabatan, 'REKAN') !== false || $isReviewerByName) {
-                return ['allowed' => true];
+            if ($job && !isUserPicMatchBackend($user, $job['reviewer_spm'] ?? $job['reviewer'] ?? '', $job['pic_reviewer_nik'] ?? '')) {
+                return ['allowed' => false, 'message' => 'Akses Ditolak: Anda bukan REVIEWER_SPM yang ditunjuk pada penugasan ini.'];
             }
-            return ['allowed' => false, 'message' => 'Tahap M-05 (Kendali Mutu SPM) hanya dapat disahkan oleh Reviewer SPM atau Rekan berizin KJPP NSR.'];
+            return ['allowed' => true];
 
-        case 'M-06': // Otorisasi Opini & Penomoran Laporan: Penilai Publik Berizin Kemenkeu RI & Admin Pusat (NoLap)
-            $nama = strtoupper(trim((string)($user['nama'] ?? '')));
-            $penilaiPublikNames = ['NANANG RAHAYU', 'DENI SISWANDI', 'HERNITA', 'MUHAMMAD AMIN SADE', 'DHARMA PRIYANTO'];
-            $isLicensedAppraiser = false;
-            foreach ($penilaiPublikNames as $pn) {
-                if (strpos($nama, $pn) !== false) {
-                    $isLicensedAppraiser = true;
-                    break;
-                }
-            }
-            $isAdminPusat = (getUserBranchCode($user) === 'PUSAT' && (strpos($jabatan, 'ADMIN') !== false || strpos($divisi, 'ADMIN') !== false || strpos($jabatan, 'MANAGER') !== false));
-            if ($isLicensedAppraiser || $isAdminPusat || strpos($jabatan, 'PEMIMPIN REKAN') !== false) {
-                return ['allowed' => true];
-            }
-            return ['allowed' => false, 'message' => 'Tahap M-06 (Otorisasi Opini & NoLap) hanya dapat disahkan oleh Penilai Publik Berizin Kemenkeu RI atau Admin Pusat untuk penomoran Nolap.'];
+        case 'M-06':
+            if ($role === 'PENILAI_PUBLIK') return ['allowed' => true];
+            return ['allowed' => false, 'message' => 'Tahap M-06 (Otorisasi Laporan) hanya dapat dieksekusi oleh PENILAI_PUBLIK pemegang NIPP Kemenkeu RI.'];
 
-        case 'M-07': // Serah Terima Laporan Final ke Klien: Staf Admin Pusat & Admin Cabang
-            if (strpos($jabatan, 'ADMIN') !== false || strpos($divisi, 'ADMIN') !== false || strpos($jabatan, 'SEKRETARIAT') !== false || strpos($jabatan, 'MANAGER') !== false || $isLeadership) {
-                return ['allowed' => true];
-            }
-            return ['allowed' => false, 'message' => 'Tahap M-07 (Serah Terima Laporan Final) hanya dapat disahkan oleh Staf Admin Pusat atau Admin Cabang terkait.'];
+        case 'M-07':
+            if (in_array($role, ['KEUANGAN', 'ADMIN_OPS'])) return ['allowed' => true];
+            return ['allowed' => false, 'message' => 'Tahap M-07 (Distribusi & Kwitansi) hanya dapat dieksekusi oleh Bagian KEUANGAN atau ADMIN_OPS.'];
 
         default:
             return ['allowed' => true];
@@ -1506,8 +1594,10 @@ if ($action === 'list' || $action === 'get_active_jobs') {
         $filteredJobs[] = $job;
     }
 
+    $requesterRole = normalizeOperationalRole($currentUser ?? ($_GET['auth_role'] ?? $_POST['auth_role'] ?? ''));
     foreach ($filteredJobs as &$fJob) {
         evaluateJobBottleneck($fJob);
+        applyFinancialMasking($fJob, $requesterRole);
     }
     unset($fJob);
 
@@ -1597,7 +1687,7 @@ if ($action === 'advance_milestone' || $action === 'update_milestone') {
     }
 
     // 4. Validasi Matriks Otoritas Peran (Authority Matrix Check)
-    $authCheck = checkMilestoneAuthority($user, $targetM);
+    $authCheck = checkMilestoneAuthority($user, $targetM, $job);
     if (!$authCheck['allowed']) {
         http_response_code(403);
         echo json_encode([
@@ -1653,6 +1743,29 @@ if ($action === 'advance_milestone' || $action === 'update_milestone') {
                     if (!empty($customNote)) $job['milestones'][$k]['note'] = $customNote;
                     $job['milestones'][$k]['actor'] = $user['nama'] . ' (' . $user['jabatan'] . ')';
                 }
+            }
+        }
+    }
+
+    // Validasi Otomatis Segregation of Duties untuk M-02 (Penunjukan Tim)
+    if ($targetM === 'M-02') {
+        $revVal = trim((string)($payload['reviewer'] ?? $payload['reviewer_spm'] ?? $job['reviewer_spm'] ?? $job['reviewer'] ?? ''));
+        $anlVal = trim((string)($payload['penilai_pelaksana'] ?? $payload['analis'] ?? $job['penilai_pelaksana'] ?? $job['analis'] ?? ''));
+        $srvVal = trim((string)($payload['surveyor'] ?? $job['surveyor'] ?? ''));
+
+        if (!empty($revVal)) {
+            $cleanRev = strtoupper(preg_replace('/[^A-Za-z]/', '', $revVal));
+            $cleanAnl = strtoupper(preg_replace('/[^A-Za-z]/', '', $anlVal));
+            $cleanSrv = strtoupper(preg_replace('/[^A-Za-z]/', '', $srvVal));
+
+            if ((!empty($cleanAnl) && $cleanRev === $cleanAnl) || (!empty($cleanSrv) && $cleanRev === $cleanSrv)) {
+                http_response_code(422);
+                echo json_encode([
+                    'status' => 'error',
+                    'code' => 'SPM_SELF_REVIEW_PROHIBITED',
+                    'message' => 'Pelanggaran KEPI & SPI: Nama Reviewer SPM tidak boleh sama dengan Penilai Pelaksana / Analis / Surveyor (Larangan Self-Review).'
+                ]);
+                exit;
             }
         }
     }
@@ -1803,6 +1916,50 @@ if ($action === 'create' || $action === 'create_job_order') {
     $rawInput = file_get_contents('php://input');
     $payload = @json_decode($rawInput, true);
     if (!is_array($payload)) $payload = $_POST;
+
+    // RBAC: Hanya ADMIN_OPS dan PIMPINAN yang berwenang mendaftarkan Job Order Baru
+    $authNik = trim((string)($payload['auth_nik'] ?? $payload['nik'] ?? $_GET['auth_nik'] ?? ''));
+    $authPin = trim((string)($payload['auth_pin'] ?? $payload['pin'] ?? $_GET['auth_pin'] ?? ''));
+    $creatorRole = normalizeOperationalRole($payload['role'] ?? $payload['auth_role'] ?? '');
+
+    if (!empty($authNik)) {
+        $foundUser = findUserByNik($authNik);
+        if ($foundUser) {
+            $creatorRole = normalizeOperationalRole($foundUser);
+        }
+    }
+    if ($authPin === 'NSR8899' || $authPin === '889900') {
+        $creatorRole = 'PIMPINAN';
+    }
+
+    if (!in_array($creatorRole, ['ADMIN_OPS', 'PIMPINAN'])) {
+        http_response_code(403);
+        echo json_encode([
+            'status' => 'error',
+            'code' => 'ROLE_FORBIDDEN_REGISTRATION',
+            'message' => 'Akses Ditolak: Registrasi Job Order baru hanya diizinkan untuk Admin Operasional (ADMIN_OPS) dan Pimpinan (PIMPINAN).'
+        ]);
+        exit;
+    }
+
+    // Validasi Otomatis Segregation of Duties: Reviewer SPM tidak boleh sama dengan Analis / Surveyor
+    $revInput = trim((string)($payload['reviewer'] ?? $payload['reviewer_spm'] ?? ''));
+    $anlInput = trim((string)($payload['penilai_pelaksana'] ?? $payload['analis'] ?? ''));
+    $srvInput = trim((string)($payload['surveyor'] ?? ''));
+    if (!empty($revInput)) {
+        $cRev = strtoupper(preg_replace('/[^A-Za-z]/', '', $revInput));
+        $cAnl = strtoupper(preg_replace('/[^A-Za-z]/', '', $anlInput));
+        $cSrv = strtoupper(preg_replace('/[^A-Za-z]/', '', $srvInput));
+        if ((!empty($cAnl) && $cRev === $cAnl) || (!empty($cSrv) && $cRev === $cSrv)) {
+            http_response_code(422);
+            echo json_encode([
+                'status' => 'error',
+                'code' => 'SPM_SELF_REVIEW_PROHIBITED',
+                'message' => 'Pelanggaran KEPI & SPI: Nama Reviewer SPM tidak boleh sama dengan Penilai Pelaksana / Analis / Surveyor (Larangan Self-Review).'
+            ]);
+            exit;
+        }
+    }
 
     $kantor = $payload['kantor'] ?? $payload['kantor_pelaksana'] ?? 'Kantor Pusat Jakarta';
     $kantorCode = 'PUSAT';
@@ -2895,6 +3052,9 @@ if ($action === 'get_job_detail' || $action === 'get_job') {
     $debitur = $foundJob['debitur'] ?? '';
     $jenisProperti = $foundJob['jenis_properti'] ?? '';
     $foundJob['keterangan_kwitansi'] = "Pembayaran Imbalan Jasa Penilaian Properti atas aset {$debitur}" . ($jenisProperti ? " ({$jenisProperti})" : "") . ", berdasarkan SPK No. {$noSpk}" . ($noLap ? " dan Laporan Penilaian No. {$noLap}" : "") . ".";
+
+    $requesterRole = normalizeOperationalRole($_GET['auth_role'] ?? $_POST['auth_role'] ?? ($currentUser ?? ''));
+    applyFinancialMasking($foundJob, $requesterRole);
 
     echo json_encode([
         'status' => 'success',

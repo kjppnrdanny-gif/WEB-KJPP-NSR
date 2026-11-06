@@ -71,8 +71,8 @@ try {
 \$_GET['action'] = 'advance_milestone';
 \$_POST['jo'] = 'JO-JKT-2026-0001';
 \$_POST['target_milestone'] = 'M-06';
-\$_POST['nik'] = 'NSR-2019-005';
-\$_POST['pin'] = '889900';
+\$_POST['nik'] = 'NSR-2019-001';
+\$_POST['pin'] = '123456';
 \$_POST['catatan'] = 'Uji coba otorisasi M-06 tanpa nomor laporan';
 \$_POST['nomor_laporan_resmi'] = '';
 \$_POST['no_laporan'] = '';
@@ -94,8 +94,8 @@ try {
 \$_GET['action'] = 'advance_milestone';
 \$_POST['jo'] = 'JO-JKT-2026-0001';
 \$_POST['target_milestone'] = 'M-06';
-\$_POST['nik'] = 'NSR-2019-005';
-\$_POST['pin'] = '889900';
+\$_POST['nik'] = 'NSR-2019-001';
+\$_POST['pin'] = '123456';
 \$_POST['nomor_laporan_resmi'] = '00192/2.0160-00/PI/03/0192/1/X/2026';
 \$_POST['catatan'] = 'Otorisasi M-06 dengan NoLap resmi Kemenkeu RI';
 `);
@@ -116,8 +116,8 @@ try {
 \$_GET['action'] = 'advance_milestone';
 \$_POST['jo'] = 'JO-JKT-2026-0001';
 \$_POST['target_milestone'] = 'M-07';
-\$_POST['nik'] = 'NSR-2019-005';
-\$_POST['pin'] = '889900';
+\$_POST['nik'] = 'NSR-2019-001';
+\$_POST['pin'] = '123456';
 \$_POST['status_kwitansi'] = 'BELUM_LUNAS'; // Invalid
 \$_POST['catatan'] = 'Mencoba distribusi final sebelum lunas';
 `);
@@ -138,8 +138,8 @@ try {
 \$_GET['action'] = 'advance_milestone';
 \$_POST['jo'] = 'JO-JKT-2026-0001';
 \$_POST['target_milestone'] = 'M-07';
-\$_POST['nik'] = 'NSR-2019-005';
-\$_POST['pin'] = '889900';
+\$_POST['nik'] = 'NSR-2019-001';
+\$_POST['pin'] = '123456';
 \$_POST['status_kwitansi'] = 'LUNAS';
 \$_POST['catatan'] = 'Kwitansi diverifikasi lunas, berkas final didistribusikan.';
 `);
