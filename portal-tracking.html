@@ -3029,35 +3029,50 @@
 
         // Inisialisasi Halaman
     document.addEventListener('DOMContentLoaded', async function() {
-      // Verifikasi Strict Fail-Closed Gatekeeper sebelum memuat data
-      const isAuthorized = initUserSession();
-      if (!isAuthorized) {
-        const appEl = document.getElementById('main-tracking-app');
-        if (appEl) appEl.style.setProperty('display', 'none', 'important');
-        const tbody = document.getElementById('task-board-tbody');
-        if (tbody) tbody.innerHTML = '';
-        const gatekeeper = document.getElementById('modal-auth-gatekeeper');
-        if (gatekeeper) {
-          gatekeeper.classList.remove('hidden');
-          gatekeeper.style.display = 'flex';
+      try {
+        // Verifikasi Strict Fail-Closed Gatekeeper sebelum memuat data
+        const isAuthorized = initUserSession();
+        if (!isAuthorized) {
+          const appEl = document.getElementById('main-tracking-app');
+          if (appEl) {
+            appEl.style.setProperty('display', 'none', 'important');
+            appEl.classList.add('hidden');
+          }
+          const tbody = document.getElementById('task-board-tbody');
+          if (tbody) tbody.innerHTML = '';
+          const gatekeeper = document.getElementById('modal-auth-gatekeeper');
+          if (gatekeeper) {
+            gatekeeper.classList.remove('hidden');
+            gatekeeper.style.display = 'flex';
+          }
+          return;
         }
-        return;
+
+        // Set default date input registrasi ke hari ini
+        const spkDateEl = document.getElementById('reg-spk-date');
+        const tglLingkupEl = document.getElementById('reg-tgl-lingkup');
+        const today = new Date().toISOString().split('T')[0];
+        if (spkDateEl) spkDateEl.value = today;
+        if (tglLingkupEl) tglLingkupEl.value = today;
+
+        // Inisialisasi Dropdown Wilayah & Reviewer
+        if (typeof sesuaikanDropdownWilayah === 'function') {
+          sesuaikanDropdownWilayah(document.getElementById('reg-kantor')?.value || 'Kantor Pusat Jakarta');
+        }
+
+        // Muat Data Papan Pemantauan & Saran JO
+        if (typeof muatDataTaskBoard === 'function') {
+          await muatDataTaskBoard();
+        }
+        if (typeof muatSaranJO === 'function') {
+          muatSaranJO();
+        }
+        if (typeof muatRosterKaryawanDispatch === 'function') {
+          muatRosterKaryawanDispatch();
+        }
+      } catch (domInitErr) {
+        console.error('DOMContentLoaded initialization error (caught):', domInitErr);
       }
-
-      // Set default date input registrasi ke hari ini
-      const spkDateEl = document.getElementById('reg-spk-date');
-      const tglLingkupEl = document.getElementById('reg-tgl-lingkup');
-      const today = new Date().toISOString().split('T')[0];
-      if (spkDateEl) spkDateEl.value = today;
-      if (tglLingkupEl) tglLingkupEl.value = today;
-
-      // Inisialisasi Dropdown Wilayah & Reviewer
-      sesuaikanDropdownWilayah(document.getElementById('reg-kantor')?.value || 'Kantor Pusat Jakarta');
-
-      // Muat Data Papan Pemantauan & Saran JO
-      await muatDataTaskBoard();
-      muatSaranJO();
-      muatRosterKaryawanDispatch();
     });
 
     // Inisialisasi Sesi Pengguna (Strict Fail-Closed dengan SSO Session Bridge)
@@ -3150,9 +3165,10 @@
     }
 
     function updateUserSessionUI() {
-      if (!currentUserSession) return;
-      const isKing = (currentUserSession.role === 'KING' || currentUserSession.is_king || currentUserSession.isKing);
-      const normRole = normalizeRole(currentUserSession.role);
+      try {
+        if (!currentUserSession) return;
+        const isKing = (currentUserSession.role === 'KING' || currentUserSession.is_king || currentUserSession.isKing);
+        const normRole = (typeof normalizeRole === 'function') ? normalizeRole(currentUserSession.role) : (currentUserSession.role || '');
 
       // 1. HAK AKSES TOMBOL REGISTRASI: Hanya tampil & aktif untuk ADMIN_OPS dan PIMPINAN
       const btnRegister = document.getElementById('tab-btn-register');
@@ -3252,6 +3268,9 @@
           boardIsolationTag.textContent = 'Akses Penuh 5 Wilayah';
           boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/40';
         }
+      }
+      } catch (uiErr) {
+        console.warn('updateUserSessionUI warning (non-fatal):', uiErr);
       }
     }
     window.updateUserSessionUI = updateUserSessionUI;
@@ -3481,22 +3500,40 @@
     window.normalizeRole = normalizeRole;
 
     function isFinancialMasked(role) {
-      const norm = normalizeRole(role || currentUserSession?.role);
-      return ['SURVEYOR', 'ANALIS', 'REVIEWER_SPM'].includes(norm);
+      try {
+        const activeRole = role || (typeof currentUserSession !== 'undefined' ? currentUserSession?.role : null);
+        const norm = (typeof normalizeRole === 'function') ? normalizeRole(activeRole) : String(activeRole || '').toUpperCase();
+        return ['SURVEYOR', 'ANALIS', 'REVIEWER_SPM'].includes(norm);
+      } catch (_) {
+        return false;
+      }
     }
     window.isFinancialMasked = isFinancialMasked;
 
     function formatFeeDisplay(val, role) {
-      if (isFinancialMasked(role)) return 'Rp *******';
-      if (!val || val === '-') return '-';
-      if (typeof val === 'number') return 'Rp ' + val.toLocaleString('id-ID');
-      return String(val);
+      try {
+        if (isFinancialMasked(role)) return 'Rp *******';
+        if (val === null || val === undefined || val === '' || val === '-') return '-';
+        if (typeof val === 'number') return 'Rp ' + val.toLocaleString('id-ID');
+        const strVal = String(val).trim();
+        if (strVal.startsWith('Rp')) return strVal;
+        const numVal = parseFloat(strVal.replace(/[^0-9.-]+/g, ''));
+        if (!isNaN(numVal) && numVal > 0) return 'Rp ' + Math.round(numVal).toLocaleString('id-ID');
+        return strVal || '-';
+      } catch (_) {
+        return '-';
+      }
     }
     window.formatFeeDisplay = formatFeeDisplay;
 
     function formatKwitansiDisplay(val, role) {
-      if (isFinancialMasked(role)) return '*******';
-      return val || 'BELUM_DIVERIFIKASI';
+      try {
+        if (isFinancialMasked(role)) return '*******';
+        if (val === null || val === undefined || val === '') return 'BELUM_DIVERIFIKASI';
+        return String(val);
+      } catch (_) {
+        return 'BELUM_DIVERIFIKASI';
+      }
     }
     window.formatKwitansiDisplay = formatKwitansiDisplay;
 
@@ -5344,19 +5381,22 @@ Administrasi Operasional KJPP NSR`;
         }
       }
 
-      document.getElementById('update-jo-id').value = job.jo_number;
-      document.getElementById('update-jo-display').textContent = job.jo_number + (job.kode_lacak ? ` (${job.kode_lacak})` : '');
-      document.getElementById('update-debitur-display').textContent = `${job.debitur} • ${job.instansi}`;
-      document.getElementById('update-current-m-display').textContent = `${job.current_milestone}: ${job.current_milestone_title}`;
+      const elUpdateJoId = document.getElementById('update-jo-id');
+      if (elUpdateJoId) elUpdateJoId.value = job.jo_number || '';
+      const elUpdateJoDisplay = document.getElementById('update-jo-display');
+      if (elUpdateJoDisplay) elUpdateJoDisplay.textContent = (job.jo_number || '') + (job.kode_lacak ? ` (${job.kode_lacak})` : '');
+      const elUpdateDebitur = document.getElementById('update-debitur-display');
+      if (elUpdateDebitur) elUpdateDebitur.textContent = `${job.debitur || '-'} • ${job.instansi || '-'}`;
+      const elUpdateCurrentM = document.getElementById('update-current-m-display');
+      if (elUpdateCurrentM) elUpdateCurrentM.textContent = `${job.current_milestone || 'M-01'}: ${job.current_milestone_title || ''}`;
 
-      // Set target milestone berikutnya
-      const mKeys = ['M-01', 'M-02', 'M-03', 'M-04', 'M-05', 'M-06', 'M-07'];
-      const curIdx = mKeys.indexOf(job.current_milestone);
-      const nextM = mKeys[Math.min(mKeys.length - 1, curIdx + 1)];
+      // Set target milestone berikutnya (reuse nextM yang telah dideklarasikan di awal fungsi)
       const targetSelect = document.getElementById('update-target-milestone');
       if (targetSelect) {
         targetSelect.value = nextM;
-        sesuaikanFieldMilestone(nextM);
+        if (typeof sesuaikanFieldMilestone === 'function') {
+          sesuaikanFieldMilestone(nextM);
+        }
       }
 
       activeJob = job;
