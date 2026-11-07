@@ -53,6 +53,7 @@ const ALLOWED_FILES = [
   "favicon.png",
   "logo-nsr.png",
   "assets/kop-surat-kjpp-nsr.png",
+  "assets/img/kop-surat-nsr.png",
   "assets/stempel-resmi-kjpp-nsr.png",
   "assets/qrcode.min.js",
   "og-image.jpg",

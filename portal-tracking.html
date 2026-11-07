@@ -127,6 +127,16 @@
         break-after: page !important;
       }
 
+      .st-page-break-before {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+
+      .header-kop-surat img {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
       #modal-cetak-spm-pdf:not(.hidden), [data-modal="modal-pratinjau-spm"]:not(.hidden) {
         position: static !important;
         inset: auto !important;
@@ -7426,12 +7436,12 @@ const pemberiTugas = (document.getElementById('reg-pemberi-tugas')?.value || doc
         if (bSt) bSt.className = 'px-2.5 py-1 rounded-lg font-bold transition text-amber-400 bg-slate-800 border border-amber-500/40';
       } else if (mode === 'tanda_terima') {
         if (l1) l1.style.display = 'none';
-        if (l2) { l2.style.display = 'block'; l2.classList.remove('st-page-break'); }
+        if (l2) { l2.style.display = 'block'; l2.classList.remove('st-page-break'); l2.classList.remove('st-page-break-before'); }
         if (bBai) bBai.className = 'px-2.5 py-1 rounded-lg font-bold transition text-amber-400 bg-slate-800 border border-amber-500/40';
       } else {
         // all
         if (l1) { l1.style.display = 'block'; l1.classList.add('st-page-break'); }
-        if (l2) l2.style.display = 'block';
+        if (l2) { l2.style.display = 'block'; l2.classList.add('st-page-break-before'); }
         if (bAll) bAll.className = 'px-2.5 py-1 rounded-lg font-bold transition text-amber-400 bg-slate-800 border border-amber-500/40';
       }
     }
@@ -7909,13 +7919,9 @@ const pemberiTugas = (document.getElementById('reg-pemberi-tugas')?.value || doc
         <!-- ==================== LEMBAR 1: SURAT TUGAS INSPEKSI LAPANGAN ==================== -->
         <div id="lembar-surat-tugas" class="st-page-break text-slate-900 text-xs leading-normal mb-8 print:mb-0">
           
-          <!-- KOP SURAT RESMI STANDAR KEMENKEU RI -->
-          <div class="border-b-2 border-slate-900 pb-3 mb-4 text-center">
-            <h2 class="text-sm sm:text-base font-extrabold uppercase tracking-wide text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO &amp; REKAN</h2>
-            <p class="text-[10.5px] sm:text-[11.5px] font-bold text-slate-800">KANTOR JASA PENILAI PUBLIK (KJPP)</p>
-            <p class="text-[10px] sm:text-[10.5px] font-semibold text-slate-700">Izin Usaha Menteri Keuangan RI No. 2.19.0160 (KMK No. 248/KM.1/2019)</p>
-            <p class="text-[9px] text-slate-600 mt-0.5">Kantor Pusat: Jakarta &bull; Cabang: Bandung | Padang | Makassar | Palembang</p>
-            <p class="text-[9px] text-slate-500 font-mono">Website: kjppnanangrahayu.com &bull; Email: info@kjppnanangrahayu.com &bull; Hotline: +62 851-1051-3157</p>
+          <!-- KOP SURAT RESMI BAKU KJPP NSR -->
+          <div class="header-kop-surat print:mb-4 mb-3 select-none" style="width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+            <img src="assets/img/kop-surat-nsr.png" alt="Kop Surat Resmi KJPP NSR" style="width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='images/kop-surat-nsr.png';" />
           </div>
 
           <!-- JUDUL DOKUMEN -->
@@ -8059,17 +8065,26 @@ const pemberiTugas = (document.getElementById('reg-pemberi-tugas')?.value || doc
               <p class="text-[9px] text-slate-600 font-mono" id="st-pimpinan-jabatan">Pemimpin Rekan &bull; Izin Penilai Publik: P-1.19.00160</p>
             </div>
           </div>
+
+          <!-- SINKRONISASI IDENTITAS LEGALITAS DOKUMEN (FOOTER) -->
+          <div class="mt-4 pt-2 border-t border-slate-200 text-[8.5px] text-slate-500 flex justify-between items-center print:text-[8px]">
+            <div>
+              <strong>KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan</strong> &bull; Izin Usaha Kemenkeu: 2.19.0160 (Bidang Jasa Penilaian Properti)<br>
+              Pusat: Jl. Hankam No. 5 RT.006 RW.001 Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550 &bull; Telp: (021) 7884 9996 / 7884 8837 &bull; Fax: (021) 7884 9997
+            </div>
+            <div class="text-right font-mono text-[8px] text-slate-400">
+              Cabang: Bandung (P), Padang (PS), Makasar (PS), Palembang (PS)<br>
+              Lembar 1: Surat Tugas Inspeksi Lapangan
+            </div>
+          </div>
         </div>
 
         <!-- ==================== LEMBAR 2: BERITA ACARA INSPEKSI & TANDA TERIMA LAPANGAN (BAI) ==================== -->
-        <div id="lembar-tanda-terima" class="text-slate-900 text-xs leading-normal">
+        <div id="lembar-tanda-terima" class="st-page-break-before text-slate-900 text-xs leading-normal pt-6 print:pt-0 border-t-2 border-dashed border-slate-300 print:border-none">
           
-          <!-- KOP SURAT RESMI STANDAR KEMENKEU RI -->
-          <div class="border-b-2 border-slate-900 pb-3 mb-4 text-center">
-            <h2 class="text-sm sm:text-base font-extrabold uppercase tracking-wide text-slate-900">KJPP NANANG RAHAYU SIGIT PARYANTO &amp; REKAN</h2>
-            <p class="text-[10.5px] sm:text-[11.5px] font-bold text-slate-800">KANTOR JASA PENILAI PUBLIK (KJPP)</p>
-            <p class="text-[10px] sm:text-[10.5px] font-semibold text-slate-700">Izin Usaha Menteri Keuangan RI No. 2.19.0160 (KMK No. 248/KM.1/2019)</p>
-            <p class="text-[9px] text-slate-600 mt-0.5">Kantor Pusat: Jakarta &bull; Cabang: Bandung | Padang | Makassar | Palembang</p>
+          <!-- KOP SURAT RESMI BAKU KJPP NSR -->
+          <div class="header-kop-surat print:mb-4 mb-3 select-none" style="width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+            <img src="assets/img/kop-surat-nsr.png" alt="Kop Surat Resmi KJPP NSR" style="width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='images/kop-surat-nsr.png';" />
           </div>
 
           <!-- JUDUL BERITA ACARA -->
@@ -8230,6 +8245,18 @@ const pemberiTugas = (document.getElementById('reg-pemberi-tugas')?.value || doc
                 <p class="font-extrabold text-slate-900 uppercase" id="bai-ttd-surveyor">-</p>
                 <p class="text-slate-600 font-mono text-[9.5px]" id="bai-ttd-nik">NIK: -</p>
               </div>
+            </div>
+          </div>
+
+          <!-- SINKRONISASI IDENTITAS LEGALITAS DOKUMEN (FOOTER) -->
+          <div class="mt-4 pt-2 border-t border-slate-200 text-[8.5px] text-slate-500 flex justify-between items-center print:text-[8px]">
+            <div>
+              <strong>KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan</strong> &bull; Izin Usaha Kemenkeu: 2.19.0160 (Bidang Jasa Penilaian Properti)<br>
+              Pusat: Jl. Hankam No. 5 RT.006 RW.001 Kel. Ragunan, Kec. Pasar Minggu, Jakarta Selatan 12550 &bull; Telp: (021) 7884 9996 / 7884 8837 &bull; Fax: (021) 7884 9997
+            </div>
+            <div class="text-right font-mono text-[8px] text-slate-400">
+              Cabang: Bandung (P), Padang (PS), Makasar (PS), Palembang (PS)<br>
+              Lembar 2: Berita Acara Inspeksi &amp; Tanda Terima (BAI)
             </div>
           </div>
 
