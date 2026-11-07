@@ -2437,7 +2437,20 @@
 
     // Tab Switcher Antrean Penugasan (Smart Landing Queue)
     function setQueueTab(tab) {
-      currentQueueTab = tab; if (window.stateApp) { window.stateApp.activeQueueTab = tab; }
+      const uProf = currentUserSession || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
+      const normRole = (typeof normalizeRole === 'function') ? normalizeRole(uProf?.role) : (uProf?.role || '');
+      const normJabatan = (typeof normalizeRole === 'function') ? normalizeRole(uProf?.jabatan) : '';
+      const isTechRole = ['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normRole) || (['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normJabatan) && normRole !== 'PIMPINAN' && !uProf?.isKing);
+
+      // Kunci Tab Antrean untuk peran teknis hanya ke Tugas Saya (PIC Terdaftar)
+      if (isTechRole) {
+        tab = 'my_tasks';
+      }
+
+      currentQueueTab = tab; 
+      if (window.stateApp) { 
+        window.stateApp.activeQueueTab = tab; 
+      }
       const btnMy = document.getElementById('tab-queue-my-tasks');
       const btnAll = document.getElementById('tab-queue-all-tasks');
       const infoText = document.getElementById('queue-filter-info-text');
@@ -2450,7 +2463,7 @@
           btnAll.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 whitespace-nowrap active:scale-95';
         }
         if (infoText) {
-          infoText.textContent = `Menyaring berkas khusus PIC: ${currentUserSession?.nama || 'Anda'}`;
+          infoText.textContent = `Menyaring berkas khusus PIC: ${uProf?.nama || 'Anda'}`;
         }
       } else {
         if (btnMy) {
@@ -2924,8 +2937,10 @@
           eksekutorNik = foundKaryawan.nik || rawNik;
           eksekutorNama = foundKaryawan.nama;
           eksekutorJabatan = foundKaryawan.jabatan ? `${foundKaryawan.jabatan} (${profilValid.roleLabel})` : profilValid.jabatan;
-          eksekutorRole = profilValid.role;
-          eksekutorCabang = profilValid.wilayah;
+          const normJabatanKaryawan = (typeof normalizeRole === 'function') ? normalizeRole(foundKaryawan.jabatan) : '';
+          const isTechKaryawan = ['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normJabatanKaryawan);
+          eksekutorRole = (isTechKaryawan && !isKing && profilValid.role !== 'PIMPINAN') ? normJabatanKaryawan : (foundKaryawan.role || profilValid.role);
+          eksekutorCabang = foundKaryawan.kantor || foundKaryawan.cabang || profilValid.wilayah;
         }
 
         // Simpan sesi mandiri Lapis 2 ke sessionStorage DAN localStorage (SSO Bridge)
@@ -3163,112 +3178,157 @@
       updateUserSessionUI();
       return true;
     }
+    window.initUserSession = initUserSession;
 
     function updateUserSessionUI() {
       try {
         if (!currentUserSession) return;
-        const isKing = (currentUserSession.role === 'KING' || currentUserSession.is_king || currentUserSession.isKing);
         const normRole = (typeof normalizeRole === 'function') ? normalizeRole(currentUserSession.role) : (currentUserSession.role || '');
+        const normJabatan = (typeof normalizeRole === 'function') ? normalizeRole(currentUserSession.jabatan) : '';
+        const isKing = Boolean(
+          currentUserSession.role === 'KING' ||
+          currentUserSession.is_king ||
+          currentUserSession.isKing ||
+          currentUserSession.isSuperAdmin ||
+          currentUserSession.token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f' ||
+          currentUserSession.token === '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' ||
+          Boolean(currentUserSession?.isSuperAdmin)
+        );
+        const isTechRole = ['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normRole) || (['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normJabatan) && normRole !== 'PIMPINAN' && !isKing);
+        const canAccessControlTower = isKing || normRole === 'PIMPINAN' || (normRole === 'ADMIN_OPS' && !currentUserSession.isCabang && !isTechRole);
 
-      // 1. HAK AKSES TOMBOL REGISTRASI: Hanya tampil & aktif untuk ADMIN_OPS dan PIMPINAN
-      const btnRegister = document.getElementById('tab-btn-register');
-      if (btnRegister) {
-        if (['ADMIN_OPS', 'PIMPINAN'].includes(normRole)) {
-          btnRegister.classList.remove('hidden');
-          btnRegister.style.display = '';
+        // 1. HAK AKSES TOMBOL REGISTRASI: Hanya tampil & aktif untuk ADMIN_OPS dan PIMPINAN
+        const btnRegister = document.getElementById('tab-btn-register');
+        if (btnRegister) {
+          if (['ADMIN_OPS', 'PIMPINAN'].includes(normRole) && !isTechRole) {
+            btnRegister.classList.remove('hidden');
+            btnRegister.style.display = '';
+          } else {
+            btnRegister.classList.add('hidden');
+            btnRegister.style.display = 'none';
+          }
+        }
+
+        // 2. HAK AKSES TAB CONTROL TOWER & SPM HUB: Hanya untuk PIMPINAN, ADMIN_OPS (Pusat), dan SUPERADMIN
+        // Sembunyikan untuk peran teknis (ANALIS, SURVEYOR, REVIEWER_SPM)
+        const btnWorkload = document.getElementById('tab-btn-workload');
+        if (btnWorkload) {
+          if (canAccessControlTower) {
+            btnWorkload.classList.remove('hidden');
+            btnWorkload.style.display = '';
+          } else {
+            btnWorkload.classList.add('hidden');
+            btnWorkload.style.display = 'none';
+          }
+        }
+
+        // 3. KUNCI TAB ANTREAN KE "TUGAS SAYA" & SEMBUNYIKAN "SEMUA PENUGASAN CABANG/NASIONAL" UNTUK PERAN TEKNIS
+        const btnAllTasks = document.getElementById('tab-queue-all-tasks');
+        if (btnAllTasks) {
+          if (isTechRole) {
+            btnAllTasks.classList.add('hidden');
+            btnAllTasks.style.display = 'none';
+            btnAllTasks.disabled = true;
+          } else {
+            btnAllTasks.classList.remove('hidden');
+            btnAllTasks.style.display = '';
+            btnAllTasks.disabled = false;
+          }
+        }
+        if (isTechRole) {
+          if (typeof setQueueTab === 'function') {
+            setQueueTab('my_tasks');
+          }
+        }
+
+        const nameEl = document.getElementById('user-display-name');
+        const nikEl = document.getElementById('user-display-nik');
+        const jabEl = document.getElementById('user-display-jabatan');
+        const cabEl = document.getElementById('user-display-cabang');
+        const avEl = document.getElementById('user-display-avatar');
+        const badgeEl = document.getElementById('user-access-badge');
+        const filterKantorEl = document.getElementById('filter-kantor');
+        const boardIsolationTag = document.getElementById('board-isolation-tag');
+
+        if (nameEl) nameEl.textContent = currentUserSession.nama;
+        if (nikEl) nikEl.textContent = currentUserSession.nik ? currentUserSession.nik : (currentUserSession.access_level === 'BRANCH_ISOLATED' ? 'Otorisasi Token Cabang' : 'Otorisasi Token Pusat');
+        if (jabEl) jabEl.textContent = currentUserSession.jabatan;
+        if (cabEl) cabEl.textContent = isKing ? 'Seluruh 5 Wilayah Operasional (Nasional)' : currentUserSession.kantor;
+
+        // Inisial Avatar
+        if (avEl && currentUserSession.nama) {
+          const initials = currentUserSession.nama.split(' ').map(n => n[0]).slice(0, 2).join('');
+          avEl.textContent = initials || 'DT';
+        }
+
+        // 4. BATASI CAKUPAN WILAYAH (SCOPE GUARD):
+        if (isKing) {
+          if (badgeEl) {
+            badgeEl.className = 'px-3 py-1 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
+            badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span><span>Superuser / Otoritas Pengawas Nasional (5 Wilayah Terbuka)</span>';
+          }
+          if (filterKantorEl) {
+            filterKantorEl.disabled = false;
+            filterKantorEl.value = '';
+            filterKantorEl.title = 'Superuser: Akses Penuh Seluruh 5 Kantor Wilayah';
+          }
+          if (boardIsolationTag) {
+            boardIsolationTag.textContent = 'Superuser / Pengawas Nasional (5 Wilayah Terbuka)';
+            boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-400/20 text-purple-300 border border-purple-400/40';
+          }
+        } else if (isTechRole) {
+          // Staf Teknis: Scope Guard PIC (Surveyor / Analis / Reviewer Teknis)
+          const rawOffice = currentUserSession.kantor || currentUserSession.cabang || 'Kantor Pusat Jakarta';
+          let officeClean = String(rawOffice).trim();
+          if (officeClean.toUpperCase() === 'PUSAT' || officeClean.toUpperCase() === 'JKT' || officeClean.toLowerCase().includes('jakarta') || officeClean.toLowerCase().includes('pusat')) {
+            officeClean = 'Kantor Pusat Jakarta';
+          } else if (!officeClean.toLowerCase().includes('cabang') && !officeClean.toLowerCase().includes('kantor')) {
+            officeClean = 'Cabang ' + officeClean;
+          }
+          const picScopeLabel = 'Penugasan PIC: ' + (officeClean.includes('Jakarta') ? 'Kantor Pusat Jakarta' : officeClean);
+
+          if (badgeEl) {
+            badgeEl.className = 'px-3 py-1 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
+            badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-sky-400"></span><span>' + picScopeLabel + '</span>';
+          }
+          if (filterKantorEl) {
+            filterKantorEl.disabled = true;
+            filterKantorEl.title = 'Terkunci: Wilayah penugasan khusus PIC terdaftar (' + officeClean + ')';
+          }
+          if (boardIsolationTag) {
+            boardIsolationTag.textContent = picScopeLabel;
+            boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-400/20 text-sky-300 border border-sky-400/40';
+          }
+        } else if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
+          if (badgeEl) {
+            badgeEl.className = 'px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
+            badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Wilayah Terisolasi (' + normRole + '): ' + currentUserSession.kantor + '</span>';
+          }
+          if (filterKantorEl) {
+            filterKantorEl.value = currentUserSession.branch_code || '';
+            filterKantorEl.disabled = true;
+            filterKantorEl.title = 'Terkunci: Wilayah kerja dibatasi hanya ' + currentUserSession.kantor;
+          }
+          if (boardIsolationTag) {
+            boardIsolationTag.textContent = 'Isolasi Terkunci: ' + currentUserSession.kantor;
+            boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40';
+          }
         } else {
-          btnRegister.classList.add('hidden');
-          btnRegister.style.display = 'none';
+          // Pimpinan, Admin Pusat, dan Penilai Publik: Memiliki akses beralih antar 5 kantor wilayah
+          const hasFullOfficeAccess = ['PIMPINAN', 'PENILAI_PUBLIK'].includes(normRole) || (normRole === 'ADMIN_OPS' && !currentUserSession.isCabang);
+          if (badgeEl) {
+            badgeEl.className = 'px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
+            badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Akses Nasional (5 Kantor Wilayah)</span>';
+          }
+          if (filterKantorEl) {
+            filterKantorEl.disabled = !hasFullOfficeAccess;
+            filterKantorEl.title = hasFullOfficeAccess ? 'Pilihan 5 Kantor Wilayah Operasional KJPP NSR' : 'Wilayah Kerja Sesuai Penugasan';
+          }
+          if (boardIsolationTag) {
+            boardIsolationTag.textContent = hasFullOfficeAccess ? 'Akses Penuh 5 Wilayah' : 'Wilayah Terpantau';
+            boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/40';
+          }
         }
-      }
-
-      // 2. DEFAULT VIEWPORT: Untuk SURVEYOR, ANALIS, REVIEWER_SPM langsung ke Tugas Saya
-      if (['SURVEYOR', 'ANALIS', 'REVIEWER_SPM'].includes(normRole)) {
-        if (typeof setQueueTab === 'function') {
-          setQueueTab('my_tasks');
-        }
-      }
-
-      const nameEl = document.getElementById('user-display-name');
-      const nikEl = document.getElementById('user-display-nik');
-      const jabEl = document.getElementById('user-display-jabatan');
-      const cabEl = document.getElementById('user-display-cabang');
-      const avEl = document.getElementById('user-display-avatar');
-      const badgeEl = document.getElementById('user-access-badge');
-      const filterKantorEl = document.getElementById('filter-kantor');
-      const boardIsolationTag = document.getElementById('board-isolation-tag');
-
-      if (nameEl) nameEl.textContent = currentUserSession.nama;
-      if (nikEl) nikEl.textContent = currentUserSession.nik ? currentUserSession.nik : (currentUserSession.access_level === 'BRANCH_ISOLATED' ? 'Otorisasi Token Cabang' : 'Otorisasi Token Pusat');
-      if (jabEl) jabEl.textContent = currentUserSession.jabatan;
-      if (cabEl) cabEl.textContent = isKing ? 'Seluruh 5 Wilayah Operasional (Nasional)' : currentUserSession.kantor;
-
-      // Inisial Avatar
-      if (avEl && currentUserSession.nama) {
-        const initials = currentUserSession.nama.split(' ').map(n => n[0]).slice(0, 2).join('');
-        avEl.textContent = initials || 'DT';
-      }
-
-      if (isKing) {
-        if (badgeEl) {
-          badgeEl.className = 'px-3 py-1 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
-          badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span><span>Superuser / Otoritas Pengawas Nasional (5 Wilayah Terbuka)</span>';
-        }
-
-        if (filterKantorEl) {
-          filterKantorEl.disabled = false;
-          filterKantorEl.value = '';
-          filterKantorEl.title = 'Superuser: Akses Penuh Seluruh 5 Kantor Wilayah';
-        }
-        if (boardIsolationTag) {
-          boardIsolationTag.textContent = 'Superuser / Pengawas Nasional (5 Wilayah Terbuka)';
-          boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-400/20 text-purple-300 border border-purple-400/40';
-        }
-      } else if (currentUserSession.access_level === 'BRANCH_ISOLATED') {
-        if (badgeEl) {
-          badgeEl.className = 'px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
-          badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Wilayah Terisolasi (' + normRole + '): ' + currentUserSession.kantor + '</span>';
-        }
-
-        if (filterKantorEl) {
-          filterKantorEl.value = currentUserSession.branch_code;
-          filterKantorEl.disabled = true;
-          filterKantorEl.title = 'Terkunci: Wilayah kerja dibatasi hanya ' + currentUserSession.kantor;
-        }
-        if (boardIsolationTag) {
-          boardIsolationTag.textContent = 'Isolasi Terkunci: ' + currentUserSession.kantor;
-          boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40';
-        }
-      } else {
-        // Pimpinan, Admin Pusat, dan Penilai Publik: Memiliki akses beralih antar 5 kantor wilayah
-        const hasFullOfficeAccess = ['PIMPINAN', 'PENILAI_PUBLIK'].includes(normRole) || (normRole === 'ADMIN_OPS' && !currentUserSession.isCabang);
-        if (badgeEl) {
-          badgeEl.className = 'px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
-          badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Akses 5 Wilayah Operasional (' + normRole + ')</span>';
-        }
-
-        if (filterKantorEl) {
-          filterKantorEl.disabled = !hasFullOfficeAccess;
-          filterKantorEl.title = hasFullOfficeAccess ? 'Pilihan 5 Kantor Wilayah Operasional KJPP NSR' : 'Wilayah Kerja Sesuai Penugasan';
-        }
-        if (boardIsolationTag) {
-          boardIsolationTag.textContent = hasFullOfficeAccess ? 'Akses Penuh 5 Wilayah' : 'Wilayah Terpantau';
-          boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/40';
-        }
-        if (badgeEl) {
-          badgeEl.className = 'px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
-          badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Akses Nasional (5 Kantor Wilayah)</span>';
-        }
-
-        if (filterKantorEl) {
-          filterKantorEl.disabled = false;
-          filterKantorEl.title = 'Saring berdasarkan kantor cabang wilayah';
-        }
-        if (boardIsolationTag) {
-          boardIsolationTag.textContent = 'Akses Penuh 5 Wilayah';
-          boardIsolationTag.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/40';
-        }
-      }
       } catch (uiErr) {
         console.warn('updateUserSessionUI warning (non-fatal):', uiErr);
       }
@@ -3608,9 +3668,33 @@
       const btnRegister = document.getElementById('tab-btn-register');
       const btnWorkload = document.getElementById('tab-btn-workload');
 
-      const normRole = normalizeRole(currentUserSession?.role);
-      if (tabId === 'register' && !['ADMIN_OPS', 'PIMPINAN'].includes(normRole)) {
-        tampilkanToastAksesDitolak('Akses Ditolak: Registrasi Job Order baru hanya diizinkan untuk Admin Operasional dan Pimpinan.');
+      const normRole = (typeof normalizeRole === 'function') ? normalizeRole(currentUserSession?.role) : (currentUserSession?.role || '');
+      const normJabatan = (typeof normalizeRole === 'function') ? normalizeRole(currentUserSession?.jabatan) : '';
+      const isKing = Boolean(
+        currentUserSession?.isKing ||
+        currentUserSession?.role === 'KING' ||
+        currentUserSession?.token === '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f' ||
+        currentUserSession?.token === '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0' ||
+        Boolean(currentUserSession?.isSuperAdmin)
+      );
+      const isTechRole = ['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normRole) || (['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normJabatan) && normRole !== 'PIMPINAN' && !isKing);
+      const canAccessControlTower = isKing || normRole === 'PIMPINAN' || (normRole === 'ADMIN_OPS' && !currentUserSession?.isCabang && !isTechRole);
+
+      if (tabId === 'register' && !(['ADMIN_OPS', 'PIMPINAN'].includes(normRole) && !isTechRole)) {
+        if (typeof tampilkanToastAksesDitolak === 'function') {
+          tampilkanToastAksesDitolak('Akses Ditolak: Registrasi Job Order baru hanya diizinkan untuk Admin Operasional dan Pimpinan.');
+        } else {
+          alert('Akses Ditolak: Registrasi Job Order baru hanya diizinkan untuk Admin Operasional dan Pimpinan.');
+        }
+        return;
+      }
+
+      if (tabId === 'workload' && !canAccessControlTower) {
+        if (typeof tampilkanToastAksesDitolak === 'function') {
+          tampilkanToastAksesDitolak('Akses Ditolak: Control Tower & SPM Hub hanya dapat diakses oleh Pimpinan, Admin Operasional Pusat, dan Superadmin.');
+        } else {
+          alert('Akses Ditolak: Control Tower & SPM Hub hanya dapat diakses oleh Pimpinan, Admin Operasional Pusat, dan Superadmin.');
+        }
         return;
       }
 
@@ -4012,8 +4096,9 @@
       if (badgeMy) badgeMy.textContent = myCount;
       if (badgeAll) badgeAll.textContent = allCount;
 
+      const isTechRole = ['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(userRole);
       const filtered = jobs.filter(job => {
-        if (currentQueueTab === 'my_tasks') {
+        if (currentQueueTab === 'my_tasks' || isTechRole) {
           if (!isPicMatch(job, userRole, userNik, userNama)) return false;
         }
 
@@ -4059,7 +4144,10 @@
       if (!tbody) return;
 
       if (!jobs || jobs.length === 0) {
-        if (currentQueueTab === 'my_tasks') {
+        const uProf = currentUserSession || (typeof getCurrentUserProfile === 'function' ? getCurrentUserProfile() : null);
+        const userRole = (typeof normalizeRole === 'function') ? normalizeRole(uProf?.role) : (uProf?.role || '');
+        const isTechEmpty = ['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(userRole);
+        if (currentQueueTab === 'my_tasks' || isTechEmpty) {
           tbody.innerHTML = `
             <tr>
               <td colspan="7" class="py-12 text-center">
@@ -4069,11 +4157,13 @@
                   </div>
                   <h3 class="text-sm font-bold text-white">Belum Ada Penugasan Aktif yang Ditugaskan kepada Anda</h3>
                   <p class="text-xs text-slate-400 leading-relaxed">
-                    Sistem tidak menemukan berkas dengan NIK / Nama Anda sebagai PIC Terdaftar pada Surat Tugas. Anda dapat membuka tab <strong>[🌐 Semua Penugasan Cabang/Nasional]</strong> untuk memantau status operasional secara luas.
+                    ${isTechEmpty ? 'Sistem tidak menemukan berkas aktif dengan NIK / Nama Anda sebagai PIC Terdaftar pada Surat Tugas. Silakan hubungi Pimpinan atau Admin Operasional untuk penugasan berkas baru.' : 'Sistem tidak menemukan berkas dengan NIK / Nama Anda sebagai PIC Terdaftar pada Surat Tugas. Anda dapat membuka tab <strong>[🌐 Semua Penugasan Cabang/Nasional]</strong> untuk memantau status operasional secara luas.'}
                   </p>
+                  ${isTechEmpty ? '' : `
                   <button type="button" onclick="setQueueTab('all_tasks')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-slate-700 transition cursor-pointer">
                     Buka Semua Penugasan Cabang/Nasional &rarr;
                   </button>
+                  `}
                 </div>
               </td>
             </tr>

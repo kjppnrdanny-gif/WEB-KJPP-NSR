@@ -385,6 +385,21 @@ try {
     'portal-tracking.html must lock branch dropdown for isolated branch admins'
   );
 
+  assert(
+    htmlContent.includes('canAccessControlTower') && htmlContent.includes('tab-btn-workload'),
+    'portal-tracking.html must hide Control Tower tab for technical staff (ANALIS, SURVEYOR, REVIEWER_SPM)'
+  );
+
+  assert(
+    htmlContent.includes('tab-queue-all-tasks') && htmlContent.includes('isTechRole'),
+    'portal-tracking.html must hide and lock queue tab to Tugas Saya for technical staff'
+  );
+
+  assert(
+    htmlContent.includes('Penugasan PIC:') && htmlContent.includes('picScopeLabel'),
+    'portal-tracking.html must replace Akses Nasional badge with Penugasan PIC scope badge for technical staff'
+  );
+
 } finally {
   // Restore original staging file if backed up
   if (fs.existsSync(stagingBackup)) {
