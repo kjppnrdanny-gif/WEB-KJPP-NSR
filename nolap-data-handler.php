@@ -7183,6 +7183,35 @@ Audit Log ID: {$auditLogId}"
             }
 
             // C. Mutasi Data Otoritatif
+            // Hard Gatekeeper: Cek Hasil Audit Teknis SPI / KEPI di Portal QA Review (qa_reviews_staging.json)
+            $qaReviewsFile = __DIR__ . '/data/qa_reviews_staging.json';
+            if (file_exists($qaReviewsFile)) {
+                $qaData = json_decode(file_get_contents($qaReviewsFile), true);
+                if (is_array($qaData) && !empty($qaData['reviews'])) {
+                    $jobOrReq = $freshRecords[$targetIndex]['noPermintaan'] ?? $freshRecords[$targetIndex]['jo_number'] ?? '';
+                    $klienName = strtolower(trim((string)($freshRecords[$targetIndex]['namaKlien'] ?? '')));
+                    foreach ($qaData['reviews'] as $qRev) {
+                        $matchId = (!empty($qRev['job_order_id']) && ($qRev['job_order_id'] === $jobOrReq || $qRev['job_order_id'] === ($freshRecords[$targetIndex]['jo_number'] ?? '')));
+                        $matchKlien = (!empty($klienName) && strpos(strtolower($qRev['file_name'] ?? ''), $klienName) !== false);
+                        if ($matchId || $matchKlien) {
+                            if (empty($qRev['gate_nolap_unlocked']) && in_array($qRev['status'] ?? '', ['NOT_ACCEPTABLE', 'REQUIRES_MAJOR_REVISION'])) {
+                                return [
+                                    'success'   => false,
+                                    'http_code' => 422,
+                                    'error'     => "GENERASI NOLAP DITOLAK KERAS: Dokumen draf laporan terdeteksi berstatus " . $qRev['status'] . " pada Portal Technical Review & QA Laporan (Skor Mutu: " . ($qRev['compliance_score'] ?? 0) . "%). Perbaiki temuan kritis/mayor atau lakukan override resmi oleh Pimpinan Rekan.",
+                                    'violation' => 'QA_GATEKEEPER_LOCKED',
+                                    'details'   => [
+                                        'qa_review_id' => $qRev['id'],
+                                        'qa_status' => $qRev['status'],
+                                        'findings_summary' => $qRev['findings_summary'] ?? []
+                                    ]
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+
             // Validasi Rule: Tombol Generate Nomor Laporan Wajib Terkunci jika Checklist QA & Otorisasi Partner belum TRUE
             $isQAVerified = !empty($freshRecords[$targetIndex]['checklistQa']) || 
                             !empty($freshRecords[$targetIndex]['statusValidasiQa']) ||

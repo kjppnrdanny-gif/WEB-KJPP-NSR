@@ -16635,6 +16635,10 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       if (s === 'PERLU REVISI' || s === 'Perlu Perbaikan Cabang' || s === 'VOID' || s === 'DIBATALKAN') {
         return false;
       }
+      // Hard Gatekeeper: Kunci mutlak jika status Technical Review & QA Laporan berstatus ditolak / revisi mayor tanpa override
+      if (p.qaGateUnlocked === false || p.qaStatus === 'NOT_ACCEPTABLE' || p.qaStatus === 'REQUIRES_MAJOR_REVISION') {
+        return false;
+      }
       // Mode Booking Pemerintah/BUMN: Hak alokasi nomor diizinkan melalui Admin
       if (p.modePengajuan === 'BOOKING' || p.isBooking === true || s === 'BOOKING_DIAJUKAN' || s === 'BOOKING_DISETUJUI') {
         return true;

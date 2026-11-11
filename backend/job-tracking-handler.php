@@ -2981,6 +2981,45 @@ if ($action === 'get_workload_analytics') {
     $spm5Ratio = $spm5Eligible > 0 ? round(($spm5Passed / $spm5Eligible) * 100, 1) : 100.0;
     $spmComposite = round(($spm1Ratio * 0.35) + ($spm2Ratio * 0.30) + ($spm5Ratio * 0.35), 1);
 
+    // Integrasi Data Real-Time Portal Technical Review & QA Laporan
+    $qaStagingFile = $dataDir . '/qa_reviews_staging.json';
+    $qaTotal = 0;
+    $qaAnomalies = 0;
+    $qaScoreSum = 0;
+    if (file_exists($qaStagingFile)) {
+        $qaRaw = json_decode(file_get_contents($qaStagingFile), true);
+        if (is_array($qaRaw) && !empty($qaRaw['reviews'])) {
+            foreach ($qaRaw['reviews'] as $qRev) {
+                $qaTotal++;
+                $qScore = (float)($qRev['compliance_score'] ?? 0);
+                $qaScoreSum += $qScore;
+                $qSt = $qRev['status'] ?? '';
+                if (in_array($qSt, ['NOT_ACCEPTABLE', 'REQUIRES_MAJOR_REVISION'])) {
+                    $qaAnomalies++;
+                    $allBottlenecks[] = [
+                        'id' => $qRev['id'],
+                        'jo_number' => $qRev['job_order_id'] ?? 'JO-QA-REVIEW',
+                        'kode_lacak' => $qRev['job_order_id'] ?? '',
+                        'current_milestone' => 'M-05',
+                        'current_milestone_title' => 'QA Review Laporan (SPI/KEPI)',
+                        'debitur' => $qRev['file_name'] ?? 'Dokumen Draf Penilaian',
+                        'instansi' => 'Komite SPM',
+                        'kantor' => 'Pusat / Nasional',
+                        'kantor_code' => 'PUSAT',
+                        'days_in_stage' => 2,
+                        'threshold_days' => 1,
+                        'overdue_days' => 1,
+                        'warning' => 'Cacat Teknis SPI: ' . $qRev['status'] . ' (Skor: ' . ($qRev['compliance_score'] ?? 0) . '%) - ' . ($qRev['findings_summary']['critical'] ?? 0) . ' Temuan Kritis',
+                        'bottleneck_level' => 'danger',
+                        'penilai_pelaksana' => $qRev['uploaded_by'] ?? '-',
+                        'reviewer_spm' => 'Reviewer Kendali Mutu SPM'
+                    ];
+                }
+            }
+        }
+    }
+    $qaAvgScore = $qaTotal > 0 ? round($qaScoreSum / $qaTotal, 1) : 100.0;
+
     echo json_encode([
         'status' => 'success',
         'data' => [
@@ -2997,6 +3036,11 @@ if ($action === 'get_workload_analytics') {
                 'categories' => [
                     'APP' => $countApp,
                     'RTL' => $countRtl
+                ],
+                'qa_metrics' => [
+                    'total_reviewed' => $qaTotal,
+                    'anomalies_count' => $qaAnomalies,
+                    'avg_compliance' => $qaAvgScore
                 ],
                 'spm_metrics' => [
                     'spm1_nolap_ratio' => $spm1Ratio,

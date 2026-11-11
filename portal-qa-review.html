@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Technical Review &amp; QA Laporan | KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan</title>
+  <meta name="description" content="Sistem Pengujian Kepatuhan Standar Penilaian Indonesia (SPI) &amp; KEPI Otomatis, Quality Gatekeeper Penerbitan NoLap Kemenkeu KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan (KMK No. 2.19.0160).">
+  <link rel="icon" type="image/png" href="favicon.png?v=2">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25);
+    }
+    .glow-red {
+      box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.35);
+    }
+    .glow-amber {
+      box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.3);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="border-b border-slate-800/80 bg-[#0f172a]/95 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Brand & Title -->
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="flex items-center space-x-2 group">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-700 flex items-center justify-center font-black text-white text-base shadow-md group-hover:scale-105 transition-transform">
+            NSR
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-black tracking-wider text-sm sm:text-base text-slate-100 uppercase">PORTAL TECHNICAL REVIEW &amp; QA</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 uppercase">SPI 2024 V2</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-medium">Komite Kendali Mutu SPM &bull; KMK RI No. 2.19.0160</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Quick Nav Links & Active User -->
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <a href="index.html" class="hidden md:inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors">
+          <svg class="w-4 h-4 mr-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Dashboard Utama
+        </a>
+        <a href="portal-tracking.html" class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors">
+          <svg class="w-4 h-4 mr-1.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Tracking 7 Milestone
+        </a>
+        <a href="portal-nolap.html" class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors">
+          <svg class="w-4 h-4 mr-1.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Portal NoLap
+        </a>
+
+        <!-- User Badge -->
+        <div class="h-6 w-px bg-slate-800 hidden sm:block"></div>
+        <div class="flex items-center space-x-2 pl-2">
+          <div class="w-8 h-8 rounded-full bg-cyan-900/60 border border-cyan-700/60 flex items-center justify-center text-cyan-300 font-bold text-xs">
+            QA
+          </div>
+          <div class="hidden lg:block text-left">
+            <div class="text-xs font-semibold text-slate-200">Reviewer Teknis SPM</div>
+            <div class="text-[10px] text-cyan-400 font-mono">ID: QA-SPM-CENTRAL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SPLIT WORKSPACE -->
+  <main class="flex-1 max-w-[1920px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+
+    <!-- LEFT PANEL: DOCUMENT VIEWER & SAMPLE SELECTOR (Cols 1 to 6) -->
+    <section class="lg:col-span-6 flex flex-col space-y-4">
+      
+      <!-- Top Action Bar for Left Panel: Sample Loader & Uploader -->
+      <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center">
+            <svg class="w-4 h-4 mr-1.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            Pilih Dokumen Draf Penilaian
+          </span>
+          <span class="text-[11px] text-slate-400">PDF Reader / Auto-Parser Active</span>
+        </div>
+
+        <!-- Quick Sample Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+          <button type="button" id="btn-load-sample-fifa" onclick="muatSampelBerkas('fifa')" class="text-left px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-rose-900/40 hover:border-rose-700 transition flex items-center justify-between group">
+            <div class="overflow-hidden">
+              <div class="text-xs font-semibold text-rose-300 truncate group-hover:text-rose-200">🏥 RS FIFA MEDIKA (Dr Sutomo 94)</div>
+              <div class="text-[10px] text-slate-400 truncate">Rumah Sakit &bull; Ada Formula #REF!</div>
+            </div>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950 text-rose-400 border border-rose-800 shrink-0">KRITIS</span>
+          </button>
+
+          <button type="button" id="btn-load-sample-sarimukti" onclick="muatSampelBerkas('sarimukti')" class="text-left px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-amber-900/40 hover:border-amber-700 transition flex items-center justify-between group">
+            <div class="overflow-hidden">
+              <div class="text-xs font-semibold text-amber-300 truncate group-hover:text-amber-200">🏘️ Permata Harapan (KYG 313 Unit)</div>
+              <div class="text-[10px] text-slate-400 truncate">Kawasan Perumahan &bull; Ada Overflow ####</div>
+            </div>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-950 text-amber-400 border border-amber-800 shrink-0">MAYOR</span>
+          </button>
+        </div>
+
+        <!-- Drag & Drop Uploader -->
+        <div id="dropzone-pdf" class="border-2 border-dashed border-slate-700 hover:border-cyan-500/70 rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-900/40" onclick="document.getElementById('file-pdf-input').click()">
+          <input type="file" id="file-pdf-input" accept=".pdf" class="hidden" onchange="handleFileUpload(event)">
+          <div class="flex flex-col items-center justify-center space-y-1">
+            <svg class="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <p class="text-xs font-semibold text-slate-300">Tarik &amp; Lepas Berkas PDF Laporan Penilaian di sini</p>
+            <p class="text-[10px] text-slate-500">Maksimum 50 MB &bull; Sistem akan memindai rumus rusak, SPI &amp; KEPI secara otomatis</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Viewer Container -->
+      <div class="bg-[#111827] border border-slate-800 rounded-xl flex-1 flex flex-col overflow-hidden shadow-lg min-h-[500px]">
+        <!-- Viewer Toolbar -->
+        <div class="px-4 py-3 border-b border-slate-800 bg-slate-900/80 flex flex-wrap items-center justify-between gap-2">
+          <!-- Page Nav -->
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="ubahHalaman(-1)" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-xs font-mono font-medium text-slate-300">
+              Halaman <span id="current-page-num" class="text-cyan-400 font-bold">1</span> dari <span id="total-page-num" class="font-bold">63</span>
+            </span>
+            <button type="button" onclick="ubahHalaman(1)" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+
+          <!-- Quick Jump Selector -->
+          <div class="flex items-center space-x-2">
+            <label for="select-page-jump" class="text-[11px] text-slate-400">Loncat ke:</label>
+            <select id="select-page-jump" onchange="lompatKeHalaman(this.value)" class="bg-slate-800 text-slate-200 border border-slate-700 text-xs rounded px-2 py-1 focus:ring-1 focus:ring-cyan-500 focus:outline-none">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Page Finding Marker -->
+          <div id="page-finding-marker" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+            Halaman Bersih (Bebas Temuan)
+          </div>
+        </div>
+
+        <!-- Document Sheet Display / Preview Area -->
+        <div id="document-preview-pane" class="flex-1 p-4 sm:p-6 overflow-y-auto bg-slate-950/60 font-mono-code text-xs leading-relaxed">
+          <!-- Text or Rendered Document Canvas with Highlights will appear here -->
+          <div id="document-content-wrapper" class="max-w-2xl mx-auto bg-[#0f172a] border border-slate-800/80 rounded-lg p-6 shadow-inner min-h-[580px] relative">
+            <div id="doc-loading-spinner" class="hidden absolute inset-0 bg-[#0f172a]/80 backdrop-blur-sm flex flex-col items-center justify-center z-10">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mb-2"></div>
+              <span class="text-xs text-cyan-300 font-medium">Memproses Dokumen...</span>
+            </div>
+            
+            <div id="rendered-page-content" class="text-slate-300 whitespace-pre-wrap select-text">
+              <!-- Rendered Page Content injected via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Viewer Footer Status -->
+        <div class="px-4 py-2 border-t border-slate-800 bg-slate-900/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="doc-file-info">File: 2026 BTN Jalan Dr Sutomo No 94 an PT FIFA MEDIKA (RUMAH SAKIT).pdf</span>
+          <span class="text-cyan-400">Tekan "Buka Halaman" pada kartu temuan untuk navigasi instan</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: QA AUDIT SUMMARY & INTERACTIVE FINDINGS (Cols 7 to 12) -->
+    <section class="lg:col-span-6 flex flex-col space-y-4">
+
+      <!-- AUDIT VERDICT BANNER -->
+      <div id="verdict-banner-container" class="rounded-xl p-5 border shadow-lg transition-all glow-red bg-rose-950/20 border-rose-800/80">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <!-- Status & Title -->
+          <div class="flex items-start space-x-3">
+            <div id="verdict-icon-container" class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-rose-900/50 text-rose-400 border border-rose-700/60">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span id="verdict-title" class="text-lg sm:text-xl font-black text-rose-300 tracking-wide">NOT ACCEPTABLE</span>
+                <span id="verdict-badge" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-900/80 text-rose-300 border border-rose-700">DRAF DITOLAK</span>
+              </div>
+              <p id="verdict-desc" class="text-xs text-rose-200/90 mt-1 leading-snug">
+                Ditemukan 2 temuan Kritis dan 2 temuan Mayor. Berkas memiliki cacat matematis formula (#REF!) dan ketidaksesuaian formil SPI.
+              </p>
+            </div>
+          </div>
+
+          <!-- Quality Score Gauge -->
+          <div class="flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-rose-800/40 pt-3 sm:pt-0 sm:pl-4 shrink-0">
+            <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Skor Kepatuhan Mutu</div>
+            <div id="compliance-score-val" class="text-2xl sm:text-3xl font-black font-mono-code text-rose-400">30.0%</div>
+            <div class="text-[10px] text-rose-300/80 font-medium">Batas Lulus: ≥ 85.0%</div>
+          </div>
+        </div>
+
+        <!-- Metrics Ribbon -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 pt-3 border-t border-rose-900/40">
+          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-rose-900/30">
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Temuan Kritis</div>
+            <div id="stat-critical-count" class="text-lg font-black text-rose-400 font-mono-code">2</div>
+          </div>
+          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-amber-900/30">
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Temuan Mayor</div>
+            <div id="stat-major-count" class="text-lg font-black text-amber-400 font-mono-code">2</div>
+          </div>
+          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-yellow-900/30">
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Temuan Moderat</div>
+            <div id="stat-mod-count" class="text-lg font-black text-yellow-400 font-mono-code">0</div>
+          </div>
+          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-slate-700/40">
+            <div class="text-[10px] text-slate-400 uppercase font-semibold">Gerbang NoLap</div>
+            <div id="stat-gate-status" class="text-xs font-black text-rose-400 uppercase mt-1 flex items-center justify-center">
+              <span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1 animate-pulse"></span>
+              TERKUNCI 🔒
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENT METADATA CARD -->
+      <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-sm text-xs">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-slate-300 uppercase tracking-wider text-[11px]">Metadata Penugasan &amp; Agunan</span>
+          <span id="meta-job-id" class="px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-cyan-400 border border-slate-700">JO-NSR-2026-0881</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-slate-300">
+          <div><span class="text-slate-500">Nama Dokumen:</span> <span id="meta-doc-name" class="font-semibold text-slate-200 truncate inline-block max-w-[220px] align-bottom">2026 BTN Dr Sutomo 94...</span></div>
+          <div><span class="text-slate-500">Pengunggah:</span> <span id="meta-uploader" class="font-semibold text-slate-200">Tedi Setiadi (Penilai Pelaksana)</span></div>
+          <div><span class="text-slate-500">Total Halaman:</span> <span id="meta-total-pages" class="font-semibold font-mono text-slate-200">63 Halaman</span></div>
+          <div><span class="text-slate-500">SHA-256 Hash:</span> <span id="meta-hash" class="font-mono text-[10px] text-cyan-400 truncate inline-block max-w-[150px] align-bottom">78ab8254...6eef</span></div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE FINDING CARDS -->
+      <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-sm flex-1 flex flex-col">
+        <!-- Findings Header & Filter Tabs -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center space-x-2">
+            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Daftar Temuan Teknis SPI / KEPI</h3>
+            <span id="badge-total-findings" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800">4 Temuan</span>
+          </div>
+          <!-- Filter Buttons -->
+          <div class="flex items-center space-x-1">
+            <button type="button" onclick="filterTemuan('ALL')" class="btn-filter px-2 py-1 rounded text-[10px] font-semibold bg-cyan-900/60 text-cyan-300 border border-cyan-700/60 hover:bg-cyan-800/60 transition" data-filter="ALL">Semua</button>
+            <button type="button" onclick="filterTemuan('CRITICAL')" class="btn-filter px-2 py-1 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 hover:text-rose-300 transition" data-filter="CRITICAL">Kritis</button>
+            <button type="button" onclick="filterTemuan('MAJOR')" class="btn-filter px-2 py-1 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 hover:text-amber-300 transition" data-filter="MAJOR">Mayor</button>
+            <button type="button" onclick="filterTemuan('MODERATE')" class="btn-filter px-2 py-1 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 hover:text-yellow-300 transition" data-filter="MODERATE">Moderat</button>
+          </div>
+        </div>
+
+        <!-- Scrollable List of Findings -->
+        <div id="findings-list-container" class="space-y-3 overflow-y-auto max-h-[460px] pr-1">
+          <!-- Finding cards injected via JavaScript -->
+        </div>
+      </div>
+
+      <!-- ACTION TOOLBAR / QUALITY GATEKEEPER ACTIONS -->
+      <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-lg flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-2">
+          <!-- Button Download Report -->
+          <button type="button" id="btn-download-report" onclick="unduhLaporanQA()" class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 transition shadow-sm">
+            <svg class="w-4 h-4 mr-1.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Unduh QA Report (HTML/PDF)
+          </button>
+
+          <!-- Button Send Revision Note -->
+          <button type="button" id="btn-send-revision" onclick="bukaModalRevisi()" class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-bold text-amber-300 bg-amber-950/60 hover:bg-amber-900/60 border border-amber-800/80 transition shadow-sm">
+            <svg class="w-4 h-4 mr-1.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Minta Revisi ke Penilai
+          </button>
+        </div>
+
+        <!-- Button Override / Unlock NoLap Gate -->
+        <button type="button" id="btn-override-gate" onclick="bukaModalOverride()" class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-bold text-rose-300 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 transition shadow-sm">
+          <svg class="w-4 h-4 mr-1.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+          Dispensasi Pimpinan (Override Gate)
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL: DISPENSASI PIMPINAN (OVERRIDE NOLAP GATE) -->
+  <div id="modal-override" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#111827] border border-rose-800/80 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-rose-950 text-rose-400 border border-rose-800 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-base font-black text-rose-300 uppercase">Otorisasi Dispensasi Pimpinan</h4>
+          <p class="text-xs text-slate-400">Buka paksa kunci gerbang NoLap Kemenkeu</p>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-lg bg-rose-950/40 border border-rose-900/60 text-xs text-rose-200 mb-4">
+        <strong>Peringatan SPM:</strong> Tindakan override ini mencatat identitas Pimpinan Rekan dan alasan dispensasi secara permanen ke dalam Audit Trail SSOT.
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Nama Pimpinan Pemegang Otoritas:</label>
+          <input type="text" id="override-authorizer" value="Ir. Nanang Rahayu, MAPPI (Cert.)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">PIN Otorisasi Pimpinan Rekan:</label>
+          <input type="password" id="override-pin" placeholder="Masukkan 8-digit PIN Pimpinan" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 font-mono text-slate-200 focus:outline-none focus:border-rose-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Justifikasi &amp; Catatan Dispensasi:</label>
+          <textarea id="override-notes" rows="3" placeholder="Contoh: Telah diklarifikasi dengan pihak perbankan, revisi minor telah disepakati tanpa mengubah kesimpulan nilai akhir." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-rose-500"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 mt-6">
+        <button type="button" onclick="tutupModalOverride()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Batal</button>
+        <button type="button" onclick="eksekusiOverrideGate()" class="px-4 py-2 rounded-lg text-xs font-bold bg-rose-700 hover:bg-rose-600 text-white transition shadow-lg">Buka Kunci Gerbang NoLap 🔓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MINTA REVISI KE PENILAI -->
+  <div id="modal-revisi" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#111827] border border-amber-800/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-950 text-amber-400 border border-amber-800 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        </div>
+        <div>
+          <h4 class="text-base font-black text-amber-300 uppercase">Kirim Lembar Catatan Telaah SPM</h4>
+          <p class="text-xs text-slate-400">Instruksi perbaikan ke Penilai Pelaksana</p>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Penerima (Penilai Pelaksana):</label>
+          <input type="text" id="revisi-recipient" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-400">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Rangkuman Temuan Wajib Dibenahi:</label>
+          <textarea id="revisi-text-content" rows="6" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 font-mono text-[11px] focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mt-6">
+        <button type="button" onclick="salinCatatanRevisi()" class="text-xs text-cyan-400 hover:text-cyan-300 underline font-medium">📋 Salin Teks ke Clipboard</button>
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="tutupModalRevisi()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Tutup</button>
+          <button type="button" onclick="kirimInstruksiRevisi()" class="px-4 py-2 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-slate-950 transition">Kirim ke Task Board 🚀</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT-SIDE LOGIC & PDF VIEWER DRIVER -->
+  <script>
+    // State Active Review
+    let activeReview = null;
+    let activePageIndex = 1;
+    let totalPagesCount = 63;
+    let mockPageData = {};
+
+    // Mock Sample Reviews Data
+    const SAMPLE_REVIEWS = {
+      fifa: {
+        id: "rev-1794408458823-50",
+        job_order_id: "JO-NSR-2026-0881",
+        file_name: "2026 BTN Jalan Dr Sutomo No 94 an PT FIFA MEDIKA (RUMAH SAKIT).pdf",
+        file_hash: "78ab825475a6b83360048375d70b6fc8c3c4688afa6957e011192e95c05c6eef",
+        total_pages: 63,
+        uploaded_by: "Tedi Setiadi (Penilai Pelaksana)",
+        status: "NOT_ACCEPTABLE",
+        compliance_score: 30.0,
+        gate_nolap_unlocked: false,
+        findings_summary: { critical: 2, major: 2, moderate: 0, minor: 0, total: 4 },
+        findings: [
+          {
+            severity: "CRITICAL",
+            category: "CALCULATION",
+            title: "Formula Reference Error (#REF!) Terdeteksi",
+            condition_found: "Ditemukan token formula rusak '#REF!' pada halaman 11, 34, 35, 36. Rumus referensi sel Excel hilang saat ekspor ke naskah laporan.",
+            standard_reference: "SPI 105 Butir 5.1 & KEPI Butir 3 (Integritas Kalkulasi Nilai)",
+            impact_analysis: "Nilai pasar agunan tidak memiliki dasar matematis valid dan berpotensi gugur saat audit komite perbankan.",
+            corrective_action: "Buka kembali lembar KKP sumber dan perbaiki referensi sel formula yang hilang/terhapus.",
+            page_numbers: [11, 34, 35, 36]
+          },
+          {
+            severity: "CRITICAL",
+            category: "METHODOLOGY",
+            title: "Kontradiksi Identifikasi Objek: Tanah Kosong Memuat Penilaian Bangunan",
+            condition_found: "Laporan mendefinisikan objek sebagai 'Tanah Kosong' pada Bab Pendahuluan namun memuat kalkulasi Nilai Bangunan / RCN Rumah Sakit.",
+            standard_reference: "SPI 103 Butir 3.1 & KEPI Butir 2 (Kejelasan Objek Penilaian)",
+            impact_analysis: "Informasi material agunan menyesatkan (misleading). Legalitas perjanjian kredit perbankan cacat formil.",
+            corrective_action: "Koreksi lingkup objek menjadi 'Tanah dan Bangunan Komersial' atau sesuaikan identifikasi fisik agunan.",
+            page_numbers: [1, 3]
+          },
+          {
+            severity: "MAJOR",
+            category: "CLERICAL",
+            title: "Tampilan Angka Terpotong / Cell Overflow (####)",
+            condition_found: "Ditemukan karakter overflow '####' pada kolom tabel rincian biaya halaman 1, 34, 35 akibat lebar kolom tidak cukup.",
+            standard_reference: "SPI 103 Butir 4 (Kelengkapan Penyajian Laporan)",
+            impact_analysis: "Rincian angka biaya konstruksi atau unit tidak terbaca oleh komite kredit bank.",
+            corrective_action: "Perlebar lebar kolom pada spreadsheet KKP sebelum mengekspor ke dokumen PDF.",
+            page_numbers: [1, 34, 35]
+          },
+          {
+            severity: "MAJOR",
+            category: "CALCULATION",
+            title: "Indikasi Nilai Sarana Pelengkap Rp 0 Tanpa Keterangan",
+            condition_found: "Terdapat komponen biaya atau sarana pelengkap medis yang tercatat bernilai Rp 0,- tanpa catatan penjelasan.",
+            standard_reference: "SPI 105 Butir 5.2 (Kelengkapan Penilaian Fisik)",
+            impact_analysis: "Potensi kelalaian dalam menaksir sarana pelengkap properti agunan.",
+            corrective_action: "Lengkapi estimasi biaya sarana pelengkap atau beri keterangan resmi bila fasilitas tidak dinilai.",
+            page_numbers: [6]
+          }
+        ],
+        generated_report_pdf_url: "output/qa_reports/QA_REPORT_2026_BTN_Jalan_Dr_Sutomo_No_94_an_PT_FIFA_MEDIKA__RUMAH_SAKIT__pdf.html"
+      },
+      sarimukti: {
+        id: "rev-1794408460386-309",
+        job_order_id: "JO-NSR-2026-0412",
+        file_name: "BTN CBC Bekasi - Laporan KYG PT Ivander Putra Sukses - Permata Harapan Sarimukti (313 Unit)_ Revisi Laporan.pdf",
+        file_hash: "d2d20647bf8ec3d82d154e494d8baf5572bcf13b33c913d1b8b962a95ffb789e",
+        total_pages: 123,
+        uploaded_by: "Budi Santoso (Penilai Pelaksana)",
+        status: "REQUIRES_MAJOR_REVISION",
+        compliance_score: 68.0,
+        gate_nolap_unlocked: false,
+        findings_summary: { critical: 0, major: 2, moderate: 1, minor: 0, total: 3 },
+        findings: [
+          {
+            severity: "MAJOR",
+            category: "CLERICAL",
+            title: "Tampilan Angka Terpotong / Cell Overflow (####)",
+            condition_found: "Ditemukan karakter overflow '####' pada kolom tabel rincian biaya halaman 49.",
+            standard_reference: "SPI 103 Butir 4 (Kelengkapan Penyajian Laporan)",
+            impact_analysis: "Rincian angka biaya konstruksi 313 unit rumah tidak terbaca utuh.",
+            corrective_action: "Perlebar lebar kolom pada spreadsheet KKP sebelum mengekspor ke dokumen PDF.",
+            page_numbers: [49]
+          },
+          {
+            severity: "MAJOR",
+            category: "METHODOLOGY",
+            title: "Analisis HBU Tidak Mengelaborasi 4 Kriteria Baku",
+            condition_found: "Uji Highest and Best Use belum mengelaborasi kelayakan finansial dan produktivitas maksimal proyek.",
+            standard_reference: "KPUP Butir 10 & SPI 105 (Uji 4 Kriteria Analisis HBU)",
+            impact_analysis: "Landasan penetapan pendekatan penilaian properti agunan menjadi rentan digugat auditor.",
+            corrective_action: "Lengkapi matriks pengujian 4 kriteria HBU secara terukur.",
+            page_numbers: [22, 23]
+          },
+          {
+            severity: "MODERATE",
+            category: "METHODOLOGY",
+            title: "Penerapan Diskon Nilai Likuidasi Flat 30% Tanpa Justifikasi Waktu Pemasaran",
+            condition_found: "Nilai likuidasi dipotong flat 30% tanpa analisis mendalam regarding daya serap pasar perumahan subsidi.",
+            standard_reference: "SPI 202 Butir 4.3 (Penetapan Nilai Likuidasi Agunan Perbankan)",
+            impact_analysis: "Dapat dipertanyakan oleh Komite Risiko Bank BTN saat restrukturisasi agunan.",
+            corrective_action: "Sertakan justifikasi tertulis mengenai profil pembeli dan waktu penjualan lelang 3-6 bulan.",
+            page_numbers: [8, 9]
+          }
+        ],
+        generated_report_pdf_url: "output/qa_reports/QA_REPORT_BTN_CBC_Bekasi_-_Laporan_KYG_PT_Ivander_Putra_Sukses_-_Permata_Harapan_Sarimukti__313_Unit___Revisi_Laporan_pdf.html"
+      }
+    };
+
+    // Initialize View on Page Load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load first sample by default
+      muatSampelBerkas('fifa');
+    });
+
+    function muatSampelBerkas(sampleKey) {
+      const data = SAMPLE_REVIEWS[sampleKey];
+      if (!data) return;
+      applyReviewData(data);
+    }
+
+    function applyReviewData(review) {
+      activeReview = review;
+      totalPagesCount = review.total_pages || 63;
+      activePageIndex = 1;
+
+      // Update Metadata
+      document.getElementById('meta-job-id').textContent = review.job_order_id;
+      document.getElementById('meta-doc-name').textContent = review.file_name;
+      document.getElementById('meta-uploader').textContent = review.uploaded_by;
+      document.getElementById('meta-total-pages').textContent = review.total_pages + ' Halaman';
+      document.getElementById('meta-hash').textContent = (review.file_hash || '').substring(0, 16) + '...';
+      document.getElementById('doc-file-info').textContent = 'File: ' + review.file_name;
+
+      // Update Verdict Banner
+      const isBad = review.status === 'NOT_ACCEPTABLE' || review.status === 'REQUIRES_MAJOR_REVISION';
+      const isCrit = review.status === 'NOT_ACCEPTABLE';
+
+      const banner = document.getElementById('verdict-banner-container');
+      const vIcon = document.getElementById('verdict-icon-container');
+      const vTitle = document.getElementById('verdict-title');
+      const vBadge = document.getElementById('verdict-badge');
+      const vDesc = document.getElementById('verdict-desc');
+      const scoreVal = document.getElementById('compliance-score-val');
+      const gateStatus = document.getElementById('stat-gate-status');
+
+      vTitle.textContent = review.status.replace(/_/g, ' ');
+      scoreVal.textContent = review.compliance_score.toFixed(1) + '%';
+
+      if (isCrit) {
+        banner.className = 'rounded-xl p-5 border shadow-lg transition-all glow-red bg-rose-950/20 border-rose-800/80';
+        vIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-rose-900/50 text-rose-400 border border-rose-700/60';
+        vTitle.className = 'text-lg sm:text-xl font-black text-rose-300 tracking-wide';
+        vBadge.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-900/80 text-rose-300 border border-rose-700';
+        vBadge.textContent = 'DRAF DITOLAK';
+        vDesc.textContent = `Ditemukan ${review.findings_summary.critical} temuan Kritis dan ${review.findings_summary.major} temuan Mayor. Berkas memiliki cacat matematis formula (#REF!) dan ketidaksesuaian formil SPI.`;
+        scoreVal.className = 'text-2xl sm:text-3xl font-black font-mono-code text-rose-400';
+      } else if (isBad) {
+        banner.className = 'rounded-xl p-5 border shadow-lg transition-all glow-amber bg-amber-950/20 border-amber-800/80';
+        vIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-900/50 text-amber-400 border border-amber-700/60';
+        vTitle.className = 'text-lg sm:text-xl font-black text-amber-300 tracking-wide';
+        vBadge.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-900/80 text-amber-300 border border-amber-700';
+        vBadge.textContent = 'REVISI MAYOR';
+        vDesc.textContent = `Ditemukan ${review.findings_summary.major} temuan Mayor. Dokumen wajib diperbaiki dan diuji ulang sebelum persetujuan NoLap.`;
+        scoreVal.className = 'text-2xl sm:text-3xl font-black font-mono-code text-amber-400';
+      } else {
+        banner.className = 'rounded-xl p-5 border shadow-lg transition-all glow-emerald bg-emerald-950/20 border-emerald-800/80';
+        vIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-emerald-900/50 text-emerald-400 border border-emerald-700/60';
+        vTitle.className = 'text-lg sm:text-xl font-black text-emerald-300 tracking-wide';
+        vBadge.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-900/80 text-emerald-300 border border-emerald-700';
+        vBadge.textContent = 'LOLOS UJI MUTU';
+        vDesc.textContent = 'Dokumen memenuhi seluruh standar uji matematis, integritas data SPI & KEPI.';
+        scoreVal.className = 'text-2xl sm:text-3xl font-black font-mono-code text-emerald-400';
+      }
+
+      // Counts
+      document.getElementById('stat-critical-count').textContent = review.findings_summary.critical;
+      document.getElementById('stat-major-count').textContent = review.findings_summary.major;
+      document.getElementById('stat-mod-count').textContent = review.findings_summary.moderate;
+
+      // Gate Status
+      if (review.gate_nolap_unlocked) {
+        gateStatus.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span> TERBUKA 🔓';
+        gateStatus.className = 'text-xs font-black text-emerald-400 uppercase mt-1 flex items-center justify-center';
+      } else {
+        gateStatus.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1 animate-pulse"></span> TERKUNCI 🔒';
+        gateStatus.className = 'text-xs font-black text-rose-400 uppercase mt-1 flex items-center justify-center';
+      }
+
+      // Populate Page Selector
+      const sel = document.getElementById('select-page-jump');
+      sel.innerHTML = '';
+      for (let i = 1; i <= Math.min(review.total_pages, 150); i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `Halaman ${i}`;
+        sel.appendChild(opt);
+      }
+      document.getElementById('total-page-num').textContent = review.total_pages;
+
+      // Render Findings List
+      renderFindings(review.findings);
+
+      // Render Document Page 1
+      tampilkanHalaman(1);
+    }
+
+    function renderFindings(findings, filter = 'ALL') {
+      const container = document.getElementById('findings-list-container');
+      container.innerHTML = '';
+
+      const filtered = filter === 'ALL' ? findings : findings.filter(f => f.severity === filter);
+      document.getElementById('badge-total-findings').textContent = `${filtered.length} Temuan`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-500 text-xs">
+            Tidak ada temuan dengan filter kategori ini.
+          </div>`;
+        return;
+      }
+
+      filtered.forEach((f, idx) => {
+        let badgeColor = 'bg-rose-950 text-rose-300 border-rose-800';
+        let borderColor = 'border-rose-900/40 hover:border-rose-700';
+        let textColor = 'text-rose-300';
+
+        if (f.severity === 'MAJOR') {
+          badgeColor = 'bg-amber-950 text-amber-300 border-amber-800';
+          borderColor = 'border-amber-900/40 hover:border-amber-700';
+          textColor = 'text-amber-300';
+        } else if (f.severity === 'MODERATE') {
+          badgeColor = 'bg-yellow-950 text-yellow-300 border-yellow-800';
+          borderColor = 'border-yellow-900/40 hover:border-yellow-700';
+          textColor = 'text-yellow-300';
+        }
+
+        const card = document.createElement('div');
+        card.className = `p-3.5 rounded-xl bg-slate-900/70 border ${borderColor} transition-all space-y-2 group`;
+
+        const firstPage = (f.page_numbers && f.page_numbers.length > 0) ? f.page_numbers[0] : 1;
+        const pagePills = (f.page_numbers || []).map(p => 
+          `<button type="button" onclick="lompatKeHalaman(${p})" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-cyan-400 hover:bg-cyan-900/60 border border-slate-700 transition">Hal ${p}</button>`
+        ).join(' ');
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-black border uppercase ${badgeColor}">
+                ${f.severity}
+              </span>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${f.category}</span>
+            </div>
+            <button type="button" onclick="lompatKeHalaman(${firstPage})" class="inline-flex items-center text-[10px] font-semibold text-cyan-400 hover:text-cyan-300 group-hover:underline">
+              🔍 Buka Dokumen (Hal ${firstPage}) &rarr;
+            </button>
+          </div>
+
+          <h5 class="text-xs font-bold ${textColor} leading-snug">${f.title}</h5>
+          
+          <div class="text-[11px] text-slate-300 leading-normal">
+            <span class="text-slate-500 font-medium">Kondisi Faktual:</span> ${f.condition_found}
+          </div>
+
+          <div class="text-[11px] text-slate-400 leading-normal bg-slate-950/40 p-2 rounded border border-slate-800/80">
+            <div class="text-cyan-400 font-semibold mb-0.5">Rekomendasi Aksi:</div>
+            ${f.corrective_action}
+          </div>
+
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-800/60">
+            <span>Ref: <strong class="text-slate-400">${f.standard_reference}</strong></span>
+            <div class="flex items-center space-x-1">
+              <span class="mr-1">Lokasi:</span>
+              ${pagePills}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function filterTemuan(category) {
+      document.querySelectorAll('.btn-filter').forEach(btn => {
+        if (btn.dataset.filter === category) {
+          btn.className = 'btn-filter px-2 py-1 rounded text-[10px] font-semibold bg-cyan-900/60 text-cyan-300 border border-cyan-700/60';
+        } else {
+          btn.className = 'btn-filter px-2 py-1 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 hover:text-white';
+        }
+      });
+      if (activeReview) {
+        renderFindings(activeReview.findings, category);
+      }
+    }
+
+    function ubahHalaman(delta) {
+      const target = activePageIndex + delta;
+      if (target >= 1 && target <= totalPagesCount) {
+        lompatKeHalaman(target);
+      }
+    }
+
+    function lompatKeHalaman(pageNum) {
+      activePageIndex = parseInt(pageNum, 10);
+      document.getElementById('current-page-num').textContent = activePageIndex;
+      document.getElementById('select-page-jump').value = activePageIndex;
+      tampilkanHalaman(activePageIndex);
+    }
+
+    function tampilkanHalaman(page) {
+      const contentEl = document.getElementById('rendered-page-content');
+      const markerEl = document.getElementById('page-finding-marker');
+
+      // Check if page has findings
+      const pageFindings = (activeReview?.findings || []).filter(f => (f.page_numbers || []).includes(page));
+
+      if (pageFindings.length > 0) {
+        const topFinding = pageFindings[0];
+        const isCrit = pageFindings.some(f => f.severity === 'CRITICAL');
+        markerEl.textContent = `⚠️ Terdeteksi ${pageFindings.length} Temuan (${topFinding.severity})`;
+        markerEl.className = isCrit 
+          ? 'text-[11px] font-bold px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 animate-pulse'
+          : 'text-[11px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800';
+      } else {
+        markerEl.textContent = 'Halaman Bersih (Bebas Temuan)';
+        markerEl.className = 'text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400';
+      }
+
+      // Render simulated page excerpt with highlight box
+      let simulatedText = '';
+
+      if (activeReview?.job_order_id === 'JO-NSR-2026-0881') {
+        // RS FIFA MEDIKA
+        if (page === 11 || page === 34 || page === 35) {
+          simulatedText = `
+[HALAMAN ${page}] - RESUME PENILAIAN FASILITAS RUMAH SAKIT
+KJPP NANANG RAHAYU SIGIT PARYANTO & REKAN
+========================================================================================
+
+NO  URAIAN PEKERJAAN               BOBOT (%)    NILAI FISIK (RP)      KETERANGAN
+----------------------------------------------------------------------------------------
+1.  Struktur Bangunan Utama Medis     45.0%     Rp  18.500.000.000    Sesuai IMB
+2.  Instalasi Gas Medis Sentral       12.5%     <mark class="bg-rose-500/30 text-rose-200 border border-rose-500 px-1 font-bold">#REF!</mark>                <-- [TEMUAN: ERROR FORMULA #REF!]
+3.  Genset & Power Backup 500kVA       8.0%     <mark class="bg-amber-500/30 text-amber-200 border border-amber-500 px-1 font-bold">########</mark>             <-- [TEMUAN: OVERFLOW ####]
+4.  Lift Pasien & Selasar Rawat       14.0%     Rp   3.200.000.000    Terpasang
+5.  IPAL Limbah B3 Rumah Sakit        10.5%     <mark class="bg-amber-500/30 text-amber-200 border border-amber-500 px-1 font-bold">Rp 0,-</mark>                 <-- [TEMUAN: NILAI RP 0]
+----------------------------------------------------------------------------------------
+TOTAL KESIMPULAN NILAI SARANA:        90.0%     <mark class="bg-rose-500/30 text-rose-200 border border-rose-500 px-1 font-bold">#REF!</mark>                FORMULA RUSAK
+========================================================================================
+
+CATATAN AUDITOR SPM:
+Sel Excel referensi pada lembar kerja KKP K-03 terputus. Angka tidak dapat direkonsiliasi.`;
+        } else if (page === 1 || page === 3) {
+          simulatedText = `
+[HALAMAN ${page}] - SURAT PENGANTAR & RINGKASAN PENILAIAN
+Nomor JO: JO-NSR-2026-0881
+
+Kepada Yth.
+KOMITE KREDIT PT BANK TABUNGAN NEGARA (PERSERO) TBK
+Branch Office / CBC
+
+Perihal: Laporan Penilaian Properti Agunan
+
+IDENTIFIKASI OBJEK PENILAIAN:
+<mark class="bg-rose-500/30 text-rose-200 border border-rose-500 px-1 font-bold">Objek Penilaian: TANAH KOSONG (VACANT LAND)</mark>  <-- [KONTRADIKSI MATERIAL]
+Lokasi: Jl. Dr. Sutomo No. 94, Pekalongan
+Peruntukan: Gedung Rumah Sakit PT FIFA MEDIKA
+
+PENDEKATAN PENILAIAN:
+1. Pendekatan Pasar (Market Data Approach)
+2. Pendekatan Biaya (Cost Approach - RCN & Depresiasi Fisik Bangunan RS)
+----------------------------------------------------------------------------------------
+CATATAN SPM: Objek dinyatakan 'Tanah Kosong' namun laporan menilai fisik Rumah Sakit.`;
+        } else {
+          simulatedText = `
+[HALAMAN ${page}] - NASKAH LAPORAN PENILAIAN TEKNIS
+KJPP NANANG RAHAYU SIGIT PARYANTO & REKAN (KMK No. 2.19.0160)
+Objek: PT FIFA MEDIKA (Rumah Sakit)
+Jl. Dr. Sutomo No. 94
+
+Kondisi Lingkungan & Aksesibilitas:
+Properti agunan terletak di koridor jalan utama kolektor sekunder dengan lebar ROW 14 meter.
+Kawasan sekitar didominasi sarana pelayanan kesehatan, fasilitas niaga perbankan, dan perkantoran.
+Topografi tanah rata, bebas banjir tahunan, dan memiliki orientasi hadap utara.
+
+Legalitas & Hak Kepemilikan:
+Sertifikat Hak Guna Bangunan (SHGB) atas nama perseroan dengan masa berlaku hingga tahun 2042.
+Zoning peruntukan ruang sesuai RTRW Kota: Kawasan Pelayanan Publik dan Fasilitas Medis Terpadu.
+Seluruh perizinan operasional rumah sakit kelas C dalam kondisi aktif.`;
+        }
+      } else {
+        // Sarimukti
+        if (page === 49) {
+          simulatedText = `
+[HALAMAN ${page}] - TABEL BIAYA KONSTRUKSI 313 UNIT PERUMAHAN
+PROYEK: PERMATA HARAPAN SARIMUKTI (PT IVANDER PUTRA SUKSES)
+----------------------------------------------------------------------------------------
+Tipe Unit       Jumlah    Luas Fisik (m2)    Biaya Satuan       Total Biaya Fisik
+----------------------------------------------------------------------------------------
+Tipe 36/60      180 Unit       6.480 m2      <mark class="bg-amber-500/30 text-amber-200 border border-amber-500 px-1 font-bold">############</mark>       <-- [OVERFLOW TEKS ####]
+Tipe 30/60      133 Unit       4.788 m2      Rp  2.850.000/m2   Rp 13.645.800.000
+----------------------------------------------------------------------------------------
+CATATAN REVISE: Kolom biaya satuan Tipe 36 terpotong pagar sel Excel (Cell Overflow).`;
+        } else if (page === 8 || page === 9) {
+          simulatedText = `
+[HALAMAN ${page}] - KESIMPULAN NILAI PASAR & NILAI LIKUIDASI
+Objek: Agunan Kredit Yasa Griya (KYG) 313 Unit Perumahan
+
+Total Nilai Pasar Properti:        Rp 14.910.455.000,-
+<mark class="bg-yellow-500/30 text-yellow-200 border border-yellow-500 px-1 font-bold">Diskon Nilai Likuidasi:            Dipotong 30% Flat</mark>  <-- [TEMUAN: DISKON FLAT SPI 202]
+Kesimpulan Nilai Likuidasi:        Rp 10.437.318.500,-
+
+CATATAN SPM SPI 202:
+Diskon likuidasi dipotong flat 30% tanpa narasi pendukung mengenai daya serap unit atau durasi lelang.`;
+        } else {
+          simulatedText = `
+[HALAMAN ${page}] - TINJAUAN UMUM KAWASAN PERUMAHAN
+Permata Harapan Sarimukti, Cibitung, Bekasi
+Pemberi Tugas: PT Bank Tabungan Negara (Persero) Tbk - CBC Bekasi
+
+Karakteristik Agunan:
+Kawasan pengembangan perumahan terpadu 313 unit untuk segmen masyarakat berpenghasilan rendah (MBR).
+Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan instalasi PLN mandiri.`;
+        }
+      }
+
+      contentEl.innerHTML = simulatedText.trim();
+    }
+
+    // Modal Actions
+    function unduhLaporanQA() {
+      if (activeReview?.generated_report_pdf_url) {
+        window.open(activeReview.generated_report_pdf_url, '_blank');
+      } else {
+        alert('Laporan evaluasi sedang diproses.');
+      }
+    }
+
+    function bukaModalRevisi() {
+      if (!activeReview) return;
+      document.getElementById('revisi-recipient').value = activeReview.uploaded_by || 'Penilai Pelaksana';
+      
+      const summaryText = (activeReview.findings || []).map((f, i) => 
+        `[${i+1}] (${f.severity}) ${f.title}\n    Hal: ${f.page_numbers.join(', ')}\n    Catatan: ${f.condition_found}\n    Rekomendasi: ${f.corrective_action}`
+      ).join('\n\n');
+
+      document.getElementById('revisi-text-content').value = 
+`Yth. ${activeReview.uploaded_by},
+
+Berdasarkan hasil audit Komite Kendali Mutu SPM pada berkas "${activeReview.file_name}" (JO: ${activeReview.job_order_id}):
+Status Dokumen: ${activeReview.status} (Skor Mutu: ${activeReview.compliance_score}%)
+
+Harap segera lakukan perbaikan atas temuan kritis/mayor berikut sebelum NoLap Kemenkeu dapat diterbitkan:
+
+${summaryText}
+
+Salam,
+Komite Kendali Mutu & Reviewer Teknis SPM
+KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
+
+      document.getElementById('modal-revisi').classList.remove('hidden');
+    }
+
+    function tutupModalRevisi() {
+      document.getElementById('modal-revisi').classList.add('hidden');
+    }
+
+    function salinCatatanRevisi() {
+      const txt = document.getElementById('revisi-text-content');
+      txt.select();
+      navigator.clipboard.writeText(txt.value).then(() => {
+        alert('Teks catatan revisi berhasil disalin ke clipboard!');
+      });
+    }
+
+    function kirimInstruksiRevisi() {
+      alert('Instruksi telaah SPM berhasil diteruskan ke Task Board & notifikasi penilai!');
+      tutupModalRevisi();
+    }
+
+    function bukaModalOverride() {
+      document.getElementById('modal-override').classList.remove('hidden');
+    }
+
+    function tutupModalOverride() {
+      document.getElementById('modal-override').classList.add('hidden');
+    }
+
+    function eksekusiOverrideGate() {
+      const pin = document.getElementById('override-pin').value.trim();
+      const authorizer = document.getElementById('override-authorizer').value.trim();
+      const notes = document.getElementById('override-notes').value.trim();
+
+      if (!pin) {
+        alert('PIN Otorisasi Pimpinan Rekan wajib diisi!');
+        return;
+      }
+
+      if (!notes) {
+        alert('Justifikasi dispensasi wajib diisi untuk kepatuhan Audit Trail SSOT!');
+        return;
+      }
+
+      // Call backend API to verify PIN securely and record the override permanently
+      fetch('backend/qa-engine-handler.php?action=override_approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          review_id: activeReview?.id || '',
+          auth_pin: pin,
+          override_by: authorizer,
+          override_reason: notes
+        })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'success') {
+          if (activeReview) {
+            activeReview.gate_nolap_unlocked = true;
+            activeReview.status = 'ACCEPTED_OVERRIDE';
+            activeReview.compliance_score = Math.max(activeReview.compliance_score, 85.0);
+            applyReviewData(activeReview);
+          }
+          alert('KUNCI GERBANG NOLAP TELAH DIBUKA DENGAN DISPENSASI PIMPINAN REKAN!\n\nNoLap Kemenkeu pada Portal NoLap kini dapat diterbitkan.');
+          tutupModalOverride();
+        } else {
+          alert('Otorisasi Ditolak: ' + (data.message || 'PIN Pimpinan Rekan tidak valid!'));
+        }
+      })
+      .catch(() => {
+        // Fallback demo mode simulation if offline
+        if (activeReview) {
+          activeReview.gate_nolap_unlocked = true;
+          activeReview.status = 'ACCEPTED_OVERRIDE';
+          activeReview.compliance_score = Math.max(activeReview.compliance_score, 85.0);
+          applyReviewData(activeReview);
+        }
+        alert('Kunci gerbang NoLap berhasil dibuka (Mode Simulasi).');
+        tutupModalOverride();
+      });
+    }
+
+    // File Upload Handler
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const spinner = document.getElementById('doc-loading-spinner');
+      spinner.classList.remove('hidden');
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('uploaded_by', 'Penilai Pelaksana (Upload Langsung)');
+      formData.append('job_order_id', 'JO-NSR-2026-UPLOAD');
+
+      fetch('backend/qa-engine-handler.php?action=upload_and_audit', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(res => {
+        spinner.classList.add('hidden');
+        if (res.status === 'success' && res.data) {
+          applyReviewData(res.data);
+          alert('Audit berkas selesai! Ditemukan ' + res.data.findings_summary.total + ' temuan.');
+        } else {
+          // Fallback if local without PHP webserver
+          simulateLocalAudit(file.name);
+        }
+      })
+      .catch(() => {
+        spinner.classList.add('hidden');
+        simulateLocalAudit(file.name);
+      });
+    }
+
+    function simulateLocalAudit(name) {
+      if (name.toLowerCase().includes('fifa') || name.toLowerCase().includes('sutomo')) {
+        muatSampelBerkas('fifa');
+      } else {
+        muatSampelBerkas('sarimukti');
+      }
+    }
+  </script>
+</body>
+</html>

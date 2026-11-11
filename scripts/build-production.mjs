@@ -92,7 +92,9 @@ const ALLOWED_FILES = [
   "governance-data-handler.php",
   "status-terintegrasi-handler.php",
   "job-tracking-handler.php",
-  "backend/job-tracking-handler.php"
+  "backend/job-tracking-handler.php",
+  "portal-qa-review.html",
+  "backend/qa-engine-handler.php"
 ];
 
 // 2. ALLOWLIST DIREKTORI PUBLIK
@@ -102,6 +104,7 @@ const ALLOWED_DIRS = [
   "img",
   "components",
   "lib",
+  "qa_engine",
   "uploads"
 ];
 

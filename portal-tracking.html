@@ -6245,7 +6245,13 @@ const pemberiTugas = (document.getElementById('reg-pemberi-tugas')?.value || doc
         const ctSpm2 = document.getElementById('ct-stat-spm2-rate');
         if (ctSpm2) ctSpm2.textContent = summary.spm_metrics.spm2_pakta_ratio + '%';
         const ctSpm5 = document.getElementById('ct-stat-spm5-rate');
-        if (ctSpm5) ctSpm5.textContent = summary.spm_metrics.spm5_review_ratio + '%';
+        if (ctSpm5) {
+          if (summary.qa_metrics && summary.qa_metrics.anomalies_count > 0) {
+            ctSpm5.innerHTML = `${summary.qa_metrics.avg_compliance}% <span class="text-[10px] text-rose-400 font-bold block">(${summary.qa_metrics.anomalies_count} Cacat SPI)</span>`;
+          } else {
+            ctSpm5.textContent = summary.spm_metrics.spm5_review_ratio + '%';
+          }
+        }
       }
 
       // Update tab navbar bottleneck badge
@@ -6298,6 +6304,7 @@ const pemberiTugas = (document.getElementById('reg-pemberi-tugas')?.value || doc
             '</div>' +
           '</div>' +
           '<div class="flex items-center gap-2 shrink-0 self-end md:self-center">' +
+            (bn.warning && bn.warning.includes('Cacat Teknis SPI') ? '<a href="portal-qa-review.html" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition flex items-center gap-1 cursor-pointer">🛡️ QA Review</a>' : '') +
             '<button type="button" class="btn-stepper px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95" onclick="window.bukaModalTracking(\'' + joRef + '\')" title="Buka Detail Stepper 7 Milestone">' +
               '<span>🔍 Stepper</span>' +
             '</button>' +
