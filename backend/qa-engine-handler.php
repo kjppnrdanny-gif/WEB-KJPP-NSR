@@ -27,16 +27,142 @@ $stagingFile = $dataDir . '/qa_reviews_staging.json';
 if (!is_dir($dataDir)) @mkdir($dataDir, 0777, true);
 if (!is_dir($outputDir)) @mkdir($outputDir, 0777, true);
 
-// Helper to load staging reviews
+// Helper to load staging reviews with auto-seeding
+function getInitialSeedReviews() {
+    return [
+        'reviews' => [
+            [
+                'id' => 'rev-fifa-0881',
+                'job_order_id' => 'JO-NSR-2026-0881',
+                'file_name' => '2026 BTN Jalan Dr Sutomo No 94 an PT FIFA MEDIKA (RUMAH SAKIT).pdf',
+                'file_hash' => '78ab825475a6b83360048375d70b6fc8c3c4688afa6957e011192e95c05c6eef',
+                'total_pages' => 63,
+                'uploaded_by' => 'Tedi Setiadi (Penilai Pelaksana)',
+                'status' => 'NOT_ACCEPTABLE',
+                'compliance_score' => 30.0,
+                'total_market_value' => 0,
+                'total_liquidation_value' => 0,
+                'discrepancy_amount' => 0,
+                'gate_nolap_unlocked' => false,
+                'findings_summary' => [
+                    'critical' => 2,
+                    'major' => 2,
+                    'moderate' => 0,
+                    'minor' => 0,
+                    'total' => 4
+                ],
+                'findings' => [
+                    [
+                        'severity' => 'CRITICAL',
+                        'category' => 'CALCULATION',
+                        'title' => 'Formula Reference Error (#REF!) Terdeteksi',
+                        'condition_found' => "Ditemukan token formula rusak '#REF!' pada halaman 11, 34, 35, 36. Rumus referensi sel Excel hilang.",
+                        'standard_reference' => 'SPI 105 Butir 5.1 & KEPI Butir 3 (Integritas Kalkulasi)',
+                        'impact_analysis' => 'Nilai pasar agunan tidak memiliki dasar matematis valid dan berpotensi gugur saat audit perbankan.',
+                        'corrective_action' => 'Buka kembali lembar KKP sumber dan perbaiki referensi sel formula yang hilang/terhapus.',
+                        'page_numbers' => [11, 34, 35, 36],
+                        'resolved' => false
+                    ],
+                    [
+                        'severity' => 'CRITICAL',
+                        'category' => 'METHODOLOGY',
+                        'title' => 'Kontradiksi Identifikasi Objek: Tanah Kosong Memuat Penilaian Bangunan',
+                        'condition_found' => "Laporan mendefinisikan objek sebagai 'Tanah Kosong' namun memuat bab kalkulasi Nilai Pasar Bangunan / RCN.",
+                        'standard_reference' => 'SPI 103 Butir 3.1 & KEPI Butir 2 (Kejelasan Objek Penilaian)',
+                        'impact_analysis' => 'Informasi material agunan menyesatkan (misleading). Legalitas kredit perbankan cacat formil.',
+                        'corrective_action' => "Koreksi lingkup objek menjadi 'Tanah dan Bangunan' atau hapus kertas kerja penilaian fisik bangunan.",
+                        'page_numbers' => [1, 3],
+                        'resolved' => false
+                    ],
+                    [
+                        'severity' => 'MAJOR',
+                        'category' => 'CLERICAL',
+                        'title' => 'Tampilan Angka Terpotong / Cell Overflow (####)',
+                        'condition_found' => "Ditemukan karakter overflow '####' pada kolom tabel rincian biaya halaman 1, 34, 35.",
+                        'standard_reference' => 'SPI 103 Butir 4 (Kelengkapan Penyajian Laporan)',
+                        'impact_analysis' => 'Rincian angka biaya konstruksi atau unit tidak terbaca oleh komite kredit bank.',
+                        'corrective_action' => 'Perlebar lebar kolom pada spreadsheet KKP sebelum mengekspor ke dokumen PDF.',
+                        'page_numbers' => [1, 34, 35],
+                        'resolved' => false
+                    ],
+                    [
+                        'severity' => 'MAJOR',
+                        'category' => 'CALCULATION',
+                        'title' => 'Indikasi Nilai Sarana Pelengkap Rp 0 Tanpa Keterangan',
+                        'condition_found' => 'Terdapat komponen biaya atau sarana pelengkap yang tercatat bernilai Rp 0.',
+                        'standard_reference' => 'SPI 105 Butir 5.2 (Kelengkapan Penilaian Fisik)',
+                        'impact_analysis' => 'Potensi kelalaian dalam menaksir sarana pelengkap properti agunan.',
+                        'corrective_action' => 'Lengkapi estimasi biaya sarana pelengkap atau beri keterangan resmi bila fasilitas tidak dinilai.',
+                        'page_numbers' => [6],
+                        'resolved' => false
+                    ]
+                ],
+                'created_at' => date('c'),
+                'generated_report_pdf_url' => 'output/qa_reports/QA_REPORT_2026_BTN_Jalan_Dr_Sutomo_No_94_an_PT_FIFA_MEDIKA__RUMAH_SAKIT__pdf.html'
+            ],
+            [
+                'id' => 'rev-sari-0412',
+                'job_order_id' => 'JO-NSR-2026-0412',
+                'file_name' => 'BTN CBC Bekasi - Laporan KYG PT Ivander Putra Sukses - Permata Harapan Sarimukti (313 Unit)_ Revisi Laporan.pdf',
+                'file_hash' => 'd2d20647bf8ec3d82d154e494d8baf5572bcf13b33c913d1b8b962a95ffb789e',
+                'total_pages' => 123,
+                'uploaded_by' => 'Budi Santoso (Penilai Pelaksana)',
+                'status' => 'NOT_ACCEPTABLE',
+                'compliance_score' => 42.0,
+                'total_market_value' => 0,
+                'total_liquidation_value' => 0,
+                'discrepancy_amount' => 0,
+                'gate_nolap_unlocked' => false,
+                'findings_summary' => [
+                    'critical' => 1,
+                    'major' => 1,
+                    'moderate' => 0,
+                    'minor' => 0,
+                    'total' => 2
+                ],
+                'findings' => [
+                    [
+                        'severity' => 'MAJOR',
+                        'category' => 'CLERICAL',
+                        'title' => 'Tampilan Angka Terpotong / Cell Overflow (####)',
+                        'condition_found' => "Ditemukan karakter overflow '####' pada kolom tabel rincian biaya halaman 49.",
+                        'standard_reference' => 'SPI 103 Butir 4 (Kelengkapan Penyajian Laporan)',
+                        'impact_analysis' => 'Rincian angka biaya konstruksi atau unit tidak terbaca oleh komite kredit bank.',
+                        'corrective_action' => 'Perlebar lebar kolom pada spreadsheet KKP sebelum mengekspor ke dokumen PDF.',
+                        'page_numbers' => [49],
+                        'resolved' => false
+                    ],
+                    [
+                        'severity' => 'CRITICAL',
+                        'category' => 'METHODOLOGY',
+                        'title' => 'Kontradiksi Identifikasi Objek: Tanah Kosong Memuat Penilaian Bangunan',
+                        'condition_found' => "Laporan mendefinisikan objek sebagai 'Tanah Kosong' namun memuat bab kalkulasi Nilai Pasar Bangunan / RCN.",
+                        'standard_reference' => 'SPI 103 Butir 3.1 & KEPI Butir 2 (Kejelasan Objek Penilaian)',
+                        'impact_analysis' => 'Informasi material agunan menyesatkan (misleading). Legalitas kredit perbankan cacat formil.',
+                        'corrective_action' => "Koreksi lingkup objek menjadi 'Tanah dan Bangunan' atau hapus kertas kerja penilaian fisik bangunan.",
+                        'page_numbers' => [1, 3],
+                        'resolved' => false
+                    ]
+                ],
+                'created_at' => date('c'),
+                'generated_report_pdf_url' => 'output/qa_reports/QA_REPORT_BTN_CBC_Bekasi_-_Laporan_KYG_PT_Ivander_Putra_Sukses_-_Permata_Harapan_Sarimukti__313_Unit___Revisi_Laporan_pdf.html'
+            ]
+        ],
+        'last_updated' => date('c')
+    ];
+}
+
 function loadStagingReviews($file) {
     if (file_exists($file)) {
         $content = file_get_contents($file);
         $json = json_decode($content, true);
-        if (is_array($json) && isset($json['reviews'])) {
+        if (is_array($json) && !empty($json['reviews'])) {
             return $json;
         }
     }
-    return ['reviews' => [], 'last_updated' => date('c')];
+    $seed = getInitialSeedReviews();
+    @file_put_contents($file, json_encode($seed, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    return $seed;
 }
 
 // Helper to save staging reviews
