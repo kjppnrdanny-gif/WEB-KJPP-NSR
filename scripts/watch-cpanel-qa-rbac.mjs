@@ -3,7 +3,7 @@
  * Monitors cPanel deployment workflow and performs live smoke verification.
  */
 
-const RUN_ID = '43057352474';
+const RUN_ID = '43061753380';
 const BASE_URL = 'https://kjppnanangrahayu.com';
 
 async function checkWorkflow() {
@@ -15,7 +15,7 @@ async function checkWorkflow() {
 
 async function main() {
   console.log('='.repeat(80));
-  console.log(`MENGAWASI DEPLOYMENT CPANEL PRODUKSI (RUN ${RUN_ID} - commit b559e4f)`);
+  console.log(`MENGAWASI DEPLOYMENT CPANEL PRODUKSI (RUN ${RUN_ID} - commit 02de779)`);
   console.log('='.repeat(80));
 
   let attempts = 0;
@@ -24,7 +24,7 @@ async function main() {
     const wf = await checkWorkflow();
     console.log(`[${new Date().toLocaleTimeString()}] Attempt ${attempts} -> Status: ${wf.status} | Conclusion: ${wf.conclusion}`);
     if (wf.status === 'completed') {
-      console.log(`\n🎉 Workflow selesai dengan kesimpulan: ${wf.conclusion}`);
+      console.log(`\n🎉 Workflow cPanel selesai dengan kesimpulan: ${wf.conclusion}`);
       break;
     }
     await new Promise(r => setTimeout(r, 6000));
@@ -44,15 +44,15 @@ async function main() {
   try {
     const res = await fetch(`${BASE_URL}/portal-qa-review.html?_t=${Date.now()}`);
     const html = await res.text();
-    const hasBackdoorLink = html.includes('Beralih ke Akun') || html.includes('gantiPeranManual');
-    const hasRoleSelect = html.includes('id="user-role-select"');
+    const hasAuthGate = html.includes('id="modal-auth-gate"');
+    const hasHeaderLogout = html.includes('id="btn-header-logout"');
     const hasSurveyorLocked = html.includes('id="modal-surveyor-locked"');
     const hasPenilaiBadgeLogic = html.includes('[Penilai Penyusun - M-04]');
 
     console.log(`[Portal QA Review HTML] HTTP ${res.status} | Size: ${html.length} bytes`);
+    console.log(`  -> Modal Auth Gate: ${hasAuthGate ? '✅ TERPASANG' : '❌ HILANG'}`);
+    console.log(`  -> Header Logout Switcher: ${hasHeaderLogout ? '✅ TERPASANG' : '❌ HILANG'}`);
     console.log(`  -> Modal Surveyor Lockout: ${hasSurveyorLocked ? '✅ TERPASANG' : '❌ HILANG'}`);
-    console.log(`  -> Backdoor Link "Beralih ke Akun": ${!hasBackdoorLink ? '✅ BERSIH (TERHAPUS TOTAL)' : '❌ MASIH ADA'}`);
-    console.log(`  -> Simulator Role Dropdown: ${!hasRoleSelect ? '✅ BERSIH (TERHAPUS TOTAL)' : '❌ MASIH ADA'}`);
     console.log(`  -> Penilai Penyusun M-04 Logic: ${hasPenilaiBadgeLogic ? '✅ TERPASANG' : '❌ HILANG'}`);
   } catch (e) {
     console.error(`[Portal QA HTML FAIL] ${e.message}`);

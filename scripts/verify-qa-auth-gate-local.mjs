@@ -168,13 +168,22 @@ try {
       const ws = document.getElementById('main-qa-workspace');
       const srvModal = document.getElementById('modal-surveyor-locked');
       const inputEl = document.getElementById('auth-input-token');
+      const labelEl = authModal ? authModal.querySelector('label[for="auth-input-token"]')?.textContent?.trim() : '';
+      const descEl = authModal ? authModal.querySelector('p')?.textContent?.trim() : '';
       const title = authModal ? authModal.querySelector('h3')?.textContent : '';
+      const placeholder = inputEl ? inputEl.getAttribute('placeholder') : '';
+      const hasLeakedSample = /NSR|VAL|SRV|2019|CONTOH/i.test(placeholder);
+
       return {
         authModalVisible: authModal ? !authModal.classList.contains('hidden') : false,
         workspaceHidden: ws ? (ws.style.display === 'none') : false,
         surveyorModalHidden: srvModal ? srvModal.classList.contains('hidden') : false,
         hasInput: Boolean(inputEl),
-        title: title
+        title: title,
+        label: labelEl,
+        desc: descEl,
+        placeholder: placeholder,
+        hasLeakedSample: hasLeakedSample
       };
     })()`,
     returnByValue: true
@@ -184,6 +193,10 @@ try {
   assert(gateRes.result.value.workspaceHidden === true, 'Workspace teknis (#main-qa-workspace) HARUS terkunci rapat (display: none)');
   assert(gateRes.result.value.surveyorModalHidden === true, 'Modal penolakan surveyor TIDAK boleh muncul secara acak');
   assert(gateRes.result.value.hasInput === true, 'Kolom input token/NIK (#auth-input-token) tersedia');
+  assert(gateRes.result.value.label === 'Token NIK', `Label form harus "Token NIK" (Aktual: "${gateRes.result.value.label}")`);
+  assert(gateRes.result.value.desc.includes('Silakan masukkan Token NIK resmi Anda untuk verifikasi hak akses'), 'Deskripsi modal formal dan tersanitasi');
+  assert(gateRes.result.value.placeholder === 'Masukkan Token NIK Anda', `Placeholder netral: "${gateRes.result.value.placeholder}"`);
+  assert(gateRes.result.value.hasLeakedSample === false, 'KEAMANAN TERTINGGI: Placeholder BEBAS 100% dari contoh token/NIK yang bocor');
   assert(gateRes.result.value.title.includes('Otentikasi Personel QA & SPM'), `Judul modal otentikasi tepat: "${gateRes.result.value.title}"`);
   await captureProof('bukti_qa_gate_login_modal.png');
 
@@ -211,7 +224,7 @@ try {
 
   assert(errorRes.result.value.loginSuccess === false, 'eksekusiLoginQA() harus mengembalikan false untuk token tidak valid');
   assert(errorRes.result.value.errVisible === true, 'Pesan error merah (#auth-error-msg) harus ditampilkan');
-  assert(errorRes.result.value.errText.includes('Token / NIK tidak terdaftar di sistem KJPP NSR'), `Teks error sesuai: "${errorRes.result.value.errText}"`);
+  assert(errorRes.result.value.errText.includes('Token NIK tidak valid. Hubungi administrator internal.'), `Teks error tersanitasi: "${errorRes.result.value.errText}"`);
   assert(errorRes.result.value.workspaceHidden === true, 'Workspace tetap terkunci rapat');
   await captureProof('bukti_qa_gate_login_error.png');
 

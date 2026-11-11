@@ -108,13 +108,22 @@ try {
       const ws = document.getElementById('main-qa-workspace');
       const srvModal = document.getElementById('modal-surveyor-locked');
       const inputEl = document.getElementById('auth-input-token');
+      const labelEl = authModal ? authModal.querySelector('label[for="auth-input-token"]')?.textContent?.trim() : '';
+      const descEl = authModal ? authModal.querySelector('p')?.textContent?.trim() : '';
       const title = authModal ? authModal.querySelector('h3')?.textContent : '';
+      const placeholder = inputEl ? inputEl.getAttribute('placeholder') : '';
+      const hasLeakedSample = /NSR|VAL|SRV|2019|CONTOH/i.test(placeholder);
+
       return {
         authModalVisible: authModal ? !authModal.classList.contains('hidden') : false,
         workspaceHidden: ws ? (ws.style.display === 'none') : false,
         srvModalHidden: srvModal ? srvModal.classList.contains('hidden') : false,
         hasInput: Boolean(inputEl),
-        title: title
+        title: title,
+        label: labelEl,
+        desc: descEl,
+        placeholder: placeholder,
+        hasLeakedSample: hasLeakedSample
       };
     })()`,
     returnByValue: true
@@ -124,6 +133,10 @@ try {
   assert(gateRes.result.value.workspaceHidden === true, 'Workspace teknis QA HARUS terkunci rapat (display: none)');
   assert(gateRes.result.value.srvModalHidden === true, 'Modal surveyor lockout tidak boleh muncul secara acak');
   assert(gateRes.result.value.hasInput === true, 'Kolom input token/NIK resmi tersedia di live server');
+  assert(gateRes.result.value.label === 'Token NIK', `Label form live harus "Token NIK" (Aktual: "${gateRes.result.value.label}")`);
+  assert(gateRes.result.value.desc.includes('Silakan masukkan Token NIK resmi Anda untuk verifikasi hak akses'), 'Deskripsi modal live tersanitasi');
+  assert(gateRes.result.value.placeholder === 'Masukkan Token NIK Anda', `Placeholder live netral: "${gateRes.result.value.placeholder}"`);
+  assert(gateRes.result.value.hasLeakedSample === false, 'KEAMANAN TERTINGGI: Placeholder live BEBAS 100% dari contoh token/NIK bocor');
   assert(gateRes.result.value.title.includes('Otentikasi Personel QA & SPM'), `Judul modal otentikasi live sesuai: "${gateRes.result.value.title}"`);
   await captureProof('bukti_live_qa_auth_gate_modal.png');
 
@@ -149,7 +162,7 @@ try {
 
   assert(errorRes.result.value.loginSuccess === false, 'eksekusiLoginQA() menolak token palsu di live server');
   assert(errorRes.result.value.errVisible === true, 'Pesan error merah (#auth-error-msg) muncul');
-  assert(errorRes.result.value.errText.includes('Token / NIK tidak terdaftar di sistem KJPP NSR'), 'Pesan error sesuai spesifikasi');
+  assert(errorRes.result.value.errText.includes('Token NIK tidak valid. Hubungi administrator internal.'), `Pesan error tersanitasi: "${errorRes.result.value.errText}"`);
   assert(errorRes.result.value.workspaceHidden === true, 'Workspace teknis tetap terkunci');
 
   // 3. LIVE TEST LOGIN TOKEN PENILAI (NSR-VAL-2026)

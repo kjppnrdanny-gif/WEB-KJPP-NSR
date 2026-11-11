@@ -102,28 +102,28 @@
         </span>
         <h3 class="text-lg sm:text-xl font-extrabold text-white mt-2">Otentikasi Personel QA &amp; SPM — KJPP NSR</h3>
         <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-          Masukkan Token Akses atau NIK resmi Anda untuk membuka Ruang Kerja Technical Review &amp; QA.
+          Silakan masukkan Token NIK resmi Anda untuk verifikasi hak akses Ruang Kerja Technical Review &amp; QA.
         </p>
       </div>
 
       <form id="form-auth-gate" onsubmit="event.preventDefault(); eksekusiLoginQA();" class="space-y-4 text-left">
         <div>
-          <label for="auth-input-token" class="block text-xs font-semibold text-slate-300 mb-1.5">Token Akses / NIK Personel</label>
+          <label for="auth-input-token" class="block text-xs font-semibold text-slate-300 mb-1.5">Token NIK</label>
           <input 
             type="text" 
             id="auth-input-token" 
             name="auth_token" 
             autocomplete="off"
             oninput="this.value = this.value.toUpperCase(); document.getElementById('auth-error-msg').classList.add('hidden');" 
-            placeholder="Contoh: NSR-VAL-2026 atau NSR-2019-007" 
-            class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 focus:border-cyan-500 rounded-xl text-white font-mono text-sm uppercase placeholder-slate-500 focus:outline-none transition shadow-inner"
+            placeholder="Masukkan Token NIK Anda" 
+            class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 focus:border-cyan-500 rounded-xl text-white font-mono text-sm uppercase placeholder-slate-500 focus:outline-none transition shadow-inner tracking-wider"
             required
           />
         </div>
 
         <div id="auth-error-msg" class="hidden p-3 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs leading-relaxed flex items-start gap-2">
           <span class="text-rose-400 font-bold shrink-0">⚠️</span>
-          <span id="auth-error-text">Token / NIK tidak terdaftar di sistem KJPP NSR. Periksa kembali nomor registrasi Anda.</span>
+          <span id="auth-error-text">Token NIK tidak valid. Hubungi administrator internal.</span>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
@@ -711,7 +711,11 @@
 
       const user = verifikasiKredensial(rawVal);
       if (!user) {
-        if (errorEl) errorEl.classList.remove('hidden');
+        if (errorEl) {
+          const errTextEl = document.getElementById('auth-error-text');
+          if (errTextEl) errTextEl.textContent = 'Token NIK tidak valid. Hubungi administrator internal.';
+          errorEl.classList.remove('hidden');
+        }
         return false;
       }
 
