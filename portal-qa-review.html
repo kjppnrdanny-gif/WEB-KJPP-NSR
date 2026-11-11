@@ -69,16 +69,6 @@
           Portal NoLap
         </a>
 
-        <!-- Role Simulator Dropdown -->
-        <div class="relative hidden sm:inline-block text-left">
-          <select id="user-role-select" onchange="gantiPeranManual(this.value)" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-500 font-medium">
-            <option value="REVIEWER_SPM">🛡️ Reviewer Teknis SPM (M-05)</option>
-            <option value="PENILAI">📝 Penilai Penyusun / Drafter (M-04)</option>
-            <option value="REKAN">⚖️ Pimpinan Rekan / Kepala SPM</option>
-            <option value="SURVEYOR">🚷 Surveyor Lapangan (Uji Akses Terkunci)</option>
-          </select>
-        </div>
-
         <!-- User Badge Dynamic -->
         <div class="h-6 w-px bg-slate-800 hidden sm:block"></div>
         <div class="flex items-center space-x-2 pl-1 sm:pl-2">
@@ -121,11 +111,6 @@
         <a href="index.html" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center justify-center">
           <span>🏠 Dashboard Utama</span>
         </a>
-      </div>
-      <div class="pt-2">
-        <button type="button" onclick="gantiPeranManual('REVIEWER_SPM')" class="text-[11px] text-cyan-400 hover:text-cyan-300 underline font-medium">
-          🔑 Beralih ke Akun Reviewer SPM / Penilai Penyusun
-        </button>
       </div>
     </div>
   </div>
@@ -553,85 +538,154 @@
     // RBAC: DETEKSI SESI & OTORISASI PERAN PENGGUNA
     // =========================================================
     function detectActiveUser() {
-      const urlParams = new URLSearchParams(window.location.search);
-      let authKey = urlParams.get('auth_token') || urlParams.get('session_key') || urlParams.get('key') || '';
-      let explicitRole = urlParams.get('role') || '';
-      let explicitNik = urlParams.get('nik') || '';
+      // 1. Baca parameter URL secara komprehensif (?token, ?auth_token, ?role, ?nik)
+      const qParams = new URLSearchParams(window.location.search);
+      let incomingToken = qParams.get('token') || qParams.get('auth_token') || qParams.get('session_key') || qParams.get('key') || '';
+      let incomingRole = qParams.get('role') || '';
+      let incomingNik = qParams.get('nik') || '';
 
+      // 2. Pembersihan Cache Sesi Saat Ada Pergantian Kredensial URL (Session Cleanup on Auth Change)
+      // Jika URL membawa token/role baru, bersihkan sesi lama agar hak akses Surveyor/lama tidak tertinggal
+      if (incomingToken || incomingRole || incomingNik) {
+        try {
+          sessionStorage.removeItem('nsr_user_session');
+          sessionStorage.removeItem('NSR_USER_SESSION');
+        } catch (_) {}
+      }
+
+      // 3. Baca session storage (jika tidak ada token baru di URL)
       let session = null;
       try {
-        const sessStr = sessionStorage.getItem('nsr_user_session') || localStorage.getItem('nsr_user_session');
+        const sessStr = sessionStorage.getItem('nsr_user_session') || sessionStorage.getItem('NSR_USER_SESSION') || localStorage.getItem('nsr_user_session') || localStorage.getItem('NSR_USER_SESSION');
         if (sessStr) session = JSON.parse(sessStr);
       } catch(_) {}
 
-      if (!authKey && session?.auth_token) authKey = session.auth_token;
-      if (!authKey && session?.token) authKey = session.token;
-      if (!explicitRole && session?.role) explicitRole = session.role;
-      if (!explicitNik && session?.nik) explicitNik = session.nik;
+      let token = incomingToken || session?.token || session?.auth_token || '';
+      let role = (incomingRole || session?.role || '').toUpperCase();
+      let nik = incomingNik || session?.nik || '';
 
-      let role = (explicitRole || '').toUpperCase();
-      const keyUpper = (authKey || '').toUpperCase();
+      const tokenUpper = (token || '').trim().toUpperCase();
 
-      // Rule 1: Surveyor Lapangan (Strict Lockout)
-      if (keyUpper.includes('SRV') || role.includes('SURVEYOR') || role.includes('LAPANGAN')) {
-        role = 'SURVEYOR';
-      } 
-      // Rule 2: Kepala SPM / Super Admin (NSR-2019-005)
-      else if (keyUpper === '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F' || keyUpper.includes('KING') || keyUpper.includes('ADMIN') || role.includes('SUPERADMIN') || explicitNik === 'NSR-2019-005') {
-        role = 'KEPALA_SPM';
-      } 
-      // Rule 3: Reviewer SPM (Tedi Setiadi NSR-2019-007 / Angga Malid NSR-2019-009)
-      else if (keyUpper.includes('REV') || keyUpper.includes('SPM') || role.includes('REVIEW') || explicitNik === 'NSR-2019-007' || explicitNik === 'NSR-2019-009') {
-        role = 'REVIEWER_SPM';
-      } 
-      // Rule 4: Penilai Penyusun / Valuer / Analis
-      else if (keyUpper.includes('VAL') || keyUpper.includes('ANL') || role.includes('ANALIS') || role.includes('VALUER') || role.includes('PENILAI')) {
-        role = 'PENILAI';
-      } 
-      // Rule 5: Rekan / Pimpinan Penilai Publik
-      else if (keyUpper.includes('PIMPINAN') || keyUpper.includes('REKAN') || role.includes('PIMPINAN') || role.includes('REKAN')) {
-        role = 'REKAN';
-      } 
-      else if (!role) {
-        role = 'REVIEWER_SPM'; // Default demo mode
+      // Jika ada token baru di URL, reset role agar evaluasi hierarki token yang diutamakan
+      if (incomingToken) {
+        role = '';
       }
 
-      return {
+      // -------------------------------------------------------------
+      // HIERARKI PERAN BAKU OPERASIONAL KJPP NSR
+      // -------------------------------------------------------------
+
+      // 1. PENILAI PENYUSUN / VALUER (M-04) - TOKEN NSR-VAL-2026
+      if (
+        tokenUpper.startsWith('NSR-VAL') || 
+        tokenUpper.includes('VAL') || 
+        tokenUpper.startsWith('NSR-ANL') || 
+        tokenUpper.includes('ANL') || 
+        role === 'PENILAI' || 
+        role === 'VALUER' || 
+        role === 'ANALIS'
+      ) {
+        role = 'PENILAI';
+      }
+      // 2. SURVEYOR LAPANGAN (M-03) - TOKEN NSR-SRV-2026 (STRICT LOCKOUT)
+      else if (
+        tokenUpper.startsWith('NSR-SRV') || 
+        tokenUpper.includes('SRV') || 
+        role === 'SURVEYOR' || 
+        role === 'LAPANGAN'
+      ) {
+        role = 'SURVEYOR';
+      }
+      // 3. KEPALA SPM / PIMPINAN REKAN (M-06 / M-07) - OVERRIDE GATE AUTHORITY
+      else if (
+        nik === 'NSR-2019-005' || 
+        tokenUpper === '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F' || 
+        tokenUpper.includes('KING') || 
+        tokenUpper.includes('ADMIN') || 
+        tokenUpper.includes('PIMPINAN') || 
+        tokenUpper.includes('REKAN') || 
+        role === 'KEPALA_SPM' || 
+        role === 'REKAN' || 
+        role === 'PIMPINAN' || 
+        role === 'SUPERADMIN'
+      ) {
+        role = 'REKAN';
+      }
+      // 4. TIM REVIEWER KENDALI MUTU SPM (M-05) - REVIEWER WORKSPACE
+      else if (
+        nik === 'NSR-2019-007' || 
+        nik === 'NSR-2019-009' || 
+        tokenUpper.startsWith('NSR-REV') || 
+        tokenUpper.includes('REV') || 
+        tokenUpper.startsWith('NSR-SPM') || 
+        tokenUpper.includes('SPM') || 
+        role.includes('REVIEW')
+      ) {
+        role = 'REVIEWER_SPM';
+      }
+      // 5. Default Fallback untuk Portal QA Review (M-05 Reviewer)
+      else {
+        role = 'REVIEWER_SPM';
+      }
+
+      const activeUser = {
         role,
-        token: authKey || (role === 'SURVEYOR' ? 'NSR-SRV-KEY' : 'NSR-SPM-KEY'),
-        nik: explicitNik || session?.nik || (role === 'SURVEYOR' ? 'NSR-SRV-01' : role === 'REVIEWER_SPM' ? 'NSR-2019-007' : role === 'KEPALA_SPM' ? 'NSR-2019-005' : 'NSR-2019-001'),
-        nama: session?.nama || (role === 'SURVEYOR' ? 'Tim Surveyor Lapangan' : role === 'PENILAI' ? 'Budi Santoso (Penilai Pelaksana)' : role === 'KEPALA_SPM' ? 'Danny Taufik Hidayat, S.H.' : role === 'REKAN' ? 'Ir. Nanang Rahayu / Deni Siswandi' : 'Tedi Setiadi (Reviewer SPM)'),
-        jabatan: session?.jabatan || (role === 'SURVEYOR' ? 'Surveyor Lapangan (M-03 Inspeksi Fisik)' : role === 'PENILAI' ? 'Penilai Penyusun (M-04 Analisis KKP)' : role === 'KEPALA_SPM' ? 'Kepala Kendali Mutu SPM' : role === 'REKAN' ? 'Pimpinan Rekan Penilai Publik' : 'Reviewer Teknis Kendali Mutu SPM')
+        token: token || (role === 'PENILAI' ? 'NSR-VAL-2026' : role === 'SURVEYOR' ? 'NSR-SRV-2026' : role === 'REKAN' ? 'NSR-PARTNER-KEY' : 'NSR-SPM-2026'),
+        nik: nik || (role === 'SURVEYOR' ? 'NSR-SRV-01' : role === 'PENILAI' ? 'NSR-2019-014' : role === 'REKAN' ? 'NSR-2019-005' : 'NSR-2019-007'),
+        nama: session?.nama || (role === 'SURVEYOR' ? 'Tim Surveyor Lapangan' : role === 'PENILAI' ? 'Budi Santoso (Penilai Pelaksana)' : role === 'REKAN' ? 'Danny Taufik Hidayat, S.H.' : 'Tedi Setiadi (Reviewer SPM)'),
+        jabatan: (role === 'SURVEYOR' ? 'Surveyor Lapangan (M-03 Inspeksi Fisik)' : role === 'PENILAI' ? '[Penilai Penyusun - M-04]' : role === 'REKAN' ? 'Pimpinan Rekan / Kepala SPM' : 'Reviewer Teknis Kendali Mutu SPM (M-05)'),
+        milestone: (role === 'SURVEYOR' ? 'M-03' : role === 'PENILAI' ? 'M-04' : role === 'REKAN' ? 'M-06 / M-07' : 'M-05'),
+        allowed_access: role !== 'SURVEYOR'
       };
+
+      // Simpan session mutakhir yang telah disanitasi
+      try {
+        sessionStorage.setItem('nsr_user_session', JSON.stringify(activeUser));
+        sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(activeUser));
+      } catch (_) {}
+
+      return activeUser;
     }
 
     function applyRBACPermissions(user) {
       currentUser = user;
 
-      // Update dropdown selector
-      const sel = document.getElementById('user-role-select');
-      if (sel) sel.value = user.role;
-
       // 1. KASUS SURVEYOR: KUNCI TOTAL WORKSPACE
       if (user.role === 'SURVEYOR') {
-        document.getElementById('modal-surveyor-locked').classList.remove('hidden');
-        document.getElementById('main-qa-workspace').style.display = 'none';
-        document.getElementById('role-mode-banner').classList.add('hidden');
+        const modalLock = document.getElementById('modal-surveyor-locked');
+        if (modalLock) modalLock.classList.remove('hidden');
+
+        const mainWs = document.getElementById('main-qa-workspace');
+        if (mainWs) mainWs.style.display = 'none';
+
+        const roleBanner = document.getElementById('role-mode-banner');
+        if (roleBanner) roleBanner.classList.add('hidden');
 
         // Header Avatar
         const av = document.getElementById('user-badge-avatar');
-        av.className = 'w-8 h-8 rounded-full bg-rose-950 text-rose-400 border border-rose-800 flex items-center justify-center font-bold text-xs';
-        av.textContent = 'SRV';
-        document.getElementById('user-badge-name').textContent = user.nama;
-        document.getElementById('user-badge-role').textContent = 'Surveyor Lapangan (M-03)';
-        document.getElementById('user-badge-role').className = 'text-[10px] text-rose-400 font-mono font-bold';
+        if (av) {
+          av.className = 'w-8 h-8 rounded-full bg-rose-950 text-rose-400 border border-rose-800 flex items-center justify-center font-bold text-xs';
+          av.textContent = 'SRV';
+        }
+        const bName = document.getElementById('user-badge-name');
+        if (bName) bName.textContent = user.nama;
+        const bRole = document.getElementById('user-badge-role');
+        if (bRole) {
+          bRole.textContent = 'Surveyor Lapangan (M-03)';
+          bRole.className = 'text-[10px] text-rose-400 font-mono font-bold';
+        }
         return;
       }
 
       // 2. KASUS ROLE BUKAN SURVEYOR: TAMPILKAN WORKSPACE
-      document.getElementById('modal-surveyor-locked').classList.add('hidden');
-      document.getElementById('main-qa-workspace').style.display = 'grid';
-      document.getElementById('role-mode-banner').classList.remove('hidden');
+      const modalLock = document.getElementById('modal-surveyor-locked');
+      if (modalLock) modalLock.classList.add('hidden');
+
+      const mainWs = document.getElementById('main-qa-workspace');
+      if (mainWs) mainWs.style.display = 'grid';
+
+      const roleBanner = document.getElementById('role-mode-banner');
+      if (roleBanner) roleBanner.classList.remove('hidden');
 
       const bannerLabel = document.getElementById('role-mode-label');
       const bannerIcon = document.getElementById('role-mode-icon');
@@ -643,76 +697,75 @@
 
       // Update Header Info
       const av = document.getElementById('user-badge-avatar');
-      document.getElementById('user-badge-name').textContent = user.nama;
-      document.getElementById('user-badge-role').textContent = user.jabatan;
+      const bName = document.getElementById('user-badge-name');
+      const bRole = document.getElementById('user-badge-role');
+
+      if (bName) bName.textContent = user.nama;
 
       if (user.role === 'REKAN' || user.role === 'KEPALA_SPM') {
-        av.className = 'w-8 h-8 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800 flex items-center justify-center font-bold text-xs';
-        av.textContent = 'P';
-        document.getElementById('user-badge-role').className = 'text-[10px] text-amber-300 font-mono font-bold';
+        if (av) {
+          av.className = 'w-8 h-8 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800 flex items-center justify-center font-bold text-xs';
+          av.textContent = 'P';
+        }
+        if (bRole) {
+          bRole.textContent = user.jabatan;
+          bRole.className = 'text-[10px] text-amber-300 font-mono font-bold';
+        }
 
-        bannerLabel.textContent = 'Pimpinan Rekan / Kepala SPM (Supervisi Mutu Penuh)';
-        bannerLabel.className = 'text-amber-300 font-semibold';
-        bannerIcon.textContent = '⚖️';
-        bannerHint.textContent = 'Kewenangan: Telaah mutlak, persetujuan akhir & hak otorisasi dispensasi NoLap (Override Gate)';
+        if (bannerLabel) {
+          bannerLabel.textContent = 'Pimpinan Rekan / Kepala SPM (Supervisi Mutu Penuh)';
+          bannerLabel.className = 'text-amber-300 font-semibold';
+        }
+        if (bannerIcon) bannerIcon.textContent = '⚖️';
+        if (bannerHint) bannerHint.textContent = 'Kewenangan: Telaah mutlak, persetujuan akhir & hak otorisasi dispensasi NoLap (Override Gate)';
 
         if (btnOverride) btnOverride.style.display = 'inline-flex';
         if (btnRevisi) btnRevisi.style.display = 'inline-flex';
         if (noticeValuer) noticeValuer.classList.add('hidden');
 
       } else if (user.role === 'REVIEWER_SPM') {
-        av.className = 'w-8 h-8 rounded-full bg-cyan-900/60 text-cyan-300 border border-cyan-700/60 flex items-center justify-center font-bold text-xs';
-        av.textContent = 'SPM';
-        document.getElementById('user-badge-role').className = 'text-[10px] text-cyan-400 font-mono font-bold';
+        if (av) {
+          av.className = 'w-8 h-8 rounded-full bg-cyan-900/60 text-cyan-300 border border-cyan-700/60 flex items-center justify-center font-bold text-xs';
+          av.textContent = 'SPM';
+        }
+        if (bRole) {
+          bRole.textContent = user.jabatan;
+          bRole.className = 'text-[10px] text-cyan-400 font-mono font-bold';
+        }
 
-        bannerLabel.textContent = 'Tim Reviewer Kendali Mutu SPM (M-05)';
-        bannerLabel.className = 'text-cyan-300 font-semibold';
-        bannerIcon.textContent = '🛡️';
-        bannerHint.textContent = 'Kewenangan: Telaah hasil audit teknis SPI & berwenang mengirim catatan perbaikan ke Penilai';
+        if (bannerLabel) {
+          bannerLabel.textContent = 'Tim Reviewer Kendali Mutu SPM (M-05)';
+          bannerLabel.className = 'text-cyan-300 font-semibold';
+        }
+        if (bannerIcon) bannerIcon.textContent = '🛡️';
+        if (bannerHint) bannerHint.textContent = 'Kewenangan: Telaah hasil audit teknis SPI & berwenang mengirim catatan perbaikan ke Penilai';
 
-        // Reviewer SPM can send revision notes, but cannot override gate (only Partner can override)
         if (btnOverride) btnOverride.style.display = 'none';
         if (btnRevisi) btnRevisi.style.display = 'inline-flex';
         if (noticeValuer) noticeValuer.classList.add('hidden');
 
       } else if (user.role === 'PENILAI') {
-        av.className = 'w-8 h-8 rounded-full bg-blue-950 text-blue-300 border border-blue-800 flex items-center justify-center font-bold text-xs';
-        av.textContent = 'VAL';
-        document.getElementById('user-badge-role').className = 'text-[10px] text-blue-400 font-mono font-bold';
+        if (av) {
+          av.className = 'w-8 h-8 rounded-full bg-blue-950 text-blue-300 border border-blue-800 flex items-center justify-center font-bold text-xs';
+          av.textContent = 'VAL';
+        }
+        if (bRole) {
+          bRole.textContent = '[Penilai Penyusun - M-04]';
+          bRole.className = 'text-[10px] text-blue-400 font-mono font-bold';
+        }
 
-        bannerLabel.textContent = 'Penilai Penyusun / Analis KKP (M-04)';
-        bannerLabel.className = 'text-blue-300 font-semibold';
-        bannerIcon.textContent = '📝';
-        bannerHint.textContent = 'Kewenangan: Unggah draf laporan PDF hasil M-04 & memeriksa temuan sistem (Anti Self-Review)';
+        if (bannerLabel) {
+          bannerLabel.textContent = 'Penilai Penyusun / Analis KKP (M-04)';
+          bannerLabel.className = 'text-blue-300 font-semibold';
+        }
+        if (bannerIcon) bannerIcon.textContent = '📝';
+        if (bannerHint) bannerHint.textContent = 'Kewenangan: Unggah draf laporan PDF hasil M-04 & memeriksa temuan sistem (Anti Self-Review)';
 
         // Penilai cannot override gate and cannot self-review
         if (btnOverride) btnOverride.style.display = 'none';
         if (btnRevisi) btnRevisi.style.display = 'none';
         if (noticeValuer) noticeValuer.classList.remove('hidden');
       }
-    }
-
-    function gantiPeranManual(newRole) {
-      const u = detectActiveUser();
-      u.role = newRole;
-      if (newRole === 'SURVEYOR') {
-        u.token = 'NSR-SRV-KEY';
-        u.nama = 'Tim Surveyor Lapangan';
-        u.jabatan = 'Surveyor Lapangan (M-03 Inspeksi Fisik)';
-      } else if (newRole === 'PENILAI') {
-        u.token = 'NSR-VAL-KEY';
-        u.nama = 'Budi Santoso (Penilai Pelaksana)';
-        u.jabatan = 'Penilai Penyusun (M-04 Analisis KKP)';
-      } else if (newRole === 'REKAN') {
-        u.token = '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F';
-        u.nama = 'Danny Taufik Hidayat, S.H.';
-        u.jabatan = 'Kepala Kendali Mutu & Pimpinan Rekan';
-      } else {
-        u.token = 'NSR-SPM-KEY';
-        u.nama = 'Tedi Setiadi';
-        u.jabatan = 'Reviewer Teknis Kendali Mutu SPM (M-05)';
-      }
-      applyRBACPermissions(u);
     }
 
     // Initialize View on Page Load

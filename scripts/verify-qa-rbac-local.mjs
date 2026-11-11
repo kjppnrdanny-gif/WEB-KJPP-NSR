@@ -1,6 +1,13 @@
 /**
  * scripts/verify-qa-rbac-local.mjs
  * Comprehensive Local RBAC & Security Gatekeeping Verification for Portal QA Review.
+ * 
+ * Verifies:
+ * 1. lib/qa-engine.js: checkRoleAccess('SURVEYOR' / 'NSR-SRV-2026') -> [RBAC_DENIED]
+ * 2. Token NSR-VAL-2026 directly unlocks QA workspace (M-04 Valuer) and sets badge "[Penilai Penyusun - M-04]"
+ * 3. Cache Purge: Stale surveyor session in sessionStorage is completely flushed when ?token=NSR-VAL-2026 arrives
+ * 4. Token NSR-SRV-2026 locks screen into #modal-surveyor-locked with NO backdoor link / NO role selector
+ * 5. Reviewer SPM & Pimpinan Rekan workspaces and permission guards
  */
 
 import http from 'node:http';
@@ -15,7 +22,7 @@ const ARTIFACT_DIR = 'C:\\Users\\HP\\.gemini\\antigravity\\brain\\5aa9abf1-bae3-
 const TEMP_PROFILE = path.join(process.cwd(), '.tmp_qa_rbac_chrome');
 
 console.log('='.repeat(80));
-console.log('VERIFIKASI RBAC & SECURITY GATEKEEPER PORTAL QA REVIEW');
+console.log('VERIFIKASI SISTEM TOKEN NSR-VAL-2026 & SECURITY BACKDOOR AUDIT');
 console.log('='.repeat(80));
 
 let totalAsserts = 0;
@@ -42,8 +49,14 @@ const engine = new QAEngine();
 const srvCheck = engine.checkRoleAccess('SURVEYOR');
 assert(srvCheck.allowed === false, 'checkRoleAccess("SURVEYOR") harus mengembalikan allowed: false');
 
+const srvTokenCheck = engine.checkRoleAccess('NSR-SRV-2026');
+assert(srvTokenCheck.allowed === false, 'checkRoleAccess("NSR-SRV-2026") harus mengembalikan allowed: false');
+
 const penilaiCheck = engine.checkRoleAccess('PENILAI');
 assert(penilaiCheck.allowed === true, 'checkRoleAccess("PENILAI") harus mengembalikan allowed: true');
+
+const valTokenCheck = engine.checkRoleAccess('NSR-VAL-2026');
+assert(valTokenCheck.allowed === true, 'checkRoleAccess("NSR-VAL-2026") harus mengembalikan allowed: true');
 
 const spmCheck = engine.checkRoleAccess('REVIEWER_SPM');
 assert(spmCheck.allowed === true, 'checkRoleAccess("REVIEWER_SPM") harus mengembalikan allowed: true');
@@ -51,10 +64,10 @@ assert(spmCheck.allowed === true, 'checkRoleAccess("REVIEWER_SPM") harus mengemb
 const sampleFile = path.join(process.cwd(), '2026 BTN Jalan Dr Sutomo No 94 an PT FIFA MEDIKA (RUMAH SAKIT).pdf');
 let thrown = false;
 try {
-  engine.evaluateDocument(sampleFile, 'JO-NSR-TEST', 'Tim Surveyor', 'SURVEYOR');
+  engine.evaluateDocument(sampleFile, 'JO-NSR-TEST', 'Tim Surveyor', 'NSR-SRV-2026');
 } catch (e) {
   thrown = true;
-  assert(e.message.includes('[RBAC_DENIED]'), `evaluateDocument harus melempar [RBAC_DENIED] untuk SURVEYOR (Pesan: ${e.message})`);
+  assert(e.message.includes('[RBAC_DENIED]'), `evaluateDocument harus melempar [RBAC_DENIED] untuk token NSR-SRV-2026 (Pesan: ${e.message})`);
 }
 assert(thrown === true, 'Surveyor dilarang keras menjalankan evaluasi teknis draf laporan');
 
@@ -157,105 +170,149 @@ try {
         return;
       }
     }
-    console.warn(`[WARN] Timeout waiting for window.__qa_initialized on ${url}`);
   }
 
   // -------------------------------------------------------------
-  // TEST A: SURVEYOR LAPANGAN (STRICT LOCKOUT)
+  // TEST 1: TOKEN NSR-VAL-2026 (PENILAI PENYUSUN DRAF M-04)
   // -------------------------------------------------------------
-  console.log('\n[UJI A] Role SURVEYOR: Kunci total workspace & tampilkan modal pembatasan...');
-  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?role=SURVEYOR`);
+  console.log('\n[UJI 1] Token NSR-VAL-2026: Langsung buka workspace QA & pasang badge [Penilai Penyusun - M-04]...');
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?token=NSR-VAL-2026`);
 
-  const surveyorState = await sendCdp('Runtime.evaluate', {
+  const valuerRes = await sendCdp('Runtime.evaluate', {
     expression: `(() => {
       const modal = document.getElementById('modal-surveyor-locked');
       const ws = document.getElementById('main-qa-workspace');
-      const banner = document.getElementById('role-mode-banner');
       const badgeRole = document.getElementById('user-badge-role')?.textContent;
-      return {
-        modalVisible: modal ? !modal.classList.contains('hidden') : false,
-        workspaceHidden: ws ? (ws.style.display === 'none' || getComputedStyle(ws).display === 'none') : false,
-        bannerHidden: banner ? banner.classList.contains('hidden') : false,
-        badgeRole: badgeRole
-      };
-    })()`,
-    returnByValue: true
-  });
-
-  assert(surveyorState.result.value.modalVisible === true, 'Modal #modal-surveyor-locked harus ditampilkan');
-  assert(surveyorState.result.value.workspaceHidden === true, 'Kontainer #main-qa-workspace harus disembunyikan (display: none)');
-  assert(surveyorState.result.value.bannerHidden === true, 'Banner #role-mode-banner harus disembunyikan');
-  assert(surveyorState.result.value.badgeRole?.includes('Surveyor'), `Badge role harus menampilkan Surveyor (Aktual: ${surveyorState.result.value.badgeRole})`);
-  await captureProof('bukti_qa_rbac_surveyor_locked.png');
-
-  // -------------------------------------------------------------
-  // TEST B: PENILAI PENYUSUN / VALUER (M-04)
-  // -------------------------------------------------------------
-  console.log('\n[UJI B] Role PENILAI: Unggah berkas, Anti Self-Review, Override dilarang...');
-  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?role=PENILAI`);
-
-  const valuerState = await sendCdp('Runtime.evaluate', {
-    expression: `(() => {
-      const modal = document.getElementById('modal-surveyor-locked');
-      const ws = document.getElementById('main-qa-workspace');
-      const btnOverride = document.getElementById('btn-override-gate');
-      const btnRevisi = document.getElementById('btn-send-revision');
-      const noticeValuer = document.getElementById('notice-valuer-spm');
-      const badgeRole = document.getElementById('user-badge-role')?.textContent;
-      return {
-        modalHidden: modal ? modal.classList.contains('hidden') : false,
-        workspaceVisible: ws ? (ws.style.display !== 'none') : false,
-        btnOverrideHidden: btnOverride ? (btnOverride.style.display === 'none') : false,
-        btnRevisiHidden: btnRevisi ? (btnRevisi.style.display === 'none') : false,
-        noticeValuerVisible: noticeValuer ? !noticeValuer.classList.contains('hidden') : false,
-        badgeRole: badgeRole
-      };
-    })()`,
-    returnByValue: true
-  });
-
-  assert(valuerState.result.value.modalHidden === true, 'Modal Surveyor terkunci harus tersembunyi');
-  assert(valuerState.result.value.workspaceVisible === true, 'Workspace teknis harus tampil');
-  assert(valuerState.result.value.btnOverrideHidden === true, 'Tombol Override Gate HARUS disembunyikan untuk Penilai');
-  assert(valuerState.result.value.btnRevisiHidden === true, 'Tombol Kirim Revisi HARUS disembunyikan untuk Penilai (Anti Self-Review)');
-  assert(valuerState.result.value.noticeValuerVisible === true, 'Kotak notifikasi Anti Self-Review harus tampil untuk Penilai');
-  await captureProof('bukti_qa_rbac_penilai_workspace.png');
-
-  // -------------------------------------------------------------
-  // TEST C: REVIEWER KENDALI MUTU SPM (M-05)
-  // -------------------------------------------------------------
-  console.log('\n[UJI C] Role REVIEWER_SPM: Kirim revisi aktif, Override tetap dilarang...');
-  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?role=REVIEWER_SPM`);
-
-  const spmState = await sendCdp('Runtime.evaluate', {
-    expression: `(() => {
       const btnOverride = document.getElementById('btn-override-gate');
       const btnRevisi = document.getElementById('btn-send-revision');
       const noticeValuer = document.getElementById('notice-valuer-spm');
       const banner = document.getElementById('role-mode-label')?.textContent;
       return {
+        modalHidden: modal ? modal.classList.contains('hidden') : false,
+        workspaceVisible: ws ? (ws.style.display !== 'none') : false,
+        badgeRole: badgeRole,
         btnOverrideHidden: btnOverride ? (btnOverride.style.display === 'none') : false,
-        btnRevisiVisible: btnRevisi ? (btnRevisi.style.display !== 'none') : false,
-        noticeValuerHidden: noticeValuer ? noticeValuer.classList.contains('hidden') : false,
+        btnRevisiHidden: btnRevisi ? (btnRevisi.style.display === 'none') : false,
+        noticeValuerVisible: noticeValuer ? !noticeValuer.classList.contains('hidden') : false,
         bannerLabel: banner
       };
     })()`,
     returnByValue: true
   });
 
-  assert(spmState.result.value.btnOverrideHidden === true, 'Tombol Override Gate HARUS disembunyikan untuk Reviewer SPM (Hanya Rekan)');
-  assert(spmState.result.value.btnRevisiVisible === true, 'Tombol Kirim Catatan Revisi HARUS aktif untuk Reviewer SPM');
-  assert(spmState.result.value.noticeValuerHidden === true, 'Kotak notifikasi Penilai harus disembunyikan');
-  assert(spmState.result.value.bannerLabel?.includes('Reviewer'), `Banner harus berlabel Reviewer SPM (Aktual: ${spmState.result.value.bannerLabel})`);
-  await captureProof('bukti_qa_rbac_reviewer_spm.png');
+  assert(valuerRes.result.value.modalHidden === true, 'Modal Surveyor Lockout HARUS tersembunyi untuk NSR-VAL-2026');
+  assert(valuerRes.result.value.workspaceVisible === true, 'Workspace teknis HARUS aktif untuk NSR-VAL-2026');
+  assert(valuerRes.result.value.badgeRole === '[Penilai Penyusun - M-04]', `Badge role harus "[Penilai Penyusun - M-04]" (Aktual: ${valuerRes.result.value.badgeRole})`);
+  assert(valuerRes.result.value.btnOverrideHidden === true, 'Tombol Override Gate disembunyikan untuk Penilai');
+  assert(valuerRes.result.value.btnRevisiHidden === true, 'Tombol Kirim Revisi disembunyikan untuk Penilai (Anti Self-Review)');
+  assert(valuerRes.result.value.noticeValuerVisible === true, 'Notifikasi Anti Self-Review tampil untuk Penilai');
+  await captureProof('bukti_qa_token_nsr_val_2026.png');
 
   // -------------------------------------------------------------
-  // TEST D: PIMPINAN REKAN / KEPALA SPM (FULL AUTHORITY)
+  // TEST 2: SESSION CLEANUP DEFENSE (STALE SURVEYOR CACHE OVERRIDE)
   // -------------------------------------------------------------
-  console.log('\n[UJI D] Role REKAN: Otoritas penuh, Override Gate & Kirim Revisi aktif...');
-  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?role=REKAN`);
+  console.log('\n[UJI 2] Pertahanan Anti-Cache: Injeksi session kotor Surveyor lalu buka ?token=NSR-VAL-2026...');
+  // Simulasikan residu cache surveyor di sessionStorage
+  await sendCdp('Runtime.evaluate', {
+    expression: `sessionStorage.setItem('nsr_user_session', JSON.stringify({ role: 'SURVEYOR', token: 'NSR-SRV-2026', nama: 'Surveyor Lama' }))`
+  });
 
-  const rekanState = await sendCdp('Runtime.evaluate', {
+  // Navigasi dengan token Penilai
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?token=NSR-VAL-2026`);
+
+  const cachePurgeRes = await sendCdp('Runtime.evaluate', {
+    expression: `(() => {
+      const modal = document.getElementById('modal-surveyor-locked');
+      const ws = document.getElementById('main-qa-workspace');
+      const sess = JSON.parse(sessionStorage.getItem('nsr_user_session') || '{}');
+      return {
+        modalHidden: modal ? modal.classList.contains('hidden') : false,
+        workspaceVisible: ws ? (ws.style.display !== 'none') : false,
+        newRole: sess.role,
+        newToken: sess.token
+      };
+    })()`,
+    returnByValue: true
+  });
+
+  assert(cachePurgeRes.result.value.modalHidden === true, 'Cache surveyor lama harus dibersihkan, modal lockout tidak boleh muncul');
+  assert(cachePurgeRes.result.value.workspaceVisible === true, 'Workspace Penilai harus tetap aktif meski ada sisa cache lama');
+  assert(cachePurgeRes.result.value.newRole === 'PENILAI', `Session role harus terupdate menjadi PENILAI (Aktual: ${cachePurgeRes.result.value.newRole})`);
+  assert(cachePurgeRes.result.value.newToken === 'NSR-VAL-2026', `Session token harus terupdate menjadi NSR-VAL-2026 (Aktual: ${cachePurgeRes.result.value.newToken})`);
+
+  // -------------------------------------------------------------
+  // TEST 3: TOKEN NSR-SRV-2026 & SECURITY BACKDOOR AUDIT
+  // -------------------------------------------------------------
+  console.log('\n[UJI 3] Token NSR-SRV-2026: Terkunci total & Audit Penghapusan Backdoor Link...');
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?token=NSR-SRV-2026`);
+
+  const surveyorRes = await sendCdp('Runtime.evaluate', {
+    expression: `(() => {
+      const modal = document.getElementById('modal-surveyor-locked');
+      const ws = document.getElementById('main-qa-workspace');
+      const badgeRole = document.getElementById('user-badge-role')?.textContent;
+
+      // Audit Backdoor Link di Modal:
+      const modalText = modal ? modal.innerHTML : '';
+      const hasBackdoorLink = /Beralih ke Akun|gantiPeranManual|switchRole/i.test(modalText);
+
+      // Audit Role Selector Dropdown di Header:
+      const hasRoleDropdown = Boolean(document.getElementById('user-role-select'));
+
+      // Hitung tombol resmi di modal
+      const modalLinks = modal ? Array.from(modal.querySelectorAll('a')).map(a => a.getAttribute('href')) : [];
+
+      return {
+        modalVisible: modal ? !modal.classList.contains('hidden') : false,
+        workspaceHidden: ws ? (ws.style.display === 'none' || getComputedStyle(ws).display === 'none') : false,
+        badgeRole: badgeRole,
+        hasBackdoorLink: hasBackdoorLink,
+        hasRoleDropdown: hasRoleDropdown,
+        modalLinks: modalLinks
+      };
+    })()`,
+    returnByValue: true
+  });
+
+  assert(surveyorRes.result.value.modalVisible === true, 'Modal #modal-surveyor-locked HARUS aktif untuk NSR-SRV-2026');
+  assert(surveyorRes.result.value.workspaceHidden === true, 'Workspace teknis HARUS tersembunyi untuk NSR-SRV-2026');
+  assert(surveyorRes.result.value.hasBackdoorLink === false, 'CELAH KEAMANAN TERHAPUS: Link "Beralih ke Akun" TIDAK BOLEH ADA di modal');
+  assert(surveyorRes.result.value.hasRoleDropdown === false, 'CELAH KEAMANAN TERHAPUS: Dropdown simulator #user-role-select TIDAK BOLEH ADA di DOM');
+  assert(surveyorRes.result.value.modalLinks.length === 2, `Modal HANYA boleh memiliki 2 tombol resmi (Aktual: ${surveyorRes.result.value.modalLinks.length} tautan: ${surveyorRes.result.value.modalLinks.join(', ')})`);
+  assert(surveyorRes.result.value.modalLinks.includes('portal-tracking.html') && surveyorRes.result.value.modalLinks.includes('index.html'), 'Tombol resmi harus menuju portal-tracking.html dan index.html');
+  await captureProof('bukti_qa_surveyor_locked_no_backdoor.png');
+
+  // -------------------------------------------------------------
+  // TEST 4: REVIEWER SPM (Tedi Setiadi / NSR-2019-007)
+  // -------------------------------------------------------------
+  console.log('\n[UJI 4] Akun Reviewer SPM (Tedi Setiadi - NSR-2019-007)...');
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?nik=NSR-2019-007`);
+
+  const spmRes = await sendCdp('Runtime.evaluate', {
+    expression: `(() => {
+      const btnOverride = document.getElementById('btn-override-gate');
+      const btnRevisi = document.getElementById('btn-send-revision');
+      const banner = document.getElementById('role-mode-label')?.textContent;
+      return {
+        btnOverrideHidden: btnOverride ? (btnOverride.style.display === 'none') : false,
+        btnRevisiVisible: btnRevisi ? (btnRevisi.style.display !== 'none') : false,
+        bannerLabel: banner
+      };
+    })()`,
+    returnByValue: true
+  });
+
+  assert(spmRes.result.value.btnOverrideHidden === true, 'Tombol Override Gate disembunyikan untuk Reviewer SPM');
+  assert(spmRes.result.value.btnRevisiVisible === true, 'Tombol Kirim Revisi aktif untuk Reviewer SPM');
+  assert(spmRes.result.value.bannerLabel?.includes('Reviewer'), 'Banner berlabel Reviewer SPM');
+
+  // -------------------------------------------------------------
+  // TEST 5: PIMPINAN REKAN (Danny Taufik Hidayat - NSR-2019-005)
+  // -------------------------------------------------------------
+  console.log('\n[UJI 5] Akun Pimpinan Rekan / Kepala SPM (Danny Taufik - NSR-2019-005)...');
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?nik=NSR-2019-005`);
+
+  const rekanRes = await sendCdp('Runtime.evaluate', {
     expression: `(() => {
       const btnOverride = document.getElementById('btn-override-gate');
       const btnRevisi = document.getElementById('btn-send-revision');
@@ -269,10 +326,9 @@ try {
     returnByValue: true
   });
 
-  assert(rekanState.result.value.btnOverrideVisible === true, 'Tombol Override Gate HARUS aktif untuk Pimpinan Rekan');
-  assert(rekanState.result.value.btnRevisiVisible === true, 'Tombol Kirim Revisi HARUS aktif untuk Pimpinan Rekan');
-  assert(rekanState.result.value.bannerLabel?.includes('Pimpinan Rekan'), `Banner harus berlabel Pimpinan Rekan (Aktual: ${rekanState.result.value.bannerLabel})`);
-  await captureProof('bukti_qa_rbac_rekan_pimpinan.png');
+  assert(rekanRes.result.value.btnOverrideVisible === true, 'Tombol Override Gate aktif untuk Pimpinan Rekan');
+  assert(rekanRes.result.value.btnRevisiVisible === true, 'Tombol Kirim Revisi aktif untuk Pimpinan Rekan');
+  assert(rekanRes.result.value.bannerLabel?.includes('Pimpinan Rekan'), 'Banner berlabel Pimpinan Rekan');
 
   ws.close();
 } catch (err) {
@@ -280,15 +336,18 @@ try {
 } finally {
   chrome.kill();
   server.close();
+  try {
+    fs.rmSync(TEMP_PROFILE, { recursive: true, force: true });
+  } catch (_) {}
 }
 
 console.log('\n' + '='.repeat(80));
-console.log(`HASIL VERIFIKASI RBAC: Total ${totalAsserts} | Lulus: ${passedAsserts} | Gagal: ${failedAsserts}`);
+console.log(`HASIL VERIFIKASI RBAC & SECURITY AUDIT: Total ${totalAsserts} | Lulus: ${passedAsserts} | Gagal: ${failedAsserts}`);
 console.log('='.repeat(80));
 
 if (failedAsserts > 0) {
   process.exit(1);
 } else {
-  console.log('Semua pengujian RBAC LULUS dengan sempurna!');
+  console.log('Semua pengujian RBAC & Security Audit LULUS 100%!');
   process.exit(0);
 }

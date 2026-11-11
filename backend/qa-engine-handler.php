@@ -515,6 +515,13 @@ if ($action === 'override_approve') {
         exit;
     }
 
+    // RBAC Security Guard: Penilai Penyusun dilarang membuka kunci NoLap sendiri (Anti Self-Review)
+    if ($userRole === 'PENILAI' || stripos($userRole, 'VALUER') !== false || stripos($userToken, 'VAL') !== false) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'Otorisasi Ditolak: Penilai Penyusun tidak berwenang memberikan dispensasi NoLap (Anti Self-Review)']);
+        exit;
+    }
+
     if ($pin !== 'NSR8899') {
         http_response_code(403);
         echo json_encode(['status' => 'error', 'message' => 'Otorisasi ditolak: Hanya Pimpinan Rekan berwenang membuka kunci gerbang NoLap']);
