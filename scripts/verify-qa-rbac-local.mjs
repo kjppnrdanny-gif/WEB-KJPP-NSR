@@ -1,15 +1,6 @@
 /**
  * scripts/verify-qa-rbac-local.mjs
  * Comprehensive Local RBAC & Security Gatekeeping Verification for Portal QA Review.
- * 
- * Verifies:
- * 1. lib/qa-engine.js: checkRoleAccess('SURVEYOR') and evaluateDocument(..., 'SURVEYOR') -> [RBAC_DENIED].
- * 2. portal-qa-review.html rendering across 4 roles via Chrome CDP:
- *    - SURVEYOR: Access Denied Modal (#modal-surveyor-locked) shown, main workspace hidden.
- *    - PENILAI (Valuer M-04): Workspace shown, #btn-override-gate hidden, #btn-send-revision hidden (anti self-review), notice shown.
- *    - REVIEWER_SPM (M-05): Workspace shown, #btn-send-revision visible, #btn-override-gate hidden.
- *    - REKAN / KEPALA_SPM: Workspace shown, #btn-override-gate visible, #btn-send-revision visible.
- * 3. Captures screenshot artifacts for visual verification.
  */
 
 import http from 'node:http';
@@ -21,6 +12,7 @@ import { QAEngine } from '../lib/qa-engine.js';
 const PORT = 8844;
 const CHROME_PORT = 9599;
 const ARTIFACT_DIR = 'C:\\Users\\HP\\.gemini\\antigravity\\brain\\5aa9abf1-bae3-4edf-b938-adfbb1b9bf9d';
+const TEMP_PROFILE = path.join(process.cwd(), '.tmp_qa_rbac_chrome');
 
 console.log('='.repeat(80));
 console.log('VERIFIKASI RBAC & SECURITY GATEKEEPER PORTAL QA REVIEW');
@@ -102,15 +94,18 @@ console.log(`\nServer lokal aktif di http://localhost:${PORT}`);
 // 3. LAUNCH CHROME HEADLESS CDP
 // ---------------------------------------------------------------------
 console.log('\n--- 2. Meluncurkan Chrome CDP Headless ---');
+if (!fs.existsSync(TEMP_PROFILE)) fs.mkdirSync(TEMP_PROFILE, { recursive: true });
+
 const chrome = spawn('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
   '--headless=new',
   `--remote-debugging-port=${CHROME_PORT}`,
+  `--user-data-dir=${TEMP_PROFILE}`,
   '--no-sandbox',
   '--disable-gpu',
   '--window-size=1440,960'
 ]);
 
-await new Promise(r => setTimeout(r, 1800));
+await new Promise(r => setTimeout(r, 2000));
 
 try {
   const wsRes = await fetch(`http://127.0.0.1:${CHROME_PORT}/json/list`);
@@ -150,12 +145,26 @@ try {
     console.log(`  -> Bukti tangkapan layar tersimpan: ${filename}`);
   }
 
+  async function navigateAndWait(url) {
+    await sendCdp('Page.navigate', { url });
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 250));
+      const res = await sendCdp('Runtime.evaluate', {
+        expression: 'Boolean(window.__qa_initialized)'
+      });
+      if (res?.result?.value === true) {
+        await new Promise(r => setTimeout(r, 400));
+        return;
+      }
+    }
+    console.warn(`[WARN] Timeout waiting for window.__qa_initialized on ${url}`);
+  }
+
   // -------------------------------------------------------------
   // TEST A: SURVEYOR LAPANGAN (STRICT LOCKOUT)
   // -------------------------------------------------------------
   console.log('\n[UJI A] Role SURVEYOR: Kunci total workspace & tampilkan modal pembatasan...');
-  await sendCdp('Page.navigate', { url: `http://localhost:${PORT}/portal-qa-review.html?role=SURVEYOR` });
-  await new Promise(r => setTimeout(r, 1200));
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?role=SURVEYOR`);
 
   const surveyorState = await sendCdp('Runtime.evaluate', {
     expression: `(() => {
@@ -183,8 +192,7 @@ try {
   // TEST B: PENILAI PENYUSUN / VALUER (M-04)
   // -------------------------------------------------------------
   console.log('\n[UJI B] Role PENILAI: Unggah berkas, Anti Self-Review, Override dilarang...');
-  await sendCdp('Page.navigate', { url: `http://localhost:${PORT}/portal-qa-review.html?role=PENILAI` });
-  await new Promise(r => setTimeout(r, 1200));
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?role=PENILAI`);
 
   const valuerState = await sendCdp('Runtime.evaluate', {
     expression: `(() => {
@@ -217,8 +225,7 @@ try {
   // TEST C: REVIEWER KENDALI MUTU SPM (M-05)
   // -------------------------------------------------------------
   console.log('\n[UJI C] Role REVIEWER_SPM: Kirim revisi aktif, Override tetap dilarang...');
-  await sendCdp('Page.navigate', { url: `http://localhost:${PORT}/portal-qa-review.html?role=REVIEWER_SPM` });
-  await new Promise(r => setTimeout(r, 1200));
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?role=REVIEWER_SPM`);
 
   const spmState = await sendCdp('Runtime.evaluate', {
     expression: `(() => {
@@ -246,8 +253,7 @@ try {
   // TEST D: PIMPINAN REKAN / KEPALA SPM (FULL AUTHORITY)
   // -------------------------------------------------------------
   console.log('\n[UJI D] Role REKAN: Otoritas penuh, Override Gate & Kirim Revisi aktif...');
-  await sendCdp('Page.navigate', { url: `http://localhost:${PORT}/portal-qa-review.html?role=REKAN` });
-  await new Promise(r => setTimeout(r, 1200));
+  await navigateAndWait(`http://localhost:${PORT}/portal-qa-review.html?role=REKAN`);
 
   const rekanState = await sendCdp('Runtime.evaluate', {
     expression: `(() => {
