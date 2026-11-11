@@ -3,7 +3,7 @@
  * Monitors cPanel deployment workflow and performs live smoke verification.
  */
 
-const RUN_ID = '43052909805';
+const RUN_ID = '43057352474';
 const BASE_URL = 'https://kjppnanangrahayu.com';
 
 async function checkWorkflow() {
@@ -15,7 +15,7 @@ async function checkWorkflow() {
 
 async function main() {
   console.log('='.repeat(80));
-  console.log(`MENGAWASI DEPLOYMENT CPANEL PRODUKSI (RUN ${RUN_ID} - commit ec52609)`);
+  console.log(`MENGAWASI DEPLOYMENT CPANEL PRODUKSI (RUN ${RUN_ID} - commit b559e4f)`);
   console.log('='.repeat(80));
 
   let attempts = 0;
@@ -44,14 +44,16 @@ async function main() {
   try {
     const res = await fetch(`${BASE_URL}/portal-qa-review.html?_t=${Date.now()}`);
     const html = await res.text();
-    const hasSurveyorLocked = html.includes('id="modal-surveyor-locked"');
+    const hasBackdoorLink = html.includes('Beralih ke Akun') || html.includes('gantiPeranManual');
     const hasRoleSelect = html.includes('id="user-role-select"');
-    const hasNoticeValuer = html.includes('id="notice-valuer-spm"');
-    const hasAntiSelfReview = html.includes('Anti Self-Review');
+    const hasSurveyorLocked = html.includes('id="modal-surveyor-locked"');
+    const hasPenilaiBadgeLogic = html.includes('[Penilai Penyusun - M-04]');
+
     console.log(`[Portal QA Review HTML] HTTP ${res.status} | Size: ${html.length} bytes`);
     console.log(`  -> Modal Surveyor Lockout: ${hasSurveyorLocked ? '✅ TERPASANG' : '❌ HILANG'}`);
-    console.log(`  -> Role Switcher: ${hasRoleSelect ? '✅ TERPASANG' : '❌ HILANG'}`);
-    console.log(`  -> Anti Self-Review Guard: ${hasNoticeValuer && hasAntiSelfReview ? '✅ TERPASANG' : '❌ HILANG'}`);
+    console.log(`  -> Backdoor Link "Beralih ke Akun": ${!hasBackdoorLink ? '✅ BERSIH (TERHAPUS TOTAL)' : '❌ MASIH ADA'}`);
+    console.log(`  -> Simulator Role Dropdown: ${!hasRoleSelect ? '✅ BERSIH (TERHAPUS TOTAL)' : '❌ MASIH ADA'}`);
+    console.log(`  -> Penilai Penyusun M-04 Logic: ${hasPenilaiBadgeLogic ? '✅ TERPASANG' : '❌ HILANG'}`);
   } catch (e) {
     console.error(`[Portal QA HTML FAIL] ${e.message}`);
   }

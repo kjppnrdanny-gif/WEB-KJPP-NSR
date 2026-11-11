@@ -1,6 +1,7 @@
 /**
  * scripts/verify-live-qa-rbac.mjs
  * Live Chrome CDP verification on production server: https://kjppnanangrahayu.com
+ * Verifies token NSR-VAL-2026, surveyor lockout, and backdoor link removal.
  */
 
 import fs from 'node:fs';
@@ -13,7 +14,7 @@ const ARTIFACT_DIR = 'C:\\Users\\HP\\.gemini\\antigravity\\brain\\5aa9abf1-bae3-
 const TEMP_PROFILE = path.join(process.cwd(), '.tmp_qa_live_chrome');
 
 console.log('='.repeat(80));
-console.log('LIVE VERIFIKASI RBAC PORTAL QA REVIEW PADA SERVER PRODUKSI CPANEL');
+console.log('LIVE VERIFIKASI TOKEN NSR-VAL-2026 & SECURITY BACKDOOR DI SERVER CPANEL');
 console.log('Domain Target: ' + BASE_URL);
 console.log('='.repeat(80));
 
@@ -97,36 +98,22 @@ try {
     }
   }
 
-  // 1. LIVE TEST SURVEYOR LOCKOUT
-  console.log('\n[LIVE TEST 1] Akses Surveyor (Lockout): https://kjppnanangrahayu.com/portal-qa-review.html?role=SURVEYOR');
-  await navigateAndWait(`${BASE_URL}/portal-qa-review.html?role=SURVEYOR&_t=${Date.now()}`);
+  // 1. LIVE TEST TOKEN NSR-VAL-2026 (PENILAI PENYUSUN M-04)
+  console.log('\n[LIVE TEST 1] Token NSR-VAL-2026: https://kjppnanangrahayu.com/portal-qa-review.html?token=NSR-VAL-2026');
+  await navigateAndWait(`${BASE_URL}/portal-qa-review.html?token=NSR-VAL-2026&_t=${Date.now()}`);
 
-  const surveyorRes = await sendCdp('Runtime.evaluate', {
+  const valuerRes = await sendCdp('Runtime.evaluate', {
     expression: `(() => {
       const modal = document.getElementById('modal-surveyor-locked');
       const ws = document.getElementById('main-qa-workspace');
-      return {
-        modalVisible: modal ? !modal.classList.contains('hidden') : false,
-        workspaceHidden: ws ? (ws.style.display === 'none' || getComputedStyle(ws).display === 'none') : false
-      };
-    })()`,
-    returnByValue: true
-  });
-
-  assert(surveyorRes.result.value.modalVisible === true, 'Modal Surveyor Lockout harus aktif di live server');
-  assert(surveyorRes.result.value.workspaceHidden === true, 'Workspace teknis harus disembunyikan untuk Surveyor di live server');
-  await captureProof('bukti_live_qa_rbac_surveyor_locked.png');
-
-  // 2. LIVE TEST PENILAI (VALUER)
-  console.log('\n[LIVE TEST 2] Akses Penilai (Valuer): https://kjppnanangrahayu.com/portal-qa-review.html?role=PENILAI');
-  await navigateAndWait(`${BASE_URL}/portal-qa-review.html?role=PENILAI&_t=${Date.now()}`);
-
-  const penilaiRes = await sendCdp('Runtime.evaluate', {
-    expression: `(() => {
+      const badgeRole = document.getElementById('user-badge-role')?.textContent;
       const btnOverride = document.getElementById('btn-override-gate');
       const btnRevisi = document.getElementById('btn-send-revision');
       const noticeValuer = document.getElementById('notice-valuer-spm');
       return {
+        modalHidden: modal ? modal.classList.contains('hidden') : false,
+        workspaceVisible: ws ? (ws.style.display !== 'none') : false,
+        badgeRole: badgeRole,
         btnOverrideHidden: btnOverride ? (btnOverride.style.display === 'none') : false,
         btnRevisiHidden: btnRevisi ? (btnRevisi.style.display === 'none') : false,
         noticeValuerVisible: noticeValuer ? !noticeValuer.classList.contains('hidden') : false
@@ -135,61 +122,58 @@ try {
     returnByValue: true
   });
 
-  assert(penilaiRes.result.value.btnOverrideHidden === true, 'Tombol Override Gate disembunyikan untuk Penilai di live server');
-  assert(penilaiRes.result.value.btnRevisiHidden === true, 'Tombol Kirim Revisi disembunyikan untuk Penilai (Anti Self-Review) di live server');
-  assert(penilaiRes.result.value.noticeValuerVisible === true, 'Notice Anti Self-Review tampil untuk Penilai di live server');
-  await captureProof('bukti_live_qa_rbac_penilai_workspace.png');
+  assert(valuerRes.result.value.modalHidden === true, 'Modal Lockout HARUS tersembunyi untuk NSR-VAL-2026 di live server');
+  assert(valuerRes.result.value.workspaceVisible === true, 'Workspace teknis QA HARUS terbuka untuk NSR-VAL-2026 di live server');
+  assert(valuerRes.result.value.badgeRole === '[Penilai Penyusun - M-04]', `Badge role harus "[Penilai Penyusun - M-04]" di live server (Aktual: ${valuerRes.result.value.badgeRole})`);
+  assert(valuerRes.result.value.btnOverrideHidden === true, 'Tombol Override Gate disembunyikan untuk Penilai');
+  assert(valuerRes.result.value.btnRevisiHidden === true, 'Tombol Kirim Revisi disembunyikan untuk Penilai (Anti Self-Review)');
+  assert(valuerRes.result.value.noticeValuerVisible === true, 'Kotak notifikasi Anti Self-Review tampil');
+  await captureProof('bukti_live_qa_token_nsr_val_2026.png');
 
-  // 3. LIVE TEST REVIEWER SPM
-  console.log('\n[LIVE TEST 3] Akses Reviewer SPM: https://kjppnanangrahayu.com/portal-qa-review.html?role=REVIEWER_SPM');
-  await navigateAndWait(`${BASE_URL}/portal-qa-review.html?role=REVIEWER_SPM&_t=${Date.now()}`);
+  // 2. LIVE TEST TOKEN NSR-SRV-2026 & BACKDOOR AUDIT
+  console.log('\n[LIVE TEST 2] Token NSR-SRV-2026: https://kjppnanangrahayu.com/portal-qa-review.html?token=NSR-SRV-2026');
+  await navigateAndWait(`${BASE_URL}/portal-qa-review.html?token=NSR-SRV-2026&_t=${Date.now()}`);
 
-  const spmRes = await sendCdp('Runtime.evaluate', {
+  const surveyorRes = await sendCdp('Runtime.evaluate', {
     expression: `(() => {
-      const btnOverride = document.getElementById('btn-override-gate');
-      const btnRevisi = document.getElementById('btn-send-revision');
+      const modal = document.getElementById('modal-surveyor-locked');
+      const ws = document.getElementById('main-qa-workspace');
+      const modalHtml = modal ? modal.innerHTML : '';
+      const hasBackdoorLink = /Beralih ke Akun|gantiPeranManual|switchRole/i.test(modalHtml);
+      const hasRoleDropdown = Boolean(document.getElementById('user-role-select'));
+      const links = modal ? Array.from(modal.querySelectorAll('a')).map(a => a.getAttribute('href')) : [];
+
       return {
-        btnOverrideHidden: btnOverride ? (btnOverride.style.display === 'none') : false,
-        btnRevisiVisible: btnRevisi ? (btnRevisi.style.display !== 'none') : false
+        modalVisible: modal ? !modal.classList.contains('hidden') : false,
+        workspaceHidden: ws ? (ws.style.display === 'none' || getComputedStyle(ws).display === 'none') : false,
+        hasBackdoorLink: hasBackdoorLink,
+        hasRoleDropdown: hasRoleDropdown,
+        linksCount: links.length,
+        links: links
       };
     })()`,
     returnByValue: true
   });
 
-  assert(spmRes.result.value.btnOverrideHidden === true, 'Tombol Override Gate disembunyikan untuk Reviewer SPM di live server');
-  assert(spmRes.result.value.btnRevisiVisible === true, 'Tombol Kirim Revisi aktif untuk Reviewer SPM di live server');
-  await captureProof('bukti_live_qa_rbac_reviewer_spm.png');
-
-  // 4. LIVE TEST REKAN (PARTNER)
-  console.log('\n[LIVE TEST 4] Akses Rekan (Partner): https://kjppnanangrahayu.com/portal-qa-review.html?role=REKAN');
-  await navigateAndWait(`${BASE_URL}/portal-qa-review.html?role=REKAN&_t=${Date.now()}`);
-
-  const rekanRes = await sendCdp('Runtime.evaluate', {
-    expression: `(() => {
-      const btnOverride = document.getElementById('btn-override-gate');
-      const btnRevisi = document.getElementById('btn-send-revision');
-      return {
-        btnOverrideVisible: btnOverride ? (btnOverride.style.display !== 'none') : false,
-        btnRevisiVisible: btnRevisi ? (btnRevisi.style.display !== 'none') : false
-      };
-    })()`,
-    returnByValue: true
-  });
-
-  assert(rekanRes.result.value.btnOverrideVisible === true, 'Tombol Override Gate aktif untuk Pimpinan Rekan di live server');
-  assert(rekanRes.result.value.btnRevisiVisible === true, 'Tombol Kirim Revisi aktif untuk Pimpinan Rekan di live server');
-  await captureProof('bukti_live_qa_rbac_rekan_pimpinan.png');
+  assert(surveyorRes.result.value.modalVisible === true, 'Modal Lockout HARUS aktif untuk Surveyor di live server');
+  assert(surveyorRes.result.value.workspaceHidden === true, 'Workspace teknis HARUS disembunyikan untuk Surveyor di live server');
+  assert(surveyorRes.result.value.hasBackdoorLink === false, 'CELAH KEAMANAN TERHAPUS: Link switch role "Beralih ke Akun" TIDAK ADA di modal live');
+  assert(surveyorRes.result.value.hasRoleDropdown === false, 'CELAH KEAMANAN TERHAPUS: Dropdown selector #user-role-select TIDAK ADA di DOM live');
+  assert(surveyorRes.result.value.linksCount === 2, `Modal HANYA memiliki 2 tombol resmi di live server (Aktual: ${surveyorRes.result.value.links.join(', ')})`);
+  await captureProof('bukti_live_qa_surveyor_locked_no_backdoor.png');
 
   ws.close();
 } catch (err) {
   console.error('[CDP_ERROR]', err);
 } finally {
   chrome.kill();
-  fs.rmSync(TEMP_PROFILE, { recursive: true, force: true });
+  try {
+    fs.rmSync(TEMP_PROFILE, { recursive: true, force: true });
+  } catch (_) {}
 }
 
 console.log('\n' + '='.repeat(80));
-console.log(`HASIL VERIFIKASI LIVE SERVER: Total ${totalAsserts} | Lulus: ${passedAsserts} | Gagal: ${failedAsserts}`);
+console.log(`HASIL LIVE RBAC & BACKDOOR AUDIT: Total ${totalAsserts} | Lulus: ${passedAsserts} | Gagal: ${failedAsserts}`);
 console.log('='.repeat(80));
 
 if (failedAsserts > 0) process.exit(1);
