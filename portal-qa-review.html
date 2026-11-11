@@ -69,6 +69,12 @@
           Portal NoLap
         </a>
 
+        <!-- Tombol Ganti Akun / Keluar -->
+        <button type="button" onclick="logoutQASession()" id="btn-header-logout" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-300 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 transition cursor-pointer gap-1.5 shadow-sm active:scale-95">
+          <span>🚪</span>
+          <span class="hidden sm:inline">Ganti Akun / Keluar</span>
+        </button>
+
         <!-- User Badge Dynamic -->
         <div class="h-6 w-px bg-slate-800 hidden sm:block"></div>
         <div class="flex items-center space-x-2 pl-1 sm:pl-2">
@@ -83,6 +89,55 @@
       </div>
     </div>
   </header>
+
+  <!-- MODAL OTENTIKASI RESMI (LOGIN GATE) -->
+  <div id="modal-auth-gate" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#111827] border border-cyan-800/80 rounded-2xl max-w-md w-full p-6 sm:p-8 text-center shadow-2xl space-y-5">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-cyan-950/80 border border-cyan-700/60 text-cyan-400 flex items-center justify-center text-2xl shadow-inner">
+        🛡️
+      </div>
+      <div>
+        <span class="px-2.5 py-1 rounded text-[10px] font-black uppercase bg-cyan-950 text-cyan-300 border border-cyan-800 tracking-wider">
+          STANDAR PENGENDALIAN MUTU (SPM)
+        </span>
+        <h3 class="text-lg sm:text-xl font-extrabold text-white mt-2">Otentikasi Personel QA &amp; SPM — KJPP NSR</h3>
+        <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+          Masukkan Token Akses atau NIK resmi Anda untuk membuka Ruang Kerja Technical Review &amp; QA.
+        </p>
+      </div>
+
+      <form id="form-auth-gate" onsubmit="event.preventDefault(); eksekusiLoginQA();" class="space-y-4 text-left">
+        <div>
+          <label for="auth-input-token" class="block text-xs font-semibold text-slate-300 mb-1.5">Token Akses / NIK Personel</label>
+          <input 
+            type="text" 
+            id="auth-input-token" 
+            name="auth_token" 
+            autocomplete="off"
+            oninput="this.value = this.value.toUpperCase(); document.getElementById('auth-error-msg').classList.add('hidden');" 
+            placeholder="Contoh: NSR-VAL-2026 atau NSR-2019-007" 
+            class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 focus:border-cyan-500 rounded-xl text-white font-mono text-sm uppercase placeholder-slate-500 focus:outline-none transition shadow-inner"
+            required
+          />
+        </div>
+
+        <div id="auth-error-msg" class="hidden p-3 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs leading-relaxed flex items-start gap-2">
+          <span class="text-rose-400 font-bold shrink-0">⚠️</span>
+          <span id="auth-error-text">Token / NIK tidak terdaftar di sistem KJPP NSR. Periksa kembali nomor registrasi Anda.</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
+          <button type="submit" id="btn-submit-auth" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer">
+            <span>Masuk Ruang Kerja</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+          <a href="index.html" class="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center justify-center">
+            <span>Kembali ke Beranda</span>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ACCESS DENIED OVERLAY (KHUSUS SURVEYOR LAPANGAN) -->
   <div id="modal-surveyor-locked" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
@@ -104,10 +159,13 @@
           Kewenangan tugas Surveyor Lapangan difokuskan secara mandiri pada tahap <strong>Milestone M-03 (Inspeksi Fisik Agunan &amp; Pengumpulan Data Pasar Pembanding)</strong>.
         </p>
       </div>
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
         <a href="portal-tracking.html" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center gap-1.5 shadow-md">
           <span>📋 Buka Tugas Lapangan (M-03)</span>
         </a>
+        <button type="button" onclick="logoutQASession()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 transition flex items-center justify-center gap-1 cursor-pointer">
+          <span>🚪 Ganti Akun / Logout</span>
+        </button>
         <a href="index.html" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center justify-center">
           <span>🏠 Dashboard Utama</span>
         </a>
@@ -116,7 +174,7 @@
   </div>
 
   <!-- ROLE PERMISSION BANNER -->
-  <div id="role-mode-banner" class="max-w-[1920px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-0">
+  <div id="role-mode-banner" class="max-w-[1920px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-0 hidden">
     <div class="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-800/40 flex flex-wrap items-center justify-between text-xs gap-2">
       <div class="flex items-center space-x-2">
         <span id="role-mode-icon" class="text-cyan-400">🛡️</span>
@@ -127,7 +185,7 @@
   </div>
 
   <!-- MAIN SPLIT WORKSPACE -->
-  <main id="main-qa-workspace" class="flex-1 max-w-[1920px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+  <main id="main-qa-workspace" class="flex-1 max-w-[1920px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden" style="display: none;">
 
     <!-- LEFT PANEL: DOCUMENT VIEWER & SAMPLE SELECTOR (Cols 1 to 6) -->
     <section class="lg:col-span-6 flex flex-col space-y-4">
@@ -535,120 +593,196 @@
     };
 
     // =========================================================
-    // RBAC: DETEKSI SESI & OTORISASI PERAN PENGGUNA
+    // RBAC: GERBANG LOGIN TOKEN/NIK & OTORISASI PERAN PENGGUNA
     // =========================================================
-    function detectActiveUser() {
-      // 1. Baca parameter URL secara komprehensif (?token, ?auth_token, ?role, ?nik)
-      const qParams = new URLSearchParams(window.location.search);
-      let incomingToken = qParams.get('token') || qParams.get('auth_token') || qParams.get('session_key') || qParams.get('key') || '';
-      let incomingRole = qParams.get('role') || '';
-      let incomingNik = qParams.get('nik') || '';
 
-      // 2. Pembersihan Cache Sesi Saat Ada Pergantian Kredensial URL (Session Cleanup on Auth Change)
-      // Jika URL membawa token/role baru, bersihkan sesi lama agar hak akses Surveyor/lama tidak tertinggal
-      if (incomingToken || incomingRole || incomingNik) {
-        try {
-          sessionStorage.removeItem('nsr_user_session');
-          sessionStorage.removeItem('NSR_USER_SESSION');
-        } catch (_) {}
-      }
+    /**
+     * Memverifikasi token atau NIK dan memetakan ke 4 peran operasional resmi KJPP NSR:
+     * 1. SURVEYOR (M-03) -> Strict Lockout dari QA Workspace
+     * 2. PENILAI (M-04)   -> Penilai Penyusun (Anti Self-Review)
+     * 3. REVIEWER_SPM (M-05) -> Tim Kendali Mutu SPM
+     * 4. REKAN (M-06/07) -> Pimpinan Rekan / Kepala SPM (Override Gate Authority)
+     */
+    function verifikasiKredensial(rawInput) {
+      if (!rawInput) return null;
+      const input = String(rawInput).trim().toUpperCase();
+      if (!input) return null;
 
-      // 3. Baca session storage (jika tidak ada token baru di URL)
-      let session = null;
-      try {
-        const sessStr = sessionStorage.getItem('nsr_user_session') || sessionStorage.getItem('NSR_USER_SESSION') || localStorage.getItem('nsr_user_session') || localStorage.getItem('NSR_USER_SESSION');
-        if (sessStr) session = JSON.parse(sessStr);
-      } catch(_) {}
-
-      let token = incomingToken || session?.token || session?.auth_token || '';
-      let role = (incomingRole || session?.role || '').toUpperCase();
-      let nik = incomingNik || session?.nik || '';
-
-      const tokenUpper = (token || '').trim().toUpperCase();
-
-      // Jika ada token baru di URL, reset role agar evaluasi hierarki token yang diutamakan
-      if (incomingToken) {
-        role = '';
-      }
-
-      // -------------------------------------------------------------
-      // HIERARKI PERAN BAKU OPERASIONAL KJPP NSR
-      // -------------------------------------------------------------
-
-      // 1. PENILAI PENYUSUN / VALUER (M-04) - TOKEN NSR-VAL-2026
+      // 1. SURVEYOR LAPANGAN (M-03)
       if (
-        tokenUpper.startsWith('NSR-VAL') || 
-        tokenUpper.includes('VAL') || 
-        tokenUpper.startsWith('NSR-ANL') || 
-        tokenUpper.includes('ANL') || 
-        role === 'PENILAI' || 
-        role === 'VALUER' || 
-        role === 'ANALIS'
+        input.startsWith('NSR-SRV') || 
+        input === 'SURVEYOR' || 
+        input === 'SRV' || 
+        input.includes('SURVEYOR')
       ) {
-        role = 'PENILAI';
-      }
-      // 2. SURVEYOR LAPANGAN (M-03) - TOKEN NSR-SRV-2026 (STRICT LOCKOUT)
-      else if (
-        tokenUpper.startsWith('NSR-SRV') || 
-        tokenUpper.includes('SRV') || 
-        role === 'SURVEYOR' || 
-        role === 'LAPANGAN'
-      ) {
-        role = 'SURVEYOR';
-      }
-      // 3. KEPALA SPM / PIMPINAN REKAN (M-06 / M-07) - OVERRIDE GATE AUTHORITY
-      else if (
-        nik === 'NSR-2019-005' || 
-        tokenUpper === '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F' || 
-        tokenUpper.includes('KING') || 
-        tokenUpper.includes('ADMIN') || 
-        tokenUpper.includes('PIMPINAN') || 
-        tokenUpper.includes('REKAN') || 
-        role === 'KEPALA_SPM' || 
-        role === 'REKAN' || 
-        role === 'PIMPINAN' || 
-        role === 'SUPERADMIN'
-      ) {
-        role = 'REKAN';
-      }
-      // 4. TIM REVIEWER KENDALI MUTU SPM (M-05) - REVIEWER WORKSPACE
-      else if (
-        nik === 'NSR-2019-007' || 
-        nik === 'NSR-2019-009' || 
-        tokenUpper.startsWith('NSR-REV') || 
-        tokenUpper.includes('REV') || 
-        tokenUpper.startsWith('NSR-SPM') || 
-        tokenUpper.includes('SPM') || 
-        role.includes('REVIEW')
-      ) {
-        role = 'REVIEWER_SPM';
-      }
-      // 5. Default Fallback untuk Portal QA Review (M-05 Reviewer)
-      else {
-        role = 'REVIEWER_SPM';
+        return {
+          role: 'SURVEYOR',
+          token: input,
+          nik: 'NSR-SRV-01',
+          nama: 'Tim Surveyor Lapangan',
+          jabatan: 'Surveyor Lapangan (M-03 Inspeksi Fisik)',
+          milestone: 'M-03',
+          allowed_access: false
+        };
       }
 
-      const activeUser = {
-        role,
-        token: token || (role === 'PENILAI' ? 'NSR-VAL-2026' : role === 'SURVEYOR' ? 'NSR-SRV-2026' : role === 'REKAN' ? 'NSR-PARTNER-KEY' : 'NSR-SPM-2026'),
-        nik: nik || (role === 'SURVEYOR' ? 'NSR-SRV-01' : role === 'PENILAI' ? 'NSR-2019-014' : role === 'REKAN' ? 'NSR-2019-005' : 'NSR-2019-007'),
-        nama: session?.nama || (role === 'SURVEYOR' ? 'Tim Surveyor Lapangan' : role === 'PENILAI' ? 'Budi Santoso (Penilai Pelaksana)' : role === 'REKAN' ? 'Danny Taufik Hidayat, S.H.' : 'Tedi Setiadi (Reviewer SPM)'),
-        jabatan: (role === 'SURVEYOR' ? 'Surveyor Lapangan (M-03 Inspeksi Fisik)' : role === 'PENILAI' ? '[Penilai Penyusun - M-04]' : role === 'REKAN' ? 'Pimpinan Rekan / Kepala SPM' : 'Reviewer Teknis Kendali Mutu SPM (M-05)'),
-        milestone: (role === 'SURVEYOR' ? 'M-03' : role === 'PENILAI' ? 'M-04' : role === 'REKAN' ? 'M-06 / M-07' : 'M-05'),
-        allowed_access: role !== 'SURVEYOR'
-      };
+      // 2. PENILAI PENYUSUN / VALUER (M-04)
+      if (
+        input.startsWith('NSR-VAL') || 
+        input.startsWith('NSR-ANL') || 
+        input === 'NSR-2019-014' || 
+        input === 'NSR-2019-015' || 
+        input === 'PENILAI' || 
+        input === 'VALUER' || 
+        input === 'ANALIS' ||
+        input.includes('VALUER')
+      ) {
+        return {
+          role: 'PENILAI',
+          token: input,
+          nik: input.startsWith('NSR-2019') ? input : 'NSR-2019-014',
+          nama: 'Budi Santoso (Penilai Pelaksana)',
+          jabatan: '[Penilai Penyusun - M-04]',
+          milestone: 'M-04',
+          allowed_access: true
+        };
+      }
 
-      // Simpan session mutakhir yang telah disanitasi
-      try {
-        sessionStorage.setItem('nsr_user_session', JSON.stringify(activeUser));
-        sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(activeUser));
-      } catch (_) {}
+      // 3. KEPALA SPM / PIMPINAN REKAN (M-06 / M-07)
+      if (
+        input === 'NSR-2019-005' || 
+        input === 'NSR-2019-001' || 
+        input === 'NSR-2019-002' || 
+        input === '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F' || 
+        input.includes('PARTNER') || 
+        input.includes('PIMPINAN') || 
+        input.includes('REKAN') || 
+        input.includes('KEPALA_SPM') ||
+        input === 'KING' ||
+        input === 'SUPERADMIN'
+      ) {
+        let nama = 'Danny Taufik Hidayat, S.H.';
+        if (input === 'NSR-2019-001') nama = 'Nanang Rahayu Sigit Paryanto';
+        if (input === 'NSR-2019-002') nama = 'Deni Romansyah';
+        return {
+          role: 'REKAN',
+          token: input,
+          nik: input.startsWith('NSR-2019') ? input : 'NSR-2019-005',
+          nama: nama,
+          jabatan: '[Pimpinan Rekan / Kepala SPM]',
+          milestone: 'M-06 / M-07',
+          allowed_access: true
+        };
+      }
 
-      return activeUser;
+      // 4. TIM REVIEWER KENDALI MUTU SPM (M-05)
+      if (
+        input === 'NSR-2019-007' || 
+        input === 'NSR-2019-009' || 
+        input.startsWith('NSR-SPM') || 
+        input.startsWith('NSR-REV') || 
+        input === 'REVIEWER' || 
+        input === 'REVIEWER_SPM' || 
+        input === 'SPM'
+      ) {
+        let nama = input === 'NSR-2019-009' ? 'Angga Malid, S.T.' : 'Tedi Setiadi (Reviewer SPM)';
+        return {
+          role: 'REVIEWER_SPM',
+          token: input,
+          nik: input.startsWith('NSR-2019') ? input : 'NSR-2019-007',
+          nama: nama,
+          jabatan: '[Tim Reviewer SPM - M-05]',
+          milestone: 'M-05',
+          allowed_access: true
+        };
+      }
+
+      // Kredensial tidak valid
+      return null;
     }
 
+    /**
+     * Memproses submit form modal login gate
+     */
+    function eksekusiLoginQA() {
+      const inputEl = document.getElementById('auth-input-token');
+      const errorEl = document.getElementById('auth-error-msg');
+      const rawVal = inputEl ? inputEl.value.trim() : '';
+
+      const user = verifikasiKredensial(rawVal);
+      if (!user) {
+        if (errorEl) errorEl.classList.remove('hidden');
+        return false;
+      }
+
+      if (errorEl) errorEl.classList.add('hidden');
+
+      // Simpan session mutakhir
+      try {
+        sessionStorage.setItem('nsr_user_session', JSON.stringify(user));
+        sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(user));
+      } catch (_) {}
+
+      // Tutup modal auth gate
+      const modalAuth = document.getElementById('modal-auth-gate');
+      if (modalAuth) modalAuth.classList.add('hidden');
+
+      // Terapkan izin RBAC
+      applyRBACPermissions(user);
+
+      if (user.role !== 'SURVEYOR') {
+        muatSampelBerkas('fifa');
+      }
+
+      return true;
+    }
+
+    /**
+     * Logout dan reset ke Gerbang Login Token/NIK
+     */
+    function logoutQASession() {
+      try {
+        sessionStorage.removeItem('nsr_user_session');
+        sessionStorage.removeItem('NSR_USER_SESSION');
+        localStorage.removeItem('nsr_user_session');
+        localStorage.removeItem('NSR_USER_SESSION');
+      } catch (_) {}
+
+      currentUser = null;
+
+      // Sembunyikan lembar kerja dan banner
+      const mainWs = document.getElementById('main-qa-workspace');
+      if (mainWs) mainWs.style.display = 'none';
+
+      const modalLock = document.getElementById('modal-surveyor-locked');
+      if (modalLock) modalLock.classList.add('hidden');
+
+      const roleBanner = document.getElementById('role-mode-banner');
+      if (roleBanner) roleBanner.classList.add('hidden');
+
+      // Reset form input & error
+      const inputEl = document.getElementById('auth-input-token');
+      if (inputEl) inputEl.value = '';
+      const errorEl = document.getElementById('auth-error-msg');
+      if (errorEl) errorEl.classList.add('hidden');
+
+      // Tampilkan modal otentikasi login gate
+      const modalAuth = document.getElementById('modal-auth-gate');
+      if (modalAuth) {
+        modalAuth.classList.remove('hidden');
+        if (inputEl) setTimeout(() => inputEl.focus(), 150);
+      }
+    }
+
+    /**
+     * Menerapkan tampilan UI & hak akses berdasarkan peran terverifikasi
+     */
     function applyRBACPermissions(user) {
       currentUser = user;
+
+      // Tutup modal auth gate jika masih terbuka
+      const modalAuth = document.getElementById('modal-auth-gate');
+      if (modalAuth) modalAuth.classList.add('hidden');
 
       // 1. KASUS SURVEYOR: KUNCI TOTAL WORKSPACE
       if (user.role === 'SURVEYOR') {
@@ -677,7 +811,7 @@
         return;
       }
 
-      // 2. KASUS ROLE BUKAN SURVEYOR: TAMPILKAN WORKSPACE
+      // 2. KASUS ROLE BUKAN SURVEYOR: BUKA WORKSPACE
       const modalLock = document.getElementById('modal-surveyor-locked');
       if (modalLock) modalLock.classList.add('hidden');
 
@@ -759,25 +893,57 @@
           bannerLabel.className = 'text-blue-300 font-semibold';
         }
         if (bannerIcon) bannerIcon.textContent = '📝';
-        if (bannerHint) bannerHint.textContent = 'Kewenangan: Unggah draf laporan PDF hasil M-04 & memeriksa temuan sistem (Anti Self-Review)';
+        if (bannerHint) bannerHint.textContent = 'Mode Penilai Penyusun: Anda dapat meninjau hasil audit otomatis SPI sebelum menyerahkan berkas ke Tim SPM.';
 
-        // Penilai cannot override gate and cannot self-review
+        // Penilai tidak berhak kirim revisi & override gate (Anti Self-Review)
         if (btnOverride) btnOverride.style.display = 'none';
         if (btnRevisi) btnRevisi.style.display = 'none';
         if (noticeValuer) noticeValuer.classList.remove('hidden');
       }
     }
 
-    // Initialize View on Page Load
-    document.addEventListener('DOMContentLoaded', () => {
-      const user = detectActiveUser();
-      applyRBACPermissions(user);
+    // Inisialisasi Halaman saat Load
+    function initQAPortal() {
+      // Periksa apakah ada sesi aktif yang sah di sessionStorage
+      let activeUser = null;
+      try {
+        const sessStr = sessionStorage.getItem('nsr_user_session') || sessionStorage.getItem('NSR_USER_SESSION');
+        if (sessStr) {
+          const sess = JSON.parse(sessStr);
+          const validated = verifikasiKredensial(sess.token || sess.nik || sess.role);
+          if (validated) {
+            activeUser = {
+              ...validated,
+              nama: sess.nama || validated.nama
+            };
+          }
+        }
+      } catch (_) {}
 
-      if (user.role !== 'SURVEYOR') {
-        // Load first sample by default
-        muatSampelBerkas('fifa');
+      if (activeUser) {
+        applyRBACPermissions(activeUser);
+        if (activeUser.role !== 'SURVEYOR') {
+          muatSampelBerkas('fifa');
+        }
+      } else {
+        // Belum login / tidak ada sesi: Buka modal Login Gate resmi
+        logoutQASession();
       }
-    });
+
+      window.__qa_initialized = true;
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initQAPortal);
+    } else {
+      initQAPortal();
+    }
+
+    // Ekspos fungsi global untuk event binding & pengujian
+    window.verifikasiKredensial = verifikasiKredensial;
+    window.eksekusiLoginQA = eksekusiLoginQA;
+    window.logoutQASession = logoutQASession;
+    window.applyRBACPermissions = applyRBACPermissions;
 
     function muatSampelBerkas(sampleKey) {
       const data = SAMPLE_REVIEWS[sampleKey];
