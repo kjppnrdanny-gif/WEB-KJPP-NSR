@@ -505,6 +505,15 @@ if ($action === 'override_approve') {
     $pin = trim((string)($_POST['auth_pin'] ?? ''));
     $overrideBy = trim((string)($_POST['override_by'] ?? 'Pimpinan Rekan'));
     $overrideReason = trim((string)($_POST['override_reason'] ?? 'Disetujui dengan catatan revisi minor menyusul.'));
+    $userRole = strtoupper(trim((string)($_POST['user_role'] ?? $_POST['role'] ?? '')));
+    $userToken = trim((string)($_POST['auth_token'] ?? $_POST['token'] ?? ''));
+
+    // RBAC Security Guard: Surveyor dilarang mutlak melakukan override
+    if ($userRole === 'SURVEYOR' || stripos($userRole, 'SURVEYOR') !== false || stripos($userToken, 'SRV') !== false) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'Otorisasi Ditolak: Surveyor tidak memiliki hak akses dispensasi NoLap']);
+        exit;
+    }
 
     if ($pin !== 'NSR8899') {
         http_response_code(403);
@@ -545,6 +554,16 @@ if ($action === 'override_approve') {
 // 5. ACTION: UPLOAD_AND_AUDIT
 // ---------------------------------------------------------
 if ($action === 'upload_and_audit') {
+    $userRole = strtoupper(trim((string)($_POST['user_role'] ?? $_POST['role'] ?? '')));
+    $userToken = trim((string)($_POST['auth_token'] ?? $_POST['token'] ?? ''));
+
+    // RBAC Security Guard: Surveyor hanya bertugas pada Milestone M-03 (Inspeksi Fisik)
+    if ($userRole === 'SURVEYOR' || stripos($userRole, 'SURVEYOR') !== false || stripos($userToken, 'SRV') !== false) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'Otorisasi Ditolak: Surveyor Lapangan hanya bertugas pada M-03 (Inspeksi Fisik) dan tidak berwenang mengunggah draf laporan lengkap']);
+        exit;
+    }
+
     $jobId = trim((string)($_POST['job_order_id'] ?? 'JO-NSR-' . date('Y') . '-' . rand(1000, 9999)));
     $uploadedBy = trim((string)($_POST['uploaded_by'] ?? 'Penilai Pelaksana'));
     

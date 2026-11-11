@@ -54,7 +54,7 @@
         </a>
       </div>
 
-      <!-- Quick Nav Links & Active User -->
+      <!-- Quick Nav Links & Active User with Role Switcher -->
       <div class="flex items-center space-x-2 sm:space-x-4">
         <a href="index.html" class="hidden md:inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors">
           <svg class="w-4 h-4 mr-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -69,23 +69,80 @@
           Portal NoLap
         </a>
 
-        <!-- User Badge -->
+        <!-- Role Simulator Dropdown -->
+        <div class="relative hidden sm:inline-block text-left">
+          <select id="user-role-select" onchange="gantiPeranManual(this.value)" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-500 font-medium">
+            <option value="REVIEWER_SPM">🛡️ Reviewer Teknis SPM (M-05)</option>
+            <option value="PENILAI">📝 Penilai Penyusun / Drafter (M-04)</option>
+            <option value="REKAN">⚖️ Pimpinan Rekan / Kepala SPM</option>
+            <option value="SURVEYOR">🚷 Surveyor Lapangan (Uji Akses Terkunci)</option>
+          </select>
+        </div>
+
+        <!-- User Badge Dynamic -->
         <div class="h-6 w-px bg-slate-800 hidden sm:block"></div>
-        <div class="flex items-center space-x-2 pl-2">
-          <div class="w-8 h-8 rounded-full bg-cyan-900/60 border border-cyan-700/60 flex items-center justify-center text-cyan-300 font-bold text-xs">
+        <div class="flex items-center space-x-2 pl-1 sm:pl-2">
+          <div id="user-badge-avatar" class="w-8 h-8 rounded-full bg-cyan-900/60 border border-cyan-700/60 flex items-center justify-center text-cyan-300 font-bold text-xs">
             QA
           </div>
           <div class="hidden lg:block text-left">
-            <div class="text-xs font-semibold text-slate-200">Reviewer Teknis SPM</div>
-            <div class="text-[10px] text-cyan-400 font-mono">ID: QA-SPM-CENTRAL</div>
+            <div id="user-badge-name" class="text-xs font-semibold text-slate-200">Tedi Setiadi</div>
+            <div id="user-badge-role" class="text-[10px] text-cyan-400 font-mono">Reviewer SPM (M-05)</div>
           </div>
         </div>
       </div>
     </div>
   </header>
 
+  <!-- ACCESS DENIED OVERLAY (KHUSUS SURVEYOR LAPANGAN) -->
+  <div id="modal-surveyor-locked" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#111827] border border-rose-800 rounded-2xl max-w-lg w-full p-6 sm:p-8 text-center shadow-2xl space-y-4">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-rose-950/80 border border-rose-700 text-rose-400 flex items-center justify-center text-3xl shadow-inner">
+        ⛔
+      </div>
+      <div>
+        <span class="px-2.5 py-1 rounded text-[10px] font-black uppercase bg-rose-950 text-rose-400 border border-rose-800 tracking-wider">
+          AKSES DIBATASI (RESTRICTED ACCESS)
+        </span>
+        <h3 class="text-lg sm:text-xl font-extrabold text-white mt-2">Batas Wilayah Kerja Surveyor Lapangan (M-03)</h3>
+      </div>
+      <div class="text-xs sm:text-sm text-slate-300 leading-relaxed text-left bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+        <p>
+          Sesuai ketentuan <strong>Standar Pengendalian Mutu (SPM)</strong> dan <strong>SPI 103/104</strong>, akun <strong>Surveyor Lapangan</strong> tidak memiliki kewenangan teknis maupun administratif untuk mereview draf laporan, meminta revisi analisis, ataupun memberikan dispensasi penerbitan NoLap.
+        </p>
+        <p class="text-slate-400 text-[11.5px]">
+          Kewenangan tugas Surveyor Lapangan difokuskan secara mandiri pada tahap <strong>Milestone M-03 (Inspeksi Fisik Agunan &amp; Pengumpulan Data Pasar Pembanding)</strong>.
+        </p>
+      </div>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+        <a href="portal-tracking.html" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center justify-center gap-1.5 shadow-md">
+          <span>📋 Buka Tugas Lapangan (M-03)</span>
+        </a>
+        <a href="index.html" class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center justify-center">
+          <span>🏠 Dashboard Utama</span>
+        </a>
+      </div>
+      <div class="pt-2">
+        <button type="button" onclick="gantiPeranManual('REVIEWER_SPM')" class="text-[11px] text-cyan-400 hover:text-cyan-300 underline font-medium">
+          🔑 Beralih ke Akun Reviewer SPM / Penilai Penyusun
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROLE PERMISSION BANNER -->
+  <div id="role-mode-banner" class="max-w-[1920px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-0">
+    <div class="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-800/40 flex flex-wrap items-center justify-between text-xs gap-2">
+      <div class="flex items-center space-x-2">
+        <span id="role-mode-icon" class="text-cyan-400">🛡️</span>
+        <span class="text-slate-300">Mode Otoritas Aktif: <strong id="role-mode-label" class="text-cyan-300 font-semibold">Tim Reviewer Kendali Mutu SPM (M-05)</strong></span>
+      </div>
+      <span id="role-mode-hint" class="text-[11px] text-slate-400">Kewenangan: Telaah hasil audit teknis SPI &amp; berwenang mengirim catatan revisi ke Penilai</span>
+    </div>
+  </div>
+
   <!-- MAIN SPLIT WORKSPACE -->
-  <main class="flex-1 max-w-[1920px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+  <main id="main-qa-workspace" class="flex-1 max-w-[1920px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
 
     <!-- LEFT PANEL: DOCUMENT VIEWER & SAMPLE SELECTOR (Cols 1 to 6) -->
     <section class="lg:col-span-6 flex flex-col space-y-4">
@@ -275,23 +332,28 @@
         </div>
       </div>
 
-      <!-- ACTION TOOLBAR / QUALITY GATEKEEPER ACTIONS -->
+      <!-- ACTION TOOLBAR / QUALITY GATEKEEPER ACTIONS (RBAC PROTECTED) -->
       <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-lg flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center space-x-2">
-          <!-- Button Download Report -->
+          <!-- Button Download Report (All Roles) -->
           <button type="button" id="btn-download-report" onclick="unduhLaporanQA()" class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 transition shadow-sm">
             <svg class="w-4 h-4 mr-1.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Unduh QA Report (HTML/PDF)
           </button>
 
-          <!-- Button Send Revision Note -->
+          <!-- Button Send Revision Note (Reviewer SPM & Rekan Only) -->
           <button type="button" id="btn-send-revision" onclick="bukaModalRevisi()" class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-bold text-amber-300 bg-amber-950/60 hover:bg-amber-900/60 border border-amber-800/80 transition shadow-sm">
             <svg class="w-4 h-4 mr-1.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             Minta Revisi ke Penilai
           </button>
+
+          <!-- Notice for Valuer / Penilai Penyusun -->
+          <span id="notice-valuer-spm" class="hidden text-xs text-slate-400 italic px-2 py-1 bg-slate-900 rounded border border-slate-800">
+            Telaah Mutu ditangani oleh Tim Reviewer SPM
+          </span>
         </div>
 
-        <!-- Button Override / Unlock NoLap Gate -->
+        <!-- Button Override / Unlock NoLap Gate (Pimpinan Rekan / Kepala SPM Only) -->
         <button type="button" id="btn-override-gate" onclick="bukaModalOverride()" class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-bold text-rose-300 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 transition shadow-sm">
           <svg class="w-4 h-4 mr-1.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
           Dispensasi Pimpinan (Override Gate)
@@ -326,7 +388,7 @@
         </div>
         <div>
           <label class="block text-slate-300 font-semibold mb-1">PIN Otorisasi Pimpinan Rekan:</label>
-          <input type="password" id="override-pin" placeholder="Masukkan 8-digit PIN Pimpinan" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 font-mono text-slate-200 focus:outline-none focus:border-rose-500">
+          <input type="password" id="override-pin" placeholder="Masukkan PIN Otorisasi Pimpinan" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 font-mono text-slate-200 focus:outline-none focus:border-rose-500">
         </div>
         <div>
           <label class="block text-slate-300 font-semibold mb-1">Justifikasi &amp; Catatan Dispensasi:</label>
@@ -377,11 +439,11 @@
 
   <!-- CLIENT-SIDE LOGIC & PDF VIEWER DRIVER -->
   <script>
-    // State Active Review
+    // State Active Review & RBAC User Session
     let activeReview = null;
     let activePageIndex = 1;
     let totalPagesCount = 63;
-    let mockPageData = {};
+    let currentUser = null;
 
     // Mock Sample Reviews Data
     const SAMPLE_REVIEWS = {
@@ -487,10 +549,181 @@
       }
     };
 
+    // =========================================================
+    // RBAC: DETEKSI SESI & OTORISASI PERAN PENGGUNA
+    // =========================================================
+    function detectActiveUser() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let authKey = urlParams.get('auth_token') || urlParams.get('session_key') || urlParams.get('key') || '';
+      let explicitRole = urlParams.get('role') || '';
+      let explicitNik = urlParams.get('nik') || '';
+
+      let session = null;
+      try {
+        const sessStr = sessionStorage.getItem('nsr_user_session') || localStorage.getItem('nsr_user_session');
+        if (sessStr) session = JSON.parse(sessStr);
+      } catch(_) {}
+
+      if (!authKey && session?.auth_token) authKey = session.auth_token;
+      if (!authKey && session?.token) authKey = session.token;
+      if (!explicitRole && session?.role) explicitRole = session.role;
+      if (!explicitNik && session?.nik) explicitNik = session.nik;
+
+      let role = (explicitRole || '').toUpperCase();
+      const keyUpper = (authKey || '').toUpperCase();
+
+      // Rule 1: Surveyor Lapangan (Strict Lockout)
+      if (keyUpper.includes('SRV') || role.includes('SURVEYOR') || role.includes('LAPANGAN')) {
+        role = 'SURVEYOR';
+      } 
+      // Rule 2: Kepala SPM / Super Admin (NSR-2019-005)
+      else if (keyUpper === '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F' || keyUpper.includes('KING') || keyUpper.includes('ADMIN') || role.includes('SUPERADMIN') || explicitNik === 'NSR-2019-005') {
+        role = 'KEPALA_SPM';
+      } 
+      // Rule 3: Reviewer SPM (Tedi Setiadi NSR-2019-007 / Angga Malid NSR-2019-009)
+      else if (keyUpper.includes('REV') || keyUpper.includes('SPM') || role.includes('REVIEW') || explicitNik === 'NSR-2019-007' || explicitNik === 'NSR-2019-009') {
+        role = 'REVIEWER_SPM';
+      } 
+      // Rule 4: Penilai Penyusun / Valuer / Analis
+      else if (keyUpper.includes('VAL') || keyUpper.includes('ANL') || role.includes('ANALIS') || role.includes('VALUER') || role.includes('PENILAI')) {
+        role = 'PENILAI';
+      } 
+      // Rule 5: Rekan / Pimpinan Penilai Publik
+      else if (keyUpper.includes('PIMPINAN') || keyUpper.includes('REKAN') || role.includes('PIMPINAN') || role.includes('REKAN')) {
+        role = 'REKAN';
+      } 
+      else if (!role) {
+        role = 'REVIEWER_SPM'; // Default demo mode
+      }
+
+      return {
+        role,
+        token: authKey || (role === 'SURVEYOR' ? 'NSR-SRV-KEY' : 'NSR-SPM-KEY'),
+        nik: explicitNik || session?.nik || (role === 'SURVEYOR' ? 'NSR-SRV-01' : role === 'REVIEWER_SPM' ? 'NSR-2019-007' : role === 'KEPALA_SPM' ? 'NSR-2019-005' : 'NSR-2019-001'),
+        nama: session?.nama || (role === 'SURVEYOR' ? 'Tim Surveyor Lapangan' : role === 'PENILAI' ? 'Budi Santoso (Penilai Pelaksana)' : role === 'KEPALA_SPM' ? 'Danny Taufik Hidayat, S.H.' : role === 'REKAN' ? 'Ir. Nanang Rahayu / Deni Siswandi' : 'Tedi Setiadi (Reviewer SPM)'),
+        jabatan: session?.jabatan || (role === 'SURVEYOR' ? 'Surveyor Lapangan (M-03 Inspeksi Fisik)' : role === 'PENILAI' ? 'Penilai Penyusun (M-04 Analisis KKP)' : role === 'KEPALA_SPM' ? 'Kepala Kendali Mutu SPM' : role === 'REKAN' ? 'Pimpinan Rekan Penilai Publik' : 'Reviewer Teknis Kendali Mutu SPM')
+      };
+    }
+
+    function applyRBACPermissions(user) {
+      currentUser = user;
+
+      // Update dropdown selector
+      const sel = document.getElementById('user-role-select');
+      if (sel) sel.value = user.role;
+
+      // 1. KASUS SURVEYOR: KUNCI TOTAL WORKSPACE
+      if (user.role === 'SURVEYOR') {
+        document.getElementById('modal-surveyor-locked').classList.remove('hidden');
+        document.getElementById('main-qa-workspace').style.display = 'none';
+        document.getElementById('role-mode-banner').classList.add('hidden');
+
+        // Header Avatar
+        const av = document.getElementById('user-badge-avatar');
+        av.className = 'w-8 h-8 rounded-full bg-rose-950 text-rose-400 border border-rose-800 flex items-center justify-center font-bold text-xs';
+        av.textContent = 'SRV';
+        document.getElementById('user-badge-name').textContent = user.nama;
+        document.getElementById('user-badge-role').textContent = 'Surveyor Lapangan (M-03)';
+        document.getElementById('user-badge-role').className = 'text-[10px] text-rose-400 font-mono font-bold';
+        return;
+      }
+
+      // 2. KASUS ROLE BUKAN SURVEYOR: TAMPILKAN WORKSPACE
+      document.getElementById('modal-surveyor-locked').classList.add('hidden');
+      document.getElementById('main-qa-workspace').style.display = 'grid';
+      document.getElementById('role-mode-banner').classList.remove('hidden');
+
+      const bannerLabel = document.getElementById('role-mode-label');
+      const bannerIcon = document.getElementById('role-mode-icon');
+      const bannerHint = document.getElementById('role-mode-hint');
+
+      const btnOverride = document.getElementById('btn-override-gate');
+      const btnRevisi = document.getElementById('btn-send-revision');
+      const noticeValuer = document.getElementById('notice-valuer-spm');
+
+      // Update Header Info
+      const av = document.getElementById('user-badge-avatar');
+      document.getElementById('user-badge-name').textContent = user.nama;
+      document.getElementById('user-badge-role').textContent = user.jabatan;
+
+      if (user.role === 'REKAN' || user.role === 'KEPALA_SPM') {
+        av.className = 'w-8 h-8 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800 flex items-center justify-center font-bold text-xs';
+        av.textContent = 'P';
+        document.getElementById('user-badge-role').className = 'text-[10px] text-amber-300 font-mono font-bold';
+
+        bannerLabel.textContent = 'Pimpinan Rekan / Kepala SPM (Supervisi Mutu Penuh)';
+        bannerLabel.className = 'text-amber-300 font-semibold';
+        bannerIcon.textContent = '⚖️';
+        bannerHint.textContent = 'Kewenangan: Telaah mutlak, persetujuan akhir & hak otorisasi dispensasi NoLap (Override Gate)';
+
+        if (btnOverride) btnOverride.style.display = 'inline-flex';
+        if (btnRevisi) btnRevisi.style.display = 'inline-flex';
+        if (noticeValuer) noticeValuer.classList.add('hidden');
+
+      } else if (user.role === 'REVIEWER_SPM') {
+        av.className = 'w-8 h-8 rounded-full bg-cyan-900/60 text-cyan-300 border border-cyan-700/60 flex items-center justify-center font-bold text-xs';
+        av.textContent = 'SPM';
+        document.getElementById('user-badge-role').className = 'text-[10px] text-cyan-400 font-mono font-bold';
+
+        bannerLabel.textContent = 'Tim Reviewer Kendali Mutu SPM (M-05)';
+        bannerLabel.className = 'text-cyan-300 font-semibold';
+        bannerIcon.textContent = '🛡️';
+        bannerHint.textContent = 'Kewenangan: Telaah hasil audit teknis SPI & berwenang mengirim catatan perbaikan ke Penilai';
+
+        // Reviewer SPM can send revision notes, but cannot override gate (only Partner can override)
+        if (btnOverride) btnOverride.style.display = 'none';
+        if (btnRevisi) btnRevisi.style.display = 'inline-flex';
+        if (noticeValuer) noticeValuer.classList.add('hidden');
+
+      } else if (user.role === 'PENILAI') {
+        av.className = 'w-8 h-8 rounded-full bg-blue-950 text-blue-300 border border-blue-800 flex items-center justify-center font-bold text-xs';
+        av.textContent = 'VAL';
+        document.getElementById('user-badge-role').className = 'text-[10px] text-blue-400 font-mono font-bold';
+
+        bannerLabel.textContent = 'Penilai Penyusun / Analis KKP (M-04)';
+        bannerLabel.className = 'text-blue-300 font-semibold';
+        bannerIcon.textContent = '📝';
+        bannerHint.textContent = 'Kewenangan: Unggah draf laporan PDF hasil M-04 & memeriksa temuan sistem (Anti Self-Review)';
+
+        // Penilai cannot override gate and cannot self-review
+        if (btnOverride) btnOverride.style.display = 'none';
+        if (btnRevisi) btnRevisi.style.display = 'none';
+        if (noticeValuer) noticeValuer.classList.remove('hidden');
+      }
+    }
+
+    function gantiPeranManual(newRole) {
+      const u = detectActiveUser();
+      u.role = newRole;
+      if (newRole === 'SURVEYOR') {
+        u.token = 'NSR-SRV-KEY';
+        u.nama = 'Tim Surveyor Lapangan';
+        u.jabatan = 'Surveyor Lapangan (M-03 Inspeksi Fisik)';
+      } else if (newRole === 'PENILAI') {
+        u.token = 'NSR-VAL-KEY';
+        u.nama = 'Budi Santoso (Penilai Pelaksana)';
+        u.jabatan = 'Penilai Penyusun (M-04 Analisis KKP)';
+      } else if (newRole === 'REKAN') {
+        u.token = '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F';
+        u.nama = 'Danny Taufik Hidayat, S.H.';
+        u.jabatan = 'Kepala Kendali Mutu & Pimpinan Rekan';
+      } else {
+        u.token = 'NSR-SPM-KEY';
+        u.nama = 'Tedi Setiadi';
+        u.jabatan = 'Reviewer Teknis Kendali Mutu SPM (M-05)';
+      }
+      applyRBACPermissions(u);
+    }
+
     // Initialize View on Page Load
     document.addEventListener('DOMContentLoaded', () => {
-      // Load first sample by default
-      muatSampelBerkas('fifa');
+      const user = detectActiveUser();
+      applyRBACPermissions(user);
+
+      if (user.role !== 'SURVEYOR') {
+        // Load first sample by default
+        muatSampelBerkas('fifa');
+      }
     });
 
     function muatSampelBerkas(sampleKey) {
@@ -818,6 +1051,11 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
 
     function bukaModalRevisi() {
       if (!activeReview) return;
+      if (currentUser?.role === 'PENILAI') {
+        alert('Perhatian: Penilai Penyusun tidak berwenang menelaah laporannya sendiri (Prinsip Anti Self-Review). Tindakan ini khusus Reviewer SPM.');
+        return;
+      }
+
       document.getElementById('revisi-recipient').value = activeReview.uploaded_by || 'Penilai Pelaksana';
       
       const summaryText = (activeReview.findings || []).map((f, i) => 
@@ -859,6 +1097,10 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     }
 
     function bukaModalOverride() {
+      if (!['REKAN', 'PIMPINAN', 'KEPALA_SPM'].includes(currentUser?.role)) {
+        alert('Akses Ditolak: Hanya Pimpinan Rekan atau Kepala SPM yang berwenang membuka kunci gerbang NoLap.');
+        return;
+      }
       document.getElementById('modal-override').classList.remove('hidden');
     }
 
@@ -867,6 +1109,11 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     }
 
     function eksekusiOverrideGate() {
+      if (!['REKAN', 'PIMPINAN', 'KEPALA_SPM'].includes(currentUser?.role)) {
+        alert('Akses Ditolak: Peran ' + (currentUser?.role || 'Pengguna') + ' tidak memiliki hak akses dispensasi NoLap.');
+        return;
+      }
+
       const pin = document.getElementById('override-pin').value.trim();
       const authorizer = document.getElementById('override-authorizer').value.trim();
       const notes = document.getElementById('override-notes').value.trim();
@@ -888,6 +1135,8 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
         body: new URLSearchParams({
           review_id: activeReview?.id || '',
           auth_pin: pin,
+          auth_token: currentUser?.token || '',
+          user_role: currentUser?.role || 'REKAN',
           override_by: authorizer,
           override_reason: notes
         })
@@ -908,7 +1157,6 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
         }
       })
       .catch(() => {
-        // Fallback demo mode simulation if offline
         if (activeReview) {
           activeReview.gate_nolap_unlocked = true;
           activeReview.status = 'ACCEPTED_OVERRIDE';
@@ -920,8 +1168,13 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
       });
     }
 
-    // File Upload Handler
+    // File Upload Handler with RBAC Guard
     function handleFileUpload(event) {
+      if (currentUser?.role === 'SURVEYOR') {
+        alert('Akses Ditolak: Surveyor Lapangan hanya bertugas pada M-03 (Inspeksi Fisik) dan tidak berwenang mengunggah draf laporan lengkap.');
+        return;
+      }
+
       const file = event.target.files[0];
       if (!file) return;
 
@@ -930,8 +1183,10 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('uploaded_by', 'Penilai Pelaksana (Upload Langsung)');
+      formData.append('uploaded_by', (currentUser?.nama || 'Penilai Penyusun') + ' (' + (currentUser?.jabatan || 'Valuer') + ')');
       formData.append('job_order_id', 'JO-NSR-2026-UPLOAD');
+      formData.append('user_role', currentUser?.role || 'PENILAI');
+      formData.append('auth_token', currentUser?.token || '');
 
       fetch('backend/qa-engine-handler.php?action=upload_and_audit', {
         method: 'POST',
@@ -944,7 +1199,6 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
           applyReviewData(res.data);
           alert('Audit berkas selesai! Ditemukan ' + res.data.findings_summary.total + ' temuan.');
         } else {
-          // Fallback if local without PHP webserver
           simulateLocalAudit(file.name);
         }
       })

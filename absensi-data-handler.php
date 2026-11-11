@@ -1773,7 +1773,7 @@ Kode ini berlaku selama 15 menit. Jangan berikan kode ini kepada siapa pun.
 Salam,
 KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
                 "From: presensi@kjppnanangrahayu.com
-Reply-To: info@kjppnanangrahayu.com
+Reply-To: nanang_kjpp@yahoo.co.id
 X-Mailer: PHP/" . phpversion()
             );
         }
