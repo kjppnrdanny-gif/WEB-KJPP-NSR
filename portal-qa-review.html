@@ -1041,6 +1041,14 @@
       totalPagesCount = review.total_pages || 63;
       activePageIndex = 1;
 
+      // Sinkronisasi status gerbang NoLap lokal untuk dokumen aktif
+      if (typeof syncAuditResultToBackend === 'function') {
+        syncAuditResultToBackend(review, {
+          pdfFileName: review.file_name,
+          pdfHash: review.file_hash
+        });
+      }
+
       // Update Metadata
       document.getElementById('meta-job-id').textContent = review.job_order_id;
       document.getElementById('meta-doc-name').textContent = review.file_name;
@@ -1502,6 +1510,7 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
             activeReview.status = 'ACCEPTED_OVERRIDE';
             activeReview.compliance_score = Math.max(activeReview.compliance_score, 85.0);
             applyReviewData(activeReview);
+            syncAuditResultToBackend(activeReview, currentAuditSession);
           }
           alert('KUNCI GERBANG NOLAP TELAH DIBUKA DENGAN DISPENSASI PIMPINAN REKAN!\n\nNoLap Kemenkeu pada Portal NoLap kini dapat diterbitkan.');
           tutupModalOverride();
@@ -1515,6 +1524,7 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
           activeReview.status = 'ACCEPTED_OVERRIDE';
           activeReview.compliance_score = Math.max(activeReview.compliance_score, 85.0);
           applyReviewData(activeReview);
+          syncAuditResultToBackend(activeReview, currentAuditSession);
         }
         alert('Kunci gerbang NoLap berhasil dibuka (Mode Simulasi).');
         tutupModalOverride();
@@ -1524,6 +1534,116 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     // =========================================================
     // IN-BROWSER DOCUMENT PARSING & QA AUDIT PIPELINE
     // =========================================================
+
+    // Endpoint Google Apps Script (tab LOG_QA_AUDIT & interlock NoLap)
+    const GAS_QA_ENDPOINT_URL = window.GAS_QA_ENDPOINT_URL || "https://script.google.com/macros/s/AKfycbwp15BykI7yuUeSTn2VHs_aZvIUIQIzirrzqJ2yVG7CvmeLbmVEOrLyDkGIQimtFIMG/exec";
+
+    /**
+     * Mengirim hasil audit QA ke Google Sheets (tab LOG_QA_AUDIT) & menyinkronkan status Gerbang NoLap (SHA-256)
+     */
+    async function syncAuditResultToBackend(auditResult, sessionData = {}) {
+      if (!auditResult) return;
+      try {
+        const joNumber = auditResult.job_order_id || 
+                         document.querySelector("[data-jo-number]")?.textContent.trim() || 
+                         document.getElementById("meta-job-id")?.textContent.trim() || 
+                         "JO-NSR-2026-UPLOAD";
+
+        const auditorName = (window.currentUser || currentUser)?.nama || 
+                            document.querySelector("[data-user-fullname]")?.textContent.trim() || 
+                            document.getElementById("meta-uploader")?.textContent.trim() || 
+                            "Danny Taufik Hidayat, S.H.";
+
+        const combinedDocName = [
+          sessionData.pdfFileName || auditResult.file_name,
+          sessionData.excelFileName ? `[KK: ${sessionData.excelFileName}]` : null
+        ].filter(Boolean).join(" + ") || auditResult.file_name || "Draf Laporan Penilaian.pdf";
+
+        const sha256 = sessionData.pdfHash || auditResult.file_hash || "-";
+        const skorMutu = Number(auditResult.compliance_score || auditResult.score || 0);
+        const kritisCount = Number(auditResult.findings_summary?.critical || 0);
+        const mayorCount = Number(auditResult.findings_summary?.major || 0);
+        const moderatCount = Number(auditResult.findings_summary?.moderate || 0);
+
+        const isUnlocked = (skorMutu >= 85.0 && kritisCount === 0) || 
+                           auditResult.gate_nolap_unlocked === true || 
+                           auditResult.status === 'ACCEPTED_OVERRIDE';
+        const gateStatus = isUnlocked ? "TERBUKA" : "TERKUNCI";
+
+        // 1. Simpan status ke localStorage agar Portal NoLap langsung mengenali SHA-256 berkas & JO ini secara real-time
+        const gateRecord = {
+          auditId: `QA-${Date.now()}`,
+          joNumber: joNumber,
+          namaDokumen: combinedDocName,
+          sha256Hash: sha256,
+          skorMutu: skorMutu,
+          statusQa: auditResult.status,
+          gateStatus: gateStatus,
+          isUnlocked: isUnlocked,
+          temuanKritis: kritisCount,
+          temuanMayor: mayorCount,
+          temuanModerat: moderatCount,
+          auditorName: auditorName,
+          timestamp: new Date().toISOString()
+        };
+
+        if (sha256 && sha256 !== "-") {
+          localStorage.setItem(`NSR_QA_GATE_${sha256}`, JSON.stringify(gateRecord));
+        }
+        if (joNumber) {
+          localStorage.setItem(`NSR_QA_GATE_JO_${joNumber}`, JSON.stringify(gateRecord));
+        }
+
+        // 2. Kirim payload non-blocking ke Google Apps Script (tab LOG_QA_AUDIT)
+        const payload = {
+          action: "SAVE_QA_AUDIT",
+          payload: {
+            joNumber: joNumber,
+            namaDokumen: combinedDocName,
+            sha256Hash: sha256,
+            skorMutu: skorMutu,
+            statusQa: auditResult.status,
+            temuanKritis: kritisCount,
+            temuanMayor: mayorCount,
+            temuanModerat: moderatCount,
+            daftarTemuan: (auditResult.findings || []).map(f => ({
+              severity: f.severity,
+              category: f.category,
+              title: f.title,
+              ref: f.standard_reference || f.ref || ""
+            })),
+            auditorName: auditorName,
+            isOverrideAuthorized: auditResult.gate_nolap_unlocked === true && auditResult.status === 'ACCEPTED_OVERRIDE'
+          }
+        };
+
+        if (GAS_QA_ENDPOINT_URL && !GAS_QA_ENDPOINT_URL.includes("URL_WEB_APP")) {
+          fetch(GAS_QA_ENDPOINT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" }, // Mencegah preflight CORS pada GAS
+            body: JSON.stringify(payload)
+          })
+          .then(res => res.json())
+          .then(resJson => {
+            if (resJson && resJson.status === "success") {
+              if (sha256 && sha256 !== "-") {
+                gateRecord.auditId = resJson.auditId;
+                gateRecord.gateStatus = resJson.gateStatus;
+                localStorage.setItem(`NSR_QA_GATE_${sha256}`, JSON.stringify(gateRecord));
+              }
+              console.info(`[QA Sync] Tersimpan di Google Sheets: ${resJson.auditId} | Gerbang NoLap: ${resJson.gateStatus}`);
+            }
+          })
+          .catch(err => {
+            console.warn("[QA Sync Warning] Gagal menyinkronkan ke server pusat (mode lokal tetap aktif):", err);
+          });
+        }
+
+        console.info(`[QA Gate Local] Status Gerbang NoLap: ${gateStatus} (JO: ${joNumber}, SHA-256: ${sha256.substring(0, 16)}...)`);
+      } catch (err) {
+        console.warn("[QA Sync Warning] Gagal menyinkronkan:", err);
+      }
+    }
 
     /**
      * Helper kalkulasi hash SHA-256 dari berkas
@@ -2063,6 +2183,9 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
         // Render ulang skor kepatuhan, status kelulusan, dan daftar temuan
         renderAuditResults(auditResult);
 
+        // Sinkronisasi non-blocking ke Google Sheets (LOG_QA_AUDIT) & status Gerbang NoLap (SHA-256)
+        syncAuditResultToBackend(auditResult, currentAuditSession);
+
         // Sinkronisasi latar belakang ke backend jika server tersedia
         try {
           if (files[0]) {
@@ -2132,6 +2255,8 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     window.runTechnicalReviewEngine = runTechnicalReviewEngine;
     window.renderAuditResults = renderAuditResults;
     window.handleFileUpload = handleFileUpload;
+    window.syncAuditResultToBackend = syncAuditResultToBackend;
+    window.GAS_QA_ENDPOINT_URL = GAS_QA_ENDPOINT_URL;
     window.loadPresetSample = muatSampelBerkas;
   </script>
 </body>

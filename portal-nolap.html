@@ -16639,6 +16639,23 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       if (p.qaGateUnlocked === false || p.qaStatus === 'NOT_ACCEPTABLE' || p.qaStatus === 'REQUIRES_MAJOR_REVISION') {
         return false;
       }
+
+      // Interlock Validasi SHA-256 Kriptografis dari Portal Technical Review & QA Laporan
+      const shaKey = p.sha256Hash || p.pdfHash || p.fileHash;
+      const joKey = p.noPermintaan || p.idPenugasan || p.jobOrderId || p.noReq;
+      let qaGateRecord = null;
+      if (shaKey) {
+        try { qaGateRecord = JSON.parse(localStorage.getItem(`NSR_QA_GATE_${shaKey}`)); } catch(_) {}
+      }
+      if (!qaGateRecord && joKey) {
+        try { qaGateRecord = JSON.parse(localStorage.getItem(`NSR_QA_GATE_JO_${joKey}`)); } catch(_) {}
+      }
+      if (qaGateRecord) {
+        if (qaGateRecord.gateStatus === 'TERKUNCI' || qaGateRecord.statusQa === 'NOT_ACCEPTABLE' || (Number(qaGateRecord.skorMutu) < 85 && qaGateRecord.gateStatus !== 'TERBUKA')) {
+          return false;
+        }
+      }
+
       // Mode Booking Pemerintah/BUMN: Hak alokasi nomor diizinkan melalui Admin
       if (p.modePengajuan === 'BOOKING' || p.isBooking === true || s === 'BOOKING_DIAJUKAN' || s === 'BOOKING_DISETUJUI') {
         return true;
@@ -16648,6 +16665,7 @@ Kantor Cabang Palembang | 2.0160-05 | LP_SPK | [Diisi Cabang Palembang] | [Diisi
       const hasQaPassed = Boolean(
         p.checklistQa === true || 
         p.statusValidasiQa === true ||
+        (qaGateRecord && qaGateRecord.gateStatus === 'TERBUKA') ||
         (p.mitigasi && Object.values(p.mitigasi).some(m => m.statusDokumen === 'APPROVED'))
       );
       const hasPartnerAuth = Boolean(
@@ -16861,7 +16879,20 @@ function resolveIzinPenilaiDisplay(p) {
       }
 
       if (!isEligibleForGenerateNoLap(item)) {
-        alert('⚠️ GENERATE NOMOR LAPORAN TERKUNCI!\n\nPermohonan ' + noReq + ' belum memenuhi syarat otorisasi:\n• Verifikasi Checklist QA: ' + (item.checklistQa ? '✅ TRUE' : '❌ PENDING / FALSE') + '\n• Otorisasi Partner: ' + (item.otorisasiPartner || item.status === 'Disetujui Partner' ? '✅ TRUE' : '❌ PENDING / FALSE') + '\n\nStatus verifikasi checklist QA dan otorisasi Partner wajib bernilai TRUE sebelum nomor resmi dapat diterbitkan.');
+        const shaKey = item.sha256Hash || item.pdfHash || item.fileHash;
+        const joKey = item.noPermintaan || item.idPenugasan || item.jobOrderId || item.noReq;
+        let qaRec = null;
+        if (shaKey) try { qaRec = JSON.parse(localStorage.getItem(`NSR_QA_GATE_${shaKey}`)); } catch(_) {}
+        if (!qaRec && joKey) try { qaRec = JSON.parse(localStorage.getItem(`NSR_QA_GATE_JO_${joKey}`)); } catch(_) {}
+
+        let detailMsg = '';
+        if (qaRec && qaRec.gateStatus === 'TERKUNCI') {
+          detailMsg = '\n• Audit Technical Review & QA (SHA-256): ❌ TERKUNCI (Skor Mutu: ' + qaRec.skorMutu + '%, Status: ' + qaRec.statusQa + ')\n  Dokumen belum memenuhi ambang kelulusan SPI minimal 85% atau terdapat temuan kritis.';
+        } else if (qaRec && qaRec.gateStatus === 'TERBUKA') {
+          detailMsg = '\n• Audit Technical Review & QA (SHA-256): ✅ TERBUKA (Skor Mutu: ' + qaRec.skorMutu + '%)';
+        }
+
+        alert('⚠️ GENERATE NOMOR LAPORAN TERKUNCI!\n\nPermohonan ' + noReq + ' belum memenuhi syarat otorisasi:\n• Verifikasi Checklist QA: ' + (item.checklistQa ? '✅ TRUE' : '❌ PENDING / FALSE') + '\n• Otorisasi Partner: ' + (item.otorisasiPartner || item.status === 'Disetujui Partner' ? '✅ TRUE' : '❌ PENDING / FALSE') + detailMsg + '\n\nStatus verifikasi checklist QA dan otorisasi Partner wajib bernilai TRUE sebelum nomor resmi dapat diterbitkan.');
         return;
       }
 
