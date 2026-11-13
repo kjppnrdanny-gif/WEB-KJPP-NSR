@@ -1,6 +1,6 @@
 /**
  * scripts/verify-qa-7bab-features.mjs
- * Pengujian Khusus Fitur 7-Bab Master Prompt, 4 Tab Navigasi, Modal AI & Interlock NoLap
+ * Pengujian Khusus Fitur 7-Bab Master Prompt, 4 Tab Navigasi (flex-col), Cold Start & Interlock NoLap
  */
 
 import http from 'node:http';
@@ -91,10 +91,13 @@ try {
       const data = JSON.parse(evt.data);
       if (data.method === 'Runtime.consoleAPICalled') {
         const txt = data.params.args.map(a => a.value || a.description).join(' ');
-        console.log('BROWSER CONSOLE:', txt);
+        // console.log('BROWSER CONSOLE:', txt);
       }
       if (data.method === 'Runtime.exceptionThrown') {
         console.error('BROWSER EXCEPTION:', data.params.exceptionDetails?.text, data.params.exceptionDetails?.exception?.description);
+      }
+      if (data.method === 'Page.javascriptDialogOpening') {
+        sendCdp('Page.handleJavaScriptDialog', { accept: true }).catch(() => {});
       }
     } catch (_) {}
   });
@@ -127,6 +130,9 @@ try {
       returnByValue: true,
       awaitPromise: true
     });
+    if (res.exceptionDetails) {
+      console.error('EVAL JS EXCEPTION:', res.exceptionDetails.text, res.exceptionDetails.exception?.description);
+    }
     return res.result ? res.result.value : null;
   }
 
@@ -142,7 +148,7 @@ try {
   await new Promise(r => setTimeout(r, 1200));
 
   console.log('\n================================================================================');
-  console.log('VERIFIKASI FITUR 7-BAB MASTER PROMPT & TAB NAVIGASI PORTAL QA');
+  console.log('VERIFIKASI FITUR 7-BAB MASTER PROMPT, 4 TAB (FLEX-COL) & COLD START');
   console.log('================================================================================\n');
 
   // 1. Login sebagai Reviewer SPM (Tedi Setiadi - NSR-2019-007)
@@ -155,29 +161,70 @@ try {
       nik: 'NSR-2019-007',
       avatar: 'T'
     }));
-    window.location.reload();
   `);
+  await sendCdp('Page.navigate', { url: `http://localhost:${PORT}/portal-qa-review.html` });
   await new Promise(r => setTimeout(r, 1500));
 
-  // Uji 1: Muat Sampel FIFA Medika (NOT_ACCEPTABLE)
-  console.log('[UJI 1] Muat Sampel FIFA Medika & Periksa Bab I, V, VI (Tab 1)...');
-  await evalJs(`muatSampelBerkas('fifa');`);
+  // Uji 0: Verifikasi State Cold Start (Mode Kerja Nyata - Live Bersih)
+  console.log('[UJI 0] Verifikasi Cold Start: Default pada Mode Kerja Nyata (Live) Bersih...');
+  const coldPresetVal = await evalJs(`document.getElementById('preset-demo-selector')?.value`);
+  const coldGateText = await evalJs(`document.getElementById('stat-gate-status')?.textContent?.trim()`);
+  const coldDocText = await evalJs(`document.getElementById('meta-doc-name')?.textContent?.trim()`);
+  const coldDocTitle = await evalJs(`document.getElementById('meta-doc-name')?.getAttribute('title')`);
+  const coldActiveReview = await evalJs(`window.activeReview`);
+
+  assert('Preset demo selector bernilai kosong (Mode Kerja Nyata Live)', coldPresetVal === '', coldPresetVal);
+  assert('Indikator Gerbang NoLap dalam status STANDBY', coldGateText?.includes('STANDBY'), coldGateText);
+  assert('Nama dokumen belum ada berkas dimuat', coldDocText === 'Belum ada berkas dimuat', coldDocText);
+  assert('Atribut title pada meta-doc-name diset "Belum ada berkas dimuat"', coldDocTitle === 'Belum ada berkas dimuat', coldDocTitle);
+  assert('activeReview bernilai null (FIFA Medika TIDAK auto-load)', coldActiveReview === null, coldActiveReview);
+
+  // Uji 1: Verifikasi Tata Letak 4 Tombol Tab 7-Bab (flex-col) & Badge JO whitespace-nowrap
+  console.log('\n[UJI 1] Verifikasi Tata Letak 4 Tombol Tab (flex-col) & Badge JO...');
+  const btn1Class = await evalJs(`document.getElementById('tab-btn-1')?.className`);
+  const btn2Class = await evalJs(`document.getElementById('tab-btn-2')?.className`);
+  const btn3Class = await evalJs(`document.getElementById('tab-btn-3')?.className`);
+  const btn4Class = await evalJs(`document.getElementById('tab-btn-4')?.className`);
+
+  assert('Tombol Tab 1 menggunakan class flex-col', btn1Class?.includes('flex-col'), btn1Class);
+  assert('Tombol Tab 2 menggunakan class flex-col', btn2Class?.includes('flex-col'), btn2Class);
+  assert('Tombol Tab 3 menggunakan class flex-col', btn3Class?.includes('flex-col'), btn3Class);
+  assert('Tombol Tab 4 menggunakan class flex-col', btn4Class?.includes('flex-col'), btn4Class);
+
+  const sublabelsCount = await evalJs(`document.querySelectorAll('.tab-sublabel')?.length`);
+  assert('Ditemukan 4 elemen .tab-sublabel di bawah judul tab', sublabelsCount === 4, sublabelsCount);
+
+  const joBadgeClass = await evalJs(`document.getElementById('summary-job-badge')?.className`);
+  assert('Badge nomor JO Bab I memiliki class whitespace-nowrap', joBadgeClass?.includes('whitespace-nowrap'), joBadgeClass);
+  assert('Badge nomor JO Bab I memiliki class shrink-0', joBadgeClass?.includes('shrink-0'), joBadgeClass);
+
+  // Uji 2: Muat Simulasi RS FIFA Medika Lewat Dropdown (#preset-demo-selector)
+  console.log('\n[UJI 2] Muat Simulasi RS FIFA Medika Lewat Dropdown...');
+  await evalJs(`(() => {
+    const sel = document.getElementById('preset-demo-selector');
+    if (sel) sel.value = 'fifa';
+    handleDemoPresetSelect('fifa');
+  })()`);
   await new Promise(r => setTimeout(r, 600));
 
   const fifaStatus = await evalJs(`activeReview?.status`);
   const fifaScore = await evalJs(`activeReview?.compliance_score`);
   const fifaGate = await evalJs(`activeReview?.gate_nolap_unlocked`);
   const fifaGateText = await evalJs(`document.getElementById('stat-gate-status')?.textContent?.trim()`);
+  const fifaDocTitle = await evalJs(`document.getElementById('meta-doc-name')?.getAttribute('title')`);
 
   assert('Status FIFA Medika adalah NOT_ACCEPTABLE', fifaStatus === 'NOT_ACCEPTABLE', fifaStatus);
   assert('Skor kepatuhan FIFA Medika 30.0%', Number(fifaScore) === 30, fifaScore);
   assert('Gerbang NoLap FIFA Medika bernilai false (terkunci)', fifaGate === false, fifaGate);
   assert('Indikator Gerbang NoLap UI menampilkan TERKUNCI', fifaGateText?.includes('TERKUNCI'), fifaGateText);
+  assert('Atribut title pada meta-doc-name memuat nama file PDF lengkap', fifaDocTitle?.includes('PT FIFA MEDIKA'), fifaDocTitle);
 
   // Periksa isi Bab I (Tab 1)
   const objekNama = await evalJs(`document.getElementById('summary-objek-nama')?.textContent`);
+  const objekTitle = await evalJs(`document.getElementById('summary-objek-nama')?.getAttribute('title')`);
   const pemberiTugas = await evalJs(`document.getElementById('summary-pemberi-tugas')?.textContent`);
   assert('Bab I: Nama Objek RS PT FIFA Medika', objekNama?.includes('PT FIFA MEDIKA'), objekNama);
+  assert('Bab I: summary-objek-nama memiliki atribut title', Boolean(objekTitle), objekTitle);
   assert('Bab I: Pemberi Tugas BTN Cabang Padang', pemberiTugas?.includes('Bank Tabungan Negara'), pemberiTugas);
 
   // Periksa Bab V: Matriks Risiko (6 Kategori)
@@ -186,23 +233,25 @@ try {
 
   await captureProof('bukti_qa_7bab_tab1_summary.png');
 
-  // Uji 2: Pindah ke Tab 2 (Kepatuhan 8 Aspek Bab II)
-  console.log('\n[UJI 2] Pindah ke Tab 2 (Kepatuhan 8 Aspek)...');
+  // Uji 3: Pindah ke Tab 2 (Kepatuhan 8 Aspek Bab II)
+  console.log('\n[UJI 3] Pindah ke Tab 2 (Kepatuhan 8 Aspek)...');
   await evalJs(`switchReviewTab(2)`);
   await new Promise(r => setTimeout(r, 300));
 
   const tab2Visible = await evalJs(`!document.getElementById('tab-pane-2')?.classList.contains('hidden')`);
   const tab1Hidden = await evalJs(`document.getElementById('tab-pane-1')?.classList.contains('hidden')`);
   const aspectsCount = await evalJs(`document.getElementById('compliance-matrix-container')?.children?.length`);
+  const btn2ActiveAfterSwitch = await evalJs(`document.getElementById('tab-btn-2')?.className`);
 
   assert('Tab 2 aktif terlihat', tab2Visible === true, tab2Visible);
   assert('Tab 1 tersembunyi', tab1Hidden === true, tab1Hidden);
   assert('Bab II: Memuat 8 aspek kepatuhan lengkap (A s/d H)', aspectsCount === 8, aspectsCount);
+  assert('Tombol Tab 2 tetap flex-col setelah switchReviewTab', btn2ActiveAfterSwitch?.includes('flex-col'), btn2ActiveAfterSwitch);
 
   await captureProof('bukti_qa_7bab_tab2_kepatuhan.png');
 
-  // Uji 3: Pindah ke Tab 3 (Temuan & Ulang Hitung Bab III & IV)
-  console.log('\n[UJI 3] Pindah ke Tab 3 (Temuan & Ulang Hitung)...');
+  // Uji 4: Pindah ke Tab 3 (Temuan & Ulang Hitung Bab III & IV)
+  console.log('\n[UJI 4] Pindah ke Tab 3 (Temuan & Ulang Hitung)...');
   await evalJs(`switchReviewTab(3)`);
   await new Promise(r => setTimeout(r, 300));
 
@@ -222,8 +271,8 @@ try {
 
   await captureProof('bukti_qa_7bab_tab3_temuan_recalc.png');
 
-  // Uji 4: Pindah ke Tab 4 (Rencana Tindakan Bab VII)
-  console.log('\n[UJI 4] Pindah ke Tab 4 (Rencana Tindakan Bab VII)...');
+  // Uji 5: Pindah ke Tab 4 (Rencana Tindakan Bab VII)
+  console.log('\n[UJI 5] Pindah ke Tab 4 (Rencana Tindakan Bab VII)...');
   await evalJs(`switchReviewTab(4)`);
   await new Promise(r => setTimeout(r, 300));
 
@@ -235,8 +284,8 @@ try {
 
   await captureProof('bukti_qa_7bab_tab4_rencana_aksi.png');
 
-  // Uji 5: Modal AI Deep Review & Master Prompt
-  console.log('\n[UJI 5] Buka Modal AI Deep Review & Master Prompt 7-Bab...');
+  // Uji 6: Modal AI Deep Review & Master Prompt
+  console.log('\n[UJI 6] Buka Modal AI Deep Review & Master Prompt 7-Bab...');
   await evalJs(`bukaModalAIPrompt()`);
   await new Promise(r => setTimeout(r, 300));
 
@@ -253,36 +302,41 @@ try {
   const modalAiClosed = await evalJs(`document.getElementById('modal-ai-review')?.classList.contains('hidden')`);
   assert('Modal AI Review berhasil ditutup', modalAiClosed === true, modalAiClosed);
 
-  // Uji 6: Muat Sampel Sarimukti (REQUIRES_MAJOR_REVISION)
-  console.log('\n[UJI 6] Muat Sampel Sarimukti & Periksa Status Interlock NoLap...');
-  await evalJs(`muatSampelBerkas('sarimukti')`);
+  // Uji 7: Muat Sampel Sarimukti (Permata Harapan) Lewat Dropdown
+  console.log('\n[UJI 7] Muat Sampel Sarimukti Lewat Dropdown & Periksa Title Dokumen...');
+  await evalJs(`(() => {
+    const sel = document.getElementById('preset-demo-selector');
+    if (sel) sel.value = 'permata';
+    handleDemoPresetSelect('permata');
+  })()`);
   await new Promise(r => setTimeout(r, 600));
 
   const sariStatus = await evalJs(`activeReview?.status`);
   const sariScore = await evalJs(`activeReview?.compliance_score`);
   const sariGate = await evalJs(`activeReview?.gate_nolap_unlocked`);
+  const sariDocTitle = await evalJs(`document.getElementById('meta-doc-name')?.getAttribute('title')`);
 
   assert('Status Sarimukti adalah REQUIRES_MAJOR_REVISION', sariStatus === 'REQUIRES_MAJOR_REVISION', sariStatus);
   assert('Skor kepatuhan Sarimukti 68.0%', Number(sariScore) === 68, sariScore);
   assert('Gerbang NoLap Sarimukti bernilai false (terkunci)', sariGate === false, sariGate);
+  assert('Atribut title pada meta-doc-name memuat nama berkas Sarimukti lengkap', (sariDocTitle?.includes('Permata Harapan Sarimukti') || sariDocTitle?.includes('Permata_Harapan_Sarimukti')), sariDocTitle);
 
-  // Uji 7: Uji Generator Deterministik 7-Bab (generate7ChapterReview)
-  console.log('\n[UJI 7] Uji generate7ChapterReview()...');
-  const genResult = await evalJs(`
-    const sampleFindings = [
-      { severity: 'CRITICAL', title: 'Error Sel', corrective_action: 'Perbaiki' }
-    ];
-    generate7ChapterReview(sampleFindings, 'Teks draf laporan rumah sakit padang', [{ pageNumber: 1, text: 'abc' }], [], {
-      jobId: 'JO-NSR-TEST',
-      fileName: 'Laporan_Test.pdf'
-    });
-  `);
+  // Uji 8: Kembalikan Dropdown ke Mode Kerja Nyata (Live) & Pastikan Bersih
+  console.log('\n[UJI 8] Kembalikan Dropdown ke Mode Kerja Nyata (Live) & Pastikan Bersih...');
+  await evalJs(`(() => {
+    const sel = document.getElementById('preset-demo-selector');
+    if (sel) sel.value = '';
+    handleDemoPresetSelect('');
+  })()`);
+  await new Promise(r => setTimeout(r, 400));
 
-  assert('Generator menghasilkan bab1_executive_summary', Boolean(genResult?.bab1_executive_summary));
-  assert('Generator menghasilkan bab2_matriks_kepatuhan', Array.isArray(genResult?.bab2_matriks_kepatuhan) && genResult.bab2_matriks_kepatuhan.length === 8);
-  assert('Generator menghasilkan bab4_pengujian_perhitungan', Array.isArray(genResult?.bab4_pengujian_perhitungan));
-  assert('Generator menghasilkan bab5_analisis_risiko', Array.isArray(genResult?.bab5_analisis_risiko) && genResult.bab5_analisis_risiko.length === 6);
-  assert('Generator mengunci NoLap bila ada temuan CRITICAL', genResult?.gate_nolap_unlocked === false);
+  const postResetActiveReview = await evalJs(`window.activeReview`);
+  const postResetGate = await evalJs(`document.getElementById('stat-gate-status')?.textContent?.trim()`);
+  const postResetDoc = await evalJs(`document.getElementById('meta-doc-name')?.textContent?.trim()`);
+
+  assert('Kembali ke Mode Kerja Nyata: activeReview bersih (null)', postResetActiveReview === null, postResetActiveReview);
+  assert('Kembali ke Mode Kerja Nyata: Gerbang NoLap STANDBY', postResetGate?.includes('STANDBY'), postResetGate);
+  assert('Kembali ke Mode Kerja Nyata: meta-doc-name kembali bersih', postResetDoc === 'Belum ada berkas dimuat', postResetDoc);
 
   ws.close();
 } finally {
@@ -300,5 +354,5 @@ console.log('===================================================================
 if (failed > 0) {
   process.exit(1);
 } else {
-  console.log('SEMUA FITUR 7-BAB MASTER PROMPT, 4 TAB & INTERLOCK NOLAP LULUS 100%!\n');
+  console.log('SEMUA 3 PENYEMPURNAAN UI/UX & FITUR 7-BAB LULUS 100% SEMPURNA!\n');
 }

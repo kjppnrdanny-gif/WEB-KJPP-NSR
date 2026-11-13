@@ -435,7 +435,7 @@ const newTabHtml = `<!-- PANEL HASIL TECHNICAL REVIEW (TAB NAVIGASI 7 BAB) -->
               <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
                 <span>📑</span> Bab I: Ringkasan Eksekutif Penugasan (Executive Summary)
               </span>
-              <span id="summary-job-badge" class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">-</span>
+              <span id="summary-job-badge" class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded whitespace-nowrap shrink-0">-</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-xs text-slate-300">
               <div><span class="text-slate-500">Nama Objek:</span> <strong id="summary-objek-nama" class="text-slate-200 block">-</strong></div>

@@ -384,7 +384,7 @@
           <span id="meta-job-id" class="px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">-</span>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-slate-300">
-          <div><span class="text-slate-500">Nama Dokumen:</span> <span id="meta-doc-name" class="font-semibold text-slate-400 truncate inline-block max-w-[220px] align-bottom">-</span></div>
+          <div><span class="text-slate-500">Nama Dokumen:</span> <span id="meta-doc-name" class="font-semibold text-slate-400 truncate inline-block max-w-[220px] align-bottom cursor-help" title="Belum ada berkas dimuat">-</span></div>
           <div><span class="text-slate-500">Pengunggah:</span> <span id="meta-uploader" class="font-semibold text-slate-200">-</span></div>
           <div><span class="text-slate-500">Total Halaman:</span> <span id="meta-total-pages" class="font-semibold font-mono text-slate-400">0 Halaman</span></div>
           <div><span class="text-slate-500">SHA-256 Hash:</span> <span id="meta-hash" class="font-mono text-[10px] text-slate-500 truncate inline-block max-w-[150px] align-bottom">-</span></div>
@@ -395,32 +395,40 @@
       <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-sm flex-1 flex flex-col">
         <!-- Tab Navigation Bar -->
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-3">
-          <!-- 4 Tabs Utama -->
-          <div class="flex items-center space-x-1 sm:space-x-2 overflow-x-auto text-xs font-semibold">
+                    <!-- 4 Tabs Utama -->
+          <div class="flex items-stretch space-x-1 sm:space-x-2 overflow-x-auto text-xs font-semibold">
             <button type="button" id="tab-btn-1" onclick="switchReviewTab(1)"
-              class="tab-review-btn px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 bg-cyan-950 text-cyan-300 border border-cyan-700/60 shadow-sm font-bold">
-              <span>📊</span>
-              <span>1. Ringkasan &amp; Rekomendasi</span>
-              <span class="text-[9px] text-cyan-400 font-mono">(Bab I, V, VI)</span>
+              class="tab-review-btn px-3 py-1.5 rounded-lg transition flex flex-col items-center justify-center text-center bg-cyan-950 text-cyan-300 border border-cyan-700/60 shadow-sm font-bold">
+              <div class="flex items-center gap-1.5 whitespace-nowrap">
+                <span>📊</span>
+                <span>1. Ringkasan &amp; Rekomendasi</span>
+              </div>
+              <span class="tab-sublabel text-[9.5px] text-cyan-400 font-mono mt-0.5 leading-none whitespace-nowrap">(Bab I, V, VI)</span>
             </button>
             <button type="button" id="tab-btn-2" onclick="switchReviewTab(2)"
-              class="tab-review-btn px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent font-medium">
-              <span>📋</span>
-              <span>2. Kepatuhan 8 Aspek</span>
-              <span class="text-[9px] text-slate-500 font-mono">(Bab II)</span>
+              class="tab-review-btn px-3 py-1.5 rounded-lg transition flex flex-col items-center justify-center text-center text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent font-medium">
+              <div class="flex items-center gap-1.5 whitespace-nowrap">
+                <span>📋</span>
+                <span>2. Kepatuhan 8 Aspek</span>
+              </div>
+              <span class="tab-sublabel text-[9.5px] text-slate-500 font-mono mt-0.5 leading-none whitespace-nowrap">(Bab II)</span>
             </button>
             <button type="button" id="tab-btn-3" onclick="switchReviewTab(3)"
-              class="tab-review-btn px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent font-medium">
-              <span>🔍</span>
-              <span>3. Temuan &amp; Ulang Hitung</span>
-              <span id="tab-badge-findings" class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-rose-950 text-rose-300 border border-rose-800">0</span>
-              <span class="text-[9px] text-slate-500 font-mono">(Bab III &amp; IV)</span>
+              class="tab-review-btn px-3 py-1.5 rounded-lg transition flex flex-col items-center justify-center text-center text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent font-medium">
+              <div class="flex items-center gap-1.5 whitespace-nowrap">
+                <span>🔍</span>
+                <span>3. Temuan &amp; Ulang Hitung</span>
+                <span id="tab-badge-findings" class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-rose-950 text-rose-300 border border-rose-800">0</span>
+              </div>
+              <span class="tab-sublabel text-[9.5px] text-slate-500 font-mono mt-0.5 leading-none whitespace-nowrap">(Bab III &amp; IV)</span>
             </button>
             <button type="button" id="tab-btn-4" onclick="switchReviewTab(4)"
-              class="tab-review-btn px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent font-medium">
-              <span>🛠️</span>
-              <span>4. Rencana Tindakan</span>
-              <span class="text-[9px] text-slate-500 font-mono">(Bab VII)</span>
+              class="tab-review-btn px-3 py-1.5 rounded-lg transition flex flex-col items-center justify-center text-center text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent font-medium">
+              <div class="flex items-center gap-1.5 whitespace-nowrap">
+                <span>🛠️</span>
+                <span>4. Rencana Tindakan</span>
+              </div>
+              <span class="tab-sublabel text-[9.5px] text-slate-500 font-mono mt-0.5 leading-none whitespace-nowrap">(Bab VII)</span>
             </button>
           </div>
 
@@ -442,7 +450,7 @@
               <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
                 <span>📑</span> Bab I: Ringkasan Eksekutif Penugasan (Executive Summary)
               </span>
-              <span id="summary-job-badge" class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">-</span>
+              <span id="summary-job-badge" class="text-[10px] font-mono font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded whitespace-nowrap shrink-0">-</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-xs text-slate-300">
               <div><span class="text-slate-500">Nama Objek:</span> <strong id="summary-objek-nama" class="text-slate-200 block">-</strong></div>
@@ -686,7 +694,7 @@
     /**
      * Reset sesi audit saat penilai ingin beralih ke berkas/penugasan baru
      */
-    function resetAuditSession(restoreDefault = false) {
+    function resetAuditSession(restoreDefault = false, silent = false) {
       currentAuditSession.pdfFileName = null;
       currentAuditSession.pdfPages = [];
       currentAuditSession.pdfHash = null;
@@ -766,7 +774,58 @@
         window.latestAuditSnapshot = null;
 
         updateWorkflowButtonsState(null);
-        showToastOrAlert("Sesi Audit Direset", "Sesi audit berkas telah dikosongkan. Siap untuk penugasan baru.", "info");
+        // Reset dropdown preset demo ke Mode Kerja Nyata (Live)
+        const presetSel = document.getElementById('preset-demo-selector');
+        if (presetSel) presetSel.value = '';
+
+        // Reset title nama dokumen
+        if (metaDoc) metaDoc.title = 'Belum ada berkas dimuat';
+
+        // Reset seluruh tab hasil penelaahan (Bab I s/d VII)
+        const summaryObjek = document.getElementById('summary-objek-nama');
+        if (summaryObjek) { summaryObjek.textContent = 'Belum ada berkas dimuat'; summaryObjek.title = 'Belum ada berkas dimuat'; }
+        const summaryJob = document.getElementById('summary-job-badge');
+        if (summaryJob) summaryJob.textContent = '-';
+        const summaryPemberi = document.getElementById('summary-pemberi-tugas');
+        if (summaryPemberi) summaryPemberi.textContent = '-';
+        const summaryAlamat = document.getElementById('summary-objek-alamat');
+        if (summaryAlamat) summaryAlamat.textContent = '-';
+        const summaryPengguna = document.getElementById('summary-pengguna-laporan');
+        if (summaryPengguna) summaryPengguna.textContent = '-';
+        const summaryLuas = document.getElementById('summary-luas');
+        if (summaryLuas) summaryLuas.textContent = '-';
+        const summaryTujuan = document.getElementById('summary-tujuan-nilai');
+        if (summaryTujuan) summaryTujuan.textContent = '-';
+        const summaryTgl = document.getElementById('summary-tgl-penilaian');
+        if (summaryTgl) summaryTgl.textContent = '-';
+        const summaryPendekatan = document.getElementById('summary-pendekatan');
+        if (summaryPendekatan) summaryPendekatan.textContent = '-';
+        const summaryOpini = document.getElementById('summary-opini-umum');
+        if (summaryOpini) summaryOpini.textContent = 'Menunggu pengunggahan berkas laporan PDF dan kertas kerja Excel untuk memulai telaah teknis mutu SPM.';
+
+        const riskMatrix = document.getElementById('risk-matrix-container');
+        if (riskMatrix) riskMatrix.innerHTML = '<div class="text-xs text-slate-500 italic py-2">Belum ada analisis risiko. Unggah dokumen untuk mengevaluasi profil risiko.</div>';
+
+        const recDecision = document.getElementById('rec-decision-container');
+        if (recDecision) recDecision.innerHTML = '<div class="text-xs text-slate-500 italic py-2">Menunggu hasil telaah teknis mutu SPM.</div>';
+
+        const compMatrix = document.getElementById('compliance-matrix-container');
+        if (compMatrix) compMatrix.innerHTML = '<div class="text-xs text-slate-500 italic py-4 text-center">Matriks kepatuhan 8 aspek akan ditampilkan setelah dokumen dimuat.</div>';
+
+        const tabBadgeFindings = document.getElementById('tab-badge-findings');
+        if (tabBadgeFindings) tabBadgeFindings.textContent = '0';
+
+        const recalcTable = document.getElementById('recalc-table-container');
+        if (recalcTable) recalcTable.innerHTML = '<div class="text-xs text-slate-500 italic py-2">Tabel recalculation audit akan aktif setelah kertas kerja dimuat.</div>';
+
+        const actionPlan = document.getElementById('action-plan-container');
+        if (actionPlan) actionPlan.innerHTML = '<div class="text-xs text-slate-500 italic py-4 text-center">Rencana tindakan perbaikan akan digenerasi setelah penelaahan berkas.</div>';
+
+        if (typeof switchReviewTab === 'function') switchReviewTab(1);
+
+        if (!silent) {
+          showToastOrAlert("Sesi Audit Direset", "Sesi audit berkas telah dikosongkan. Siap untuk penugasan baru.", "info");
+        }
       }
     }
 
@@ -1151,15 +1210,22 @@ Format output wajib berupa objek JSON valid dengan struktur:
       for (let i = 1; i <= 4; i++) {
         const pane = document.getElementById(`tab-pane-${i}`);
         const btn = document.getElementById(`tab-btn-${i}`);
+        const sub = btn ? btn.querySelector('.tab-sublabel') : null;
         if (i === tabIndex) {
           if (pane) pane.classList.remove('hidden');
           if (btn) {
-            btn.className = 'tab-review-btn px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 bg-cyan-950 text-cyan-300 border border-cyan-700/60 shadow-sm font-bold';
+            btn.className = 'tab-review-btn px-3 py-1.5 rounded-lg transition flex flex-col items-center justify-center text-center bg-cyan-950 text-cyan-300 border border-cyan-700/60 shadow-sm font-bold';
+          }
+          if (sub) {
+            sub.className = 'tab-sublabel text-[9.5px] text-cyan-400 font-mono mt-0.5 leading-none whitespace-nowrap';
           }
         } else {
           if (pane) pane.classList.add('hidden');
           if (btn) {
-            btn.className = 'tab-review-btn px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent font-medium';
+            btn.className = 'tab-review-btn px-3 py-1.5 rounded-lg transition flex flex-col items-center justify-center text-center text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent font-medium';
+          }
+          if (sub) {
+            sub.className = 'tab-sublabel text-[9.5px] text-slate-500 font-mono mt-0.5 leading-none whitespace-nowrap';
           }
         }
       }
@@ -1181,6 +1247,8 @@ Format output wajib berupa objek JSON valid dengan struktur:
 
       setT('summary-job-badge', b1.nomor_penugasan || review.job_order_id);
       setT('summary-objek-nama', b1.nama_objek || review.file_name);
+      const elObjekTitle = document.getElementById('summary-objek-nama');
+      if (elObjekTitle) elObjekTitle.title = b1.nama_objek || review.file_name || '';
       setT('summary-objek-alamat', b1.alamat_objek);
       setT('summary-pemberi-tugas', b1.pemberi_tugas);
       setT('summary-pengguna-laporan', b1.pengguna_laporan);
@@ -2678,7 +2746,8 @@ Format output wajib berupa objek JSON valid dengan struktur:
       applyRBACPermissions(user);
 
       if (user.role !== 'SURVEYOR' && user.allowed_access) {
-        muatSampelBerkas('fifa');
+        // Mode Kerja Nyata (Live) Default: Kondisi bersih tanpa memuat sampel simulasi otomatis
+        resetAuditSession(true, true);
       }
 
       return true;
@@ -2934,7 +3003,8 @@ Format output wajib berupa objek JSON valid dengan struktur:
       if (activeUser) {
         applyRBACPermissions(activeUser);
         if (activeUser.role !== 'SURVEYOR' && activeUser.allowed_access) {
-          muatSampelBerkas('fifa');
+          // Mode Kerja Nyata (Live) Default: Kondisi bersih tanpa memuat sampel simulasi otomatis
+          resetAuditSession(true, true);
         }
       } else {
         // Belum login / tidak ada sesi: Buka modal Login Gate resmi
@@ -3023,7 +3093,11 @@ Format output wajib berupa objek JSON valid dengan struktur:
 
       // Update Metadata
       document.getElementById('meta-job-id').textContent = review.job_order_id;
-      document.getElementById('meta-doc-name').textContent = review.file_name;
+      const metaDocElem = document.getElementById('meta-doc-name');
+      if (metaDocElem) {
+        metaDocElem.textContent = review.file_name;
+        metaDocElem.title = review.file_name;
+      }
       const metaUpEl = document.getElementById('meta-uploader');
       if (metaUpEl) {
         metaUpEl.textContent = (currentUser && currentUser.nama && currentUser.nik)
@@ -3416,7 +3490,7 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
      */
     function handleDemoPresetSelect(presetKey) {
       if (!presetKey) {
-        resetAuditSession(true);
+        resetAuditSession(true, true);
         return;
       }
       if (presetKey === 'fifa') {
