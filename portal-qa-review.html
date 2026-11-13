@@ -205,7 +205,13 @@
             <svg class="w-4 h-4 mr-1.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
             Pilih Dokumen Draf Penilaian
           </span>
-          <span class="text-[11px] text-slate-400">PDF Reader / Auto-Parser Active</span>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] text-slate-400">PDF &amp; Excel Workspace</span>
+            <button type="button" id="btn-reset-audit-session" onclick="resetAuditSession(true)" title="Reset Sesi Audit untuk Penugasan Baru" class="px-2 py-1 rounded text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1 active:scale-95 cursor-pointer">
+              <svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Reset Sesi</span>
+            </button>
+          </div>
         </div>
 
         <!-- Quick Sample Buttons -->
@@ -495,6 +501,40 @@
     let activePageIndex = 1;
     let totalPagesCount = 63;
     let currentUser = null;
+
+    // ============================================================================
+    // STATE GLOBAL SESI AUDIT (MENDUKUNG UPLOAD BERTAHAP PDF + EXCEL)
+    // ============================================================================
+    const currentAuditSession = {
+      pdfFileName: null,
+      pdfPages: [],
+      pdfHash: null,
+      excelFileName: null,
+      excelIssues: [],
+      lastUpdated: null
+    };
+
+    /**
+     * Reset sesi audit saat penilai ingin beralih ke berkas/penugasan baru
+     */
+    function resetAuditSession(restoreDefault = false) {
+      currentAuditSession.pdfFileName = null;
+      currentAuditSession.pdfPages = [];
+      currentAuditSession.pdfHash = null;
+      currentAuditSession.excelFileName = null;
+      currentAuditSession.excelIssues = [];
+      currentAuditSession.lastUpdated = null;
+
+      const fileInput = document.getElementById("file-pdf-input");
+      if (fileInput) fileInput.value = "";
+
+      if (restoreDefault) {
+        clearActivePresets();
+        const btnFifa = document.getElementById('btn-load-sample-fifa');
+        if (btnFifa) btnFifa.click();
+        showToastOrAlert("Sesi Audit Direset", "Sesi audit berkas telah dikosongkan. Kembali ke status draf penugasan awal.", "info");
+      }
+    }
 
     // Mock Sample Reviews Data
     const SAMPLE_REVIEWS = {
@@ -791,6 +831,7 @@
      */
     function applyRBACPermissions(user) {
       currentUser = user;
+      window.currentUser = user;
 
       // Tutup modal auth gate jika masih terbuka
       const modalAuth = document.getElementById('modal-auth-gate');
@@ -971,6 +1012,7 @@
     }
 
     function muatSampelBerkas(sampleKey) {
+      resetAuditSession();
       const data = SAMPLE_REVIEWS[sampleKey];
       if (!data) return;
 
@@ -995,6 +1037,7 @@
 
     function applyReviewData(review) {
       activeReview = review;
+      window.activeReview = review;
       totalPagesCount = review.total_pages || 63;
       activePageIndex = 1;
 
@@ -1226,6 +1269,26 @@
   <span class="text-[10px] text-slate-400 font-normal">Layer Teks Ekstraksi Asli (PDF.js)</span>
 </div>
 <div class="whitespace-pre-wrap font-mono text-xs leading-relaxed text-slate-300 select-text">${safeText}</div>`.trim();
+        return;
+      }
+
+      // Render info if only Excel workpaper was uploaded without PDF
+      if (currentAuditSession?.excelFileName && (!activeReview?.pagesContent || activeReview.pagesContent.length === 0)) {
+        const issuesCount = currentAuditSession.excelIssues.length;
+        contentEl.innerHTML = `
+<div class="text-amber-400 font-bold border-b border-slate-800 pb-2 mb-3 flex items-center justify-between">
+  <span>KERTAS KERJA EXCEL &bull; ${currentAuditSession.excelFileName}</span>
+  <span class="text-[10px] text-amber-300 font-normal">Pemindaian Formula SheetJS</span>
+</div>
+<div class="text-slate-300 space-y-3 leading-relaxed text-xs">
+  <div class="p-3 rounded-lg bg-amber-950/30 border border-amber-800/60 text-amber-200">
+    <strong>Kertas Kerja Excel Berhasil Dipindai:</strong> Ditemukan <strong>${issuesCount}</strong> anomali formula/sel.
+  </div>
+  <p class="text-slate-400">
+    Anda saat ini sedang menelaah hasil audit formula spreadsheet KKP.<br>
+    Silakan tarik &amp; lepas berkas <strong>.PDF Laporan Penilaian</strong> ke area pengunggahan di atas untuk melengkapi audit teks kesesuaian Standar Penilaian Indonesia (SPI) &amp; KEPI secara komprehensif.
+  </p>
+</div>`.trim();
         return;
       }
 
@@ -1463,6 +1526,27 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     // =========================================================
 
     /**
+     * Helper kalkulasi hash SHA-256 dari berkas
+     */
+    async function computeSHA256(file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return 'sha256-' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch (e) {
+        return 'sha256-' + Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+    }
+
+    /**
+     * Helper notifikasi toast / alert pengguna
+     */
+    function showToastOrAlert(title, message, type = 'info') {
+      alert(`${title ? title + ':\n\n' : ''}${message}`);
+    }
+
+    /**
      * 1. Menampilkan atau menyembunyikan indikator loading
      */
     function setLoadingState(isLoading, message = 'Mengekstrak teks dokumen & memindai formula...') {
@@ -1478,39 +1562,56 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     }
 
     /**
-     * 2. Ekstraksi teks lapis halaman dari berkas PDF menggunakan PDF.js
+     * 2. Ekstraksi teks PDF dengan progres real-time & deteksi dokumen Scan (Non-OCR)
      */
     async function extractTextFromPDF(file) {
       if (typeof pdfjsLib === 'undefined') {
         throw new Error('Pustaka PDF.js belum siap. Pastikan lib/pdf.min.js termuat dengan benar.');
       }
       const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-      const pdfDoc = await loadingTask.promise;
-      const numPages = pdfDoc.numPages;
-      const pages = [];
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const totalPages = pdf.numPages;
+      const pagesText = [];
+      let totalCharCount = 0;
 
-      for (let i = 1; i <= numPages; i++) {
-        const page = await pdfDoc.getPage(i);
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        // Perbarui indikator loading agar browser tidak terasa macet pada file besar (>50 halaman)
+        setLoadingState(true, `Mengekstrak halaman ${pageNum} dari ${totalPages}...`);
+
+        const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
+
+        // Gabungkan item teks dengan menjaga struktur baris dasar
         let lastY = null;
         let pageText = '';
         for (const item of textContent.items) {
-          if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+          const itemY = (item.transform && typeof item.transform[5] === 'number') ? item.transform[5] : null;
+          if (lastY !== null && itemY !== null && Math.abs(itemY - lastY) > 5) {
             pageText += '\n';
           } else if (pageText.length > 0 && !pageText.endsWith('\n') && !pageText.endsWith(' ')) {
             pageText += ' ';
           }
-          pageText += item.str;
-          lastY = item.transform[5];
+          pageText += (item.str || '');
+          lastY = itemY;
         }
-        pages.push({
-          pageNumber: i,
-          text: pageText.trim()
+
+        const trimmedText = pageText.trim();
+        totalCharCount += trimmedText.length;
+        pagesText.push({
+          pageNumber: pageNum,
+          text: trimmedText
         });
       }
 
-      return pages;
+      // Validasi ambang batas karakter untuk mendeteksi PDF hasil Scan / Gambar murni tanpa text layer
+      if (totalCharCount < 50) {
+        throw new Error(
+          `Berkas "${file.name}" terdeteksi sebagai PDF hasil Scan (berbasis gambar tanpa text layer). ` +
+          `Sistem membutuhkan PDF hasil ekspor langsung dari Word/Excel agar kepatuhan SPI/KEPI dapat diaudit.`
+        );
+      }
+
+      return pagesText;
     }
 
     /**
@@ -1622,6 +1723,11 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
       const totalPageNum = document.getElementById('total-page-num');
       if (totalPageNum) totalPageNum.textContent = totalPages;
 
+      if (meta.hash) {
+        const metaHash = document.getElementById('meta-hash');
+        if (metaHash) metaHash.textContent = String(meta.hash).substring(0, 16) + '...';
+      }
+
       totalPagesCount = totalPages;
 
       const sel = document.getElementById('select-page-jump');
@@ -1635,11 +1741,15 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
         }
       }
 
+      if (!activeReview) activeReview = {};
+      activeReview.file_name = fileName;
+      activeReview.total_pages = totalPages;
+
       if (meta.pagesContent && meta.pagesContent.length > 0) {
-        if (!activeReview) activeReview = {};
         activeReview.pagesContent = meta.pagesContent;
-        activeReview.file_name = fileName;
-        activeReview.total_pages = totalPages;
+        tampilkanHalaman(1);
+      } else {
+        activeReview.pagesContent = [];
         tampilkanHalaman(1);
       }
     }
@@ -1825,11 +1935,16 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
       const joMatch = fullText.match(/JO-NSR-[\d-]+/i);
       const joId = joMatch ? joMatch[0] : ('JO-NSR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000));
 
+      const combinedName = fileName || [
+        currentAuditSession.pdfFileName,
+        currentAuditSession.excelFileName ? `[KK: ${currentAuditSession.excelFileName}]` : null
+      ].filter(Boolean).join(" + ") || (extractedPages.length > 0 ? 'Draf Laporan Penilaian.pdf' : 'Kertas Kerja Excel.xlsx');
+
       return {
         id: 'rev-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         job_order_id: joId,
-        file_name: fileName || (extractedPages.length > 0 ? 'Draf Laporan Penilaian.pdf' : 'Kertas Kerja Excel.xlsx'),
-        file_hash: 'sha256-' + Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join(''),
+        file_name: combinedName,
+        file_hash: currentAuditSession.pdfHash || ('sha256-' + Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('')),
         total_pages: Math.max(1, extractedPages.length),
         pagesContent: extractedPages,
         uploaded_by: (currentUser?.nama || 'Penilai Penyusun') + ' (' + (currentUser?.jabatan || 'Valuer') + ')',
@@ -1854,11 +1969,12 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     function renderAuditResults(auditResult) {
       if (!auditResult) return;
       activeReview = auditResult;
+      window.activeReview = auditResult;
       applyReviewData(auditResult);
     }
 
     /**
-     * 7. Handler Pengunggahan Berkas Utama
+     * 7. Handler Utama Upload & Penggabungan State (PDF + Kertas Kerja Excel)
      */
     async function handleFileUpload(filesOrEvent) {
       let files = filesOrEvent;
@@ -1869,50 +1985,82 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
       }
 
       // Validasi hak akses RBAC: Surveyor lapangan terkunci
-      if (currentUser?.role === 'SURVEYOR') {
+      const effectiveUser = window.currentUser || currentUser;
+      if (effectiveUser?.role === 'SURVEYOR') {
         alert('Akses Ditolak: Surveyor Lapangan hanya bertugas pada M-03 (Inspeksi Fisik) dan tidak berwenang mengunggah draf laporan lengkap.');
         return;
       }
 
       if (!files || files.length === 0) return;
 
-      // 1. Tampilkan indikator loading agar UI tidak terasa macet/tidak merespons
-      setLoadingState(true, "Mengekstrak teks dokumen & memindai formula...");
+      setLoadingState(true, "Memvalidasi berkas unggahan...");
 
       try {
-        let extractedPages = [];
-        let excelIssues = [];
-        let mainFileName = "";
+        let hasNewPdf = false;
+        let hasNewExcel = false;
 
         for (const file of files) {
-          if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
-            mainFileName = file.name;
-            extractedPages = await extractTextFromPDF(file); // Menggunakan pdfjsLib
-          } else if (file.name.match(/\.(xlsx|xls)$/i)) {
-            excelIssues = await scanExcelFormulas(file); // Menggunakan SheetJS (XLSX)
+          const fileNameLower = file.name.toLowerCase();
+
+          // Validasi ukuran maksimal 50 MB sesuai ketentuan portal
+          if (file.size > 50 * 1024 * 1024) {
+            throw new Error(`Ukuran berkas "${file.name}" melebihi batas maksimum 50 MB.`);
+          }
+
+          if (file.type === "application/pdf" || fileNameLower.endsWith(".pdf")) {
+            const extractedPages = await extractTextFromPDF(file);
+            const fileHash = await computeSHA256(file);
+
+            currentAuditSession.pdfFileName = file.name;
+            currentAuditSession.pdfPages = extractedPages;
+            currentAuditSession.pdfHash = fileHash;
+            hasNewPdf = true;
+
+          } else if (fileNameLower.endsWith(".xlsx") || fileNameLower.endsWith(".xls")) {
+            setLoadingState(true, `Memindai formula kertas kerja "${file.name}"...`);
+            const detectedIssues = await scanExcelFormulas(file);
+
+            currentAuditSession.excelFileName = file.name;
+            currentAuditSession.excelIssues = detectedIssues;
+            hasNewExcel = true;
+
           } else {
-            alert(`Format berkas tidak didukung: ${file.name}. Gunakan PDF atau Excel (.xlsx).`);
+            throw new Error(`Format berkas "${file.name}" tidak didukung. Gunakan format .PDF atau .XLSX/.XLS.`);
           }
         }
 
-        if (extractedPages.length === 0 && excelIssues.length === 0) {
-          throw new Error("Tidak ada konten teks atau lembar kerja yang dapat dibaca.");
+        if (!currentAuditSession.pdfPages.length && !currentAuditSession.excelIssues.length && !hasNewExcel) {
+          throw new Error("Tidak ada konten laporan atau kertas kerja yang valid untuk diaudit.");
         }
 
-        // 2. Hapus status preset dummy (RS FIFA MEDIKA / Permata Harapan)
+        currentAuditSession.lastUpdated = new Date().toISOString();
+
+        // Nonaktifkan preset dummy (RS FIFA MEDIKA / Permata Harapan)
         clearActivePresets();
 
-        // 3. Perbarui Metadata & Pratinjau Halaman 1 dengan teks ASLI dari PDF yang diunggah
+        // Susun label gabungan nama berkas jika PDF dan Excel diunggah bersamaan/susulan
+        const combinedFileName = [
+          currentAuditSession.pdfFileName,
+          currentAuditSession.excelFileName ? `[KK: ${currentAuditSession.excelFileName}]` : null
+        ].filter(Boolean).join(" + ");
+
+        // Perbarui UI Metadata & Pratinjau Dokumen
         updateMetadataUI({
-          fileName: mainFileName || files[0].name,
-          totalPages: extractedPages.length,
-          pagesContent: extractedPages
+          fileName: combinedFileName,
+          totalPages: currentAuditSession.pdfPages.length || 1,
+          pagesContent: currentAuditSession.pdfPages,
+          hash: currentAuditSession.pdfHash || "EXCEL-WORKPAPER-ONLY"
         });
 
-        // 4. Jalankan mesin audit SPI/KEPI (baik lokal maupun via API backend/LLM)
-        const auditResult = await runTechnicalReviewEngine(extractedPages, excelIssues, mainFileName || files[0].name);
+        // Jalankan mesin audit deterministik dengan menggabungkan data PDF & Excel
+        setLoadingState(true, "Menjalankan validasi kepatuhan SPI & KEPI...");
+        const auditResult = await runTechnicalReviewEngine(
+          currentAuditSession.pdfPages,
+          currentAuditSession.excelIssues,
+          combinedFileName
+        );
 
-        // 5. Render ulang skor, status (ACCEPTABLE / NOT ACCEPTABLE), dan daftar temuan
+        // Render ulang skor kepatuhan, status kelulusan, dan daftar temuan
         renderAuditResults(auditResult);
 
         // Sinkronisasi latar belakang ke backend jika server tersedia
@@ -1932,10 +2080,13 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
         } catch (_) {}
 
       } catch (err) {
-        console.error("Gagal memproses dokumen:", err);
-        alert(`Terjadi kesalahan saat memproses berkas: ${err.message}`);
+        console.error("[QA Upload Pipeline Error]:", err);
+        showToastOrAlert("Peringatan Audit Dokumen", err.message, "error");
       } finally {
         setLoadingState(false);
+        // Reset nilai input file agar pengguna dapat mengunggah ulang file dengan nama sama setelah revisi
+        const fileInput = document.getElementById("file-pdf-input");
+        if (fileInput) fileInput.value = "";
       }
     }
 
@@ -1969,6 +2120,10 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     })();
 
     // Ekspos fungsi global untuk integrasi dan automated testing
+    window.currentAuditSession = currentAuditSession;
+    window.resetAuditSession = resetAuditSession;
+    window.computeSHA256 = computeSHA256;
+    window.showToastOrAlert = showToastOrAlert;
     window.setLoadingState = setLoadingState;
     window.extractTextFromPDF = extractTextFromPDF;
     window.scanExcelFormulas = scanExcelFormulas;
@@ -1977,6 +2132,7 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     window.runTechnicalReviewEngine = runTechnicalReviewEngine;
     window.renderAuditResults = renderAuditResults;
     window.handleFileUpload = handleFileUpload;
+    window.loadPresetSample = muatSampelBerkas;
   </script>
 </body>
 </html>
