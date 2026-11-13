@@ -55,7 +55,7 @@
           <div>
             <div class="flex items-center space-x-2">
               <span class="font-black tracking-wider text-sm sm:text-base text-slate-100 uppercase">PORTAL TECHNICAL REVIEW &amp; QA</span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 uppercase">SPI 2024 V2</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 uppercase" title="Standar Penilaian Indonesia &amp; Kode Etik Penilai Indonesia">KEPI &amp; SPI</span>
             </div>
             <p class="text-[11px] text-slate-400 font-medium">Komite Kendali Mutu SPM &bull; KMK RI No. 2.19.0160</p>
           </div>
@@ -90,8 +90,8 @@
             QA
           </div>
           <div class="hidden lg:block text-left">
-            <div id="user-badge-name" class="text-xs font-semibold text-slate-200">Tedi Setiadi</div>
-            <div id="user-badge-role" class="text-[10px] text-cyan-400 font-mono">Reviewer SPM (M-05)</div>
+            <div id="user-badge-name" class="text-xs font-semibold text-slate-200">Personel QA &amp; SPM</div>
+            <div id="user-badge-role" class="text-[10px] text-cyan-400 font-mono">Standar Pengendalian Mutu</div>
           </div>
         </div>
       </div>
@@ -122,10 +122,31 @@
             id="auth-input-token" 
             name="auth_token" 
             autocomplete="off"
-            oninput="this.value = this.value.toUpperCase(); document.getElementById('auth-error-msg').classList.add('hidden');" 
+            oninput="this.value = this.value.toUpperCase(); if (typeof handleTokenInputChange === 'function') handleTokenInputChange(); else document.getElementById('auth-error-msg')?.classList.add('hidden');" 
             placeholder="Masukkan Token NIK Anda" 
             class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 focus:border-cyan-500 rounded-xl text-white font-mono text-sm uppercase placeholder-slate-500 focus:outline-none transition shadow-inner tracking-wider"
             required
+          />
+        </div>
+
+        <!-- Input NIK Lanjutan: Muncul saat token bersama dimasukkan (Zero-Anonymous Policy) -->
+        <div id="auth-step-nik" class="hidden transition-all duration-300 pt-1">
+          <div class="p-3 mb-2.5 rounded-xl bg-cyan-950/60 border border-cyan-800/60 text-cyan-300 text-xs flex items-start gap-2 shadow-inner">
+            <span class="shrink-0 text-base">🛡️</span>
+            <div class="leading-relaxed">
+              <strong class="font-bold block text-white">Verifikasi Identitas Pelaksana (Zero-Anonymous)</strong>
+              Token bersama terverifikasi. Masukkan NIK resmi Anda untuk otentikasi personel pelaksana.
+            </div>
+          </div>
+          <label for="auth-input-nik" class="block text-xs font-semibold text-slate-300 mb-1.5">NIK Karyawan Pelaksana</label>
+          <input 
+            type="text" 
+            id="auth-input-nik" 
+            name="auth_nik" 
+            autocomplete="off"
+            oninput="this.value = this.value.toUpperCase(); document.getElementById('auth-error-msg')?.classList.add('hidden');" 
+            placeholder="Masukkan NIK Resmi Anda" 
+            class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 focus:border-cyan-500 rounded-xl text-white font-mono text-sm uppercase placeholder-slate-500 focus:outline-none transition shadow-inner tracking-wider"
           />
         </div>
 
@@ -296,7 +317,7 @@
 
         <!-- Viewer Footer Status -->
         <div class="px-4 py-2 border-t border-slate-800 bg-slate-900/60 flex items-center justify-between text-[11px] text-slate-400">
-          <span id="doc-file-info">File: 2026 BTN Jalan Dr Sutomo No 94 an PT FIFA MEDIKA (RUMAH SAKIT).pdf</span>
+          <span id="doc-file-info">File: Belum ada berkas dimuat</span>
           <span class="text-cyan-400">Tekan "Buka Halaman" pada kartu temuan untuk navigasi instan</span>
         </div>
       </div>
@@ -306,51 +327,51 @@
     <section class="lg:col-span-6 flex flex-col space-y-4">
 
       <!-- AUDIT VERDICT BANNER -->
-      <div id="verdict-banner-container" class="rounded-xl p-5 border shadow-lg transition-all glow-red bg-rose-950/20 border-rose-800/80">
+      <div id="verdict-banner-container" class="rounded-xl p-5 border shadow-lg transition-all bg-slate-900/60 border-slate-800">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <!-- Status & Title -->
           <div class="flex items-start space-x-3">
-            <div id="verdict-icon-container" class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-rose-900/50 text-rose-400 border border-rose-700/60">
-              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div id="verdict-icon-container" class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-slate-800/80 text-cyan-400 border border-slate-700/60">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             </div>
             <div>
               <div class="flex items-center space-x-2">
-                <span id="verdict-title" class="text-lg sm:text-xl font-black text-rose-300 tracking-wide">NOT ACCEPTABLE</span>
-                <span id="verdict-badge" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-900/80 text-rose-300 border border-rose-700">DRAF DITOLAK</span>
+                <span id="verdict-title" class="text-lg sm:text-xl font-black text-slate-200 tracking-wide">MENUNGGU AUDIT BERKAS</span>
+                <span id="verdict-badge" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-slate-800 text-slate-300 border border-slate-700">STANDBY</span>
               </div>
-              <p id="verdict-desc" class="text-xs text-rose-200/90 mt-1 leading-snug">
-                Ditemukan 2 temuan Kritis dan 2 temuan Mayor. Berkas memiliki cacat matematis formula (#REF!) dan ketidaksesuaian formil SPI.
+              <p id="verdict-desc" class="text-xs text-slate-400 mt-1 leading-snug">
+                Silakan pilih penugasan aktif atau unggah berkas laporan PDF/Excel untuk memulai pengujian mutu otomatis.
               </p>
             </div>
           </div>
 
           <!-- Quality Score Gauge -->
-          <div class="flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-rose-800/40 pt-3 sm:pt-0 sm:pl-4 shrink-0">
+          <div class="flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-4 shrink-0">
             <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Skor Kepatuhan Mutu</div>
-            <div id="compliance-score-val" class="text-2xl sm:text-3xl font-black font-mono-code text-rose-400">30.0%</div>
-            <div class="text-[10px] text-rose-300/80 font-medium">Batas Lulus: ≥ 85.0%</div>
+            <div id="compliance-score-val" class="text-2xl sm:text-3xl font-black font-mono-code text-slate-400">-</div>
+            <div class="text-[10px] text-slate-500 font-medium">Batas Lulus: ≥ 85.0%</div>
           </div>
         </div>
 
         <!-- Metrics Ribbon -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 pt-3 border-t border-rose-900/40">
-          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-rose-900/30">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 pt-3 border-t border-slate-800">
+          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-slate-800">
             <div class="text-[10px] text-slate-400 uppercase font-semibold">Temuan Kritis</div>
-            <div id="stat-critical-count" class="text-lg font-black text-rose-400 font-mono-code">2</div>
+            <div id="stat-critical-count" class="text-lg font-black text-slate-400 font-mono-code">0</div>
           </div>
-          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-amber-900/30">
+          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-slate-800">
             <div class="text-[10px] text-slate-400 uppercase font-semibold">Temuan Mayor</div>
-            <div id="stat-major-count" class="text-lg font-black text-amber-400 font-mono-code">2</div>
+            <div id="stat-major-count" class="text-lg font-black text-slate-400 font-mono-code">0</div>
           </div>
-          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-yellow-900/30">
+          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-slate-800">
             <div class="text-[10px] text-slate-400 uppercase font-semibold">Temuan Moderat</div>
-            <div id="stat-mod-count" class="text-lg font-black text-yellow-400 font-mono-code">0</div>
+            <div id="stat-mod-count" class="text-lg font-black text-slate-400 font-mono-code">0</div>
           </div>
-          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-slate-700/40">
+          <div class="bg-[#0f172a]/60 rounded-lg p-2.5 text-center border border-slate-800">
             <div class="text-[10px] text-slate-400 uppercase font-semibold">Gerbang NoLap</div>
-            <div id="stat-gate-status" class="text-xs font-black text-rose-400 uppercase mt-1 flex items-center justify-center">
-              <span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1 animate-pulse"></span>
-              TERKUNCI 🔒
+            <div id="stat-gate-status" class="text-xs font-black text-slate-400 uppercase mt-1 flex items-center justify-center">
+              <span class="inline-block w-2 h-2 rounded-full bg-slate-500 mr-1"></span>
+              STANDBY 🔒
             </div>
           </div>
         </div>
@@ -360,13 +381,13 @@
       <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-sm text-xs">
         <div class="flex items-center justify-between mb-2">
           <span class="font-bold text-slate-300 uppercase tracking-wider text-[11px]">Metadata Penugasan &amp; Agunan</span>
-          <span id="meta-job-id" class="px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-cyan-400 border border-slate-700">JO-NSR-2026-0881</span>
+          <span id="meta-job-id" class="px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">-</span>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-slate-300">
-          <div><span class="text-slate-500">Nama Dokumen:</span> <span id="meta-doc-name" class="font-semibold text-slate-200 truncate inline-block max-w-[220px] align-bottom">2026 BTN Dr Sutomo 94...</span></div>
-          <div><span class="text-slate-500">Pengunggah:</span> <span id="meta-uploader" class="font-semibold text-slate-200">Tedi Setiadi (Penilai Pelaksana)</span></div>
-          <div><span class="text-slate-500">Total Halaman:</span> <span id="meta-total-pages" class="font-semibold font-mono text-slate-200">63 Halaman</span></div>
-          <div><span class="text-slate-500">SHA-256 Hash:</span> <span id="meta-hash" class="font-mono text-[10px] text-cyan-400 truncate inline-block max-w-[150px] align-bottom">78ab8254...6eef</span></div>
+          <div><span class="text-slate-500">Nama Dokumen:</span> <span id="meta-doc-name" class="font-semibold text-slate-400 truncate inline-block max-w-[220px] align-bottom">-</span></div>
+          <div><span class="text-slate-500">Pengunggah:</span> <span id="meta-uploader" class="font-semibold text-slate-200">-</span></div>
+          <div><span class="text-slate-500">Total Halaman:</span> <span id="meta-total-pages" class="font-semibold font-mono text-slate-400">0 Halaman</span></div>
+          <div><span class="text-slate-500">SHA-256 Hash:</span> <span id="meta-hash" class="font-mono text-[10px] text-slate-500 truncate inline-block max-w-[150px] align-bottom">-</span></div>
         </div>
       </div>
 
@@ -376,7 +397,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div class="flex items-center space-x-2">
             <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Daftar Temuan Teknis SPI / KEPI</h3>
-            <span id="badge-total-findings" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800">4 Temuan</span>
+            <span id="badge-total-findings" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">0 Temuan</span>
           </div>
           <!-- Filter Buttons -->
           <div class="flex items-center space-x-1">
@@ -423,6 +444,11 @@
               class="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-semibold py-2.5 px-3 rounded-lg transition active:scale-95 cursor-pointer">
               <span>🖨 Cetak Lembar Kendali Mutu</span>
             </button>
+          </div>
+
+          <!-- Notice Khusus Mode Penilai: Anti Self-Review -->
+          <div id="notice-valuer-spm" class="hidden p-3 rounded-lg bg-blue-950/40 border border-blue-900/60 text-xs text-blue-200 mt-2">
+            <span class="font-bold">Mode Penilai (Anti Self-Review):</span> Hak pengesahan akhir dan dispensasi gerbang NoLap berada di bawah kewenangan Tim SPM / Pimpinan Rekan.
           </div>
         </div>
       </div>
@@ -554,7 +580,9 @@
         const metaDoc = document.getElementById('meta-doc-name');
         if (metaDoc) metaDoc.textContent = 'Belum ada berkas dimuat';
         const docInfo = document.getElementById('doc-file-info');
-        if (docInfo) docInfo.textContent = 'File: Belum ada berkas dipilih';
+        if (docInfo) docInfo.textContent = 'File: Belum ada berkas dimuat';
+        const metaUploader = document.getElementById('meta-uploader');
+        if (metaUploader) metaUploader.textContent = '-';
         const metaPages = document.getElementById('meta-total-pages');
         if (metaPages) metaPages.textContent = '0 Halaman';
         const totalPage = document.getElementById('total-page-num');
@@ -562,12 +590,12 @@
         const metaHash = document.getElementById('meta-hash');
         if (metaHash) metaHash.textContent = '-';
 
-        const textContent = document.getElementById('doc-text-content');
+        const textContent = document.getElementById('rendered-page-content') || document.getElementById('doc-text-content');
         if (textContent) {
           textContent.innerHTML = `
-            <div class="h-full flex flex-col items-center justify-center text-slate-500 py-16">
-              <svg class="w-12 h-12 mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              <p class="text-sm font-medium text-slate-400">Silakan unggah dokumen PDF / KKP Excel atau pilih Simulasi di atas.</p>
+            <div class="h-full flex flex-col items-center justify-center text-slate-500 py-16 text-center">
+              <svg class="w-12 h-12 mb-3 text-slate-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <p class="text-sm font-medium text-slate-400">Silakan pilih penugasan aktif atau unggah berkas PDF / Excel.</p>
               <p class="text-xs text-slate-600 mt-1">Sistem akan mengekstrak naskah &amp; memindai formula kepatuhan secara otomatis.</p>
             </div>`;
         }
@@ -621,7 +649,7 @@
         file_name: "2026 BTN Jalan Dr Sutomo No 94 an PT FIFA MEDIKA (RUMAH SAKIT).pdf",
         file_hash: "78ab825475a6b83360048375d70b6fc8c3c4688afa6957e011192e95c05c6eef",
         total_pages: 63,
-        uploaded_by: "Tedi Setiadi (Penilai Pelaksana)",
+        uploaded_by: "Tedi Setiadi (NSR-2019-007)",
         status: "NOT_ACCEPTABLE",
         compliance_score: 30.0,
         gate_nolap_unlocked: false,
@@ -676,7 +704,7 @@
         file_name: "BTN CBC Bekasi - Laporan KYG PT Ivander Putra Sukses - Permata Harapan Sarimukti (313 Unit)_ Revisi Laporan.pdf",
         file_hash: "d2d20647bf8ec3d82d154e494d8baf5572bcf13b33c913d1b8b962a95ffb789e",
         total_pages: 123,
-        uploaded_by: "Budi Santoso (Penilai Pelaksana)",
+        uploaded_by: "Yoga Anfiar Pradipta (NSR-2025-023)",
         status: "REQUIRES_MAJOR_REVISION",
         compliance_score: 68.0,
         gate_nolap_unlocked: false,
@@ -722,104 +750,628 @@
     // RBAC: GERBANG LOGIN TOKEN/NIK & OTORISASI PERAN PENGGUNA
     // =========================================================
 
+    // Direktori Resmi SDM & Dewan Rekan KJPP Nanang Rahayu Sigit Paryanto dan Rekan (KMK RI No. 2.19.0160)
+    const MASTER_KARYAWAN_NSR = [
+      {
+        nik: "NSR-2019-001",
+        nama: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)",
+        jabatan: "Pemimpin Rekan / Kepala SPM",
+        role: "REKAN",
+        milestone: "M-01 s/d M-07 (Master Otoritas)",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-002",
+        nama: "Deni Siswandi, S.T., MAPPI (Cert.)",
+        jabatan: "Rekan / Kepala Cabang Bandung",
+        role: "REKAN",
+        milestone: "M-02, M-06 / M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-003",
+        nama: "Mini Intan Cahyani",
+        jabatan: "Rekan Non Penilai",
+        role: "REKAN",
+        milestone: "M-01",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-004",
+        nama: "Milda Hidayati Dewi",
+        jabatan: "Manager Keuangan",
+        role: "ADMIN_MUTU",
+        milestone: "M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-005",
+        nama: "Danny Taufik Hidayat, S.H.",
+        jabatan: "Manager Administrasi & Umum / Pengendali Mutu SPM",
+        role: "REKAN",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-006",
+        nama: "Arie Indra Permana",
+        jabatan: "Manager Marketing",
+        role: "MARKETING",
+        milestone: "M-01",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-007",
+        nama: "Tedi Setiadi",
+        jabatan: "Technical Reviewer SPM",
+        role: "REVIEWER_SPM",
+        milestone: "M-04 / M-05",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-008",
+        nama: "Ricca Noer Farikha",
+        jabatan: "Accounting & Tax",
+        role: "ADMIN_MUTU",
+        milestone: "M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-009",
+        nama: "Angga Malid Cahyadi, S.T.",
+        jabatan: "Technical Reviewer SPM",
+        role: "REVIEWER_SPM",
+        milestone: "M-04 / M-05",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-010",
+        nama: "Fadri Nurdin",
+        jabatan: "Surveyor Lapangan (M-03 Inspeksi Fisik)",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Pusat Jakarta",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-2019-011",
+        nama: "Erwandi",
+        jabatan: "Kurir",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-012",
+        nama: "Latief Satihi",
+        jabatan: "Kurir",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-013",
+        nama: "Aryanto",
+        jabatan: "Umum",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-014",
+        nama: "Yanto",
+        jabatan: "Driver",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-015",
+        nama: "Lasiman",
+        jabatan: "Driver",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-016",
+        nama: "Sukirno",
+        jabatan: "Office Boy",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2019-017",
+        nama: "Muhammad Syahrul Ruly",
+        jabatan: "Surveyor Lapangan (M-03 Inspeksi Fisik)",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Pusat Jakarta",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-2019-018",
+        nama: "Uci Sanusi",
+        jabatan: "Surveyor Lapangan (M-03 Inspeksi Fisik)",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Pusat Jakarta",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-2019-019",
+        nama: "Yasir Rizal",
+        jabatan: "Surveyor Lapangan (M-03 Inspeksi Fisik)",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Pusat Jakarta",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-2019-020",
+        nama: "Udin Syamsudin",
+        jabatan: "Security",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2025-021",
+        nama: "Dhea Safitri Ningrum",
+        jabatan: "Staf Administrasi & Kendali Mutu",
+        role: "REVIEWER_SPM",
+        milestone: "M-01 / M-05 / M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2026-022",
+        nama: "Siti Nuraeni Ependi",
+        jabatan: "Staf Administrasi & Kendali Mutu",
+        role: "REVIEWER_SPM",
+        milestone: "M-01 / M-05 / M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2025-023",
+        nama: "Yoga Anfiar Pradipta",
+        jabatan: "Penilai Properti / Analis KKP",
+        role: "PENILAI",
+        milestone: "M-04",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2026-024",
+        nama: "Indra Nugraha",
+        jabatan: "Penilai Properti / Analis KKP",
+        role: "PENILAI",
+        milestone: "M-04",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2025-025",
+        nama: "Isnaini Azzahra",
+        jabatan: "Staf Admin",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-2026-026",
+        nama: "Maharani Citra Charisma",
+        jabatan: "Staf Admin",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Pusat Jakarta",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PDG-2019-23",
+        nama: "Hernita, S.Si., MAPPI (Cert.)",
+        jabatan: "Rekan / Kepala Cabang Padang",
+        role: "REKAN",
+        milestone: "M-02, M-06 / M-07",
+        cabang: "Cabang Padang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PDG-2019-24",
+        nama: "Rahmad Andika",
+        jabatan: "Reviewer SPM Cabang Padang",
+        role: "REVIEWER_SPM",
+        milestone: "M-05",
+        cabang: "Cabang Padang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PDG-2019-25",
+        nama: "Muhammad Al Amin",
+        jabatan: "Penilai Properti Cabang Padang",
+        role: "PENILAI",
+        milestone: "M-04",
+        cabang: "Cabang Padang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PDG-2019-26",
+        nama: "Rien Soneta",
+        jabatan: "Admin Keuangan",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Padang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PDG-2019-27",
+        nama: "Kiki Yeza",
+        jabatan: "Tenaga Suporting",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Padang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PDG-2019-28",
+        nama: "Siti Syarah",
+        jabatan: "Admin",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Padang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PDG-2019-29",
+        nama: "Oki Oktianil Putra",
+        jabatan: "Tenaga Suporting",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Padang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-MKS-2019-30",
+        nama: "Muhammad Amin Sade",
+        jabatan: "Rekan",
+        role: "REKAN",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Makassar",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-MKS-2019-31",
+        nama: "Wawan Kurniawan",
+        jabatan: "Penilai",
+        role: "PENILAI",
+        milestone: "M-04",
+        cabang: "Cabang Makassar",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-MKS-2019-32",
+        nama: "Alauddin Amin",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Makassar",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-MKS-2020-33",
+        nama: "M Fajrullah Danial",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Makassar",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-MKS-2021-34",
+        nama: "Rahmad Dwi Susanto",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Makassar",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-MKS-2020-35",
+        nama: "Andika Rifky Rifaldy",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Makassar",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-MKS-2019-36",
+        nama: "Ilyas Tandialla",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Makassar",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-MKS-2019-37",
+        nama: "Arman Mustajab",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Makassar",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-BDG-2020-38",
+        nama: "Heru Kurnia",
+        jabatan: "Business Development",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Bandung",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-BDG-2020-39",
+        nama: "Ardi Nurmayadi",
+        jabatan: "Penilai Properti Cabang Bandung",
+        role: "PENILAI",
+        milestone: "M-04",
+        cabang: "Cabang Bandung",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-BDG-2020-40",
+        nama: "Andri Kusmandana",
+        jabatan: "Penilai Properti Cabang Bandung",
+        role: "PENILAI",
+        milestone: "M-04",
+        cabang: "Cabang Bandung",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-BDG-2020-41",
+        nama: "Tiara Hurairah",
+        jabatan: "Admin Keuangan",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Bandung",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-BDG-2020-42",
+        nama: "Achmad Ilham Fauzan",
+        jabatan: "Admin",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Bandung",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-BDG-2020-43",
+        nama: "Rahmat Muhammad Hussein",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Bandung",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-PLB-2022-44",
+        nama: "Dharma Priyanto Sih Budi Susilo",
+        jabatan: "Rekan / Kepala Cabang Palembang",
+        role: "REKAN",
+        milestone: "M-02, M-06 / M-07",
+        cabang: "Cabang Palembang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PLB-2022-45",
+        nama: "Rafdinal Ardhi",
+        jabatan: "Penilai Properti Cabang Palembang",
+        role: "PENILAI",
+        milestone: "M-04",
+        cabang: "Cabang Palembang",
+        allowed_access: true
+      },
+      {
+        nik: "NSR-PLB-2022-46",
+        nama: "Arwin Saputra",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Palembang",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-PLB-2022-47",
+        nama: "Hadyan Fikhri",
+        jabatan: "Surveyor",
+        role: "SURVEYOR",
+        milestone: "M-03",
+        cabang: "Cabang Palembang",
+        allowed_access: false
+      },
+      {
+        nik: "NSR-PLB-2022-48",
+        nama: "M.Deo Tansila Putra",
+        jabatan: "Admin",
+        role: "PENILAI",
+        milestone: "M-01 s/d M-07",
+        cabang: "Cabang Palembang",
+        allowed_access: true
+      }
+    ];
+
+    // Daftar Kode Divisi & Cabang Operasional Resmi (Pola: NSR-[DIV/CAB]-[TAHUN])
+    const KODE_UNIT_BERSAMA = ['VAL', 'REV', 'BDG', 'PDG', 'MKS', 'PLB', 'JKT', 'ANL', 'SPM'];
+
+    function isTokenBersama(val) {
+      if (!val) return false;
+      const v = String(val).trim().toUpperCase();
+      const unitPattern = new RegExp('^NSR-(' + KODE_UNIT_BERSAMA.join('|') + ')(-\\d{4})?$');
+      return unitPattern.test(v) ||
+             v === 'VALUER' || v === 'PENILAI' || v === 'ANALIS' ||
+             v === 'REVIEWER' || v === 'SPM' ||
+             v.startsWith('NSR-VAL') || v.startsWith('NSR-REV') ||
+             v.startsWith('NSR-BDG') || v.startsWith('NSR-PDG') ||
+             v.startsWith('NSR-MKS') || v.startsWith('NSR-PLB') ||
+             v.startsWith('NSR-JKT');
+    }
+
+
+    // Endpoint GAS Master Karyawan & Presensi (KJPP Nanang Rahayu Sigit Paryanto & Rekan)
+    const GAS_MASTER_KARYAWAN_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec';
+
     /**
-     * Memverifikasi token atau NIK dan memetakan ke 4 peran operasional resmi KJPP NSR:
+     * Sinkronisasi direktori master karyawan secara dinamis dari endpoint GAS backend
+     * Non-blocking dengan fallback instan ke MASTER_KARYAWAN_NSR lokal
+     */
+    async function sinkronisasiMasterKaryawanDinamis() {
+      try {
+        if (!navigator.onLine) return;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+        const resp = await fetch(GAS_MASTER_KARYAWAN_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'getMasterKaryawanFull' }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (data && data.success && Array.isArray(data.rows)) {
+          data.rows.forEach(row => {
+            const nik = (row.nik || row[0] || '').trim().toUpperCase();
+            if (!nik) return;
+            const existing = MASTER_KARYAWAN_NSR.find(k => k.nik.toUpperCase() === nik);
+            if (!existing) {
+              MASTER_KARYAWAN_NSR.push({
+                nik: nik,
+                nama: row.nama || row[1] || 'Karyawan KJPP NSR',
+                jabatan: row.jabatan || row[2] || 'Staf Operasional',
+                role: 'PENILAI',
+                milestone: 'M-04',
+                cabang: row.cabang || 'Kantor Pusat Jakarta',
+                allowed_access: true
+              });
+            }
+          });
+        }
+      } catch (_) {
+        // Fallback hening ke direktori lokal
+      }
+    }
+
+    function dapatkanInisialNama(nama) {
+      if (!nama) return 'QA';
+      let clean = String(nama).replace(/^(Ir\.|Dr\.|Drs\.|Dra\.|H\.|Hj\.)\s+/i, '').trim();
+      const firstChar = clean.charAt(0).toUpperCase();
+      return (firstChar && firstChar >= 'A' && firstChar <= 'Z') ? firstChar : 'Q';
+    }
+
+    /**
+     * Memverifikasi token atau NIK dan memetakan ke peran operasional resmi KJPP NSR:
      * 1. SURVEYOR (M-03) -> Strict Lockout dari QA Workspace
      * 2. PENILAI (M-04)   -> Penilai Penyusun (Anti Self-Review)
      * 3. REVIEWER_SPM (M-05) -> Tim Kendali Mutu SPM
      * 4. REKAN (M-06/07) -> Pimpinan Rekan / Kepala SPM (Override Gate Authority)
      */
-    function verifikasiKredensial(rawInput) {
-      if (!rawInput) return null;
-      const input = String(rawInput).trim().toUpperCase();
-      if (!input) return null;
+    function verifikasiKredensial(rawToken, rawNik = '') {
+      if (!rawToken) return null;
+      const token = String(rawToken).trim().toUpperCase();
+      const nik = String(rawNik || '').trim().toUpperCase();
+      if (!token) return null;
 
       // 1. SURVEYOR LAPANGAN (M-03)
       if (
-        input.startsWith('NSR-SRV') || 
-        input === 'SURVEYOR' || 
-        input === 'SRV' || 
-        input.includes('SURVEYOR')
+        token.startsWith('NSR-SRV') ||
+        token === 'SURVEYOR' ||
+        token === 'SRV' ||
+        token.includes('SURVEYOR') ||
+        token === 'NSR-2019-010' ||
+        token === 'NSR-2019-017' ||
+        token === 'NSR-2019-018' ||
+        token === 'NSR-2019-019'
       ) {
+        const srv = MASTER_KARYAWAN_NSR.find(k => k.nik === token);
         return {
           role: 'SURVEYOR',
-          token: input,
-          nik: 'NSR-SRV-01',
-          nama: 'Tim Surveyor Lapangan',
-          jabatan: 'Surveyor Lapangan (M-03 Inspeksi Fisik)',
+          token: token,
+          nik: srv ? srv.nik : (token.startsWith('NSR-') ? token : 'NSR-SRV-01'),
+          nama: srv ? srv.nama : 'Tim Surveyor Lapangan',
+          jabatan: srv ? srv.jabatan : 'Surveyor Lapangan (M-03 Inspeksi Fisik)',
           milestone: 'M-03',
           allowed_access: false
         };
       }
 
-      // 2. PENILAI PENYUSUN / VALUER (M-04)
-      if (
-        input.startsWith('NSR-VAL') || 
-        input.startsWith('NSR-ANL') || 
-        input === 'NSR-2019-014' || 
-        input === 'NSR-2019-015' || 
-        input === 'PENILAI' || 
-        input === 'VALUER' || 
-        input === 'ANALIS' ||
-        input.includes('VALUER')
-      ) {
+      // 2. CEK NIK PRIBADI LANGSUNG DARI DATABASE
+      const personMatch = MASTER_KARYAWAN_NSR.find(k => k.nik.toUpperCase() === token);
+      if (personMatch) {
         return {
-          role: 'PENILAI',
-          token: input,
-          nik: input.startsWith('NSR-2019') ? input : 'NSR-2019-014',
-          nama: 'Budi Santoso (Penilai Pelaksana)',
-          jabatan: '[Penilai Penyusun - M-04]',
-          milestone: 'M-04',
-          allowed_access: true
+          ...personMatch,
+          token: token
         };
       }
 
-      // 3. KEPALA SPM / PIMPINAN REKAN (M-06 / M-07)
+      // 3. MASTER KUNCI INDUK / SUPERADMIN KING
       if (
-        input === 'NSR-2019-005' || 
-        input === 'NSR-2019-001' || 
-        input === 'NSR-2019-002' || 
-        input === '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F' || 
-        input.includes('PARTNER') || 
-        input.includes('PIMPINAN') || 
-        input.includes('REKAN') || 
-        input.includes('KEPALA_SPM') ||
-        input === 'KING' ||
-        input === 'SUPERADMIN'
+        token === '387F1132894C759EA61674434D9E7F34958A5445DC4F20C408A4A5B251396E5F' ||
+        token === 'KING' ||
+        token === 'SUPERADMIN'
       ) {
-        let nama = 'Danny Taufik Hidayat, S.H.';
-        if (input === 'NSR-2019-001') nama = 'Nanang Rahayu Sigit Paryanto';
-        if (input === 'NSR-2019-002') nama = 'Deni Romansyah';
+        const danny = MASTER_KARYAWAN_NSR.find(k => k.nik === 'NSR-2019-005');
         return {
-          role: 'REKAN',
-          token: input,
-          nik: input.startsWith('NSR-2019') ? input : 'NSR-2019-005',
-          nama: nama,
-          jabatan: '[Pimpinan Rekan / Kepala SPM]',
-          milestone: 'M-06 / M-07',
-          allowed_access: true
+          ...danny,
+          token: token
         };
       }
 
-      // 4. TIM REVIEWER KENDALI MUTU SPM (M-05)
-      if (
-        input === 'NSR-2019-007' || 
-        input === 'NSR-2019-009' || 
-        input.startsWith('NSR-SPM') || 
-        input.startsWith('NSR-REV') || 
-        input === 'REVIEWER' || 
-        input === 'REVIEWER_SPM' || 
-        input === 'SPM'
-      ) {
-        let nama = input === 'NSR-2019-009' ? 'Angga Malid, S.T.' : 'Tedi Setiadi (Reviewer SPM)';
+      // 4. TOKEN BERSAMA DIVISI / CABANG (ZERO-ANONYMOUS LOGIN POLICY)
+      if (isTokenBersAMA(token)) {
+        if (!nik) {
+          return {
+            requiresNik: true,
+            sharedToken: token,
+            message: 'Token bersama terverifikasi. Masukkan NIK resmi Anda untuk melanjutkan.'
+          };
+        }
+
+        const employee = MASTER_KARYAWAN_NSR.find(k => k.nik.toUpperCase() === nik);
+        if (!employee) {
+          return {
+            invalidNik: true,
+            message: 'NIK Karyawan Pelaksana tidak terdaftar. Hubungi administrator internal.'
+          };
+        }
+
         return {
-          role: 'REVIEWER_SPM',
-          token: input,
-          nik: input.startsWith('NSR-2019') ? input : 'NSR-2019-007',
-          nama: nama,
-          jabatan: '[Tim Reviewer SPM - M-05]',
-          milestone: 'M-05',
-          allowed_access: true
+          ...employee,
+          token: token,
+          sharedToken: token
         };
       }
 
@@ -827,19 +1379,72 @@
       return null;
     }
 
+    function isTokenBersAMA(token) {
+      return isTokenBersama(token);
+    }
+
     /**
-     * Memproses submit form modal login gate
+     * Handler realtime saat input token diketik
+     */
+    function handleTokenInputChange() {
+      const tokenEl = document.getElementById('auth-input-token');
+      const errEl = document.getElementById('auth-error-msg');
+      if (errEl) errEl.classList.add('hidden');
+      if (!tokenEl) return;
+      const val = tokenEl.value.trim().toUpperCase();
+      const stepNik = document.getElementById('auth-step-nik');
+      const inputNik = document.getElementById('auth-input-nik');
+
+      if (isTokenBersama(val)) {
+        if (stepNik) stepNik.classList.remove('hidden');
+        if (inputNik) inputNik.setAttribute('required', 'true');
+      } else {
+        if (stepNik && (!inputNik || !inputNik.value)) {
+          stepNik.classList.add('hidden');
+          if (inputNik) inputNik.removeAttribute('required');
+        }
+      }
+    }
+
+    /**
+     * Memproses submit form modal login gate (Mendukung Zero-Anonymous Policy)
      */
     function eksekusiLoginQA() {
-      const inputEl = document.getElementById('auth-input-token');
+      const inputTokenEl = document.getElementById('auth-input-token');
+      const inputNikEl = document.getElementById('auth-input-nik');
       const errorEl = document.getElementById('auth-error-msg');
-      const rawVal = inputEl ? inputEl.value.trim() : '';
+      const errTextEl = document.getElementById('auth-error-text');
+      const stepNik = document.getElementById('auth-step-nik');
 
-      const user = verifikasiKredensial(rawVal);
-      if (!user) {
-        if (errorEl) {
-          const errTextEl = document.getElementById('auth-error-text');
-          if (errTextEl) errTextEl.textContent = 'Token NIK tidak valid. Hubungi administrator internal.';
+      const rawToken = inputTokenEl ? inputTokenEl.value.trim().toUpperCase() : '';
+      const rawNik = inputNikEl ? inputNikEl.value.trim().toUpperCase() : '';
+
+      if (!rawToken) {
+        if (errorEl && errTextEl) {
+          errTextEl.textContent = 'Token NIK tidak valid. Hubungi administrator internal.';
+          errorEl.classList.remove('hidden');
+        }
+        return false;
+      }
+
+      // Validasi Token Bersama tanpa NIK Pelaksana (Zero-Anonymous Guard)
+      if (isTokenBersama(rawToken) && !rawNik) {
+        if (stepNik) stepNik.classList.remove('hidden');
+        if (inputNikEl) {
+          inputNikEl.setAttribute('required', 'true');
+          inputNikEl.focus();
+        }
+        if (errorEl && errTextEl) {
+          errTextEl.textContent = 'Token bersama terverifikasi. Masukkan NIK resmi Anda untuk melanjutkan.';
+          errorEl.classList.remove('hidden');
+        }
+        return false;
+      }
+
+      const user = verifikasiKredensial(rawToken, rawNik);
+      if (!user || user.requiresNik || user.invalidNik) {
+        if (errorEl && errTextEl) {
+          errTextEl.textContent = 'Token NIK tidak valid. Hubungi administrator internal.';
           errorEl.classList.remove('hidden');
         }
         return false;
@@ -860,7 +1465,7 @@
       // Terapkan izin RBAC
       applyRBACPermissions(user);
 
-      if (user.role !== 'SURVEYOR') {
+      if (user.role !== 'SURVEYOR' && user.allowed_access) {
         muatSampelBerkas('fifa');
       }
 
@@ -879,6 +1484,7 @@
       } catch (_) {}
 
       currentUser = null;
+      window.currentUser = null;
 
       // Sembunyikan lembar kerja dan banner
       const mainWs = document.getElementById('main-qa-workspace');
@@ -893,8 +1499,31 @@
       // Reset form input & error
       const inputEl = document.getElementById('auth-input-token');
       if (inputEl) inputEl.value = '';
+      const inputNikEl = document.getElementById('auth-input-nik');
+      if (inputNikEl) inputNikEl.value = '';
+      const stepNik = document.getElementById('auth-step-nik');
+      if (stepNik) stepNik.classList.add('hidden');
       const errorEl = document.getElementById('auth-error-msg');
       if (errorEl) errorEl.classList.add('hidden');
+
+      // Reset info header ke kondisi netral
+      const av = document.getElementById('user-badge-avatar');
+      if (av) {
+        av.className = 'w-8 h-8 rounded-full bg-cyan-900/60 border border-cyan-700/60 flex items-center justify-center text-cyan-300 font-bold text-xs';
+        av.textContent = 'QA';
+      }
+      const bName = document.getElementById('user-badge-name');
+      if (bName) bName.textContent = 'Personel QA & SPM';
+      const bRole = document.getElementById('user-badge-role');
+      if (bRole) {
+        bRole.textContent = 'Standar Pengendalian Mutu';
+        bRole.className = 'text-[10px] text-cyan-400 font-mono';
+      }
+
+      // Reset sesi audit dokumen ke netral
+      if (typeof resetAuditSession === 'function') {
+        resetAuditSession(true);
+      }
 
       // Tampilkan modal otentikasi login gate
       const modalAuth = document.getElementById('modal-auth-gate');
@@ -908,6 +1537,7 @@
      * Menerapkan tampilan UI & hak akses berdasarkan peran terverifikasi
      */
     function applyRBACPermissions(user) {
+      if (!user) return;
       currentUser = user;
       window.currentUser = user;
 
@@ -915,8 +1545,16 @@
       const modalAuth = document.getElementById('modal-auth-gate');
       if (modalAuth) modalAuth.classList.add('hidden');
 
+      // Bersihkan karakter kurung siku legacy jika ada
+      const cleanNama = (user.nama || 'Personel QA & SPM').replace(/[\[\]]/g, '').trim();
+      const cleanJabatan = (user.jabatan || 'Standar Pengendalian Mutu').replace(/[\[\]]/g, '').trim();
+      const cleanNik = (user.nik || '').replace(/[\[\]]/g, '').trim();
+
+      const inisial = dapatkanInisialNama(cleanNama);
+      const formattedRoleWithNik = cleanNik ? `${cleanJabatan} • NIK: ${cleanNik}` : cleanJabatan;
+
       // 1. KASUS SURVEYOR: KUNCI TOTAL WORKSPACE
-      if (user.role === 'SURVEYOR') {
+      if (user.role === 'SURVEYOR' || !user.allowed_access) {
         const modalLock = document.getElementById('modal-surveyor-locked');
         if (modalLock) modalLock.classList.remove('hidden');
 
@@ -926,17 +1564,17 @@
         const roleBanner = document.getElementById('role-mode-banner');
         if (roleBanner) roleBanner.classList.add('hidden');
 
-        // Header Avatar
+        // Header Avatar & Identity
         const av = document.getElementById('user-badge-avatar');
         if (av) {
           av.className = 'w-8 h-8 rounded-full bg-rose-950 text-rose-400 border border-rose-800 flex items-center justify-center font-bold text-xs';
-          av.textContent = 'SRV';
+          av.textContent = inisial;
         }
         const bName = document.getElementById('user-badge-name');
-        if (bName) bName.textContent = user.nama;
+        if (bName) bName.textContent = cleanNama;
         const bRole = document.getElementById('user-badge-role');
         if (bRole) {
-          bRole.textContent = 'Surveyor Lapangan (M-03)';
+          bRole.textContent = formattedRoleWithNik;
           bRole.className = 'text-[10px] text-rose-400 font-mono font-bold';
         }
         return;
@@ -965,15 +1603,21 @@
       const bName = document.getElementById('user-badge-name');
       const bRole = document.getElementById('user-badge-role');
 
-      if (bName) bName.textContent = user.nama;
+      if (bName) bName.textContent = cleanNama;
+
+      // Update Metadata Uploader
+      const metaUploader = document.getElementById('meta-uploader');
+      if (metaUploader && cleanNama) {
+        metaUploader.textContent = cleanNik ? `${cleanNama} (${cleanNik})` : cleanNama;
+      }
 
       if (user.role === 'REKAN' || user.role === 'KEPALA_SPM') {
         if (av) {
           av.className = 'w-8 h-8 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800 flex items-center justify-center font-bold text-xs';
-          av.textContent = 'P';
+          av.textContent = inisial;
         }
         if (bRole) {
-          bRole.textContent = user.jabatan;
+          bRole.textContent = formattedRoleWithNik;
           bRole.className = 'text-[10px] text-amber-300 font-mono font-bold';
         }
 
@@ -991,10 +1635,10 @@
       } else if (user.role === 'REVIEWER_SPM') {
         if (av) {
           av.className = 'w-8 h-8 rounded-full bg-cyan-900/60 text-cyan-300 border border-cyan-700/60 flex items-center justify-center font-bold text-xs';
-          av.textContent = 'SPM';
+          av.textContent = inisial;
         }
         if (bRole) {
-          bRole.textContent = user.jabatan;
+          bRole.textContent = formattedRoleWithNik;
           bRole.className = 'text-[10px] text-cyan-400 font-mono font-bold';
         }
 
@@ -1012,10 +1656,10 @@
       } else if (user.role === 'PENILAI') {
         if (av) {
           av.className = 'w-8 h-8 rounded-full bg-blue-950 text-blue-300 border border-blue-800 flex items-center justify-center font-bold text-xs';
-          av.textContent = 'VAL';
+          av.textContent = inisial;
         }
         if (bRole) {
-          bRole.textContent = '[Penilai Penyusun - M-04]';
+          bRole.textContent = formattedRoleWithNik;
           bRole.className = 'text-[10px] text-blue-400 font-mono font-bold';
         }
 
@@ -1030,6 +1674,15 @@
         if (btnOverride) btnOverride.style.display = 'none';
         if (btnRevisi) btnRevisi.style.display = 'none';
         if (noticeValuer) noticeValuer.classList.remove('hidden');
+      } else {
+        if (av) {
+          av.className = 'w-8 h-8 rounded-full bg-slate-800 text-slate-300 border border-slate-700 flex items-center justify-center font-bold text-xs';
+          av.textContent = inisial;
+        }
+        if (bRole) {
+          bRole.textContent = formattedRoleWithNik;
+          bRole.className = 'text-[10px] text-slate-400 font-mono font-bold';
+        }
       }
 
       if (typeof updateWorkflowButtonsState === 'function') {
@@ -1045,24 +1698,40 @@
         const sessStr = sessionStorage.getItem('nsr_user_session') || sessionStorage.getItem('NSR_USER_SESSION');
         if (sessStr) {
           const sess = JSON.parse(sessStr);
-          const validated = verifikasiKredensial(sess.token || sess.nik || sess.role);
-          if (validated) {
+          if (sess.jabatan) {
+            sess.jabatan = sess.jabatan.replace(/[\[\]]/g, '').trim();
+          }
+          if (sess.nama) {
+            sess.nama = sess.nama.replace(/[\[\]]/g, '').trim();
+          }
+          const validated = verifikasiKredensial(sess.token || sess.nik, sess.nik);
+          if (validated && !validated.requiresNik && !validated.invalidNik) {
             activeUser = {
               ...validated,
-              nama: sess.nama || validated.nama
+              nama: sess.nama ? sess.nama.replace(/[\[\]]/g, '').trim() : validated.nama,
+              nik: sess.nik || validated.nik,
+              jabatan: (sess.jabatan || validated.jabatan).replace(/[\[\]]/g, '').trim()
             };
+            // Perbarui cache sessionStorage yang sudah bersih dari kurung siku
+            sessionStorage.setItem('nsr_user_session', JSON.stringify(activeUser));
+            sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(activeUser));
           }
         }
       } catch (_) {}
 
       if (activeUser) {
         applyRBACPermissions(activeUser);
-        if (activeUser.role !== 'SURVEYOR') {
+        if (activeUser.role !== 'SURVEYOR' && activeUser.allowed_access) {
           muatSampelBerkas('fifa');
         }
       } else {
         // Belum login / tidak ada sesi: Buka modal Login Gate resmi
         logoutQASession();
+      }
+
+      // Sinkronisasi data master karyawan secara dinamis di background (non-blocking)
+      if (typeof sinkronisasiMasterKaryawanDinamis === 'function') {
+        sinkronisasiMasterKaryawanDinamis();
       }
 
       window.__qa_initialized = true;
@@ -1134,7 +1803,12 @@
       // Update Metadata
       document.getElementById('meta-job-id').textContent = review.job_order_id;
       document.getElementById('meta-doc-name').textContent = review.file_name;
-      document.getElementById('meta-uploader').textContent = review.uploaded_by;
+      const metaUpEl = document.getElementById('meta-uploader');
+      if (metaUpEl) {
+        metaUpEl.textContent = (currentUser && currentUser.nama && currentUser.nik)
+          ? `${currentUser.nama} (${currentUser.nik})`
+          : (review.uploaded_by || '-');
+      }
       document.getElementById('meta-total-pages').textContent = review.total_pages + ' Halaman';
       document.getElementById('meta-hash').textContent = (review.file_hash || '').substring(0, 16) + '...';
       document.getElementById('doc-file-info').textContent = 'File: ' + review.file_name;
@@ -1710,8 +2384,9 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
       const statusText = review.status.replace(/_/g, ' ');
       const gateStatusText = review.gate_nolap_unlocked ? 'TERBUKA 🔓' : 'TERKUNCI 🔒';
       const uploader = review.uploaded_by || 'Penilai Pelaksana';
+      const cleanUploaderName = uploader.includes('•') ? uploader.split('•')[0].trim() : uploader.split('(')[0].trim();
       const reviewer = (window.currentUser || currentUser)?.nama || 'Danny Taufik Hidayat, S.H.';
-      const reviewerTitle = (window.currentUser || currentUser)?.jabatan || 'Pimpinan Rekan / Kepala SPM';
+      const reviewerTitle = (window.currentUser || currentUser)?.jabatan || 'Manager Administrasi & Umum / Pengendali Mutu SPM';
       const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
       const findings = review.findings || [];
@@ -1850,7 +2525,7 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
   <div class="sign-row">
     <div class="sign-col">
       <div>Penilai Penyusun / Analis KKP</div>
-      <div class="sign-line">${uploader.split('(')[0].trim()}</div>
+      <div class="sign-line">${cleanUploaderName}</div>
       <div class="sign-role">Penilai Pelaksana KJPP NSR</div>
     </div>
     <div class="sign-col">
@@ -2567,7 +3242,7 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
         file_hash: currentAuditSession.pdfHash || ('sha256-' + Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('')),
         total_pages: Math.max(1, extractedPages.length),
         pagesContent: extractedPages,
-        uploaded_by: (currentUser?.nama || 'Penilai Penyusun') + ' (' + (currentUser?.jabatan || 'Valuer') + ')',
+        uploaded_by: (currentUser && currentUser.nama && currentUser.nik) ? `${currentUser.nama} (${currentUser.nik})` : (currentUser?.nama || 'Penilai Pelaksana'),
         status: status,
         compliance_score: Math.round(compliance_score * 10) / 10,
         gate_nolap_unlocked: gate_nolap_unlocked,
@@ -2696,7 +3371,7 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
           if (files[0]) {
             const formData = new FormData();
             formData.append('file', files[0]);
-            formData.append('uploaded_by', (currentUser?.nama || 'Penilai Penyusun') + ' (' + (currentUser?.jabatan || 'Valuer') + ')');
+            formData.append('uploaded_by', (currentUser && currentUser.nama && currentUser.nik) ? `${currentUser.nama} • NIK: ${currentUser.nik}` : (currentUser?.nama || 'Penilai Pelaksana'));
             formData.append('job_order_id', auditResult.job_order_id);
             formData.append('user_role', currentUser?.role || 'PENILAI');
             formData.append('auth_token', currentUser?.token || '');
