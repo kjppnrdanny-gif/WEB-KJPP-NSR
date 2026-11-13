@@ -198,39 +198,43 @@
     <!-- LEFT PANEL: DOCUMENT VIEWER & SAMPLE SELECTOR (Cols 1 to 6) -->
     <section class="lg:col-span-6 flex flex-col space-y-4">
       
-      <!-- Top Action Bar for Left Panel: Sample Loader & Uploader -->
+      <!-- Top Action Bar for Left Panel: Selektor Penugasan & Uploader -->
       <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center">
-            <svg class="w-4 h-4 mr-1.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-            Pilih Dokumen Draf Penilaian
-          </span>
+        <!-- PANEL KIRI ATAS: SELEKTOR PENUGASAN & DROPZONE -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div class="flex items-center gap-2">
-            <span class="text-[11px] text-slate-400">PDF &amp; Excel Workspace</span>
-            <button type="button" id="btn-reset-audit-session" onclick="resetAuditSession(true)" title="Reset Sesi Audit untuk Penugasan Baru" class="px-2 py-1 rounded text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1 active:scale-95 cursor-pointer">
-              <svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              <span>Reset Sesi</span>
+            <span class="text-xs font-bold tracking-wider uppercase text-slate-300">1. PILIH PENUGASAN &amp; UNGGAH BERKAS</span>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <!-- Tombol Simulasi Tersembunyi (Hanya untuk Pelatihan/Demo) -->
+            <select id="preset-demo-selector" onchange="handleDemoPresetSelect(this.value)"
+              class="bg-slate-800/80 border border-slate-700 text-slate-400 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-sky-500">
+              <option value="">Mode Kerja Nyata (Live)</option>
+              <option value="fifa">Simulasi: RS FIFA Medika (#REF!)</option>
+              <option value="permata">Simulasi: Permata Harapan (####)</option>
+            </select>
+
+            <button type="button" id="btn-reset-audit-session" onclick="resetAuditSession(true)"
+              class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-medium px-3 py-1.5 rounded-lg transition active:scale-95 cursor-pointer">
+              Reset Sesi
             </button>
           </div>
         </div>
 
-        <!-- Quick Sample Buttons -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-          <button type="button" id="btn-load-sample-fifa" onclick="muatSampelBerkas('fifa')" class="text-left px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-rose-900/40 hover:border-rose-700 transition flex items-center justify-between group">
-            <div class="overflow-hidden">
-              <div class="text-xs font-semibold text-rose-300 truncate group-hover:text-rose-200">🏥 RS FIFA MEDIKA (Dr Sutomo 94)</div>
-              <div class="text-[10px] text-slate-400 truncate">Rumah Sakit &bull; Ada Formula #REF!</div>
-            </div>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950 text-rose-400 border border-rose-800 shrink-0">KRITIS</span>
-          </button>
-
-          <button type="button" id="btn-load-sample-sarimukti" onclick="muatSampelBerkas('sarimukti')" class="text-left px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-amber-900/40 hover:border-amber-700 transition flex items-center justify-between group">
-            <div class="overflow-hidden">
-              <div class="text-xs font-semibold text-amber-300 truncate group-hover:text-amber-200">🏘️ Permata Harapan (KYG 313 Unit)</div>
-              <div class="text-[10px] text-slate-400 truncate">Kawasan Perumahan &bull; Ada Overflow ####</div>
-            </div>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-950 text-amber-400 border border-amber-800 shrink-0">MAYOR</span>
-          </button>
+        <!-- INPUT NOMOR JOB ORDER (JO) & PEMBERI TUGAS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Nomor Job Order (JO) / Penugasan</label>
+            <input type="text" id="input-jo-number" value="JO-NSR-2026-8084" placeholder="Ketik / Pilih No. JO..."
+              oninput="syncJOToMetadata(this.value)"
+              class="w-full bg-slate-900/90 border border-slate-700 focus:border-sky-500 rounded-lg px-3 py-2 text-xs text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Pemberi Tugas / Klien</label>
+            <input type="text" id="input-client-name" placeholder="Contoh: PT Bank Tabungan Negara (Persero) Tbk"
+              class="w-full bg-slate-900/90 border border-slate-700 focus:border-sky-500 rounded-lg px-3 py-2 text-xs text-white">
+          </div>
         </div>
 
         <!-- Drag & Drop Uploader -->
@@ -387,34 +391,40 @@
         <div id="findings-list-container" class="space-y-3 overflow-y-auto max-h-[460px] pr-1">
           <!-- Finding cards injected via JavaScript -->
         </div>
-      </div>
 
-      <!-- ACTION TOOLBAR / QUALITY GATEKEEPER ACTIONS (RBAC PROTECTED) -->
-      <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-lg flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center space-x-2">
-          <!-- Button Download Report (All Roles) -->
-          <button type="button" id="btn-download-report" onclick="unduhLaporanQA()" class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 transition shadow-sm">
-            <svg class="w-4 h-4 mr-1.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Unduh QA Report (HTML/PDF)
-          </button>
+        <!-- PANEL KEPUTUSAN & TINDAK LANJUT REVIEW (KANAN BAWAH) -->
+        <div id="qa-action-workflow-panel" class="mt-4 pt-4 border-t border-slate-700/80">
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="text-xs font-bold tracking-wider uppercase text-slate-300">2. KEPUTUSAN &amp; TINDAK LANJUT QA</span>
+            <span id="workflow-role-badge" class="text-[11px] text-sky-400 font-medium">Otoritas: Pimpinan Rekan / Kepala SPM</span>
+          </div>
 
-          <!-- Button Send Revision Note (Reviewer SPM & Rekan Only) -->
-          <button type="button" id="btn-send-revision" onclick="bukaModalRevisi()" class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-bold text-amber-300 bg-amber-950/60 hover:bg-amber-900/60 border border-amber-800/80 transition shadow-sm">
-            <svg class="w-4 h-4 mr-1.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            Minta Revisi ke Penilai
-          </button>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Aksi 1: Kembalikan ke Penilai (Jika Ditolak / Perlu Revisi) -->
+            <button type="button" id="btn-send-revision" onclick="executeReturnForRevision()"
+              class="flex items-center justify-center gap-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 text-xs font-semibold py-2.5 px-3 rounded-lg transition active:scale-95 cursor-pointer">
+              <span>↩ Kembalikan ke Penilai (Revisi)</span>
+            </button>
 
-          <!-- Notice for Valuer / Penilai Penyusun -->
-          <span id="notice-valuer-spm" class="hidden text-xs text-slate-400 italic px-2 py-1 bg-slate-900 rounded border border-slate-800">
-            Telaah Mutu ditangani oleh Tim Reviewer SPM
-          </span>
+            <!-- Aksi 2: Sahkan Lolos QA (Aktif otomatis jika Skor >= 85% & Kritis = 0) -->
+            <button type="button" id="btn-approve-qa" onclick="executeApproveQA()"
+              class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-700 disabled:cursor-not-allowed text-white border border-emerald-500 text-xs font-semibold py-2.5 px-3 rounded-lg transition active:scale-95 cursor-pointer">
+              <span>✓ Sahkan &amp; Buka Gerbang NoLap</span>
+            </button>
+
+            <!-- Aksi 3: Dispensasi Pimpinan Rekan / Kepala SPM -->
+            <button type="button" id="btn-override-gate" onclick="openOverrideModal()"
+              class="flex items-center justify-center gap-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 text-xs font-semibold py-2.5 px-3 rounded-lg transition active:scale-95 cursor-pointer">
+              <span>⚡ Otorisasi Dispensasi (Override)</span>
+            </button>
+
+            <!-- Aksi 4: Cetak Lembar Kendali Mutu SPM -->
+            <button type="button" id="btn-print-qa-sheet" onclick="printQAControlSheet()"
+              class="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-semibold py-2.5 px-3 rounded-lg transition active:scale-95 cursor-pointer">
+              <span>🖨 Cetak Lembar Kendali Mutu</span>
+            </button>
+          </div>
         </div>
-
-        <!-- Button Override / Unlock NoLap Gate (Pimpinan Rekan / Kepala SPM Only) -->
-        <button type="button" id="btn-override-gate" onclick="bukaModalOverride()" class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-bold text-rose-300 bg-rose-950/80 hover:bg-rose-900 border border-rose-800 transition shadow-sm">
-          <svg class="w-4 h-4 mr-1.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
-          Dispensasi Pimpinan (Override Gate)
-        </button>
       </div>
 
     </section>
@@ -498,9 +508,13 @@
   <script>
     // State Active Review & RBAC User Session
     let activeReview = null;
+    let latestAuditSnapshot = null;
     let activePageIndex = 1;
     let totalPagesCount = 63;
     let currentUser = null;
+
+    window.latestAuditSnapshot = null;
+    window.activeReview = null;
 
     // ============================================================================
     // STATE GLOBAL SESI AUDIT (MENDUKUNG UPLOAD BERTAHAP PDF + EXCEL)
@@ -530,9 +544,72 @@
 
       if (restoreDefault) {
         clearActivePresets();
-        const btnFifa = document.getElementById('btn-load-sample-fifa');
-        if (btnFifa) btnFifa.click();
-        showToastOrAlert("Sesi Audit Direset", "Sesi audit berkas telah dikosongkan. Kembali ke status draf penugasan awal.", "info");
+        const inputJo = document.getElementById('input-jo-number');
+        if (inputJo) inputJo.value = 'JO-NSR-2026-8084';
+        const inputClient = document.getElementById('input-client-name');
+        if (inputClient) inputClient.value = '';
+        syncJOToMetadata('JO-NSR-2026-8084');
+
+        // Reset metadata tampilan
+        const metaDoc = document.getElementById('meta-doc-name');
+        if (metaDoc) metaDoc.textContent = 'Belum ada berkas dimuat';
+        const docInfo = document.getElementById('doc-file-info');
+        if (docInfo) docInfo.textContent = 'File: Belum ada berkas dipilih';
+        const metaPages = document.getElementById('meta-total-pages');
+        if (metaPages) metaPages.textContent = '0 Halaman';
+        const totalPage = document.getElementById('total-page-num');
+        if (totalPage) totalPage.textContent = '0';
+        const metaHash = document.getElementById('meta-hash');
+        if (metaHash) metaHash.textContent = '-';
+
+        const textContent = document.getElementById('doc-text-content');
+        if (textContent) {
+          textContent.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-slate-500 py-16">
+              <svg class="w-12 h-12 mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <p class="text-sm font-medium text-slate-400">Silakan unggah dokumen PDF / KKP Excel atau pilih Simulasi di atas.</p>
+              <p class="text-xs text-slate-600 mt-1">Sistem akan mengekstrak naskah &amp; memindai formula kepatuhan secara otomatis.</p>
+            </div>`;
+        }
+
+        // Reset verdict banner
+        const banner = document.getElementById('verdict-banner-container');
+        if (banner) banner.className = 'rounded-xl p-5 border shadow-lg transition-all bg-slate-900/60 border-slate-800';
+        const vTitle = document.getElementById('verdict-title');
+        if (vTitle) { vTitle.textContent = 'MENUNGGU AUDIT BERKAS'; vTitle.className = 'text-lg sm:text-xl font-bold text-slate-300'; }
+        const vBadge = document.getElementById('verdict-badge');
+        if (vBadge) { vBadge.textContent = 'DRAF PENUGASAN'; vBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700'; }
+        const vDesc = document.getElementById('verdict-desc');
+        if (vDesc) vDesc.textContent = 'Unggah draf PDF laporan penilaian dan kertas kerja Excel untuk memulai pengujian mutu otomatis.';
+        const scoreVal = document.getElementById('compliance-score-val');
+        if (scoreVal) { scoreVal.textContent = '-'; scoreVal.className = 'text-2xl sm:text-3xl font-black font-mono-code text-slate-500'; }
+
+        // Reset counts & findings
+        const critEl = document.getElementById('stat-critical-count');
+        if (critEl) critEl.textContent = '0';
+        const majEl = document.getElementById('stat-major-count');
+        if (majEl) majEl.textContent = '0';
+        const modEl = document.getElementById('stat-mod-count');
+        if (modEl) modEl.textContent = '0';
+
+        const gateStatus = document.getElementById('stat-gate-status');
+        if (gateStatus) {
+          gateStatus.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-slate-600 mr-1"></span> STANDBY';
+          gateStatus.className = 'text-xs font-semibold text-slate-400 uppercase mt-1 flex items-center justify-center';
+        }
+
+        const findingsList = document.getElementById('findings-list-container');
+        if (findingsList) findingsList.innerHTML = '<div class="text-center py-8 text-xs text-slate-500 italic">Belum ada temuan audit. Unggah berkas untuk memindai.</div>';
+        const totalFindings = document.getElementById('badge-total-findings');
+        if (totalFindings) totalFindings.textContent = '0 Temuan';
+
+        activeReview = null;
+        window.activeReview = null;
+        latestAuditSnapshot = null;
+        window.latestAuditSnapshot = null;
+
+        updateWorkflowButtonsState(null);
+        showToastOrAlert("Sesi Audit Direset", "Sesi audit berkas telah dikosongkan. Siap untuk penugasan baru.", "info");
       }
     }
 
@@ -639,6 +716,7 @@
         generated_report_pdf_url: "output/qa_reports/QA_REPORT_BTN_CBC_Bekasi_-_Laporan_KYG_PT_Ivander_Putra_Sukses_-_Permata_Harapan_Sarimukti__313_Unit___Revisi_Laporan_pdf.html"
       }
     };
+    SAMPLE_REVIEWS.permata = SAMPLE_REVIEWS.sarimukti;
 
     // =========================================================
     // RBAC: GERBANG LOGIN TOKEN/NIK & OTORISASI PERAN PENGGUNA
@@ -953,6 +1031,10 @@
         if (btnRevisi) btnRevisi.style.display = 'none';
         if (noticeValuer) noticeValuer.classList.remove('hidden');
       }
+
+      if (typeof updateWorkflowButtonsState === 'function') {
+        updateWorkflowButtonsState(activeReview || latestAuditSnapshot);
+      }
     }
 
     // Inisialisasi Halaman saat Load
@@ -999,37 +1081,29 @@
     window.applyRBACPermissions = applyRBACPermissions;
 
     function clearActivePresets() {
-      const btnFifa = document.getElementById('btn-load-sample-fifa');
-      const btnSarimukti = document.getElementById('btn-load-sample-sarimukti');
-      if (btnFifa) {
-        btnFifa.classList.remove('ring-2', 'ring-rose-500', 'bg-slate-700/80');
-        btnFifa.classList.add('opacity-70');
-      }
-      if (btnSarimukti) {
-        btnSarimukti.classList.remove('ring-2', 'ring-amber-500', 'bg-slate-700/80');
-        btnSarimukti.classList.add('opacity-70');
-      }
+      const presetSel = document.getElementById('preset-demo-selector');
+      if (presetSel) presetSel.value = '';
     }
 
     function muatSampelBerkas(sampleKey) {
       resetAuditSession();
-      const data = SAMPLE_REVIEWS[sampleKey];
+      const actualKey = (sampleKey === 'permata') ? 'sarimukti' : sampleKey;
+      const data = SAMPLE_REVIEWS[actualKey];
       if (!data) return;
 
-      const btnFifa = document.getElementById('btn-load-sample-fifa');
-      const btnSarimukti = document.getElementById('btn-load-sample-sarimukti');
-      if (btnFifa && btnSarimukti) {
-        if (sampleKey === 'fifa') {
-          btnFifa.classList.remove('opacity-70');
-          btnFifa.classList.add('ring-2', 'ring-rose-500', 'bg-slate-700/80');
-          btnSarimukti.classList.remove('ring-2', 'ring-amber-500', 'bg-slate-700/80');
-          btnSarimukti.classList.add('opacity-70');
-        } else {
-          btnSarimukti.classList.remove('opacity-70');
-          btnSarimukti.classList.add('ring-2', 'ring-amber-500', 'bg-slate-700/80');
-          btnFifa.classList.remove('ring-2', 'ring-rose-500', 'bg-slate-700/80');
-          btnFifa.classList.add('opacity-70');
-        }
+      const presetSel = document.getElementById('preset-demo-selector');
+      if (presetSel) {
+        presetSel.value = (sampleKey === 'sarimukti') ? 'permata' : sampleKey;
+      }
+
+      const inputJo = document.getElementById('input-jo-number');
+      if (inputJo) inputJo.value = data.job_order_id || '';
+
+      const inputClient = document.getElementById('input-client-name');
+      if (inputClient) {
+        inputClient.value = (actualKey === 'fifa')
+          ? 'PT Bank Tabungan Negara (Persero) Tbk'
+          : 'PT Bank Tabungan Negara (Persero) Tbk - CBC Bekasi';
       }
 
       applyReviewData(data);
@@ -1038,8 +1112,16 @@
     function applyReviewData(review) {
       activeReview = review;
       window.activeReview = review;
+      latestAuditSnapshot = review;
+      window.latestAuditSnapshot = review;
       totalPagesCount = review.total_pages || 63;
       activePageIndex = 1;
+
+      // Sinkronisasi status input No. JO jika belum sesuai
+      const inputJo = document.getElementById('input-jo-number');
+      if (inputJo && review.job_order_id && inputJo.value !== review.job_order_id) {
+        inputJo.value = review.job_order_id;
+      }
 
       // Sinkronisasi status gerbang NoLap lokal untuk dokumen aktif
       if (typeof syncAuditResultToBackend === 'function') {
@@ -1128,6 +1210,11 @@
 
       // Render Document Page 1
       tampilkanHalaman(1);
+
+      // Perbarui status tombol alur kerja QA
+      if (typeof updateWorkflowButtonsState === 'function') {
+        updateWorkflowButtonsState(review);
+      }
     }
 
     function renderFindings(findings, filter = 'ALL') {
@@ -1401,6 +1488,417 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
       contentEl.innerHTML = simulatedText.trim();
     }
 
+    // =========================================================
+    // QA WORKFLOW DECISION & ACTION CONTROLLERS (SELEKTOR JO & KEPUTUSAN QA)
+    // =========================================================
+
+    /**
+     * Sinkronisasi input No. JO dengan elemen metadata & state aktif
+     */
+    function syncJOToMetadata(joValue) {
+      const val = (joValue || '').trim();
+      const metaJobId = document.getElementById('meta-job-id');
+      if (metaJobId) {
+        metaJobId.textContent = val || 'JO-NSR-2026-UPLOAD';
+        metaJobId.setAttribute('data-jo-number', val || 'JO-NSR-2026-UPLOAD');
+      }
+      if (activeReview) {
+        activeReview.job_order_id = val;
+      }
+      if (latestAuditSnapshot) {
+        latestAuditSnapshot.job_order_id = val;
+      }
+    }
+
+    /**
+     * Handler pemilihan simulasi pada dropdown tersembunyi
+     */
+    function handleDemoPresetSelect(presetKey) {
+      if (!presetKey) {
+        resetAuditSession(true);
+        return;
+      }
+      if (presetKey === 'fifa') {
+        muatSampelBerkas('fifa');
+      } else if (presetKey === 'permata' || presetKey === 'sarimukti') {
+        muatSampelBerkas('sarimukti');
+      }
+    }
+
+    /**
+     * Evaluasi & update visual state tombol alur kerja QA (#qa-action-workflow-panel)
+     */
+    function updateWorkflowButtonsState(auditResult) {
+      const review = auditResult || latestAuditSnapshot || activeReview;
+      const user = window.currentUser || currentUser;
+      const role = user?.role || 'REKAN';
+
+      const roleBadge = document.getElementById('workflow-role-badge');
+      const btnRevision = document.getElementById('btn-send-revision');
+      const btnApprove = document.getElementById('btn-approve-qa');
+      const btnOverride = document.getElementById('btn-override-gate');
+      const btnPrint = document.getElementById('btn-print-qa-sheet');
+
+      // 1. Role Badge & Hak Akses Berdasarkan Peran
+      if (role === 'REKAN' || role === 'KEPALA_SPM') {
+        if (roleBadge) {
+          roleBadge.textContent = 'Otoritas: Pimpinan Rekan / Kepala SPM (Akses Penuh & Dispensasi)';
+          roleBadge.className = 'text-[11px] text-amber-400 font-semibold';
+        }
+        if (btnOverride) {
+          btnOverride.style.display = 'flex';
+          btnOverride.disabled = false;
+        }
+      } else if (role === 'REVIEWER_SPM') {
+        if (roleBadge) {
+          roleBadge.textContent = 'Otoritas: Tim Reviewer Kendali Mutu SPM (M-05)';
+          roleBadge.className = 'text-[11px] text-cyan-400 font-semibold';
+        }
+        if (btnOverride) {
+          btnOverride.style.display = 'none';
+        }
+      } else if (role === 'PENILAI') {
+        if (roleBadge) {
+          roleBadge.textContent = 'Mode: Penilai Penyusun (Anti Self-Review)';
+          roleBadge.className = 'text-[11px] text-blue-400 font-medium';
+        }
+        if (btnOverride) {
+          btnOverride.style.display = 'none';
+        }
+      } else {
+        if (roleBadge) {
+          roleBadge.textContent = 'Otoritas: Belum Terotentikasi';
+          roleBadge.className = 'text-[11px] text-slate-400';
+        }
+      }
+
+      // 2. Evaluasi Tombol Pengesahan & Pembukaan Gerbang NoLap (#btn-approve-qa)
+      if (btnApprove) {
+        if (!review) {
+          btnApprove.disabled = true;
+          btnApprove.title = 'Muat dokumen draf penilaian terlebih dahulu.';
+        } else if (role === 'PENILAI') {
+          btnApprove.disabled = true;
+          btnApprove.title = 'Penilai Penyusun tidak berwenang mengesahkan telaah mutu sendiri (Anti Self-Review).';
+        } else {
+          const score = Number(review.compliance_score || review.score || 0);
+          const critical = Number(review.findings_summary?.critical || 0);
+          const isEligible = (score >= 85.0 && critical === 0) || review.gate_nolap_unlocked === true;
+
+          if (isEligible) {
+            btnApprove.disabled = false;
+            btnApprove.title = review.gate_nolap_unlocked 
+              ? 'Gerbang NoLap sudah disahkan & terbuka.' 
+              : 'Klik untuk mengesahkan telaah mutu & membuka gerbang NoLap.';
+          } else {
+            btnApprove.disabled = true;
+            btnApprove.title = `Gerbang Terkunci: Skor mutu saat ini ${score.toFixed(1)}% (min 85%) & ${critical} temuan kritis (wajib 0).`;
+          }
+        }
+      }
+
+      // 3. Evaluasi Tombol Kembalikan ke Penilai (#btn-send-revision)
+      if (btnRevision) {
+        if (role === 'PENILAI') {
+          btnRevision.style.display = 'none';
+        } else {
+          btnRevision.style.display = 'flex';
+          const hasFindings = review && (review.findings?.length > 0 || review.status === 'NOT_ACCEPTABLE' || review.status === 'REQUIRES_MAJOR_REVISION');
+          btnRevision.disabled = !hasFindings;
+        }
+      }
+
+      // 4. Tombol Cetak Lembar Kendali Mutu
+      if (btnPrint) {
+        btnPrint.disabled = !review;
+      }
+    }
+
+    /**
+     * Aksi 1: Kembalikan berkas ke Penilai Penyusun untuk revisi
+     */
+    function executeReturnForRevision() {
+      const review = latestAuditSnapshot || activeReview;
+      if (!review) {
+        showToastOrAlert("Peringatan", "Belum ada dokumen atau hasil audit yang dimuat.", "warn");
+        return;
+      }
+      const user = window.currentUser || currentUser;
+      if (user?.role === 'PENILAI') {
+        showToastOrAlert("Akses Ditolak", "Penilai Penyusun tidak berwenang mengirim instruksi revisi kepada diri sendiri (Prinsip Anti Self-Review). Tindakan ini merupakan otoritas Tim Reviewer SPM atau Pimpinan Rekan.", "warn");
+        return;
+      }
+      bukaModalRevisi();
+    }
+
+    /**
+     * Aksi 2: Sahkan Lolos QA & Buka Gerbang NoLap
+     */
+    function executeApproveQA() {
+      const review = latestAuditSnapshot || activeReview;
+      if (!review) {
+        showToastOrAlert("Peringatan", "Belum ada dokumen atau hasil audit yang dimuat.", "warn");
+        return;
+      }
+      const user = window.currentUser || currentUser;
+      if (user?.role === 'PENILAI') {
+        showToastOrAlert("Akses Ditolak", "Penilai Penyusun tidak berwenang mengesahkan telaah mutu sendiri (Prinsip Anti Self-Review). Otoritas pengesahan berada pada Tim Reviewer SPM atau Pimpinan Rekan.", "warn");
+        return;
+      }
+
+      const score = Number(review.compliance_score || review.score || 0);
+      const critical = Number(review.findings_summary?.critical || 0);
+
+      if (score < 85.0 || critical > 0) {
+        showToastOrAlert(
+          "Pengesahan Ditolak",
+          `Dokumen belum memenuhi kriteria kelulusan SPM:\n` +
+          `• Skor Kepatuhan: ${score.toFixed(1)}% (Minimal 85.0%)\n` +
+          `• Temuan Kritis: ${critical} (Wajib 0)\n\n` +
+          `Silakan gunakan 'Kembalikan ke Penilai (Revisi)' atau mintakan 'Otorisasi Dispensasi (Override)'.`,
+          "error"
+        );
+        return;
+      }
+
+      // Sahkan & Buka Gerbang NoLap
+      review.gate_nolap_unlocked = true;
+      review.status = 'ACCEPTABLE';
+
+      applyReviewData(review);
+
+      if (typeof syncAuditResultToBackend === 'function') {
+        syncAuditResultToBackend(review, currentAuditSession);
+      }
+
+      updateWorkflowButtonsState(review);
+
+      showToastOrAlert(
+        "Pengesahan Telaah Mutu Berhasil",
+        `✓ Dokumen penugasan "${review.job_order_id}" dinyatakan Lolos Uji Mutu & Kepatuhan SPI.\n\n` +
+        `Gerbang NoLap Kemenkeu telah DIBUKA untuk penerbitan Nomor Laporan resmi.`,
+        "success"
+      );
+    }
+
+    /**
+     * Aksi 3: Buka modal otorisasi dispensasi Pimpinan Rekan (Override Gate)
+     */
+    function openOverrideModal() {
+      const user = window.currentUser || currentUser;
+      if (!['REKAN', 'PIMPINAN', 'KEPALA_SPM'].includes(user?.role)) {
+        showToastOrAlert("Akses Ditolak", "Hanya Pimpinan Rekan atau Kepala SPM yang berwenang membuka kunci gerbang NoLap melalui otorisasi dispensasi khusus.", "warn");
+        return;
+      }
+      bukaModalOverride();
+    }
+
+    /**
+     * Aksi 4: Cetak Lembar Kendali Mutu SPM (KMK No. 2.19.0160)
+     */
+    function printQAControlSheet() {
+      const review = latestAuditSnapshot || activeReview;
+      if (!review) {
+        showToastOrAlert("Peringatan", "Pilih atau unggah dokumen terlebih dahulu untuk mencetak Lembar Kendali Mutu.", "warn");
+        return;
+      }
+
+      const joNumber = review.job_order_id || document.getElementById('input-jo-number')?.value || 'JO-NSR-2026-UPLOAD';
+      const clientName = document.getElementById('input-client-name')?.value || 'PT Bank Tabungan Negara (Persero) Tbk';
+      const docName = review.file_name || 'Draf Laporan Penilaian.pdf';
+      const score = Number(review.compliance_score || review.score || 0).toFixed(1);
+      const statusText = review.status.replace(/_/g, ' ');
+      const gateStatusText = review.gate_nolap_unlocked ? 'TERBUKA 🔓' : 'TERKUNCI 🔒';
+      const uploader = review.uploaded_by || 'Penilai Pelaksana';
+      const reviewer = (window.currentUser || currentUser)?.nama || 'Danny Taufik Hidayat, S.H.';
+      const reviewerTitle = (window.currentUser || currentUser)?.jabatan || 'Pimpinan Rekan / Kepala SPM';
+      const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      const findings = review.findings || [];
+      const criticalCount = review.findings_summary?.critical || 0;
+      const majorCount = review.findings_summary?.major || 0;
+      const modCount = review.findings_summary?.moderate || 0;
+
+      let findingsRows = '';
+      if (findings.length === 0) {
+        findingsRows = '<tr><td colspan="5" style="text-align: center; padding: 12px; color: #047857;">✓ Tidak ditemukan catatan/temuan pelanggaran standar SPI &amp; KEPI. Dokumen memenuhi seluruh parameter mutu.</td></tr>';
+      } else {
+        findingsRows = findings.map((f, idx) => {
+          const sevColor = f.severity === 'CRITICAL' ? '#b91c1c' : (f.severity === 'MAJOR' ? '#b45309' : '#0369a1');
+          const pages = (f.page_numbers && f.page_numbers.length) ? f.page_numbers.join(', ') : (f.page || '-');
+          return `
+            <tr style="border-bottom: 1px solid #e2e8f0; font-size: 11px;">
+              <td style="padding: 8px; text-align: center;">${idx + 1}</td>
+              <td style="padding: 8px; font-weight: bold; color: ${sevColor};">${f.severity}</td>
+              <td style="padding: 8px;"><strong>${f.title}</strong><br><span style="color: #64748b; font-size: 10px;">Hal: ${pages} | Ref: ${f.standard_reference || f.ref || 'SPI'}</span></td>
+              <td style="padding: 8px;">${f.condition_found || f.note || '-'}</td>
+              <td style="padding: 8px;">${f.corrective_action || f.action || 'Perbaiki data.'}</td>
+            </tr>`;
+        }).join('');
+      }
+
+      const printHtml = `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Lembar Kendali Mutu SPM - ${joNumber}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm 15mm 15mm 15mm; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; margin: 0; padding: 20px; font-size: 12px; }
+    .header { border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .title { font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px; }
+    .subtitle { font-size: 11px; color: #475569; margin-top: 2px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; text-transform: uppercase; }
+    .table-meta { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; }
+    .table-meta td { padding: 4px 6px; vertical-align: top; }
+    .table-meta td.label { width: 22%; font-weight: 600; color: #475569; }
+    .table-meta td.sep { width: 2%; }
+    .table-meta td.value { width: 26%; font-weight: 600; }
+    .score-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; justify-content: space-around; text-align: center; }
+    .score-item .num { font-size: 18px; font-weight: 800; }
+    .score-item .desc { font-size: 10px; color: #64748b; font-weight: 600; }
+    .table-findings { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+    .table-findings th { background: #0f172a; color: white; padding: 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sign-row { display: flex; justify-content: space-between; margin-top: 30px; page-break-inside: avoid; }
+    .sign-col { width: 42%; text-align: center; }
+    .sign-line { margin-top: 60px; border-bottom: 1px solid #0f172a; font-weight: 700; padding-bottom: 2px; }
+    .sign-role { font-size: 10px; color: #64748b; margin-top: 2px; }
+    @media print {
+      body { padding: 0; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="title">LEMBAR KENDALI MUTU (QUALITY CONTROL SHEET)</div>
+      <div class="subtitle">KJPP NANANG RAHAYU SIGIT PARYANTO &amp; REKAN • IZIN USAHA KMK NO. 2.19.0160</div>
+    </div>
+    <div style="text-align: right;">
+      <span class="badge" style="background: ${review.gate_nolap_unlocked ? '#dcfce7; color: #15803d;' : '#fee2e2; color: #b91c1c;'}">
+        GERBANG NOLAP: ${gateStatusText}
+      </span>
+      <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Tanggal: ${todayStr}</div>
+    </div>
+  </div>
+
+  <table class="table-meta">
+    <tr>
+      <td class="label">Nomor Penugasan (JO)</td>
+      <td class="sep">:</td>
+      <td class="value">${joNumber}</td>
+      <td class="label">Pemberi Tugas / Klien</td>
+      <td class="sep">:</td>
+      <td class="value">${clientName}</td>
+    </tr>
+    <tr>
+      <td class="label">Dokumen Laporan</td>
+      <td class="sep">:</td>
+      <td class="value">${docName}</td>
+      <td class="label">Penilai Penyusun</td>
+      <td class="sep">:</td>
+      <td class="value">${uploader}</td>
+    </tr>
+    <tr>
+      <td class="label">Status Audit SPM</td>
+      <td class="sep">:</td>
+      <td class="value">${statusText}</td>
+      <td class="label">Reviewer / Pengesah</td>
+      <td class="sep">:</td>
+      <td class="value">${reviewer}</td>
+    </tr>
+  </table>
+
+  <div class="score-box">
+    <div class="score-item">
+      <div class="num" style="color: ${score >= 85 ? '#059669' : '#e11d48'};">${score}%</div>
+      <div class="desc">SKOR KEPATUHAN SPI</div>
+    </div>
+    <div class="score-item">
+      <div class="num" style="color: #b91c1c;">${criticalCount}</div>
+      <div class="desc">TEMUAN KRITIS</div>
+    </div>
+    <div class="score-item">
+      <div class="num" style="color: #b45309;">${majorCount}</div>
+      <div class="desc">TEMUAN MAYOR</div>
+    </div>
+    <div class="score-item">
+      <div class="num" style="color: #0369a1;">${modCount}</div>
+      <div class="desc">TEMUAN MODERAT</div>
+    </div>
+  </div>
+
+  <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; color: #334155;">
+    Daftar Evaluasi Kepatuhan SPI &amp; KEPI:
+  </div>
+  <table class="table-findings">
+    <thead>
+      <tr>
+        <th style="width: 5%; text-align: center;">No</th>
+        <th style="width: 12%;">Derajat</th>
+        <th style="width: 33%;">Uraian Temuan &amp; Standar</th>
+        <th style="width: 25%;">Kondisi pada Naskah</th>
+        <th style="width: 25%;">Rekomendasi Tindak Lanjut</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${findingsRows}
+    </tbody>
+  </table>
+
+  <div class="sign-row">
+    <div class="sign-col">
+      <div>Penilai Penyusun / Analis KKP</div>
+      <div class="sign-line">${uploader.split('(')[0].trim()}</div>
+      <div class="sign-role">Penilai Pelaksana KJPP NSR</div>
+    </div>
+    <div class="sign-col">
+      <div>Komite Kendali Mutu SPM / Rekan Penilai</div>
+      <div class="sign-line">${reviewer}</div>
+      <div class="sign-role">${reviewerTitle}</div>
+    </div>
+  </div>
+
+  <div class="no-print" style="margin-top: 30px; text-align: center;">
+    <button onclick="window.print()" style="padding: 8px 18px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Cetak Halaman Ini (Print / PDF)</button>
+    <button onclick="window.close()" style="padding: 8px 18px; background: #64748b; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-left: 8px;">Tutup Jendela</button>
+  </div>
+</body>
+</html>`;
+
+      const printWin = window.open('', '_blank', 'width=850,height=950');
+      if (printWin) {
+        printWin.document.open();
+        printWin.document.write(printHtml);
+        printWin.document.close();
+        setTimeout(() => {
+          try {
+            printWin.focus();
+            printWin.print();
+          } catch (_) {}
+        }, 300);
+      } else {
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(printHtml);
+        doc.close();
+        setTimeout(() => {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+          setTimeout(() => document.body.removeChild(iframe), 1000);
+        }, 300);
+      }
+    }
+
     // Modal Actions
     function unduhLaporanQA() {
       if (activeReview?.generated_report_pdf_url) {
@@ -1411,23 +1909,25 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
     }
 
     function bukaModalRevisi() {
-      if (!activeReview) return;
-      if (currentUser?.role === 'PENILAI') {
+      const review = latestAuditSnapshot || activeReview;
+      if (!review) return;
+      const user = window.currentUser || currentUser;
+      if (user?.role === 'PENILAI') {
         alert('Perhatian: Penilai Penyusun tidak berwenang menelaah laporannya sendiri (Prinsip Anti Self-Review). Tindakan ini khusus Reviewer SPM.');
         return;
       }
 
-      document.getElementById('revisi-recipient').value = activeReview.uploaded_by || 'Penilai Pelaksana';
+      document.getElementById('revisi-recipient').value = review.uploaded_by || 'Penilai Pelaksana';
       
-      const summaryText = (activeReview.findings || []).map((f, i) => 
+      const summaryText = (review.findings || []).map((f, i) => 
         `[${i+1}] (${f.severity}) ${f.title}\n    Hal: ${f.page_numbers.join(', ')}\n    Catatan: ${f.condition_found}\n    Rekomendasi: ${f.corrective_action}`
       ).join('\n\n');
 
       document.getElementById('revisi-text-content').value = 
-`Yth. ${activeReview.uploaded_by},
+`Yth. ${review.uploaded_by},
 
-Berdasarkan hasil audit Komite Kendali Mutu SPM pada berkas "${activeReview.file_name}" (JO: ${activeReview.job_order_id}):
-Status Dokumen: ${activeReview.status} (Skor Mutu: ${activeReview.compliance_score}%)
+Berdasarkan hasil audit Komite Kendali Mutu SPM pada berkas "${review.file_name}" (JO: ${review.job_order_id}):
+Status Dokumen: ${review.status} (Skor Mutu: ${review.compliance_score}%)
 
 Harap segera lakukan perbaikan atas temuan kritis/mayor berikut sebelum NoLap Kemenkeu dapat diterbitkan:
 
@@ -2090,7 +2590,12 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
       if (!auditResult) return;
       activeReview = auditResult;
       window.activeReview = auditResult;
+      latestAuditSnapshot = auditResult;
+      window.latestAuditSnapshot = auditResult;
       applyReviewData(auditResult);
+      if (typeof updateWorkflowButtonsState === 'function') {
+        updateWorkflowButtonsState(auditResult);
+      }
     }
 
     /**
@@ -2258,6 +2763,13 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     window.syncAuditResultToBackend = syncAuditResultToBackend;
     window.GAS_QA_ENDPOINT_URL = GAS_QA_ENDPOINT_URL;
     window.loadPresetSample = muatSampelBerkas;
+    window.syncJOToMetadata = syncJOToMetadata;
+    window.handleDemoPresetSelect = handleDemoPresetSelect;
+    window.updateWorkflowButtonsState = updateWorkflowButtonsState;
+    window.executeReturnForRevision = executeReturnForRevision;
+    window.executeApproveQA = executeApproveQA;
+    window.openOverrideModal = openOverrideModal;
+    window.printQAControlSheet = printQAControlSheet;
   </script>
 </body>
 </html>
