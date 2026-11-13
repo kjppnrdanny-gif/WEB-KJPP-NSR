@@ -7,6 +7,14 @@
   <meta name="description" content="Sistem Pengujian Kepatuhan Standar Penilaian Indonesia (SPI) &amp; KEPI Otomatis, Quality Gatekeeper Penerbitan NoLap Kemenkeu KJPP Nanang Rahayu Sigit Paryanto &amp; Rekan (KMK No. 2.19.0160).">
   <link rel="icon" type="image/png" href="favicon.png?v=2">
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PDF.js & SheetJS for In-Browser Text Extraction & Formula Auditing -->
+  <script src="lib/pdf.min.js"></script>
+  <script src="lib/xlsx.full.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.min.js';
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -221,11 +229,11 @@
 
         <!-- Drag & Drop Uploader -->
         <div id="dropzone-pdf" class="border-2 border-dashed border-slate-700 hover:border-cyan-500/70 rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-900/40" onclick="document.getElementById('file-pdf-input').click()">
-          <input type="file" id="file-pdf-input" accept=".pdf" class="hidden" onchange="handleFileUpload(event)">
+          <input type="file" id="file-pdf-input" accept=".pdf,.xlsx,.xls" multiple class="hidden" onchange="handleFileUpload(event)">
           <div class="flex flex-col items-center justify-center space-y-1">
             <svg class="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-            <p class="text-xs font-semibold text-slate-300">Tarik &amp; Lepas Berkas PDF Laporan Penilaian di sini</p>
-            <p class="text-[10px] text-slate-500">Maksimum 50 MB &bull; Sistem akan memindai rumus rusak, SPI &amp; KEPI secara otomatis</p>
+            <p class="text-xs font-semibold text-slate-300">Tarik &amp; Lepas Berkas PDF Laporan Penilaian / KKP Excel (.xlsx) di sini</p>
+            <p class="text-[10px] text-slate-500">Format PDF / XLSX &bull; Sistem memindai rumus rusak (#REF!), formula Excel, SPI &amp; KEPI secara otomatis</p>
           </div>
         </div>
       </div>
@@ -267,7 +275,7 @@
           <div id="document-content-wrapper" class="max-w-2xl mx-auto bg-[#0f172a] border border-slate-800/80 rounded-lg p-6 shadow-inner min-h-[580px] relative">
             <div id="doc-loading-spinner" class="hidden absolute inset-0 bg-[#0f172a]/80 backdrop-blur-sm flex flex-col items-center justify-center z-10">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mb-2"></div>
-              <span class="text-xs text-cyan-300 font-medium">Memproses Dokumen...</span>
+              <span id="doc-loading-text" class="text-xs text-cyan-300 font-medium">Memproses Dokumen...</span>
             </div>
             
             <div id="rendered-page-content" class="text-slate-300 whitespace-pre-wrap select-text">
@@ -949,9 +957,39 @@
     window.logoutQASession = logoutQASession;
     window.applyRBACPermissions = applyRBACPermissions;
 
+    function clearActivePresets() {
+      const btnFifa = document.getElementById('btn-load-sample-fifa');
+      const btnSarimukti = document.getElementById('btn-load-sample-sarimukti');
+      if (btnFifa) {
+        btnFifa.classList.remove('ring-2', 'ring-rose-500', 'bg-slate-700/80');
+        btnFifa.classList.add('opacity-70');
+      }
+      if (btnSarimukti) {
+        btnSarimukti.classList.remove('ring-2', 'ring-amber-500', 'bg-slate-700/80');
+        btnSarimukti.classList.add('opacity-70');
+      }
+    }
+
     function muatSampelBerkas(sampleKey) {
       const data = SAMPLE_REVIEWS[sampleKey];
       if (!data) return;
+
+      const btnFifa = document.getElementById('btn-load-sample-fifa');
+      const btnSarimukti = document.getElementById('btn-load-sample-sarimukti');
+      if (btnFifa && btnSarimukti) {
+        if (sampleKey === 'fifa') {
+          btnFifa.classList.remove('opacity-70');
+          btnFifa.classList.add('ring-2', 'ring-rose-500', 'bg-slate-700/80');
+          btnSarimukti.classList.remove('ring-2', 'ring-amber-500', 'bg-slate-700/80');
+          btnSarimukti.classList.add('opacity-70');
+        } else {
+          btnSarimukti.classList.remove('opacity-70');
+          btnSarimukti.classList.add('ring-2', 'ring-amber-500', 'bg-slate-700/80');
+          btnFifa.classList.remove('ring-2', 'ring-rose-500', 'bg-slate-700/80');
+          btnFifa.classList.add('opacity-70');
+        }
+      }
+
       applyReviewData(data);
     }
 
@@ -1160,6 +1198,35 @@
       } else {
         markerEl.textContent = 'Halaman Bersih (Bebas Temuan)';
         markerEl.className = 'text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400';
+      }
+
+      // Render real extracted page text if document was uploaded via PDF.js
+      if (activeReview?.pagesContent && activeReview.pagesContent.length > 0) {
+        const pageObj = activeReview.pagesContent.find(p => p.pageNumber === page);
+        let rawText = pageObj ? pageObj.text : `[HALAMAN ${page}] - Konten halaman tidak memuat layer teks terbaca.`;
+
+        let safeText = rawText
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+
+        safeText = safeText.replace(/#REF!/g, '<mark class="bg-rose-500/30 text-rose-200 border border-rose-500 px-1 font-bold">#REF!</mark> <-- [TEMUAN: ERROR FORMULA #REF!]');
+        safeText = safeText.replace(/#VALUE!/g, '<mark class="bg-rose-500/30 text-rose-200 border border-rose-500 px-1 font-bold">#VALUE!</mark> <-- [TEMUAN: ERROR SINTAKS #VALUE!]');
+        safeText = safeText.replace(/#DIV\/0!/g, '<mark class="bg-rose-500/30 text-rose-200 border border-rose-500 px-1 font-bold">#DIV/0!</mark> <-- [TEMUAN: PEMBAGIAN DENGAN NOL]');
+        safeText = safeText.replace(/(####+)/g, '<mark class="bg-amber-500/30 text-amber-200 border border-amber-500 px-1 font-bold">$1</mark> <-- [TEMUAN: OVERFLOW ####]');
+        safeText = safeText.replace(/(Rp\.?\s*0\s*(?:,-|\/m2|\(Nol\))?)/gi, '<mark class="bg-amber-500/30 text-amber-200 border border-amber-500 px-1 font-bold">$1</mark> <-- [TEMUAN: NILAI RP 0]');
+
+        if (pageFindings.some(f => f.title && f.title.includes('Tanah Kosong'))) {
+          safeText = safeText.replace(/(Tanah\s+Kosong|Vacant\s+Land)/gi, '<mark class="bg-rose-500/30 text-rose-200 border border-rose-500 px-1 font-bold">$1</mark> <-- [KONTRADIKSI MATERIAL]');
+        }
+
+        contentEl.innerHTML = `
+<div class="text-cyan-400 font-bold border-b border-slate-800 pb-2 mb-3 flex items-center justify-between">
+  <span>HALAMAN ${page} &bull; ${activeReview.file_name || 'Dokumen Terunggah'}</span>
+  <span class="text-[10px] text-slate-400 font-normal">Layer Teks Ekstraksi Asli (PDF.js)</span>
+</div>
+<div class="whitespace-pre-wrap font-mono text-xs leading-relaxed text-slate-300 select-text">${safeText}</div>`.trim();
+        return;
       }
 
       // Render simulated page excerpt with highlight box
@@ -1391,53 +1458,525 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
       });
     }
 
-    // File Upload Handler with RBAC Guard
-    function handleFileUpload(event) {
+    // =========================================================
+    // IN-BROWSER DOCUMENT PARSING & QA AUDIT PIPELINE
+    // =========================================================
+
+    /**
+     * 1. Menampilkan atau menyembunyikan indikator loading
+     */
+    function setLoadingState(isLoading, message = 'Mengekstrak teks dokumen & memindai formula...') {
+      const spinner = document.getElementById('doc-loading-spinner');
+      if (!spinner) return;
+      const textEl = document.getElementById('doc-loading-text') || spinner.querySelector('span');
+      if (textEl && message) textEl.textContent = message;
+      if (isLoading) {
+        spinner.classList.remove('hidden');
+      } else {
+        spinner.classList.add('hidden');
+      }
+    }
+
+    /**
+     * 2. Ekstraksi teks lapis halaman dari berkas PDF menggunakan PDF.js
+     */
+    async function extractTextFromPDF(file) {
+      if (typeof pdfjsLib === 'undefined') {
+        throw new Error('Pustaka PDF.js belum siap. Pastikan lib/pdf.min.js termuat dengan benar.');
+      }
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdfDoc = await loadingTask.promise;
+      const numPages = pdfDoc.numPages;
+      const pages = [];
+
+      for (let i = 1; i <= numPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const textContent = await page.getTextContent();
+        let lastY = null;
+        let pageText = '';
+        for (const item of textContent.items) {
+          if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+            pageText += '\n';
+          } else if (pageText.length > 0 && !pageText.endsWith('\n') && !pageText.endsWith(' ')) {
+            pageText += ' ';
+          }
+          pageText += item.str;
+          lastY = item.transform[5];
+        }
+        pages.push({
+          pageNumber: i,
+          text: pageText.trim()
+        });
+      }
+
+      return pages;
+    }
+
+    /**
+     * 3. Pemindaian formula sel & deteksi kesalahan Excel menggunakan SheetJS (XLSX)
+     */
+    async function scanExcelFormulas(file) {
+      if (typeof XLSX === 'undefined') {
+        throw new Error('Pustaka SheetJS (XLSX) belum siap. Pastikan lib/xlsx.full.min.js termuat dengan benar.');
+      }
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true, cellNF: true });
+      const formulaIssues = [];
+
+      workbook.SheetNames.forEach((sheetName) => {
+        const sheet = workbook.Sheets[sheetName];
+        if (!sheet) return;
+
+        for (const cellAddress in sheet) {
+          if (cellAddress[0] === '!') continue;
+          const cell = sheet[cellAddress];
+          if (!cell) continue;
+
+          const formula = String(cell.f || '');
+          let cellValue = '';
+          if (cell.w !== undefined) {
+            cellValue = String(cell.w);
+          } else if (cell.t === 'e') {
+            const errCodes = { 0x00: '#NULL!', 0x07: '#DIV/0!', 0x0F: '#VALUE!', 0x17: '#REF!', 0x1D: '#NAME?', 0x24: '#NUM!', 0x2A: '#N/A' };
+            cellValue = errCodes[cell.v] || '#ERROR!';
+          } else if (cell.v !== undefined) {
+            cellValue = String(cell.v);
+          }
+
+          // Deteksi #REF! pada formula atau nilai sel
+          if (formula.includes('#REF!') || cellValue.includes('#REF!')) {
+            formulaIssues.push({
+              severity: 'CRITICAL',
+              category: 'CALCULATION',
+              title: `Formula Reference Error (#REF!) pada Sheet '${sheetName}' Sel ${cellAddress}`,
+              condition_found: `Ditemukan referensi formula rusak '#REF!' pada Sheet '${sheetName}' sel ${cellAddress} (Formula: =${formula || 'N/A'}, Tampilan: ${cellValue}).`,
+              standard_reference: 'SPI 105 Butir 5.1 & KEPI Butir 3 (Integritas Kalkulasi)',
+              impact_analysis: 'Nilai pasar agunan pada lembar KKP kehilangan referensi sel sumber dan tidak dapat direkonsiliasi matematis.',
+              corrective_action: 'Periksa formula di Excel sumber, pastikan sel rujukan tidak terhapus atau tergeser saat manipulasi baris/kolom.',
+              sheet_name: sheetName,
+              cell_address: cellAddress,
+              page_numbers: [1],
+              resolved: false
+            });
+          }
+
+          // Deteksi #VALUE!, #DIV/0!, #NAME?, #NUM!
+          if (cellValue.includes('#VALUE!') || formula.includes('#VALUE!') ||
+              cellValue.includes('#DIV/0!') || formula.includes('#DIV/0!') ||
+              cellValue.includes('#NAME?') || cellValue.includes('#NUM!')) {
+            formulaIssues.push({
+              severity: 'CRITICAL',
+              category: 'CALCULATION',
+              title: `Syntax / Math Error (${cellValue || 'Formula Error'}) pada Sheet '${sheetName}' Sel ${cellAddress}`,
+              condition_found: `Terdeteksi kesalahan evaluasi rumus Excel '${cellValue}' pada Sheet '${sheetName}' sel ${cellAddress} (Formula: =${formula || 'N/A'}).`,
+              standard_reference: 'SPI 105 Butir 5.1 (Akurasi Matematika)',
+              impact_analysis: 'Kalkulasi nilai properti terhenti dan menghasilkan kalkulasi cacat formil.',
+              corrective_action: 'Perbaiki sintaks rumus Excel dan pastikan sel pembagi tidak bernilai nol atau kosong.',
+              sheet_name: sheetName,
+              cell_address: cellAddress,
+              page_numbers: [1],
+              resolved: false
+            });
+          }
+
+          // Deteksi Cell Overflow ####
+          if (/^#+$/.test(cellValue) || (cell.w && /^#+$/.test(cell.w))) {
+            formulaIssues.push({
+              severity: 'MAJOR',
+              category: 'CLERICAL',
+              title: `Tampilan Angka Terpotong / Cell Overflow (####) pada Sheet '${sheetName}' Sel ${cellAddress}`,
+              condition_found: `Lebar kolom pada sheet '${sheetName}' sel ${cellAddress} tidak mencukupi sehingga angka bernilai ${cell.v || 'N/A'} tertampil sebagai '${cell.w || cellValue}'.`,
+              standard_reference: 'SPI 103 Butir 4 (Kelengkapan Penyajian Laporan)',
+              impact_analysis: 'Angka biaya atau kalkulasi tidak terbaca oleh komite saat diekspor ke naskah laporan.',
+              corrective_action: 'Perlebar kolom pada spreadsheet KKP agar seluruh digit angka terlihat jelas.',
+              sheet_name: sheetName,
+              cell_address: cellAddress,
+              page_numbers: [1],
+              resolved: false
+            });
+          }
+        }
+      });
+
+      return formulaIssues;
+    }
+
+    /**
+     * 4. Memperbarui Metadata UI & Pratinjau Teks Asli Dokumen
+     */
+    function updateMetadataUI(meta) {
+      if (!meta) return;
+      const fileName = meta.fileName || 'Dokumen Penilaian Terunggah';
+      const totalPages = meta.totalPages || (meta.pagesContent ? meta.pagesContent.length : 1);
+
+      const metaDocName = document.getElementById('meta-doc-name');
+      if (metaDocName) metaDocName.textContent = fileName;
+
+      const docFileInfo = document.getElementById('doc-file-info');
+      if (docFileInfo) docFileInfo.textContent = 'File: ' + fileName;
+
+      const metaTotalPages = document.getElementById('meta-total-pages');
+      if (metaTotalPages) metaTotalPages.textContent = totalPages + ' Halaman';
+
+      const totalPageNum = document.getElementById('total-page-num');
+      if (totalPageNum) totalPageNum.textContent = totalPages;
+
+      totalPagesCount = totalPages;
+
+      const sel = document.getElementById('select-page-jump');
+      if (sel) {
+        sel.innerHTML = '';
+        for (let i = 1; i <= Math.min(totalPages, 200); i++) {
+          const opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = `Halaman ${i}`;
+          sel.appendChild(opt);
+        }
+      }
+
+      if (meta.pagesContent && meta.pagesContent.length > 0) {
+        if (!activeReview) activeReview = {};
+        activeReview.pagesContent = meta.pagesContent;
+        activeReview.file_name = fileName;
+        activeReview.total_pages = totalPages;
+        tampilkanHalaman(1);
+      }
+    }
+
+    /**
+     * 5. Mesin Audit Standar Penilaian Indonesia (SPI) & KEPI Deterministic Engine
+     */
+    async function runTechnicalReviewEngine(extractedPages = [], excelIssues = [], fileName = '') {
+      const fullText = extractedPages.map(p => p.text).join('\n');
+      const lower = fullText.toLowerCase();
+      const findings = [];
+
+      // A. Deteksi Error Formula #REF! pada naskah PDF
+      const refPages = extractedPages.filter(p => p.text.includes('#REF!')).map(p => p.pageNumber);
+      if (refPages.length > 0) {
+        findings.push({
+          severity: 'CRITICAL',
+          category: 'CALCULATION',
+          title: 'Formula Reference Error (#REF!) Terdeteksi',
+          condition_found: `Ditemukan token formula rusak '#REF!' pada halaman ${refPages.join(', ')}. Rumus referensi sel Excel hilang saat ekspor ke naskah laporan.`,
+          standard_reference: 'SPI 105 Butir 5.1 & KEPI Butir 3 (Integritas Kalkulasi Nilai)',
+          impact_analysis: 'Nilai pasar agunan tidak memiliki dasar matematis valid dan berpotensi gugur saat audit komite perbankan.',
+          corrective_action: 'Buka kembali lembar KKP sumber dan perbaiki referensi sel formula yang hilang/terhapus.',
+          page_numbers: refPages,
+          resolved: false
+        });
+      }
+
+      // B. Deteksi Error Matematika #VALUE! / #DIV/0!
+      const mathPages = extractedPages.filter(p => p.text.includes('#VALUE!') || p.text.includes('#DIV/0!')).map(p => p.pageNumber);
+      if (mathPages.length > 0) {
+        findings.push({
+          severity: 'CRITICAL',
+          category: 'CALCULATION',
+          title: 'Math Formula Syntax Error (#VALUE! / #DIV/0!) Terdeteksi',
+          condition_found: `Terdeteksi pembagian dengan nol atau tipe data tidak sesuai pada kalkulasi penilaian di halaman ${mathPages.join(', ')}.`,
+          standard_reference: 'SPI 105 Butir 5.1 (Akurasi Matematika)',
+          impact_analysis: 'Aritmetika KKP tidak tuntas sehingga merusak keabsahan nilai agunan.',
+          corrective_action: 'Perbaiki formula pembobotan dan hindari variabel pembagi nol pada kertas kerja.',
+          page_numbers: mathPages,
+          resolved: false
+        });
+      }
+
+      // C. Deteksi Cell Overflow (####)
+      const overflowPages = extractedPages.filter(p => /####+/.test(p.text)).map(p => p.pageNumber);
+      if (overflowPages.length > 0) {
+        findings.push({
+          severity: 'MAJOR',
+          category: 'CLERICAL',
+          title: 'Tampilan Angka Terpotong / Cell Overflow (####)',
+          condition_found: `Ditemukan karakter overflow '####' pada kolom tabel rincian biaya halaman ${overflowPages.join(', ')} akibat lebar kolom tidak cukup.`,
+          standard_reference: 'SPI 103 Butir 4 (Kelengkapan Penyajian Laporan)',
+          impact_analysis: 'Rincian angka biaya konstruksi atau unit tidak terbaca oleh komite kredit bank.',
+          corrective_action: 'Perlebar lebar kolom pada spreadsheet KKP sebelum mengekspor ke dokumen PDF.',
+          page_numbers: overflowPages,
+          resolved: false
+        });
+      }
+
+      // D. Deteksi Indikasi Nilai Sarana Pelengkap Rp 0 Tanpa Keterangan
+      const zeroPages = extractedPages.filter(p => /Rp\.?\s*0\s*(?:,-|\/m2|\(Nol\))?/i.test(p.text)).map(p => p.pageNumber);
+      if (zeroPages.length > 0) {
+        findings.push({
+          severity: 'MAJOR',
+          category: 'CALCULATION',
+          title: 'Indikasi Nilai Sarana Pelengkap Rp 0 Tanpa Keterangan',
+          condition_found: `Terdapat komponen biaya atau sarana pelengkap yang tercatat bernilai Rp 0 pada halaman ${zeroPages.join(', ')} tanpa catatan penjelasan.`,
+          standard_reference: 'SPI 105 Butir 5.2 (Kelengkapan Penilaian Fisik)',
+          impact_analysis: 'Potensi kelalaian dalam menaksir sarana pelengkap properti agunan.',
+          corrective_action: 'Lengkapi estimasi biaya sarana pelengkap atau beri keterangan resmi bila fasilitas tidak dinilai.',
+          page_numbers: zeroPages,
+          resolved: false
+        });
+      }
+
+      // E. Verifikasi Lisensi & Kompetensi Klasifikasi Objek
+      const isCommercial = /rumah sakit|rsia|klinik utama|hotel|resort|mall|pusat perbelanjaan|kawasan perumahan|kyg|pabrik/i.test(lower);
+      const hasPsLicense = /\bps[-\s]?(?:1|2|3|4)?\b|\bpenilai\s+sederhana\b/i.test(lower);
+      const hasPLicense = /\bp[-\s]?(?:1|2|3|4)?\.\d{2}\.\d{5}\b|\bpenilai\s+publik\s+properti\b|\bizin\s+penilai\s+publik\s*:\s*p-/i.test(lower);
+
+      if (isCommercial && hasPsLicense && !hasPLicense) {
+        findings.push({
+          severity: 'CRITICAL',
+          category: 'SPI_COMPLIANCE',
+          title: 'Kompetensi Izin Penilai Publik Tidak Sesuai Klasifikasi Aset',
+          condition_found: 'Aset merupakan objek komersial non-sederhana (Rumah Sakit / Kawasan), namun laporan memuat lisensi terbatas Penilai Sederhana (PS).',
+          standard_reference: 'KMK No. 248/KM.1/2019 & POJK Penilaian Agunan Bank',
+          impact_analysis: 'Laporan ditolak mutlak oleh pihak perbankan dan berisiko terkena sanksi pembekuan izin dari P2PK Kemenkeu RI.',
+          corrective_action: 'Laporan wajib ditandatangani oleh Rekan Penilai Publik Pemegang Izin Properti Penuh (P) (Ir. Nanang Rahayu / Dharma Hartono).',
+          page_numbers: [1, 2],
+          resolved: false
+        });
+      }
+
+      // F. Kontradiksi Objek: Tanah Kosong Memuat Penilaian Bangunan
+      if ((/\btanah\s+kosong\b|\bvacant\s+land\b/i.test(lower)) && (/\bnilai\s+pasar\s+bangunan\b|\brcn\b|biaya\s+konstruksi\s+bangunan/i.test(lower))) {
+        const vacPages = extractedPages.filter(p => /tanah\s+kosong|vacant\s+land/i.test(p.text)).map(p => p.pageNumber);
+        findings.push({
+          severity: 'CRITICAL',
+          category: 'METHODOLOGY',
+          title: 'Kontradiksi Identifikasi Objek: Tanah Kosong Memuat Penilaian Bangunan',
+          condition_found: "Laporan mendefinisikan objek sebagai 'Tanah Kosong' pada Bab Pendahuluan namun memuat kalkulasi Nilai Bangunan / RCN.",
+          standard_reference: 'SPI 103 Butir 3.1 & KEPI Butir 2 (Kejelasan Objek Penilaian)',
+          impact_analysis: 'Informasi material agunan menyesatkan (misleading). Legalitas perjanjian kredit perbankan cacat formil.',
+          corrective_action: "Koreksi lingkup objek menjadi 'Tanah dan Bangunan Komersial' atau sesuaikan identifikasi fisik agunan.",
+          page_numbers: vacPages.length > 0 ? vacPages : [1, 3],
+          resolved: false
+        });
+      }
+
+      // G. Pengujian 4 Kriteria Baku Analisis HBU (KPUP 10 & SPI 105)
+      if (/hbu|highest\s+and\s+best\s+use|tertinggi\s+dan\s+terbaik/i.test(lower)) {
+        const criteria = {
+          'Kelayakan Hukum': /kelayakan\s+hukum|diizinkan\s+hukum|legal|peraturan\s+daerah|zoning/i.test(lower),
+          'Kelayakan Fisik': /kelayakan\s+fisik|memungkinkan\s+secara\s+fisik|topografi|bentuk\s+tanah/i.test(lower),
+          'Kelayakan Finansial': /kelayakan\s+finansial|layak\s+keuangan|pendapatan|dcf|npv/i.test(lower),
+          'Produktivitas Maksimal': /produktivitas\s+maksimal|hasil\s+maksimal|paling\s+menguntungkan/i.test(lower)
+        };
+        const missing = Object.entries(criteria).filter(([_, v]) => !v).map(([k]) => k);
+        if (missing.length >= 2) {
+          const hbuPages = extractedPages.filter(p => /hbu|highest\s+and\s+best\s+use/i.test(p.text)).map(p => p.pageNumber);
+          findings.push({
+            severity: 'MAJOR',
+            category: 'METHODOLOGY',
+            title: 'Analisis Penggunaan Tertinggi & Terbaik (HBU) Tidak Memenuhi 4 Kriteria Baku',
+            condition_found: `Uji HBU belum mengelaborasi kriteria wajib: ${missing.join(', ')}.`,
+            standard_reference: 'KPUP Butir 10 & SPI 105 (Uji 4 Kriteria Analisis HBU)',
+            impact_analysis: 'Landasan penetapan pendekatan penilaian properti agunan menjadi rentan digugat auditor.',
+            corrective_action: 'Lengkapi matriks pengujian 4 kriteria HBU (Aspek Hukum, Fisik, Finansial, dan Produktivitas Maksimal).',
+            page_numbers: hbuPages.length > 0 ? hbuPages : [1],
+            resolved: false
+          });
+        }
+      }
+
+      // H. Diskon Nilai Likuidasi Flat Tanpa Justifikasi (SPI 202)
+      if ((lower.includes('nilai likuidasi') || lower.includes('liquidation value')) &&
+          /(?:dipotong|diskon|potongan)\s*(?:sebesar)?\s*(?:30%|25%|20%|40%|50%)/i.test(lower) &&
+          !/waktu\s+pemasaran\s+terbatas|jangka\s+waktu\s+penjualan|daya\s+serap\s+pasar/i.test(lower)) {
+        const liqPages = extractedPages.filter(p => /nilai\s+likuidasi|liquidation/i.test(p.text)).map(p => p.pageNumber);
+        findings.push({
+          severity: 'MODERATE',
+          category: 'METHODOLOGY',
+          title: 'Penerapan Diskon Nilai Likuidasi Flat Tanpa Justifikasi Waktu Pemasaran',
+          condition_found: 'Nilai likuidasi dipotong flat tanpa analisis mendalam regarding daya serap pasar atau waktu pemasaran terbatas.',
+          standard_reference: 'SPI 202 Butir 4.3 (Penetapan Nilai Likuidasi Agunan Perbankan)',
+          impact_analysis: 'Dapat dipertanyakan oleh Komite Risiko Bank saat restrukturisasi agunan.',
+          corrective_action: 'Sertakan justifikasi tertulis mengenai profil pembeli dan waktu penjualan lelang 3-6 bulan.',
+          page_numbers: liqPages.length > 0 ? liqPages : [1],
+          resolved: false
+        });
+      }
+
+      // I. Sertakan temuan dari SheetJS Excel jika ada
+      if (Array.isArray(excelIssues) && excelIssues.length > 0) {
+        findings.push(...excelIssues);
+      }
+
+      const criticalCount = findings.filter(f => f.severity === 'CRITICAL').length;
+      const majorCount = findings.filter(f => f.severity === 'MAJOR').length;
+      const modCount = findings.filter(f => f.severity === 'MODERATE').length;
+      const minorCount = findings.filter(f => f.severity === 'MINOR').length;
+
+      let status = 'ACCEPTABLE';
+      let compliance_score = 98.0;
+      let gate_nolap_unlocked = true;
+
+      if (criticalCount > 0) {
+        status = 'NOT_ACCEPTABLE';
+        compliance_score = Math.max(25.0, 58.0 - (criticalCount * 12.0) - (majorCount * 4.0));
+        gate_nolap_unlocked = false;
+      } else if (majorCount > 0) {
+        status = 'REQUIRES_MAJOR_REVISION';
+        compliance_score = Math.max(55.0, 75.0 - (majorCount * 6.0) - (modCount * 2.0));
+        gate_nolap_unlocked = false;
+      } else if (modCount > 0) {
+        status = 'ACCEPTABLE_WITH_REVISION';
+        compliance_score = Math.max(80.0, 92.0 - (modCount * 3.0));
+        gate_nolap_unlocked = true;
+      }
+
+      const joMatch = fullText.match(/JO-NSR-[\d-]+/i);
+      const joId = joMatch ? joMatch[0] : ('JO-NSR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000));
+
+      return {
+        id: 'rev-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        job_order_id: joId,
+        file_name: fileName || (extractedPages.length > 0 ? 'Draf Laporan Penilaian.pdf' : 'Kertas Kerja Excel.xlsx'),
+        file_hash: 'sha256-' + Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join(''),
+        total_pages: Math.max(1, extractedPages.length),
+        pagesContent: extractedPages,
+        uploaded_by: (currentUser?.nama || 'Penilai Penyusun') + ' (' + (currentUser?.jabatan || 'Valuer') + ')',
+        status: status,
+        compliance_score: Math.round(compliance_score * 10) / 10,
+        gate_nolap_unlocked: gate_nolap_unlocked,
+        findings_summary: {
+          critical: criticalCount,
+          major: majorCount,
+          moderate: modCount,
+          minor: minorCount,
+          total: findings.length
+        },
+        findings: findings,
+        generated_report_pdf_url: null
+      };
+    }
+
+    /**
+     * 6. Render Ulang Hasil Audit (Skor, Status & Daftar Temuan)
+     */
+    function renderAuditResults(auditResult) {
+      if (!auditResult) return;
+      activeReview = auditResult;
+      applyReviewData(auditResult);
+    }
+
+    /**
+     * 7. Handler Pengunggahan Berkas Utama
+     */
+    async function handleFileUpload(filesOrEvent) {
+      let files = filesOrEvent;
+      if (filesOrEvent && filesOrEvent.target && filesOrEvent.target.files) {
+        files = filesOrEvent.target.files;
+      } else if (filesOrEvent && filesOrEvent.dataTransfer && filesOrEvent.dataTransfer.files) {
+        files = filesOrEvent.dataTransfer.files;
+      }
+
+      // Validasi hak akses RBAC: Surveyor lapangan terkunci
       if (currentUser?.role === 'SURVEYOR') {
         alert('Akses Ditolak: Surveyor Lapangan hanya bertugas pada M-03 (Inspeksi Fisik) dan tidak berwenang mengunggah draf laporan lengkap.');
         return;
       }
 
-      const file = event.target.files[0];
-      if (!file) return;
+      if (!files || files.length === 0) return;
 
-      const spinner = document.getElementById('doc-loading-spinner');
-      spinner.classList.remove('hidden');
+      // 1. Tampilkan indikator loading agar UI tidak terasa macet/tidak merespons
+      setLoadingState(true, "Mengekstrak teks dokumen & memindai formula...");
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('uploaded_by', (currentUser?.nama || 'Penilai Penyusun') + ' (' + (currentUser?.jabatan || 'Valuer') + ')');
-      formData.append('job_order_id', 'JO-NSR-2026-UPLOAD');
-      formData.append('user_role', currentUser?.role || 'PENILAI');
-      formData.append('auth_token', currentUser?.token || '');
+      try {
+        let extractedPages = [];
+        let excelIssues = [];
+        let mainFileName = "";
 
-      fetch('backend/qa-engine-handler.php?action=upload_and_audit', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(res => {
-        spinner.classList.add('hidden');
-        if (res.status === 'success' && res.data) {
-          applyReviewData(res.data);
-          alert('Audit berkas selesai! Ditemukan ' + res.data.findings_summary.total + ' temuan.');
-        } else {
-          simulateLocalAudit(file.name);
+        for (const file of files) {
+          if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+            mainFileName = file.name;
+            extractedPages = await extractTextFromPDF(file); // Menggunakan pdfjsLib
+          } else if (file.name.match(/\.(xlsx|xls)$/i)) {
+            excelIssues = await scanExcelFormulas(file); // Menggunakan SheetJS (XLSX)
+          } else {
+            alert(`Format berkas tidak didukung: ${file.name}. Gunakan PDF atau Excel (.xlsx).`);
+          }
         }
-      })
-      .catch(() => {
-        spinner.classList.add('hidden');
-        simulateLocalAudit(file.name);
-      });
-    }
 
-    function simulateLocalAudit(name) {
-      if (name.toLowerCase().includes('fifa') || name.toLowerCase().includes('sutomo')) {
-        muatSampelBerkas('fifa');
-      } else {
-        muatSampelBerkas('sarimukti');
+        if (extractedPages.length === 0 && excelIssues.length === 0) {
+          throw new Error("Tidak ada konten teks atau lembar kerja yang dapat dibaca.");
+        }
+
+        // 2. Hapus status preset dummy (RS FIFA MEDIKA / Permata Harapan)
+        clearActivePresets();
+
+        // 3. Perbarui Metadata & Pratinjau Halaman 1 dengan teks ASLI dari PDF yang diunggah
+        updateMetadataUI({
+          fileName: mainFileName || files[0].name,
+          totalPages: extractedPages.length,
+          pagesContent: extractedPages
+        });
+
+        // 4. Jalankan mesin audit SPI/KEPI (baik lokal maupun via API backend/LLM)
+        const auditResult = await runTechnicalReviewEngine(extractedPages, excelIssues, mainFileName || files[0].name);
+
+        // 5. Render ulang skor, status (ACCEPTABLE / NOT ACCEPTABLE), dan daftar temuan
+        renderAuditResults(auditResult);
+
+        // Sinkronisasi latar belakang ke backend jika server tersedia
+        try {
+          if (files[0]) {
+            const formData = new FormData();
+            formData.append('file', files[0]);
+            formData.append('uploaded_by', (currentUser?.nama || 'Penilai Penyusun') + ' (' + (currentUser?.jabatan || 'Valuer') + ')');
+            formData.append('job_order_id', auditResult.job_order_id);
+            formData.append('user_role', currentUser?.role || 'PENILAI');
+            formData.append('auth_token', currentUser?.token || '');
+            fetch('backend/qa-engine-handler.php?action=upload_and_audit', {
+              method: 'POST',
+              body: formData
+            }).catch(() => {});
+          }
+        } catch (_) {}
+
+      } catch (err) {
+        console.error("Gagal memproses dokumen:", err);
+        alert(`Terjadi kesalahan saat memproses berkas: ${err.message}`);
+      } finally {
+        setLoadingState(false);
       }
     }
+
+    // Pasang Event Listeners Drag and Drop pada #dropzone-pdf
+    (function setupDragAndDrop() {
+      const dropzone = document.getElementById('dropzone-pdf');
+      if (!dropzone) return;
+
+      ['dragenter', 'dragover'].forEach(evtName => {
+        dropzone.addEventListener(evtName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('border-cyan-400', 'bg-cyan-950/20');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(evtName => {
+        dropzone.addEventListener(evtName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove('border-cyan-400', 'bg-cyan-950/20');
+        }, false);
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length > 0) {
+          handleFileUpload(dt.files);
+        }
+      }, false);
+    })();
+
+    // Ekspos fungsi global untuk integrasi dan automated testing
+    window.setLoadingState = setLoadingState;
+    window.extractTextFromPDF = extractTextFromPDF;
+    window.scanExcelFormulas = scanExcelFormulas;
+    window.clearActivePresets = clearActivePresets;
+    window.updateMetadataUI = updateMetadataUI;
+    window.runTechnicalReviewEngine = runTechnicalReviewEngine;
+    window.renderAuditResults = renderAuditResults;
+    window.handleFileUpload = handleFileUpload;
   </script>
 </body>
 </html>
