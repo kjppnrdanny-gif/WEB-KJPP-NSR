@@ -145,6 +145,7 @@ switch ($action) {
     case 'GET_EMPLOYEE_KPI':
     case 'GET_CLIENT_SLA':
     case 'GET_BANK_ORDER_OPTIMIZATION':
+    case 'GET_BANK_OPTIMIZATION':
         $nolapFile = $dataDir . '/nolap_database.json';
         $oprFile   = $dataDir . '/operasional_database.json';
         $lockFile  = $dataDir . '/lockout_branches.json';
@@ -489,10 +490,13 @@ switch ($action) {
                 'bankOrderOptimization' => [
                     'summary' => [
                         'totalBankRekanan'     => 8,
+                        'bankAktifCount'       => 6,
+                        'bankDormantCount'     => 2,
                         'winRateNasional'      => '68.4%',
                         'totalPenawaranKeluar' => 76,
                         'totalSpkTerbit'       => 52,
-                        'bankDormantCount'     => 2,
+                        'totalFeeNetto'        => 1170000000,
+                        'aovNasional'          => 22500000,
                         'pksExpiringCount'     => 3,
                         'onTimeRateNasional'   => '94.2%',
                         'rataDurasiInternal'   => '3.8 Hari Kerja',
@@ -505,6 +509,8 @@ switch ($action) {
                             'penawaranKeluar'   => 18,
                             'spkTerbit'         => 14,
                             'winRate'           => 77.8,
+                            'totalFeeNetto'     => 320000000,
+                            'aov'               => 22857143,
                             'targetSla'         => 7.0,
                             'realisasiSla'      => 5.6,
                             'speedPayment'      => 6.4,
@@ -515,6 +521,7 @@ switch ($action) {
                             'pksExpiryDate'     => '2027-05-30',
                             'pksDaysRemaining'  => 197,
                             'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'Pertahankan kemitraan Tier-1 & tingkatkan order segmen korporasi komersial.',
                             'segmen'            => ['kpr' => 6, 'ukm' => 5, 'korporasi' => 2, 'lelang' => 1]
                         ],
                         [
@@ -522,6 +529,8 @@ switch ($action) {
                             'penawaranKeluar'   => 14,
                             'spkTerbit'         => 10,
                             'winRate'           => 71.4,
+                            'totalFeeNetto'     => 235000000,
+                            'aov'               => 23500000,
                             'targetSla'         => 6.0,
                             'realisasiSla'      => 5.1,
                             'speedPayment'      => 7.8,
@@ -532,6 +541,7 @@ switch ($action) {
                             'pksExpiryDate'     => '2027-02-15',
                             'pksDaysRemaining'  => 93,
                             'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'Optimalisasi penetrasi agunan mikro/ritel di cabang Bandung dan Padang.',
                             'segmen'            => ['kpr' => 4, 'ukm' => 4, 'korporasi' => 1, 'lelang' => 1]
                         ],
                         [
@@ -539,6 +549,8 @@ switch ($action) {
                             'penawaranKeluar'   => 10,
                             'spkTerbit'         => 8,
                             'winRate'           => 80.0,
+                            'totalFeeNetto'     => 180000000,
+                            'aov'               => 22500000,
                             'targetSla'         => 5.0,
                             'realisasiSla'      => 4.4,
                             'speedPayment'      => 5.2,
@@ -549,6 +561,7 @@ switch ($action) {
                             'pksExpiryDate'     => '2026-12-31',
                             'pksDaysRemaining'  => 47,
                             'pksAlertLevel'     => 'H-60',
+                            'rekomendasiTindakan'=> 'Jadwalkan audiensi tahunan & konfirmasi perpanjangan PKS (H-47).',
                             'segmen'            => ['kpr' => 3, 'ukm' => 3, 'korporasi' => 2, 'lelang' => 0]
                         ],
                         [
@@ -556,6 +569,8 @@ switch ($action) {
                             'penawaranKeluar'   => 9,
                             'spkTerbit'         => 6,
                             'winRate'           => 66.7,
+                            'totalFeeNetto'     => 145000000,
+                            'aov'               => 24166667,
                             'targetSla'         => 7.0,
                             'realisasiSla'      => 6.2,
                             'speedPayment'      => 8.6,
@@ -566,6 +581,7 @@ switch ($action) {
                             'pksExpiryDate'     => '2027-04-20',
                             'pksDaysRemaining'  => 157,
                             'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'Koordinasi dengan Unit Remedial & Korporasi untuk percepatan berkas agunan.',
                             'segmen'            => ['kpr' => 2, 'ukm' => 2, 'korporasi' => 1, 'lelang' => 1]
                         ],
                         [
@@ -573,6 +589,8 @@ switch ($action) {
                             'penawaranKeluar'   => 7,
                             'spkTerbit'         => 5,
                             'winRate'           => 71.4,
+                            'totalFeeNetto'     => 85000000,
+                            'aov'               => 17000000,
                             'targetSla'         => 8.0,
                             'realisasiSla'      => 7.0,
                             'speedPayment'      => 9.5,
@@ -583,6 +601,7 @@ switch ($action) {
                             'pksExpiryDate'     => '2026-12-10',
                             'pksDaysRemaining'  => 26,
                             'pksAlertLevel'     => 'H-30',
+                            'rekomendasiTindakan'=> 'PRIORITAS TINGGI: Ajukan perpanjangan PKS (H-26) & pemutakhiran izin KMK.',
                             'segmen'            => ['kpr' => 4, 'ukm' => 1, 'korporasi' => 0, 'lelang' => 0]
                         ],
                         [
@@ -590,6 +609,8 @@ switch ($action) {
                             'penawaranKeluar'   => 6,
                             'spkTerbit'         => 4,
                             'winRate'           => 66.7,
+                            'totalFeeNetto'     => 92000000,
+                            'aov'               => 23000000,
                             'targetSla'         => 6.0,
                             'realisasiSla'      => 5.5,
                             'speedPayment'      => 7.0,
@@ -600,6 +621,7 @@ switch ($action) {
                             'pksExpiryDate'     => '2027-08-14',
                             'pksDaysRemaining'  => 273,
                             'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'Intensifkan penawaran penilaian portofolio agunan komersial di luar Jabodetabek.',
                             'segmen'            => ['kpr' => 2, 'ukm' => 1, 'korporasi' => 1, 'lelang' => 0]
                         ],
                         [
@@ -607,6 +629,8 @@ switch ($action) {
                             'penawaranKeluar'   => 6,
                             'spkTerbit'         => 3,
                             'winRate'           => 50.0,
+                            'totalFeeNetto'     => 65000000,
+                            'aov'               => 21666667,
                             'targetSla'         => 7.0,
                             'realisasiSla'      => 6.5,
                             'speedPayment'      => 11.2,
@@ -617,6 +641,7 @@ switch ($action) {
                             'pksExpiryDate'     => '2027-02-05',
                             'pksDaysRemaining'  => 83,
                             'pksAlertLevel'     => 'H-90',
+                            'rekomendasiTindakan'=> 'ATENSI DORMANT (33 Hari): Penawaran khusus paket agunan cabang & siapkan PKS (H-83).',
                             'segmen'            => ['kpr' => 1, 'ukm' => 1, 'korporasi' => 1, 'lelang' => 0]
                         ],
                         [
@@ -624,6 +649,8 @@ switch ($action) {
                             'penawaranKeluar'   => 6,
                             'spkTerbit'         => 2,
                             'winRate'           => 33.3,
+                            'totalFeeNetto'     => 48000000,
+                            'aov'               => 24000000,
                             'targetSla'         => 6.0,
                             'realisasiSla'      => 5.8,
                             'speedPayment'      => 8.0,
@@ -634,6 +661,248 @@ switch ($action) {
                             'pksExpiryDate'     => '2027-06-30',
                             'pksDaysRemaining'  => 228,
                             'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'KRITIS DORMANT (65 Hari): Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat Danamon.',
+                            'segmen'            => ['kpr' => 0, 'ukm' => 1, 'korporasi' => 0, 'lelang' => 1]
+                        ]
+                    ],
+                    'segmenNasional' => [
+                        'konsumerKpr'   => 22,
+                        'komersialUkm'  => 18,
+                        'korporasi'     => 8,
+                        'lelangNpl'     => 4
+                    ],
+                    'segmenPerCabang' => [
+                        ['cabang' => 'Pusat Jakarta', 'konsumerKpr' => 9, 'komersialUkm' => 9, 'korporasi' => 6, 'lelangNpl' => 2, 'total' => 26],
+                        ['cabang' => 'Cabang Bandung', 'konsumerKpr' => 4, 'komersialUkm' => 3, 'korporasi' => 1, 'lelangNpl' => 1, 'total' => 9],
+                        ['cabang' => 'Cabang Padang', 'konsumerKpr' => 3, 'komersialUkm' => 2, 'korporasi' => 0, 'lelangNpl' => 1, 'total' => 6],
+                        ['cabang' => 'Cabang Makassar', 'konsumerKpr' => 3, 'komersialUkm' => 2, 'korporasi' => 1, 'lelangNpl' => 0, 'total' => 6],
+                        ['cabang' => 'Cabang Palembang', 'konsumerKpr' => 3, 'komersialUkm' => 2, 'korporasi' => 0, 'lelangNpl' => 0, 'total' => 5]
+                    ],
+                    'pksAlertRadar' => [
+                        [
+                            'bank'        => 'PT Bank Tabungan Negara (Persero) Tbk',
+                            'nomorPks'    => 'PKS-NSR/BTN/2024/005',
+                            'tglBerakhir' => '2026-12-10',
+                            'sisaHari'    => 26,
+                            'alertLevel'  => 'H-30',
+                            'badgeColor'  => 'rose',
+                            'tindakan'    => 'Kirim surat permohonan perpanjangan PKS & submit berkas legalitas pemutakhiran izin KMK.'
+                        ],
+                        [
+                            'bank'        => 'PT Bank Central Asia Tbk (BCA)',
+                            'nomorPks'    => 'PKS-NSR/BCA/2025/003',
+                            'tglBerakhir' => '2026-12-31',
+                            'sisaHari'    => 47,
+                            'alertLevel'  => 'H-60',
+                            'badgeColor'  => 'amber',
+                            'tindakan'    => 'Jadwalkan audiensi tahunan dan konfirmasi review batas plafon appraisal wilayah cabang.'
+                        ],
+                        [
+                            'bank'        => 'PT Bank Syariah Indonesia Tbk (BSI)',
+                            'nomorPks'    => 'PKS-NSR/BSI/2024/027',
+                            'tglBerakhir' => '2027-02-05',
+                            'sisaHari'    => 83,
+                            'alertLevel'  => 'H-90',
+                            'badgeColor'  => 'sky',
+                            'tindakan'    => 'Siapkan evaluasi kinerja SLA & rekap laporan pembiayaan syariah regional.'
+                        ]
+                    ],
+                    'dormantAlerts' => [
+                        [
+                            'bank'             => 'PT Bank Danamon Indonesia Tbk',
+                            'kategori'         => 'DORMANT_60',
+                            'badgeColor'       => 'rose',
+                            'hariPasif'        => 65,
+                            'tglTerakhirOrder' => '2026-09-10',
+                            'cabangTerakhir'   => 'Pusat Jakarta',
+                            'tindakan'         => 'Kunjungan Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat Danamon & Re-aktivasi Akun Mitra.'
+                        ],
+                        [
+                            'bank'             => 'PT Bank Syariah Indonesia Tbk (BSI)',
+                            'kategori'         => 'DORMANT_30',
+                            'badgeColor'       => 'amber',
+                            'hariPasif'        => 33,
+                            'tglTerakhirOrder' => '2026-10-12',
+                            'cabangTerakhir'   => 'Cabang Bandung',
+                            'tindakan'         => 'Penawaran Khusus Paket Agunan Cabang & follow-up SPK penaksiran aset komersial syariah.'
+                        ]
+                    ]
+                ],
+                'bankOptimization' => [
+                    'summary' => [
+                        'totalBankRekanan'     => 8,
+                        'bankAktifCount'       => 6,
+                        'bankDormantCount'     => 2,
+                        'winRateNasional'      => '68.4%',
+                        'totalPenawaranKeluar' => 76,
+                        'totalSpkTerbit'       => 52,
+                        'totalFeeNetto'        => 1170000000,
+                        'aovNasional'          => 22500000,
+                        'pksExpiringCount'     => 3,
+                        'onTimeRateNasional'   => '94.2%',
+                        'rataDurasiInternal'   => '3.8 Hari Kerja',
+                        'rataClockStopKlien'   => '1.8 Hari Kerja',
+                        'rataSpeedPembayaran'  => '7.4 Hari Kerja'
+                    ],
+                    'bankMetrics' => [
+                        [
+                            'bank'              => 'PT Bank Mandiri (Persero) Tbk',
+                            'penawaranKeluar'   => 18,
+                            'spkTerbit'         => 14,
+                            'winRate'           => 77.8,
+                            'totalFeeNetto'     => 320000000,
+                            'aov'               => 22857143,
+                            'targetSla'         => 7.0,
+                            'realisasiSla'      => 5.6,
+                            'speedPayment'      => 6.4,
+                            'lastOrderDate'     => '2026-11-12',
+                            'lastOrderDaysAgo'  => 2,
+                            'dormantStatus'     => 'AKTIF',
+                            'pksNomor'          => 'PKS-NSR/MDR/2024/012',
+                            'pksExpiryDate'     => '2027-05-30',
+                            'pksDaysRemaining'  => 197,
+                            'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'Pertahankan kemitraan Tier-1 & tingkatkan order segmen korporasi komersial.',
+                            'segmen'            => ['kpr' => 6, 'ukm' => 5, 'korporasi' => 2, 'lelang' => 1]
+                        ],
+                        [
+                            'bank'              => 'PT Bank Rakyat Indonesia (Persero) Tbk',
+                            'penawaranKeluar'   => 14,
+                            'spkTerbit'         => 10,
+                            'winRate'           => 71.4,
+                            'totalFeeNetto'     => 235000000,
+                            'aov'               => 23500000,
+                            'targetSla'         => 6.0,
+                            'realisasiSla'      => 5.1,
+                            'speedPayment'      => 7.8,
+                            'lastOrderDate'     => '2026-11-10',
+                            'lastOrderDaysAgo'  => 4,
+                            'dormantStatus'     => 'AKTIF',
+                            'pksNomor'          => 'PKS-NSR/BRI/2024/008',
+                            'pksExpiryDate'     => '2027-02-15',
+                            'pksDaysRemaining'  => 93,
+                            'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'Optimalisasi penetrasi agunan mikro/ritel di cabang Bandung dan Padang.',
+                            'segmen'            => ['kpr' => 4, 'ukm' => 4, 'korporasi' => 1, 'lelang' => 1]
+                        ],
+                        [
+                            'bank'              => 'PT Bank Central Asia Tbk (BCA)',
+                            'penawaranKeluar'   => 10,
+                            'spkTerbit'         => 8,
+                            'winRate'           => 80.0,
+                            'totalFeeNetto'     => 180000000,
+                            'aov'               => 22500000,
+                            'targetSla'         => 5.0,
+                            'realisasiSla'      => 4.4,
+                            'speedPayment'      => 5.2,
+                            'lastOrderDate'     => '2026-11-11',
+                            'lastOrderDaysAgo'  => 3,
+                            'dormantStatus'     => 'AKTIF',
+                            'pksNomor'          => 'PKS-NSR/BCA/2025/003',
+                            'pksExpiryDate'     => '2026-12-31',
+                            'pksDaysRemaining'  => 47,
+                            'pksAlertLevel'     => 'H-60',
+                            'rekomendasiTindakan'=> 'Jadwalkan audiensi tahunan & konfirmasi perpanjangan PKS (H-47).',
+                            'segmen'            => ['kpr' => 3, 'ukm' => 3, 'korporasi' => 2, 'lelang' => 0]
+                        ],
+                        [
+                            'bank'              => 'PT Bank Negara Indonesia (Persero) Tbk',
+                            'penawaranKeluar'   => 9,
+                            'spkTerbit'         => 6,
+                            'winRate'           => 66.7,
+                            'totalFeeNetto'     => 145000000,
+                            'aov'               => 24166667,
+                            'targetSla'         => 7.0,
+                            'realisasiSla'      => 6.2,
+                            'speedPayment'      => 8.6,
+                            'lastOrderDate'     => '2026-11-08',
+                            'lastOrderDaysAgo'  => 6,
+                            'dormantStatus'     => 'AKTIF',
+                            'pksNomor'          => 'PKS-NSR/BNI/2024/019',
+                            'pksExpiryDate'     => '2027-04-20',
+                            'pksDaysRemaining'  => 157,
+                            'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'Koordinasi dengan Unit Remedial & Korporasi untuk percepatan berkas agunan.',
+                            'segmen'            => ['kpr' => 2, 'ukm' => 2, 'korporasi' => 1, 'lelang' => 1]
+                        ],
+                        [
+                            'bank'              => 'PT Bank Tabungan Negara (Persero) Tbk',
+                            'penawaranKeluar'   => 7,
+                            'spkTerbit'         => 5,
+                            'winRate'           => 71.4,
+                            'totalFeeNetto'     => 85000000,
+                            'aov'               => 17000000,
+                            'targetSla'         => 8.0,
+                            'realisasiSla'      => 7.0,
+                            'speedPayment'      => 9.5,
+                            'lastOrderDate'     => '2026-11-06',
+                            'lastOrderDaysAgo'  => 8,
+                            'dormantStatus'     => 'AKTIF',
+                            'pksNomor'          => 'PKS-NSR/BTN/2024/005',
+                            'pksExpiryDate'     => '2026-12-10',
+                            'pksDaysRemaining'  => 26,
+                            'pksAlertLevel'     => 'H-30',
+                            'rekomendasiTindakan'=> 'PRIORITAS TINGGI: Ajukan perpanjangan PKS (H-26) & pemutakhiran izin KMK.',
+                            'segmen'            => ['kpr' => 4, 'ukm' => 1, 'korporasi' => 0, 'lelang' => 0]
+                        ],
+                        [
+                            'bank'              => 'PT Bank CIMB Niaga Tbk',
+                            'penawaranKeluar'   => 6,
+                            'spkTerbit'         => 4,
+                            'winRate'           => 66.7,
+                            'totalFeeNetto'     => 92000000,
+                            'aov'               => 23000000,
+                            'targetSla'         => 6.0,
+                            'realisasiSla'      => 5.5,
+                            'speedPayment'      => 7.0,
+                            'lastOrderDate'     => '2026-11-04',
+                            'lastOrderDaysAgo'  => 10,
+                            'dormantStatus'     => 'AKTIF',
+                            'pksNomor'          => 'PKS-NSR/CIMB/2025/002',
+                            'pksExpiryDate'     => '2027-08-14',
+                            'pksDaysRemaining'  => 273,
+                            'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'Intensifkan penawaran penilaian portofolio agunan komersial di luar Jabodetabek.',
+                            'segmen'            => ['kpr' => 2, 'ukm' => 1, 'korporasi' => 1, 'lelang' => 0]
+                        ],
+                        [
+                            'bank'              => 'PT Bank Syariah Indonesia Tbk (BSI)',
+                            'penawaranKeluar'   => 6,
+                            'spkTerbit'         => 3,
+                            'winRate'           => 50.0,
+                            'totalFeeNetto'     => 65000000,
+                            'aov'               => 21666667,
+                            'targetSla'         => 7.0,
+                            'realisasiSla'      => 6.5,
+                            'speedPayment'      => 11.2,
+                            'lastOrderDate'     => '2026-10-12',
+                            'lastOrderDaysAgo'  => 33,
+                            'dormantStatus'     => 'DORMANT_30',
+                            'pksNomor'          => 'PKS-NSR/BSI/2024/027',
+                            'pksExpiryDate'     => '2027-02-05',
+                            'pksDaysRemaining'  => 83,
+                            'pksAlertLevel'     => 'H-90',
+                            'rekomendasiTindakan'=> 'ATENSI DORMANT (33 Hari): Penawaran khusus paket agunan cabang & siapkan PKS (H-83).',
+                            'segmen'            => ['kpr' => 1, 'ukm' => 1, 'korporasi' => 1, 'lelang' => 0]
+                        ],
+                        [
+                            'bank'              => 'PT Bank Danamon Indonesia Tbk',
+                            'penawaranKeluar'   => 6,
+                            'spkTerbit'         => 2,
+                            'winRate'           => 33.3,
+                            'totalFeeNetto'     => 48000000,
+                            'aov'               => 24000000,
+                            'targetSla'         => 6.0,
+                            'realisasiSla'      => 5.8,
+                            'speedPayment'      => 8.0,
+                            'lastOrderDate'     => '2026-09-10',
+                            'lastOrderDaysAgo'  => 65,
+                            'dormantStatus'     => 'DORMANT_60',
+                            'pksNomor'          => 'PKS-NSR/BDM/2024/015',
+                            'pksExpiryDate'     => '2027-06-30',
+                            'pksDaysRemaining'  => 228,
+                            'pksAlertLevel'     => 'AMAN',
+                            'rekomendasiTindakan'=> 'KRITIS DORMANT (65 Hari): Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat Danamon.',
                             'segmen'            => ['kpr' => 0, 'ukm' => 1, 'korporasi' => 0, 'lelang' => 1]
                         ]
                     ],

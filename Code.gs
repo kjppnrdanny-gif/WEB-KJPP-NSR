@@ -389,7 +389,7 @@ function doGet(e) {
     if (params.action === 'GET_CLIENT_SLA') {
       return respondJSON(getClientSLAPerformance(ss));
     }
-    if (params.action === 'GET_BANK_ORDER_OPTIMIZATION') {
+    if (params.action === 'GET_BANK_ORDER_OPTIMIZATION' || params.action === 'GET_BANK_OPTIMIZATION') {
       return respondJSON(getBankOrderOptimizationMetrics(ss));
     }
 
@@ -457,7 +457,7 @@ function doPost(e) {
 
     // 3. Verifikasi Token, SHA-256 Hash, & Backend API Key
     const authResult = verifikasiAksesToken(clientToken, clientTokenHash, clientApiKey);
-    const isPublicAllowedAction = (action === 'GET_ACTIVE_JO_QA' || action === 'VERIFY_KWITANSI_ELIGIBILITY' || action === 'GET_EXECUTIVE_GOVERNANCE' || action === 'GET_GOVERNANCE_OVERVIEW' || action === 'GET_EMPLOYEE_KPI' || action === 'GET_CLIENT_SLA' || action === 'GET_BANK_ORDER_OPTIMIZATION');
+    const isPublicAllowedAction = (action === 'GET_ACTIVE_JO_QA' || action === 'VERIFY_KWITANSI_ELIGIBILITY' || action === 'GET_EXECUTIVE_GOVERNANCE' || action === 'GET_GOVERNANCE_OVERVIEW' || action === 'GET_EMPLOYEE_KPI' || action === 'GET_CLIENT_SLA' || action === 'GET_BANK_ORDER_OPTIMIZATION' || action === 'GET_BANK_OPTIMIZATION');
     if (!authResult.valid && !isPublicAllowedAction) {
       return respondJSON({
         status: 'error',
@@ -607,6 +607,7 @@ function doPost(e) {
         break;
 
       case 'GET_BANK_ORDER_OPTIMIZATION':
+      case 'GET_BANK_OPTIMIZATION':
         result = getBankOrderOptimizationMetrics(ss);
         break;
 
@@ -2962,7 +2963,8 @@ function getExecutiveGovernanceAndAnalytics(ssInstance) {
       slaSummary: getClientSLAPerformance(ssInstance).slaSummary,
       bankPerformance: getClientSLAPerformance(ssInstance).bankPerformance,
       nearOverdueJobs: getClientSLAPerformance(ssInstance).nearOverdueJobs,
-      bankOrderOptimization: getBankOrderOptimizationMetrics(ssInstance)
+      bankOrderOptimization: getBankOrderOptimizationMetrics(ssInstance),
+      bankOptimization: getBankOrderOptimizationMetrics(ssInstance)
     }
   };
 }
@@ -3208,6 +3210,8 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       penawaranKeluar: 18,
       spkTerbit: 14,
       winRate: 77.8,
+      totalFeeNetto: 320000000,
+      aov: 22857143,
       targetSla: 7.0,
       realisasiSla: 5.6,
       speedPayment: 6.4,
@@ -3218,6 +3222,7 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       pksExpiryDate: "2027-05-30",
       pksDaysRemaining: 197,
       pksAlertLevel: "AMAN",
+      rekomendasiTindakan: "Pertahankan kemitraan Tier-1 & tingkatkan order segmen korporasi komersial.",
       segmen: { kpr: 6, ukm: 5, korporasi: 2, lelang: 1 }
     },
     {
@@ -3225,6 +3230,8 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       penawaranKeluar: 14,
       spkTerbit: 10,
       winRate: 71.4,
+      totalFeeNetto: 235000000,
+      aov: 23500000,
       targetSla: 6.0,
       realisasiSla: 5.1,
       speedPayment: 7.8,
@@ -3235,6 +3242,7 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       pksExpiryDate: "2027-02-15",
       pksDaysRemaining: 93,
       pksAlertLevel: "AMAN",
+      rekomendasiTindakan: "Optimalisasi penetrasi agunan mikro/ritel di cabang Bandung dan Padang.",
       segmen: { kpr: 4, ukm: 4, korporasi: 1, lelang: 1 }
     },
     {
@@ -3242,6 +3250,8 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       penawaranKeluar: 10,
       spkTerbit: 8,
       winRate: 80.0,
+      totalFeeNetto: 180000000,
+      aov: 22500000,
       targetSla: 5.0,
       realisasiSla: 4.4,
       speedPayment: 5.2,
@@ -3252,6 +3262,7 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       pksExpiryDate: "2026-12-31",
       pksDaysRemaining: 47,
       pksAlertLevel: "H-60",
+      rekomendasiTindakan: "Jadwalkan audiensi tahunan & konfirmasi perpanjangan PKS (H-47).",
       segmen: { kpr: 3, ukm: 3, korporasi: 2, lelang: 0 }
     },
     {
@@ -3259,6 +3270,8 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       penawaranKeluar: 9,
       spkTerbit: 6,
       winRate: 66.7,
+      totalFeeNetto: 145000000,
+      aov: 24166667,
       targetSla: 7.0,
       realisasiSla: 6.2,
       speedPayment: 8.6,
@@ -3269,6 +3282,7 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       pksExpiryDate: "2027-04-20",
       pksDaysRemaining: 157,
       pksAlertLevel: "AMAN",
+      rekomendasiTindakan: "Koordinasi dengan Unit Remedial & Korporasi untuk percepatan berkas agunan.",
       segmen: { kpr: 2, ukm: 2, korporasi: 1, lelang: 1 }
     },
     {
@@ -3276,6 +3290,8 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       penawaranKeluar: 7,
       spkTerbit: 5,
       winRate: 71.4,
+      totalFeeNetto: 85000000,
+      aov: 17000000,
       targetSla: 8.0,
       realisasiSla: 7.0,
       speedPayment: 9.5,
@@ -3286,6 +3302,7 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       pksExpiryDate: "2026-12-10",
       pksDaysRemaining: 26,
       pksAlertLevel: "H-30",
+      rekomendasiTindakan: "PRIORITAS TINGGI: Ajukan perpanjangan PKS (H-26) & pemutakhiran izin KMK.",
       segmen: { kpr: 4, ukm: 1, korporasi: 0, lelang: 0 }
     },
     {
@@ -3293,6 +3310,8 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       penawaranKeluar: 6,
       spkTerbit: 4,
       winRate: 66.7,
+      totalFeeNetto: 92000000,
+      aov: 23000000,
       targetSla: 6.0,
       realisasiSla: 5.5,
       speedPayment: 7.0,
@@ -3303,6 +3322,7 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       pksExpiryDate: "2027-08-14",
       pksDaysRemaining: 273,
       pksAlertLevel: "AMAN",
+      rekomendasiTindakan: "Intensifkan penawaran penilaian portofolio agunan komersial di luar Jabodetabek.",
       segmen: { kpr: 2, ukm: 1, korporasi: 1, lelang: 0 }
     },
     {
@@ -3310,6 +3330,8 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       penawaranKeluar: 6,
       spkTerbit: 3,
       winRate: 50.0,
+      totalFeeNetto: 65000000,
+      aov: 21666667,
       targetSla: 7.0,
       realisasiSla: 6.5,
       speedPayment: 11.2,
@@ -3320,6 +3342,7 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       pksExpiryDate: "2027-02-05",
       pksDaysRemaining: 83,
       pksAlertLevel: "H-90",
+      rekomendasiTindakan: "ATENSI DORMANT (33 Hari): Penawaran khusus paket agunan cabang & siapkan PKS (H-83).",
       segmen: { kpr: 1, ukm: 1, korporasi: 1, lelang: 0 }
     },
     {
@@ -3327,6 +3350,8 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       penawaranKeluar: 6,
       spkTerbit: 2,
       winRate: 33.3,
+      totalFeeNetto: 48000000,
+      aov: 24000000,
       targetSla: 6.0,
       realisasiSla: 5.8,
       speedPayment: 8.0,
@@ -3337,6 +3362,7 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       pksExpiryDate: "2027-06-30",
       pksDaysRemaining: 228,
       pksAlertLevel: "AMAN",
+      rekomendasiTindakan: "KRITIS DORMANT (65 Hari): Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat Danamon.",
       segmen: { kpr: 0, ukm: 1, korporasi: 0, lelang: 1 }
     }
   ];
@@ -3412,7 +3438,11 @@ function getBankOrderOptimizationMetrics(ssInstance) {
 
   const totalPenawaran = bankMetrics.reduce((acc, b) => acc + b.penawaranKeluar, 0);
   const totalSpk = bankMetrics.reduce((acc, b) => acc + b.spkTerbit, 0);
+  const totalFeeNetto = bankMetrics.reduce((acc, b) => acc + (b.totalFeeNetto || 0), 0);
+  const aovNasional = totalSpk > 0 ? Math.round(totalFeeNetto / totalSpk) : 0;
   const winRateNasional = Math.round((totalSpk / totalPenawaran) * 1000) / 10;
+  const bankAktifCount = bankMetrics.filter(b => b.dormantStatus === 'AKTIF').length;
+  const bankDormantCount = bankMetrics.filter(b => b.dormantStatus !== 'AKTIF').length;
 
   const slaPerformance = getClientSLAPerformance(ss);
 
@@ -3421,10 +3451,13 @@ function getBankOrderOptimizationMetrics(ssInstance) {
     success: true,
     summary: {
       totalBankRekanan: bankMetrics.length,
+      bankAktifCount: bankAktifCount,
+      bankDormantCount: bankDormantCount,
       winRateNasional: winRateNasional + "%",
       totalPenawaranKeluar: totalPenawaran,
       totalSpkTerbit: totalSpk,
-      bankDormantCount: dormantAlerts.length,
+      totalFeeNetto: totalFeeNetto,
+      aovNasional: aovNasional,
       pksExpiringCount: pksAlertRadar.length,
       onTimeRateNasional: "94.2%",
       rataDurasiInternal: "3.8 Hari Kerja",
