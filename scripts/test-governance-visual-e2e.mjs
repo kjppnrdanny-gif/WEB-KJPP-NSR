@@ -565,18 +565,31 @@ server.listen(PORT, async () => {
     await new Promise(r => setTimeout(r, 1200));
 
     const evalTab5 = await send('Runtime.evaluate', {
-      expression: `({
-        activeTab: activeGovTab,
-        winRateNasional: document.getElementById('stat-opt-winrate')?.textContent,
-        dormantSummary: document.getElementById('stat-opt-dormant')?.textContent,
-        aovPerbankan: document.getElementById('stat-opt-aov')?.textContent,
-        pksAlertPrioritas: document.getElementById('stat-opt-pks-alert')?.textContent,
-        dormantAlertCards: document.getElementById('container-dormant-bank-alerts')?.children?.length,
-        pksRadarCards: document.getElementById('container-pks-alert-radar')?.children?.length,
-        bankIntelligenceRows: document.getElementById('tbody-bank-intelligence')?.children?.length,
-        hasChartWinrate: !!chartInstances['bankWinrate'],
-        hasChartSegments: !!chartInstances['bankSegments']
-      })`,
+      expression: `(() => {
+        const tbody = document.getElementById('tbody-bank-intelligence');
+        const table = tbody?.closest('table');
+        const container = table?.parentElement;
+        const thCol11 = table?.querySelectorAll('thead th')[10];
+        const firstRow = tbody?.querySelector('tr');
+        const tdCol11 = firstRow?.querySelectorAll('td')[10];
+        return {
+          activeTab: activeGovTab,
+          winRateNasional: document.getElementById('stat-opt-winrate')?.textContent,
+          dormantSummary: document.getElementById('stat-opt-dormant')?.textContent,
+          aovPerbankan: document.getElementById('stat-opt-aov')?.textContent,
+          pksAlertPrioritas: document.getElementById('stat-opt-pks-alert')?.textContent,
+          dormantAlertCards: document.getElementById('container-dormant-bank-alerts')?.children?.length,
+          pksRadarCards: document.getElementById('container-pks-alert-radar')?.children?.length,
+          bankIntelligenceRows: tbody?.children?.length,
+          hasChartWinrate: !!chartInstances['bankWinrate'],
+          hasChartSegments: !!chartInstances['bankSegments'],
+          hasOverflowX: container?.classList.contains('overflow-x-auto'),
+          tableIsAuto: table?.classList.contains('table-auto'),
+          th11HasMinW230: thCol11?.className.includes('min-w-[230px]'),
+          td11HasMinW230: tdCol11?.className.includes('min-w-[230px]'),
+          td11VisibleText: tdCol11?.textContent?.trim()
+        };
+      })()`,
       returnByValue: true
     });
     console.log('Data Tab 5 (Optimasi Order & Radar PKS):', evalTab5.result.value);

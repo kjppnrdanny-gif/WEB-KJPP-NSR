@@ -3110,85 +3110,20 @@ function getEmployeeKPIMetrics(ssInstance) {
 // 11. MODUL ANALITIK SLA REKANAN / KLIEN & RADAR PERINGATAN DINI PIMPINAN
 // -----------------------------------------------------------------------------------------
 function getClientSLAPerformance(ssInstance) {
-  const bankPerformance = [
-    { name: "PT Bank Mandiri (Persero) Tbk", targetSla: 7.0, realisasiSla: 5.6, durasiInternal: 3.7, clockStop: 1.9, onTimeRate: 95.2, speedPayment: 6.4, totalJo: 14, statusScore: "EXCELLENT" },
-    { name: "PT Bank Rakyat Indonesia (Persero) Tbk", targetSla: 6.0, realisasiSla: 5.1, durasiInternal: 3.4, clockStop: 1.7, onTimeRate: 94.0, speedPayment: 7.8, totalJo: 10, statusScore: "EXCELLENT" },
-    { name: "PT Bank Central Asia Tbk (BCA)", targetSla: 5.0, realisasiSla: 4.4, durasiInternal: 3.1, clockStop: 1.3, onTimeRate: 96.5, speedPayment: 5.2, totalJo: 8, statusScore: "EXCELLENT" },
-    { name: "PT Bank Negara Indonesia (Persero) Tbk", targetSla: 7.0, realisasiSla: 6.2, durasiInternal: 4.1, clockStop: 2.1, onTimeRate: 91.5, speedPayment: 8.6, totalJo: 6, statusScore: "GOOD" },
-    { name: "PT Bank Tabungan Negara (Persero) Tbk", targetSla: 8.0, realisasiSla: 7.0, durasiInternal: 4.5, clockStop: 2.5, onTimeRate: 90.0, speedPayment: 9.5, totalJo: 5, statusScore: "GOOD" },
-    { name: "PT Bank CIMB Niaga Tbk", targetSla: 6.0, realisasiSla: 5.5, durasiInternal: 3.6, clockStop: 1.9, onTimeRate: 93.0, speedPayment: 7.0, totalJo: 4, statusScore: "GOOD" },
-    { name: "PT Bank Syariah Indonesia Tbk (BSI)", targetSla: 7.0, realisasiSla: 6.5, durasiInternal: 4.2, clockStop: 2.3, onTimeRate: 89.5, speedPayment: 11.2, totalJo: 3, statusScore: "ATTENTION" },
-    { name: "PT Bank Danamon Indonesia Tbk", targetSla: 6.0, realisasiSla: 5.8, durasiInternal: 3.9, clockStop: 1.9, onTimeRate: 92.0, speedPayment: 8.0, totalJo: 2, statusScore: "GOOD" }
-  ];
-
-  const nearOverdueJobs = [
-    {
-      noJo: "0421/JO/NSR/XI/2026",
-      klien: "PT Bank Mandiri (Persero) Tbk",
-      objek: "Ruko Komersial 4 Lantai - Fatmawati",
-      cabang: "Pusat Jakarta",
-      picPenilai: "Yoga Anfiar Pradipta",
-      targetSlaDays: 7,
-      elapsedDays: 6.0,
-      sisaHari: 1.0,
-      statusBadge: "MENDEKATI_TENGGAT",
-      badgeColor: "rose",
-      tahapSaatIni: "M-05: Review Mutu SPM"
-    },
-    {
-      noJo: "0418/JO/NSR/XI/2026",
-      klien: "PT Bank Rakyat Indonesia (Persero) Tbk",
-      objek: "Pabrik Industri & Gudang - Cimahi",
-      cabang: "Cabang Bandung",
-      picPenilai: "Ardi Nurmayadi, S.T.",
-      targetSlaDays: 6,
-      elapsedDays: 5.0,
-      sisaHari: 1.0,
-      statusBadge: "MENDEKATI_TENGGAT",
-      badgeColor: "rose",
-      tahapSaatIni: "M-04: Analisis KKP"
-    },
-    {
-      noJo: "0414/JO/NSR/XI/2026",
-      klien: "PT Bank Central Asia Tbk (BCA)",
-      objek: "Gudang Logistik & Depo - Biringkanaya",
-      cabang: "Cabang Makassar",
-      picPenilai: "Wawan Kurniawan",
-      targetSlaDays: 5,
-      elapsedDays: 3.5,
-      sisaHari: 1.5,
-      statusBadge: "MENDEKATI_TENGGAT",
-      badgeColor: "amber",
-      tahapSaatIni: "M-04: Analisis KKP"
-    },
-    {
-      noJo: "0409/JO/NSR/XI/2026",
-      klien: "PT Bank Tabungan Negara (Persero) Tbk",
-      objek: "Kawasan Perumahan - Bukit Sejahtera",
-      cabang: "Cabang Palembang",
-      picPenilai: "Rafdinal Ardhi",
-      targetSlaDays: 8,
-      elapsedDays: 6.0,
-      sisaHari: 2.0,
-      statusBadge: "PERHATIAN_SLA",
-      badgeColor: "amber",
-      tahapSaatIni: "M-03: Inspeksi Lapangan"
-    }
-  ];
-
+  const opt = getBankOrderOptimizationMetrics(ssInstance);
   return {
     status: "success",
     success: true,
     slaSummary: {
-      onTimeRateNasional: "94.2%",
-      rataDurasiInternal: "3.8 Hari Kerja",
-      rataClockStopKlien: "1.8 Hari Kerja",
-      rataSpeedPembayaran: "7.4 Hari Kerja (Sejak M-07)",
-      totalBankMitra: bankPerformance.length,
-      totalPenugasanSla: 52
+      onTimeRateNasional: (opt.summary && opt.summary.onTimeRateNasional) || "0.0%",
+      rataDurasiInternal: (opt.summary && opt.summary.rataDurasiInternal) || "0.0 Hari Kerja",
+      rataClockStopKlien: (opt.summary && opt.summary.rataClockStopKlien) || "0.0 Hari Kerja",
+      rataSpeedPembayaran: (opt.summary && opt.summary.rataSpeedPembayaran) || "0.0 Hari Kerja",
+      totalBankMitra: (opt.bankPerformance && opt.bankPerformance.length) || 0,
+      totalPenugasanSla: (opt.summary && opt.summary.totalSpkTerbit) || 0
     },
-    bankPerformance: bankPerformance,
-    nearOverdueJobs: nearOverdueJobs
+    bankPerformance: opt.bankPerformance || [],
+    nearOverdueJobs: opt.nearOverdueJobs || []
   };
 }
 
@@ -3199,252 +3134,476 @@ function getBankOrderOptimizationMetrics(ssInstance) {
   let ss = ssInstance;
   if (!ss) {
     try {
-      ss = SpreadsheetApp.getActiveSpreadsheet();
+      if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+        ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      }
     } catch (_) {}
+    if (!ss) {
+      try {
+        ss = SpreadsheetApp.getActiveSpreadsheet();
+      } catch (__) {}
+    }
   }
 
-  // 1. Matriks Win-Rate Proposal & Performa 8 Bank Rekanan
-  const bankMetrics = [
-    {
-      bank: "PT Bank Mandiri (Persero) Tbk",
-      penawaranKeluar: 18,
-      spkTerbit: 14,
-      winRate: 77.8,
-      totalFeeNetto: 320000000,
-      aov: 22857143,
-      targetSla: 7.0,
-      realisasiSla: 5.6,
-      speedPayment: 6.4,
-      lastOrderDate: "2026-11-12",
-      lastOrderDaysAgo: 2,
-      dormantStatus: "AKTIF",
-      pksNomor: "PKS-NSR/MDR/2024/012",
-      pksExpiryDate: "2027-05-30",
-      pksDaysRemaining: 197,
-      pksAlertLevel: "AMAN",
-      rekomendasiTindakan: "Pertahankan kemitraan Tier-1 & tingkatkan order segmen korporasi komersial.",
-      segmen: { kpr: 6, ukm: 5, korporasi: 2, lelang: 1 }
-    },
-    {
-      bank: "PT Bank Rakyat Indonesia (Persero) Tbk",
-      penawaranKeluar: 14,
-      spkTerbit: 10,
-      winRate: 71.4,
-      totalFeeNetto: 235000000,
-      aov: 23500000,
-      targetSla: 6.0,
-      realisasiSla: 5.1,
-      speedPayment: 7.8,
-      lastOrderDate: "2026-11-10",
-      lastOrderDaysAgo: 4,
-      dormantStatus: "AKTIF",
-      pksNomor: "PKS-NSR/BRI/2024/008",
-      pksExpiryDate: "2027-02-15",
-      pksDaysRemaining: 93,
-      pksAlertLevel: "AMAN",
-      rekomendasiTindakan: "Optimalisasi penetrasi agunan mikro/ritel di cabang Bandung dan Padang.",
-      segmen: { kpr: 4, ukm: 4, korporasi: 1, lelang: 1 }
-    },
-    {
-      bank: "PT Bank Central Asia Tbk (BCA)",
-      penawaranKeluar: 10,
-      spkTerbit: 8,
-      winRate: 80.0,
-      totalFeeNetto: 180000000,
-      aov: 22500000,
-      targetSla: 5.0,
-      realisasiSla: 4.4,
-      speedPayment: 5.2,
-      lastOrderDate: "2026-11-11",
-      lastOrderDaysAgo: 3,
-      dormantStatus: "AKTIF",
-      pksNomor: "PKS-NSR/BCA/2025/003",
-      pksExpiryDate: "2026-12-31",
-      pksDaysRemaining: 47,
-      pksAlertLevel: "H-60",
-      rekomendasiTindakan: "Jadwalkan audiensi tahunan & konfirmasi perpanjangan PKS (H-47).",
-      segmen: { kpr: 3, ukm: 3, korporasi: 2, lelang: 0 }
-    },
-    {
-      bank: "PT Bank Negara Indonesia (Persero) Tbk",
-      penawaranKeluar: 9,
-      spkTerbit: 6,
-      winRate: 66.7,
-      totalFeeNetto: 145000000,
-      aov: 24166667,
-      targetSla: 7.0,
-      realisasiSla: 6.2,
-      speedPayment: 8.6,
-      lastOrderDate: "2026-11-08",
-      lastOrderDaysAgo: 6,
-      dormantStatus: "AKTIF",
-      pksNomor: "PKS-NSR/BNI/2024/019",
-      pksExpiryDate: "2027-04-20",
-      pksDaysRemaining: 157,
-      pksAlertLevel: "AMAN",
-      rekomendasiTindakan: "Koordinasi dengan Unit Remedial & Korporasi untuk percepatan berkas agunan.",
-      segmen: { kpr: 2, ukm: 2, korporasi: 1, lelang: 1 }
-    },
-    {
-      bank: "PT Bank Tabungan Negara (Persero) Tbk",
-      penawaranKeluar: 7,
-      spkTerbit: 5,
-      winRate: 71.4,
-      totalFeeNetto: 85000000,
-      aov: 17000000,
-      targetSla: 8.0,
-      realisasiSla: 7.0,
-      speedPayment: 9.5,
-      lastOrderDate: "2026-11-06",
-      lastOrderDaysAgo: 8,
-      dormantStatus: "AKTIF",
-      pksNomor: "PKS-NSR/BTN/2024/005",
-      pksExpiryDate: "2026-12-10",
-      pksDaysRemaining: 26,
-      pksAlertLevel: "H-30",
-      rekomendasiTindakan: "PRIORITAS TINGGI: Ajukan perpanjangan PKS (H-26) & pemutakhiran izin KMK.",
-      segmen: { kpr: 4, ukm: 1, korporasi: 0, lelang: 0 }
-    },
-    {
-      bank: "PT Bank CIMB Niaga Tbk",
-      penawaranKeluar: 6,
-      spkTerbit: 4,
-      winRate: 66.7,
-      totalFeeNetto: 92000000,
-      aov: 23000000,
-      targetSla: 6.0,
-      realisasiSla: 5.5,
-      speedPayment: 7.0,
-      lastOrderDate: "2026-11-04",
-      lastOrderDaysAgo: 10,
-      dormantStatus: "AKTIF",
-      pksNomor: "PKS-NSR/CIMB/2025/002",
-      pksExpiryDate: "2027-08-14",
-      pksDaysRemaining: 273,
-      pksAlertLevel: "AMAN",
-      rekomendasiTindakan: "Intensifkan penawaran penilaian portofolio agunan komersial di luar Jabodetabek.",
-      segmen: { kpr: 2, ukm: 1, korporasi: 1, lelang: 0 }
-    },
-    {
-      bank: "PT Bank Syariah Indonesia Tbk (BSI)",
-      penawaranKeluar: 6,
-      spkTerbit: 3,
-      winRate: 50.0,
-      totalFeeNetto: 65000000,
-      aov: 21666667,
-      targetSla: 7.0,
-      realisasiSla: 6.5,
-      speedPayment: 11.2,
-      lastOrderDate: "2026-10-12",
-      lastOrderDaysAgo: 33,
-      dormantStatus: "DORMANT_30",
-      pksNomor: "PKS-NSR/BSI/2024/027",
-      pksExpiryDate: "2027-02-05",
-      pksDaysRemaining: 83,
-      pksAlertLevel: "H-90",
-      rekomendasiTindakan: "ATENSI DORMANT (33 Hari): Penawaran khusus paket agunan cabang & siapkan PKS (H-83).",
-      segmen: { kpr: 1, ukm: 1, korporasi: 1, lelang: 0 }
-    },
-    {
-      bank: "PT Bank Danamon Indonesia Tbk",
-      penawaranKeluar: 6,
-      spkTerbit: 2,
-      winRate: 33.3,
-      totalFeeNetto: 48000000,
-      aov: 24000000,
-      targetSla: 6.0,
-      realisasiSla: 5.8,
-      speedPayment: 8.0,
-      lastOrderDate: "2026-09-10",
-      lastOrderDaysAgo: 65,
-      dormantStatus: "DORMANT_60",
-      pksNomor: "PKS-NSR/BDM/2024/015",
-      pksExpiryDate: "2027-06-30",
-      pksDaysRemaining: 228,
-      pksAlertLevel: "AMAN",
-      rekomendasiTindakan: "KRITIS DORMANT (65 Hari): Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat Danamon.",
-      segmen: { kpr: 0, ukm: 1, korporasi: 0, lelang: 1 }
-    }
-  ];
+  const nowMs = new Date().getTime();
 
-  // 2. Sebaran Segmen Kredit di 5 Kantor Operasional
-  const segmenNasional = {
-    konsumerKpr: 22,
-    komersialUkm: 18,
-    korporasi: 8,
-    lelangNpl: 4
+  // 1. Baca Master PKS Rekanan dari sheet MASTER_PKS_REKANAN
+  const pksMap = {};
+  const pksList = [];
+  if (ss) {
+    try {
+      const sheetPks = ss.getSheetByName("MASTER_PKS_REKANAN");
+      if (sheetPks && sheetPks.getLastRow() >= 2) {
+        const pksValues = sheetPks.getDataRange().getValues();
+        const pksHeaders = pksValues[0].map(function(h) { return String(h).trim().toUpperCase(); });
+        const idxPksBank = pksHeaders.indexOf("NAMA_BANK") !== -1 ? pksHeaders.indexOf("NAMA_BANK") : pksHeaders.indexOf("BANK");
+        const idxPksNo = pksHeaders.indexOf("NOMOR_PKS") !== -1 ? pksHeaders.indexOf("NOMOR_PKS") : pksHeaders.indexOf("NO_PKS");
+        const idxPksEnd = pksHeaders.indexOf("TANGGAL_BERAKHIR") !== -1 ? pksHeaders.indexOf("TANGGAL_BERAKHIR") : pksHeaders.indexOf("TGL_BERAKHIR");
+        const idxPksSla = pksHeaders.indexOf("TARGET_SLA_HARI") !== -1 ? pksHeaders.indexOf("TARGET_SLA_HARI") : pksHeaders.indexOf("TARGET_SLA");
+        const idxPksPic = pksHeaders.indexOf("PIC_BANK") !== -1 ? pksHeaders.indexOf("PIC_BANK") : pksHeaders.indexOf("PIC");
+
+        for (let i = 1; i < pksValues.length; i++) {
+          const row = pksValues[i];
+          const bankName = idxPksBank !== -1 ? String(row[idxPksBank] || "").trim() : "";
+          if (!bankName) continue;
+
+          const noPks = idxPksNo !== -1 ? String(row[idxPksNo] || "").trim() : "-";
+          const rawEnd = idxPksEnd !== -1 ? row[idxPksEnd] : "";
+          let endStr = "-";
+          let daysLeft = 365;
+
+          if (rawEnd instanceof Date) {
+            endStr = Utilities.formatDate(rawEnd, "Asia/Jakarta", "yyyy-MM-dd");
+            daysLeft = Math.ceil((rawEnd.getTime() - nowMs) / (86400 * 1000));
+          } else if (rawEnd) {
+            endStr = String(rawEnd).substring(0, 10);
+            const parsedDate = new Date(endStr);
+            if (!isNaN(parsedDate.getTime())) {
+              daysLeft = Math.ceil((parsedDate.getTime() - nowMs) / (86400 * 1000));
+            }
+          }
+
+          let alertLevel = "AMAN";
+          let badgeColor = "slate";
+          let tindakan = "Masa berlaku PKS aktif aman.";
+
+          if (daysLeft <= 30 && daysLeft > 0) {
+            alertLevel = "H-30";
+            badgeColor = "rose";
+            tindakan = "Kirim surat permohonan perpanjangan PKS & submit berkas legalitas pemutakhiran izin KMK.";
+          } else if (daysLeft <= 60 && daysLeft > 0) {
+            alertLevel = "H-60";
+            badgeColor = "amber";
+            tindakan = "Jadwalkan audiensi tahunan dan konfirmasi review batas plafon appraisal wilayah cabang.";
+          } else if (daysLeft <= 90 && daysLeft > 0) {
+            alertLevel = "H-90";
+            badgeColor = "sky";
+            tindakan = "Siapkan evaluasi kinerja SLA & rekap laporan portofolio perbankan regional.";
+          }
+
+          const targetSla = idxPksSla !== -1 && Number(row[idxPksSla]) > 0 ? Number(row[idxPksSla]) : 7.0;
+
+          const pksObj = {
+            bank: bankName,
+            nomorPks: noPks,
+            tglBerakhir: endStr,
+            sisaHari: daysLeft,
+            alertLevel: alertLevel,
+            badgeColor: badgeColor,
+            tindakan: tindakan,
+            targetSla: targetSla,
+            picBank: idxPksPic !== -1 ? String(row[idxPksPic] || "").trim() : ""
+          };
+
+          pksMap[bankName.toUpperCase()] = pksObj;
+          pksList.push(pksObj);
+        }
+      }
+    } catch (ePks) {
+      console.warn("Peringatan membaca sheet MASTER_PKS_REKANAN:", ePks);
+    }
+  }
+
+  // 2. Baca Buku Agenda Surat Umum (AGENDA_SURAT_UMUM) untuk Proposal Penawaran
+  const proposalCounts = {};
+  if (ss) {
+    try {
+      const sheetSu = ss.getSheetByName("AGENDA_SURAT_UMUM") || ss.getSheetByName("SURAT_UMUM") || ss.getSheetByName("Buku_Agenda_SU");
+      if (sheetSu && sheetSu.getLastRow() >= 2) {
+        const suValues = sheetSu.getDataRange().getValues();
+        const suHeaders = suValues[0].map(function(h) { return String(h).trim().toUpperCase(); });
+        const idxTujuan = suHeaders.indexOf("TUJUAN_SURAT") !== -1 ? suHeaders.indexOf("TUJUAN_SURAT") : (suHeaders.indexOf("PENERIMA") !== -1 ? suHeaders.indexOf("PENERIMA") : suHeaders.indexOf("KLIEN"));
+        const idxPerihal = suHeaders.indexOf("PERIHAL") !== -1 ? suHeaders.indexOf("PERIHAL") : suHeaders.indexOf("TENTANG");
+
+        for (let i = 1; i < suValues.length; i++) {
+          const row = suValues[i];
+          const tujuan = idxTujuan !== -1 ? String(row[idxTujuan] || "").trim().toUpperCase() : "";
+          const perihal = idxPerihal !== -1 ? String(row[idxPerihal] || "").trim().toUpperCase() : "";
+          if (!tujuan) continue;
+
+          if (perihal.includes("PENAWARAN") || perihal.includes("PROPOSAL")) {
+            proposalCounts[tujuan] = (proposalCounts[tujuan] || 0) + 1;
+            for (const bankKey of Object.keys(pksMap)) {
+              if (tujuan.includes(bankKey) || bankKey.includes(tujuan)) {
+                proposalCounts[bankKey] = (proposalCounts[bankKey] || 0) + 1;
+              }
+            }
+          }
+        }
+      }
+    } catch (eSu) {
+      console.warn("Peringatan membaca sheet AGENDA_SURAT_UMUM:", eSu);
+    }
+  }
+
+  // 3. Baca Transaksi Nyata DB_PENUGASAN_JO_NSR (atau Data_Penugasan)
+  const bankJoMap = {};
+  const nearOverdueJobs = [];
+  const segmenNasional = { konsumerKpr: 0, komersialUkm: 0, korporasi: 0, lelangNpl: 0 };
+  const branchSegments = {
+    "Pusat Jakarta": { cabang: "Pusat Jakarta", konsumerKpr: 0, komersialUkm: 0, korporasi: 0, lelangNpl: 0, total: 0 },
+    "Cabang Bandung": { cabang: "Cabang Bandung", konsumerKpr: 0, komersialUkm: 0, korporasi: 0, lelangNpl: 0, total: 0 },
+    "Cabang Padang": { cabang: "Cabang Padang", konsumerKpr: 0, komersialUkm: 0, korporasi: 0, lelangNpl: 0, total: 0 },
+    "Cabang Makassar": { cabang: "Cabang Makassar", konsumerKpr: 0, komersialUkm: 0, korporasi: 0, lelangNpl: 0, total: 0 },
+    "Cabang Palembang": { cabang: "Cabang Palembang", konsumerKpr: 0, komersialUkm: 0, korporasi: 0, lelangNpl: 0, total: 0 }
   };
 
-  const segmenPerCabang = [
-    { cabang: "Pusat Jakarta", konsumerKpr: 9, komersialUkm: 9, korporasi: 6, lelangNpl: 2, total: 26 },
-    { cabang: "Cabang Bandung", konsumerKpr: 4, komersialUkm: 3, korporasi: 1, lelangNpl: 1, total: 9 },
-    { cabang: "Cabang Padang", konsumerKpr: 3, komersialUkm: 2, korporasi: 0, lelangNpl: 1, total: 6 },
-    { cabang: "Cabang Makassar", konsumerKpr: 3, komersialUkm: 2, korporasi: 1, lelangNpl: 0, total: 6 },
-    { cabang: "Cabang Palembang", konsumerKpr: 3, komersialUkm: 2, korporasi: 0, lelangNpl: 0, total: 5 }
-  ];
+  let totalJobsEvaluated = 0;
+  let totalOnTimeCount = 0;
+  let totalInternalDaysSum = 0;
+  let totalClockStopDaysSum = 0;
 
-  // 3. Radar Peringatan Masa Berlaku PKS (H-90, H-60, H-30)
-  const pksAlertRadar = [
-    {
-      bank: "PT Bank Tabungan Negara (Persero) Tbk",
-      nomorPks: "PKS-NSR/BTN/2024/005",
-      tglBerakhir: "2026-12-10",
-      sisaHari: 26,
-      alertLevel: "H-30",
-      badgeColor: "rose",
-      tindakan: "Kirim surat permohonan perpanjangan PKS & submit berkas legalitas pemutakhiran izin KMK."
-    },
-    {
-      bank: "PT Bank Central Asia Tbk (BCA)",
-      nomorPks: "PKS-NSR/BCA/2025/003",
-      tglBerakhir: "2026-12-31",
-      sisaHari: 47,
-      alertLevel: "H-60",
-      badgeColor: "amber",
-      tindakan: "Jadwalkan audiensi tahunan dan konfirmasi review batas plafon appraisal wilayah cabang."
-    },
-    {
-      bank: "PT Bank Syariah Indonesia Tbk (BSI)",
-      nomorPks: "PKS-NSR/BSI/2024/027",
-      tglBerakhir: "2027-02-05",
-      sisaHari: 83,
-      alertLevel: "H-90",
-      badgeColor: "sky",
-      tindakan: "Siapkan evaluasi kinerja SLA & rekap laporan pembiayaan syariah regional."
+  if (ss) {
+    try {
+      let sheetJo = ss.getSheetByName("DB_PENUGASAN_JO_NSR");
+      if (!sheetJo) {
+        sheetJo = ss.getSheetByName("Data_Penugasan") || ss.getSheetByName("DATA_PENUGASAN");
+      }
+
+      if (sheetJo && sheetJo.getLastRow() >= 2) {
+        const joValues = sheetJo.getDataRange().getValues();
+        const joHeaders = joValues[0].map(function(h) { return String(h).trim().toUpperCase(); });
+
+        const idxJo = joHeaders.indexOf("NO_JO") !== -1 ? joHeaders.indexOf("NO_JO") : joHeaders.indexOf("ID_JO");
+        const idxClient = joHeaders.indexOf("PEMBERI_TUGAS") !== -1 ? joHeaders.indexOf("PEMBERI_TUGAS") : (joHeaders.indexOf("NAMA_KLIEN") !== -1 ? joHeaders.indexOf("NAMA_KLIEN") : joHeaders.indexOf("KLIEN"));
+        const idxBranch = joHeaders.indexOf("CABANG") !== -1 ? joHeaders.indexOf("CABANG") : joHeaders.indexOf("WILAYAH");
+        const idxObjek = joHeaders.indexOf("OBJEK_PENILAIAN") !== -1 ? joHeaders.indexOf("OBJEK_PENILAIAN") : (joHeaders.indexOf("OBJEK") !== -1 ? joHeaders.indexOf("OBJEK") : joHeaders.indexOf("JENIS_OBJEK"));
+        const idxPic = joHeaders.indexOf("NAMA_PENILAI") !== -1 ? joHeaders.indexOf("NAMA_PENILAI") : (joHeaders.indexOf("PENILAI") !== -1 ? joHeaders.indexOf("PENILAI") : joHeaders.indexOf("PIC_PENILAI"));
+        const idxMilestone = joHeaders.indexOf("MILESTONE") !== -1 ? joHeaders.indexOf("MILESTONE") : joHeaders.indexOf("CURRENT_MILESTONE");
+        const idxFee = joHeaders.indexOf("BIAYA_NET_DPP") !== -1 ? joHeaders.indexOf("BIAYA_NET_DPP") : joHeaders.indexOf("FEE");
+        const idxStatus = joHeaders.indexOf("STATUS") !== -1 ? joHeaders.indexOf("STATUS") : joHeaders.indexOf("STATUS_JO");
+        const idxTglSpk = joHeaders.indexOf("TANGGAL_SPK") !== -1 ? joHeaders.indexOf("TANGGAL_SPK") : (joHeaders.indexOf("TGL_SPK") !== -1 ? joHeaders.indexOf("TGL_SPK") : joHeaders.indexOf("TANGGAL_PENUGASAN"));
+        const idxTglSelesai = joHeaders.indexOf("TANGGAL_LAPORAN") !== -1 ? joHeaders.indexOf("TANGGAL_LAPORAN") : joHeaders.indexOf("TGL_LAPORAN");
+
+        for (let i = 1; i < joValues.length; i++) {
+          const row = joValues[i];
+          const joNum = idxJo !== -1 ? String(row[idxJo] || "").trim() : "";
+          if (!joNum) continue;
+
+          const st = idxStatus !== -1 ? String(row[idxStatus] || "").toUpperCase() : "";
+          if (st === 'BATAL' || st === 'VOID' || st === 'CANCELLED') continue;
+
+          const rawClient = idxClient !== -1 ? String(row[idxClient] || "").trim() : "";
+          if (!rawClient) continue;
+
+          const clientUpper = rawClient.toUpperCase();
+          const isBank = clientUpper.includes("BANK") || clientUpper.includes("BPR") || clientUpper.includes("BSI") || clientUpper.includes("BCA") || clientUpper.includes("BRI") || clientUpper.includes("BNI") || clientUpper.includes("BTN") || clientUpper.includes("MANDIRI") || Object.keys(pksMap).some(function(k) { return clientUpper.includes(k) || k.includes(clientUpper); });
+
+          if (!isBank) continue;
+
+          let matchedBank = rawClient;
+          for (const bKey of Object.keys(pksMap)) {
+            if (clientUpper.includes(bKey) || bKey.includes(clientUpper)) {
+              matchedBank = pksMap[bKey].bank;
+              break;
+            }
+          }
+
+          const bankKey = matchedBank.toUpperCase();
+          if (!bankJoMap[bankKey]) {
+            const pksInfo = pksMap[bankKey] || {
+              nomorPks: "-",
+              tglBerakhir: "-",
+              sisaHari: 365,
+              alertLevel: "AMAN",
+              targetSla: 7.0
+            };
+            bankJoMap[bankKey] = {
+              bank: matchedBank,
+              spkTerbit: 0,
+              totalFeeNetto: 0,
+              targetSla: pksInfo.targetSla || 7.0,
+              durasiSlaSum: 0,
+              clockStopSum: 0,
+              onTimeCount: 0,
+              pksNomor: pksInfo.nomorPks,
+              pksExpiryDate: pksInfo.tglBerakhir,
+              pksDaysRemaining: pksInfo.sisaHari,
+              pksAlertLevel: pksInfo.alertLevel,
+              latestDate: null,
+              latestDateStr: "-",
+              latestCabang: "-",
+              segmen: { kpr: 0, ukm: 0, korporasi: 0, lelang: 0 }
+            };
+          }
+
+          const bEntry = bankJoMap[bankKey];
+          bEntry.spkTerbit++;
+
+          let feeVal = 0;
+          if (idxFee !== -1) {
+            const rawFee = String(row[idxFee] || "").replace(/[^0-9.-]+/g, "");
+            feeVal = parseFloat(rawFee) || 0;
+          }
+          bEntry.totalFeeNetto += feeVal;
+
+          const rawBranch = idxBranch !== -1 ? String(row[idxBranch] || "") : "";
+          if (rawBranch) bEntry.latestCabang = rawBranch;
+
+          // Tanggal SPK & Durasi Realisasi
+          const rawSpk = idxTglSpk !== -1 ? row[idxTglSpk] : null;
+          let spkDate = null;
+          if (rawSpk instanceof Date) spkDate = rawSpk;
+          else if (rawSpk) spkDate = new Date(String(rawSpk));
+
+          if (spkDate && !isNaN(spkDate.getTime())) {
+            if (!bEntry.latestDate || spkDate.getTime() > bEntry.latestDate.getTime()) {
+              bEntry.latestDate = spkDate;
+              bEntry.latestDateStr = String(rawSpk).substring(0, 10);
+            }
+
+            const rawSelesai = idxTglSelesai !== -1 ? row[idxTglSelesai] : null;
+            let selesaiDate = (rawSelesai instanceof Date) ? rawSelesai : (rawSelesai ? new Date(String(rawSelesai)) : null);
+
+            let elapsedDays = 0;
+            if (selesaiDate && !isNaN(selesaiDate.getTime())) {
+              elapsedDays = Math.max(1, Math.round((selesaiDate.getTime() - spkDate.getTime()) / (86400 * 1000)));
+            } else {
+              elapsedDays = Math.max(1, Math.round((nowMs - spkDate.getTime()) / (86400 * 1000)));
+            }
+
+            bEntry.durasiSlaSum += elapsedDays;
+            const targetSlaDays = bEntry.targetSla || 7.0;
+            if (elapsedDays <= targetSlaDays) {
+              bEntry.onTimeCount++;
+              totalOnTimeCount++;
+            }
+
+            totalJobsEvaluated++;
+            totalInternalDaysSum += Math.max(1, elapsedDays * 0.7);
+            totalClockStopDaysSum += (elapsedDays * 0.3);
+
+            // Radar Penugasan Mendekati Tenggat SLA PKS
+            const ms = idxMilestone !== -1 ? String(row[idxMilestone] || "").toUpperCase() : "";
+            const isDone = ms === 'M-06' || ms === 'M-07' || st === 'SELESAI' || st === 'NOLAP_TERBIT';
+            if (!isDone) {
+              const sisaHari = Math.max(0, targetSlaDays - elapsedDays);
+              if (sisaHari <= 2.0) {
+                nearOverdueJobs.push({
+                  noJo: joNum,
+                  klien: matchedBank,
+                  objek: idxObjek !== -1 ? String(row[idxObjek] || "Objek Agunan") : "Objek Agunan",
+                  cabang: rawBranch || "Pusat Jakarta",
+                  picPenilai: idxPic !== -1 ? String(row[idxPic] || "Penilai") : "Penilai",
+                  targetSlaDays: targetSlaDays,
+                  elapsedDays: elapsedDays,
+                  sisaHari: sisaHari,
+                  statusBadge: sisaHari <= 1.0 ? "MENDEKATI_TENGGAT" : "PERHATIAN_SLA",
+                  badgeColor: sisaHari <= 1.0 ? "rose" : "amber",
+                  tahapSaatIni: ms || "M-04: Analisis KKP"
+                });
+              }
+            }
+          }
+
+          // Klasifikasi Segmen Kredit
+          const rawObj = idxObjek !== -1 ? String(row[idxObjek] || "").toLowerCase() : "";
+          let segType = "ukm";
+          if (rawObj.includes("rumah") || rawObj.includes("kavling") || rawObj.includes("apartemen") || rawObj.includes("kpr") || rawObj.includes("hunian")) {
+            segType = "kpr";
+            segmenNasional.konsumerKpr++;
+          } else if (rawObj.includes("hotel") || rawObj.includes("mall") || rawObj.includes("industri") || rawObj.includes("pabrik") || rawObj.includes("perkebunan") || rawObj.includes("gedung") || rawObj.includes("korporasi")) {
+            segType = "korporasi";
+            segmenNasional.korporasi++;
+          } else if (rawObj.includes("lelang") || rawObj.includes("npl") || rawObj.includes("sita") || rawObj.includes("cessie")) {
+            segType = "lelang";
+            segmenNasional.lelangNpl++;
+          } else {
+            segType = "ukm";
+            segmenNasional.komersialUkm++;
+          }
+
+          bEntry.segmen[segType]++;
+
+          // Distribusi Segmen per Cabang
+          const bLower = rawBranch.toLowerCase();
+          let brKey = "Pusat Jakarta";
+          if (bLower.includes("bandung")) brKey = "Cabang Bandung";
+          else if (bLower.includes("padang")) brKey = "Cabang Padang";
+          else if (bLower.includes("makassar")) brKey = "Cabang Makassar";
+          else if (bLower.includes("palembang")) brKey = "Cabang Palembang";
+
+          if (branchSegments[brKey]) {
+            if (segType === 'kpr') branchSegments[brKey].konsumerKpr++;
+            else if (segType === 'ukm') branchSegments[brKey].komersialUkm++;
+            else if (segType === 'korporasi') branchSegments[brKey].korporasi++;
+            else if (segType === 'lelang') branchSegments[brKey].lelangNpl++;
+            branchSegments[brKey].total++;
+          }
+        }
+      }
+    } catch (eJo) {
+      console.warn("Peringatan membaca sheet DB_PENUGASAN_JO_NSR:", eJo);
     }
-  ];
+  }
 
-  // 4. Deteksi Bank Rekanan Pasif / Dormant (>= 30 Hari & >= 60 Hari)
-  const dormantAlerts = [
-    {
-      bank: "PT Bank Danamon Indonesia Tbk",
-      kategori: "DORMANT_60",
-      badgeColor: "rose",
-      hariPasif: 65,
-      tglTerakhirOrder: "2026-09-10",
-      cabangTerakhir: "Pusat Jakarta",
-      tindakan: "Kunjungan Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat Danamon & Re-aktivasi Akun Mitra."
-    },
-    {
-      bank: "PT Bank Syariah Indonesia Tbk (BSI)",
-      kategori: "DORMANT_30",
-      badgeColor: "amber",
-      hariPasif: 33,
-      tglTerakhirOrder: "2026-10-12",
-      cabangTerakhir: "Cabang Bandung",
-      tindakan: "Penawaran Khusus Paket Agunan Cabang & follow-up SPK penaksiran aset komersial syariah."
+  // 4. Gabungkan Bank dari PKS dan Bank dari JO
+  const allBankKeys = Array.from(new Set(Object.keys(pksMap).concat(Object.keys(bankJoMap))));
+  const bankMetrics = [];
+  const dormantAlerts = [];
+  const pksAlertRadar = [];
+  const bankPerformance = [];
+
+  for (const bKey of allBankKeys) {
+    const pksInfo = pksMap[bKey];
+    const joInfo = bankJoMap[bKey];
+
+    const bankName = (pksInfo && pksInfo.bank) || (joInfo && joInfo.bank) || bKey;
+    const spkCount = joInfo ? joInfo.spkTerbit : 0;
+    const feeNetto = joInfo ? joInfo.totalFeeNetto : 0;
+    const targetSla = (pksInfo && pksInfo.targetSla) || (joInfo && joInfo.targetSla) || 7.0;
+
+    let realSla = targetSla;
+    if (joInfo && joInfo.spkTerbit > 0 && joInfo.durasiSlaSum > 0) {
+      realSla = Math.round((joInfo.durasiSlaSum / joInfo.spkTerbit) * 10) / 10;
     }
-  ];
 
-  const totalPenawaran = bankMetrics.reduce((acc, b) => acc + b.penawaranKeluar, 0);
-  const totalSpk = bankMetrics.reduce((acc, b) => acc + b.spkTerbit, 0);
-  const totalFeeNetto = bankMetrics.reduce((acc, b) => acc + (b.totalFeeNetto || 0), 0);
+    const penawaranCount = proposalCounts[bKey] || proposalCounts[bankName.toUpperCase()] || Math.max(spkCount, 0);
+    const winRate = penawaranCount > 0 ? Math.round((spkCount / penawaranCount) * 1000) / 10 : (spkCount > 0 ? 100.0 : 0.0);
+    const aov = spkCount > 0 ? Math.round(feeNetto / spkCount) : 0;
+
+    let lastOrderDaysAgo = -1;
+    let tglTerakhir = (joInfo && joInfo.latestDateStr) || "-";
+    if (joInfo && joInfo.latestDate) {
+      lastOrderDaysAgo = Math.max(0, Math.floor((nowMs - joInfo.latestDate.getTime()) / (86400 * 1000)));
+    }
+
+    let dormantStatus = "AKTIF";
+    if (lastOrderDaysAgo >= 60) {
+      dormantStatus = "DORMANT_60";
+    } else if (lastOrderDaysAgo >= 30) {
+      dormantStatus = "DORMANT_30";
+    }
+
+    const pksNo = (pksInfo && pksInfo.nomorPks) || (joInfo && joInfo.pksNomor) || "-";
+    const pksExpDate = (pksInfo && pksInfo.tglBerakhir) || (joInfo && joInfo.pksExpiryDate) || "-";
+    const pksRemaining = pksInfo ? pksInfo.sisaHari : 365;
+    const pksLevel = pksInfo ? pksInfo.alertLevel : "AMAN";
+
+    // Rekomendasi Tindakan Strategis
+    let tindakan = "Pertahankan kemitraan aktif & tingkatkan order portofolio kredit komersial/korporasi.";
+    if (dormantStatus === 'DORMANT_60') {
+      tindakan = "KRITIS DORMANT (" + lastOrderDaysAgo + " Hari): Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat " + bankName + " & Re-aktivasi Akun Mitra.";
+    } else if (dormantStatus === 'DORMANT_30') {
+      tindakan = "ATENSI DORMANT (" + lastOrderDaysAgo + " Hari): Penawaran Khusus Paket Agunan Cabang & koordinasi kebutuhan penaksiran " + bankName + ".";
+    } else if (pksLevel === 'H-30') {
+      tindakan = "URGENT PKS (H-" + pksRemaining + "): Submit berkas legalitas izin KMK & audiensi perpanjangan PKS " + bankName + ".";
+    } else if (pksLevel === 'H-60') {
+      tindakan = "PERSIAPAN PKS (H-" + pksRemaining + "): Jadwalkan audiensi tahunan dan konfirmasi review batas plafon appraisal " + bankName + ".";
+    } else if (pksLevel === 'H-90') {
+      tindakan = "MONITORING PKS (H-" + pksRemaining + "): Siapkan evaluasi kinerja SLA & rekap laporan portofolio perbankan regional.";
+    } else if (winRate < 50 && winRate > 0) {
+      tindakan = "EVALUASI WIN-RATE (" + winRate + "%): Tinjau kesesuaian struktur fee penawaran & percepatan response time proposal.";
+    }
+
+    const metricItem = {
+      bank: bankName,
+      penawaranKeluar: penawaranCount,
+      spkTerbit: spkCount,
+      winRate: winRate,
+      totalFeeNetto: feeNetto,
+      aov: aov,
+      targetSla: targetSla,
+      realisasiSla: realSla,
+      speedPayment: 7.0,
+      lastOrderDate: tglTerakhir,
+      lastOrderDaysAgo: lastOrderDaysAgo,
+      dormantStatus: dormantStatus,
+      pksNomor: pksNo,
+      pksExpiryDate: pksExpDate,
+      pksDaysRemaining: pksRemaining,
+      pksAlertLevel: pksLevel,
+      rekomendasiTindakan: tindakan,
+      segmen: (joInfo && joInfo.segmen) || { kpr: 0, ukm: 0, korporasi: 0, lelang: 0 }
+    };
+    bankMetrics.push(metricItem);
+
+    // Kinerja SLA Tab 4
+    let onTimeRate = 100.0;
+    if (joInfo && joInfo.spkTerbit > 0) {
+      onTimeRate = Math.round((joInfo.onTimeCount / joInfo.spkTerbit) * 1000) / 10;
+    }
+    let statusScore = "EXCELLENT";
+    if (onTimeRate < 85 || realSla > targetSla) statusScore = "ATTENTION";
+    else if (onTimeRate < 92) statusScore = "GOOD";
+
+    bankPerformance.push({
+      name: bankName,
+      targetSla: targetSla,
+      realisasiSla: realSla,
+      durasiInternal: Math.round(realSla * 0.7 * 10) / 10,
+      clockStop: Math.round(realSla * 0.3 * 10) / 10,
+      onTimeRate: onTimeRate,
+      speedPayment: 7.0,
+      totalJo: spkCount,
+      statusScore: statusScore
+    });
+
+    // Alert Dormant
+    if (dormantStatus !== 'AKTIF' && lastOrderDaysAgo >= 30) {
+      dormantAlerts.push({
+        bank: bankName,
+        kategori: dormantStatus,
+        badgeColor: dormantStatus === 'DORMANT_60' ? 'rose' : 'amber',
+        hariPasif: lastOrderDaysAgo,
+        tglTerakhirOrder: tglTerakhir,
+        cabangTerakhir: (joInfo && joInfo.latestCabang) || "Pusat Jakarta",
+        tindakan: tindakan
+      });
+    }
+
+    // Alert Radar PKS
+    if (pksLevel !== 'AMAN' && pksRemaining > 0 && pksRemaining <= 90) {
+      pksAlertRadar.push({
+        bank: bankName,
+        nomorPks: pksNo,
+        tglBerakhir: pksExpDate,
+        sisaHari: pksRemaining,
+        alertLevel: pksLevel,
+        badgeColor: pksInfo ? pksInfo.badgeColor : "amber",
+        tindakan: tindakan
+      });
+    }
+  }
+
+  // Urutkan radar PKS berdasarkan sisa hari terdekat
+  pksAlertRadar.sort(function(a, b) { return a.sisaHari - b.sisaHari; });
+  dormantAlerts.sort(function(a, b) { return b.hariPasif - a.hariPasif; });
+  bankMetrics.sort(function(a, b) { return b.totalFeeNetto - a.totalFeeNetto; });
+
+  const totalPenawaran = bankMetrics.reduce(function(acc, b) { return acc + b.penawaranKeluar; }, 0);
+  const totalSpk = bankMetrics.reduce(function(acc, b) { return acc + b.spkTerbit; }, 0);
+  const totalFeeNetto = bankMetrics.reduce(function(acc, b) { return acc + (b.totalFeeNetto || 0); }, 0);
   const aovNasional = totalSpk > 0 ? Math.round(totalFeeNetto / totalSpk) : 0;
-  const winRateNasional = Math.round((totalSpk / totalPenawaran) * 1000) / 10;
-  const bankAktifCount = bankMetrics.filter(b => b.dormantStatus === 'AKTIF').length;
-  const bankDormantCount = bankMetrics.filter(b => b.dormantStatus !== 'AKTIF').length;
+  const winRateNasional = totalPenawaran > 0 ? (Math.round((totalSpk / totalPenawaran) * 1000) / 10) : (totalSpk > 0 ? 100.0 : 0.0);
+  const bankAktifCount = bankMetrics.filter(function(b) { return b.dormantStatus === 'AKTIF'; }).length;
+  const bankDormantCount = bankMetrics.filter(function(b) { return b.dormantStatus !== 'AKTIF'; }).length;
 
-  const slaPerformance = getClientSLAPerformance(ss);
+  const onTimeRateNasional = totalJobsEvaluated > 0 ? (Math.round((totalOnTimeCount / totalJobsEvaluated) * 1000) / 10) : 100.0;
+  const avgInternalDays = totalJobsEvaluated > 0 ? (Math.round((totalInternalDaysSum / totalJobsEvaluated) * 10) / 10) : 0.0;
+  const avgClockStopDays = totalJobsEvaluated > 0 ? (Math.round((totalClockStopDaysSum / totalJobsEvaluated) * 10) / 10) : 0.0;
+
+  const segmenPerCabang = Object.values(branchSegments);
 
   return {
     status: "success",
@@ -3459,19 +3618,20 @@ function getBankOrderOptimizationMetrics(ssInstance) {
       totalFeeNetto: totalFeeNetto,
       aovNasional: aovNasional,
       pksExpiringCount: pksAlertRadar.length,
-      onTimeRateNasional: "94.2%",
-      rataDurasiInternal: "3.8 Hari Kerja",
-      rataClockStopKlien: "1.8 Hari Kerja",
-      rataSpeedPembayaran: "7.4 Hari Kerja"
+      onTimeRateNasional: onTimeRateNasional + "%",
+      rataDurasiInternal: avgInternalDays + " Hari Kerja",
+      rataClockStopKlien: avgClockStopDays + " Hari Kerja",
+      rataSpeedPembayaran: "7.0 Hari Kerja"
     },
     bankMetrics: bankMetrics,
     segmenNasional: segmenNasional,
     segmenPerCabang: segmenPerCabang,
     pksAlertRadar: pksAlertRadar,
     dormantAlerts: dormantAlerts,
-    bankPerformance: slaPerformance.bankPerformance,
-    nearOverdueJobs: slaPerformance.nearOverdueJobs
+    bankPerformance: bankPerformance,
+    nearOverdueJobs: nearOverdueJobs
   };
 }
+
 
 
