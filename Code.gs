@@ -395,6 +395,9 @@ function doGet(e) {
     if (params.action === 'GET_ACTIVE_JO_QA') {
       return respondJSON(getActiveJobOrdersForQA(ss));
     }
+    if (params.action === 'GET_PPL_COMPLIANCE') {
+      return respondJSON(getPPLComplianceRecords(ss));
+    }
 
     // 2. Baca Counter dari Config_Counter (Metadata publik)
     const counterData = bacaConfigCounter(ss);
@@ -460,7 +463,7 @@ function doPost(e) {
 
     // 3. Verifikasi Token, SHA-256 Hash, & Backend API Key
     const authResult = verifikasiAksesToken(clientToken, clientTokenHash, clientApiKey);
-    const isPublicAllowedAction = (action === 'GET_ACTIVE_JO_QA' || action === 'VERIFY_KWITANSI_ELIGIBILITY' || action === 'GET_EXECUTIVE_GOVERNANCE' || action === 'GET_GOVERNANCE_OVERVIEW' || action === 'GET_EMPLOYEE_KPI' || action === 'GET_CLIENT_SLA' || action === 'GET_BANK_ORDER_OPTIMIZATION' || action === 'GET_BANK_OPTIMIZATION');
+    const isPublicAllowedAction = (action === 'GET_ACTIVE_JO_QA' || action === 'VERIFY_KWITANSI_ELIGIBILITY' || action === 'GET_EXECUTIVE_GOVERNANCE' || action === 'GET_GOVERNANCE_OVERVIEW' || action === 'GET_EMPLOYEE_KPI' || action === 'GET_CLIENT_SLA' || action === 'GET_BANK_ORDER_OPTIMIZATION' || action === 'GET_BANK_OPTIMIZATION' || action === 'SAVE_EMPLOYEE_KPI_EVAL' || action === 'SUBMIT_PPL_RECORD' || action === 'GET_PPL_COMPLIANCE');
     if (!authResult.valid && !isPublicAllowedAction) {
       return respondJSON({
         status: 'error',
@@ -607,6 +610,14 @@ function doPost(e) {
 
       case 'SAVE_EMPLOYEE_KPI_EVAL':
         result = saveEmployeeKPIEvaluation(payload.payload || payload.data || payload, ss);
+        break;
+
+      case 'SUBMIT_PPL_RECORD':
+        result = submitAndVerifyPPLRecord(payload.payload || payload.data || payload, ss);
+        break;
+
+      case 'GET_PPL_COMPLIANCE':
+        result = getPPLComplianceRecords(ss);
         break;
 
       case 'GET_EMPLOYEE_KPI':
@@ -3480,6 +3491,186 @@ function saveEmployeeKPIEvaluation(payload, ssInstance) {
 }
 
 /**
+ * Menyimpan / memverifikasi catatan kepatuhan PPL MAPPI dan Masa Berlaku Izin Penilai ke DB_KEPATUHAN_PPL_IZIN
+ * Mode: SELF_SUBMIT_PERSONEL (status awal: MENUNGGU_VERIFIKASI_SPM) atau SPM_APPROVE_VERIFY (status: TERVERIFIKASI_SPM)
+ */
+function submitAndVerifyPPLRecord(payload, ssInstance) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (eLock) {
+    return { status: "error", success: false, message: "Server sibuk memproses transaksi data. Silakan coba beberapa saat lagi." };
+  }
+
+  try {
+    let ss = ssInstance;
+    if (!ss) {
+      if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+        try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
+      }
+      if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    }
+    if (!ss) {
+      return { status: "error", success: false, message: "Database Master Spreadsheet tidak dapat diakses." };
+    }
+
+    let sheet = ss.getSheetByName("DB_KEPATUHAN_PPL_IZIN");
+    if (!sheet) {
+      sheet = ss.insertSheet("DB_KEPATUHAN_PPL_IZIN");
+      sheet.appendRow([
+        "NIK", "NAMA_PERSONEL", "CABANG", "NO_MAPPI", "NO_REGISTER_RMK",
+        "NO_IZIN_MENKEU", "TGL_BERLAKU_IZIN", "TOTAL_SKP_TERKUMPUL", "TARGET_SKP_WAJIB",
+        "RINCIAN_SERTIFIKAT_PPL", "STATUS_VERIFIKASI_SPM", "CATATAN_SPM", "UPDATED_AT"
+      ]);
+      sheet.getRange(1, 1, 1, 13).setFontWeight("bold").setBackground("#0f172a").setFontColor("#38bdf8");
+      sheet.setFrozenRows(1);
+    }
+
+    const now = new Date();
+    const nowStr = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+    const nik = String(payload.nik || "").trim();
+    const nama = String(payload.nama || "").trim();
+    const cabang = String(payload.cabang || "").trim();
+
+    if (!nik) {
+      return { status: "error", success: false, message: "NIK personel wajib disertakan." };
+    }
+
+    const mode = String(payload.mode || "SELF_SUBMIT_PERSONEL").trim();
+    const noMappi = String(payload.noMappi || "-").trim();
+    const noRmk = String(payload.noRegisterRmk || payload.noRegister || "-").trim();
+    const noIzin = String(payload.noIzinMenkeu || payload.noIzin || "-").trim();
+    const tglBerlaku = String(payload.tglBerlakuIzin || payload.masaBerlakuIzin || "-").trim();
+    const totalSkp = parseFloat(payload.totalSkpTerkumpul) || 0;
+    const targetSkp = parseFloat(payload.targetSkpWajib) || 24;
+    const rincianSertifikat = String(payload.rincianSertifikatPpl || payload.rincianSertifikat || "-").trim();
+
+    let statusVerifikasi = "MENUNGGU_VERIFIKASI_SPM";
+    if (mode === "SPM_APPROVE_VERIFY" || payload.statusVerifikasiSpm === "TERVERIFIKASI_SPM") {
+      statusVerifikasi = "TERVERIFIKASI_SPM";
+    }
+
+    const catatanSpm = String(payload.catatanSpm || payload.catatan || "-").trim();
+
+    const data = sheet.getDataRange().getValues();
+    let targetRow = -1;
+    for (let r = 1; r < data.length; r++) {
+      if (String(data[r][0]).trim() === nik) {
+        targetRow = r + 1;
+        break;
+      }
+    }
+
+    const rowValues = [
+      nik, nama, cabang, noMappi, noRmk,
+      noIzin, tglBerlaku, totalSkp, targetSkp,
+      rincianSertifikat, statusVerifikasi, catatanSpm, nowStr
+    ];
+
+    if (targetRow !== -1) {
+      sheet.getRange(targetRow, 1, 1, 13).setValues([rowValues]);
+    } else {
+      sheet.appendRow(rowValues);
+    }
+
+    return {
+      status: "success",
+      success: true,
+      message: mode === "SPM_APPROVE_VERIFY"
+        ? "Verifikasi kepatuhan PPL & Izin Penilai oleh Kepala SPM berhasil disahkan ke SSOT DB_KEPATUHAN_PPL_IZIN"
+        : "Data kepatuhan PPL & Izin Penilai berhasil diajukan dan menunggu verifikasi Kepala SPM",
+      record: {
+        nik: nik,
+        nama: nama,
+        cabang: cabang,
+        noMappi: noMappi,
+        noRegisterRmk: noRmk,
+        noIzinMenkeu: noIzin,
+        tglBerlakuIzin: tglBerlaku,
+        totalSkpTerkumpul: totalSkp,
+        targetSkpWajib: targetSkp,
+        rincianSertifikatPpl: rincianSertifikat,
+        statusVerifikasiSpm: statusVerifikasi,
+        catatanSpm: catatanSpm,
+        updatedAt: nowStr
+      }
+    };
+  } catch (err) {
+    return { status: "error", success: false, message: "Gagal menyimpan data kepatuhan PPL: " + err.toString() };
+  } finally {
+    try { lock.releaseLock(); } catch (_) {}
+  }
+}
+
+/**
+ * Mengambil seluruh catatan kepatuhan PPL MAPPI & Izin Penilai dari DB_KEPATUHAN_PPL_IZIN
+ */
+function getPPLComplianceRecords(ssInstance) {
+  let ss = ssInstance;
+  if (!ss) {
+    if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+      try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
+    }
+    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  }
+  if (!ss) return { status: "error", success: false, records: [] };
+
+  const sheet = ss.getSheetByName("DB_KEPATUHAN_PPL_IZIN");
+  if (!sheet || sheet.getLastRow() < 2) {
+    return { status: "success", success: true, records: [] };
+  }
+
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0].map(function(h) { return String(h).trim().toUpperCase(); });
+  const idxNik = headers.indexOf("NIK");
+  const idxNama = headers.indexOf("NAMA_PERSONEL");
+  const idxCabang = headers.indexOf("CABANG");
+  const idxMappi = headers.indexOf("NO_MAPPI");
+  const idxRmk = headers.indexOf("NO_REGISTER_RMK");
+  const idxIzin = headers.indexOf("NO_IZIN_MENKEU");
+  const idxTgl = headers.indexOf("TGL_BERLAKU_IZIN");
+  const idxSkp = headers.indexOf("TOTAL_SKP_TERKUMPUL");
+  const idxTarget = headers.indexOf("TARGET_SKP_WAJIB");
+  const idxSertifikat = headers.indexOf("RINCIAN_SERTIFIKAT_PPL");
+  const idxStatus = headers.indexOf("STATUS_VERIFIKASI_SPM");
+  const idxCatatan = headers.indexOf("CATATAN_SPM");
+  const idxUpdated = headers.indexOf("UPDATED_AT");
+
+  const records = [];
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const nik = idxNik !== -1 ? String(row[idxNik] || "").trim() : "";
+    if (!nik) continue;
+
+    let rawTgl = idxTgl !== -1 ? row[idxTgl] : "-";
+    let tglStr = "-";
+    if (rawTgl instanceof Date) {
+      tglStr = Utilities.formatDate(rawTgl, "Asia/Jakarta", "yyyy-MM-dd");
+    } else if (rawTgl) {
+      tglStr = String(rawTgl).trim();
+    }
+
+    records.push({
+      nik: nik,
+      nama: idxNama !== -1 ? String(row[idxNama] || "").trim() : "",
+      cabang: idxCabang !== -1 ? String(row[idxCabang] || "").trim() : "",
+      noMappi: idxMappi !== -1 ? String(row[idxMappi] || "").trim() : "-",
+      noRegisterRmk: idxRmk !== -1 ? String(row[idxRmk] || "").trim() : "-",
+      noIzinMenkeu: idxIzin !== -1 ? String(row[idxIzin] || "").trim() : "-",
+      tglBerlakuIzin: tglStr,
+      totalSkpTerkumpul: idxSkp !== -1 ? (parseFloat(row[idxSkp]) || 0) : 0,
+      targetSkpWajib: idxTarget !== -1 ? (parseFloat(row[idxTarget]) || 24) : 24,
+      rincianSertifikatPpl: idxSertifikat !== -1 ? String(row[idxSertifikat] || "").trim() : "-",
+      statusVerifikasiSpm: idxStatus !== -1 ? String(row[idxStatus] || "MENUNGGU_VERIFIKASI_SPM").trim() : "MENUNGGU_VERIFIKASI_SPM",
+      catatanSpm: idxCatatan !== -1 ? String(row[idxCatatan] || "").trim() : "-",
+      updatedAt: idxUpdated !== -1 ? String(row[idxUpdated] || "").trim() : ""
+    });
+  }
+
+  return { status: "success", success: true, records: records };
+}
+
+/**
  * Menghitung metrik KPI nyata per NIK dari LOG_QA_AUDIT, DB_PENUGASAN_JO_NSR, dan DB_EVALUASI_KPI_SDM
  */
 function getEmployeeKPIMetrics(ssInstance, targetPeriode) {
@@ -3509,7 +3700,7 @@ function getEmployeeKPIMetrics(ssInstance, targetPeriode) {
     { no: 4, nik: "NSR-2019-004", nama: "Milda Hidayati Dewi, S.E.", jabatan: "Manager Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Keuangan", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
     { no: 5, nik: "NSR-2019-005", nama: "Danny Taufik Hidayat, S.H.", jabatan: "Kepala SPM & Manager Ops", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", noMappi: "15-P-03421", noRegister: "REG-PPPK-2015-081", masaBerlakuIzin: "2027-12-31", statusPpl: "TERTIB" },
     { no: 6, nik: "NSR-2019-006", nama: "Arie Indra Permana", jabatan: "Manager Marketing", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Marketing", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", noMappi: "14-T-03112", noRegister: "REG-PPPK-2014-045", masaBerlakuIzin: "2027-02-05", statusPpl: "TERTIB" },
+    { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", noMappi: "14-T-03112", noRegister: "REG-PPPK-2014-045", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
     { no: 8, nik: "NSR-2019-008", nama: "Ricca Noer Farikha", jabatan: "Accounting & Tax", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Akuntansi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
     { no: 9, nik: "NSR-2019-009", nama: "Angga Malid Cahyadi", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", noMappi: "16-P-03554", noRegister: "REG-PPPK-2016-092", masaBerlakuIzin: "2027-08-30", statusPpl: "TERTIB" },
     { no: 10, nik: "NSR-2019-010", nama: "Fadri Nurdin", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "18-A-04021", noRegister: "REG-MAPPI-2018-110", masaBerlakuIzin: "2027-06-30", statusPpl: "TERTIB" },
@@ -3546,12 +3737,12 @@ function getEmployeeKPIMetrics(ssInstance, targetPeriode) {
     { no: 41, nik: "NSR-MKS-2019-37", nama: "Arman Mustajab", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "19-A-04399", noRegister: "REG-MAPPI-2019-099", masaBerlakuIzin: "2027-07-22", statusPpl: "TERTIB" },
     { no: 42, nik: "NSR-BDG-2020-38", nama: "Heru Kurnia", jabatan: "Business Development Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Marketing", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
     { no: 43, nik: "NSR-BDG-2020-39", nama: "Ardi Nurmayadi, S.T.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", noMappi: "16-P-03598", noRegister: "REG-PPPK-2016-118", masaBerlakuIzin: "2027-05-10", statusPpl: "TERTIB" },
-    { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", noMappi: "17-P-03890", noRegister: "REG-PPPK-2017-094", masaBerlakuIzin: "2026-12-31", statusPpl: "TERTIB" },
+    { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", noMappi: "17-P-03890", noRegister: "REG-PPPK-2017-094", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
     { no: 45, nik: "NSR-BDG-2020-41", nama: "Tiara Hurairah", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Keuangan", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
     { no: 46, nik: "NSR-BDG-2020-42", nama: "Achmad Ilham Fauzan", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
     { no: 47, nik: "NSR-BDG-2020-43", nama: "Rahmat Muhammad Hussein", jabatan: "Surveyor Lapangan", cabang: "Cabang Bandung", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "20-A-04480", noRegister: "REG-MAPPI-2020-101", masaBerlakuIzin: "2027-08-15", statusPpl: "TERTIB" },
     { no: 48, nik: "NSR-PLB-2022-44", nama: "Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Palembang", peran: "REKAN", izin: "Izin Publik KMK", noMappi: "12-S-02790", noRegister: "KMK No. P-1.18.00512", masaBerlakuIzin: "2027-03-25", statusPpl: "TERTIB" },
-    { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", noMappi: "18-P-04129", noRegister: "REG-PPPK-2018-055", masaBerlakuIzin: "2026-12-10", statusPpl: "PERLU_PPL" },
+    { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", noMappi: "18-P-04129", noRegister: "REG-PPPK-2018-055", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
     { no: 50, nik: "NSR-PLB-2022-46", nama: "Arwin Saputra", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "22-A-04610", noRegister: "REG-MAPPI-2022-012", masaBerlakuIzin: "2027-09-01", statusPpl: "TERTIB" },
     { no: 51, nik: "NSR-PLB-2022-47", nama: "Hadyan Fikhri", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "22-A-04618", noRegister: "REG-MAPPI-2022-019", masaBerlakuIzin: "2027-09-01", statusPpl: "TERTIB" },
     { no: 52, nik: "NSR-PLB-2022-48", nama: "M. Deo Tansila Putra", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Palembang", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" }
@@ -3658,7 +3849,57 @@ function getEmployeeKPIMetrics(ssInstance, targetPeriode) {
     } catch (_) {}
   }
 
-  // 3. Baca Skor Mutu QA Aktual dari Sheet LOG_QA_AUDIT
+  // 2.5 Baca Data Kepatuhan PPL & Izin dari Sheet DB_KEPATUHAN_PPL_IZIN (100% Real SSOT)
+  const pplMap = {};
+  if (ss) {
+    try {
+      const sheetPpl = ss.getSheetByName("DB_KEPATUHAN_PPL_IZIN");
+      if (sheetPpl && sheetPpl.getLastRow() >= 2) {
+        const pplData = sheetPpl.getDataRange().getValues();
+        const pplHeaders = pplData[0].map(function(h) { return String(h).trim().toUpperCase(); });
+        const idxNik = pplHeaders.indexOf("NIK");
+        const idxMappi = pplHeaders.indexOf("NO_MAPPI");
+        const idxRmk = pplHeaders.indexOf("NO_REGISTER_RMK");
+        const idxIzin = pplHeaders.indexOf("NO_IZIN_MENKEU");
+        const idxTgl = pplHeaders.indexOf("TGL_BERLAKU_IZIN");
+        const idxSkp = pplHeaders.indexOf("TOTAL_SKP_TERKUMPUL");
+        const idxTarget = pplHeaders.indexOf("TARGET_SKP_WAJIB");
+        const idxCert = pplHeaders.indexOf("RINCIAN_SERTIFIKAT_PPL");
+        const idxVerif = pplHeaders.indexOf("STATUS_VERIFIKASI_SPM");
+        const idxCat = pplHeaders.indexOf("CATATAN_SPM");
+        const idxUpd = pplHeaders.indexOf("UPDATED_AT");
+
+        for (let p = 1; p < pplData.length; p++) {
+          const pRow = pplData[p];
+          const pNik = idxNik !== -1 ? String(pRow[idxNik] || "").trim() : "";
+          if (!pNik) continue;
+
+          let rawTgl = idxTgl !== -1 ? pRow[idxTgl] : "-";
+          let tglStr = "-";
+          if (rawTgl instanceof Date) {
+            tglStr = Utilities.formatDate(rawTgl, "Asia/Jakarta", "yyyy-MM-dd");
+          } else if (rawTgl) {
+            tglStr = String(rawTgl).trim();
+          }
+
+          pplMap[pNik] = {
+            noMappi: idxMappi !== -1 ? String(pRow[idxMappi] || "").trim() : "-",
+            noRegisterRmk: idxRmk !== -1 ? String(pRow[idxRmk] || "").trim() : "-",
+            noIzinMenkeu: idxIzin !== -1 ? String(pRow[idxIzin] || "").trim() : "-",
+            tglBerlakuIzin: tglStr,
+            totalSkpTerkumpul: idxSkp !== -1 ? (parseFloat(pRow[idxSkp]) || 0) : 0,
+            targetSkpWajib: idxTarget !== -1 ? (parseFloat(pRow[idxTarget]) || 24) : 24,
+            rincianSertifikatPpl: idxCert !== -1 ? String(pRow[idxCert] || "").trim() : "-",
+            statusVerifikasiSpm: idxVerif !== -1 ? String(pRow[idxVerif] || "MENUNGGU_VERIFIKASI_SPM").trim() : "MENUNGGU_VERIFIKASI_SPM",
+            catatanSpm: idxCat !== -1 ? String(pRow[idxCat] || "").trim() : "-",
+            updatedAt: idxUpd !== -1 ? String(pRow[idxUpd] || "").trim() : ""
+          };
+        }
+      }
+    } catch (_) {}
+  }
+
+    // 3. Baca Skor Mutu QA Aktual dari Sheet LOG_QA_AUDIT
   const qaUserStats = {};
   if (ss) {
     try {

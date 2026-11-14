@@ -576,59 +576,89 @@ switch ($action) {
             'nearOverdueJobs' => $nearOverdueJobs
         ];
 
-        $izinAlertRadar = [
-            [
-                'nama'         => 'Rafdinal Ardhi',
-                'nik'          => 'NSR-PLB-2022-45',
-                'jabatan'      => 'Penilai Properti & Reviewer SPM',
-                'cabang'       => 'Cabang Palembang',
-                'peran'        => 'PENILAI',
-                'izin'         => 'MAPPI-P',
-                'noMappi'      => '18-P-04129',
-                'noRegister'   => 'REG-PPPK-2018-055',
-                'masaBerlaku'  => '2026-12-10',
-                'sisaHari'     => 26,
-                'alertLevel'   => 'H-30',
-                'badgeColor'   => 'rose',
-                'statusPpl'    => 'PERLU_PPL',
-                'statusPplText'=> 'Kurang 8 SKP (Perlu CPD)',
-                'tindakan'     => 'Prioritas Kritis (H-30): Segera lengkapi berkas SKP PPL & ajukan permohonan pembaruan izin/KTA ke asosiasi MAPPI.'
-            ],
-            [
-                'nama'         => 'Andri Kusmandana, S.Ak.',
-                'nik'          => 'NSR-BDG-2020-40',
-                'jabatan'      => 'Penilai Properti & Reviewer SPM',
-                'cabang'       => 'Cabang Bandung',
-                'peran'        => 'PENILAI',
-                'izin'         => 'MAPPI-P',
-                'noMappi'      => '17-P-03890',
-                'noRegister'   => 'REG-PPPK-2017-094',
-                'masaBerlaku'  => '2026-12-31',
-                'sisaHari'     => 47,
-                'alertLevel'   => 'H-60',
-                'badgeColor'   => 'amber',
-                'statusPpl'    => 'TERTIB',
-                'statusPplText'=> 'Tertib PPL (≥24 SKP)',
-                'tindakan'     => 'Peringatan H-60: Jadwalkan verifikasi pemenuhan SKP PPL tahunan dan siapkan dokumen registrasi ulang.'
-            ],
-            [
-                'nama'         => 'Tedi Setiadi, S.T.',
-                'nik'          => 'NSR-2019-007',
-                'jabatan'      => 'Tim Review SPM',
-                'cabang'       => 'Pusat Jakarta',
-                'peran'        => 'REVIEWER',
-                'izin'         => 'MAPPI-T',
-                'noMappi'      => '14-T-03112',
-                'noRegister'   => 'REG-PPPK-2014-045',
-                'masaBerlaku'  => '2027-02-05',
-                'sisaHari'     => 83,
-                'alertLevel'   => 'H-90',
-                'badgeColor'   => 'sky',
-                'statusPpl'    => 'TERTIB',
-                'statusPplText'=> 'Tertib PPL (≥24 SKP)',
-                'tindakan'     => 'Pemberitahuan H-90: Cek kecukupan poin SKP PPL MAPPI dan rekapitulasi laporan berkala penilai.'
-            ]
-        ];
+        // 5. Radar Masa Berlaku Izin Penilai & Kepatuhan PPL MAPPI dari data/ppl_compliance.json (100% Real SSOT)
+        $pplFile = $dataDir . '/ppl_compliance.json';
+        $pplRecords = [];
+        if (file_exists($pplFile)) {
+            $pplContent = @file_get_contents($pplFile);
+            if ($pplContent) {
+                $pplRecords = json_decode($pplContent, true) ?: [];
+            }
+        }
+        $pplMap = [];
+        foreach ($pplRecords as $rec) {
+            if (!empty($rec['nik'])) {
+                $pplMap[$rec['nik']] = $rec;
+            }
+        }
+
+        $izinAlertRadar = [];
+        foreach ($pplRecords as $item) {
+            $tgl = trim($item['tglBerlakuIzin'] ?? $item['masaBerlaku'] ?? '-');
+            $sisaHari = 365;
+            $alertLevel = 'AMAN';
+            $badgeColor = 'emerald';
+            $tindakan = 'Kepatuhan lisensi aktif & tertib.';
+
+            if ($tgl !== '-' && !empty($tgl)) {
+                $expTs = strtotime($tgl);
+                if ($expTs !== false) {
+                    $sisaHari = (int)ceil(($expTs - $nowTs) / 86400);
+                    if ($sisaHari < 0) {
+                        $alertLevel = 'EXPIRED';
+                        $badgeColor = 'rose';
+                        $tindakan = 'Izin telah kedaluwarsa. Hentikan penandatanganan laporan penilaian dan ajukan perpanjangan izin ke PPPK Kemenkeu segera.';
+                    } elseif ($sisaHari <= 30) {
+                        $alertLevel = 'H-30';
+                        $badgeColor = 'rose';
+                        $tindakan = 'Prioritas Kritis (H-30): Segera lengkapi berkas SKP PPL & ajukan permohonan pembaruan izin/KTA ke asosiasi MAPPI.';
+                    } elseif ($sisaHari <= 60) {
+                        $alertLevel = 'H-60';
+                        $badgeColor = 'amber';
+                        $tindakan = 'Peringatan H-60: Jadwalkan verifikasi pemenuhan SKP PPL tahunan dan siapkan dokumen registrasi ulang.';
+                    } elseif ($sisaHari <= 90) {
+                        $alertLevel = 'H-90';
+                        $badgeColor = 'sky';
+                        $tindakan = 'Pemberitahuan H-90: Cek kecukupan poin SKP PPL MAPPI dan rekapitulasi laporan berkala penilai.';
+                    }
+                }
+            }
+
+            $totalSkp = floatval($item['totalSkpTerkumpul'] ?? 0);
+            $targetSkp = floatval($item['targetSkpWajib'] ?? 24);
+            $statusPpl = ($totalSkp >= $targetSkp) ? 'TERTIB' : 'PERLU_PPL';
+
+            if ($statusPpl === 'PERLU_PPL' && $alertLevel === 'AMAN') {
+                $alertLevel = 'PERLU_PPL';
+                $badgeColor = 'amber';
+                $tindakan = 'Kekurangan SKP PPL: Segera daftarkan pada agenda CPD / Pendidikan Berkelanjutan MAPPI sebelum akhir tahun buku.';
+            }
+
+            if ($alertLevel !== 'AMAN') {
+                $izinAlertRadar[] = [
+                    'nama'                => $item['nama'] ?? '-',
+                    'nik'                 => $item['nik'] ?? '-',
+                    'jabatan'             => $item['jabatan'] ?? 'Penilai Properti',
+                    'cabang'              => $item['cabang'] ?? 'Pusat Jakarta',
+                    'peran'               => $item['peran'] ?? 'PENILAI',
+                    'izin'                => $item['noIzinMenkeu'] ?? $item['izin'] ?? '-',
+                    'noMappi'             => $item['noMappi'] ?? '-',
+                    'noRegister'          => $item['noRegisterRmk'] ?? $item['noRegister'] ?? '-',
+                    'masaBerlaku'         => $tgl,
+                    'sisaHari'            => $sisaHari,
+                    'alertLevel'          => $alertLevel,
+                    'badgeColor'          => $badgeColor,
+                    'statusPpl'           => $statusPpl,
+                    'totalSkpTerkumpul'   => $totalSkp,
+                    'targetSkpWajib'      => $targetSkp,
+                    'statusPplText'       => ($statusPpl === 'TERTIB') ? 'Tertib PPL (≥' . $targetSkp . ' SKP)' : 'Kurang ' . ($targetSkp - $totalSkp) . ' SKP (Perlu CPD)',
+                    'statusVerifikasiSpm' => $item['statusVerifikasiSpm'] ?? 'MENUNGGU_VERIFIKASI_SPM',
+                    'rincianSertifikat'   => $item['rincianSertifikatPpl'] ?? '-',
+                    'catatanSpm'          => $item['catatanSpm'] ?? '-',
+                    'tindakan'            => $tindakan
+                ];
+            }
+        }
 
         
         // 6. Master 52 Personel & Penilaian Real SSOT (DB_EVALUASI_KPI_SDM / kpi_evaluations.json)
@@ -657,7 +687,7 @@ switch ($action) {
             ['no' => 4, 'nik' => 'NSR-2019-004', 'nama' => 'Milda Hidayati Dewi, S.E.', 'jabatan' => 'Manager Keuangan', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Keuangan', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
             ['no' => 5, 'nik' => 'NSR-2019-005', 'nama' => 'Danny Taufik Hidayat, S.H.', 'jabatan' => 'Kepala SPM & Manager Ops', 'cabang' => 'Pusat Jakarta', 'peran' => 'REVIEWER', 'izin' => 'MAPPI-P', 'noMappi' => '15-P-03421', 'noRegister' => 'REG-PPPK-2015-081', 'masaBerlakuIzin' => '2027-12-31', 'statusPpl' => 'TERTIB'],
             ['no' => 6, 'nik' => 'NSR-2019-006', 'nama' => 'Arie Indra Permana', 'jabatan' => 'Manager Marketing', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Marketing', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
-            ['no' => 7, 'nik' => 'NSR-2019-007', 'nama' => 'Tedi Setiadi, S.T.', 'jabatan' => 'Tim Review SPM', 'cabang' => 'Pusat Jakarta', 'peran' => 'REVIEWER', 'izin' => 'MAPPI-T', 'noMappi' => '14-T-03112', 'noRegister' => 'REG-PPPK-2014-045', 'masaBerlakuIzin' => '2027-02-05', 'statusPpl' => 'TERTIB'],
+            ['no' => 7, 'nik' => 'NSR-2019-007', 'nama' => 'Tedi Setiadi, S.T.', 'jabatan' => 'Tim Review SPM', 'cabang' => 'Pusat Jakarta', 'peran' => 'REVIEWER', 'izin' => 'MAPPI-T', 'noMappi' => '14-T-03112', 'noRegister' => 'REG-PPPK-2014-045', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
             ['no' => 8, 'nik' => 'NSR-2019-008', 'nama' => 'Ricca Noer Farikha', 'jabatan' => 'Accounting & Tax', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Akuntansi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
             ['no' => 9, 'nik' => 'NSR-2019-009', 'nama' => 'Angga Malid Cahyadi', 'jabatan' => 'Tim Review SPM', 'cabang' => 'Pusat Jakarta', 'peran' => 'REVIEWER', 'izin' => 'MAPPI-P', 'noMappi' => '16-P-03554', 'noRegister' => 'REG-PPPK-2016-092', 'masaBerlakuIzin' => '2027-08-30', 'statusPpl' => 'TERTIB'],
             ['no' => 10, 'nik' => 'NSR-2019-010', 'nama' => 'Fadri Nurdin', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Pusat Jakarta', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '18-A-04021', 'noRegister' => 'REG-MAPPI-2018-110', 'masaBerlakuIzin' => '2027-06-30', 'statusPpl' => 'TERTIB'],
@@ -694,12 +724,12 @@ switch ($action) {
             ['no' => 41, 'nik' => 'NSR-MKS-2019-37', 'nama' => 'Arman Mustajab', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Makassar', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '19-A-04399', 'noRegister' => 'REG-MAPPI-2019-099', 'masaBerlakuIzin' => '2027-07-22', 'statusPpl' => 'TERTIB'],
             ['no' => 42, 'nik' => 'NSR-BDG-2020-38', 'nama' => 'Heru Kurnia', 'jabatan' => 'Business Development Cabang', 'cabang' => 'Cabang Bandung', 'peran' => 'ADMIN', 'izin' => 'Marketing', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
             ['no' => 43, 'nik' => 'NSR-BDG-2020-39', 'nama' => 'Ardi Nurmayadi, S.T.', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Bandung', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '16-P-03598', 'noRegister' => 'REG-PPPK-2016-118', 'masaBerlakuIzin' => '2027-05-10', 'statusPpl' => 'TERTIB'],
-            ['no' => 44, 'nik' => 'NSR-BDG-2020-40', 'nama' => 'Andri Kusmandana, S.Ak.', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Bandung', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '17-P-03890', 'noRegister' => 'REG-PPPK-2017-094', 'masaBerlakuIzin' => '2026-12-31', 'statusPpl' => 'TERTIB'],
+            ['no' => 44, 'nik' => 'NSR-BDG-2020-40', 'nama' => 'Andri Kusmandana, S.Ak.', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Bandung', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '17-P-03890', 'noRegister' => 'REG-PPPK-2017-094', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
             ['no' => 45, 'nik' => 'NSR-BDG-2020-41', 'nama' => 'Tiara Hurairah', 'jabatan' => 'Staf Keuangan & Kasir Cabang', 'cabang' => 'Cabang Bandung', 'peran' => 'ADMIN', 'izin' => 'Keuangan', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
             ['no' => 46, 'nik' => 'NSR-BDG-2020-42', 'nama' => 'Achmad Ilham Fauzan', 'jabatan' => 'Staf Administrasi Cabang', 'cabang' => 'Cabang Bandung', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
             ['no' => 47, 'nik' => 'NSR-BDG-2020-43', 'nama' => 'Rahmat Muhammad Hussein', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Bandung', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '20-A-04480', 'noRegister' => 'REG-MAPPI-2020-101', 'masaBerlakuIzin' => '2027-08-15', 'statusPpl' => 'TERTIB'],
             ['no' => 48, 'nik' => 'NSR-PLB-2022-44', 'nama' => 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)', 'jabatan' => 'Kepala Cabang / Rekan Berizin', 'cabang' => 'Cabang Palembang', 'peran' => 'REKAN', 'izin' => 'Izin Publik KMK', 'noMappi' => '12-S-02790', 'noRegister' => 'KMK No. P-1.18.00512', 'masaBerlakuIzin' => '2027-03-25', 'statusPpl' => 'TERTIB'],
-            ['no' => 49, 'nik' => 'NSR-PLB-2022-45', 'nama' => 'Rafdinal Ardhi', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Palembang', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '18-P-04129', 'noRegister' => 'REG-PPPK-2018-055', 'masaBerlakuIzin' => '2026-12-10', 'statusPpl' => 'PERLU_PPL'],
+            ['no' => 49, 'nik' => 'NSR-PLB-2022-45', 'nama' => 'Rafdinal Ardhi', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Palembang', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '18-P-04129', 'noRegister' => 'REG-PPPK-2018-055', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
             ['no' => 50, 'nik' => 'NSR-PLB-2022-46', 'nama' => 'Arwin Saputra', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Palembang', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '22-A-04610', 'noRegister' => 'REG-MAPPI-2022-012', 'masaBerlakuIzin' => '2027-09-01', 'statusPpl' => 'TERTIB'],
             ['no' => 51, 'nik' => 'NSR-PLB-2022-47', 'nama' => 'Hadyan Fikhri', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Palembang', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '22-A-04618', 'noRegister' => 'REG-MAPPI-2022-019', 'masaBerlakuIzin' => '2027-09-01', 'statusPpl' => 'TERTIB'],
             ['no' => 52, 'nik' => 'NSR-PLB-2022-48', 'nama' => 'M. Deo Tansila Putra', 'jabatan' => 'Staf Administrasi Cabang', 'cabang' => 'Cabang Palembang', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB']
@@ -717,7 +747,20 @@ switch ($action) {
         $evaluatedCount = 0;
         $countTertibPpl = 0;
 
-        $processedEmployees = array_map(function($emp) use ($kpiEvalMap, &$kpiBranchStats, &$sumCompositeScore, &$evaluatedCount, &$countTertibPpl) {
+        $processedEmployees = array_map(function($emp) use ($kpiEvalMap, $pplMap, &$kpiBranchStats, &$sumCompositeScore, &$evaluatedCount, &$countTertibPpl) {
+            $pplRec = $pplMap[$emp['nik']] ?? null;
+            if ($pplRec) {
+                if (!empty($pplRec['noMappi']) && $pplRec['noMappi'] !== '-') $emp['noMappi'] = $pplRec['noMappi'];
+                if (!empty($pplRec['noRegisterRmk']) && $pplRec['noRegisterRmk'] !== '-') $emp['noRegister'] = $pplRec['noRegisterRmk'];
+                if (!empty($pplRec['noIzinMenkeu']) && $pplRec['noIzinMenkeu'] !== '-') $emp['izin'] = $pplRec['noIzinMenkeu'];
+                if (!empty($pplRec['tglBerlakuIzin']) && $pplRec['tglBerlakuIzin'] !== '-') $emp['masaBerlakuIzin'] = $pplRec['tglBerlakuIzin'];
+                $emp['totalSkpTerkumpul'] = (float)($pplRec['totalSkpTerkumpul'] ?? 0);
+                $emp['targetSkpWajib'] = (float)($pplRec['targetSkpWajib'] ?? 24);
+                $emp['statusVerifikasiSpm'] = $pplRec['statusVerifikasiSpm'] ?? 'MENUNGGU_VERIFIKASI_SPM';
+                $emp['rincianSertifikat'] = $pplRec['rincianSertifikatPpl'] ?? '-';
+                $emp['catatanSpm'] = $pplRec['catatanSpm'] ?? '-';
+                $emp['statusPpl'] = ($emp['totalSkpTerkumpul'] >= $emp['targetSkpWajib']) ? 'TERTIB' : 'PERLU_PPL';
+            }
             $cab = $emp['cabang'];
             if (isset($kpiBranchStats[$cab])) {
                 $kpiBranchStats[$cab]['totalPersonel']++;
@@ -842,6 +885,7 @@ switch ($action) {
                 'kpiSummary'     => $kpiSummaryData,
                 'kpiPerCabang'   => $kpiPerCabangList,
                 'izinAlertRadar' => $izinAlertRadar,
+                'pplComplianceRecords' => array_values($pplMap),
                 'employees'      => $processedEmployees
             ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
             break;
@@ -915,6 +959,7 @@ switch ($action) {
                 'kpiPerCabang' => $kpiPerCabangList,
                 'employees' => $processedEmployees,
                 'izinAlertRadar'        => $izinAlertRadar,
+                'pplComplianceRecords' => array_values($pplMap),
                 'slaSummary'            => $bankOptimizationData['summary'],
                 'bankPerformance'       => $bankOptimizationData['bankPerformance'],
                 'nearOverdueJobs'       => $bankOptimizationData['nearOverdueJobs'],
@@ -1233,6 +1278,92 @@ switch ($action) {
                 'dievaluasiOleh'            => $evaluator,
                 'updatedAt'                 => $updatedAt
             ]
+        ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        break;
+
+    // I. SUBMIT / VERIFIKASI KEPATUHAN PPL & IZIN PENILAI (100% REAL SSOT)
+    case 'SUBMIT_PPL_RECORD':
+        $nik = trim($payload['nik'] ?? '');
+        if (empty($nik)) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'success' => false, 'error' => 'NIK personel wajib diisi.']);
+            exit;
+        }
+
+        $mode = trim($payload['mode'] ?? 'SELF_SUBMIT_PERSONEL');
+        $statusVerifikasi = ($mode === 'SPM_APPROVE_VERIFY' || ($payload['statusVerifikasiSpm'] ?? '') === 'TERVERIFIKASI_SPM')
+            ? 'TERVERIFIKASI_SPM'
+            : 'MENUNGGU_VERIFIKASI_SPM';
+
+        $newRecord = [
+            'nik'                 => $nik,
+            'nama'                => trim($payload['nama'] ?? ''),
+            'cabang'              => trim($payload['cabang'] ?? ''),
+            'jabatan'             => trim($payload['jabatan'] ?? ''),
+            'noMappi'             => trim($payload['noMappi'] ?? '-'),
+            'noRegisterRmk'       => trim($payload['noRegisterRmk'] ?? $payload['noRegister'] ?? '-'),
+            'noIzinMenkeu'        => trim($payload['noIzinMenkeu'] ?? $payload['noIzin'] ?? '-'),
+            'tglBerlakuIzin'      => trim($payload['tglBerlakuIzin'] ?? $payload['masaBerlakuIzin'] ?? '-'),
+            'totalSkpTerkumpul'   => (float)($payload['totalSkpTerkumpul'] ?? 0),
+            'targetSkpWajib'      => (float)($payload['targetSkpWajib'] ?? 24),
+            'rincianSertifikatPpl'=> trim($payload['rincianSertifikatPpl'] ?? $payload['rincianSertifikat'] ?? '-'),
+            'statusVerifikasiSpm' => $statusVerifikasi,
+            'catatanSpm'          => trim($payload['catatanSpm'] ?? $payload['catatan'] ?? '-'),
+            'dievaluasiOleh'      => trim($payload['dievaluasiOleh'] ?? 'Danny Taufik Hidayat, S.H. (Kepala SPM)'),
+            'updatedAt'           => $now
+        ];
+
+        $pplFile = $dataDir . '/ppl_compliance.json';
+        mutateJsonFileSafe($pplFile, function(&$records) use ($newRecord, $nik) {
+            if (!is_array($records)) $records = [];
+            $found = false;
+            foreach ($records as &$rec) {
+                if (($rec['nik'] ?? '') === $nik) {
+                    $rec = array_merge($rec, $newRecord);
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $records[] = $newRecord;
+            }
+            return ['success' => true];
+        });
+
+        $logFile = $dataDir . '/db-governance-audit.log';
+        $logEntry = sprintf(
+            "[%s] [PPL_RECORD_SAVED] %s (%s) | Mode: %s | Status: %s | SKP: %.0f/%.0f\n",
+            $now,
+            $newRecord['nama'],
+            $nik,
+            $mode,
+            $statusVerifikasi,
+            $newRecord['totalSkpTerkumpul'],
+            $newRecord['targetSkpWajib']
+        );
+        @file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+        echo json_encode([
+            'status'  => 'success',
+            'success' => true,
+            'message' => ($mode === 'SPM_APPROVE_VERIFY')
+                ? 'Verifikasi kepatuhan PPL & Izin Penilai oleh Kepala SPM berhasil disahkan'
+                : 'Data kepatuhan PPL & Izin Penilai berhasil diajukan dan menunggu verifikasi Kepala SPM',
+            'record'  => $newRecord
+        ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        break;
+
+    case 'GET_PPL_COMPLIANCE':
+        $pplFile = $dataDir . '/ppl_compliance.json';
+        $records = [];
+        if (file_exists($pplFile)) {
+            $c = @file_get_contents($pplFile);
+            if ($c) $records = json_decode($c, true) ?: [];
+        }
+        echo json_encode([
+            'status'  => 'success',
+            'success' => true,
+            'records' => $records
         ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
         break;
 

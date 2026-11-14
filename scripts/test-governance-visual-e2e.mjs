@@ -409,25 +409,8 @@ const server = http.createServer((req, res) => {
               tindakan: "Penawaran Khusus Paket Agunan Cabang & follow-up SPK penaksiran aset komersial syariah."
             }
           ],
-          izinAlertRadar: [
-            {
-              nama: "Rafdinal Ardhi",
-              nik: "NSR-PLB-2022-45",
-              jabatan: "Penilai Properti & Reviewer SPM",
-              cabang: "Cabang Palembang",
-              peran: "PENILAI",
-              izin: "MAPPI-P",
-              noMappi: "MAPPI-2022-P045",
-              noRegister: "REG-P-PLB-045",
-              masaBerlaku: "2026-12-31",
-              sisaHari: 47,
-              alertLevel: "H-60",
-              badgeColor: "amber",
-              statusPpl: "PERLU_PPL",
-              statusPplText: "Kurang SKP PPL (Perlu CPD)",
-              tindakan: "Kekurangan SKP PPL: Segera daftarkan pada agenda CPD / Pendidikan Berkelanjutan MAPPI sebelum akhir tahun buku."
-            }
-          ]
+          izinAlertRadar: [],
+          pplComplianceRecords: []
         }
       }
     };
@@ -436,7 +419,8 @@ const server = http.createServer((req, res) => {
     mockData.slaSummary = mockData.analytics.slaSummary;
     mockData.bankPerformance = mockData.analytics.bankPerformance;
     mockData.nearOverdueJobs = mockData.analytics.nearOverdueJobs;
-    mockData.izinAlertRadar = mockData.analytics.izinAlertRadar;
+    mockData.izinAlertRadar = [];
+    mockData.pplComplianceRecords = [];
 
     res.end(JSON.stringify(mockData));
     return;
@@ -590,6 +574,32 @@ server.listen(PORT, async () => {
     console.log('📸 Screenshot Modal Evaluasi KPI disimpan: bukti_modal_evaluasi_kpi.png');
 
     await send('Runtime.evaluate', { expression: `tutupModalEvaluasiKpi();` });
+    await new Promise(r => setTimeout(r, 400));
+
+    // Uji Buka Modal Input Mandiri & Verifikasi PPL MAPPI / Izin Penilai
+    console.log('\n--- 3c. UJI BUKA MODAL INPUT & VERIFIKASI PPL MAPPI / IZIN PENILAI ---');
+    await send('Runtime.evaluate', { expression: `bukaModalPplIzin('NSR-2019-005', 'SPM_APPROVE_VERIFY');` });
+    await new Promise(r => setTimeout(r, 600));
+
+    const evalModalPpl = await send('Runtime.evaluate', {
+      expression: `({
+        isOpen: !document.getElementById('modal-ppl-izin')?.classList.contains('hidden'),
+        selectedNik: document.getElementById('ppl-input-nik')?.value,
+        nama: document.getElementById('ppl-display-nama')?.textContent,
+        cabang: document.getElementById('ppl-display-cabang')?.textContent,
+        mode: document.getElementById('ppl-input-mode')?.value,
+        statusVerif: document.getElementById('ppl-input-status-verifikasi')?.value,
+        targetSkp: document.getElementById('ppl-input-skp-target')?.value
+      })`,
+      returnByValue: true
+    });
+    console.log('Status Modal PPL & Izin Penilai:', evalModalPpl.result.value);
+
+    const shotModalPpl = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'bukti_modal_ppl_izin.png'), Buffer.from(shotModalPpl.data, 'base64'));
+    console.log('📸 Screenshot Modal PPL & Izin Penilai disimpan: bukti_modal_ppl_izin.png');
+
+    await send('Runtime.evaluate', { expression: `tutupModalPplIzin();` });
     await new Promise(r => setTimeout(r, 400));
 
     // TAB 4: SLA Bank Rekanan & Klien

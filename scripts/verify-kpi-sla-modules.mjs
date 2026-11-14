@@ -52,6 +52,15 @@ else console.log('✓ Fungsi handleSimpanEvaluasiKpi terverifikasi');
 if (!govHtml.includes('function eksporKpiCsv(')) errors.push('Fungsi eksporKpiCsv tidak ditemukan');
 else console.log('✓ Fungsi eksporKpiCsv terverifikasi');
 
+if (!govHtml.includes('id="modal-ppl-izin"')) errors.push('Modal #modal-ppl-izin tidak ditemukan');
+else console.log('✓ Modal #modal-ppl-izin terverifikasi');
+
+if (!govHtml.includes('function bukaModalPplIzin(')) errors.push('Fungsi bukaModalPplIzin tidak ditemukan');
+else console.log('✓ Fungsi bukaModalPplIzin terverifikasi');
+
+if (!govHtml.includes('function handleSimpanPplIzin(')) errors.push('Fungsi handleSimpanPplIzin tidak ditemukan');
+else console.log('✓ Fungsi handleSimpanPplIzin terverifikasi');
+
 // C. Tab 4: SLA Bank Rekanan & Klien
 const slaCards = ['stat-sla-ontime-rate', 'stat-sla-internal-days', 'stat-sla-clockstop-days', 'stat-sla-payment-speed'];
 slaCards.forEach(id => {
@@ -140,6 +149,11 @@ if (!codeGs.includes('archiveSuratUmumToDrive') || !codeGs.includes("ARCHIVE_SUR
 } else {
   console.log('✓ Code.gs memuat archiveSuratUmumToDrive dan router ARCHIVE_SURAT_UMUM_GDRIVE');
 }
+if (!codeGs.includes('submitAndVerifyPPLRecord') || !codeGs.includes('SUBMIT_PPL_RECORD') || !codeGs.includes('GET_PPL_COMPLIANCE')) {
+  errors.push('Code.gs belum memuat submitAndVerifyPPLRecord atau aksi SUBMIT_PPL_RECORD / GET_PPL_COMPLIANCE');
+} else {
+  console.log('✓ Code.gs memuat submitAndVerifyPPLRecord dan router SUBMIT_PPL_RECORD & GET_PPL_COMPLIANCE');
+}
 
 // 3. Verifikasi backend/google-apps-script-qa-audit.gs
 const gasAudit = fs.readFileSync(path.resolve('backend/google-apps-script-qa-audit.gs'), 'utf8');
@@ -163,6 +177,11 @@ if (!gasAudit.includes('archiveSuratUmumToDrive') || !gasAudit.includes("ARCHIVE
 } else {
   console.log('✓ backend/google-apps-script-qa-audit.gs memuat archiveSuratUmumToDrive dan router ARCHIVE_SURAT_UMUM_GDRIVE');
 }
+if (!gasAudit.includes('submitAndVerifyPPLRecord') || !gasAudit.includes('SUBMIT_PPL_RECORD') || !gasAudit.includes('GET_PPL_COMPLIANCE')) {
+  errors.push('backend/google-apps-script-qa-audit.gs belum memuat submitAndVerifyPPLRecord atau aksi SUBMIT_PPL_RECORD / GET_PPL_COMPLIANCE');
+} else {
+  console.log('✓ backend/google-apps-script-qa-audit.gs memuat submitAndVerifyPPLRecord dan router SUBMIT_PPL_RECORD & GET_PPL_COMPLIANCE');
+}
 
 // 4. Verifikasi governance-data-handler.php
 const phpContent = fs.readFileSync(path.resolve('governance-data-handler.php'), 'utf8');
@@ -175,6 +194,11 @@ if (!phpContent.includes('SAVE_EMPLOYEE_KPI_EVAL')) {
   errors.push('governance-data-handler.php belum memuat aksi SAVE_EMPLOYEE_KPI_EVAL');
 } else {
   console.log('✓ governance-data-handler.php memuat case SAVE_EMPLOYEE_KPI_EVAL');
+}
+if (!phpContent.includes('SUBMIT_PPL_RECORD') || !phpContent.includes('GET_PPL_COMPLIANCE')) {
+  errors.push('governance-data-handler.php belum memuat aksi SUBMIT_PPL_RECORD atau GET_PPL_COMPLIANCE');
+} else {
+  console.log('✓ governance-data-handler.php memuat case SUBMIT_PPL_RECORD dan GET_PPL_COMPLIANCE');
 }
 if (!phpContent.includes('ARCHIVE_SURAT_UMUM_GDRIVE')) {
   errors.push('governance-data-handler.php belum memuat aksi ARCHIVE_SURAT_UMUM_GDRIVE');

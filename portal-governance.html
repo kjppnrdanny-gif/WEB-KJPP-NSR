@@ -675,9 +675,15 @@
               Peringatan dini berjenjang (H-90, H-60, H-30, &amp; Kedaluwarsa) untuk Penilai Publik, Rekan, dan Tenaga Teknis berizin KMK RI.
             </p>
           </div>
-          <span id="stat-kpi-radar-count" class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-slate-950 border border-slate-800 text-amber-300 shrink-0">
-            0 Personel Butuh Perhatian
-          </span>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="bukaModalPplIzin()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/10 transition cursor-pointer">
+              <i class="fa-solid fa-file-circle-plus"></i>
+              <span>Input / Update Data PPL &amp; Izin Penilai</span>
+            </button>
+            <span id="stat-kpi-radar-count" class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-slate-950 border border-slate-800 text-amber-300 shrink-0">
+              0 Personel Butuh Perhatian
+            </span>
+          </div>
         </div>
 
         <div id="container-izin-alert-radar" class="space-y-3">
@@ -769,6 +775,25 @@
     <!-- TAB 4: SLA BANK REKANAN & KLIEN (PERFORMA KEMITRAAN & EARLY WARNING)       -->
     <!-- ========================================================================= -->
     <div id="tab-content-sla-klien" class="hidden space-y-6">
+
+      <!-- Quick Action Toolbar Tab 4: Navigasi Cepat & Input PPL -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900 border border-slate-800 shadow-md">
+        <div class="flex items-center gap-2.5 text-xs text-slate-300">
+          <div class="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+            <i class="fa-solid fa-scale-balanced"></i>
+          </div>
+          <div>
+            <span class="font-bold text-white block">Pemantauan SLA Rekanan &amp; Kepatuhan Profesi Penilai</span>
+            <span class="text-[11px] text-slate-400">Sinergi ketepatan waktu laporan dan validitas izin penilai KMK RI &amp; PPL MAPPI</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="switchGovTab('kpi'); bukaModalPplIzin();" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer">
+            <i class="fa-solid fa-id-card-clip"></i>
+            <span>Input / Update Data PPL &amp; Izin Penilai</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Baris 1: 4 Kartu Metrik SLA Rekanan Eksekutif -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1580,6 +1605,174 @@
             <button type="submit" id="btn-simpan-evaluasi-kpi" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold inline-flex items-center gap-1.5 shadow-lg transition cursor-pointer">
               <i class="fa-solid fa-cloud-arrow-up"></i>
               <span>Simpan Evaluasi KPI</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INPUT MANDIRI & VERIFIKASI KEPALA SPM: PPL MAPPI & IZIN PENILAI -->
+  <div id="modal-ppl-izin" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-2xl text-xs text-white shadow-2xl relative my-6 max-h-[92vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/70 rounded-t-2xl">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg shrink-0">
+            <i class="fa-solid fa-id-card-clip"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              Kepatuhan Izin Penilai &amp; Sertifikasi PPL MAPPI
+            </h3>
+            <p class="text-[11px] text-slate-400">
+              Sistem Single Source of Truth (SSOT) Kepatuhan Regulasi KMK RI &amp; Standar Asosiasi MAPPI
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="tutupModalPplIzin()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        <form id="form-ppl-izin" onsubmit="handleSimpanPplIzin(event)" class="space-y-4">
+          <!-- Mode Selector Pill -->
+          <div>
+            <label class="block text-slate-300 mb-1.5 font-semibold">Pilih Mode Input / Verifikasi:</label>
+            <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800">
+              <button type="button" id="btn-mode-self" onclick="setModePplIzin('SELF_SUBMIT_PERSONEL')" class="py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow cursor-pointer">
+                <i class="fa-solid fa-user-pen"></i> Input Mandiri Personel
+              </button>
+              <button type="button" id="btn-mode-spm" onclick="setModePplIzin('SPM_APPROVE_VERIFY')" class="py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+                <i class="fa-solid fa-shield-halved"></i> Verifikasi Kepala SPM
+              </button>
+            </div>
+            <input type="hidden" id="ppl-input-mode" value="SELF_SUBMIT_PERSONEL">
+          </div>
+
+          <!-- Personel Selection -->
+          <div>
+            <label class="block text-slate-300 mb-1 font-semibold">Pilih Personel Terdaftar (52 Personel) <span class="text-rose-400">*</span></label>
+            <select id="ppl-input-nik" onchange="onPplPersonelChange()" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-500">
+              <option value="">-- Pilih Nama / NIK Personel --</option>
+            </select>
+          </div>
+
+          <!-- Personel Profile Summary -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 text-[11px]">
+            <div>
+              <span class="text-slate-500 block">Nama Lengkap:</span>
+              <span id="ppl-display-nama" class="font-bold text-slate-200">-</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Kantor Cabang:</span>
+              <span id="ppl-display-cabang" class="font-bold text-amber-400">-</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Jabatan &amp; Peran:</span>
+              <span id="ppl-display-jabatan" class="font-bold text-slate-300">-</span>
+            </div>
+          </div>
+
+          <!-- Izin Legalitas Section -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <h4 class="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-2">
+              <i class="fa-solid fa-stamp"></i> Izin Profesi &amp; Registrasi PPPK Kemenkeu RI
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-slate-400 mb-1">Nomor Anggota MAPPI</label>
+                <input type="text" id="ppl-input-no-mappi" placeholder="Contoh: 18-P-04129" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Nomor Register RMK / PPPK</label>
+                <input type="text" id="ppl-input-no-rmk" placeholder="Contoh: REG-PPPK-2018-055" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Nomor Izin KMK (Rekan / Publik)</label>
+                <input type="text" id="ppl-input-no-izin" placeholder="Contoh: KMK No. P-1.15.00412" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-500">
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Tanggal Berakhir Masa Berlaku Izin <span class="text-rose-400">*</span></label>
+              <input type="date" id="ppl-input-tgl-izin" oninput="hitungPreviewPpl()" required class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-500">
+              <p class="text-[10px] text-slate-500 mt-1">Sistem otomatis mendeteksi status H-90, H-60, H-30, atau Kedaluwarsa dari tanggal ini.</p>
+            </div>
+          </div>
+
+          <!-- Kepatuhan PPL & SKP Section -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <h4 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-2">
+              <i class="fa-solid fa-graduation-cap"></i> Kepatuhan PPL &amp; Poin SKP MAPPI
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-slate-400 mb-1">Total Poin SKP Terkumpul (Tahun Berjalan) <span class="text-rose-400">*</span></label>
+                <input type="number" id="ppl-input-skp-terkumpul" min="0" max="200" step="1" value="0" required oninput="hitungPreviewPpl()" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono font-bold text-xs focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Target Poin SKP Wajib Tahunan</label>
+                <input type="number" id="ppl-input-skp-target" min="1" max="200" step="1" value="24" required oninput="hitungPreviewPpl()" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-500">
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Judul &amp; Nomor Sertifikat Pelatihan PPL Terakhir</label>
+              <textarea id="ppl-input-rincian-sertifikat" rows="2" placeholder="Contoh: Workshop Penilaian Properti Komersial Berkelanjutan - No. Sertifikat: MAPPI-CPD/2026/XI/088 (8 SKP)" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+          </div>
+
+          <!-- Status Verifikasi & Catatan SPM Section -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-2">
+              <i class="fa-solid fa-clipboard-check"></i> Pengesahan Verifikasi Kepala SPM
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-slate-400 mb-1">Status Verifikasi</label>
+                <select id="ppl-input-status-verifikasi" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-500">
+                  <option value="MENUNGGU_VERIFIKASI_SPM">MENUNGGU_VERIFIKASI_SPM (Menunggu Cek Dokumen)</option>
+                  <option value="TERVERIFIKASI_SPM">TERVERIFIKASI_SPM (Disahkan Kepala SPM)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Pejabat Verifikator / Evaluator</label>
+                <input type="text" id="ppl-input-evaluator" value="Danny Taufik Hidayat, S.H. (Kepala SPM)" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 text-xs">
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Catatan Verifikasi / Tindakan SPM</label>
+              <textarea id="ppl-input-catatan-spm" rows="2" placeholder="Catatan hasil verifikasi keabsahan sertifikat PPL atau rekomendasi pembinaan..." class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+          </div>
+
+          <!-- Live Compliance Preview -->
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-0.5">
+              <span class="text-[11px] text-slate-400 block font-mono">Live Status Kepatuhan:</span>
+              <div id="ppl-preview-status-text" class="text-xs text-slate-300">
+                Lengkapi tanggal berakhir izin &amp; poin SKP untuk melihat kalkulasi otomatis.
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span id="ppl-preview-badge-izin" class="px-2.5 py-1 rounded-lg text-xs font-bold font-mono bg-slate-900 text-slate-400 border border-slate-800">
+                STATUS IZIN: -
+              </span>
+              <span id="ppl-preview-badge-skp" class="px-2.5 py-1 rounded-lg text-xs font-bold font-mono bg-slate-900 text-slate-400 border border-slate-800">
+                SKP: -
+              </span>
+            </div>
+          </div>
+
+          <!-- Modal Action Buttons -->
+          <div class="flex justify-end gap-2.5 pt-2 border-t border-slate-800 shrink-0">
+            <button type="button" onclick="tutupModalPplIzin()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition cursor-pointer">
+              Batal
+            </button>
+            <button type="submit" id="btn-simpan-ppl-izin" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold inline-flex items-center gap-1.5 shadow-lg transition cursor-pointer">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span id="btn-simpan-ppl-text">Simpan &amp; Sinkronkan ke SSOT</span>
             </button>
           </div>
         </form>
@@ -2588,7 +2781,7 @@
       { no: 4, nik: "NSR-2019-004", nama: "Milda Hidayati Dewi, S.E.", jabatan: "Manager Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 4, totalJo: 0 },
       { no: 5, nik: "NSR-2019-005", nama: "Danny Taufik Hidayat, S.H.", jabatan: "Kepala SPM & Manager Ops", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 5, totalJo: 0 },
       { no: 6, nik: "NSR-2019-006", nama: "Arie Indra Permana", jabatan: "Manager Marketing", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 6, totalJo: 0 },
-      { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 7, totalJo: 0 },
+      { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", masaBerlakuIzin: "-", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 7, totalJo: 0 },
       { no: 8, nik: "NSR-2019-008", nama: "Ricca Noer Farikha", jabatan: "Accounting & Tax", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Akuntansi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 8, totalJo: 0 },
       { no: 9, nik: "NSR-2019-009", nama: "Angga Malid Cahyadi", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 9, totalJo: 0 },
       { no: 10, nik: "NSR-2019-010", nama: "Fadri Nurdin", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 10, totalJo: 0 },
@@ -2625,12 +2818,12 @@
       { no: 41, nik: "NSR-MKS-2019-37", nama: "Arman Mustajab", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 41, totalJo: 0 },
       { no: 42, nik: "NSR-BDG-2020-38", nama: "Heru Kurnia", jabatan: "Business Development Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 42, totalJo: 0 },
       { no: 43, nik: "NSR-BDG-2020-39", nama: "Ardi Nurmayadi, S.T.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 43, totalJo: 0 },
-      { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 44, totalJo: 0 },
+      { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", masaBerlakuIzin: "-", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 44, totalJo: 0 },
       { no: 45, nik: "NSR-BDG-2020-41", nama: "Tiara Hurairah", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 45, totalJo: 0 },
       { no: 46, nik: "NSR-BDG-2020-42", nama: "Achmad Ilham Fauzan", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 46, totalJo: 0 },
       { no: 47, nik: "NSR-BDG-2020-43", nama: "Rahmat Muhammad Hussein", jabatan: "Surveyor Lapangan", cabang: "Cabang Bandung", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 47, totalJo: 0 },
       { no: 48, nik: "NSR-PLB-2022-44", nama: "Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Palembang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 48, totalJo: 0 },
-      { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "PERLU_PPL", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 49, totalJo: 0 },
+      { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", masaBerlakuIzin: "-", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 49, totalJo: 0 },
       { no: 50, nik: "NSR-PLB-2022-46", nama: "Arwin Saputra", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 50, totalJo: 0 },
       { no: 51, nik: "NSR-PLB-2022-47", nama: "Hadyan Fikhri", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 51, totalJo: 0 },
       { no: 52, nik: "NSR-PLB-2022-48", nama: "M. Deo Tansila Putra", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Palembang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 52, totalJo: 0 }
@@ -2762,29 +2955,60 @@
       currentKpiEmployeeList = rawEmployees;
       renderKpiTable(currentKpiEmployeeList);
 
-      // 4. Render Radar Masa Berlaku Izin Penilai & Kepatuhan PPL MAPPI
+      // 4. Render Radar Masa Berlaku Izin Penilai & Kepatuhan PPL MAPPI (100% Real SSOT)
       let radarList = data.izinAlertRadar || an.izinAlertRadar || [];
-      if (!radarList || radarList.length === 0) {
-        const fallbackAlerts = rawEmployees.filter(e => e.statusPpl === 'PERLU_PPL' || (e.alertLevelIzin && e.alertLevelIzin !== 'AMAN'));
-        if (fallbackAlerts.length > 0) {
-          radarList = fallbackAlerts.map(e => ({
-            nama: e.nama,
-            nik: e.nik,
-            jabatan: e.jabatan,
-            cabang: e.cabang,
-            peran: e.peran,
-            izin: e.izin,
-            noMappi: e.noMappi || 'MAPPI-P',
-            noRegister: e.noRegister || '-',
-            masaBerlaku: e.masaBerlakuIzin || '2026-12-31',
-            sisaHari: e.sisaHariIzin || 47,
-            alertLevel: e.alertLevelIzin || 'PERLU_PPL',
-            badgeColor: 'amber',
-            statusPpl: e.statusPpl,
-            statusPplText: e.statusPpl === 'TERTIB' ? 'Tertib PPL (≥24 SKP)' : 'Kurang SKP PPL (Perlu CPD)',
-            tindakan: 'Kekurangan SKP PPL: Segera daftarkan pada agenda CPD / Pendidikan Berkelanjutan MAPPI sebelum akhir tahun buku.'
-          }));
-        }
+      if ((!radarList || radarList.length === 0) && typeof localStorage !== 'undefined') {
+        try {
+          const localPpl = JSON.parse(localStorage.getItem('kjpp_ppl_records') || '[]');
+          if (localPpl.length > 0) {
+            const nowTs = Date.now();
+            localPpl.forEach(rec => {
+              const tgl = rec.tglBerlakuIzin || rec.masaBerlaku || '-';
+              let sDays = 365;
+              let aLevel = 'AMAN';
+              let bColor = 'emerald';
+              let act = 'Kepatuhan lisensi aktif & tertib.';
+              if (tgl && tgl !== '-') {
+                const d = new Date(tgl);
+                if (!isNaN(d.getTime())) {
+                  sDays = Math.ceil((d.getTime() - nowTs) / (86400 * 1000));
+                  if (sDays < 0) { aLevel = 'EXPIRED'; bColor = 'rose'; act = 'Izin telah kedaluwarsa. Hentikan penandatanganan laporan penilaian dan ajukan perpanjangan izin ke PPPK Kemenkeu segera.'; }
+                  else if (sDays <= 30) { aLevel = 'H-30'; bColor = 'rose'; act = 'Prioritas Kritis (H-30): Segera lengkapi berkas SKP PPL & ajukan permohonan pembaruan izin/KTA ke asosiasi MAPPI.'; }
+                  else if (sDays <= 60) { aLevel = 'H-60'; bColor = 'amber'; act = 'Peringatan H-60: Jadwalkan verifikasi pemenuhan SKP PPL tahunan dan siapkan dokumen registrasi ulang.'; }
+                  else if (sDays <= 90) { aLevel = 'H-90'; bColor = 'sky'; act = 'Pemberitahuan H-90: Cek kecukupan poin SKP PPL MAPPI dan rekapitulasi laporan berkala penilai.'; }
+                }
+              }
+              const tSkp = parseFloat(rec.totalSkpTerkumpul) || 0;
+              const wSkp = parseFloat(rec.targetSkpWajib) || 24;
+              const stPpl = (tSkp >= wSkp) ? 'TERTIB' : 'PERLU_PPL';
+              if (stPpl === 'PERLU_PPL' && aLevel === 'AMAN') { aLevel = 'PERLU_PPL'; bColor = 'amber'; act = 'Kekurangan SKP PPL: Segera daftarkan pada agenda CPD / Pendidikan Berkelanjutan MAPPI sebelum akhir tahun buku.'; }
+              if (aLevel !== 'AMAN') {
+                radarList.push({
+                  nama: rec.nama,
+                  nik: rec.nik,
+                  jabatan: rec.jabatan || 'Penilai Properti',
+                  cabang: rec.cabang || 'Pusat Jakarta',
+                  peran: rec.peran || 'PENILAI',
+                  izin: rec.noIzinMenkeu || rec.izin || '-',
+                  noMappi: rec.noMappi || '-',
+                  noRegister: rec.noRegisterRmk || rec.noRegister || '-',
+                  masaBerlaku: tgl,
+                  sisaHari: sDays,
+                  alertLevel: aLevel,
+                  badgeColor: bColor,
+                  statusPpl: stPpl,
+                  totalSkpTerkumpul: tSkp,
+                  targetSkpWajib: wSkp,
+                  statusPplText: (stPpl === 'TERTIB') ? `Tertib PPL (≥${wSkp} SKP)` : `Kurang ${wSkp - tSkp} SKP (Perlu CPD)`,
+                  statusVerifikasiSpm: rec.statusVerifikasiSpm || 'MENUNGGU_VERIFIKASI_SPM',
+                  rincianSertifikat: rec.rincianSertifikatPpl || '-',
+                  catatanSpm: rec.catatanSpm || '-',
+                  tindakan: act
+                });
+              }
+            });
+          }
+        } catch (_) {}
       }
       renderIzinAlertRadar(radarList);
     }
@@ -3151,6 +3375,402 @@
       tampilkanNotifikasi(`Rapor KPI SDM (${currentSelectedPeriode}) berhasil diekspor ke CSV!`, 'success');
     }
 
+
+    // =========================================================================
+    // MODUL MODAL INPUT MANDIRI & VERIFIKASI KEPALA SPM (PPL MAPPI & IZIN)
+    // =========================================================================
+    let currentPplTargetNik = '';
+    let currentPplMode = 'SELF_SUBMIT_PERSONEL';
+
+    function setModePplIzin(mode) {
+      currentPplMode = mode;
+      const inputMode = document.getElementById('ppl-input-mode');
+      const btnSelf = document.getElementById('btn-mode-self');
+      const btnSpm = document.getElementById('btn-mode-spm');
+      const selectStatus = document.getElementById('ppl-input-status-verifikasi');
+      const btnSubmitText = document.getElementById('btn-simpan-ppl-text');
+
+      if (inputMode) inputMode.value = mode;
+
+      if (mode === 'SPM_APPROVE_VERIFY') {
+        if (btnSpm) btnSpm.className = 'py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 shadow cursor-pointer';
+        if (btnSelf) btnSelf.className = 'py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer';
+        if (selectStatus) selectStatus.value = 'TERVERIFIKASI_SPM';
+        if (btnSubmitText) btnSubmitText.textContent = 'Sahkan Verifikasi SPM';
+      } else {
+        if (btnSelf) btnSelf.className = 'py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow cursor-pointer';
+        if (btnSpm) btnSpm.className = 'py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer';
+        if (selectStatus) selectStatus.value = 'MENUNGGU_VERIFIKASI_SPM';
+        if (btnSubmitText) btnSubmitText.textContent = 'Ajukan Data PPL Personel';
+      }
+    }
+
+    function bukaModalPplIzin(nikTarget, mode) {
+      const modal = document.getElementById('modal-ppl-izin');
+      const selectNik = document.getElementById('ppl-input-nik');
+      if (!modal || !selectNik) return;
+
+      // Populate opsi personel jika belum ada
+      if (selectNik.options.length <= 1) {
+        const empList = (activeGovData && activeGovData.employees && activeGovData.employees.length > 0)
+          ? activeGovData.employees
+          : MASTER_52_CLIENT_FALLBACK;
+
+        selectNik.innerHTML = '<option value="">-- Pilih Nama / NIK Personel --</option>' + empList.map(e => {
+          return `<option value="${escapeHtml(e.nik)}">${escapeHtml(e.nama)} (${escapeHtml(e.nik)} - ${escapeHtml(e.cabang)})</option>`;
+        }).join('');
+      }
+
+      setModePplIzin(mode || 'SELF_SUBMIT_PERSONEL');
+
+      if (nikTarget) {
+        selectNik.value = nikTarget;
+        onPplPersonelChange();
+      } else {
+        selectNik.value = '';
+        onPplPersonelChange();
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function tutupModalPplIzin() {
+      const modal = document.getElementById('modal-ppl-izin');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function onPplPersonelChange() {
+      const selectNik = document.getElementById('ppl-input-nik');
+      const nik = selectNik ? selectNik.value : '';
+      currentPplTargetNik = nik;
+
+      const dispNama = document.getElementById('ppl-display-nama');
+      const dispCabang = document.getElementById('ppl-display-cabang');
+      const dispJabatan = document.getElementById('ppl-display-jabatan');
+      const inMappi = document.getElementById('ppl-input-no-mappi');
+      const inRmk = document.getElementById('ppl-input-no-rmk');
+      const inIzin = document.getElementById('ppl-input-no-izin');
+      const inTgl = document.getElementById('ppl-input-tgl-izin');
+      const inSkp = document.getElementById('ppl-input-skp-terkumpul');
+      const inTarget = document.getElementById('ppl-input-skp-target');
+      const inCert = document.getElementById('ppl-input-rincian-sertifikat');
+      const inCatatan = document.getElementById('ppl-input-catatan-spm');
+      const inStatus = document.getElementById('ppl-input-status-verifikasi');
+
+      if (!nik) {
+        if (dispNama) dispNama.textContent = '-';
+        if (dispCabang) dispCabang.textContent = '-';
+        if (dispJabatan) dispJabatan.textContent = '-';
+        hitungPreviewPpl();
+        return;
+      }
+
+      const empList = (activeGovData && activeGovData.employees && activeGovData.employees.length > 0)
+        ? activeGovData.employees
+        : MASTER_52_CLIENT_FALLBACK;
+      const emp = empList.find(e => e.nik === nik) || {};
+
+      if (dispNama) dispNama.textContent = emp.nama || '-';
+      if (dispCabang) dispCabang.textContent = emp.cabang || '-';
+      if (dispJabatan) dispJabatan.textContent = (emp.jabatan || '-') + ' (' + (emp.peran || '-') + ')';
+
+      // Cek apakah ada record di pplComplianceRecords
+      let pplRec = null;
+      if (activeGovData && Array.isArray(activeGovData.pplComplianceRecords)) {
+        pplRec = activeGovData.pplComplianceRecords.find(p => p.nik === nik);
+      }
+      if (!pplRec && typeof localStorage !== 'undefined') {
+        try {
+          const localRecords = JSON.parse(localStorage.getItem('kjpp_ppl_records') || '[]');
+          pplRec = localRecords.find(p => p.nik === nik);
+        } catch (_) {}
+      }
+
+      if (inMappi) inMappi.value = (pplRec && pplRec.noMappi) ? pplRec.noMappi : (emp.noMappi && emp.noMappi !== '-' ? emp.noMappi : '');
+      if (inRmk) inRmk.value = (pplRec && pplRec.noRegisterRmk) ? pplRec.noRegisterRmk : (emp.noRegister && emp.noRegister !== '-' ? emp.noRegister : '');
+      if (inIzin) inIzin.value = (pplRec && pplRec.noIzinMenkeu) ? pplRec.noIzinMenkeu : (emp.izin && emp.izin !== '-' ? emp.izin : '');
+      if (inTgl) inTgl.value = (pplRec && pplRec.tglBerlakuIzin && pplRec.tglBerlakuIzin !== '-') ? pplRec.tglBerlakuIzin : (emp.masaBerlakuIzin && emp.masaBerlakuIzin !== '-' ? emp.masaBerlakuIzin : '');
+      if (inSkp) inSkp.value = (pplRec && pplRec.totalSkpTerkumpul !== undefined) ? pplRec.totalSkpTerkumpul : 0;
+      if (inTarget) inTarget.value = (pplRec && pplRec.targetSkpWajib) ? pplRec.targetSkpWajib : 24;
+      if (inCert) inCert.value = (pplRec && pplRec.rincianSertifikatPpl && pplRec.rincianSertifikatPpl !== '-') ? pplRec.rincianSertifikatPpl : '';
+      if (inCatatan) inCatatan.value = (pplRec && pplRec.catatanSpm && pplRec.catatanSpm !== '-') ? pplRec.catatanSpm : '';
+      if (inStatus && pplRec && pplRec.statusVerifikasiSpm) inStatus.value = pplRec.statusVerifikasiSpm;
+
+      hitungPreviewPpl();
+    }
+
+    function hitungPreviewPpl() {
+      const inTgl = document.getElementById('ppl-input-tgl-izin');
+      const inSkp = document.getElementById('ppl-input-skp-terkumpul');
+      const inTarget = document.getElementById('ppl-input-skp-target');
+      const previewText = document.getElementById('ppl-preview-status-text');
+      const badgeIzin = document.getElementById('ppl-preview-badge-izin');
+      const badgeSkp = document.getElementById('ppl-preview-badge-skp');
+
+      const tglVal = inTgl ? inTgl.value : '';
+      const skpVal = inSkp ? (parseFloat(inSkp.value) || 0) : 0;
+      const targetVal = inTarget ? (parseFloat(inTarget.value) || 24) : 24;
+
+      let sisaHari = 365;
+      let alertLevel = 'AMAN';
+      let badgeClassIzin = 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40';
+
+      if (tglVal) {
+        const expDate = new Date(tglVal);
+        if (!isNaN(expDate.getTime())) {
+          const now = new Date();
+          sisaHari = Math.ceil((expDate.getTime() - now.getTime()) / (86400 * 1000));
+          if (sisaHari < 0) {
+            alertLevel = 'EXPIRED';
+            badgeClassIzin = 'bg-rose-950/80 text-rose-300 border-rose-500/50 animate-pulse';
+          } else if (sisaHari <= 30) {
+            alertLevel = `H-30 (${sisaHari} Hari)`;
+            badgeClassIzin = 'bg-rose-950/80 text-rose-300 border-rose-500/40';
+          } else if (sisaHari <= 60) {
+            alertLevel = `H-60 (${sisaHari} Hari)`;
+            badgeClassIzin = 'bg-amber-950/80 text-amber-300 border-amber-500/40';
+          } else if (sisaHari <= 90) {
+            alertLevel = `H-90 (${sisaHari} Hari)`;
+            badgeClassIzin = 'bg-sky-950/80 text-sky-300 border-sky-500/40';
+          } else {
+            alertLevel = `AMAN (${sisaHari} Hari)`;
+            badgeClassIzin = 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40';
+          }
+        }
+      }
+
+      const isSkpCukup = (skpVal >= targetVal);
+      const badgeClassSkp = isSkpCukup
+        ? 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40'
+        : 'bg-amber-950/80 text-amber-300 border-amber-500/40';
+
+      if (badgeIzin) {
+        badgeIzin.textContent = 'IZIN: ' + alertLevel;
+        badgeIzin.className = `px-2.5 py-1 rounded-lg text-xs font-bold font-mono border ${badgeClassIzin}`;
+      }
+
+      if (badgeSkp) {
+        badgeSkp.textContent = `SKP: ${skpVal}/${targetVal} (${isSkpCukup ? 'TERTIB' : 'PERLU_PPL'})`;
+        badgeSkp.className = `px-2.5 py-1 rounded-lg text-xs font-bold font-mono border ${badgeClassSkp}`;
+      }
+
+      if (previewText) {
+        if (!tglVal && skpVal === 0) {
+          previewText.innerHTML = '<span class="text-slate-400">Pilih personel dan masukkan tanggal masa berlaku izin untuk melihat status real-time.</span>';
+        } else {
+          const statusRingkas = (alertLevel === 'AMAN' && isSkpCukup)
+            ? '<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Kepatuhan Lisensi Tertib Penuh</span>'
+            : '<span class="text-amber-400 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Perlu Tindakan / Pembinaan SPM</span>';
+          previewText.innerHTML = `${statusRingkas} — Izin berlaku sampai ${tglVal || '-'} (${alertLevel}), SKP terkumpul: ${skpVal}/${targetVal} SKP.`;
+        }
+      }
+    }
+
+    async function handleSimpanPplIzin(event) {
+      if (event) event.preventDefault();
+
+      const nik = document.getElementById('ppl-input-nik')?.value;
+      if (!nik) {
+        tampilkanNotifikasi('Silakan pilih personel terlebih dahulu!', 'error');
+        return;
+      }
+
+      const empList = (activeGovData && activeGovData.employees && activeGovData.employees.length > 0)
+        ? activeGovData.employees
+        : MASTER_52_CLIENT_FALLBACK;
+      const emp = empList.find(e => e.nik === nik) || {};
+
+      const mode = document.getElementById('ppl-input-mode')?.value || 'SELF_SUBMIT_PERSONEL';
+      const noMappi = document.getElementById('ppl-input-no-mappi')?.value || '-';
+      const noRmk = document.getElementById('ppl-input-no-rmk')?.value || '-';
+      const noIzin = document.getElementById('ppl-input-no-izin')?.value || '-';
+      const tglIzin = document.getElementById('ppl-input-tgl-izin')?.value || '-';
+      const totalSkp = parseFloat(document.getElementById('ppl-input-skp-terkumpul')?.value) || 0;
+      const targetSkp = parseFloat(document.getElementById('ppl-input-skp-target')?.value) || 24;
+      const rincianCert = document.getElementById('ppl-input-rincian-sertifikat')?.value || '-';
+      const statusVerif = document.getElementById('ppl-input-status-verifikasi')?.value || 'MENUNGGU_VERIFIKASI_SPM';
+      const catatanSpm = document.getElementById('ppl-input-catatan-spm')?.value || '-';
+      const evaluator = document.getElementById('ppl-input-evaluator')?.value || 'Danny Taufik Hidayat, S.H. (Kepala SPM)';
+
+      const payload = {
+        action: 'SUBMIT_PPL_RECORD',
+        mode: mode,
+        nik: nik,
+        nama: emp.nama || document.getElementById('ppl-display-nama')?.textContent || '',
+        cabang: emp.cabang || document.getElementById('ppl-display-cabang')?.textContent || '',
+        jabatan: emp.jabatan || document.getElementById('ppl-display-jabatan')?.textContent || '',
+        noMappi: noMappi,
+        noRegisterRmk: noRmk,
+        noIzinMenkeu: noIzin,
+        tglBerlakuIzin: tglIzin,
+        totalSkpTerkumpul: totalSkp,
+        targetSkpWajib: targetSkp,
+        rincianSertifikatPpl: rincianCert,
+        statusVerifikasiSpm: statusVerif,
+        catatanSpm: catatanSpm,
+        dievaluasiOleh: evaluator,
+        timestamp: new Date().toISOString()
+      };
+
+      const btnSubmit = document.getElementById('btn-simpan-ppl-izin');
+      const origHtml = btnSubmit ? btnSubmit.innerHTML : '';
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menyimpan ke SSOT...';
+      }
+
+      let saveSuccess = false;
+
+      // 1. Kirim ke SSOT Google Apps Script (Production Web App)
+      try {
+        const gasResp = await fetch(GAS_GOVERNANCE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const gasJson = await gasResp.json();
+        if (gasJson && (gasJson.status === 'success' || gasJson.success)) {
+          saveSuccess = true;
+        }
+      } catch (gasErr) {
+        console.warn('Gagal simpan ke GAS SSOT, mencoba fallback backend lokal:', gasErr);
+      }
+
+      // 2. Fallback ke backend lokal jika GAS belum merespons
+      if (!saveSuccess) {
+        try {
+          const locResp = await fetch(URL_BACKEND + '?action=SUBMIT_PPL_RECORD', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const locJson = await locResp.json();
+          if (locJson && (locJson.status === 'success' || locJson.success)) {
+            saveSuccess = true;
+          }
+        } catch (locErr) {
+          console.warn('Backend lokal juga gagal:', locErr);
+        }
+      }
+
+      // 3. Simpan ke local state & localStorage (agar UI langsung reaktif)
+      if (typeof localStorage !== 'undefined') {
+        try {
+          let localRecords = JSON.parse(localStorage.getItem('kjpp_ppl_records') || '[]');
+          const idx = localRecords.findIndex(r => r.nik === nik);
+          if (idx !== -1) {
+            localRecords[idx] = Object.assign({}, localRecords[idx], payload);
+          } else {
+            localRecords.push(payload);
+          }
+          localStorage.setItem('kjpp_ppl_records', JSON.stringify(localRecords));
+        } catch (_) {}
+      }
+
+      if (!activeGovData) activeGovData = {};
+      if (!Array.isArray(activeGovData.pplComplianceRecords)) activeGovData.pplComplianceRecords = [];
+      const recIdx = activeGovData.pplComplianceRecords.findIndex(r => r.nik === nik);
+      if (recIdx !== -1) {
+        activeGovData.pplComplianceRecords[recIdx] = Object.assign({}, activeGovData.pplComplianceRecords[recIdx], payload);
+      } else {
+        activeGovData.pplComplianceRecords.push(payload);
+      }
+
+      // Hitung ulang izinAlertRadar dari data nyata
+      const nowTs = Date.now();
+      const updatedRadar = [];
+      activeGovData.pplComplianceRecords.forEach(rec => {
+        const tgl = rec.tglBerlakuIzin || rec.masaBerlaku || '-';
+        let sDays = 365;
+        let aLevel = 'AMAN';
+        let bColor = 'emerald';
+        let act = 'Kepatuhan lisensi aktif & tertib.';
+
+        if (tgl && tgl !== '-') {
+          const d = new Date(tgl);
+          if (!isNaN(d.getTime())) {
+            sDays = Math.ceil((d.getTime() - nowTs) / (86400 * 1000));
+            if (sDays < 0) {
+              aLevel = 'EXPIRED';
+              bColor = 'rose';
+              act = 'Izin telah kedaluwarsa. Hentikan penandatanganan laporan penilaian dan ajukan perpanjangan izin ke PPPK Kemenkeu segera.';
+            } else if (sDays <= 30) {
+              aLevel = 'H-30';
+              bColor = 'rose';
+              act = 'Prioritas Kritis (H-30): Segera lengkapi berkas SKP PPL & ajukan permohonan pembaruan izin/KTA ke asosiasi MAPPI.';
+            } else if (sDays <= 60) {
+              aLevel = 'H-60';
+              bColor = 'amber';
+              act = 'Peringatan H-60: Jadwalkan verifikasi pemenuhan SKP PPL tahunan dan siapkan dokumen registrasi ulang.';
+            } else if (sDays <= 90) {
+              aLevel = 'H-90';
+              bColor = 'sky';
+              act = 'Pemberitahuan H-90: Cek kecukupan poin SKP PPL MAPPI dan rekapitulasi laporan berkala penilai.';
+            }
+          }
+        }
+
+        const tSkp = parseFloat(rec.totalSkpTerkumpul) || 0;
+        const wSkp = parseFloat(rec.targetSkpWajib) || 24;
+        const stPpl = (tSkp >= wSkp) ? 'TERTIB' : 'PERLU_PPL';
+
+        if (stPpl === 'PERLU_PPL' && aLevel === 'AMAN') {
+          aLevel = 'PERLU_PPL';
+          bColor = 'amber';
+          act = 'Kekurangan SKP PPL: Segera daftarkan pada agenda CPD / Pendidikan Berkelanjutan MAPPI sebelum akhir tahun buku.';
+        }
+
+        if (aLevel !== 'AMAN') {
+          updatedRadar.push({
+            nama: rec.nama,
+            nik: rec.nik,
+            jabatan: rec.jabatan || 'Penilai Properti',
+            cabang: rec.cabang || 'Pusat Jakarta',
+            peran: rec.peran || 'PENILAI',
+            izin: rec.noIzinMenkeu || rec.izin || '-',
+            noMappi: rec.noMappi || '-',
+            noRegister: rec.noRegisterRmk || rec.noRegister || '-',
+            masaBerlaku: tgl,
+            sisaHari: sDays,
+            alertLevel: aLevel,
+            badgeColor: bColor,
+            statusPpl: stPpl,
+            totalSkpTerkumpul: tSkp,
+            targetSkpWajib: wSkp,
+            statusPplText: (stPpl === 'TERTIB') ? `Tertib PPL (≥${wSkp} SKP)` : `Kurang ${wSkp - tSkp} SKP (Perlu CPD)`,
+            statusVerifikasiSpm: rec.statusVerifikasiSpm || 'MENUNGGU_VERIFIKASI_SPM',
+            rincianSertifikat: rec.rincianSertifikatPpl || '-',
+            catatanSpm: rec.catatanSpm || '-',
+            tindakan: act
+          });
+        }
+      });
+
+      activeGovData.izinAlertRadar = updatedRadar;
+      renderIzinAlertRadar(updatedRadar);
+
+      // Sinkronkan ke tabel rapor 52 personel
+      if (Array.isArray(activeGovData.employees)) {
+        const empItem = activeGovData.employees.find(e => e.nik === nik);
+        if (empItem) {
+          if (noMappi && noMappi !== '-') empItem.noMappi = noMappi;
+          if (noRmk && noRmk !== '-') empItem.noRegister = noRmk;
+          if (noIzin && noIzin !== '-') empItem.izin = noIzin;
+          if (tglIzin && tglIzin !== '-') empItem.masaBerlakuIzin = tglIzin;
+          empItem.statusPpl = (totalSkp >= targetSkp) ? 'TERTIB' : 'PERLU_PPL';
+        }
+        renderKpiTable(activeGovData.employees);
+      }
+
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = origHtml;
+      }
+
+      tutupModalPplIzin();
+      tampilkanNotifikasi(`Data kepatuhan PPL & Izin penilai (${nik}) berhasil disimpan ke SSOT!`, 'success');
+    }
+
     function renderIzinAlertRadar(radarList) {
       const container = document.getElementById('container-izin-alert-radar');
       const badgeCount = document.getElementById('stat-kpi-radar-count');
@@ -3222,15 +3842,21 @@
           alertText = 'KURANG SKP PPL';
         }
 
+        const isVerif = (item.statusVerifikasiSpm === 'TERVERIFIKASI_SPM');
+        const verifBadge = isVerif
+          ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"><i class="fa-solid fa-check-circle mr-1"></i>Terverifikasi SPM</span>`
+          : `<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40"><i class="fa-solid fa-clock mr-1"></i>Menunggu Verifikasi</span>`;
+
         return `
-          <div class="p-3.5 rounded-xl border ${borderClass} flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition hover:border-slate-600">
-            <div class="space-y-1">
+          <div class="p-3.5 rounded-xl border ${borderClass} flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs transition hover:border-slate-600">
+            <div class="space-y-1.5 flex-1">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="font-bold text-white text-xs">${escapeHtml(item.nama)}</span>
                 <span class="font-mono text-[10px] text-slate-400">(${escapeHtml(item.nik || '-')})</span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${badgeClass}">
                   <i class="fa-solid ${iconClass} mr-1"></i>${alertText}
                 </span>
+                ${verifBadge}
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-950 text-slate-300 border border-slate-800">
                   ${escapeHtml(item.cabang)}
                 </span>
@@ -3238,16 +3864,30 @@
               <div class="text-[11px] text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span><strong>Jabatan:</strong> ${escapeHtml(item.jabatan)}</span>
                 <span>•</span>
-                <span><strong>Izin / MAPPI:</strong> ${escapeHtml(item.noMappi || item.izin || '-')}</span>
+                <span><strong>No. MAPPI:</strong> ${escapeHtml(item.noMappi || '-')}</span>
+                <span>•</span>
+                <span><strong>Register:</strong> ${escapeHtml(item.noRegister || '-')}</span>
                 <span>•</span>
                 <span><strong>Masa Berlaku:</strong> ${escapeHtml(item.masaBerlaku || '-')}</span>
                 <span>•</span>
-                <span><strong>Status PPL:</strong> <span class="${item.statusPpl === 'TERTIB' ? 'text-emerald-400' : 'text-amber-400 font-semibold'}">${escapeHtml(item.statusPplText || item.statusPpl || '-')}</span></span>
+                <span><strong>Poin SKP:</strong> <span class="font-bold ${item.statusPpl === 'TERTIB' ? 'text-emerald-400' : 'text-amber-400'}">${item.totalSkpTerkumpul || 0} / ${item.targetSkpWajib || 24} SKP</span></span>
               </div>
+              ${item.rincianSertifikat && item.rincianSertifikat !== '-' ? `
+              <div class="text-[10px] text-slate-400 bg-slate-950/70 p-2 rounded-lg border border-slate-800/80">
+                <span class="text-slate-300 font-semibold"><i class="fa-solid fa-certificate text-amber-400 mr-1"></i>Pelatihan Terakhir:</span> ${escapeHtml(item.rincianSertifikat)}
+              </div>` : ''}
               <div class="text-[11px] text-slate-400 pt-0.5 flex items-start gap-1.5">
                 <i class="fa-solid fa-arrow-right text-amber-400 text-[10px] mt-0.5 shrink-0"></i>
                 <span class="leading-tight"><strong class="text-slate-300">Rekomendasi SPM:</strong> ${escapeHtml(item.tindakan || 'Segera laporkan bukti perpanjangan izin / SKP PPL ke Kepala SPM.')}</span>
               </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-800/80">
+              <button type="button" onclick="bukaModalPplIzin('${escapeHtml(item.nik)}', 'SPM_APPROVE_VERIFY')" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow transition cursor-pointer">
+                <i class="fa-solid fa-check-double"></i> Verifikasi SPM
+              </button>
+              <button type="button" onclick="bukaModalPplIzin('${escapeHtml(item.nik)}', 'SELF_SUBMIT_PERSONEL')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 flex items-center gap-1.5 transition cursor-pointer">
+                <i class="fa-solid fa-user-pen"></i> Update Mandiri
+              </button>
             </div>
           </div>
         `;
