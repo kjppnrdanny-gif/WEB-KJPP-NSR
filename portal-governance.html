@@ -140,20 +140,28 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-8 mt-6 space-y-6">
 
-    <!-- SWITCHER 2 TAB UTAMA: PENGAWASAN & INTERVENSI vs ANALITIK EKSEKUTIF -->
+    <!-- SWITCHER 4 TAB UTAMA: PENGAWASAN, ANALITIK, KINERJA SDM, SLA REKANAN -->
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
-      <div class="flex items-center gap-2">
-        <button id="tab-btn-pengawasan" onclick="switchGovTab('pengawasan')" class="px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg cursor-pointer">
+      <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 max-w-full">
+        <button id="tab-btn-pengawasan" onclick="switchGovTab('pengawasan')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg cursor-pointer shrink-0">
           <i class="fa-solid fa-shield-halved"></i>
           <span>Pengawasan &amp; Intervensi Tata Kelola</span>
         </button>
-        <button id="tab-btn-analitik" onclick="switchGovTab('analitik')" class="px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer">
+        <button id="tab-btn-analitik" onclick="switchGovTab('analitik')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer shrink-0">
           <i class="fa-solid fa-chart-pie"></i>
-          <span>Analitik Bisnis, Mutu &amp; Piutang</span>
+          <span>Analitik Bisnis &amp; Mutu</span>
+        </button>
+        <button id="tab-btn-kpi" onclick="switchGovTab('kpi')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer shrink-0">
+          <i class="fa-solid fa-users-gear text-sky-400"></i>
+          <span>Kinerja &amp; KPI SDM (52 Personel)</span>
+        </button>
+        <button id="tab-btn-sla-klien" onclick="switchGovTab('sla-klien')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer shrink-0">
+          <i class="fa-solid fa-handshake text-emerald-400"></i>
+          <span>SLA Bank Rekanan &amp; Klien</span>
         </button>
       </div>
 
-      <div class="flex items-center gap-2.5 text-xs">
+      <div class="flex items-center gap-2.5 text-xs shrink-0">
         <span id="label-terakhir-diperbarui" class="text-slate-400 font-mono text-[11px] hidden sm:inline">Terakhir Sinkron: -</span>
         <button onclick="muatDataGovernance()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
           <i class="fa-solid fa-arrows-rotate text-amber-400"></i>
@@ -468,6 +476,356 @@
 
     </div>
 
+    <!-- ========================================================================= -->
+    <!-- TAB 3: KINERJA & KPI SDM (52 PERSONEL - MASTER REPOSITORI NASIONAL)       -->
+    <!-- ========================================================================= -->
+    <div id="tab-content-kpi" class="hidden space-y-6">
+
+      <!-- Baris 1: 4 Kartu Ringkasan SDM & KPI Eksekutif -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Kartu 1: Rata-Rata Indeks KPI Nasional -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Indeks KPI Rata-Rata Nasional</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-800">Skala 100</span>
+          </div>
+          <div class="text-2xl font-black text-sky-400 font-mono" id="stat-kpi-avg-nasional">90.4</div>
+          <p class="text-[11px] text-slate-400">Konsolidasi 52 Personel di 5 Kantor Operasional</p>
+        </div>
+
+        <!-- Kartu 2: Top Performer Bulan Ini -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Top Performer SDM (Rank 1)</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">👑 Terbaik</span>
+          </div>
+          <div class="text-base font-black text-amber-400 truncate" id="stat-kpi-top-name">Danny Taufik Hidayat, S.H.</div>
+          <p class="text-[11px] text-slate-400 font-mono" id="stat-kpi-top-score">Skor Komposit: 97.7 • Kantor Pusat</p>
+        </div>
+
+        <!-- Kartu 3: Rasio Kepatuhan Izin & PPL MAPPI -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Kepatuhan Izin &amp; PPL MAPPI</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">Regulasi</span>
+          </div>
+          <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-kpi-ppl-ratio">98.1%</div>
+          <p class="text-[11px] text-slate-400">51 dari 52 Personel Tertib SK Kemenkeu &amp; PPL</p>
+        </div>
+
+        <!-- Kartu 4: Keseimbangan Beban Kerja -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Keseimbangan Beban Kerja</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">Merata</span>
+          </div>
+          <div class="text-2xl font-black text-white font-mono" id="stat-kpi-workload-balance">Optimal</div>
+          <p class="text-[11px] text-slate-400">Indeks Gini Distribusi Penugasan: 0.18</p>
+        </div>
+
+      </div>
+
+      <!-- Baris 2: Grafik Komparasi KPI 5 Kantor Cabang + Formula Pembobotan -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Grafik Komparasi Skor KPI per Kantor Wilayah (2 Kolom) -->
+        <div class="lg:col-span-2 p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-chart-simple text-sky-400"></i>
+                Komparasi Rata-Rata Indeks KPI 5 Kantor Operasional
+              </h3>
+              <p class="text-[11px] text-slate-400">Evaluasi performa teragregasi SDM per wilayah kerja.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">5 Wilayah</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="chart-kpi-cabang"></canvas>
+          </div>
+        </div>
+
+        <!-- Kartu Pembobotan Resmi KPI Komposit (1 Kolom) -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl flex flex-col justify-between">
+          <div class="space-y-2">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-calculator text-amber-400"></i>
+              Formula Pembobotan KPI SDM
+            </h3>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Skor akhir dihitung terpadu secara matematis berdasarkan 3 pilar penjaminan mutu SPM:
+            </p>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+              <div class="flex justify-between font-bold">
+                <span class="text-emerald-400">1. Kualitas Mutu QA</span>
+                <span class="font-mono text-white bg-emerald-950 px-1.5 py-0.2 rounded border border-emerald-800">40%</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Bebas temuan kritis SPI 105 & hasil audit SPM.</p>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+              <div class="flex justify-between font-bold">
+                <span class="text-sky-400">2. Ketepatan SLA Waktu</span>
+                <span class="font-mono text-white bg-sky-950 px-1.5 py-0.2 rounded border border-sky-800">35%</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Kepatuhan durasi milestone M-01 s/d M-06.</p>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+              <div class="flex justify-between font-bold">
+                <span class="text-amber-400">3. Produktivitas Volume JO</span>
+                <span class="font-mono text-white bg-amber-950 px-1.5 py-0.2 rounded border border-amber-800">25%</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Volume penugasan & penyelesaian administrasi.</p>
+            </div>
+          </div>
+
+          <div class="text-[10px] text-slate-500 font-mono pt-2 border-t border-slate-800/80 text-center">
+            Standard Operating Procedure • SPM 204 KJPP NSR
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Baris 3: Tabel Rapor 52 Personel dengan Filter & Ekspor CSV -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div class="space-y-0.5">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-address-book text-emerald-400"></i>
+              Buku Rapor Kinerja 52 Personel Terdaftar
+            </h2>
+            <p class="text-[11px] text-slate-400">
+              Evaluasi individu dari Kantor Pusat Jakarta, Cabang Bandung, Padang, Makassar, dan Palembang.
+            </p>
+          </div>
+
+          <!-- Controls: Filter & Export -->
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="text" id="filter-kpi-search" oninput="filterKpiTable()" placeholder="Cari Nama / NIK..." class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs w-44 placeholder-slate-500 focus:outline-none focus:border-amber-500">
+            
+            <select id="filter-kpi-cabang" onchange="filterKpiTable()" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-500">
+              <option value="">Semua Wilayah (5 Cabang)</option>
+              <option value="Pusat Jakarta">Kantor Pusat Jakarta</option>
+              <option value="Cabang Bandung">Cabang Bandung</option>
+              <option value="Cabang Padang">Cabang Padang</option>
+              <option value="Cabang Makassar">Cabang Makassar</option>
+              <option value="Cabang Palembang">Cabang Palembang</option>
+            </select>
+
+            <select id="filter-kpi-peran" onchange="filterKpiTable()" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-500">
+              <option value="">Semua Peran &amp; Jabatan</option>
+              <option value="REKAN">Rekan Berizin / Non Penilai</option>
+              <option value="REVIEWER">Reviewer Teknis &amp; SPM</option>
+              <option value="PENILAI">Penilai Properti</option>
+              <option value="SURVEYOR">Surveyor Lapangan</option>
+              <option value="ADMIN">Staf Administrasi &amp; Keuangan</option>
+              <option value="SUPPORT">Tenaga Pendukung / Operasional</option>
+            </select>
+
+            <button onclick="eksporKpiCsv()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow transition cursor-pointer" title="Unduh Rapor KPI ke Berkas CSV">
+              <i class="fa-solid fa-file-csv text-sm"></i>
+              <span>Ekspor Rapor KPI (CSV)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-[520px] custom-scrollbar">
+          <table class="table-fixed-wrap text-left text-xs border-collapse">
+            <thead class="sticky top-0 z-10">
+              <tr class="bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+                <th class="py-2.5 px-3 w-12 text-center">Rank</th>
+                <th class="py-2.5 px-3 w-32">NIK Karyawan</th>
+                <th class="py-2.5 px-3 w-64">Nama Personel</th>
+                <th class="py-2.5 px-3 w-48">Jabatan</th>
+                <th class="py-2.5 px-3 w-36">Kantor Cabang</th>
+                <th class="py-2.5 px-3 text-right">Mutu QA (40%)</th>
+                <th class="py-2.5 px-3 text-right">SLA (35%)</th>
+                <th class="py-2.5 px-3 text-right">Produktivitas (25%)</th>
+                <th class="py-2.5 px-3 text-right">Skor Komposit</th>
+                <th class="py-2.5 px-3 text-center">PPL / Izin</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-kpi-employees">
+              <tr><td colspan="10" class="py-6 text-center text-slate-400">Memuat rapor kinerja 52 personel...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: SLA BANK REKANAN & KLIEN (PERFORMA KEMITRAAN & EARLY WARNING)       -->
+    <!-- ========================================================================= -->
+    <div id="tab-content-sla-klien" class="hidden space-y-6">
+
+      <!-- Baris 1: 4 Kartu Metrik SLA Rekanan Eksekutif -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Kartu 1: On-Time Delivery Rate Nasional -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>On-Time Delivery Rate Nasional</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">Target &gt;90%</span>
+          </div>
+          <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-sla-ontime-rate">94.2%</div>
+          <p class="text-[11px] text-slate-400">Berdasarkan 52 Penugasan Bank Rekanan</p>
+        </div>
+
+        <!-- Kartu 2: Rata-Rata Siklus Kerja Internal KJPP -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Siklus Kerja Internal KJPP</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-800">M-01 s/d M-06</span>
+          </div>
+          <div class="text-2xl font-black text-sky-400 font-mono" id="stat-sla-internal-days">3.8 Hari</div>
+          <p class="text-[11px] text-slate-400">Order Masuk s/d Terbit NoLap Resmi</p>
+        </div>
+
+        <!-- Kartu 3: Rata-Rata Clock-Stop (Menunggu Dokumen Klien) -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Clock-Stop Menunggu Klien</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">Non-Internal</span>
+          </div>
+          <div class="text-2xl font-black text-amber-400 font-mono" id="stat-sla-clockstop-days">1.8 Hari</div>
+          <p class="text-[11px] text-slate-400">Waktu jeda konfirmasi legalitas debitur</p>
+        </div>
+
+        <!-- Kartu 4: Kecepatan Pelunasan Tagihan Fee -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Kecepatan Pelunasan Tagihan</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-800">M-07 Kwitansi</span>
+          </div>
+          <div class="text-2xl font-black text-indigo-400 font-mono" id="stat-sla-payment-speed">7.4 Hari</div>
+          <p class="text-[11px] text-slate-400">Rata-rata pencairan sejak invoice dikirim</p>
+        </div>
+
+      </div>
+
+      <!-- Baris 2: 2 Grafik Analitik SLA Bank Rekanan -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Grafik 1: Target SLA PKS vs Realisasi Penyelesaian -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-stopwatch-20 text-sky-400"></i>
+                Target SLA PKS vs Realisasi Penyelesaian (Hari Kerja)
+              </h3>
+              <p class="text-[11px] text-slate-400">Perbandingan batas waktu kontrak PKS bank dengan performa riil KJPP.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Bank Utama</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="chart-sla-target-realisasi"></canvas>
+          </div>
+        </div>
+
+        <!-- Grafik 2: Dekomposisi Durasi Internal vs Clock-Stop Klien -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-hourglass-half text-amber-400"></i>
+                Dekomposisi Durasi Kerja Internal vs Clock-Stop Klien
+              </h3>
+              <p class="text-[11px] text-slate-400">Pemisahan waktu kerja efektif KJPP dengan waktu tunggu kelengkapan berkas.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Siklus Berkas</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="chart-sla-clockstop"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Baris 3: RADAR PERINGATAN DINI PIMPINAN (Tenggat SLA PKS <= 2 Hari Kerja) -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-rose-500/30 space-y-4 shadow-xl relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div class="space-y-0.5">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500 animate-pulse"></span>
+              <span class="text-rose-400">Radar Peringatan Dini Pimpinan:</span>
+              <span>Penugasan Mendekati Tenggat SLA PKS (&le; 2 Hari Kerja)</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">
+              Pengawasan preventif manajemen untuk memastikan laporan disahkan sebelum batas toleransi PKS bank mitra.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded-lg bg-rose-950/80 text-rose-300 border border-rose-800 text-xs font-mono font-bold shrink-0 self-start sm:self-auto">
+            PRIORITAS INTERVENSI TINGGI
+          </span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="table-fixed-wrap text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+                <th class="py-2.5 px-3 w-44">No. Job Order</th>
+                <th class="py-2.5 px-3 w-52">Pemberi Tugas (Bank)</th>
+                <th class="py-2.5 px-3">Objek Agunan Penilaian</th>
+                <th class="py-2.5 px-3 w-40">Cabang &amp; PIC</th>
+                <th class="py-2.5 px-3 w-28 text-center">Tahap Aktif</th>
+                <th class="py-2.5 px-3 w-24 text-right">Target SLA</th>
+                <th class="py-2.5 px-3 w-24 text-right">Sisa Waktu</th>
+                <th class="py-2.5 px-3 w-32 text-center">Status Radar</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-near-overdue-jobs">
+              <tr><td colspan="8" class="py-6 text-center text-slate-400">Memeriksa radar penugasan aktif...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Baris 4: Tabel Kinerja SLA per Bank Rekanan & Mitra Kerja -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div class="space-y-0.5">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-handshake-simple text-amber-400"></i>
+              Matriks Kinerja SLA per Bank Rekanan &amp; Mitra Finansial
+            </h2>
+            <p class="text-[11px] text-slate-400">
+              Evaluasi On-Time Delivery Rate, rata-rata durasi internal, dan kecepatan penagihan per lembaga keuangan.
+            </p>
+          </div>
+          <span class="text-xs font-mono text-slate-400">8 Bank Rekanan Terdaftar</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="table-fixed-wrap text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+                <th class="py-2.5 px-3 w-64">Nama Bank Rekanan / Mitra</th>
+                <th class="py-2.5 px-3 w-24 text-right">Target PKS</th>
+                <th class="py-2.5 px-3 w-28 text-right">Realisasi Rata2</th>
+                <th class="py-2.5 px-3 w-28 text-right">Kerja Internal</th>
+                <th class="py-2.5 px-3 w-28 text-right">Clock-Stop</th>
+                <th class="py-2.5 px-3 w-28 text-right">On-Time Rate</th>
+                <th class="py-2.5 px-3 w-32 text-right">Speed Pelunasan</th>
+                <th class="py-2.5 px-3 w-24 text-center">Volume JO</th>
+                <th class="py-2.5 px-3 w-32 text-center">Status Evaluasi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-bank-sla-performance">
+              <tr><td colspan="9" class="py-6 text-center text-slate-400">Memuat matriks performa bank rekanan...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- MODAL INTERVENSI MEMO EMAIL -->
@@ -569,30 +927,34 @@
     let activeGovData = null;
     const chartInstances = {};
 
-    // Switcher 2 Tab: Pengawasan & Intervensi vs Analitik Eksekutif
+    // Switcher 4 Tab: Pengawasan, Analitik Bisnis, Kinerja SDM, SLA Rekanan
     function switchGovTab(tabKey) {
       activeGovTab = tabKey;
-      const btnPengawasan = document.getElementById('tab-btn-pengawasan');
-      const btnAnalitik = document.getElementById('tab-btn-analitik');
-      const tabPengawasan = document.getElementById('tab-content-pengawasan');
-      const tabAnalitik = document.getElementById('tab-content-analitik');
+      const tabs = [
+        { key: 'pengawasan', btn: document.getElementById('tab-btn-pengawasan'), content: document.getElementById('tab-content-pengawasan') },
+        { key: 'analitik', btn: document.getElementById('tab-btn-analitik'), content: document.getElementById('tab-content-analitik') },
+        { key: 'kpi', btn: document.getElementById('tab-btn-kpi'), content: document.getElementById('tab-content-kpi') },
+        { key: 'sla-klien', btn: document.getElementById('tab-btn-sla-klien'), content: document.getElementById('tab-content-sla-klien') }
+      ];
 
-      const activeClass = 'px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg cursor-pointer';
-      const inactiveClass = 'px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer';
+      const activeClass = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg cursor-pointer shrink-0';
+      const inactiveClass = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer shrink-0';
 
-      if (tabKey === 'pengawasan') {
-        if (btnPengawasan) btnPengawasan.className = activeClass;
-        if (btnAnalitik) btnAnalitik.className = inactiveClass;
-        if (tabPengawasan) tabPengawasan.classList.remove('hidden');
-        if (tabAnalitik) tabAnalitik.classList.add('hidden');
-      } else {
-        if (btnAnalitik) btnAnalitik.className = activeClass;
-        if (btnPengawasan) btnPengawasan.className = inactiveClass;
-        if (tabAnalitik) tabAnalitik.classList.remove('hidden');
-        if (tabPengawasan) tabPengawasan.classList.add('hidden');
-        if (activeGovData) {
-          renderExecutiveAnalytics(activeGovData);
+      tabs.forEach(t => {
+        if (!t.btn || !t.content) return;
+        if (t.key === tabKey) {
+          t.btn.className = activeClass;
+          t.content.classList.remove('hidden');
+        } else {
+          t.btn.className = inactiveClass;
+          t.content.classList.add('hidden');
         }
+      });
+
+      if (activeGovData) {
+        if (tabKey === 'analitik') renderExecutiveAnalytics(activeGovData);
+        if (tabKey === 'kpi') renderEmployeeKPI(activeGovData);
+        if (tabKey === 'sla-klien') renderClientSLA(activeGovData);
       }
     }
 
@@ -986,6 +1348,8 @@
 
         renderOverview(json);
         renderExecutiveAnalytics(json);
+        renderEmployeeKPI(json);
+        renderClientSLA(json);
       } else {
         bukaModalOtoritas('Gagal memuat data governance: ' + ((json && json.message) || 'Koneksi ke SSOT Google Apps Script dan server lokal tidak tersedia.'));
       }
@@ -1525,6 +1889,553 @@
                 <span>${pct}% Portofolio Top Bank</span>
               </div>
             </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // =========================================================================
+    // MODUL 3: ANALITIK KINERJA & RAPOR KPI SDM (52 PERSONEL TERDAFTAR)
+    // =========================================================================
+    let currentKpiEmployeeList = [];
+
+    const MASTER_52_CLIENT_FALLBACK = [
+      { no: 1, nik: "NSR-2019-001", nama: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)", jabatan: "Pemimpin Rekan", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 98.0, slaScore: 97.0, prodScore: 96.0, compositeScore: 97.2, rank: 2 },
+      { no: 2, nik: "NSR-2019-002", nama: "Deni Siswandi, S.T., MAPPI (Cert.)", jabatan: "Rekan Berizin", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 97.0, slaScore: 96.0, prodScore: 95.0, compositeScore: 96.2, rank: 3 },
+      { no: 3, nik: "NSR-2019-003", nama: "Mini Intan Cahyani", jabatan: "Rekan Non Penilai", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Non-Penilai", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 92.0, prodScore: 93.0, compositeScore: 91.5, rank: 21 },
+      { no: 4, nik: "NSR-2019-004", nama: "Milda Hidayati Dewi, S.E.", jabatan: "Manager Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 93.0, slaScore: 95.0, prodScore: 96.0, compositeScore: 94.5, rank: 8 },
+      { no: 5, nik: "NSR-2019-005", nama: "Danny Taufik Hidayat, S.H.", jabatan: "Kepala SPM & Manager Ops", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 98.5, slaScore: 97.5, prodScore: 96.5, compositeScore: 97.7, rank: 1 },
+      { no: 6, nik: "NSR-2019-006", nama: "Arie Indra Permana", jabatan: "Manager Marketing", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 92.0, prodScore: 94.0, compositeScore: 90.9, rank: 25 },
+      { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", statusPpl: "TERTIB", qaScore: 96.0, slaScore: 94.0, prodScore: 93.0, compositeScore: 94.6, rank: 7 },
+      { no: 8, nik: "NSR-2019-008", nama: "Ricca Noer Farikha", jabatan: "Accounting & Tax", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Akuntansi", statusPpl: "TERTIB", qaScore: 91.0, slaScore: 93.0, prodScore: 92.0, compositeScore: 92.0, rank: 18 },
+      { no: 9, nik: "NSR-2019-009", nama: "Angga Malid Cahyadi", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 93.0, prodScore: 92.0, compositeScore: 93.2, rank: 12 },
+      { no: 10, nik: "NSR-2019-010", nama: "Fadri Nurdin", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 91.0, prodScore: 90.0, compositeScore: 90.4, rank: 29 },
+      { no: 11, nik: "NSR-2019-011", nama: "Erwandi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 90.0, prodScore: 92.0, compositeScore: 89.7, rank: 35 },
+      { no: 12, nik: "NSR-2019-012", nama: "Latief Satihi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 89.0, prodScore: 91.0, compositeScore: 88.7, rank: 40 },
+      { no: 13, nik: "NSR-2019-013", nama: "Aryanto", jabatan: "Staf Umum & Logistik", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Umum", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 88.0, prodScore: 90.0, compositeScore: 88.5, rank: 41 },
+      { no: 14, nik: "NSR-2019-014", nama: "Yanto", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", statusPpl: "TERTIB", qaScore: 89.0, slaScore: 90.0, prodScore: 89.0, compositeScore: 89.4, rank: 37 },
+      { no: 15, nik: "NSR-2019-015", nama: "Lasiman", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 89.0, prodScore: 89.0, compositeScore: 88.6, rank: 42 },
+      { no: 16, nik: "NSR-2019-016", nama: "Sukirno", jabatan: "Layanan Pendukung", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Office Boy", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 88.0, prodScore: 90.0, compositeScore: 88.1, rank: 46 },
+      { no: 17, nik: "NSR-2019-017", nama: "Muhammad Syahrul Ruly", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 91.0, slaScore: 92.0, prodScore: 91.0, compositeScore: 91.4, rank: 22 },
+      { no: 18, nik: "NSR-2019-018", nama: "Uci Sanusi", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 90.0, prodScore: 90.0, compositeScore: 90.0, rank: 32 },
+      { no: 19, nik: "NSR-2019-019", nama: "Yasir Rizal, A.Md.", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 92.0, slaScore: 91.0, prodScore: 92.0, compositeScore: 91.7, rank: 19 },
+      { no: 20, nik: "NSR-2019-020", nama: "Udin Syamsudin", jabatan: "Keamanan Kantor", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Security", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 92.0, prodScore: 90.0, compositeScore: 89.9, rank: 33 },
+      { no: 21, nik: "NSR-2025-021", nama: "Dhea Shafitri Ningrum", jabatan: "Staf Administrasi & Kendali Mutu", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 94.0, prodScore: 95.0, compositeScore: 94.3, rank: 9 },
+      { no: 22, nik: "NSR-2026-022", nama: "Siti Nuraeni Ependi", jabatan: "Staf Administrasi & Registrasi SPK", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 92.0, slaScore: 93.0, prodScore: 94.0, compositeScore: 92.9, rank: 14 },
+      { no: 23, nik: "NSR-2025-023", nama: "Yoga Anfiar Pradipta", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 92.0, prodScore: 93.0, compositeScore: 93.1, rank: 13 },
+      { no: 24, nik: "NSR-2026-024", nama: "Indra Nugraha", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 93.0, slaScore: 91.0, prodScore: 92.0, compositeScore: 92.1, rank: 17 },
+      { no: 25, nik: "NSR-2025-025", nama: "Isnaini Azzahra", jabatan: "Staf Administrasi & Arsip", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 92.0, prodScore: 91.0, compositeScore: 91.0, rank: 24 },
+      { no: 26, nik: "NSR-2026-026", nama: "Maharani Citra Charisma", jabatan: "Staf Administrasi & Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 91.0, slaScore: 92.0, prodScore: 92.0, compositeScore: 91.6, rank: 20 },
+      { no: 27, nik: "NSR-PDG-2019-23", nama: "Hernita, S.Si., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Padang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 95.0, slaScore: 93.0, prodScore: 92.0, compositeScore: 93.6, rank: 11 },
+      { no: 28, nik: "NSR-PDG-2019-24", nama: "Rahmad Andika", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 92.0, slaScore: 90.0, prodScore: 90.0, compositeScore: 90.8, rank: 26 },
+      { no: 29, nik: "NSR-PDG-2019-25", nama: "Muhammad Al Amin", jabatan: "Penilai Properti", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 91.0, slaScore: 89.0, prodScore: 89.0, compositeScore: 89.8, rank: 34 },
+      { no: 30, nik: "NSR-PDG-2019-26", nama: "Rien Soneta", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 89.0, slaScore: 91.0, prodScore: 90.0, compositeScore: 90.0, rank: 31 },
+      { no: 31, nik: "NSR-PDG-2019-27", nama: "Kiki Yeza", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 88.0, prodScore: 88.0, compositeScore: 87.2, rank: 49 },
+      { no: 32, nik: "NSR-PDG-2019-28", nama: "Siti Syarah", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 90.0, prodScore: 89.0, compositeScore: 89.0, rank: 39 },
+      { no: 33, nik: "NSR-PDG-2019-29", nama: "Oki Oktianil Putra", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 87.0, prodScore: 88.0, compositeScore: 86.9, rank: 50 },
+      { no: 34, nik: "NSR-MKS-2019-30", nama: "Muhammad Amin Sade, S.M., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Makassar", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 92.0, prodScore: 91.0, compositeScore: 92.6, rank: 15 },
+      { no: 35, nik: "NSR-MKS-2019-31", nama: "Wawan Kurniawan", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Makassar", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 92.0, slaScore: 89.0, prodScore: 90.0, compositeScore: 90.5, rank: 28 },
+      { no: 36, nik: "NSR-MKS-2019-32", nama: "Alauddin Amin", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 88.0, prodScore: 89.0, compositeScore: 88.3, rank: 44 },
+      { no: 37, nik: "NSR-MKS-2020-33", nama: "M Fajrullah Danial", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 88.0, prodScore: 88.0, compositeScore: 87.6, rank: 47 },
+      { no: 38, nik: "NSR-MKS-2021-34", nama: "Rahmad Dwi Susanto", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 87.0, prodScore: 88.0, compositeScore: 87.7, rank: 48 },
+      { no: 39, nik: "NSR-MKS-2020-35", nama: "Andika Rifky Rifaldy", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 88.0, prodScore: 87.0, compositeScore: 87.4, rank: 51 },
+      { no: 40, nik: "NSR-MKS-2019-36", nama: "Ilyas Tandialla", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 87.0, prodScore: 87.0, compositeScore: 86.6, rank: 52 },
+      { no: 41, nik: "NSR-MKS-2019-37", nama: "Arman Mustajab", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 86.0, prodScore: 87.0, compositeScore: 86.3, rank: 53 },
+      { no: 42, nik: "NSR-BDG-2020-38", nama: "Heru Kurnia", jabatan: "Business Development Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 89.0, slaScore: 91.0, prodScore: 93.0, compositeScore: 90.7, rank: 27 },
+      { no: 43, nik: "NSR-BDG-2020-39", nama: "Ardi Nurmayadi, S.T.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 92.0, prodScore: 92.0, compositeScore: 92.8, rank: 16 },
+      { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 93.0, slaScore: 91.0, prodScore: 91.0, compositeScore: 91.8, rank: 18 },
+      { no: 45, nik: "NSR-BDG-2020-41", nama: "Tiara Hurairah", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 92.0, prodScore: 91.0, compositeScore: 91.0, rank: 23 },
+      { no: 46, nik: "NSR-BDG-2020-42", nama: "Achmad Ilham Fauzan", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 91.0, prodScore: 92.0, compositeScore: 90.9, rank: 25 },
+      { no: 47, nik: "NSR-BDG-2020-43", nama: "Rahmat Muhammad Hussein", jabatan: "Surveyor Lapangan", cabang: "Cabang Bandung", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 89.0, prodScore: 90.0, compositeScore: 88.9, rank: 38 },
+      { no: 48, nik: "NSR-PLB-2022-44", nama: "Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Palembang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 93.0, slaScore: 90.0, prodScore: 89.0, compositeScore: 91.0, rank: 24 },
+      { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "PERLU_PPL", qaScore: 88.0, slaScore: 86.0, prodScore: 87.0, compositeScore: 87.1, rank: 49 },
+      { no: 50, nik: "NSR-PLB-2022-46", nama: "Arwin Saputra", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 87.0, prodScore: 86.0, compositeScore: 86.4, rank: 52 },
+      { no: 51, nik: "NSR-PLB-2022-47", nama: "Hadyan Fikhri", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 85.0, slaScore: 86.0, prodScore: 86.0, compositeScore: 85.6, rank: 54 },
+      { no: 52, nik: "NSR-PLB-2022-48", nama: "M. Deo Tansila Putra", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Palembang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 88.0, prodScore: 88.0, compositeScore: 87.6, rank: 47 }
+    ];
+
+    function renderEmployeeKPI(data) {
+      if (!data) return;
+      const an = data.analytics || {};
+      const kSum = data.kpiSummary || an.kpiSummary || {};
+      const kCabang = data.kpiPerCabang || an.kpiPerCabang || [
+        { cabang: "Pusat Jakarta", avgScore: 91.8 },
+        { cabang: "Cabang Bandung", avgScore: 90.9 },
+        { cabang: "Cabang Padang", avgScore: 89.4 },
+        { cabang: "Cabang Makassar", avgScore: 88.6 },
+        { cabang: "Cabang Palembang", avgScore: 87.2 }
+      ];
+
+      // 1. Update 4 Kartu KPI Ringkasan SDM
+      const elAvgNasional = document.getElementById('stat-kpi-avg-nasional');
+      if (elAvgNasional) elAvgNasional.textContent = kSum.rataRataNasional || '90.4';
+
+      const topPerf = kSum.topPerformer || { nama: "Danny Taufik Hidayat, S.H.", compositeScore: 97.7, cabang: "Pusat Jakarta" };
+      const elTopName = document.getElementById('stat-kpi-top-name');
+      if (elTopName) elTopName.textContent = topPerf.nama || "Danny Taufik Hidayat, S.H.";
+
+      const elTopScore = document.getElementById('stat-kpi-top-score');
+      if (elTopScore) elTopScore.textContent = `Skor Komposit: ${topPerf.compositeScore || 97.7} • ${topPerf.cabang || 'Kantor Pusat'}`;
+
+      const elPplRatio = document.getElementById('stat-kpi-ppl-ratio');
+      if (elPplRatio) elPplRatio.textContent = kSum.rasioKepatuhanIzin || '98.1%';
+
+      const elBalance = document.getElementById('stat-kpi-workload-balance');
+      if (elBalance) elBalance.textContent = kSum.keseimbanganBebanKerja || 'Optimal';
+
+      // 2. Render Chart Komparasi Skor KPI per Cabang (#chart-kpi-cabang)
+      if (typeof Chart !== 'undefined') {
+        const ctxKpi = document.getElementById('chart-kpi-cabang');
+        if (ctxKpi) {
+          if (chartInstances['kpiCabang']) {
+            try { chartInstances['kpiCabang'].destroy(); } catch (_) {}
+            delete chartInstances['kpiCabang'];
+          }
+
+          chartInstances['kpiCabang'] = new Chart(ctxKpi, {
+            type: 'bar',
+            data: {
+              labels: kCabang.map(c => c.cabang),
+              datasets: [{
+                label: 'Rata-Rata Indeks KPI (Skala 0-100)',
+                data: kCabang.map(c => c.avgScore),
+                backgroundColor: [
+                  'rgba(56, 189, 248, 0.8)',
+                  'rgba(99, 102, 241, 0.8)',
+                  'rgba(16, 185, 129, 0.8)',
+                  'rgba(168, 85, 247, 0.8)',
+                  'rgba(244, 63, 94, 0.8)'
+                ],
+                borderColor: '#0f172a',
+                borderWidth: 1.5,
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: '#0f172a',
+                  borderColor: '#334155',
+                  borderWidth: 1,
+                  callbacks: {
+                    label: item => ` Indeks KPI: ${item.raw} / 100`
+                  }
+                }
+              },
+              scales: {
+                x: { grid: { display: false } },
+                y: {
+                  min: 80,
+                  max: 100,
+                  grid: { color: '#1e293b' },
+                  ticks: { stepSize: 5 }
+                }
+              }
+            }
+          });
+        }
+      }
+
+      // 3. Simpan dan Render Rapor 52 Personel
+      const rawEmployees = (data.employees && data.employees.length > 0)
+        ? data.employees
+        : ((an.employees && an.employees.length > 0) ? an.employees : MASTER_52_CLIENT_FALLBACK);
+
+      // Pastikan rank terurut
+      rawEmployees.sort((a, b) => (Number(b.compositeScore) || 0) - (Number(a.compositeScore) || 0));
+      rawEmployees.forEach((emp, i) => { emp.rank = i + 1; });
+
+      currentKpiEmployeeList = rawEmployees;
+      renderKpiTable(currentKpiEmployeeList);
+    }
+
+    function renderKpiTable(list) {
+      const tbody = document.getElementById('tbody-kpi-employees');
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="py-6 text-center text-slate-500">Tidak ada personel yang sesuai dengan filter pencarian.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(emp => {
+        const score = Number(emp.compositeScore) || 0;
+        let badgeScoreClass = 'bg-slate-800 text-slate-300 border-slate-700';
+        if (score >= 94) badgeScoreClass = 'bg-emerald-950 text-emerald-300 border-emerald-800 font-bold';
+        else if (score >= 90) badgeScoreClass = 'bg-sky-950 text-sky-300 border-sky-800 font-semibold';
+        else if (score >= 85) badgeScoreClass = 'bg-amber-950 text-amber-300 border-amber-800 font-medium';
+        else badgeScoreClass = 'bg-rose-950 text-rose-300 border-rose-800 font-medium';
+
+        let rankBadge = `<span class="font-mono text-slate-500 font-bold">${emp.rank}</span>`;
+        if (emp.rank === 1) rankBadge = `<span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-bold flex items-center justify-center text-[10px] shadow">1</span>`;
+        else if (emp.rank === 2) rankBadge = `<span class="w-5 h-5 rounded-full bg-slate-300 text-slate-950 font-bold flex items-center justify-center text-[10px] shadow">2</span>`;
+        else if (emp.rank === 3) rankBadge = `<span class="w-5 h-5 rounded-full bg-amber-700 text-amber-100 font-bold flex items-center justify-center text-[10px] shadow">3</span>`;
+
+        let cabangColor = 'bg-slate-800 text-slate-300 border-slate-700';
+        if (emp.cabang.includes('Jakarta')) cabangColor = 'bg-amber-400/20 text-amber-300 border-amber-400/30';
+        else if (emp.cabang.includes('Bandung')) cabangColor = 'bg-sky-400/20 text-sky-300 border-sky-400/30';
+        else if (emp.cabang.includes('Padang')) cabangColor = 'bg-emerald-400/20 text-emerald-300 border-emerald-400/30';
+        else if (emp.cabang.includes('Makassar')) cabangColor = 'bg-purple-400/20 text-purple-300 border-purple-400/30';
+        else if (emp.cabang.includes('Palembang')) cabangColor = 'bg-rose-400/20 text-rose-300 border-rose-400/30';
+
+        const pplBadge = emp.statusPpl === 'TERTIB'
+          ? '<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">TERTIB</span>'
+          : '<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 border border-amber-800 font-bold">PERLU PPL</span>';
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2.5 px-3 text-center">${rankBadge}</td>
+            <td class="py-2.5 px-3 font-mono text-sky-300 font-semibold text-[11px]">${escapeHtml(emp.nik)}</td>
+            <td class="py-2.5 px-3 font-bold text-white">${escapeHtml(emp.nama)}</td>
+            <td class="py-2.5 px-3 text-slate-300">${escapeHtml(emp.jabatan)}</td>
+            <td class="py-2.5 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${cabangColor}">
+                ${escapeHtml(emp.cabang)}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-right font-mono text-emerald-400">${emp.qaScore || '-'}%</td>
+            <td class="py-2.5 px-3 text-right font-mono text-sky-400">${emp.slaScore || '-'}%</td>
+            <td class="py-2.5 px-3 text-right font-mono text-amber-400">${emp.prodScore || '-'}%</td>
+            <td class="py-2.5 px-3 text-right font-mono">
+              <span class="px-2 py-0.5 rounded text-[11px] border ${badgeScoreClass}">
+                ${score.toFixed(1)}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-center">${pplBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterKpiTable() {
+      const q = (document.getElementById('filter-kpi-search')?.value || '').toLowerCase().trim();
+      const cabang = document.getElementById('filter-kpi-cabang')?.value || '';
+      const peran = document.getElementById('filter-kpi-peran')?.value || '';
+
+      const filtered = currentKpiEmployeeList.filter(emp => {
+        const matchQ = !q || emp.nama.toLowerCase().includes(q) || emp.nik.toLowerCase().includes(q) || emp.jabatan.toLowerCase().includes(q);
+        const matchCabang = !cabang || emp.cabang === cabang;
+        const matchPeran = !peran || emp.peran === peran;
+        return matchQ && matchCabang && matchPeran;
+      });
+
+      renderKpiTable(filtered);
+    }
+
+    function eksporKpiCsv() {
+      if (!currentKpiEmployeeList || currentKpiEmployeeList.length === 0) {
+        tampilkanNotifikasi('Tidak ada data rapor KPI yang dapat diekspor.', 'error');
+        return;
+      }
+
+      const headers = ['Rank', 'NIK', 'Nama Lengkap', 'Jabatan', 'Kantor Cabang', 'Peran', 'Mutu QA (40%)', 'Ketepatan SLA (35%)', 'Produktivitas (25%)', 'Skor Komposit', 'Status PPL'];
+      const rows = currentKpiEmployeeList.map(emp => [
+        emp.rank,
+        `"${emp.nik}"`,
+        `"${emp.nama.replace(/"/g, '""')}"`,
+        `"${emp.jabatan.replace(/"/g, '""')}"`,
+        `"${emp.cabang}"`,
+        `"${emp.peran || '-'}"`,
+        emp.qaScore || 0,
+        emp.slaScore || 0,
+        emp.prodScore || 0,
+        emp.compositeScore || 0,
+        `"${emp.statusPpl || 'TERTIB'}"`
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Rapor_KPI_SDM_KJPP_NSR_${new Date().getFullYear()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      tampilkanNotifikasi('Rapor KPI 52 Personel berhasil diekspor ke CSV!', 'success');
+    }
+
+    // =========================================================================
+    // MODUL 4: ANALITIK SLA BANK REKANAN & RADAR PERINGATAN DINI PIMPINAN
+    // =========================================================================
+    function renderClientSLA(data) {
+      if (!data) return;
+      const an = data.analytics || {};
+      const sla = data.slaSummary || an.slaSummary || {};
+      const bankPerf = data.bankPerformance || an.bankPerformance || [
+        { name: "PT Bank Mandiri (Persero) Tbk", targetSla: 7.0, realisasiSla: 5.6, durasiInternal: 3.7, clockStop: 1.9, onTimeRate: 95.2, speedPayment: 6.4, totalJo: 14, statusScore: "EXCELLENT" },
+        { name: "PT Bank Rakyat Indonesia (Persero) Tbk", targetSla: 6.0, realisasiSla: 5.1, durasiInternal: 3.4, clockStop: 1.7, onTimeRate: 94.0, speedPayment: 7.8, totalJo: 10, statusScore: "EXCELLENT" },
+        { name: "PT Bank Central Asia Tbk (BCA)", targetSla: 5.0, realisasiSla: 4.4, durasiInternal: 3.1, clockStop: 1.3, onTimeRate: 96.5, speedPayment: 5.2, totalJo: 8, statusScore: "EXCELLENT" },
+        { name: "PT Bank Negara Indonesia (Persero) Tbk", targetSla: 7.0, realisasiSla: 6.2, durasiInternal: 4.1, clockStop: 2.1, onTimeRate: 91.5, speedPayment: 8.6, totalJo: 6, statusScore: "GOOD" },
+        { name: "PT Bank Tabungan Negara (Persero) Tbk", targetSla: 8.0, realisasiSla: 7.0, durasiInternal: 4.5, clockStop: 2.5, onTimeRate: 90.0, speedPayment: 9.5, totalJo: 5, statusScore: "GOOD" },
+        { name: "PT Bank CIMB Niaga Tbk", targetSla: 6.0, realisasiSla: 5.5, durasiInternal: 3.6, clockStop: 1.9, onTimeRate: 93.0, speedPayment: 7.0, totalJo: 4, statusScore: "GOOD" },
+        { name: "PT Bank Syariah Indonesia Tbk (BSI)", targetSla: 7.0, realisasiSla: 6.5, durasiInternal: 4.2, clockStop: 2.3, onTimeRate: 89.5, speedPayment: 11.2, totalJo: 3, statusScore: "ATTENTION" },
+        { name: "PT Bank Danamon Indonesia Tbk", targetSla: 6.0, realisasiSla: 5.8, durasiInternal: 3.9, clockStop: 1.9, onTimeRate: 92.0, speedPayment: 8.0, totalJo: 2, statusScore: "GOOD" }
+      ];
+
+      const nearOverdue = data.nearOverdueJobs || an.nearOverdueJobs || [
+        {
+          noJo: "0421/JO/NSR/XI/2026",
+          klien: "PT Bank Mandiri (Persero) Tbk",
+          objek: "Ruko Komersial 4 Lantai - Fatmawati",
+          cabang: "Pusat Jakarta",
+          picPenilai: "Yoga Anfiar Pradipta",
+          targetSlaDays: 7,
+          elapsedDays: 6.0,
+          sisaHari: 1.0,
+          statusBadge: "MENDEKATI_TENGGAT",
+          badgeColor: "rose",
+          tahapSaatIni: "M-05: Review Mutu SPM"
+        },
+        {
+          noJo: "0418/JO/NSR/XI/2026",
+          klien: "PT Bank Rakyat Indonesia (Persero) Tbk",
+          objek: "Pabrik Industri & Gudang - Cimahi",
+          cabang: "Cabang Bandung",
+          picPenilai: "Ardi Nurmayadi, S.T.",
+          targetSlaDays: 6,
+          elapsedDays: 5.0,
+          sisaHari: 1.0,
+          statusBadge: "MENDEKATI_TENGGAT",
+          badgeColor: "rose",
+          tahapSaatIni: "M-04: Analisis KKP"
+        },
+        {
+          noJo: "0414/JO/NSR/XI/2026",
+          klien: "PT Bank Central Asia Tbk (BCA)",
+          objek: "Gudang Logistik & Depo - Biringkanaya",
+          cabang: "Cabang Makassar",
+          picPenilai: "Wawan Kurniawan",
+          targetSlaDays: 5,
+          elapsedDays: 3.5,
+          sisaHari: 1.5,
+          statusBadge: "MENDEKATI_TENGGAT",
+          badgeColor: "amber",
+          tahapSaatIni: "M-04: Analisis KKP"
+        },
+        {
+          noJo: "0409/JO/NSR/XI/2026",
+          klien: "PT Bank Tabungan Negara (Persero) Tbk",
+          objek: "Kawasan Perumahan - Bukit Sejahtera",
+          cabang: "Cabang Palembang",
+          picPenilai: "Rafdinal Ardhi",
+          targetSlaDays: 8,
+          elapsedDays: 6.0,
+          sisaHari: 2.0,
+          statusBadge: "PERHATIAN_SLA",
+          badgeColor: "amber",
+          tahapSaatIni: "M-03: Inspeksi Lapangan"
+        }
+      ];
+
+      // 1. Update 4 Kartu Metrik SLA Rekanan
+      const elOnTime = document.getElementById('stat-sla-ontime-rate');
+      if (elOnTime) elOnTime.textContent = sla.onTimeRateNasional || '94.2%';
+
+      const elInternal = document.getElementById('stat-sla-internal-days');
+      if (elInternal) elInternal.textContent = sla.rataDurasiInternal || '3.8 Hari';
+
+      const elClockStop = document.getElementById('stat-sla-clockstop-days');
+      if (elClockStop) elClockStop.textContent = sla.rataClockStopKlien || '1.8 Hari';
+
+      const elPaySpeed = document.getElementById('stat-sla-payment-speed');
+      if (elPaySpeed) elPaySpeed.textContent = sla.rataSpeedPembayaran || '7.4 Hari';
+
+      // 2. Render Chart 1: Target vs Realisasi SLA (#chart-sla-target-realisasi)
+      if (typeof Chart !== 'undefined') {
+        const ctxSlaTarget = document.getElementById('chart-sla-target-realisasi');
+        if (ctxSlaTarget) {
+          if (chartInstances['slaTargetRealisasi']) {
+            try { chartInstances['slaTargetRealisasi'].destroy(); } catch (_) {}
+            delete chartInstances['slaTargetRealisasi'];
+          }
+
+          chartInstances['slaTargetRealisasi'] = new Chart(ctxSlaTarget, {
+            type: 'bar',
+            data: {
+              labels: bankPerf.map(b => b.name.replace(' (Persero) Tbk', '').replace(' PT', '').replace('Tbk', '').trim()),
+              datasets: [
+                {
+                  label: 'Target SLA PKS (Hari)',
+                  data: bankPerf.map(b => b.targetSla),
+                  backgroundColor: 'rgba(100, 116, 139, 0.7)',
+                  borderColor: '#64748b',
+                  borderWidth: 1,
+                  borderRadius: 6
+                },
+                {
+                  label: 'Realisasi Selesai (Hari)',
+                  data: bankPerf.map(b => b.realisasiSla),
+                  backgroundColor: 'rgba(56, 189, 248, 0.85)',
+                  borderColor: '#38bdf8',
+                  borderWidth: 1.5,
+                  borderRadius: 6
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'top',
+                  labels: { boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 10.5 } }
+                },
+                tooltip: {
+                  backgroundColor: '#0f172a',
+                  borderColor: '#334155',
+                  borderWidth: 1,
+                  callbacks: {
+                    label: item => ` ${item.dataset.label}: ${item.raw} Hari Kerja`
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  grid: { display: false },
+                  ticks: { font: { size: 10 } }
+                },
+                y: {
+                  grid: { color: '#1e293b' },
+                  ticks: { stepSize: 2, callback: v => `${v} H` }
+                }
+              }
+            }
+          });
+        }
+
+        // Render Chart 2: Durasi Internal vs Clock-Stop (#chart-sla-clockstop)
+        const ctxClockStop = document.getElementById('chart-sla-clockstop');
+        if (ctxClockStop) {
+          if (chartInstances['slaClockstop']) {
+            try { chartInstances['slaClockstop'].destroy(); } catch (_) {}
+            delete chartInstances['slaClockstop'];
+          }
+
+          chartInstances['slaClockstop'] = new Chart(ctxClockStop, {
+            type: 'bar',
+            data: {
+              labels: bankPerf.map(b => b.name.replace(' (Persero) Tbk', '').replace(' PT', '').replace('Tbk', '').trim()),
+              datasets: [
+                {
+                  label: 'Waktu Efektif Internal KJPP',
+                  data: bankPerf.map(b => b.durasiInternal),
+                  backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                  borderColor: '#10b981',
+                  borderWidth: 1
+                },
+                {
+                  label: 'Clock-Stop Menunggu Klien',
+                  data: bankPerf.map(b => b.clockStop),
+                  backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                  borderColor: '#f59e0b',
+                  borderWidth: 1
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  stacked: true,
+                  grid: { display: false },
+                  ticks: { font: { size: 10 } }
+                },
+                y: {
+                  stacked: true,
+                  grid: { color: '#1e293b' },
+                  ticks: { stepSize: 2, callback: v => `${v} H` }
+                }
+              },
+              plugins: {
+                legend: {
+                  position: 'top',
+                  labels: { boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 10.5 } }
+                },
+                tooltip: {
+                  backgroundColor: '#0f172a',
+                  borderColor: '#334155',
+                  borderWidth: 1
+                }
+              }
+            }
+          });
+        }
+      }
+
+      // 3. Render Radar Peringatan Dini Pimpinan (#tbody-near-overdue-jobs)
+      const tbodyRadar = document.getElementById('tbody-near-overdue-jobs');
+      if (tbodyRadar) {
+        tbodyRadar.innerHTML = nearOverdue.map(job => {
+          const isCritical = job.sisaHari <= 1.0;
+          const badgeClass = isCritical
+            ? 'bg-rose-950 text-rose-300 border-rose-800 animate-pulse font-bold'
+            : 'bg-amber-950 text-amber-300 border-amber-800 font-bold';
+
+          return `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-2.5 px-3">
+                <span class="font-mono text-amber-400 font-bold block text-xs">${escapeHtml(job.noJo)}</span>
+              </td>
+              <td class="py-2.5 px-3 font-semibold text-white">${escapeHtml(job.klien)}</td>
+              <td class="py-2.5 px-3 text-slate-300">${escapeHtml(job.objek)}</td>
+              <td class="py-2.5 px-3">
+                <span class="text-white block font-medium">${escapeHtml(job.picPenilai)}</span>
+                <span class="text-[10.5px] text-slate-400 font-mono">${escapeHtml(job.cabang)}</span>
+              </td>
+              <td class="py-2.5 px-3 text-center">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-sky-300 border border-slate-700 font-mono">
+                  ${escapeHtml(job.tahapSaatIni)}
+                </span>
+              </td>
+              <td class="py-2.5 px-3 text-right font-mono text-slate-300">${job.targetSlaDays} Hari</td>
+              <td class="py-2.5 px-3 text-right font-mono font-bold ${isCritical ? 'text-rose-400' : 'text-amber-400'}">
+                ${job.sisaHari.toFixed(1)} Hari
+              </td>
+              <td class="py-2.5 px-3 text-center">
+                <span class="px-2 py-0.5 rounded text-[10px] border ${badgeClass}">
+                  ${job.sisaHari <= 1.0 ? '🚨 SISA 1 HARI' : '⚠️ PERHATIAN'}
+                </span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // 4. Render Tabel Kinerja SLA per Bank Rekanan (#tbody-bank-sla-performance)
+      const tbodyBank = document.getElementById('tbody-bank-sla-performance');
+      if (tbodyBank) {
+        tbodyBank.innerHTML = bankPerf.map(b => {
+          let scoreBadge = '<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">EXCELLENT</span>';
+          if (b.statusScore === 'GOOD') {
+            scoreBadge = '<span class="px-2 py-0.5 rounded text-[10px] bg-sky-950 text-sky-300 border border-sky-800 font-semibold">GOOD</span>';
+          } else if (b.statusScore === 'ATTENTION') {
+            scoreBadge = '<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 border border-amber-800 font-semibold">ATTENTION</span>';
+          }
+
+          return `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-2.5 px-3 font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-building-columns text-sky-400 text-xs"></i>
+                <span>${escapeHtml(b.name)}</span>
+              </td>
+              <td class="py-2.5 px-3 text-right font-mono text-slate-300">${b.targetSla} H</td>
+              <td class="py-2.5 px-3 text-right font-mono text-sky-400 font-semibold">${b.realisasiSla} H</td>
+              <td class="py-2.5 px-3 text-right font-mono text-emerald-400">${b.durasiInternal} H</td>
+              <td class="py-2.5 px-3 text-right font-mono text-amber-400">${b.clockStop} H</td>
+              <td class="py-2.5 px-3 text-right font-mono font-bold ${b.onTimeRate >= 94 ? 'text-emerald-400' : 'text-amber-400'}">
+                ${b.onTimeRate}%
+              </td>
+              <td class="py-2.5 px-3 text-right font-mono text-slate-300">${b.speedPayment} H</td>
+              <td class="py-2.5 px-3 text-center font-mono text-slate-300 font-semibold">${b.totalJo}</td>
+              <td class="py-2.5 px-3 text-center">${scoreBadge}</td>
+            </tr>
           `;
         }).join('');
       }

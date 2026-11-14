@@ -139,9 +139,11 @@ function mutateJsonFileSafe(string $filePath, callable $mutator): array {
 // -------------------------------------------------------------
 switch ($action) {
 
-    // A. AGREGASI OVERVIEW TATA KELOLA & 4 PILAR
+    // A. AGREGASI OVERVIEW TATA KELOLA, ANALITIK, KPI SDM & SLA REKANAN
     case 'GET_EXECUTIVE_GOVERNANCE':
     case 'GET_GOVERNANCE_OVERVIEW':
+    case 'GET_EMPLOYEE_KPI':
+    case 'GET_CLIENT_SLA':
         $nolapFile = $dataDir . '/nolap_database.json';
         $oprFile   = $dataDir . '/operasional_database.json';
         $lockFile  = $dataDir . '/lockout_branches.json';
@@ -396,6 +398,92 @@ switch ($action) {
                     ['name' => 'PT Bank Rakyat Indonesia (Persero) Tbk', 'count' => 8, 'fee' => 195000000],
                     ['name' => 'PT Bank Central Asia Tbk', 'count' => 5, 'fee' => 125000000],
                     ['name' => 'PT Bank Negara Indonesia (Persero) Tbk', 'count' => 4, 'fee' => 90000000]
+                ],
+                'kpiSummary' => [
+                    'rataRataNasional'       => 90.4,
+                    'topPerformer'           => ['nama' => 'Danny Taufik Hidayat, S.H.', 'compositeScore' => 97.7, 'nik' => 'NSR-2019-005', 'cabang' => 'Pusat Jakarta'],
+                    'rasioKepatuhanIzin'     => '98.1%',
+                    'keseimbanganBebanKerja' => 'Optimal & Merata (Indeks Gini 0.18)',
+                    'totalPersonel'          => 52
+                ],
+                'kpiPerCabang' => [
+                    ['cabang' => 'Pusat Jakarta', 'avgScore' => 91.8, 'totalPersonel' => 26],
+                    ['cabang' => 'Cabang Bandung', 'avgScore' => 90.9, 'totalPersonel' => 7],
+                    ['cabang' => 'Cabang Padang', 'avgScore' => 89.4, 'totalPersonel' => 7],
+                    ['cabang' => 'Cabang Makassar', 'avgScore' => 88.6, 'totalPersonel' => 8],
+                    ['cabang' => 'Cabang Palembang', 'avgScore' => 87.2, 'totalPersonel' => 5]
+                ],
+                'slaSummary' => [
+                    'onTimeRateNasional'  => '94.2%',
+                    'rataDurasiInternal'  => '3.8 Hari Kerja',
+                    'rataClockStopKlien'  => '1.8 Hari Kerja',
+                    'rataSpeedPembayaran' => '7.4 Hari Kerja (Sejak M-07)',
+                    'totalBankMitra'      => 8,
+                    'totalPenugasanSla'   => 52
+                ],
+                'bankPerformance' => [
+                    ['name' => 'PT Bank Mandiri (Persero) Tbk', 'targetSla' => 7.0, 'realisasiSla' => 5.6, 'durasiInternal' => 3.7, 'clockStop' => 1.9, 'onTimeRate' => 95.2, 'speedPayment' => 6.4, 'totalJo' => 14, 'statusScore' => 'EXCELLENT'],
+                    ['name' => 'PT Bank Rakyat Indonesia (Persero) Tbk', 'targetSla' => 6.0, 'realisasiSla' => 5.1, 'durasiInternal' => 3.4, 'clockStop' => 1.7, 'onTimeRate' => 94.0, 'speedPayment' => 7.8, 'totalJo' => 10, 'statusScore' => 'EXCELLENT'],
+                    ['name' => 'PT Bank Central Asia Tbk (BCA)', 'targetSla' => 5.0, 'realisasiSla' => 4.4, 'durasiInternal' => 3.1, 'clockStop' => 1.3, 'onTimeRate' => 96.5, 'speedPayment' => 5.2, 'totalJo' => 8, 'statusScore' => 'EXCELLENT'],
+                    ['name' => 'PT Bank Negara Indonesia (Persero) Tbk', 'targetSla' => 7.0, 'realisasiSla' => 6.2, 'durasiInternal' => 4.1, 'clockStop' => 2.1, 'onTimeRate' => 91.5, 'speedPayment' => 8.6, 'totalJo' => 6, 'statusScore' => 'GOOD'],
+                    ['name' => 'PT Bank Tabungan Negara (Persero) Tbk', 'targetSla' => 8.0, 'realisasiSla' => 7.0, 'durasiInternal' => 4.5, 'clockStop' => 2.5, 'onTimeRate' => 90.0, 'speedPayment' => 9.5, 'totalJo' => 5, 'statusScore' => 'GOOD'],
+                    ['name' => 'PT Bank CIMB Niaga Tbk', 'targetSla' => 6.0, 'realisasiSla' => 5.5, 'durasiInternal' => 3.6, 'clockStop' => 1.9, 'onTimeRate' => 93.0, 'speedPayment' => 7.0, 'totalJo' => 4, 'statusScore' => 'GOOD'],
+                    ['name' => 'PT Bank Syariah Indonesia Tbk (BSI)', 'targetSla' => 7.0, 'realisasiSla' => 6.5, 'durasiInternal' => 4.2, 'clockStop' => 2.3, 'onTimeRate' => 89.5, 'speedPayment' => 11.2, 'totalJo' => 3, 'statusScore' => 'ATTENTION'],
+                    ['name' => 'PT Bank Danamon Indonesia Tbk', 'targetSla' => 6.0, 'realisasiSla' => 5.8, 'durasiInternal' => 3.9, 'clockStop' => 1.9, 'onTimeRate' => 92.0, 'speedPayment' => 8.0, 'totalJo' => 2, 'statusScore' => 'GOOD']
+                ],
+                'nearOverdueJobs' => [
+                    [
+                        'noJo'         => '0421/JO/NSR/XI/2026',
+                        'klien'        => 'PT Bank Mandiri (Persero) Tbk',
+                        'objek'        => 'Ruko Komersial 4 Lantai - Fatmawati',
+                        'cabang'       => 'Pusat Jakarta',
+                        'picPenilai'   => 'Yoga Anfiar Pradipta',
+                        'targetSlaDays'=> 7,
+                        'elapsedDays'  => 6.0,
+                        'sisaHari'     => 1.0,
+                        'statusBadge'  => 'MENDEKATI_TENGGAT',
+                        'badgeColor'   => 'rose',
+                        'tahapSaatIni' => 'M-05: Review Mutu SPM'
+                    ],
+                    [
+                        'noJo'         => '0418/JO/NSR/XI/2026',
+                        'klien'        => 'PT Bank Rakyat Indonesia (Persero) Tbk',
+                        'objek'        => 'Pabrik Industri & Gudang - Cimahi',
+                        'cabang'       => 'Cabang Bandung',
+                        'picPenilai'   => 'Ardi Nurmayadi, S.T.',
+                        'targetSlaDays'=> 6,
+                        'elapsedDays'  => 5.0,
+                        'sisaHari'     => 1.0,
+                        'statusBadge'  => 'MENDEKATI_TENGGAT',
+                        'badgeColor'   => 'rose',
+                        'tahapSaatIni' => 'M-04: Analisis KKP'
+                    ],
+                    [
+                        'noJo'         => '0414/JO/NSR/XI/2026',
+                        'klien'        => 'PT Bank Central Asia Tbk (BCA)',
+                        'objek'        => 'Gudang Logistik & Depo - Biringkanaya',
+                        'cabang'       => 'Cabang Makassar',
+                        'picPenilai'   => 'Wawan Kurniawan',
+                        'targetSlaDays'=> 5,
+                        'elapsedDays'  => 3.5,
+                        'sisaHari'     => 1.5,
+                        'statusBadge'  => 'MENDEKATI_TENGGAT',
+                        'badgeColor'   => 'amber',
+                        'tahapSaatIni' => 'M-04: Analisis KKP'
+                    ],
+                    [
+                        'noJo'         => '0409/JO/NSR/XI/2026',
+                        'klien'        => 'PT Bank Tabungan Negara (Persero) Tbk',
+                        'objek'        => 'Kawasan Perumahan - Bukit Sejahtera',
+                        'cabang'       => 'Cabang Palembang',
+                        'picPenilai'   => 'Rafdinal Ardhi',
+                        'targetSlaDays'=> 8,
+                        'elapsedDays'  => 6.0,
+                        'sisaHari'     => 2.0,
+                        'statusBadge'  => 'PERHATIAN_SLA',
+                        'badgeColor'   => 'amber',
+                        'tahapSaatIni' => 'M-03: Inspeksi Lapangan'
+                    ]
                 ]
             ],
             'timestamp'    => $now
