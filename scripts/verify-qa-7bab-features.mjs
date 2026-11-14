@@ -163,7 +163,11 @@ try {
     }));
   `);
   await sendCdp('Page.navigate', { url: `http://localhost:${PORT}/portal-qa-review.html` });
-  await new Promise(r => setTimeout(r, 1500));
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 200));
+    const isInit = await evalJs(`window.__qa_initialized === true`);
+    if (isInit) break;
+  }
 
   // Uji 0: Verifikasi State Cold Start (Mode Kerja Nyata - Live Bersih)
   console.log('[UJI 0] Verifikasi Cold Start: Default pada Mode Kerja Nyata (Live) Bersih...');

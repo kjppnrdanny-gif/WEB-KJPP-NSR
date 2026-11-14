@@ -246,14 +246,19 @@
         <!-- INPUT NOMOR JOB ORDER (JO) & PEMBERI TUGAS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <div>
-            <div class="flex items-center justify-between mb-1">
-              <label for="input-jo-number" class="block text-[11px] font-medium text-slate-400">
+            <div class="flex items-center justify-between mb-1 gap-2 flex-wrap">
+              <label for="input-jo-number" class="text-[11px] font-medium text-slate-400">
                 Nomor Job Order (JO) / Penugasan
               </label>
-              <span id="jo-sync-indicator" class="text-[10px] text-sky-400 font-mono">● Sinkron DB Penugasan</span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span id="jo-sync-indicator" class="text-[10px] text-sky-400 font-mono whitespace-nowrap">● Menghubungkan DB...</span>
+                <button type="button" id="btn-sync-jo" onclick="loadActiveJobOrdersDirectory(true)" title="Tarik ulang data penugasan dari DB Google Sheets" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 text-[10px] font-medium transition flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <span id="icon-refresh-jo">↻</span> <span>Tarik JO</span>
+                </button>
+              </div>
             </div>
-            <input type="text" id="input-jo-number" list="datalist-active-jo" value="JO-NSR-2026-8084"
-              placeholder="Pilih atau ketik No. JO..."
+            <input type="text" id="input-jo-number" list="datalist-active-jo" value=""
+              placeholder="Klik atau ketik No. JO untuk menarik data..."
               onchange="handleJobOrderSelection(this.value)"
               oninput="syncJOToMetadata(this.value)"
               class="w-full bg-slate-900/90 border border-slate-700 focus:border-sky-500 rounded-lg px-3 py-2 text-xs text-white font-mono">
@@ -263,6 +268,24 @@
             <label class="block text-[11px] font-medium text-slate-400 mb-1">Pemberi Tugas / Klien</label>
             <input type="text" id="input-client-name" placeholder="Contoh: PT Bank Tabungan Negara (Persero) Tbk"
               class="w-full bg-slate-900/90 border border-slate-700 focus:border-sky-500 rounded-lg px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <!-- Ringkasan Info Penugasan Terpilih dari DB_PENUGASAN_JO_NSR -->
+        <div id="jo-detail-summary-card" class="hidden mb-3 p-2.5 rounded-lg bg-slate-900/90 border border-sky-800/60 text-xs text-slate-300">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="font-bold text-sky-300 font-mono" id="summary-jo-code">-</span>
+              <span class="text-slate-500">&bull;</span>
+              <span class="font-semibold text-white" id="summary-jo-client">-</span>
+            </div>
+            <span id="summary-jo-milestone-badge" class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30">M-04</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 pt-2 border-t border-slate-800/80 text-[11px]">
+            <div><span class="text-slate-500">Objek Penilaian:</span> <span id="summary-jo-object" class="font-medium text-slate-200">-</span></div>
+            <div><span class="text-slate-500">Kantor Cabang:</span> <span id="summary-jo-branch" class="font-medium text-slate-200">-</span></div>
+            <div><span class="text-slate-500">Milestone Saat Ini:</span> <span id="summary-jo-milestone" class="font-medium text-cyan-300 font-mono">-</span></div>
           </div>
         </div>
 
@@ -282,14 +305,14 @@
         <!-- Viewer Toolbar -->
         <div class="px-4 py-3 border-b border-slate-800 bg-slate-900/80 flex flex-wrap items-center justify-between gap-2">
           <!-- Page Nav -->
-          <div class="flex items-center space-x-2">
-            <button type="button" onclick="ubahHalaman(-1)" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition">
+          <div id="pdf-page-nav-controls" class="flex items-center space-x-2 opacity-50 pointer-events-none transition-opacity">
+            <button type="button" id="btn-prev-page" onclick="ubahHalaman(-1)" disabled class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </button>
             <span class="text-xs font-mono font-medium text-slate-300">
-              Halaman <span id="current-page-num" class="text-cyan-400 font-bold">1</span> dari <span id="total-page-num" class="font-bold">63</span>
+              Halaman <span id="current-page-num" class="text-cyan-400 font-bold">0</span> dari <span id="total-page-num" class="font-bold">0</span>
             </span>
-            <button type="button" onclick="ubahHalaman(1)" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition">
+            <button type="button" id="btn-next-page" onclick="ubahHalaman(1)" disabled class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
           </div>
@@ -389,7 +412,7 @@
       <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 shadow-sm text-xs">
         <div class="flex items-center justify-between mb-2">
           <span class="font-bold text-slate-300 uppercase tracking-wider text-[11px]">Metadata Penugasan &amp; Agunan</span>
-          <span id="meta-job-id" class="px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">-</span>
+          <span id="meta-job-id" class="px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">BELUM DIPILIH</span>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-slate-300">
           <div><span class="text-slate-500">Nama Dokumen:</span> <span id="meta-doc-name" class="font-semibold text-slate-400 truncate inline-block max-w-[220px] align-bottom cursor-help" title="Belum ada berkas dimuat">-</span></div>

@@ -576,6 +576,60 @@ switch ($action) {
             'nearOverdueJobs' => $nearOverdueJobs
         ];
 
+        $izinAlertRadar = [
+            [
+                'nama'         => 'Rafdinal Ardhi',
+                'nik'          => 'NSR-PLB-2022-45',
+                'jabatan'      => 'Penilai Properti & Reviewer SPM',
+                'cabang'       => 'Cabang Palembang',
+                'peran'        => 'PENILAI',
+                'izin'         => 'MAPPI-P',
+                'noMappi'      => '18-P-04129',
+                'noRegister'   => 'REG-PPPK-2018-055',
+                'masaBerlaku'  => '2026-12-10',
+                'sisaHari'     => 26,
+                'alertLevel'   => 'H-30',
+                'badgeColor'   => 'rose',
+                'statusPpl'    => 'PERLU_PPL',
+                'statusPplText'=> 'Kurang 8 SKP (Perlu CPD)',
+                'tindakan'     => 'Prioritas Kritis (H-30): Segera lengkapi berkas SKP PPL & ajukan permohonan pembaruan izin/KTA ke asosiasi MAPPI.'
+            ],
+            [
+                'nama'         => 'Andri Kusmandana, S.Ak.',
+                'nik'          => 'NSR-BDG-2020-40',
+                'jabatan'      => 'Penilai Properti & Reviewer SPM',
+                'cabang'       => 'Cabang Bandung',
+                'peran'        => 'PENILAI',
+                'izin'         => 'MAPPI-P',
+                'noMappi'      => '17-P-03890',
+                'noRegister'   => 'REG-PPPK-2017-094',
+                'masaBerlaku'  => '2026-12-31',
+                'sisaHari'     => 47,
+                'alertLevel'   => 'H-60',
+                'badgeColor'   => 'amber',
+                'statusPpl'    => 'TERTIB',
+                'statusPplText'=> 'Tertib PPL (≥24 SKP)',
+                'tindakan'     => 'Peringatan H-60: Jadwalkan verifikasi pemenuhan SKP PPL tahunan dan siapkan dokumen registrasi ulang.'
+            ],
+            [
+                'nama'         => 'Tedi Setiadi, S.T.',
+                'nik'          => 'NSR-2019-007',
+                'jabatan'      => 'Tim Review SPM',
+                'cabang'       => 'Pusat Jakarta',
+                'peran'        => 'REVIEWER',
+                'izin'         => 'MAPPI-T',
+                'noMappi'      => '14-T-03112',
+                'noRegister'   => 'REG-PPPK-2014-045',
+                'masaBerlaku'  => '2027-02-05',
+                'sisaHari'     => 83,
+                'alertLevel'   => 'H-90',
+                'badgeColor'   => 'sky',
+                'statusPpl'    => 'TERTIB',
+                'statusPplText'=> 'Tertib PPL (≥24 SKP)',
+                'tindakan'     => 'Pemberitahuan H-90: Cek kecukupan poin SKP PPL MAPPI dan rekapitulasi laporan berkala penilai.'
+            ]
+        ];
+
         if ($action === 'GET_BANK_OPTIMIZATION' || $action === 'GET_BANK_ORDER_OPTIMIZATION') {
             echo json_encode(array_merge(['success' => true, 'status' => 'success'], $bankOptimizationData), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
             break;
@@ -587,6 +641,30 @@ switch ($action) {
                 'slaSummary'      => $bankOptimizationData['summary'],
                 'bankPerformance' => $bankOptimizationData['bankPerformance'],
                 'nearOverdueJobs' => $bankOptimizationData['nearOverdueJobs']
+            ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+            break;
+        }
+        if ($action === 'GET_EMPLOYEE_KPI') {
+            echo json_encode([
+                'success'        => true,
+                'status'         => 'success',
+                'kpiSummary'     => [
+                    'rataRataNasional'       => 90.4,
+                    'topPerformer'           => ['nama' => 'Danny Taufik Hidayat, S.H.', 'compositeScore' => 97.7, 'nik' => 'NSR-2019-005', 'cabang' => 'Pusat Jakarta'],
+                    'rasioKepatuhanIzin'     => '98.1%',
+                    'keseimbanganBebanKerja' => 'Optimal & Merata (Indeks Gini 0.18)',
+                    'totalPersonel'          => 52,
+                    'izinAlertCount'         => count($izinAlertRadar)
+                ],
+                'kpiPerCabang'   => [
+                    ['cabang' => 'Pusat Jakarta', 'avgScore' => 91.8, 'totalPersonel' => 26],
+                    ['cabang' => 'Cabang Bandung', 'avgScore' => 90.9, 'totalPersonel' => 7],
+                    ['cabang' => 'Cabang Padang', 'avgScore' => 89.4, 'totalPersonel' => 7],
+                    ['cabang' => 'Cabang Makassar', 'avgScore' => 88.6, 'totalPersonel' => 8],
+                    ['cabang' => 'Cabang Palembang', 'avgScore' => 87.2, 'totalPersonel' => 5]
+                ],
+                'izinAlertRadar' => $izinAlertRadar,
+                'employees'      => []
             ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
             break;
         }
@@ -660,7 +738,8 @@ switch ($action) {
                     'topPerformer'           => ['nama' => 'Danny Taufik Hidayat, S.H.', 'compositeScore' => 97.7, 'nik' => 'NSR-2019-005', 'cabang' => 'Pusat Jakarta'],
                     'rasioKepatuhanIzin'     => '98.1%',
                     'keseimbanganBebanKerja' => 'Optimal & Merata (Indeks Gini 0.18)',
-                    'totalPersonel'          => 52
+                    'totalPersonel'          => 52,
+                    'izinAlertCount'         => count($izinAlertRadar)
                 ],
                 'kpiPerCabang' => [
                     ['cabang' => 'Pusat Jakarta', 'avgScore' => 91.8, 'totalPersonel' => 26],
@@ -669,6 +748,7 @@ switch ($action) {
                     ['cabang' => 'Cabang Makassar', 'avgScore' => 88.6, 'totalPersonel' => 8],
                     ['cabang' => 'Cabang Palembang', 'avgScore' => 87.2, 'totalPersonel' => 5]
                 ],
+                'izinAlertRadar'        => $izinAlertRadar,
                 'slaSummary'            => $bankOptimizationData['summary'],
                 'bankPerformance'       => $bankOptimizationData['bankPerformance'],
                 'nearOverdueJobs'       => $bankOptimizationData['nearOverdueJobs'],
@@ -882,6 +962,50 @@ switch ($action) {
             'success' => true,
             'count'   => count($logs),
             'logs'    => $logs
+        ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        break;
+
+    // G. PENGARSIPAN DIGITAL SURAT UMUM & SURAT MASUK KE CLOUD STORAGE
+    case 'ARCHIVE_SURAT_UMUM_GDRIVE':
+        $nomorSurat = trim($payload['nomorSurat'] ?? $payload['noSurat'] ?? $payload['nomor'] ?? '');
+        $tahun      = trim($payload['tahun'] ?? date('Y'));
+        $cabang     = trim($payload['cabang'] ?? 'Pusat Jakarta');
+        $jenisSurat = strtoupper(trim($payload['jenisSurat'] ?? $payload['tipe'] ?? 'SURAT_KELUAR'));
+        $isMasuk    = (strpos($jenisSurat, 'MASUK') !== false);
+        $rootFolder = $isMasuk ? 'ARSIP_SURAT_MASUK_NSR' : 'ARSIP_SURAT_UMUM_NSR';
+
+        if (empty($nomorSurat)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Parameter nomorSurat wajib diisi.']);
+            exit;
+        }
+
+        $folderPath = "Folder Dokumen & SOP Cabang/{$rootFolder}/{$tahun}/{$cabang}";
+        $cleanNo    = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $nomorSurat);
+        $virtualUrl = "https://drive.google.com/drive/folders/NSR_SURAT_" . md5($folderPath . $cleanNo);
+
+        // Catat ke audit log
+        $logFile = $dataDir . '/db-governance-audit.log';
+        $logEntry = sprintf(
+            "[%s] [SURAT_ARCHIVED] %s | %s | %s | Folder: %s\n",
+            $now,
+            $nomorSurat,
+            $jenisSurat,
+            $cabang,
+            $folderPath
+        );
+        @file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+        echo json_encode([
+            'success'         => true,
+            'status'          => 'success',
+            'nomorSurat'      => $nomorSurat,
+            'jenisSurat'      => $jenisSurat,
+            'fileUrl'         => $virtualUrl,
+            'folderUrl'       => $virtualUrl,
+            'folderPath'      => $folderPath,
+            'savedFilesCount' => 1,
+            'archivedAt'      => $now
         ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
         break;
 

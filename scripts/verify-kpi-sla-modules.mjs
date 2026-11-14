@@ -93,6 +93,19 @@ else console.log('✓ Fungsi eksporAnalitikRekananCsv terverifikasi');
 if (!govHtml.includes('function renderBankOrderAndOptimization(')) errors.push('Fungsi renderBankOrderAndOptimization tidak ditemukan');
 else console.log('✓ Fungsi renderBankOrderAndOptimization terverifikasi');
 
+// E. Modul Radar Izin Penilai & Cetak Ringkasan Eksekutif A4
+const printAndRadarElements = ['btn-cetak-eksekutif', 'container-izin-alert-radar', 'stat-kpi-radar-count', 'print-executive-report'];
+printAndRadarElements.forEach(id => {
+  if (!govHtml.includes(`id="${id}"`)) errors.push(`Elemen #${id} tidak ditemukan`);
+  else console.log(`✓ Elemen #${id} terverifikasi`);
+});
+
+if (!govHtml.includes('function renderIzinAlertRadar(')) errors.push('Fungsi renderIzinAlertRadar tidak ditemukan');
+else console.log('✓ Fungsi renderIzinAlertRadar terverifikasi');
+
+if (!govHtml.includes('function cetakRingkasanEksekutifA4(')) errors.push('Fungsi cetakRingkasanEksekutifA4 tidak ditemukan');
+else console.log('✓ Fungsi cetakRingkasanEksekutifA4 terverifikasi');
+
 // 2. Verifikasi Backend Code.gs
 const codeGs = fs.readFileSync(path.resolve('Code.gs'), 'utf8');
 if (!codeGs.includes('getEmployeeKPIMetrics') || !codeGs.includes('getClientSLAPerformance') || !codeGs.includes('getBankOrderOptimizationMetrics')) {
@@ -104,6 +117,11 @@ if (!codeGs.includes("action === 'GET_BANK_OPTIMIZATION'") && !codeGs.includes("
   errors.push('Router doGet/doPost di Code.gs belum memuat aksi GET_BANK_OPTIMIZATION');
 } else {
   console.log('✓ Code.gs mendaftarkan aksi GET_BANK_OPTIMIZATION di router');
+}
+if (!codeGs.includes('archiveSuratUmumToDrive') || !codeGs.includes("ARCHIVE_SURAT_UMUM_GDRIVE")) {
+  errors.push('Code.gs belum memuat fungsi archiveSuratUmumToDrive atau aksi ARCHIVE_SURAT_UMUM_GDRIVE');
+} else {
+  console.log('✓ Code.gs memuat archiveSuratUmumToDrive dan router ARCHIVE_SURAT_UMUM_GDRIVE');
 }
 
 // 3. Verifikasi backend/google-apps-script-qa-audit.gs
@@ -118,6 +136,11 @@ if (!gasAudit.includes("GET_BANK_OPTIMIZATION")) {
 } else {
   console.log('✓ backend/google-apps-script-qa-audit.gs mendaftarkan GET_BANK_OPTIMIZATION');
 }
+if (!gasAudit.includes('archiveSuratUmumToDrive') || !gasAudit.includes("ARCHIVE_SURAT_UMUM_GDRIVE")) {
+  errors.push('backend/google-apps-script-qa-audit.gs belum memuat fungsi archiveSuratUmumToDrive atau aksi ARCHIVE_SURAT_UMUM_GDRIVE');
+} else {
+  console.log('✓ backend/google-apps-script-qa-audit.gs memuat archiveSuratUmumToDrive dan router ARCHIVE_SURAT_UMUM_GDRIVE');
+}
 
 // 4. Verifikasi governance-data-handler.php
 const phpContent = fs.readFileSync(path.resolve('governance-data-handler.php'), 'utf8');
@@ -125,6 +148,11 @@ if (!phpContent.includes('GET_BANK_OPTIMIZATION') || !phpContent.includes('bankO
   errors.push('governance-data-handler.php belum memuat GET_BANK_OPTIMIZATION atau bankOptimization');
 } else {
   console.log('✓ governance-data-handler.php memuat case GET_BANK_OPTIMIZATION dan bankOptimization');
+}
+if (!phpContent.includes('ARCHIVE_SURAT_UMUM_GDRIVE')) {
+  errors.push('governance-data-handler.php belum memuat aksi ARCHIVE_SURAT_UMUM_GDRIVE');
+} else {
+  console.log('✓ governance-data-handler.php memuat case ARCHIVE_SURAT_UMUM_GDRIVE');
 }
 
 if (errors.length > 0) {

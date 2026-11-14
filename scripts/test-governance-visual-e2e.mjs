@@ -408,6 +408,25 @@ const server = http.createServer((req, res) => {
               cabangTerakhir: "Cabang Bandung",
               tindakan: "Penawaran Khusus Paket Agunan Cabang & follow-up SPK penaksiran aset komersial syariah."
             }
+          ],
+          izinAlertRadar: [
+            {
+              nama: "Rafdinal Ardhi",
+              nik: "NSR-PLB-2022-45",
+              jabatan: "Penilai Properti & Reviewer SPM",
+              cabang: "Cabang Palembang",
+              peran: "PENILAI",
+              izin: "MAPPI-P",
+              noMappi: "MAPPI-2022-P045",
+              noRegister: "REG-P-PLB-045",
+              masaBerlaku: "2026-12-31",
+              sisaHari: 47,
+              alertLevel: "H-60",
+              badgeColor: "amber",
+              statusPpl: "PERLU_PPL",
+              statusPplText: "Kurang SKP PPL (Perlu CPD)",
+              tindakan: "Kekurangan SKP PPL: Segera daftarkan pada agenda CPD / Pendidikan Berkelanjutan MAPPI sebelum akhir tahun buku."
+            }
           ]
         }
       }
@@ -417,6 +436,7 @@ const server = http.createServer((req, res) => {
     mockData.slaSummary = mockData.analytics.slaSummary;
     mockData.bankPerformance = mockData.analytics.bankPerformance;
     mockData.nearOverdueJobs = mockData.analytics.nearOverdueJobs;
+    mockData.izinAlertRadar = mockData.analytics.izinAlertRadar;
 
     res.end(JSON.stringify(mockData));
     return;
@@ -520,11 +540,15 @@ server.listen(PORT, async () => {
         topName: document.getElementById('stat-kpi-top-name')?.textContent,
         pplRatio: document.getElementById('stat-kpi-ppl-ratio')?.textContent,
         totalRows: document.getElementById('tbody-kpi-employees')?.children?.length,
-        hasChartKpiCabang: !!chartInstances['kpiCabang']
+        hasChartKpiCabang: !!chartInstances['kpiCabang'],
+        radarIzinText: document.getElementById('stat-kpi-radar-count')?.textContent,
+        radarIzinCards: document.getElementById('container-izin-alert-radar')?.children?.length,
+        hasBtnCetak: !!document.getElementById('btn-cetak-eksekutif'),
+        hasPrintReport: !!document.getElementById('print-executive-report')
       })`,
       returnByValue: true
     });
-    console.log('Data Tab 3 (KPI SDM 52 Personel):', evalTab3.result.value);
+    console.log('Data Tab 3 (KPI SDM 52 Personel & Radar Izin):', evalTab3.result.value);
 
     const shot3 = await send('Page.captureScreenshot', { format: 'png' });
     const shot3Path = path.join(ARTIFACT_DIR, 'bukti_governance_tab3_kpi_sdm.png');
