@@ -251,7 +251,7 @@
                 Nomor Job Order (JO) / Penugasan
               </label>
               <div class="flex items-center gap-1.5 shrink-0">
-                <span id="jo-sync-indicator" class="text-[10px] text-sky-400 font-mono whitespace-nowrap">● Menghubungkan DB...</span>
+                <span id="jo-sync-indicator" class="text-[10px] text-sky-400 font-mono whitespace-nowrap">● Sinkron DB Penugasan</span>
                 <button type="button" id="btn-sync-jo" onclick="loadActiveJobOrdersDirectory(true)" title="Tarik ulang data penugasan dari DB Google Sheets" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 text-[10px] font-medium transition flex items-center gap-1 whitespace-nowrap cursor-pointer">
                   <span id="icon-refresh-jo">↻</span> <span>Tarik JO</span>
                 </button>
@@ -700,6 +700,12 @@
 
   <!-- CLIENT-SIDE LOGIC & PDF VIEWER DRIVER -->
   <script>
+    // Endpoint Google Apps Script SSOT Produksi (tab LOG_QA_AUDIT, DB_PENUGASAN_JO_NSR & interlock NoLap)
+    const PROD_GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
+    const GAS_QA_ENDPOINT_URL = window.GAS_QA_ENDPOINT_URL || PROD_GAS_WEB_APP_URL;
+    const GAS_PENUGASAN_ENDPOINT = window.GAS_PENUGASAN_ENDPOINT || PROD_GAS_WEB_APP_URL;
+    const GAS_MASTER_KARYAWAN_ENDPOINT = window.GAS_MASTER_KARYAWAN_ENDPOINT || PROD_GAS_WEB_APP_URL;
+
     // State Active Review & RBAC User Session
     let activeReview = null;
     let latestAuditSnapshot = null;
@@ -739,14 +745,33 @@
       if (restoreDefault) {
         clearActivePresets();
         const inputJo = document.getElementById('input-jo-number');
-        if (inputJo) inputJo.value = 'JO-NSR-2026-8084';
+        if (inputJo) inputJo.value = '';
         const inputClient = document.getElementById('input-client-name');
         if (inputClient) inputClient.value = '';
-        syncJOToMetadata('JO-NSR-2026-8084');
+        syncJOToMetadata('');
+
+        // Sembunyikan kartu ringkasan penugasan jika ada
+        const summaryCard = document.getElementById('jo-detail-summary-card');
+        if (summaryCard) summaryCard.classList.add('hidden');
+
+        // Reset navigasi halaman dokumen PDF ke state awal (0 dari 0 & nonaktif)
+        const pageNav = document.getElementById('pdf-page-nav-controls');
+        if (pageNav) pageNav.classList.add('opacity-50', 'pointer-events-none');
+        const btnPrev = document.getElementById('btn-prev-page');
+        if (btnPrev) btnPrev.disabled = true;
+        const btnNext = document.getElementById('btn-next-page');
+        if (btnNext) btnNext.disabled = true;
+        const curPage = document.getElementById('current-page-num');
+        if (curPage) curPage.textContent = '0';
+        const totalPage = document.getElementById('total-page-num');
+        if (totalPage) totalPage.textContent = '0';
 
         // Reset metadata tampilan
         const metaDoc = document.getElementById('meta-doc-name');
-        if (metaDoc) metaDoc.textContent = 'Belum ada berkas dimuat';
+        if (metaDoc) {
+          metaDoc.textContent = 'Belum ada berkas dimuat';
+          metaDoc.title = 'Belum ada berkas dimuat';
+        }
         const docInfo = document.getElementById('doc-file-info');
         if (docInfo) docInfo.textContent = 'File: Belum ada berkas dimuat';
         const metaUploader = document.getElementById('meta-uploader');
@@ -756,8 +781,6 @@
         }
         const metaPages = document.getElementById('meta-total-pages');
         if (metaPages) metaPages.textContent = '0 Halaman';
-        const totalPage = document.getElementById('total-page-num');
-        if (totalPage) totalPage.textContent = '0';
         const metaHash = document.getElementById('meta-hash');
         if (metaHash) metaHash.textContent = '-';
 
@@ -2553,8 +2576,7 @@ Format output wajib berupa objek JSON valid dengan struktur:
     }
 
 
-    // Endpoint GAS Master Karyawan & Presensi (KJPP Nanang Rahayu Sigit Paryanto & Rekan)
-    const GAS_MASTER_KARYAWAN_ENDPOINT = window.GAS_MASTER_KARYAWAN_ENDPOINT || 'https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec';
+    // Endpoint GAS Master Karyawan & Presensi (KJPP Nanang Rahayu Sigit Paryanto & Rekan) telah dideklarasikan di header script
 
     /**
      * Sinkronisasi direktori master karyawan secara dinamis dari endpoint GAS backend
@@ -3119,10 +3141,25 @@ Format output wajib berupa objek JSON valid dengan struktur:
       totalPagesCount = review.total_pages || 63;
       activePageIndex = 1;
 
+      // Aktifkan kembali kontrol navigasi halaman PDF
+      const pageNav = document.getElementById('pdf-page-nav-controls');
+      if (pageNav) pageNav.classList.remove('opacity-50', 'pointer-events-none');
+      const btnPrev = document.getElementById('btn-prev-page');
+      if (btnPrev) btnPrev.disabled = false;
+      const btnNext = document.getElementById('btn-next-page');
+      if (btnNext) btnNext.disabled = false;
+      const curPage = document.getElementById('current-page-num');
+      if (curPage) curPage.textContent = '1';
+      const totPage = document.getElementById('total-page-num');
+      if (totPage) totPage.textContent = String(totalPagesCount);
+
       // Sinkronisasi status input No. JO jika belum sesuai
       const inputJo = document.getElementById('input-jo-number');
       if (inputJo && review.job_order_id && inputJo.value !== review.job_order_id) {
         inputJo.value = review.job_order_id;
+      }
+      if (review.job_order_id) {
+        handleJobOrderSelection(review.job_order_id);
       }
 
       // Sinkronisasi status gerbang NoLap lokal untuk dokumen aktif
@@ -3565,10 +3602,13 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
 
     /**
      * Memuat daftar penugasan aktif dari DB_PENUGASAN_JO_NSR saat portal dibuka
+     * atau saat tombol "Tarik JO" ditekan
      */
-    async function loadActiveJobOrdersDirectory() {
+    async function loadActiveJobOrdersDirectory(forceRefresh = false) {
       const indicator = document.getElementById("jo-sync-indicator");
       const datalist = document.getElementById("datalist-active-jo");
+      const refreshIcon = document.getElementById("icon-refresh-jo");
+      const btnSync = document.getElementById("btn-sync-jo");
       if (!datalist) return;
 
       function populateDatalist(items) {
@@ -3583,30 +3623,55 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
         });
       }
 
+      // Pastikan data fallback awal langsung siap di memori & datalist
+      if (DB_PENUGASAN_MAP.size === 0) {
+        populateDatalist(SEED_ACTIVE_JO_FALLBACK);
+      }
+
+      if (refreshIcon) refreshIcon.classList.add("inline-block", "animate-spin");
+      if (btnSync) btnSync.disabled = true;
+      if (indicator) indicator.innerHTML = `<span class="text-sky-400 font-mono">↻ Sinkronisasi DB JO...</span>`;
+
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 6000);
-        const res = await fetch(GAS_QA_ENDPOINT_URL, {
+        const endpointUrl = (forceRefresh && GAS_QA_ENDPOINT_URL)
+          ? `${GAS_QA_ENDPOINT_URL}${GAS_QA_ENDPOINT_URL.includes('?') ? '&' : '?'}t=${Date.now()}`
+          : GAS_QA_ENDPOINT_URL;
+
+        const res = await fetch(endpointUrl, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "GET_ACTIVE_JO_QA" }),
+          body: JSON.stringify({ action: "GET_ACTIVE_JO_QA", force: Boolean(forceRefresh) }),
           signal: controller.signal
         });
         clearTimeout(timeoutId);
         const json = await res.json();
 
-        if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
+        if (json && (json.status === "success" || json.success) && Array.isArray(json.data) && json.data.length > 0) {
           populateDatalist(json.data);
-          if (indicator) indicator.innerHTML = `<span class="text-emerald-400">● ${json.data.length} JO Aktif Tersinkron</span>`;
+          if (indicator) indicator.innerHTML = `<span class="text-emerald-400 font-mono">● Terhubung: ${json.data.length} JO Aktif (SSOT)</span>`;
+          // Jika ada input No. JO yang sudah terpilih, perbarui kartu ringkasannya
+          const currentVal = document.getElementById("input-jo-number")?.value?.trim();
+          if (currentVal && DB_PENUGASAN_MAP.has(currentVal)) {
+            handleJobOrderSelection(currentVal);
+          }
           return;
         }
       } catch (err) {
-        // Fallback offline
+        // Fallback offline jika terjadi kendala jaringan / timeout
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove("inline-block", "animate-spin");
+        if (btnSync) btnSync.disabled = false;
       }
 
       // Gunakan seed fallback agar UI tetap interaktif dan tidak kosong
       populateDatalist(SEED_ACTIVE_JO_FALLBACK);
-      if (indicator) indicator.innerHTML = `<span class="text-amber-400">● Mode Offline (${SEED_ACTIVE_JO_FALLBACK.length} JO)</span>`;
+      if (indicator) indicator.innerHTML = `<span class="text-amber-400 font-mono">● Mode Offline (${SEED_ACTIVE_JO_FALLBACK.length} JO)</span>`;
+      const curJo = document.getElementById("input-jo-number")?.value?.trim();
+      if (curJo && DB_PENUGASAN_MAP.has(curJo)) {
+        handleJobOrderSelection(curJo);
+      }
     }
 
     /**
@@ -3616,8 +3681,29 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
       const cleanJo = String(joValue || "").trim();
       syncJOToMetadata(cleanJo);
 
+      const summaryCard = document.getElementById("jo-detail-summary-card");
       const joRecord = DB_PENUGASAN_MAP.get(cleanJo);
-      if (!joRecord) return;
+      if (!joRecord) {
+        if (summaryCard) summaryCard.classList.add("hidden");
+        return;
+      }
+
+      // Tampilkan kartu ringkasan info penugasan
+      if (summaryCard) {
+        summaryCard.classList.remove("hidden");
+        const codeEl = document.getElementById("summary-jo-code");
+        if (codeEl) codeEl.textContent = joRecord.noJo || cleanJo;
+        const clientEl = document.getElementById("summary-jo-client");
+        if (clientEl) clientEl.textContent = joRecord.pemberiTugas || "-";
+        const badgeEl = document.getElementById("summary-jo-milestone-badge");
+        if (badgeEl) badgeEl.textContent = joRecord.milestoneAktif || "M-04";
+        const objEl = document.getElementById("summary-jo-object");
+        if (objEl) objEl.textContent = joRecord.objekPenilaian || "-";
+        const branchEl = document.getElementById("summary-jo-branch");
+        if (branchEl) branchEl.textContent = joRecord.cabang || "-";
+        const msEl = document.getElementById("summary-jo-milestone");
+        if (msEl) msEl.textContent = joRecord.milestoneAktif || "-";
+      }
 
       // Isi otomatis kolom Pemberi Tugas / Klien
       const clientInput = document.getElementById("input-client-name");
@@ -4292,10 +4378,7 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     // IN-BROWSER DOCUMENT PARSING & QA AUDIT PIPELINE
     // =========================================================
 
-    // Endpoint Google Apps Script SSOT Produksi (tab LOG_QA_AUDIT, DB_PENUGASAN_JO_NSR & interlock NoLap)
-    const PROD_GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
-    const GAS_QA_ENDPOINT_URL = window.GAS_QA_ENDPOINT_URL || PROD_GAS_WEB_APP_URL;
-    const GAS_PENUGASAN_ENDPOINT = window.GAS_PENUGASAN_ENDPOINT || PROD_GAS_WEB_APP_URL;
+    // Endpoint Google Apps Script SSOT Produksi telah dideklarasikan di header script (PROD_GAS_WEB_APP_URL, GAS_QA_ENDPOINT_URL, GAS_PENUGASAN_ENDPOINT)
 
     /**
      * Mengirim hasil audit QA ke Google Sheets (tab LOG_QA_AUDIT) & menyinkronkan status Gerbang NoLap (SHA-256)
