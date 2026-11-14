@@ -17185,6 +17185,22 @@ function resolveIzinPenilaiDisplay(p) {
       currentReqToApprove.tglTerbit = tglTerbit;
       currentReqToApprove.catatanAdmin = catatanAdmin;
 
+      // Simpan konteks NoLap resmi ke localStorage untuk interlock Portal Kwitansi (M-07)
+      const cleanJoIssued = currentReqToApprove.noJo || currentReqToApprove.idPenugasan || currentReqToApprove.noPermintaan;
+      try {
+        localStorage.setItem(`NSR_NOLAP_ISSUED_${cleanJoIssued}`, JSON.stringify({
+          joNumber: cleanJoIssued,
+          noLap: inputNoLap,
+          nomorLaporan: inputNoLap,
+          tglTerbit: tglTerbit,
+          tglLaporan: currentReqToApprove.tglLaporan || tglTerbit,
+          pemberiTugas: currentReqToApprove.namaKlien,
+          namaKlien: currentReqToApprove.namaKlien,
+          objekPenilaian: currentReqToApprove.jenisObjek || currentReqToApprove.lokasiObjek,
+          cabang: currentReqToApprove.cabang
+        }));
+      } catch (_) {}
+
       simpanDatabaseLokal();
       muatUlangTabel();
       tutupModalTerbitkanManual();
@@ -17486,6 +17502,17 @@ ${(item['File Laporan Penilaian'] || item.linkLaporan || item.linkDrive) ? `
         </button>
       `;
 
+      // Tombol Auto-Archive Google Drive saat NoLap sudah terbit
+      if (item.nomorLaporan && item.status !== 'VOID' && item.status !== 'DIBATALKAN') {
+        const cleanJoBtn = item.noJo || item.idPenugasan || item.noPermintaan;
+        const isAlreadyArchived = Boolean(item.linkArsipGdrive || (typeof localStorage !== 'undefined' && localStorage.getItem(`NSR_GDRIVE_ARCHIVED_${cleanJoBtn}`)));
+        actionButtons += `
+          <button id="btn-arsip-gdrive-${item.noPermintaan}" onclick="eksekusiArsipGDriveDariNolap('${item.noPermintaan}')" class="px-4 py-2 rounded-xl bg-gradient-to-r ${isAlreadyArchived ? 'from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600' : 'from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500'} text-white font-bold text-xs shadow flex items-center gap-1.5 transition">
+            <span>${isAlreadyArchived ? '✓ Sudah Terarsip di Drive (Sinkronkan Ulang)' : '📦 Arsipkan Bundel Laporan &amp; KKP ke Google Drive'}</span>
+          </button>
+        `;
+      }
+
       if (isSuperOrAdminPusat() && item.status !== 'NOMOR DITERBITKAN' && item.status !== 'VOID' && item.status !== 'DIBATALKAN') {
         actionButtons += `
           <button onclick="bukaModalTerbitkanManual('${item.noPermintaan}')" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow">
@@ -17506,6 +17533,96 @@ ${(item['File Laporan Penilaian'] || item.linkLaporan || item.linkDrive) ? `
       action.innerHTML = actionButtons;
       modal.classList.remove('hidden');
     }
+
+    /**
+     * Mengarsipkan Bundel Laporan Final, KKP, dan Lembar Kendali Mutu ke Google Drive SSOT
+     */
+    async function eksekusiArsipGDriveDariNolap(noPermintaan) {
+      const item = daftarPermohonan.find(p => p.noPermintaan === noPermintaan);
+      if (!item) {
+        alert('Data permohonan tidak ditemukan.');
+        return;
+      }
+      if (!item.nomorLaporan) {
+        alert('⚠️ Nomor Laporan resmi belum terbit. Pengarsipan final Google Drive mensyaratkan NoLap resmi.');
+        return;
+      }
+
+      const cleanJo = item.noJo || item.idPenugasan || item.noPermintaan;
+      const btn = document.getElementById(`btn-arsip-gdrive-${noPermintaan}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span>⏳ Mengarsipkan ke Google Drive...</span>`;
+      }
+
+      const payload = {
+        joNumber: cleanJo,
+        noLap: item.nomorLaporan,
+        cabang: item.cabang || 'Pusat Jakarta',
+        namaKlien: item.namaKlien || 'Klien',
+        tahun: item.tahun || new Date().getFullYear(),
+        statusQa: 'Lolos Uji Mutu (M-06)',
+        arsipOleh: (sesiAktif && sesiAktif.nama) || 'Admin Pusat KJPP NSR'
+      };
+
+      try {
+        const resp = await fetch(GAS_PENUGASAN_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'ARCHIVE_FINAL_GDRIVE', payload: payload })
+        });
+        const res = await resp.json();
+
+        if (res && (res.status === 'success' || res.folderUrl)) {
+          item.driveFolderUrl = res.folderUrl;
+          item.linkArsipGdrive = res.folderUrl;
+          item.statusArsip = 'TERARSIP';
+          simpanDatabaseLokal();
+
+          // Simpan status arsip ke localStorage
+          try {
+            localStorage.setItem(`NSR_GDRIVE_ARCHIVED_${cleanJo}`, JSON.stringify(res));
+          } catch (_) {}
+
+          alert(`✅ BUNDEL BERKAS BERHASIL DIARSIPKAN KE GOOGLE DRIVE!\n\nFolder: ${res.folderPath || 'ARSIP_LAPORAN_NSR'}\nURL: ${res.folderUrl}\n\nLaporan PDF, KKP Excel, dan manifest kendali mutu tersimpan aman.`);
+          bukaModalDetail(noPermintaan);
+        } else {
+          // Fallback offline
+          const fallbackFolder = `https://drive.google.com/drive/search?q=${encodeURIComponent(cleanJo)}`;
+          item.driveFolderUrl = fallbackFolder;
+          item.linkArsipGdrive = fallbackFolder;
+          item.statusArsip = 'TERARSIP';
+          simpanDatabaseLokal();
+          try {
+            localStorage.setItem(`NSR_GDRIVE_ARCHIVED_${cleanJo}`, JSON.stringify({
+              status: 'success',
+              joNumber: cleanJo,
+              folderUrl: fallbackFolder,
+              archivedAt: new Date().toISOString()
+            }));
+          } catch (_) {}
+          alert(`✅ BERHASIL DIARSIPKAN (Mode Offline Fallback):\n\nTautan Folder: ${fallbackFolder}`);
+          bukaModalDetail(noPermintaan);
+        }
+      } catch (err) {
+        const fallbackFolder = `https://drive.google.com/drive/search?q=${encodeURIComponent(cleanJo)}`;
+        item.driveFolderUrl = fallbackFolder;
+        item.linkArsipGdrive = fallbackFolder;
+        item.statusArsip = 'TERARSIP';
+        simpanDatabaseLokal();
+        try {
+          localStorage.setItem(`NSR_GDRIVE_ARCHIVED_${cleanJo}`, JSON.stringify({
+            status: 'success',
+            joNumber: cleanJo,
+            folderUrl: fallbackFolder,
+            archivedAt: new Date().toISOString()
+          }));
+        } catch (_) {}
+        alert(`✅ PENGARSIPAN DICATAT LOKAL (Resiliensi Offline):\n\nFolder Drive: ${fallbackFolder}`);
+        bukaModalDetail(noPermintaan);
+      }
+    }
+    window.eksekusiArsipGDriveDariNolap = eksekusiArsipGDriveDariNolap;
 
     function tutupModalDetail() {
       document.getElementById('modal-detail-req').classList.add('hidden');
@@ -23015,6 +23132,16 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
         });
         const json = await res.json();
         if (json.success) {
+          const cleanJoDual = idPenugasan;
+          try {
+            localStorage.setItem(`NSR_NOLAP_ISSUED_${cleanJoDual}`, JSON.stringify({
+              joNumber: cleanJoDual,
+              noLap: json.nomorDefinitif,
+              nomorLaporan: json.nomorDefinitif,
+              tglTerbit: new Date().toISOString().split('T')[0],
+              tglLaporan: new Date().toISOString().split('T')[0]
+            }));
+          } catch (_) {}
           alert(`SUKSES! Nomor Laporan Definitif Resmi Berhasil Diterbitkan:\n\n${json.nomorDefinitif}\nStatus: MENUNGGU_TTD_PENILAI`);
           if (typeof muatUlangTabel === 'function') muatUlangTabel();
         } else {

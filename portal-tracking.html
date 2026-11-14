@@ -3818,26 +3818,42 @@
               target.current_milestone = item.milestoneAktif;
               target.milestone = item.milestoneAktif;
               target.milestone_aktif = item.milestoneAktif;
-              target.status_qa = item.statusQa;
-              target.skor_qa = item.skorMutu;
+              target.status_qa = item.statusQa || target.status_qa || 'ACCEPTABLE';
+              target.skor_qa = item.skorMutu || target.skor_qa;
               target.qa_event = item.event;
               target.last_updated = item.updatedAt || new Date().toISOString();
+              if (item.noKwitansi) target.no_kwitansi = item.noKwitansi;
+              if (item.noLap) target.no_lap = item.noLap;
+              if (item.statusKwitansi) target.status_kwitansi = item.statusKwitansi;
               // Update milestones object jika ada
               if (target.milestones && typeof target.milestones === 'object') {
                 if (item.milestoneAktif === 'M-05') {
                   if (target.milestones['M-05']) {
                     target.milestones['M-05'].status = 'in_progress';
-                    target.milestones['M-05'].note = `Status QA: ${item.statusQa} (${item.skorMutu}%)`;
+                    target.milestones['M-05'].note = `Status QA: ${item.statusQa || target.status_qa || 'REVIEW'} (${item.skorMutu || target.skor_qa || 0}%)`;
                   }
                 } else if (item.milestoneAktif === 'M-06') {
                   if (target.milestones['M-05']) {
                     target.milestones['M-05'].status = 'completed';
-                    target.milestones['M-05'].note = `Lolos Uji Mutu (${item.skorMutu}%)`;
+                    target.milestones['M-05'].note = `Lolos Uji Mutu (${item.skorMutu || target.skor_qa || 100}%)`;
                   }
                   if (target.milestones['M-06']) {
                     target.milestones['M-06'].status = 'in_progress';
-                    target.milestones['M-06'].note = 'Siap Otorisasi Penilai Publik & Terbit NoLap';
+                    target.milestones['M-06'].note = item.noLap ? `NoLap: ${item.noLap}` : 'Siap Otorisasi Penilai Publik & Terbit NoLap';
                   }
+                } else if (item.milestoneAktif === 'M-07') {
+                  if (target.milestones['M-05']) {
+                    target.milestones['M-05'].status = 'completed';
+                  }
+                  if (target.milestones['M-06']) {
+                    target.milestones['M-06'].status = 'completed';
+                    target.milestones['M-06'].note = item.noLap ? `NoLap: ${item.noLap}` : 'NoLap Resmi Terbit';
+                  }
+                  if (target.milestones['M-07']) {
+                    target.milestones['M-07'].status = 'completed';
+                    target.milestones['M-07'].note = item.noKwitansi ? `Kwitansi Terbit: ${item.noKwitansi}` : 'Kwitansi Pelunasan Terbit';
+                  }
+                  target.status = 'COMPLETED';
                 }
               }
             } else {
@@ -3863,7 +3879,9 @@
                 status_qa: item.statusQa,
                 skor_qa: item.skorMutu,
                 qa_event: item.event,
-                status: 'IN_PROGRESS',
+                status: item.milestoneAktif === 'M-07' ? 'COMPLETED' : 'IN_PROGRESS',
+                no_kwitansi: item.noKwitansi || '',
+                no_lap: item.noLap || '',
                 sla_status: 'on_track',
                 last_updated: item.updatedAt || new Date().toISOString()
               });

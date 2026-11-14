@@ -571,6 +571,14 @@ function doPost(e) {
         result = updateJobOrderMilestoneFromQA(payload.payload || payload, ss);
         break;
 
+      case 'ARCHIVE_FINAL_GDRIVE':
+        result = archiveFinalReportToDrive(payload.payload || payload, ss);
+        break;
+
+      case 'VERIFY_KWITANSI_ELIGIBILITY':
+        result = getEligibleJobsForKwitansi(payload.joNumber || (payload.data && payload.data.joNumber) || payload.jo || payload.noJo, ss);
+        break;
+
       default:
         result = { status: 'error', success: false, error: 'Aksi (' + action + ') tidak dikenali oleh sistem.' };
     }
@@ -2323,6 +2331,8 @@ function updateJobOrderMilestoneFromQA(payload, ssInstance) {
       let nextMilestone = "M-05";
       if (payload.event === "QA_APPROVED" || payload.event === "QA_OVERRIDE") {
         nextMilestone = "M-06";
+      } else if (payload.event === "KWITANSI_ISSUED" || payload.milestoneAktif === "M-07" || payload.event === "PAYMENT_SETTLED") {
+        nextMilestone = "M-07";
       }
 
       if (idxMilestone !== -1) sheet.getRange(rowNum, idxMilestone + 1).setValue(nextMilestone);
@@ -2344,4 +2354,245 @@ function updateJobOrderMilestoneFromQA(payload, ssInstance) {
 
   return { status: "not_found", message: `Nomor JO ${targetJo} tidak ditemukan di DB_PENUGASAN_JO_NSR.` };
 }
+
+/**
+ * Mengarsipkan Bundel Laporan Final, KKP Excel, dan Lembar Kendali Mutu SPM ke Google Drive
+ * Struktur Folder: ARSIP_LAPORAN_NSR/[TAHUN]/[CABANG]/[NO_JO]_[NAMA_KLIEN]/
+ */
+function archiveFinalReportToDrive(payload, ssInstance) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    const ss = ssInstance || SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("DB_PENUGASAN_JO_NSR");
+    if (!sheet) {
+      sheet = ss.getSheetByName("Data_Penugasan") || ss.getSheetByName("DATA_PENUGASAN");
+    }
+
+    const joNumber = String(payload.joNumber || payload.noJo || "").trim();
+    if (!joNumber) {
+      return { status: "error", message: "Nomor JO (joNumber) wajib diisi." };
+    }
+
+    const tahun = String(payload.tahun || new Date().getFullYear()).trim();
+    const cabang = String(payload.cabang || "Pusat Jakarta").trim().replace(/[\/\\:*?"<>|]/g, "_");
+    const namaKlien = String(payload.namaKlien || payload.pemberiTugas || "Klien").trim().replace(/[\/\\:*?"<>|]/g, "_").substring(0, 50);
+    const cleanJo = joNumber.replace(/[\/\\:*?"<>|]/g, "_");
+    const noLap = String(payload.noLap || payload.nomorLaporan || "").trim();
+
+    // 1. Dapatkan atau buat Folder Induk ARSIP_LAPORAN_NSR
+    let rootFolders = DriveApp.getFoldersByName("ARSIP_LAPORAN_NSR");
+    let rootFolder = rootFolders.hasNext() ? rootFolders.next() : DriveApp.createFolder("ARSIP_LAPORAN_NSR");
+
+    // 2. Subfolder Tahun
+    let yearFolders = rootFolder.getFoldersByName(tahun);
+    let yearFolder = yearFolders.hasNext() ? yearFolders.next() : rootFolder.createFolder(tahun);
+
+    // 3. Subfolder Cabang
+    let branchFolders = yearFolder.getFoldersByName(cabang);
+    let branchFolder = branchFolders.hasNext() ? branchFolders.next() : yearFolder.createFolder(cabang);
+
+    // 4. Folder Spesifik Penugasan: [NO_JO]_[NAMA_KLIEN]
+    const targetFolderName = `${cleanJo}_${namaKlien}`;
+    let jobFolders = branchFolder.getFoldersByName(targetFolderName);
+    let jobFolder = jobFolders.hasNext() ? jobFolders.next() : branchFolder.createFolder(targetFolderName);
+
+    let savedFilesCount = 0;
+
+    // 5. Simpan file jika dilampirkan dalam payload (base64 blob)
+    if (payload.files && Array.isArray(payload.files)) {
+      payload.files.forEach(function(f) {
+        if (f.name && f.base64) {
+          const contentType = f.type || "application/pdf";
+          const decoded = Utilities.base64Decode(f.base64);
+          const blob = Utilities.newBlob(decoded, contentType, f.name);
+          jobFolder.createFile(blob);
+          savedFilesCount++;
+        }
+      });
+    }
+
+    // Buat berkas manifest / Lembar Bukti Arsip Final
+    const manifestContent = JSON.stringify({
+      nomorJo: joNumber,
+      nomorLaporanResmi: noLap,
+      klien: namaKlien,
+      cabang: cabang,
+      tahun: tahun,
+      tanggalArsip: Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss"),
+      arsipOleh: payload.arsipOleh || "Sistem Kendali Mutu SPM KJPP NSR",
+      statusQa: payload.statusQa || "Lolos Uji Mutu (M-06)",
+      sha256Hash: payload.sha256Hash || "",
+      catatan: payload.catatan || "Arsip digital bundel laporan penilaian & kertas kerja tervalidasi."
+    }, null, 2);
+
+    jobFolder.createFile(`MANIFEST_ARSIP_${cleanJo}.json`, manifestContent, MimeType.PLAIN_TEXT);
+    savedFilesCount++;
+
+    const folderUrl = jobFolder.getUrl();
+    const folderId = jobFolder.getId();
+    const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+
+    // 6. Catat URL Folder ke Kolom LINK_ARSIP_GDRIVE di DB_PENUGASAN_JO_NSR
+    if (sheet && sheet.getLastRow() >= 2) {
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0].map(function(h) { return String(h).trim().toUpperCase(); });
+
+      const idxJo = headers.indexOf("NO_JO") !== -1 ? headers.indexOf("NO_JO") : (headers.indexOf("ID_JO") !== -1 ? headers.indexOf("ID_JO") : 0);
+      let idxLinkDrive = headers.indexOf("LINK_ARSIP_GDRIVE");
+      if (idxLinkDrive === -1) {
+        idxLinkDrive = headers.indexOf("LINK_FOLDER_DRIVE") !== -1 ? headers.indexOf("LINK_FOLDER_DRIVE") : headers.indexOf("DRIVE_FOLDER_URL");
+      }
+      if (idxLinkDrive === -1) {
+        const lastCol = sheet.getLastColumn() + 1;
+        sheet.getRange(1, lastCol).setValue("LINK_ARSIP_GDRIVE");
+        idxLinkDrive = lastCol - 1;
+      }
+
+      let idxStatusArsip = headers.indexOf("STATUS_ARSIP");
+      if (idxStatusArsip === -1) {
+        const lastCol2 = sheet.getLastColumn() + 1;
+        sheet.getRange(1, lastCol2).setValue("STATUS_ARSIP");
+        idxStatusArsip = lastCol2 - 1;
+      }
+
+      const idxUpdatedAt = headers.indexOf("LAST_UPDATED") !== -1 ? headers.indexOf("LAST_UPDATED") : headers.indexOf("UPDATED_AT");
+
+      for (let i = 1; i < values.length; i++) {
+        if (String(values[i][idxJo]).trim() === joNumber) {
+          const rowNum = i + 1;
+          sheet.getRange(rowNum, idxLinkDrive + 1).setValue(folderUrl);
+          sheet.getRange(rowNum, idxStatusArsip + 1).setValue("TERARSIP");
+          if (idxUpdatedAt !== -1) sheet.getRange(rowNum, idxUpdatedAt + 1).setValue(nowStr);
+          break;
+        }
+      }
+      SpreadsheetApp.flush();
+    }
+
+    return {
+      status: "success",
+      joNumber: joNumber,
+      noLap: noLap,
+      folderUrl: folderUrl,
+      folderId: folderId,
+      folderPath: `ARSIP_LAPORAN_NSR/${tahun}/${cabang}/${targetFolderName}`,
+      savedFilesCount: savedFilesCount,
+      archivedAt: nowStr
+    };
+
+  } catch (err) {
+    return { status: "error", message: err.message };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * Memvalidasi Kelayakan Penugasan untuk Penerbitan Kwitansi Pelunasan
+ * Memastikan penugasan telah lulus QA (M-06) dan memiliki Nomor Laporan Resmi
+ */
+function getEligibleJobsForKwitansi(joNumber, ssInstance) {
+  const cleanJo = String(joNumber || "").trim();
+  if (!cleanJo) {
+    return { status: "error", eligible: false, message: "Nomor Job Order (JO) wajib diberikan." };
+  }
+
+  const ss = ssInstance || SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("DB_PENUGASAN_JO_NSR");
+  if (!sheet) {
+    sheet = ss.getSheetByName("Data_Penugasan") || ss.getSheetByName("DATA_PENUGASAN");
+  }
+
+  let jobFound = null;
+
+  if (sheet && sheet.getLastRow() >= 2) {
+    const values = sheet.getDataRange().getValues();
+    const headers = values[0].map(function(h) { return String(h).trim().toUpperCase(); });
+
+    const idxJo = headers.indexOf("NO_JO") !== -1 ? headers.indexOf("NO_JO") : (headers.indexOf("ID_JO") !== -1 ? headers.indexOf("ID_JO") : 0);
+    const idxKlien = headers.indexOf("PEMBERI_TUGAS") !== -1 ? headers.indexOf("PEMBERI_TUGAS") : (headers.indexOf("INSTANSI") !== -1 ? headers.indexOf("INSTANSI") : 2);
+    const idxObjek = headers.indexOf("OBJEK_PENILAIAN") !== -1 ? headers.indexOf("OBJEK_PENILAIAN") : (headers.indexOf("OBJEK") !== -1 ? headers.indexOf("OBJEK") : 3);
+    const idxNoLap = headers.indexOf("NOMOR_LAPORAN") !== -1 ? headers.indexOf("NOMOR_LAPORAN") : (headers.indexOf("NO_LAP") !== -1 ? headers.indexOf("NO_LAP") : headers.indexOf("NO_LAPORAN"));
+    const idxTglLap = headers.indexOf("TANGGAL_LAPORAN") !== -1 ? headers.indexOf("TANGGAL_LAPORAN") : headers.indexOf("TGL_LAPORAN");
+    const idxMilestone = headers.indexOf("MILESTONE_AKTIF") !== -1 ? headers.indexOf("MILESTONE_AKTIF") : headers.indexOf("CURRENT_MILESTONE");
+    const idxStatusQa = headers.indexOf("STATUS_QA");
+    const idxFee = headers.indexOf("FEE_PENILAIAN") !== -1 ? headers.indexOf("FEE_PENILAIAN") : (headers.indexOf("NILAI_KONTRAK") !== -1 ? headers.indexOf("NILAI_KONTRAK") : headers.indexOf("DPP"));
+
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][idxJo]).trim() === cleanJo) {
+        jobFound = {
+          noJo: cleanJo,
+          pemberiTugas: String(values[i][idxKlien] || "").trim(),
+          objekPenilaian: String(values[i][idxObjek] || "").trim(),
+          nomorLaporan: idxNoLap !== -1 ? String(values[i][idxNoLap] || "").trim() : "",
+          tanggalLaporan: idxTglLap !== -1 ? String(values[i][idxTglLap] || "").trim() : "",
+          milestoneAktif: idxMilestone !== -1 ? String(values[i][idxMilestone] || "").trim() : "M-05",
+          statusQa: idxStatusQa !== -1 ? String(values[i][idxStatusQa] || "").trim() : "",
+          feePenilaian: idxFee !== -1 ? Number(values[i][idxFee] || 0) : 0
+        };
+        break;
+      }
+    }
+  }
+
+  // Fallback ke tab LOG_QA_AUDIT jika belum tercatat di penugasan
+  if (!jobFound) {
+    const sheetQa = ss.getSheetByName("LOG_QA_AUDIT");
+    if (sheetQa && sheetQa.getLastRow() >= 2) {
+      const qaVals = sheetQa.getDataRange().getValues();
+      for (let i = qaVals.length - 1; i >= 1; i--) {
+        if (String(qaVals[i][2]).trim() === cleanJo) {
+          jobFound = {
+            noJo: cleanJo,
+            pemberiTugas: "PT Bank Tabungan Negara (Persero) Tbk",
+            objekPenilaian: String(qaVals[i][3] || ""),
+            nomorLaporan: "",
+            tanggalLaporan: Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd"),
+            milestoneAktif: qaVals[i][12] === "TERBUKA" ? "M-06" : "M-05",
+            statusQa: String(qaVals[i][6] || "")
+          };
+          break;
+        }
+      }
+    }
+  }
+
+  if (!jobFound) {
+    return {
+      status: "not_found",
+      eligible: false,
+      message: `Nomor Job Order ${cleanJo} tidak ditemukan dalam database.`
+    };
+  }
+
+  const hasNoLap = Boolean(jobFound.nomorLaporan && jobFound.nomorLaporan.length > 5);
+
+  if (hasNoLap) {
+    return {
+      status: "success",
+      eligible: true,
+      joNumber: cleanJo,
+      nomorLaporan: jobFound.nomorLaporan,
+      tanggalLaporan: jobFound.tanggalLaporan || Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd"),
+      pemberiTugas: jobFound.pemberiTugas,
+      objekPenilaian: jobFound.objekPenilaian,
+      feePenilaian: jobFound.feePenilaian,
+      statusQa: jobFound.statusQa,
+      milestoneAktif: jobFound.milestoneAktif
+    };
+  } else {
+    return {
+      status: "warning",
+      eligible: false,
+      message: `Nomor Laporan resmi belum terbit untuk JO ${cleanJo}. Kwitansi pelunasan diblokir hingga NoLap diterbitkan (M-06).`,
+      joNumber: cleanJo,
+      pemberiTugas: jobFound.pemberiTugas,
+      objekPenilaian: jobFound.objekPenilaian,
+      statusQa: jobFound.statusQa,
+      milestoneAktif: jobFound.milestoneAktif
+    };
+  }
+}
+
 

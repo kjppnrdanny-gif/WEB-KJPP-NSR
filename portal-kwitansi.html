@@ -419,6 +419,31 @@
             <textarea id="keterangan-penugasan" rows="2" required placeholder="Contoh: Biaya Penilaian Aset Properti Komersial berupa Pabrik & Mesin PT Indo Industri Sejahtera di Kawasan Industri Cikarang, SPK No. 124/SPK-NSR/2026" class="w-full p-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-amber-400 placeholder:text-slate-500 leading-relaxed"></textarea>
           </div>
 
+          <!-- INTERLOCK NO LAPORAN & MILESTONE 7 (SE-6/PPPK/2018) -->
+          <div id="panel-interlock-nolap" class="p-3.5 rounded-xl bg-slate-900 border border-slate-700/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                <span id="interlock-status-icon">🛡️</span>
+                <span>Interlock Validasi Nomor Laporan (SE-6/PPPK/2018 &amp; M-07)</span>
+              </span>
+              <span id="badge-interlock-status" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-400">STANDBY</span>
+            </div>
+            <div id="pesan-interlock-nolap" class="text-[11px] text-slate-400 leading-relaxed">
+              Pilih penugasan SPK/JO untuk memvalidasi syarat Nomor Laporan resmi sebelum penerbitan kwitansi pelunasan.
+            </div>
+            <!-- Bidang Data Nomor Laporan Resmi (Auto-Populate Zero Double-Entry) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-800">
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5">Nomor Laporan Resmi Kemenkeu (NoLap):</label>
+                <input type="text" id="nomor-laporan-resmi" readonly placeholder="Otomatis dari NoLap (M-06)" class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-800 text-amber-300 font-mono text-[11px] font-bold">
+              </div>
+              <div>
+                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5">Tanggal Laporan Resmi:</label>
+                <input type="text" id="tanggal-laporan-resmi" readonly placeholder="YYYY-MM-DD" class="w-full h-8 px-2.5 rounded bg-slate-950 border border-slate-800 text-slate-200 font-mono text-[11px]">
+              </div>
+            </div>
+          </div>
+
           <!-- Baris 4: Banyaknya / Persentase Termin -->
           <div>
             <div class="flex items-center justify-between mb-1">
@@ -435,7 +460,7 @@
             <button type="button" onclick="setTerminKhususBast()" class="w-full mb-2 py-1.5 px-3 rounded-lg bg-blue-950/70 hover:bg-blue-900 text-[11px] font-bold text-sky-300 border border-sky-500/40 hover:border-sky-400 transition flex items-center justify-center gap-1.5 shadow-sm">
               <span>🏛️ Termin 100% Pascaterbit / BAST (Proyek Pemerintah / BUMN)</span>
             </button>
-            <input type="text" id="banyaknya-termin" required placeholder="Contoh: 50% (Pembayaran Termin I)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
+            <input type="text" id="banyaknya-termin" oninput="evaluasiInterlockNoLapKwitansi(); perbaruiPreviewKwitansi();" required placeholder="Contoh: 50% (Pembayaran Termin I)" class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs font-semibold focus:outline-none focus:border-amber-400">
           </div>
 
           <!-- Baris 5: Perhitungan Angka & Pajak -->
@@ -1529,12 +1554,220 @@
       perbaruiPreviewKwitansi();
     }
 
+    function isTagihanPelunasan(terminText) {
+      const t = String(terminText || '').toLowerCase();
+      if (t.includes('pelunasan') || t.includes('lunas') || t.includes('100%') || t.includes('termin akhir') || t.includes('termin ii') || t.includes('bast')) {
+        return true;
+      }
+      return false;
+    }
+
+    function dapatkanActiveJoNumber() {
+      let jo = (dataKwitansiAktif.noJo || '').trim();
+      if (!jo) {
+        const spkVal = document.getElementById('no-spk')?.value || document.getElementById('nomor_spk_manual')?.value || document.getElementById('pilih_spk_database')?.value || '';
+        if (spkVal.includes('JO-')) {
+          const m = spkVal.match(/(JO-[A-Z0-9-]+)/i);
+          if (m) jo = m[1];
+        }
+      }
+      return jo.trim();
+    }
+
+    async function evaluasiInterlockNoLapKwitansi() {
+      const elTermin = document.getElementById('banyaknya-termin');
+      const terminText = elTermin ? elTermin.value.trim() : '';
+      const isPelunasan = isTagihanPelunasan(terminText);
+
+      const panel = document.getElementById('panel-interlock-nolap');
+      const badge = document.getElementById('badge-interlock-status');
+      const pesan = document.getElementById('pesan-interlock-nolap');
+      const icon = document.getElementById('interlock-status-icon');
+      const inputNoLap = document.getElementById('nomor-laporan-resmi');
+      const inputTglLap = document.getElementById('tanggal-laporan-resmi');
+
+      const btnPusat = document.getElementById('btn-terbitkan-pusat');
+
+      // Ambil No JO aktif
+      const jo = dapatkanActiveJoNumber();
+
+      // KASUS 1: Bukan Pelunasan (Uang Muka / DP)
+      if (!isPelunasan) {
+        window.__interlock_blocked = false;
+        if (badge) {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30';
+          badge.textContent = 'DP / UANG MUKA (LOLOS)';
+        }
+        if (icon) icon.textContent = 'ℹ️';
+        if (pesan) {
+          pesan.innerHTML = `<span class="text-sky-300">Tagihan berjenis Uang Muka / DP / Termin Awal. Penerbitan kwitansi diperbolehkan tanpa prasyarat Nomor Laporan resmi.</span>`;
+        }
+        if (btnPusat) {
+          btnPusat.disabled = false;
+          btnPusat.classList.remove('opacity-50', 'cursor-not-allowed');
+          btnPusat.title = 'Terbitkan kwitansi resmi.';
+        }
+        const btnCabang = document.getElementById('btn-terbit-resmi-cabang');
+        if (btnCabang) {
+          btnCabang.disabled = false;
+          btnCabang.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        const btnSubmit = document.getElementById('btn-submit-pengajuan');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        return { isPelunasan: false, allowed: true };
+      }
+
+      // KASUS 2: Pelunasan tapi belum ada No. JO
+      if (!jo) {
+        if (badge) {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30';
+          badge.textContent = 'MENUNGGU SPK / JO';
+        }
+        if (pesan) {
+          pesan.innerHTML = `<span class="text-amber-300">Tagihan pelunasan membutuhkan verifikasi Nomor Laporan resmi. Harap pilih atau ketik Nomor SPK/JO penugasan.</span>`;
+        }
+        return { isPelunasan: true, allowed: false };
+      }
+
+      // KASUS 3: Pelunasan dengan No. JO -> Cek NoLap Lokal / Remote
+      let noLapData = null;
+      try {
+        const rawIssued = localStorage.getItem(`NSR_NOLAP_ISSUED_${jo}`);
+        if (rawIssued) noLapData = JSON.parse(rawIssued);
+      } catch (_) {}
+
+      if (!noLapData) {
+        try {
+          const rawSync = localStorage.getItem(`NSR_MILESTONE_SYNC_${jo}`);
+          if (rawSync) {
+            const parsedSync = JSON.parse(rawSync);
+            if (parsedSync.nomorLaporan || parsedSync.noLap) {
+              noLapData = parsedSync;
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Cek di spkDatabaseCache
+      if (!noLapData && Array.isArray(window.spkDatabaseCache)) {
+        const foundCache = window.spkDatabaseCache.find(x => (x.no_jo === jo || x.id_jo === jo || x.nomor_spk === jo));
+        if (foundCache && (foundCache.nomor_laporan || foundCache.no_lap)) {
+          noLapData = {
+            nomorLaporan: foundCache.nomor_laporan || foundCache.no_lap,
+            tanggalLaporan: foundCache.tanggal_laporan || foundCache.tgl_laporan,
+            pemberiTugas: foundCache.klien,
+            objekPenilaian: foundCache.objek || foundCache.tujuan
+          };
+        }
+      }
+
+      // Jika belum ditemukan di lokal, panggil endpoint remote secara asinkron
+      if (!noLapData && navigator.onLine && typeof GAS_PENUGASAN_ENDPOINT !== 'undefined') {
+        try {
+          const resp = await fetch(GAS_PENUGASAN_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'VERIFY_KWITANSI_ELIGIBILITY', joNumber: jo })
+          });
+          const resJson = await resp.json();
+          if (resJson && resJson.eligible && resJson.nomorLaporan) {
+            noLapData = resJson;
+          }
+        } catch (_) {}
+      }
+
+      const hasValidNoLap = Boolean(noLapData && (noLapData.nomorLaporan || noLapData.noLap));
+
+      if (hasValidNoLap) {
+        // NOLAP TERBIT -> LOLOS INTERLOCK
+        window.__interlock_blocked = false;
+        const noLapVal = noLapData.nomorLaporan || noLapData.noLap;
+        const tglLapVal = noLapData.tanggalLaporan || noLapData.tglLaporan || new Date().toISOString().split('T')[0];
+
+        if (inputNoLap) inputNoLap.value = noLapVal;
+        if (inputTglLap) inputTglLap.value = tglLapVal;
+
+        // Auto-fill Keterangan jika belum memuat nomor laporan
+        const elKet = document.getElementById('keterangan-penugasan');
+        if (elKet && !elKet.value.includes(noLapVal)) {
+          const namaKlien = noLapData.pemberiTugas || noLapData.namaKlien || document.getElementById('identitas-klien')?.value || 'Klien';
+          const objek = noLapData.objekPenilaian || 'Objek Penilaian';
+          elKet.value = `Pelunasan Biaya Jasa Penilaian Aset: ${objek}, Berdasarkan Laporan Penilaian Resmi Kemenkeu No. ${noLapVal} (Tanggal: ${tglLapVal})`;
+          dataKwitansiAktif.keterangan = elKet.value;
+        }
+
+        if (badge) {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+          badge.textContent = 'INTERLOCK LOLOS (M-06 SAH)';
+        }
+        if (icon) icon.textContent = '✓';
+        if (pesan) {
+          pesan.innerHTML = `<span class="text-emerald-300 font-semibold">✓ Nomor Laporan resmi terverifikasi: <span class="font-mono">${noLapVal}</span>. Status penugasan Lolos QA &amp; Siap Penerbitan Kwitansi Pelunasan (M-07).</span>`;
+        }
+        if (btnPusat) {
+          btnPusat.disabled = false;
+          btnPusat.classList.remove('opacity-50', 'cursor-not-allowed');
+          btnPusat.title = 'Terbitkan kwitansi resmi.';
+        }
+        const btnCabang = document.getElementById('btn-terbit-resmi-cabang');
+        if (btnCabang) {
+          btnCabang.disabled = false;
+          btnCabang.classList.remove('opacity-50', 'cursor-not-allowed');
+          btnCabang.title = 'Otorisasi & terbitkan kwitansi resmi cabang.';
+        }
+        const btnSubmit = document.getElementById('btn-submit-pengajuan');
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        return { isPelunasan: true, allowed: true, noLap: noLapVal };
+      } else {
+        // NOLAP BELUM ADA -> BLOKIR KWITANSI PELUNASAN
+        window.__interlock_blocked = true;
+        if (inputNoLap) inputNoLap.value = 'BELUM TERBIT (TERKUNCI)';
+        if (inputTglLap) inputTglLap.value = '-';
+
+        if (badge) {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse';
+          badge.textContent = 'BLOKIR: NOLAP BELUM TERBIT';
+        }
+        if (icon) icon.textContent = '🔒';
+        if (pesan) {
+          pesan.innerHTML = `<span class="text-rose-300 font-bold">⛔ PENERBITAN PELUNASAN DIBLOKIR:</span> Nomor Laporan resmi Kemenkeu belum terbit untuk penugasan <span class="font-mono">${jo}</span>. Sesuai tata kelola SPM, kwitansi pelunasan hanya dapat diterbitkan setelah Laporan Penilaian dinyatakan Lolos Telaah Mutu &amp; NoLap Terbit (Milestone 6).<br><span class="text-slate-400 text-[10px] mt-0.5 block">💡 Catatan: Anda tetap dapat menerbitkan kwitansi Uang Muka / DP untuk penugasan ini.</span>`;
+        }
+        if (btnPusat) {
+          btnPusat.disabled = true;
+          btnPusat.classList.add('opacity-50', 'cursor-not-allowed');
+          btnPusat.title = 'Penerbitan kwitansi pelunasan diblokir: Nomor Laporan resmi belum terbit.';
+        }
+        const btnCabang = document.getElementById('btn-terbit-resmi-cabang');
+        if (btnCabang) {
+          btnCabang.disabled = true;
+          btnCabang.classList.add('opacity-50', 'cursor-not-allowed');
+          btnCabang.title = 'Penerbitan kwitansi pelunasan diblokir: Nomor Laporan resmi belum terbit.';
+        }
+        const btnSubmit = document.getElementById('btn-submit-pengajuan');
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+          btnSubmit.title = 'Pengajuan kwitansi pelunasan diblokir: Nomor Laporan resmi belum terbit.';
+        }
+        return { isPelunasan: true, allowed: false };
+      }
+    }
+    window.evaluasiInterlockNoLapKwitansi = evaluasiInterlockNoLapKwitansi;
+    window.isTagihanPelunasan = isTagihanPelunasan;
+
     function setTermin(teks) {
       const inp = document.getElementById('banyaknya-termin');
       if (inp) {
         inp.value = teks;
         dataKwitansiAktif.banyaknya = teks;
         dataKwitansiAktif.statusFinansial = 'PENDING';
+        evaluasiInterlockNoLapKwitansi();
         perbaruiPreviewKwitansi();
       }
     }
@@ -1546,6 +1779,7 @@
         inp.value = teks;
         dataKwitansiAktif.banyaknya = teks;
         dataKwitansiAktif.statusFinansial = 'PIUTANG KONTRAK SAH (BAST)';
+        evaluasiInterlockNoLapKwitansi();
         perbaruiPreviewKwitansi();
       }
     }
@@ -2392,6 +2626,16 @@
       let namaPengaju = document.getElementById('nama-staf-pengaju') ? document.getElementById('nama-staf-pengaju').value.trim() : '';
       let waPengaju = document.getElementById('wa-staf-pengaju') ? document.getElementById('wa-staf-pengaju').value.trim() : '';
       const noSpk = (document.getElementById('no-spk')?.value || document.getElementById('nomor_spk_manual')?.value || '').trim();
+
+      // Interlock Check untuk Tagihan Pelunasan / Termin Akhir
+      if (typeof isTagihanPelunasan === 'function' && isTagihanPelunasan(banyaknya)) {
+        if (window.__interlock_blocked) {
+          alert("⛔ PENGAJUAN DITOLAK: Tagihan pelunasan / termin akhir diblokir karena Nomor Laporan resmi Kemenkeu belum diterbitkan untuk penugasan ini (Milestone 6 belum tercapai).\n\nSesuai Pedoman SPM KJPP NSR, kwitansi pelunasan hanya dapat diajukan setelah NoLap resmi Kemenkeu terbit.");
+          btn.disabled = false;
+          btn.innerHTML = textOriginal;
+          return;
+        }
+      }
 
       if (!isPusat) {
         if (!namaPengaju || !waPengaju) {
@@ -3880,6 +4124,7 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       }
 
       hitungKwitansi();
+      evaluasiInterlockNoLapKwitansi();
       perbaruiPreviewKwitansi();
     }
 
@@ -3896,6 +4141,15 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       if (!currentUser || !peran.isPusat) {
         alert("⚠️ Akses ditolak: Penerbitan definitif langsung hanya dapat dilakukan oleh Bagian Keuangan Kantor Pusat.");
         return;
+      }
+
+      // 0. Interlock Validasi NoLap untuk Tagihan Pelunasan / Termin Akhir
+      const terminText = (document.getElementById('banyaknya-termin')?.value || dataKwitansiAktif.banyaknya || '').trim();
+      if (typeof isTagihanPelunasan === 'function' && isTagihanPelunasan(terminText)) {
+        if (window.__interlock_blocked) {
+          alert("⛔ PENERBITAN DITOLAK: Tagihan pelunasan / termin akhir diblokir karena Nomor Laporan resmi Kemenkeu belum diterbitkan untuk penugasan ini.\n\nSesuai Pedoman SPM KJPP NSR dan SE-6/PPPK/2018, penagihan pelunasan hanya sah jika Laporan Penilaian telah lolos kendali mutu dan memiliki Nomor Laporan resmi (Milestone 6).");
+          return;
+        }
       }
 
       // 1. Validasi Input Utama
@@ -3998,12 +4252,52 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         localStorage.setItem('NSR_KWITANSI_OFFLINE_CACHE', JSON.stringify(daftarKwitansiGlobal));
       } catch(e) {}
 
+      // 5. SINKRONISASI MILESTONE M-07 (PENAGIHAN & KWITANSI RESMI TERBIT)
+      const cleanJoNumber = (typeof dapatkanActiveJoNumber === 'function' ? dapatkanActiveJoNumber() : '') || noSpk;
+      if (cleanJoNumber) {
+        const payloadM7 = {
+          joNumber: cleanJoNumber,
+          milestoneAktif: 'M-07',
+          noKwitansi: noResmiPusat,
+          tglKwitansi: tglSah,
+          statusKwitansi: 'TERBIT_LUNAS',
+          status_qa: 'ACCEPTABLE',
+          statusQa: 'ACCEPTABLE',
+          event: 'KWITANSI_ISSUED',
+          namaPemberiTugas: klien,
+          pejabat: dataKwitansiAktif.pejabatSah,
+          totalBayar: dataKwitansiAktif.totalBayar,
+          lastUpdated: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        try {
+          localStorage.setItem('NSR_MILESTONE_SYNC_' + cleanJoNumber, JSON.stringify(payloadM7));
+          window.dispatchEvent(new CustomEvent('nsr-milestone-updated', { detail: payloadM7 }));
+        } catch (e) {}
+
+        if (typeof GAS_PENUGASAN_ENDPOINT !== 'undefined' && navigator.onLine) {
+          fetch(GAS_PENUGASAN_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'UPDATE_JO_MILESTONE_QA',
+              joNumber: cleanJoNumber,
+              event: 'KWITANSI_ISSUED',
+              milestoneTarget: 'M-07',
+              noKwitansi: noResmiPusat,
+              statusKwitansi: 'TERBIT_LUNAS'
+            }),
+            redirect: 'follow'
+          }).catch(err => console.warn('Background milestone M-07 sync:', err));
+        }
+      }
+
       perbaruiPreviewKwitansi();
       if (typeof renderTabelKwitansi === 'function') {
         renderTabelKwitansi();
       }
 
-      alert(`✅ Kwitansi Resmi BERHASIL DITERBITKAN & DISAHKAN DEFINITIF!\n\nNomor Kwitansi: ${noResmiPusat}\nPenandatangan: ${dataKwitansiAktif.pejabatSah}\nStatus: DISETUJUI PUSAT (Definitif)\n\nLembar cetak kwitansi resmi telah aktif dan siap dicetak / diunduh format PDF.`);
+      alert(`✅ Kwitansi Resmi BERHASIL DITERBITKAN & DISAHKAN DEFINITIF!\n\nNomor Kwitansi: ${noResmiPusat}\nPenandatangan: ${dataKwitansiAktif.pejabatSah}\nStatus: DISETUJUI PUSAT (Definitif)\nMilestone: M-07 (Penagihan & Kwitansi Terbit)\n\nLembar cetak kwitansi resmi telah aktif dan siap dicetak / diunduh format PDF.`);
 
       // Otomatis buka tab approval pusat untuk monitoring rekap
       bukaTabDashboardPusat();
@@ -4264,6 +4558,16 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
         return;
       }
       hitungKwitansi();
+
+      // Cek Interlock NoLap untuk Tagihan Pelunasan / Termin Akhir
+      const terminText = (document.getElementById('banyaknya-termin')?.value || dataKwitansiAktif.banyaknya || '').trim();
+      if (typeof isTagihanPelunasan === 'function' && isTagihanPelunasan(terminText)) {
+        if (window.__interlock_blocked) {
+          alert("⛔ OTORISASI DITOLAK: Tagihan pelunasan / termin akhir diblokir karena Nomor Laporan resmi Kemenkeu belum diterbitkan untuk penugasan ini.\n\nSesuai Pedoman SPM KJPP NSR dan SE-6/PPPK/2018, penagihan pelunasan hanya sah jika Laporan Penilaian telah lolos kendali mutu dan memiliki Nomor Laporan resmi.");
+          return;
+        }
+      }
+
       const elCabang = document.getElementById('cabang-pengaju');
       const cabang = elCabang?.value || dataKwitansiAktif.cabang || (currentUser ? getNormalizedCabangFromUser(currentUser) : '');
       if (!cabang) {
@@ -4298,6 +4602,15 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       const errPin = document.getElementById('pesan-error-pin-finance');
       const statusSelect = document.getElementById('pilihan-status-kwitansi-cabang');
       const pin = inpPin ? inpPin.value.trim() : '';
+
+      // Cek Interlock NoLap untuk Tagihan Pelunasan / Termin Akhir
+      const terminText = (document.getElementById('banyaknya-termin')?.value || dataKwitansiAktif.banyaknya || '').trim();
+      if (typeof isTagihanPelunasan === 'function' && isTagihanPelunasan(terminText)) {
+        if (window.__interlock_blocked) {
+          alert("⛔ PENERBITAN DITOLAK: Tagihan pelunasan / termin akhir diblokir karena Nomor Laporan resmi Kemenkeu belum diterbitkan untuk penugasan ini.");
+          return;
+        }
+      }
 
       let cabangKey = '';
       for (const k in PIN_FINANCE_CABANG) {
@@ -4346,7 +4659,44 @@ KJPP Nanang Rahayu Sigit Paryanto dan Rekan`);
       tutupModalPinFinanceCabang();
       perbaruiPreviewKwitansi();
 
-      alert(`Kwitansi Resmi Cabang ${cabangKey} Berhasil Diterbitkan!\n\nNomor Resmi: ${noResmi}\nStatus: ${statusTerpilih}\nOtorisasi: Keuangan Cabang ${cabangKey}\n\nWatermark draf telah dihapus. Lembar kwitansi sah siap dicetak.`);
+      // SINKRONISASI MILESTONE M-07 UNTUK CABANG
+      const cleanJoNumber = (typeof dapatkanActiveJoNumber === 'function' ? dapatkanActiveJoNumber() : '') || (document.getElementById('no-spk')?.value || document.getElementById('nomor_spk_manual')?.value || '').trim();
+      if (cleanJoNumber) {
+        const payloadM7Cabang = {
+          joNumber: cleanJoNumber,
+          milestoneAktif: 'M-07',
+          noKwitansi: noResmi,
+          tglKwitansi: d.toISOString().split('T')[0],
+          statusKwitansi: statusTerpilih,
+          status_qa: 'ACCEPTABLE',
+          statusQa: 'ACCEPTABLE',
+          event: 'KWITANSI_ISSUED',
+          lastUpdated: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        try {
+          localStorage.setItem('NSR_MILESTONE_SYNC_' + cleanJoNumber, JSON.stringify(payloadM7Cabang));
+          window.dispatchEvent(new CustomEvent('nsr-milestone-updated', { detail: payloadM7Cabang }));
+        } catch (e) {}
+
+        if (typeof GAS_PENUGASAN_ENDPOINT !== 'undefined' && navigator.onLine) {
+          fetch(GAS_PENUGASAN_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'UPDATE_JO_MILESTONE_QA',
+              joNumber: cleanJoNumber,
+              event: 'KWITANSI_ISSUED',
+              milestoneTarget: 'M-07',
+              noKwitansi: noResmi,
+              statusKwitansi: statusTerpilih
+            }),
+            redirect: 'follow'
+          }).catch(err => console.warn('Background milestone M-07 sync:', err));
+        }
+      }
+
+      alert(`Kwitansi Resmi Cabang ${cabangKey} Berhasil Diterbitkan!\n\nNomor Resmi: ${noResmi}\nStatus: ${statusTerpilih}\nOtorisasi: Keuangan Cabang ${cabangKey}\nMilestone: M-07 (Penagihan & Kwitansi Terbit)\n\nWatermark draf telah dihapus. Lembar kwitansi sah siap dicetak.`);
       
       const printBtn = document.getElementById('btn-cetak-kwitansi');
       if (printBtn) {
