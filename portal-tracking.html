@@ -3734,6 +3734,16 @@
     }
     window.switchTab = switchTab;
 
+    // =========================================================================
+    // KONSTANTA ENDPOINT GOOGLE APPS SCRIPT SSOT PRODUKSI (PENUGASAN & TRACKING)
+    // =========================================================================
+    const PROD_GAS_WEB_APP_URL = window.PROD_GAS_WEB_APP_URL || "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
+    const GAS_TRACKING_URL = window.GAS_TRACKING_URL || PROD_GAS_WEB_APP_URL;
+    const GAS_PENUGASAN_ENDPOINT = window.GAS_PENUGASAN_ENDPOINT || PROD_GAS_WEB_APP_URL;
+    window.PROD_GAS_WEB_APP_URL = PROD_GAS_WEB_APP_URL;
+    window.GAS_TRACKING_URL = GAS_TRACKING_URL;
+    window.GAS_PENUGASAN_ENDPOINT = GAS_PENUGASAN_ENDPOINT;
+
     // Panggil Backend API
     async function callApi(action, params = {}, method = 'GET', body = null) {
       let url = 'backend/job-tracking-handler.php?action=' + encodeURIComponent(action);
@@ -3762,8 +3772,23 @@
         for (const k in params) {
           urlFallback += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
         }
-        const resFb = await fetch(urlFallback, opts);
-        return await resFb.json();
+        try {
+          const resFb = await fetch(urlFallback, opts);
+          return await resFb.json();
+        } catch (errFallback) {
+          console.warn("Fetch root handler fallback to GAS Web App:", errFallback);
+          try {
+            const gasOpts = {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: action, ...params, ...(body || {}) })
+            };
+            const resGas = await fetch(GAS_TRACKING_URL, gasOpts);
+            return await resGas.json();
+          } catch (_) {
+            return { status: 'error', message: 'Koneksi ke backend gagal' };
+          }
+        }
       }
     }
     window.callApi = callApi;

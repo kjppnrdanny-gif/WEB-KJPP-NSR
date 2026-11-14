@@ -2531,7 +2531,7 @@ Format output wajib berupa objek JSON valid dengan struktur:
 
 
     // Endpoint GAS Master Karyawan & Presensi (KJPP Nanang Rahayu Sigit Paryanto & Rekan)
-    const GAS_MASTER_KARYAWAN_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwI-OQMFWQZrzraGkU0mDY8MD8XjLwpmo0KsOnC-aCaMB_CYDxi_-xgh11NJEwTP3kn/exec';
+    const GAS_MASTER_KARYAWAN_ENDPOINT = window.GAS_MASTER_KARYAWAN_ENDPOINT || 'https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec';
 
     /**
      * Sinkronisasi direktori master karyawan secara dinamis dari endpoint GAS backend
@@ -4269,8 +4269,10 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     // IN-BROWSER DOCUMENT PARSING & QA AUDIT PIPELINE
     // =========================================================
 
-    // Endpoint Google Apps Script (tab LOG_QA_AUDIT & interlock NoLap)
-    const GAS_QA_ENDPOINT_URL = window.GAS_QA_ENDPOINT_URL || "https://script.google.com/macros/s/AKfycbwp15BykI7yuUeSTn2VHs_aZvIUIQIzirrzqJ2yVG7CvmeLbmVEOrLyDkGIQimtFIMG/exec";
+    // Endpoint Google Apps Script SSOT Produksi (tab LOG_QA_AUDIT, DB_PENUGASAN_JO_NSR & interlock NoLap)
+    const PROD_GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
+    const GAS_QA_ENDPOINT_URL = window.GAS_QA_ENDPOINT_URL || PROD_GAS_WEB_APP_URL;
+    const GAS_PENUGASAN_ENDPOINT = window.GAS_PENUGASAN_ENDPOINT || PROD_GAS_WEB_APP_URL;
 
     /**
      * Mengirim hasil audit QA ke Google Sheets (tab LOG_QA_AUDIT) & menyinkronkan status Gerbang NoLap (SHA-256)
@@ -4999,7 +5001,10 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     window.renderAuditResults = renderAuditResults;
     window.handleFileUpload = handleFileUpload;
     window.syncAuditResultToBackend = syncAuditResultToBackend;
+    window.PROD_GAS_WEB_APP_URL = PROD_GAS_WEB_APP_URL;
     window.GAS_QA_ENDPOINT_URL = GAS_QA_ENDPOINT_URL;
+    window.GAS_PENUGASAN_ENDPOINT = GAS_PENUGASAN_ENDPOINT;
+    window.GAS_MASTER_KARYAWAN_ENDPOINT = GAS_MASTER_KARYAWAN_ENDPOINT;
     window.loadPresetSample = muatSampelBerkas;
     window.syncJOToMetadata = syncJOToMetadata;
     window.handleDemoPresetSelect = handleDemoPresetSelect;
