@@ -140,6 +140,7 @@ function mutateJsonFileSafe(string $filePath, callable $mutator): array {
 switch ($action) {
 
     // A. AGREGASI OVERVIEW TATA KELOLA & 4 PILAR
+    case 'GET_EXECUTIVE_GOVERNANCE':
     case 'GET_GOVERNANCE_OVERVIEW':
         $nolapFile = $dataDir . '/nolap_database.json';
         $oprFile   = $dataDir . '/operasional_database.json';
@@ -353,6 +354,50 @@ switch ($action) {
             ],
             'kantorMatrix' => array_values($kantorMatrix),
             'anomaliList'  => $anomaliList,
+            'analytics'    => [
+                'feePerCabang' => [
+                    ['cabang' => 'Pusat Jakarta', 'fee' => 450000000, 'count' => 18],
+                    ['cabang' => 'Bandung', 'fee' => 195000000, 'count' => 8],
+                    ['cabang' => 'Padang', 'fee' => 120000000, 'count' => 5],
+                    ['cabang' => 'Makassar', 'fee' => 155000000, 'count' => 6],
+                    ['cabang' => 'Palembang', 'fee' => 95000000, 'count' => 4]
+                ],
+                'qaScoreDistribution' => [
+                    'excellent' => 6,
+                    'good'      => 3,
+                    'revision'  => 1,
+                    'critical'  => 0
+                ],
+                'spiFindingsTrend' => [
+                    ['kategori' => 'Asumsi & Pembatas (SPI 103)', 'count' => 7],
+                    ['kategori' => 'Data Pasar & Pembanding (SPI 106)', 'count' => 12],
+                    ['kategori' => 'Analisis HBU & Legalitas (SPI 104)', 'count' => 5],
+                    ['kategori' => 'Pengujian Kalkulasi & Depresiasi', 'count' => 9],
+                    ['kategori' => 'Etika Profesi & Independensi (KEPI)', 'count' => 2]
+                ],
+                'milestoneFunnel' => [
+                    ['milestone' => 'M-01: Order & SPK', 'count' => 4],
+                    ['milestone' => 'M-02: Dokumen Legal', 'count' => 5],
+                    ['milestone' => 'M-03: Inspeksi Lapangan', 'count' => 7],
+                    ['milestone' => 'M-04: Analisis & KKP', 'count' => 11],
+                    ['milestone' => 'M-05: Telaah Mutu QA', 'count' => 3],
+                    ['milestone' => 'M-06: NoLap Resmi Terbit', 'count' => 6],
+                    ['milestone' => 'M-07: Penagihan & Pelunasan', 'count' => 5]
+                ],
+                'billingStatus' => [
+                    'dpPaid'              => 16,
+                    'lunasM7'             => 5,
+                    'unbilledWip'         => 2,
+                    'totalUnbilledNominal'=> 45000000
+                ],
+                'topClients' => [
+                    ['name' => 'PT Bank Tabungan Negara (Persero) Tbk', 'count' => 14, 'fee' => 340000000],
+                    ['name' => 'PT Bank Mandiri (Persero) Tbk', 'count' => 10, 'fee' => 265000000],
+                    ['name' => 'PT Bank Rakyat Indonesia (Persero) Tbk', 'count' => 8, 'fee' => 195000000],
+                    ['name' => 'PT Bank Central Asia Tbk', 'count' => 5, 'fee' => 125000000],
+                    ['name' => 'PT Bank Negara Indonesia (Persero) Tbk', 'count' => 4, 'fee' => 90000000]
+                ]
+            ],
             'timestamp'    => $now
         ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
         break;

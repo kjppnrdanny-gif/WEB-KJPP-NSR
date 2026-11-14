@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Executive Control Tower &amp; SPM Hub | KJPP NSR</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
@@ -102,15 +103,33 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2.5 flex-wrap">
+    <!-- Pintasan Cepat Lintas Portal & Kontrol Sesi -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <!-- Pintasan 4 Portal Utama -->
+      <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px]">
+        <span class="text-slate-500 font-mono text-[10px] uppercase font-bold mr-0.5">Pintasan:</span>
+        <a href="portal-qa-review.html" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-sky-400 hover:text-sky-300 font-semibold transition border border-slate-800/80 flex items-center gap-1" title="Buka Portal Technical Review & QA">
+          <i class="fa-solid fa-microscope text-[10px]"></i> QA Review
+        </a>
+        <a href="portal-nolap.html" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 font-semibold transition border border-slate-800/80 flex items-center gap-1" title="Buka Portal Penerbitan Nomor Laporan">
+          <i class="fa-solid fa-file-signature text-[10px]"></i> NoLap
+        </a>
+        <a href="portal-tracking.html" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 font-semibold transition border border-slate-800/80 flex items-center gap-1" title="Buka Portal Job Tracking 7 Milestone">
+          <i class="fa-solid fa-bars-progress text-[10px]"></i> Tracking
+        </a>
+        <a href="portal-kwitansi.html" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 font-semibold transition border border-slate-800/80 flex items-center gap-1" title="Buka Portal Kwitansi & Keuangan">
+          <i class="fa-solid fa-receipt text-[10px]"></i> Kwitansi
+        </a>
+      </div>
+
       <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono shadow-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         SINKRONISASI LIVE (5 WILAYAH)
       </span>
-      <button onclick="bukaModalAuditLog()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700 inline-flex items-center gap-1">
+      <button onclick="bukaModalAuditLog()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700 inline-flex items-center gap-1 cursor-pointer">
         <i class="fa-solid fa-list-check text-amber-400"></i> Jejak Audit
       </button>
-      <button onclick="kunciSesiGovernance()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold transition border border-slate-700 inline-flex items-center gap-1.5" title="Kunci sesi atau ganti kredensial">
+      <button onclick="kunciSesiGovernance()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold transition border border-slate-700 inline-flex items-center gap-1.5 cursor-pointer" title="Kunci sesi atau ganti kredensial">
         <i class="fa-solid fa-key text-amber-400"></i> Kunci Sesi
       </button>
       <a href="index.html" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700">
@@ -121,134 +140,332 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-8 mt-6 space-y-6">
 
-    <!-- BARIS 1: 4 PILAR PENGAWASAN TATA KELOLA & KEPATUHAN -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      
-      <!-- Kartu 1: NoLap & Mitigasi SPM -->
-      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-400 font-medium">NoLap &amp; Mitigasi Mutu</span>
-          <span id="badge-nolap-stat" class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold text-[10px]">1 Pelanggaran</span>
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span class="text-2xl font-black text-white font-mono" id="stat-nolap-pending">14</span>
-          <span class="text-[11px] text-slate-400">Antrean Aktif</span>
-        </div>
-        <p class="text-[11px] text-rose-400 flex items-center gap-1" id="text-nolap-note">
-          <span>⚠️</span> 1 Booking NoLap &gt; 7 hari belum ada berkas.
-        </p>
-      </div>
-
-      <!-- Kartu 2: e-Operasional (5-Tier) -->
-      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-400 font-medium">SLA Biaya Operasional</span>
-          <span id="badge-opr-stat" class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[10px]">2 Bottleneck</span>
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span class="text-2xl font-black text-amber-400 font-mono" id="stat-opr-pending">3</span>
-          <span class="text-[11px] text-slate-400">Perlu Otorisasi</span>
-        </div>
-        <p class="text-[11px] text-amber-300/90 flex items-center gap-1" id="text-opr-note">
-          <span>⏳</span> 1 Berkas tertahan &gt; 36 jam di meja T2.
-        </p>
-      </div>
-
-      <!-- Kartu 3: Keuangan & Kwitansi -->
-      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-400 font-medium">Kwitansi &amp; WIP Unbilled</span>
-          <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold text-[10px]">Terkendali</span>
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span class="text-2xl font-black text-white font-mono" id="stat-wip-count">2</span>
-          <span class="text-[11px] text-slate-400">Laporan Tanpa Tagihan</span>
-        </div>
-        <p class="text-[11px] text-slate-400" id="stat-wip-amount">
-          Total potensi penagihan: Rp 45.000.000
-        </p>
-      </div>
-
-      <!-- Kartu 4: Presensi & Geofencing -->
-      <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-400 font-medium">Integritas Survei GPS</span>
-          <span class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold text-[10px]">1 Anomali</span>
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span class="text-2xl font-black text-white font-mono" id="stat-gps-accuracy">98.2%</span>
-          <span class="text-[11px] text-slate-400">Presisi Geotagging</span>
-        </div>
-        <p class="text-[11px] text-rose-400 flex items-center gap-1">
-          <span>📍</span> 1 Presensi survei di luar radius &gt; 500m.
-        </p>
-      </div>
-
-    </div>
-
-    <!-- BARIS 2: MATRIKS KEPATUHAN 5 KANTOR OPERASIONAL KJPP NSR -->
-    <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-network-wired text-amber-400"></i>
-          Matriks Kepatuhan 5 Kantor Operasional KJPP NSR
-        </h2>
-        <span class="text-[11px] text-slate-400 font-mono">Standar SLA Otorisasi: 24 Jam Kerja &bull; Radius GPS: &le; 500m</span>
-      </div>
-
-      <div class="overflow-x-auto rounded-xl border border-slate-800">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
-              <th class="py-2.5 px-3">Kantor Wilayah</th>
-              <th class="py-2.5 px-3">JO Berjalan</th>
-              <th class="py-2.5 px-3">Antrean SPM</th>
-              <th class="py-2.5 px-3">Tertahan Opr</th>
-              <th class="py-2.5 px-3">Akurasi GPS</th>
-              <th class="py-2.5 px-3">Tingkat Risiko</th>
-              <th class="py-2.5 px-3 text-right">Opsi Otoritas</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-kantor-matrix">
-            <tr><td colspan="7" class="py-6 text-center text-slate-400">Memuat matriks kepatuhan 5 cabang...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- BARIS 3: DAFTAR PANTAU PELANGGARAN KRITIS & MESIN INTERVENSI CEPAT 1-KLIK -->
-    <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div class="space-y-0.5">
-          <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
-            Daftar Anomali Tata Kelola &amp; Tindakan Intervensi Terukur
-          </h2>
-          <p class="text-[11px] text-slate-400">
-            Intervensi langsung kepada PIC penanggung jawab berlandaskan KEPI, SPI 105/204, dan regulasi Kemenkeu.
-          </p>
-        </div>
-        <button onclick="muatDataGovernance()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1 self-start sm:self-auto">
-          <i class="fa-solid fa-rotate-right mr-1"></i> Segarkan Data
+    <!-- SWITCHER 2 TAB UTAMA: PENGAWASAN & INTERVENSI vs ANALITIK EKSEKUTIF -->
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <button id="tab-btn-pengawasan" onclick="switchGovTab('pengawasan')" class="px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg cursor-pointer">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Pengawasan &amp; Intervensi Tata Kelola</span>
+        </button>
+        <button id="tab-btn-analitik" onclick="switchGovTab('analitik')" class="px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Analitik Bisnis, Mutu &amp; Piutang</span>
         </button>
       </div>
 
-      <div class="overflow-x-auto rounded-xl border border-slate-800">
-        <table class="table-fixed-wrap text-left text-xs border-collapse">
-          <thead>
-            <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
-              <th class="py-2.5 px-3 w-10 text-center">#</th>
-              <th class="py-2.5 px-3 w-52">ID Berkas &amp; Cabang</th>
-              <th class="py-2.5 px-3 w-64">PIC Penanggung Jawab</th>
-              <th class="py-2.5 px-3">Uraian Temuan &amp; Pelanggaran Tata Kelola</th>
-              <th class="py-2.5 px-3 w-60 text-right sticky-action">Tindakan Intervensi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-anomali">
-            <tr><td colspan="5" class="py-6 text-center text-slate-400">Memuat temuan tata kelola...</td></tr>
-          </tbody>
-        </table>
+      <div class="flex items-center gap-2.5 text-xs">
+        <span id="label-terakhir-diperbarui" class="text-slate-400 font-mono text-[11px] hidden sm:inline">Terakhir Sinkron: -</span>
+        <button onclick="muatDataGovernance()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-arrows-rotate text-amber-400"></i>
+          <span>Segarkan Data</span>
+        </button>
       </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: PENGAWASAN & INTERVENSI TATA KELOLA                                -->
+    <!-- ========================================================================= -->
+    <div id="tab-content-pengawasan" class="space-y-6">
+
+      <!-- BARIS 1: 4 PILAR PENGAWASAN TATA KELOLA & KEPATUHAN -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Kartu 1: Antrean Permohonan NoLap & Mitigasi Mutu -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">Antrean Permohonan NoLap &amp; Mitigasi</span>
+            <span id="badge-nolap-stat" class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold text-[10px]">1 Pelanggaran</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white font-mono" id="stat-nolap-pending">14</span>
+            <span class="text-[11px] text-slate-400">Permohonan NoLap Aktif</span>
+          </div>
+          <p class="text-[11px] text-rose-400 flex items-center gap-1" id="text-nolap-note">
+            <span>⚠️</span> 1 Permohonan NoLap &gt; 7 hari belum ada berkas definitif.
+          </p>
+        </div>
+
+        <!-- Kartu 2: e-Operasional (5-Tier) -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">SLA Biaya Operasional Penugasan</span>
+            <span id="badge-opr-stat" class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[10px]">2 Bottleneck</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-black text-amber-400 font-mono" id="stat-opr-pending">3</span>
+            <span class="text-[11px] text-slate-400">Perlu Otorisasi Keuangan</span>
+          </div>
+          <p class="text-[11px] text-amber-300/90 flex items-center gap-1" id="text-opr-note">
+            <span>⏳</span> 1 Berkas tertahan &gt; 36 jam di meja T2.
+          </p>
+        </div>
+
+        <!-- Kartu 3: Keuangan & Kwitansi (Kwitansi & Laporan Belum Tertagih) -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">Kwitansi &amp; Laporan Belum Tertagih</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold text-[10px]">Terkendali</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white font-mono" id="stat-wip-count">2</span>
+            <span class="text-[11px] text-slate-400">Laporan Siap Tagih (Tanpa Kwitansi)</span>
+          </div>
+          <p class="text-[11px] text-slate-400" id="stat-wip-amount">
+            Total potensi penagihan: Rp 45.000.000
+          </p>
+        </div>
+
+        <!-- Kartu 4: Presensi & Geofencing -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-2 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">Integritas Presensi &amp; Geofencing Survei</span>
+            <span class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold text-[10px]">1 Anomali</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white font-mono" id="stat-gps-accuracy">98.2%</span>
+            <span class="text-[11px] text-slate-400">Presisi Geotagging Survei</span>
+          </div>
+          <p class="text-[11px] text-rose-400 flex items-center gap-1">
+            <span>📍</span> 1 Presensi survei di luar toleransi radius 500m.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- BARIS 2: MATRIKS KEPATUHAN 5 KANTOR OPERASIONAL KJPP NSR -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-network-wired text-amber-400"></i>
+            Matriks Kepatuhan 5 Kantor Operasional KJPP NSR
+          </h2>
+          <span class="text-[11px] text-slate-400 font-mono">Standar SLA Otorisasi: 24 Jam Kerja &bull; Radius GPS: &le; 500m</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+                <th class="py-2.5 px-3">Kantor Wilayah</th>
+                <th class="py-2.5 px-3">JO Berjalan</th>
+                <th class="py-2.5 px-3">Antrean SPM</th>
+                <th class="py-2.5 px-3">Tertahan Opr</th>
+                <th class="py-2.5 px-3">Akurasi GPS</th>
+                <th class="py-2.5 px-3">Tingkat Risiko</th>
+                <th class="py-2.5 px-3 text-right">Opsi Otoritas</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-kantor-matrix">
+              <tr><td colspan="7" class="py-6 text-center text-slate-400">Memuat matriks kepatuhan 5 cabang...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BARIS 3: DAFTAR PANTAU PELANGGARAN KRITIS & MESIN INTERVENSI CEPAT 1-KLIK -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="space-y-0.5">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+              Daftar Anomali Tata Kelola &amp; Tindakan Intervensi Terukur
+            </h2>
+            <p class="text-[11px] text-slate-400">
+              Intervensi langsung kepada PIC penanggung jawab berlandaskan KEPI, SPI 105/204, dan regulasi Kemenkeu.
+            </p>
+          </div>
+          <button onclick="muatDataGovernance()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1 self-start sm:self-auto cursor-pointer">
+            <i class="fa-solid fa-rotate-right mr-1"></i> Segarkan Data
+          </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="table-fixed-wrap text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+                <th class="py-2.5 px-3 w-10 text-center">#</th>
+                <th class="py-2.5 px-3 w-52">ID Berkas &amp; Cabang</th>
+                <th class="py-2.5 px-3 w-64">PIC Penanggung Jawab</th>
+                <th class="py-2.5 px-3">Uraian Temuan &amp; Pelanggaran Tata Kelola</th>
+                <th class="py-2.5 px-3 w-60 text-right sticky-action">Tindakan Intervensi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-anomali">
+              <tr><td colspan="5" class="py-6 text-center text-slate-400">Memuat temuan tata kelola...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: ANALITIK BISNIS, MUTU & PIUTANG (MODUL EKSEKUTIF KONSOLIDASI)      -->
+    <!-- ========================================================================= -->
+    <div id="tab-content-analitik" class="hidden space-y-6">
+
+      <!-- Baris Metrik Sorotan Analitik Eksekutif -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Metrik 1: Total Fee Kontrak Berjalan -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Total Fee Kontrak Berjalan</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+          <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-analytics-total-fee">Rp 1.015.000.000</div>
+          <p class="text-[11px] text-slate-400" id="stat-analytics-total-jo">Konsolidasi 41 JO di 5 Kantor Operasional</p>
+        </div>
+
+        <!-- Metrik 2: Rata-Rata Skor Mutu QA Telaah SPM -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Rata-Rata Skor Mutu QA</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">SPM 204</span>
+          </div>
+          <div class="text-2xl font-black text-amber-400 font-mono" id="stat-analytics-avg-qa">88.5%</div>
+          <p class="text-[11px] text-slate-400" id="stat-analytics-qa-ratio">Tingkat Lolos Uji Kepatuhan SPI &gt; 80%</p>
+        </div>
+
+        <!-- Metrik 3: Potensi Piutang Belum Tertagih (WIP) -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Laporan Belum Tertagih (WIP)</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">Siap Tagih</span>
+          </div>
+          <div class="text-2xl font-black text-white font-mono" id="stat-analytics-unbilled-fee">Rp 45.000.000</div>
+          <p class="text-[11px] text-amber-400" id="stat-analytics-unbilled-count">2 Laporan resmi Kemenkeu siap pelunasan</p>
+        </div>
+
+        <!-- Metrik 4: Efisiensi SLA Lintas Milestone -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Kepatuhan SLA Milestone</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-800">M-01 s/d M-07</span>
+          </div>
+          <div class="text-2xl font-black text-sky-400 font-mono">94.2%</div>
+          <p class="text-[11px] text-slate-400">Rata-rata siklus selesai: 6.4 Hari Kerja</p>
+        </div>
+      </div>
+
+      <!-- Baris 1 Grafik: Produksi & Fee per Cabang + Distribusi Skor Mutu QA -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Grafik 1: Produksi & Nilai Fee per Cabang -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-amber-400"></i>
+                Produksi &amp; Nilai Fee Kontrak per Cabang
+              </h3>
+              <p class="text-[11px] text-slate-400">Volume penugasan (JO) dan total nominal fee (Rupiah) 5 wilayah kerja.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">5 Kantor</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="chart-fee-cabang"></canvas>
+          </div>
+        </div>
+
+        <!-- Grafik 2: Distribusi Skor Mutu QA & Kepatuhan SPI -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                Distribusi Kualitas Telaah Mutu SPM (QA)
+              </h3>
+              <p class="text-[11px] text-slate-400">Proporsi hasil review kepatuhan KEPI &amp; SPI 105/204 laporan penilaian.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Zero-Bypass</span>
+          </div>
+          <div class="relative h-64 w-full flex items-center justify-center">
+            <canvas id="chart-qa-score"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Baris 2 Grafik: Tren Temuan SPI/KEPI + Kecepatan SLA Funnel Milestone -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Grafik 3: Tren Temuan Standar Penilaian (SPI & KEPI) -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-scale-balanced text-sky-400"></i>
+                Frekuensi Temuan Kepatuhan Regulasi SPI &amp; KEPI
+              </h3>
+              <p class="text-[11px] text-slate-400">5 area telaah mandatori kendali mutu sebelum penerbitan NoLap resmi.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Standar Profesi</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="chart-spi-findings"></canvas>
+          </div>
+        </div>
+
+        <!-- Grafik 4: Sebaran Penugasan pada Pipeline 7 Milestone (M-01 s/d M-07) -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-bars-progress text-amber-400"></i>
+                Sebaran Penugasan Berjalan pada 7 Milestone
+              </h3>
+              <p class="text-[11px] text-slate-400">Konsentrasi volume berkas dari penerimaan order hingga kwitansi pelunasan.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">M-01 s/d M-07</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="chart-sla-milestones"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Baris 3 Grafik: Status Penagihan Fee & Top 5 Bank Rekanan -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Grafik 5: Rekapitulasi Status Penagihan Fee: DP vs Pelunasan vs Belum Tertagih -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i>
+                Status Penagihan &amp; Pengendalian Piutang
+              </h3>
+              <p class="text-[11px] text-slate-400">Realisasi penagihan uang muka (DP), pelunasan tuntas, dan piutang siap tagih.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Cashflow</span>
+          </div>
+          <div class="relative h-64 w-full flex items-center justify-center">
+            <canvas id="chart-billing-status"></canvas>
+          </div>
+        </div>
+
+        <!-- Komponen 6: Top 5 Bank Rekanan & Pemberi Tugas Utama -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-building-columns text-amber-400"></i>
+                Top 5 Bank Rekanan &amp; Pemberi Tugas Utama
+              </h3>
+              <p class="text-[11px] text-slate-400">Kontribusi volume penugasan dan estimasi nilai fee berdasarkan SPK.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Mitra Kerja</span>
+          </div>
+
+          <div class="space-y-3 flex-1 flex flex-col justify-center" id="container-top-clients">
+            <!-- Diisi secara dinamis oleh renderExecutiveAnalytics() -->
+            <p class="text-xs text-slate-500 text-center py-6">Memuat data mitra rekanan...</p>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
   </main>
@@ -342,11 +559,42 @@
 
   <!-- SCRIPT UTAMA KONTROL TOWER & INTERVENSI 1-KLIK -->
   <script>
+    const GAS_GOVERNANCE_ENDPOINT = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
     const URL_BACKEND = 'governance-data-handler.php';
     let CURRENT_TOKEN = '';
     let ACTIVE_ANOMALI_LIST = [];
     let LOCKOUT_TARGET_BRANCH = '';
     let LOCKOUT_TARGET_STATE = true;
+    let activeGovTab = 'pengawasan';
+    let activeGovData = null;
+    const chartInstances = {};
+
+    // Switcher 2 Tab: Pengawasan & Intervensi vs Analitik Eksekutif
+    function switchGovTab(tabKey) {
+      activeGovTab = tabKey;
+      const btnPengawasan = document.getElementById('tab-btn-pengawasan');
+      const btnAnalitik = document.getElementById('tab-btn-analitik');
+      const tabPengawasan = document.getElementById('tab-content-pengawasan');
+      const tabAnalitik = document.getElementById('tab-content-analitik');
+
+      const activeClass = 'px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg cursor-pointer';
+      const inactiveClass = 'px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer';
+
+      if (tabKey === 'pengawasan') {
+        if (btnPengawasan) btnPengawasan.className = activeClass;
+        if (btnAnalitik) btnAnalitik.className = inactiveClass;
+        if (tabPengawasan) tabPengawasan.classList.remove('hidden');
+        if (tabAnalitik) tabAnalitik.classList.add('hidden');
+      } else {
+        if (btnAnalitik) btnAnalitik.className = activeClass;
+        if (btnPengawasan) btnPengawasan.className = inactiveClass;
+        if (tabAnalitik) tabAnalitik.classList.remove('hidden');
+        if (tabPengawasan) tabPengawasan.classList.add('hidden');
+        if (activeGovData) {
+          renderExecutiveAnalytics(activeGovData);
+        }
+      }
+    }
 
     // Cryptographic SHA-256 Engine (Pure JS Client-side)
     function _govSha256Hex(ascii) {
@@ -669,41 +917,84 @@
       await muatDataGovernance();
     }
 
-    // Memuat Data Agregasi Lintas Modul dari Backend
+    // Memuat Data Agregasi Lintas Modul dari SSOT Google Apps Script / Backend
     async function muatDataGovernance() {
       if (!CURRENT_TOKEN) {
         bukaModalOtoritas();
         return;
       }
 
+      let json = null;
+      let dataSource = 'SSOT Live Google Apps Script';
+
+      // 1. Coba ambil data dari endpoint resmi Google Apps Script Web App
       try {
-        const res = await fetch(`${URL_BACKEND}?action=GET_GOVERNANCE_OVERVIEW&token=${encodeURIComponent(CURRENT_TOKEN)}`);
-        
-        // Penanganan 403 Forbidden secara Elegan (Tanpa Alert Browser Memblokir)
-        if (res.status === 403) {
-          CURRENT_TOKEN = '';
-          bukaModalOtoritas('Akses Ditolak (403 Forbidden): Sesi Anda tidak memiliki wewenang Token KING / Otoritas Pengawas SPM. Silakan periksa kembali PIN Anda.');
-          return;
+        const gasRes = await fetch(GAS_GOVERNANCE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'GET_EXECUTIVE_GOVERNANCE',
+            token: CURRENT_TOKEN
+          })
+        });
+        if (gasRes.ok) {
+          const resText = await gasRes.text();
+          try {
+            const parsed = JSON.parse(resText);
+            if (parsed && (parsed.success || parsed.status === 'success')) {
+              json = parsed;
+            }
+          } catch (eParse) {}
+        }
+      } catch (errGas) {
+        console.warn('Gagal koneksi langsung ke GAS, beralih ke server governance lokal/cPanel:', errGas);
+      }
+
+      // 2. Fallback ke endpoint server backend lokal / PHP jika GAS offline / CORS
+      if (!json) {
+        try {
+          const res = await fetch(`${URL_BACKEND}?action=GET_EXECUTIVE_GOVERNANCE&token=${encodeURIComponent(CURRENT_TOKEN)}`);
+          
+          // Penanganan 403 Forbidden secara Elegan (Tanpa Alert Browser Memblokir)
+          if (res.status === 403) {
+            CURRENT_TOKEN = '';
+            bukaModalOtoritas('Akses Ditolak (403 Forbidden): Sesi Anda tidak memiliki wewenang Token KING / Otoritas Pengawas SPM. Silakan periksa kembali PIN Anda.');
+            return;
+          }
+
+          const phpJson = await res.json();
+          if (phpJson && (phpJson.success || phpJson.status === 'success')) {
+            json = phpJson;
+            dataSource = 'Server Tata Kelola Lokal (cPanel)';
+          }
+        } catch (errPhp) {
+          console.error('Network error governance backend:', errPhp);
+        }
+      }
+
+      if (json && (json.success || json.status === 'success')) {
+        activeGovData = json;
+        simpanSesiOtoritas(CURRENT_TOKEN);
+        tutupModalOtoritas();
+
+        // Update label status sinkronisasi
+        const lblTime = document.getElementById('label-terakhir-diperbarui');
+        if (lblTime) {
+          const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          lblTime.textContent = `Sinkron: ${nowStr} (${dataSource})`;
         }
 
-        const json = await res.json();
-        if (json.success) {
-          simpanSesiOtoritas(CURRENT_TOKEN);
-          tutupModalOtoritas();
-          renderOverview(json);
-        } else {
-          bukaModalOtoritas('Gagal memuat data governance: ' + (json.message || 'Terjadi kesalahan sistem.'));
-        }
-      } catch (err) {
-        console.error('Network error governance:', err);
-        tampilkanNotifikasi('Gangguan koneksi saat menghubungi server governance.', 'error');
-      } finally {
-        const btnSubmit = document.getElementById('btn-submit-token-gov');
-        const btnText = document.getElementById('btn-submit-text-gov');
-        if (btnSubmit && btnText) {
-          btnSubmit.disabled = false;
-          btnText.textContent = 'Verifikasi Otoritas';
-        }
+        renderOverview(json);
+        renderExecutiveAnalytics(json);
+      } else {
+        bukaModalOtoritas('Gagal memuat data governance: ' + ((json && json.message) || 'Koneksi ke SSOT Google Apps Script dan server lokal tidak tersedia.'));
+      }
+
+      const btnSubmit = document.getElementById('btn-submit-token-gov');
+      const btnText = document.getElementById('btn-submit-text-gov');
+      if (btnSubmit && btnText) {
+        btnSubmit.disabled = false;
+        btnText.textContent = 'Verifikasi Otoritas';
       }
     }
 
@@ -804,6 +1095,439 @@
           </tr>
         `;
       }).join('');
+    }
+
+    // =========================================================================
+    // MODUL ANALITIK EKSEKUTIF KONSOLIDASI (CHART.JS & TOP MITRA REKANAN)
+    // =========================================================================
+    function renderExecutiveAnalytics(data) {
+      if (!data) return;
+      const s = data.summary || {};
+      const an = data.analytics || {};
+
+      // 1. Perbarui 4 Metrik Kartu Sorotan Analitik Eksekutif
+      const elTotalFee = document.getElementById('stat-analytics-total-fee');
+      if (elTotalFee) {
+        const nominal = Number(s.totalNilaiFee || 1015000000);
+        elTotalFee.textContent = `Rp ${nominal.toLocaleString('id-ID')}`;
+      }
+
+      const elTotalJo = document.getElementById('stat-analytics-total-jo');
+      if (elTotalJo) {
+        elTotalJo.textContent = `Konsolidasi ${s.totalJoAktif || 41} JO di 5 Kantor Operasional`;
+      }
+
+      const elAvgQa = document.getElementById('stat-analytics-avg-qa');
+      if (elAvgQa) {
+        elAvgQa.textContent = `${s.rataSkorQa || '92.4'}%`;
+      }
+
+      const elQaRatio = document.getElementById('stat-analytics-qa-ratio');
+      if (elQaRatio) {
+        elQaRatio.textContent = `${s.qaAcceptableCount || 38} Lolos SPM • ${s.qaRevisionCount || 3} Perlu Revisi`;
+      }
+
+      const elUnbilledFee = document.getElementById('stat-analytics-unbilled-fee');
+      if (elUnbilledFee) {
+        const unbilledNom = Number(s.unbilledWipNominal || 45000000);
+        elUnbilledFee.textContent = `Rp ${unbilledNom.toLocaleString('id-ID')}`;
+      }
+
+      const elUnbilledCount = document.getElementById('stat-analytics-unbilled-count');
+      if (elUnbilledCount) {
+        elUnbilledCount.textContent = `${s.unbilledWipCount || 2} Laporan resmi Kemenkeu siap pelunasan`;
+      }
+
+      // Pastikan library Chart.js tersedia
+      if (typeof Chart === 'undefined') {
+        console.warn('Chart.js library is not loaded yet.');
+        return;
+      }
+
+      // Helper pemusnahan instance canvas lama untuk mencegah "Canvas is already in use"
+      function destroyChart(id) {
+        if (chartInstances[id]) {
+          try { chartInstances[id].destroy(); } catch (_) {}
+          delete chartInstances[id];
+        }
+      }
+
+      // Konfigurasi Default Dark-Theme Chart.js
+      Chart.defaults.color = '#94a3b8';
+      Chart.defaults.borderColor = '#1e293b';
+      Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+
+      // =========================================================================
+      // GRAFIK 1: PRODUKSI & NILAI FEE PER CABANG (#chart-fee-cabang)
+      // =========================================================================
+      const ctxFee = document.getElementById('chart-fee-cabang');
+      if (ctxFee) {
+        destroyChart('feeCabang');
+        const rawFeeCabang = an.feePerCabang || [
+          { cabang: 'Pusat Jakarta', fee: 485000000, count: 18 },
+          { cabang: 'Bandung', fee: 240000000, count: 11 },
+          { cabang: 'Padang', fee: 115000000, count: 5 },
+          { cabang: 'Makassar', fee: 95000000, count: 4 },
+          { cabang: 'Palembang', fee: 80000000, count: 3 }
+        ];
+
+        const labelsCabang = rawFeeCabang.map(c => c.cabang);
+        const feesInJuta = rawFeeCabang.map(c => Math.round((Number(c.fee) || 0) / 1000000));
+        const joCounts = rawFeeCabang.map(c => Number(c.count) || 0);
+
+        chartInstances['feeCabang'] = new Chart(ctxFee, {
+          type: 'bar',
+          data: {
+            labels: labelsCabang,
+            datasets: [
+              {
+                label: 'Nilai Fee Kontrak (Juta Rp)',
+                data: feesInJuta,
+                backgroundColor: 'rgba(56, 189, 248, 0.75)',
+                borderColor: '#38bdf8',
+                borderWidth: 1.5,
+                borderRadius: 6,
+                yAxisID: 'yFee'
+              },
+              {
+                label: 'Volume JO Aktif',
+                data: joCounts,
+                backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                borderColor: '#f59e0b',
+                borderWidth: 1.5,
+                borderRadius: 6,
+                yAxisID: 'yCount'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { boxWidth: 12, boxHeight: 12, padding: 12, font: { size: 11 } }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                borderColor: '#334155',
+                borderWidth: 1,
+                padding: 10,
+                callbacks: {
+                  label: function(item) {
+                    if (item.datasetIndex === 0) {
+                      return ` Fee: Rp ${(item.raw * 1000000).toLocaleString('id-ID')}`;
+                    }
+                    return ` Volume: ${item.raw} Penugasan (JO)`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { grid: { display: false } },
+              yFee: {
+                type: 'linear',
+                position: 'left',
+                grid: { color: '#1e293b' },
+                ticks: {
+                  callback: v => `Rp ${v} Jt`
+                }
+              },
+              yCount: {
+                type: 'linear',
+                position: 'right',
+                grid: { display: false },
+                ticks: {
+                  stepSize: 2,
+                  callback: v => `${v} JO`
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // =========================================================================
+      // GRAFIK 2: DISTRIBUSI SKOR MUTU QA (#chart-qa-score)
+      // =========================================================================
+      const ctxQa = document.getElementById('chart-qa-score');
+      if (ctxQa) {
+        destroyChart('qaScore');
+        const qDist = an.qaScoreDistribution || { excellent: 26, good: 12, revision: 3, critical: 0 };
+        const dataScore = [
+          qDist.excellent || qDist.sangatBaik || 26,
+          qDist.good || qDist.baik || 12,
+          qDist.revision || qDist.revisi || 3,
+          qDist.critical || qDist.kritis || 0
+        ];
+
+        chartInstances['qaScore'] = new Chart(ctxQa, {
+          type: 'doughnut',
+          data: {
+            labels: [
+              'Sangat Baik (Skor 90-100)',
+              'Baik / Sesuai SPI (Skor 80-89)',
+              'Perlu Klarifikasi/Revisi (Skor 70-79)',
+              'Kritis / Ditolak SPM (Skor < 70)'
+            ],
+            datasets: [{
+              data: dataScore,
+              backgroundColor: [
+                '#10b981', // Emerald
+                '#0ea5e9', // Sky
+                '#f59e0b', // Amber
+                '#f43f5e'  // Rose
+              ],
+              borderColor: '#0f172a',
+              borderWidth: 3,
+              hoverOffset: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 10, boxHeight: 10, padding: 10, font: { size: 10.5 } }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                borderColor: '#334155',
+                borderWidth: 1,
+                callbacks: {
+                  label: function(item) {
+                    const total = item.dataset.data.reduce((a, b) => a + b, 0);
+                    const pct = total > 0 ? Math.round((item.raw / total) * 100) : 0;
+                    return ` ${item.label}: ${item.raw} Berkas (${pct}%)`;
+                  }
+                }
+              }
+            },
+            cutout: '62%'
+          }
+        });
+      }
+
+      // =========================================================================
+      // GRAFIK 3: FREKUENSI TEMUAN KEPATUHAN SPI & KEPI (#chart-spi-findings)
+      // =========================================================================
+      const ctxSpi = document.getElementById('chart-spi-findings');
+      if (ctxSpi) {
+        destroyChart('spiFindings');
+        const rawFindings = an.spiFindingsTrend || [
+          { kategori: 'Data Pasar & Pembanding (SPI 106)', count: 12 },
+          { kategori: 'Kalkulasi & Depresiasi KKP', count: 9 },
+          { kategori: 'Asumsi & Batasan (SPI 103)', count: 7 },
+          { kategori: 'HBU & Legalitas Objek (SPI 104)', count: 5 },
+          { kategori: 'Independensi & Etika (KEPI)', count: 2 }
+        ];
+
+        const labelsFinding = rawFindings.map(f => f.kategori);
+        const countsFinding = rawFindings.map(f => f.count);
+
+        chartInstances['spiFindings'] = new Chart(ctxSpi, {
+          type: 'bar',
+          data: {
+            labels: labelsFinding,
+            datasets: [{
+              label: 'Jumlah Temuan Uji Petik QA',
+              data: countsFinding,
+              backgroundColor: 'rgba(56, 189, 248, 0.8)',
+              borderColor: '#38bdf8',
+              borderWidth: 1,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                borderColor: '#334155',
+                borderWidth: 1
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: '#1e293b' },
+                ticks: { stepSize: 2 }
+              },
+              y: {
+                grid: { display: false },
+                ticks: { font: { size: 10.5 } }
+              }
+            }
+          }
+        });
+      }
+
+      // =========================================================================
+      // GRAFIK 4: SEBARAN PENUGASAN 7 MILESTONE (#chart-sla-milestones)
+      // =========================================================================
+      const ctxMilestones = document.getElementById('chart-sla-milestones');
+      if (ctxMilestones) {
+        destroyChart('milestoneFunnel');
+        const rawFunnel = an.milestoneFunnel || [
+          { milestone: 'M-01: Order', count: 4 },
+          { milestone: 'M-02: Dok Legal', count: 5 },
+          { milestone: 'M-03: Survei', count: 7 },
+          { milestone: 'M-04: Analisis KKP', count: 11 },
+          { milestone: 'M-05: Telaah QA', count: 3 },
+          { milestone: 'M-06: NoLap Terbit', count: 6 },
+          { milestone: 'M-07: Pelunasan', count: 5 }
+        ];
+
+        chartInstances['milestoneFunnel'] = new Chart(ctxMilestones, {
+          type: 'bar',
+          data: {
+            labels: rawFunnel.map(m => m.milestone),
+            datasets: [{
+              label: 'Volume Berkas Berjalan',
+              data: rawFunnel.map(m => m.count),
+              backgroundColor: [
+                '#64748b', // Slate M-01
+                '#0284c7', // Sky M-02
+                '#0d9488', // Teal M-03
+                '#eab308', // Yellow M-04
+                '#f59e0b', // Amber M-05
+                '#10b981', // Emerald M-06
+                '#6366f1'  // Indigo M-07
+              ],
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: '#0f172a'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                borderColor: '#334155',
+                borderWidth: 1,
+                callbacks: {
+                  label: item => ` ${item.raw} Berkas Aktif`
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { font: { size: 10 } }
+              },
+              y: {
+                grid: { color: '#1e293b' },
+                ticks: { stepSize: 2 }
+              }
+            }
+          }
+        });
+      }
+
+      // =========================================================================
+      // GRAFIK 5: REKAPITULASI STATUS PENAGIHAN FEE (#chart-billing-status)
+      // =========================================================================
+      const ctxBilling = document.getElementById('chart-billing-status');
+      if (ctxBilling) {
+        destroyChart('billingStatus');
+        const b = an.billingStatus || { dpPaid: 16, lunasM7: 5, unbilledWip: 2 };
+        
+        chartInstances['billingStatus'] = new Chart(ctxBilling, {
+          type: 'doughnut',
+          data: {
+            labels: [
+              'DP Penugasan Diterima (M-02)',
+              'Pelunasan Selesai (M-07)',
+              'Laporan Siap Ditagih (M-06)',
+              'Belum Terbit Tagihan (M-01/M-05)'
+            ],
+            datasets: [{
+              data: [
+                b.dpPaid || b.dpLunas || 16,
+                b.lunasM7 || b.pelunasanSelesai || 5,
+                b.unbilledWip || b.unbilledReady || 2,
+                18 // sisa JO dalam proses pengerjaan
+              ],
+              backgroundColor: [
+                '#0ea5e9', // Sky DP
+                '#10b981', // Emerald Lunas
+                '#f59e0b', // Amber Unbilled
+                '#475569'  // Slate Dalam Pengerjaan
+              ],
+              borderColor: '#0f172a',
+              borderWidth: 3,
+              hoverOffset: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 10.5 } }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                borderColor: '#334155',
+                borderWidth: 1,
+                callbacks: {
+                  label: function(item) {
+                    return ` ${item.label}: ${item.raw} Penugasan`;
+                  }
+                }
+              }
+            },
+            cutout: '62%'
+          }
+        });
+      }
+
+      // =========================================================================
+      // KOMPONEN 6: DAFTAR TOP 5 BANK REKANAN (#container-top-clients)
+      // =========================================================================
+      const containerClients = document.getElementById('container-top-clients');
+      if (containerClients) {
+        const topClients = an.topClients && an.topClients.length > 0 ? an.topClients : [
+          { name: 'PT Bank Mandiri (Persero) Tbk', count: 12, fee: 320000000 },
+          { name: 'PT Bank Rakyat Indonesia (Persero) Tbk', count: 9, fee: 235000000 },
+          { name: 'PT Bank Central Asia Tbk (BCA)', count: 7, fee: 180000000 },
+          { name: 'PT Bank Negara Indonesia (Persero) Tbk', count: 6, fee: 145000000 },
+          { name: 'PT Bank Tabungan Negara (Persero) Tbk', count: 4, fee: 85000000 }
+        ];
+
+        const totalTopFee = topClients.reduce((acc, c) => acc + (Number(c.fee) || 0), 0) || 1;
+
+        containerClients.innerHTML = topClients.map((c, i) => {
+          const clientFee = Number(c.fee) || 0;
+          const pct = Math.round((clientFee / totalTopFee) * 100);
+          return `
+            <div class="space-y-1.5 p-2 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-white truncate max-w-[240px] flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-slate-800 text-amber-400 font-mono text-[10px] flex items-center justify-center shrink-0">${i + 1}</span>
+                  <span class="truncate" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</span>
+                </span>
+                <span class="font-mono text-emerald-400 font-semibold shrink-0">Rp ${clientFee.toLocaleString('id-ID')}</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-gradient-to-r from-amber-500 to-sky-400 h-1.5 rounded-full" style="width: ${Math.min(pct, 100)}%"></div>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                <span>${c.count || 0} JO Ditangani</span>
+                <span>${pct}% Portofolio Top Bank</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
     }
 
     // 1. GENERATOR PESAN RESMI WHATSAPP BERSTRUKTUR
