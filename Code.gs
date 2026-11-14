@@ -563,6 +563,14 @@ function doPost(e) {
         result = handleIssueCabangDefinitiveNoLap(ss, payload.data || payload, authResult);
         break;
 
+      case 'GET_ACTIVE_JO_QA':
+        result = getActiveJobOrdersForQA(ss);
+        break;
+
+      case 'UPDATE_JO_MILESTONE_QA':
+        result = updateJobOrderMilestoneFromQA(payload.payload || payload, ss);
+        break;
+
       default:
         result = { status: 'error', success: false, error: 'Aksi (' + action + ') tidak dikenali oleh sistem.' };
     }
@@ -2235,5 +2243,105 @@ function handleIssueCabangDefinitiveNoLap(ss, data, auth) {
     cabang: cabang,
     message: 'Nomor Laporan Definitif Cabang berhasil diterbitkan.'
   };
+}
+
+/**
+ * Mengambil daftar penugasan aktif dari DB_PENUGASAN_JO_NSR untuk Auto-Populate Portal QA & NoLap
+ */
+function getActiveJobOrdersForQA(ssInstance) {
+  const ss = ssInstance || SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("DB_PENUGASAN_JO_NSR");
+  if (!sheet) {
+    sheet = ss.getSheetByName("Data_Penugasan") || ss.getSheetByName("DATA_PENUGASAN");
+  }
+  if (!sheet || sheet.getLastRow() < 2) {
+    return { status: "success", data: [] };
+  }
+
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0].map(function(h) { return String(h).trim().toUpperCase(); });
+
+  const idxJo = headers.indexOf("NO_JO") !== -1 ? headers.indexOf("NO_JO") : (headers.indexOf("ID_JO") !== -1 ? headers.indexOf("ID_JO") : 0);
+  const idxKlien = headers.indexOf("PEMBERI_TUGAS") !== -1 ? headers.indexOf("PEMBERI_TUGAS") : (headers.indexOf("INSTANSI") !== -1 ? headers.indexOf("INSTANSI") : 2);
+  const idxObjek = headers.indexOf("OBJEK_PENILAIAN") !== -1 ? headers.indexOf("OBJEK_PENILAIAN") : (headers.indexOf("OBJEK") !== -1 ? headers.indexOf("OBJEK") : 3);
+  const idxCabang = headers.indexOf("CABANG") !== -1 ? headers.indexOf("CABANG") : (headers.indexOf("KANTOR_CABANG") !== -1 ? headers.indexOf("KANTOR_CABANG") : 4);
+  const idxPenilai = headers.indexOf("PENILAI_PELAKSANA") !== -1 ? headers.indexOf("PENILAI_PELAKSANA") : (headers.indexOf("PENILAI") !== -1 ? headers.indexOf("PENILAI") : 5);
+  const idxNikPenilai = headers.indexOf("NIK_PENILAI") !== -1 ? headers.indexOf("NIK_PENILAI") : (headers.indexOf("NIK") !== -1 ? headers.indexOf("NIK") : 6);
+  const idxMilestone = headers.indexOf("MILESTONE_AKTIF") !== -1 ? headers.indexOf("MILESTONE_AKTIF") : (headers.indexOf("CURRENT_MILESTONE") !== -1 ? headers.indexOf("CURRENT_MILESTONE") : 7);
+  const idxStatusQa = headers.indexOf("STATUS_QA") !== -1 ? headers.indexOf("STATUS_QA") : 8;
+
+  const activeList = [];
+  for (let i = 1; i < values.length; i++) {
+    const noJo = String(values[i][idxJo] || "").trim();
+    if (!noJo) continue;
+
+    activeList.push({
+      noJo: noJo,
+      pemberiTugas: String(values[i][idxKlien] || "").trim(),
+      objekPenilaian: String(values[i][idxObjek] || "").trim(),
+      cabang: String(values[i][idxCabang] || "Pusat Jakarta").trim(),
+      penilaiPelaksana: String(values[i][idxPenilai] || "").trim(),
+      nikPenilai: String(values[i][idxNikPenilai] || "").trim(),
+      milestoneAktif: String(values[i][idxMilestone] || "M-04").trim(),
+      statusQa: String(values[i][idxStatusQa] || "BELUM_REVIEW").trim()
+    });
+  }
+
+  return { status: "success", total: activeList.length, data: activeList.reverse() };
+}
+
+/**
+ * Memperbarui Status Tracking 7 Milestone (M-05 Technical Review & M-06 Gerbang NoLap) secara Atomik
+ */
+function updateJobOrderMilestoneFromQA(payload, ssInstance) {
+  const ss = ssInstance || SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("DB_PENUGASAN_JO_NSR");
+  if (!sheet) {
+    sheet = ss.getSheetByName("Data_Penugasan") || ss.getSheetByName("DATA_PENUGASAN");
+  }
+  if (!sheet || sheet.getLastRow() < 2) {
+    return { status: "error", message: "Sheet DB_PENUGASAN_JO_NSR tidak ditemukan." };
+  }
+
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0].map(function(h) { return String(h).trim().toUpperCase(); });
+
+  const idxJo = headers.indexOf("NO_JO") !== -1 ? headers.indexOf("NO_JO") : (headers.indexOf("ID_JO") !== -1 ? headers.indexOf("ID_JO") : 0);
+  const idxMilestone = headers.indexOf("MILESTONE_AKTIF") !== -1 ? headers.indexOf("MILESTONE_AKTIF") : headers.indexOf("CURRENT_MILESTONE");
+  const idxStatusQa = headers.indexOf("STATUS_QA");
+  const idxSkorQa = headers.indexOf("SKOR_QA");
+  const idxHashPdf = headers.indexOf("SHA256_FINAL");
+  const idxUpdatedAt = headers.indexOf("LAST_UPDATED") !== -1 ? headers.indexOf("LAST_UPDATED") : headers.indexOf("UPDATED_AT");
+
+  const targetJo = String(payload.joNumber || "").trim();
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][idxJo]).trim() === targetJo) {
+      const rowNum = i + 1;
+
+      let nextMilestone = "M-05";
+      if (payload.event === "QA_APPROVED" || payload.event === "QA_OVERRIDE") {
+        nextMilestone = "M-06";
+      }
+
+      if (idxMilestone !== -1) sheet.getRange(rowNum, idxMilestone + 1).setValue(nextMilestone);
+      if (idxStatusQa !== -1) sheet.getRange(rowNum, idxStatusQa + 1).setValue(payload.statusQa || "IN_REVIEW");
+      if (idxSkorQa !== -1 && payload.skorMutu !== undefined) sheet.getRange(rowNum, idxSkorQa + 1).setValue(payload.skorMutu);
+      if (idxHashPdf !== -1 && payload.sha256Hash) sheet.getRange(rowNum, idxHashPdf + 1).setValue(payload.sha256Hash);
+      if (idxUpdatedAt !== -1) sheet.getRange(rowNum, idxUpdatedAt + 1).setValue(nowStr);
+
+      SpreadsheetApp.flush();
+      return {
+        status: "success",
+        joNumber: targetJo,
+        milestoneAktif: nextMilestone,
+        statusQa: payload.statusQa,
+        updatedAt: nowStr
+      };
+    }
+  }
+
+  return { status: "not_found", message: `Nomor JO ${targetJo} tidak ditemukan di DB_PENUGASAN_JO_NSR.` };
 }
 

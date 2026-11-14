@@ -246,10 +246,18 @@
         <!-- INPUT NOMOR JOB ORDER (JO) & PEMBERI TUGAS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <div>
-            <label class="block text-[11px] font-medium text-slate-400 mb-1">Nomor Job Order (JO) / Penugasan</label>
-            <input type="text" id="input-jo-number" value="JO-NSR-2026-8084" placeholder="Ketik / Pilih No. JO..."
+            <div class="flex items-center justify-between mb-1">
+              <label for="input-jo-number" class="block text-[11px] font-medium text-slate-400">
+                Nomor Job Order (JO) / Penugasan
+              </label>
+              <span id="jo-sync-indicator" class="text-[10px] text-sky-400 font-mono">● Sinkron DB Penugasan</span>
+            </div>
+            <input type="text" id="input-jo-number" list="datalist-active-jo" value="JO-NSR-2026-8084"
+              placeholder="Pilih atau ketik No. JO..."
+              onchange="handleJobOrderSelection(this.value)"
               oninput="syncJOToMetadata(this.value)"
               class="w-full bg-slate-900/90 border border-slate-700 focus:border-sky-500 rounded-lg px-3 py-2 text-xs text-white font-mono">
+            <datalist id="datalist-active-jo"></datalist>
           </div>
           <div>
             <label class="block text-[11px] font-medium text-slate-400 mb-1">Pemberi Tugas / Klien</label>
@@ -719,7 +727,10 @@
         const docInfo = document.getElementById('doc-file-info');
         if (docInfo) docInfo.textContent = 'File: Belum ada berkas dimuat';
         const metaUploader = document.getElementById('meta-uploader');
-        if (metaUploader) metaUploader.textContent = '-';
+        if (metaUploader) {
+          const u = window.currentUser || currentUser;
+          metaUploader.textContent = (u && u.nama) ? (u.nik ? `${u.nama} (${u.nik})` : u.nama) : '-';
+        }
         const metaPages = document.getElementById('meta-total-pages');
         if (metaPages) metaPages.textContent = '0 Halaman';
         const totalPage = document.getElementById('total-page-num');
@@ -2738,17 +2749,22 @@ Format output wajib berupa objek JSON valid dengan struktur:
         sessionStorage.setItem('NSR_USER_SESSION', JSON.stringify(user));
       } catch (_) {}
 
+      // Tetapkan currentUser global segera
+      currentUser = user;
+      window.currentUser = user;
+
       // Tutup modal auth gate
       const modalAuth = document.getElementById('modal-auth-gate');
       if (modalAuth) modalAuth.classList.add('hidden');
 
-      // Terapkan izin RBAC
-      applyRBACPermissions(user);
-
       if (user.role !== 'SURVEYOR' && user.allowed_access) {
         // Mode Kerja Nyata (Live) Default: Kondisi bersih tanpa memuat sampel simulasi otomatis
         resetAuditSession(true, true);
+        loadActiveJobOrdersDirectory();
       }
+
+      // Terapkan izin RBAC
+      applyRBACPermissions(user);
 
       return true;
     }
@@ -3001,11 +3017,14 @@ Format output wajib berupa objek JSON valid dengan struktur:
       } catch (_) {}
 
       if (activeUser) {
-        applyRBACPermissions(activeUser);
+        currentUser = activeUser;
+        window.currentUser = activeUser;
         if (activeUser.role !== 'SURVEYOR' && activeUser.allowed_access) {
           // Mode Kerja Nyata (Live) Default: Kondisi bersih tanpa memuat sampel simulasi otomatis
           resetAuditSession(true, true);
+          loadActiveJobOrdersDirectory();
         }
+        applyRBACPermissions(activeUser);
       } else {
         // Belum login / tidak ada sesi: Buka modal Login Gate resmi
         logoutQASession();
@@ -3485,6 +3504,164 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
       }
     }
 
+    const DB_PENUGASAN_MAP = new Map();
+
+    // Default Seed Fallback Penugasan Aktif (Mode Offline / Resiliensi Jaringan)
+    const SEED_ACTIVE_JO_FALLBACK = [
+      {
+        noJo: "JO-NSR-2026-8084",
+        pemberiTugas: "PT Bank Tabungan Negara (Persero) Tbk",
+        objekPenilaian: "Rumah Sakit PT FIFA Medika (Padang)",
+        cabang: "Pusat Jakarta",
+        penilaiPelaksana: "Tedi Setiadi",
+        nikPenilai: "NSR-2019-007",
+        milestoneAktif: "M-05",
+        statusQa: "IN_REVIEW"
+      },
+      {
+        noJo: "JO-NSR-2026-0881",
+        pemberiTugas: "PT Bank Tabungan Negara (Persero) Tbk",
+        objekPenilaian: "Rumah Sakit FIFA Medika, Jl. Dr. Sutomo No. 94",
+        cabang: "Pusat Jakarta",
+        penilaiPelaksana: "Tedi Setiadi",
+        nikPenilai: "NSR-2019-007",
+        milestoneAktif: "M-05",
+        statusQa: "NOT_ACCEPTABLE"
+      },
+      {
+        noJo: "JO-NSR-2026-0412",
+        pemberiTugas: "PT Bank Tabungan Negara (Persero) Tbk - CBC Bekasi",
+        objekPenilaian: "Perumahan Permata Harapan Sarimukti (313 Unit)",
+        cabang: "Bekasi",
+        penilaiPelaksana: "Yoga Anfiar Pradipta",
+        nikPenilai: "NSR-2025-023",
+        milestoneAktif: "M-05",
+        statusQa: "REQUIRES_MAJOR_REVISION"
+      }
+    ];
+
+    /**
+     * Memuat daftar penugasan aktif dari DB_PENUGASAN_JO_NSR saat portal dibuka
+     */
+    async function loadActiveJobOrdersDirectory() {
+      const indicator = document.getElementById("jo-sync-indicator");
+      const datalist = document.getElementById("datalist-active-jo");
+      if (!datalist) return;
+
+      function populateDatalist(items) {
+        DB_PENUGASAN_MAP.clear();
+        datalist.innerHTML = "";
+        items.forEach(item => {
+          DB_PENUGASAN_MAP.set(item.noJo, item);
+          const opt = document.createElement("option");
+          opt.value = item.noJo;
+          opt.label = `${item.pemberiTugas} — ${item.objekPenilaian} [${item.cabang} | ${item.milestoneAktif}]`;
+          datalist.appendChild(opt);
+        });
+      }
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch(GAS_QA_ENDPOINT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "GET_ACTIVE_JO_QA" }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        const json = await res.json();
+
+        if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
+          populateDatalist(json.data);
+          if (indicator) indicator.innerHTML = `<span class="text-emerald-400">● ${json.data.length} JO Aktif Tersinkron</span>`;
+          return;
+        }
+      } catch (err) {
+        // Fallback offline
+      }
+
+      // Gunakan seed fallback agar UI tetap interaktif dan tidak kosong
+      populateDatalist(SEED_ACTIVE_JO_FALLBACK);
+      if (indicator) indicator.innerHTML = `<span class="text-amber-400">● Mode Offline (${SEED_ACTIVE_JO_FALLBACK.length} JO)</span>`;
+    }
+
+    /**
+     * Auto-populate Nama Klien, Objek, dan Validasi Tim saat No. JO dipilih
+     */
+    function handleJobOrderSelection(joValue) {
+      const cleanJo = String(joValue || "").trim();
+      syncJOToMetadata(cleanJo);
+
+      const joRecord = DB_PENUGASAN_MAP.get(cleanJo);
+      if (!joRecord) return;
+
+      // Isi otomatis kolom Pemberi Tugas / Klien
+      const clientInput = document.getElementById("input-client-name");
+      if (clientInput && joRecord.pemberiTugas) {
+        clientInput.value = joRecord.pemberiTugas;
+      }
+
+      // Perbarui metadata objek & pemberi tugas jika elemen tersedia
+      const summaryPemberi = document.getElementById('summary-pemberi-tugas');
+      if (summaryPemberi && joRecord.pemberiTugas) {
+        summaryPemberi.textContent = joRecord.pemberiTugas;
+      }
+      const summaryObjek = document.getElementById('summary-objek-nama');
+      if (summaryObjek && joRecord.objekPenilaian && summaryObjek.textContent === 'Belum ada berkas dimuat') {
+        summaryObjek.textContent = joRecord.objekPenilaian;
+        summaryObjek.title = joRecord.objekPenilaian;
+      }
+
+      // Simpan konteks penugasan ke localStorage untuk sinkronisasi ke Tracking 7 Milestone & Portal NoLap
+      try {
+        localStorage.setItem(`NSR_JO_CONTEXT_${cleanJo}`, JSON.stringify(joRecord));
+      } catch (_) {}
+    }
+
+    /**
+     * Mengirim pembaruan status ke Tracking 7 Milestone (M-05 / M-06)
+     */
+    async function pushMilestoneTransition(joNumber, eventType, auditSnapshot, shaHash = "") {
+      if (!joNumber) return;
+
+      const payload = {
+        action: "UPDATE_JO_MILESTONE_QA",
+        payload: {
+          joNumber: joNumber,
+          event: eventType, // 'UPLOADED_DRAFT' | 'REVISION_RETURNED' | 'QA_APPROVED' | 'QA_OVERRIDE'
+          statusQa: auditSnapshot?.status || "IN_REVIEW",
+          skorMutu: auditSnapshot?.compliance_score ?? auditSnapshot?.score ?? 0,
+          sha256Hash: shaHash
+        }
+      };
+
+      // Simpan juga ke localStorage agar halaman Tracking 7 Milestone langsung merefleksikan perubahan
+      const milestoneCode = (eventType === "QA_APPROVED" || eventType === "QA_OVERRIDE") ? "M-06" : "M-05";
+      const syncRecord = {
+        joNumber,
+        milestoneAktif: milestoneCode,
+        event: eventType,
+        statusQa: payload.payload.statusQa,
+        skorMutu: payload.payload.skorMutu,
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem(`NSR_MILESTONE_SYNC_${joNumber}`, JSON.stringify(syncRecord));
+      } catch (_) {}
+
+      try {
+        fetch(GAS_QA_ENDPOINT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      } catch (err) {
+        console.warn("[Milestone Sync] Tersimpan di antrean lokal:", err);
+      }
+    }
+
     /**
      * Handler pemilihan simulasi pada dropdown tersembunyi
      */
@@ -3621,6 +3798,11 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
         textarea.value = noteText;
       }
 
+      // Sinkronisasi otomatis status revisi ke Tracking 7 Milestone (M-05)
+      const joNumRev = review.job_order_id || (document.getElementById('input-jo-number') ? document.getElementById('input-jo-number').value : '');
+      const shaHashRev = review.file_hash || currentAuditSession?.pdfHash || '';
+      pushMilestoneTransition(joNumRev, 'REVISION_RETURNED', review, shaHashRev);
+
       bukaModalRevisi();
     }
 
@@ -3660,6 +3842,11 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
       if (typeof syncAuditResultToBackend === 'function') {
         syncAuditResultToBackend(review, currentAuditSession);
       }
+
+      // Sinkronisasi otomatis ke Tracking 7 Milestone (M-06: Lolos QA - Siap Terbit NoLap)
+      const joNumApprove = review.job_order_id || (document.getElementById('input-jo-number') ? document.getElementById('input-jo-number').value : '');
+      const shaHashApprove = review.file_hash || currentAuditSession?.pdfHash || '';
+      pushMilestoneTransition(joNumApprove, 'QA_APPROVED', review, shaHashApprove);
 
       updateWorkflowButtonsState(review);
 
@@ -3988,6 +4175,12 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     }
 
     function kirimInstruksiRevisi() {
+      const review = latestAuditSnapshot || activeReview;
+      if (review) {
+        const joNumRev = review.job_order_id || (document.getElementById('input-jo-number') ? document.getElementById('input-jo-number').value : '');
+        const shaHashRev = review.file_hash || currentAuditSession?.pdfHash || '';
+        pushMilestoneTransition(joNumRev, 'REVISION_RETURNED', review, shaHashRev);
+      }
       alert('Instruksi telaah SPM berhasil diteruskan ke Task Board & notifikasi penilai!');
       tutupModalRevisi();
     }
@@ -4046,6 +4239,9 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
             activeReview.compliance_score = Math.max(activeReview.compliance_score, 85.0);
             applyReviewData(activeReview);
             syncAuditResultToBackend(activeReview, currentAuditSession);
+            const joNumOvr = activeReview.job_order_id || (document.getElementById('input-jo-number') ? document.getElementById('input-jo-number').value : '');
+            const shaHashOvr = activeReview.file_hash || currentAuditSession?.pdfHash || '';
+            pushMilestoneTransition(joNumOvr, 'QA_OVERRIDE', activeReview, shaHashOvr);
           }
           alert('KUNCI GERBANG NOLAP TELAH DIBUKA DENGAN DISPENSASI PIMPINAN REKAN!\n\nNoLap Kemenkeu pada Portal NoLap kini dapat diterbitkan.');
           tutupModalOverride();
@@ -4060,6 +4256,9 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
           activeReview.compliance_score = Math.max(activeReview.compliance_score, 85.0);
           applyReviewData(activeReview);
           syncAuditResultToBackend(activeReview, currentAuditSession);
+          const joNumOvr = activeReview.job_order_id || (document.getElementById('input-jo-number') ? document.getElementById('input-jo-number').value : '');
+          const shaHashOvr = activeReview.file_hash || currentAuditSession?.pdfHash || '';
+          pushMilestoneTransition(joNumOvr, 'QA_OVERRIDE', activeReview, shaHashOvr);
         }
         alert('Kunci gerbang NoLap berhasil dibuka (Mode Simulasi).');
         tutupModalOverride();
@@ -4726,6 +4925,10 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
         // Sinkronisasi non-blocking ke Google Sheets (LOG_QA_AUDIT) & status Gerbang NoLap (SHA-256)
         syncAuditResultToBackend(auditResult, currentAuditSession);
 
+        // Sinkronisasi otomatis ke Tracking 7 Milestone (M-05: Dalam Telaah SPM)
+        const joNumDraft = auditResult.job_order_id || (document.getElementById('input-jo-number') ? document.getElementById('input-jo-number').value : '');
+        pushMilestoneTransition(joNumDraft, 'UPLOADED_DRAFT', auditResult, currentAuditSession.pdfHash || '');
+
         // Sinkronisasi latar belakang ke backend jika server tersedia
         try {
           if (files[0]) {
@@ -4805,6 +5008,10 @@ KJPP Nanang Rahayu Sigit Paryanto & Rekan`;
     window.executeApproveQA = executeApproveQA;
     window.openOverrideModal = openOverrideModal;
     window.printQAControlSheet = printQAControlSheet;
+    window.loadActiveJobOrdersDirectory = loadActiveJobOrdersDirectory;
+    window.handleJobOrderSelection = handleJobOrderSelection;
+    window.pushMilestoneTransition = pushMilestoneTransition;
+    window.DB_PENUGASAN_MAP = DB_PENUGASAN_MAP;
   </script>
 
   <!-- MODAL: AI DEEP TECHNICAL REVIEW & MASTER PROMPT 7-BAB -->

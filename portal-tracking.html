@@ -3768,6 +3768,103 @@
     }
     window.callApi = callApi;
 
+    /**
+     * Membaca NSR_MILESTONE_SYNC_* dari localStorage dan menyinkronkan status M-05 & M-06
+     * dari Portal QA secara real-time tanpa pengetikan ulang data (Zero Double-Entry).
+     */
+    function applyQAMilestoneSync(jobs) {
+      if (!Array.isArray(jobs)) return;
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('NSR_MILESTONE_SYNC_')) {
+            const raw = localStorage.getItem(key);
+            if (!raw) continue;
+            const item = JSON.parse(raw);
+            if (!item || !item.joNumber || !item.milestoneAktif) continue;
+
+            const target = jobs.find(j => 
+              (j.id_jo && j.id_jo.trim() === item.joNumber.trim()) ||
+              (j.jo_number && j.jo_number.trim() === item.joNumber.trim()) ||
+              (j.id && j.id.trim() === item.joNumber.trim())
+            );
+
+            if (target) {
+              target.current_milestone = item.milestoneAktif;
+              target.milestone = item.milestoneAktif;
+              target.milestone_aktif = item.milestoneAktif;
+              target.status_qa = item.statusQa;
+              target.skor_qa = item.skorMutu;
+              target.qa_event = item.event;
+              target.last_updated = item.updatedAt || new Date().toISOString();
+              // Update milestones object jika ada
+              if (target.milestones && typeof target.milestones === 'object') {
+                if (item.milestoneAktif === 'M-05') {
+                  if (target.milestones['M-05']) {
+                    target.milestones['M-05'].status = 'in_progress';
+                    target.milestones['M-05'].note = `Status QA: ${item.statusQa} (${item.skorMutu}%)`;
+                  }
+                } else if (item.milestoneAktif === 'M-06') {
+                  if (target.milestones['M-05']) {
+                    target.milestones['M-05'].status = 'completed';
+                    target.milestones['M-05'].note = `Lolos Uji Mutu (${item.skorMutu}%)`;
+                  }
+                  if (target.milestones['M-06']) {
+                    target.milestones['M-06'].status = 'in_progress';
+                    target.milestones['M-06'].note = 'Siap Otorisasi Penilai Publik & Terbit NoLap';
+                  }
+                }
+              }
+            } else {
+              // Jika JO belum terdaftar dalam list, buat entri penugasan otomatis dari konteks
+              let ctx = null;
+              try {
+                const ctxRaw = localStorage.getItem(`NSR_JO_CONTEXT_${item.joNumber}`);
+                if (ctxRaw) ctx = JSON.parse(ctxRaw);
+              } catch (_) {}
+
+              jobs.unshift({
+                id_jo: item.joNumber,
+                jo_number: item.joNumber,
+                pemberi_tugas: ctx?.pemberiTugas || 'PT Bank Tabungan Negara (Persero) Tbk',
+                instansi: ctx?.pemberiTugas || 'PT Bank Tabungan Negara (Persero) Tbk',
+                objek_penilaian: ctx?.objekPenilaian || 'Objek Penilaian (Draf Laporan)',
+                kantor_cabang: ctx?.cabang || 'Pusat Jakarta',
+                cabang: ctx?.cabang || 'Pusat Jakarta',
+                penilai_pelaksana: ctx?.penilaiPelaksana || 'Tedi Setiadi',
+                current_milestone: item.milestoneAktif,
+                milestone: item.milestoneAktif,
+                milestone_aktif: item.milestoneAktif,
+                status_qa: item.statusQa,
+                skor_qa: item.skorMutu,
+                qa_event: item.event,
+                status: 'IN_PROGRESS',
+                sla_status: 'on_track',
+                last_updated: item.updatedAt || new Date().toISOString()
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[QA Milestone Sync Warning]:', err);
+      }
+    }
+    window.applyQAMilestoneSync = applyQAMilestoneSync;
+
+    // Listener multi-tab untuk perubahan real-time dari Portal QA Review
+    window.addEventListener('storage', function(e) {
+      if (e.key && e.key.startsWith('NSR_MILESTONE_SYNC_')) {
+        if (Array.isArray(globalJobs)) {
+          applyQAMilestoneSync(globalJobs);
+          window.allJobs = globalJobs;
+          if (typeof renderDynamicPartnerTabs === 'function') renderDynamicPartnerTabs();
+          if (typeof executeJobFiltering === 'function') executeJobFiltering();
+          if (typeof renderMilestonePipelineRibbon === 'function') renderMilestonePipelineRibbon();
+          if (typeof updateKPIStats === 'function') updateKPIStats(globalJobs);
+        }
+      }
+    });
+
     // Muat Data Task Board
     async function muatDataTaskBoard() {
       const tbody = document.getElementById('task-board-tbody');
@@ -3791,6 +3888,7 @@
         const res = await callApi('list', params);
         if (res && res.status === 'success' && Array.isArray(res.data)) {
           globalJobs = res.data;
+          applyQAMilestoneSync(globalJobs);
           window.allJobs = globalJobs;
 
           const stuckJobs = globalJobs.filter(j => j.is_bottleneck || j.sla_status === 'overdue');
@@ -3805,9 +3903,29 @@
           executeJobFiltering();
           updateKPIStats(globalJobs);
         } else {
+          if (!globalJobs || globalJobs.length === 0) globalJobs = [];
+          applyQAMilestoneSync(globalJobs);
+          if (globalJobs.length > 0) {
+            window.allJobs = globalJobs;
+            renderDynamicPartnerTabs();
+            executeJobFiltering();
+            renderMilestonePipelineRibbon();
+            updateKPIStats(globalJobs);
+            return;
+          }
           if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-rose-400">Gagal memuat data: ' + (res.message || 'Respons tidak valid') + '</td></tr>';
         }
       } catch (err) {
+        if (!globalJobs || globalJobs.length === 0) globalJobs = [];
+        applyQAMilestoneSync(globalJobs);
+        if (globalJobs.length > 0) {
+          window.allJobs = globalJobs;
+          renderDynamicPartnerTabs();
+          executeJobFiltering();
+          renderMilestonePipelineRibbon();
+          updateKPIStats(globalJobs);
+          return;
+        }
         if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-rose-400">Terjadi kesalahan: ' + err.message + '</td></tr>';
       }
     }
