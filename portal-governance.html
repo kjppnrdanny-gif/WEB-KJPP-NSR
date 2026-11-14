@@ -622,29 +622,37 @@
             </p>
           </div>
 
-          <div class="space-y-3 text-xs">
-            <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+          <div class="space-y-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-0.5">
               <div class="flex justify-between font-bold">
                 <span class="text-emerald-400">1. Kualitas Mutu QA</span>
                 <span class="font-mono text-white bg-emerald-950 px-1.5 py-0.2 rounded border border-emerald-800">40%</span>
               </div>
-              <p class="text-[11px] text-slate-400">Bebas temuan kritis SPI 105 & hasil audit SPM.</p>
+              <p class="text-[10px] text-slate-400">Bebas temuan kritis SPI 105 & skor audit LOG_QA_AUDIT.</p>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-0.5">
               <div class="flex justify-between font-bold">
                 <span class="text-sky-400">2. Ketepatan SLA Waktu</span>
-                <span class="font-mono text-white bg-sky-950 px-1.5 py-0.2 rounded border border-sky-800">35%</span>
+                <span class="font-mono text-white bg-sky-950 px-1.5 py-0.2 rounded border border-sky-800">20%</span>
               </div>
-              <p class="text-[11px] text-slate-400">Kepatuhan durasi milestone M-01 s/d M-06.</p>
+              <p class="text-[10px] text-slate-400">Kepatuhan durasi milestone penugasan M-01 s/d M-06.</p>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-0.5">
               <div class="flex justify-between font-bold">
                 <span class="text-amber-400">3. Produktivitas Volume JO</span>
-                <span class="font-mono text-white bg-amber-950 px-1.5 py-0.2 rounded border border-amber-800">25%</span>
+                <span class="font-mono text-white bg-amber-950 px-1.5 py-0.2 rounded border border-amber-800">15%</span>
               </div>
-              <p class="text-[11px] text-slate-400">Volume penugasan & penyelesaian administrasi.</p>
+              <p class="text-[10px] text-slate-400">Volume penugasan aktual dari DB_PENUGASAN_JO_NSR.</p>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-amber-500/30 space-y-0.5">
+              <div class="flex justify-between font-bold">
+                <span class="text-purple-400">4. Disiplin &amp; Etika KEPI</span>
+                <span class="font-mono text-white bg-purple-950 px-1.5 py-0.2 rounded border border-purple-800">25%</span>
+              </div>
+              <p class="text-[10px] text-slate-400">Evaluasi presensi &amp; etika profesi oleh Kepala SPM / HRD.</p>
             </div>
           </div>
 
@@ -694,7 +702,15 @@
 
           <!-- Controls: Filter & Export -->
           <div class="flex flex-wrap items-center gap-2">
-            <input type="text" id="filter-kpi-search" oninput="filterKpiTable()" placeholder="Cari Nama / NIK..." class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs w-44 placeholder-slate-500 focus:outline-none focus:border-amber-500">
+            <select id="filter-kpi-periode" onchange="gantiPeriodeKpi()" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-amber-500/40 text-amber-300 text-xs font-semibold focus:outline-none focus:border-amber-400">
+              <option value="2026-11" selected>Periode: Nov 2026</option>
+              <option value="2026-10">Periode: Okt 2026</option>
+              <option value="2026-09">Periode: Sep 2026</option>
+              <option value="2026-08">Periode: Agu 2026</option>
+              <option value="2026-07">Periode: Jul 2026</option>
+            </select>
+
+            <input type="text" id="filter-kpi-search" oninput="filterKpiTable()" placeholder="Cari Nama / NIK..." class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs w-40 placeholder-slate-500 focus:outline-none focus:border-amber-500">
             
             <select id="filter-kpi-cabang" onchange="filterKpiTable()" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-amber-500">
               <option value="">Semua Wilayah (5 Cabang)</option>
@@ -727,19 +743,21 @@
             <thead class="sticky top-0 z-10">
               <tr class="bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
                 <th class="py-2.5 px-3 w-12 text-center">Rank</th>
-                <th class="py-2.5 px-3 w-32">NIK Karyawan</th>
-                <th class="py-2.5 px-3 w-64">Nama Personel</th>
-                <th class="py-2.5 px-3 w-48">Jabatan</th>
-                <th class="py-2.5 px-3 w-36">Kantor Cabang</th>
+                <th class="py-2.5 px-3 w-28">NIK</th>
+                <th class="py-2.5 px-3 w-56">Nama Personel</th>
+                <th class="py-2.5 px-3 w-40">Jabatan</th>
+                <th class="py-2.5 px-3 w-32">Kantor Cabang</th>
                 <th class="py-2.5 px-3 text-right">Mutu QA (40%)</th>
-                <th class="py-2.5 px-3 text-right">SLA (35%)</th>
-                <th class="py-2.5 px-3 text-right">Produktivitas (25%)</th>
+                <th class="py-2.5 px-3 text-right">SLA (20%)</th>
+                <th class="py-2.5 px-3 text-right">Prod (15%)</th>
+                <th class="py-2.5 px-3 text-right">Disiplin &amp; Etika (25%)</th>
                 <th class="py-2.5 px-3 text-right">Skor Komposit</th>
                 <th class="py-2.5 px-3 text-center">PPL / Izin</th>
+                <th class="py-2.5 px-3 text-center w-28">Aksi SPM</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-kpi-employees">
-              <tr><td colspan="10" class="py-6 text-center text-slate-400">Memuat rapor kinerja 52 personel...</td></tr>
+              <tr><td colspan="12" class="py-6 text-center text-slate-400">Memuat rapor kinerja 52 personel...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1419,6 +1437,156 @@
     </div>
   </div>
 
+  <!-- MODAL EVALUASI KPI SDM & KEPATUHAN OLEH KEPALA SPM / HRD -->
+  <div id="modal-evaluasi-kpi" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-base">
+            <i class="fa-solid fa-clipboard-user"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Lembar Evaluasi Kinerja &amp; Etika SDM</h3>
+            <p class="text-[11px] text-slate-400">Penilaian resmi Kepala Pengendali Mutu (SPM) &amp; HRD Manajemen Pusat</p>
+          </div>
+        </div>
+        <button onclick="tutupModalEvaluasiKpi()" class="text-slate-400 hover:text-white text-xl leading-none cursor-pointer">&times;</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-4">
+        <!-- Identitas Personel -->
+        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div>
+            <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-mono">Nama Personel</span>
+            <span id="eval-kpi-nama" class="font-bold text-white text-sm"></span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-mono">NIK Karyawan</span>
+            <span id="eval-kpi-nik" class="font-mono text-sky-400 font-semibold"></span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-mono">Jabatan &amp; Peran</span>
+            <span id="eval-kpi-jabatan" class="text-slate-300"></span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-mono">Kantor Wilayah / Cabang</span>
+            <span id="eval-kpi-cabang" class="text-amber-300 font-medium"></span>
+          </div>
+        </div>
+
+        <!-- Rincian Skor Otomatis Sistem (Read-Only) -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+              <i class="fa-solid fa-calculator text-sky-400"></i>
+              Skor Otomatis Sistem (Audit Mutu, SLA &amp; Volume)
+            </h4>
+            <span class="text-[10px] text-slate-500 font-mono">Bobot 75%</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2.5 text-center">
+            <div class="p-2.5 rounded-xl bg-slate-950/90 border border-slate-800">
+              <span class="text-[10px] text-slate-400 block">1. Mutu QA (40%)</span>
+              <span id="eval-kpi-skor-qa" class="text-base font-bold font-mono text-emerald-400">0.0%</span>
+              <span class="text-[9px] text-slate-500 block">LOG_QA_AUDIT</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-950/90 border border-slate-800">
+              <span class="text-[10px] text-slate-400 block">2. SLA Waktu (20%)</span>
+              <span id="eval-kpi-skor-sla" class="text-base font-bold font-mono text-sky-400">0.0%</span>
+              <span class="text-[9px] text-slate-500 block">Ketepatan M-01 s/d M-06</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-950/90 border border-slate-800">
+              <span class="text-[10px] text-slate-400 block">3. Produktivitas (15%)</span>
+              <span id="eval-kpi-skor-prod" class="text-base font-bold font-mono text-amber-400">0.0%</span>
+              <span id="eval-kpi-total-jo" class="text-[9px] text-slate-500 block">0 JO Aktif</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Input Evaluasi HRD & Kepala SPM -->
+        <form id="form-evaluasi-kpi" onsubmit="handleSimpanEvaluasiKpi(event)" class="space-y-3.5 text-xs">
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-amber-500/30 space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                <i class="fa-solid fa-user-pen"></i>
+                Input Evaluasi Disiplin, Etika &amp; Lisensi (Bobot 25%)
+              </h4>
+              <span class="text-[10px] text-amber-300 font-mono">Otoritas SPM</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-slate-300 mb-1 font-semibold">
+                  Kedisiplinan &amp; Presensi Geotagging (0–100) <span class="text-rose-400">*</span>
+                </label>
+                <input type="number" id="eval-input-disiplin" min="0" max="100" step="1" required oninput="hitungPreviewKomposit()" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono font-bold focus:outline-none focus:border-amber-500" placeholder="0 - 100">
+                <p class="text-[10px] text-slate-500 mt-1">Kepatuhan radius presensi objek &amp; kehadiran kerja.</p>
+              </div>
+
+              <div>
+                <label class="block text-slate-300 mb-1 font-semibold">
+                  Integritas, Etika KEPI &amp; Kerja Sama (0–100) <span class="text-rose-400">*</span>
+                </label>
+                <input type="number" id="eval-input-etika" min="0" max="100" step="1" required oninput="hitungPreviewKomposit()" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono font-bold focus:outline-none focus:border-amber-500" placeholder="0 - 100">
+                <p class="text-[10px] text-slate-500 mt-1">Independensi penaksiran &amp; kepatuhan kode etik KEPI.</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block text-slate-300 mb-1 font-semibold">Status Izin Penilai / PPL MAPPI</label>
+                <select id="eval-input-status-ppl" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-500">
+                  <option value="TERTIB">TERTIB (≥ 24 SKP MAPPI &amp; Izin Aktif)</option>
+                  <option value="PERLU_PPL">PERLU_PPL (Kekurangan Poin SKP PPL)</option>
+                  <option value="H-90">H-90 (Masa Berlaku Izin ≤ 90 Hari)</option>
+                  <option value="H-60">H-60 (Masa Berlaku Izin ≤ 60 Hari)</option>
+                  <option value="H-30">H-30 (Masa Berlaku Izin ≤ 30 Hari - Kritis)</option>
+                  <option value="EXPIRED">EXPIRED (Izin Telah Kedaluwarsa)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-slate-300 mb-1 font-semibold">Periode Evaluasi</label>
+                <input type="text" id="eval-input-periode" readonly class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-mono">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-slate-300 mb-1 font-semibold">Catatan Evaluasi / Rekomendasi Pembinaan Resmi</label>
+              <textarea id="eval-input-catatan" rows="3" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-amber-500" placeholder="Contoh: Kinerja analisis konsisten, presensi tepat waktu. Pertahankan ketelitian verifikasi data pasar pembanding..."></textarea>
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1">Pejabat Penilai / Evaluator</label>
+              <input type="text" id="eval-input-evaluator" value="Danny Taufik Hidayat, S.H. (Kepala SPM)" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 text-xs">
+            </div>
+          </div>
+
+          <!-- Live Score Preview Card -->
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+            <div class="space-y-0.5">
+              <span class="text-[11px] text-slate-400 block font-mono">Proyeksi Skor Komposit Akhir (Skala 0–100):</span>
+              <p class="text-[10px] text-slate-500">Rumus: (QA×40%) + (SLA×20%) + (Prod×15%) + (Disiplin&amp;Etika×25%)</p>
+            </div>
+            <div class="text-right">
+              <span id="preview-skor-komposit" class="text-2xl font-bold font-mono text-amber-400">0.0</span>
+              <span id="preview-grade-badge" class="block text-[10px] font-bold text-slate-400 font-mono">BELUM DIEVALUASI</span>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2.5 pt-2 border-t border-slate-800 shrink-0">
+            <button type="button" onclick="tutupModalEvaluasiKpi()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition cursor-pointer">
+              Batal
+            </button>
+            <button type="submit" id="btn-simpan-evaluasi-kpi" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold inline-flex items-center gap-1.5 shadow-lg transition cursor-pointer">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span>Simpan Evaluasi KPI</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- SCRIPT UTAMA KONTROL TOWER & INTERVENSI 1-KLIK -->
   <script>
     const GAS_GOVERNANCE_ENDPOINT = "https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec";
@@ -1823,7 +1991,7 @@
       // 2. Fallback ke endpoint server backend lokal / PHP jika GAS offline / CORS
       if (!json) {
         try {
-          const res = await fetch(`${URL_BACKEND}?action=GET_EXECUTIVE_GOVERNANCE&token=${encodeURIComponent(CURRENT_TOKEN)}`);
+          const res = await fetch(`${URL_BACKEND}?action=GET_EXECUTIVE_GOVERNANCE&token=${encodeURIComponent(CURRENT_TOKEN)}&periode=${encodeURIComponent(targetPeriode || currentSelectedPeriode)}`);
           
           // Penanganan 403 Forbidden secara Elegan (Tanpa Alert Browser Memblokir)
           if (res.status === 403) {
@@ -2410,59 +2578,62 @@
     // =========================================================================
     let currentKpiEmployeeList = [];
 
+    let currentSelectedKpiNik = '';
+    let currentSelectedPeriode = '2026-11';
+
     const MASTER_52_CLIENT_FALLBACK = [
-      { no: 1, nik: "NSR-2019-001", nama: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)", jabatan: "Pemimpin Rekan", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 98.0, slaScore: 97.0, prodScore: 96.0, compositeScore: 97.2, rank: 2 },
-      { no: 2, nik: "NSR-2019-002", nama: "Deni Siswandi, S.T., MAPPI (Cert.)", jabatan: "Rekan Berizin", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 97.0, slaScore: 96.0, prodScore: 95.0, compositeScore: 96.2, rank: 3 },
-      { no: 3, nik: "NSR-2019-003", nama: "Mini Intan Cahyani", jabatan: "Rekan Non Penilai", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Non-Penilai", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 92.0, prodScore: 93.0, compositeScore: 91.5, rank: 21 },
-      { no: 4, nik: "NSR-2019-004", nama: "Milda Hidayati Dewi, S.E.", jabatan: "Manager Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 93.0, slaScore: 95.0, prodScore: 96.0, compositeScore: 94.5, rank: 8 },
-      { no: 5, nik: "NSR-2019-005", nama: "Danny Taufik Hidayat, S.H.", jabatan: "Kepala SPM & Manager Ops", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 98.5, slaScore: 97.5, prodScore: 96.5, compositeScore: 97.7, rank: 1 },
-      { no: 6, nik: "NSR-2019-006", nama: "Arie Indra Permana", jabatan: "Manager Marketing", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 92.0, prodScore: 94.0, compositeScore: 90.9, rank: 25 },
-      { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", statusPpl: "TERTIB", qaScore: 96.0, slaScore: 94.0, prodScore: 93.0, compositeScore: 94.6, rank: 7 },
-      { no: 8, nik: "NSR-2019-008", nama: "Ricca Noer Farikha", jabatan: "Accounting & Tax", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Akuntansi", statusPpl: "TERTIB", qaScore: 91.0, slaScore: 93.0, prodScore: 92.0, compositeScore: 92.0, rank: 18 },
-      { no: 9, nik: "NSR-2019-009", nama: "Angga Malid Cahyadi", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 93.0, prodScore: 92.0, compositeScore: 93.2, rank: 12 },
-      { no: 10, nik: "NSR-2019-010", nama: "Fadri Nurdin", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 91.0, prodScore: 90.0, compositeScore: 90.4, rank: 29 },
-      { no: 11, nik: "NSR-2019-011", nama: "Erwandi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 90.0, prodScore: 92.0, compositeScore: 89.7, rank: 35 },
-      { no: 12, nik: "NSR-2019-012", nama: "Latief Satihi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 89.0, prodScore: 91.0, compositeScore: 88.7, rank: 40 },
-      { no: 13, nik: "NSR-2019-013", nama: "Aryanto", jabatan: "Staf Umum & Logistik", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Umum", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 88.0, prodScore: 90.0, compositeScore: 88.5, rank: 41 },
-      { no: 14, nik: "NSR-2019-014", nama: "Yanto", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", statusPpl: "TERTIB", qaScore: 89.0, slaScore: 90.0, prodScore: 89.0, compositeScore: 89.4, rank: 37 },
-      { no: 15, nik: "NSR-2019-015", nama: "Lasiman", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 89.0, prodScore: 89.0, compositeScore: 88.6, rank: 42 },
-      { no: 16, nik: "NSR-2019-016", nama: "Sukirno", jabatan: "Layanan Pendukung", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Office Boy", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 88.0, prodScore: 90.0, compositeScore: 88.1, rank: 46 },
-      { no: 17, nik: "NSR-2019-017", nama: "Muhammad Syahrul Ruly", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 91.0, slaScore: 92.0, prodScore: 91.0, compositeScore: 91.4, rank: 22 },
-      { no: 18, nik: "NSR-2019-018", nama: "Uci Sanusi", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 90.0, prodScore: 90.0, compositeScore: 90.0, rank: 32 },
-      { no: 19, nik: "NSR-2019-019", nama: "Yasir Rizal, A.Md.", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 92.0, slaScore: 91.0, prodScore: 92.0, compositeScore: 91.7, rank: 19 },
-      { no: 20, nik: "NSR-2019-020", nama: "Udin Syamsudin", jabatan: "Keamanan Kantor", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Security", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 92.0, prodScore: 90.0, compositeScore: 89.9, rank: 33 },
-      { no: 21, nik: "NSR-2025-021", nama: "Dhea Shafitri Ningrum", jabatan: "Staf Administrasi & Kendali Mutu", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 94.0, prodScore: 95.0, compositeScore: 94.3, rank: 9 },
-      { no: 22, nik: "NSR-2026-022", nama: "Siti Nuraeni Ependi", jabatan: "Staf Administrasi & Registrasi SPK", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 92.0, slaScore: 93.0, prodScore: 94.0, compositeScore: 92.9, rank: 14 },
-      { no: 23, nik: "NSR-2025-023", nama: "Yoga Anfiar Pradipta", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 92.0, prodScore: 93.0, compositeScore: 93.1, rank: 13 },
-      { no: 24, nik: "NSR-2026-024", nama: "Indra Nugraha", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 93.0, slaScore: 91.0, prodScore: 92.0, compositeScore: 92.1, rank: 17 },
-      { no: 25, nik: "NSR-2025-025", nama: "Isnaini Azzahra", jabatan: "Staf Administrasi & Arsip", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 92.0, prodScore: 91.0, compositeScore: 91.0, rank: 24 },
-      { no: 26, nik: "NSR-2026-026", nama: "Maharani Citra Charisma", jabatan: "Staf Administrasi & Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 91.0, slaScore: 92.0, prodScore: 92.0, compositeScore: 91.6, rank: 20 },
-      { no: 27, nik: "NSR-PDG-2019-23", nama: "Hernita, S.Si., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Padang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 95.0, slaScore: 93.0, prodScore: 92.0, compositeScore: 93.6, rank: 11 },
-      { no: 28, nik: "NSR-PDG-2019-24", nama: "Rahmad Andika", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 92.0, slaScore: 90.0, prodScore: 90.0, compositeScore: 90.8, rank: 26 },
-      { no: 29, nik: "NSR-PDG-2019-25", nama: "Muhammad Al Amin", jabatan: "Penilai Properti", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 91.0, slaScore: 89.0, prodScore: 89.0, compositeScore: 89.8, rank: 34 },
-      { no: 30, nik: "NSR-PDG-2019-26", nama: "Rien Soneta", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 89.0, slaScore: 91.0, prodScore: 90.0, compositeScore: 90.0, rank: 31 },
-      { no: 31, nik: "NSR-PDG-2019-27", nama: "Kiki Yeza", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 88.0, prodScore: 88.0, compositeScore: 87.2, rank: 49 },
-      { no: 32, nik: "NSR-PDG-2019-28", nama: "Siti Syarah", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 90.0, prodScore: 89.0, compositeScore: 89.0, rank: 39 },
-      { no: 33, nik: "NSR-PDG-2019-29", nama: "Oki Oktianil Putra", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 87.0, prodScore: 88.0, compositeScore: 86.9, rank: 50 },
-      { no: 34, nik: "NSR-MKS-2019-30", nama: "Muhammad Amin Sade, S.M., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Makassar", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 92.0, prodScore: 91.0, compositeScore: 92.6, rank: 15 },
-      { no: 35, nik: "NSR-MKS-2019-31", nama: "Wawan Kurniawan", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Makassar", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 92.0, slaScore: 89.0, prodScore: 90.0, compositeScore: 90.5, rank: 28 },
-      { no: 36, nik: "NSR-MKS-2019-32", nama: "Alauddin Amin", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 88.0, prodScore: 89.0, compositeScore: 88.3, rank: 44 },
-      { no: 37, nik: "NSR-MKS-2020-33", nama: "M Fajrullah Danial", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 88.0, prodScore: 88.0, compositeScore: 87.6, rank: 47 },
-      { no: 38, nik: "NSR-MKS-2021-34", nama: "Rahmad Dwi Susanto", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 87.0, prodScore: 88.0, compositeScore: 87.7, rank: 48 },
-      { no: 39, nik: "NSR-MKS-2020-35", nama: "Andika Rifky Rifaldy", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 88.0, prodScore: 87.0, compositeScore: 87.4, rank: 51 },
-      { no: 40, nik: "NSR-MKS-2019-36", nama: "Ilyas Tandialla", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 87.0, prodScore: 87.0, compositeScore: 86.6, rank: 52 },
-      { no: 41, nik: "NSR-MKS-2019-37", nama: "Arman Mustajab", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 86.0, prodScore: 87.0, compositeScore: 86.3, rank: 53 },
-      { no: 42, nik: "NSR-BDG-2020-38", nama: "Heru Kurnia", jabatan: "Business Development Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 89.0, slaScore: 91.0, prodScore: 93.0, compositeScore: 90.7, rank: 27 },
-      { no: 43, nik: "NSR-BDG-2020-39", nama: "Ardi Nurmayadi, S.T.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 94.0, slaScore: 92.0, prodScore: 92.0, compositeScore: 92.8, rank: 16 },
-      { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 93.0, slaScore: 91.0, prodScore: 91.0, compositeScore: 91.8, rank: 18 },
-      { no: 45, nik: "NSR-BDG-2020-41", nama: "Tiara Hurairah", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 92.0, prodScore: 91.0, compositeScore: 91.0, rank: 23 },
-      { no: 46, nik: "NSR-BDG-2020-42", nama: "Achmad Ilham Fauzan", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 90.0, slaScore: 91.0, prodScore: 92.0, compositeScore: 90.9, rank: 25 },
-      { no: 47, nik: "NSR-BDG-2020-43", nama: "Rahmat Muhammad Hussein", jabatan: "Surveyor Lapangan", cabang: "Cabang Bandung", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 88.0, slaScore: 89.0, prodScore: 90.0, compositeScore: 88.9, rank: 38 },
-      { no: 48, nik: "NSR-PLB-2022-44", nama: "Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Palembang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 93.0, slaScore: 90.0, prodScore: 89.0, compositeScore: 91.0, rank: 24 },
-      { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "PERLU_PPL", qaScore: 88.0, slaScore: 86.0, prodScore: 87.0, compositeScore: 87.1, rank: 49 },
-      { no: 50, nik: "NSR-PLB-2022-46", nama: "Arwin Saputra", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 86.0, slaScore: 87.0, prodScore: 86.0, compositeScore: 86.4, rank: 52 },
-      { no: 51, nik: "NSR-PLB-2022-47", nama: "Hadyan Fikhri", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 85.0, slaScore: 86.0, prodScore: 86.0, compositeScore: 85.6, rank: 54 },
-      { no: 52, nik: "NSR-PLB-2022-48", nama: "M. Deo Tansila Putra", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Palembang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 87.0, slaScore: 88.0, prodScore: 88.0, compositeScore: 87.6, rank: 47 }
+      { no: 1, nik: "NSR-2019-001", nama: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)", jabatan: "Pemimpin Rekan", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 1, totalJo: 0 },
+      { no: 2, nik: "NSR-2019-002", nama: "Deni Siswandi, S.T., MAPPI (Cert.)", jabatan: "Rekan Berizin", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 2, totalJo: 0 },
+      { no: 3, nik: "NSR-2019-003", nama: "Mini Intan Cahyani", jabatan: "Rekan Non Penilai", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Non-Penilai", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 3, totalJo: 0 },
+      { no: 4, nik: "NSR-2019-004", nama: "Milda Hidayati Dewi, S.E.", jabatan: "Manager Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 4, totalJo: 0 },
+      { no: 5, nik: "NSR-2019-005", nama: "Danny Taufik Hidayat, S.H.", jabatan: "Kepala SPM & Manager Ops", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 5, totalJo: 0 },
+      { no: 6, nik: "NSR-2019-006", nama: "Arie Indra Permana", jabatan: "Manager Marketing", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 6, totalJo: 0 },
+      { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 7, totalJo: 0 },
+      { no: 8, nik: "NSR-2019-008", nama: "Ricca Noer Farikha", jabatan: "Accounting & Tax", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Akuntansi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 8, totalJo: 0 },
+      { no: 9, nik: "NSR-2019-009", nama: "Angga Malid Cahyadi", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 9, totalJo: 0 },
+      { no: 10, nik: "NSR-2019-010", nama: "Fadri Nurdin", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 10, totalJo: 0 },
+      { no: 11, nik: "NSR-2019-011", nama: "Erwandi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 11, totalJo: 0 },
+      { no: 12, nik: "NSR-2019-012", nama: "Latief Satihi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 12, totalJo: 0 },
+      { no: 13, nik: "NSR-2019-013", nama: "Aryanto", jabatan: "Staf Umum & Logistik", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Umum", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 13, totalJo: 0 },
+      { no: 14, nik: "NSR-2019-014", nama: "Yanto", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 14, totalJo: 0 },
+      { no: 15, nik: "NSR-2019-015", nama: "Lasiman", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 15, totalJo: 0 },
+      { no: 16, nik: "NSR-2019-016", nama: "Sukirno", jabatan: "Layanan Pendukung", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Office Boy", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 16, totalJo: 0 },
+      { no: 17, nik: "NSR-2019-017", nama: "Muhammad Syahrul Ruly", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 17, totalJo: 0 },
+      { no: 18, nik: "NSR-2019-018", nama: "Uci Sanusi", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 18, totalJo: 0 },
+      { no: 19, nik: "NSR-2019-019", nama: "Yasir Rizal, A.Md.", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 19, totalJo: 0 },
+      { no: 20, nik: "NSR-2019-020", nama: "Udin Syamsudin", jabatan: "Keamanan Kantor", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Security", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 20, totalJo: 0 },
+      { no: 21, nik: "NSR-2025-021", nama: "Dhea Shafitri Ningrum", jabatan: "Staf Administrasi & Kendali Mutu", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 21, totalJo: 0 },
+      { no: 22, nik: "NSR-2026-022", nama: "Siti Nuraeni Ependi", jabatan: "Staf Administrasi & Registrasi SPK", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 22, totalJo: 0 },
+      { no: 23, nik: "NSR-2025-023", nama: "Yoga Anfiar Pradipta", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 23, totalJo: 0 },
+      { no: 24, nik: "NSR-2026-024", nama: "Indra Nugraha", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 24, totalJo: 0 },
+      { no: 25, nik: "NSR-2025-025", nama: "Isnaini Azzahra", jabatan: "Staf Administrasi & Arsip", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 25, totalJo: 0 },
+      { no: 26, nik: "NSR-2026-026", nama: "Maharani Citra Charisma", jabatan: "Staf Administrasi & Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 26, totalJo: 0 },
+      { no: 27, nik: "NSR-PDG-2019-23", nama: "Hernita, S.Si., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Padang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 27, totalJo: 0 },
+      { no: 28, nik: "NSR-PDG-2019-24", nama: "Rahmad Andika", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 28, totalJo: 0 },
+      { no: 29, nik: "NSR-PDG-2019-25", nama: "Muhammad Al Amin", jabatan: "Penilai Properti", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 29, totalJo: 0 },
+      { no: 30, nik: "NSR-PDG-2019-26", nama: "Rien Soneta", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 30, totalJo: 0 },
+      { no: 31, nik: "NSR-PDG-2019-27", nama: "Kiki Yeza", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 31, totalJo: 0 },
+      { no: 32, nik: "NSR-PDG-2019-28", nama: "Siti Syarah", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 32, totalJo: 0 },
+      { no: 33, nik: "NSR-PDG-2019-29", nama: "Oki Oktianil Putra", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 33, totalJo: 0 },
+      { no: 34, nik: "NSR-MKS-2019-30", nama: "Muhammad Amin Sade, S.M., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Makassar", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 34, totalJo: 0 },
+      { no: 35, nik: "NSR-MKS-2019-31", nama: "Wawan Kurniawan", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Makassar", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 35, totalJo: 0 },
+      { no: 36, nik: "NSR-MKS-2019-32", nama: "Alauddin Amin", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 36, totalJo: 0 },
+      { no: 37, nik: "NSR-MKS-2020-33", nama: "M Fajrullah Danial", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 37, totalJo: 0 },
+      { no: 38, nik: "NSR-MKS-2021-34", nama: "Rahmad Dwi Susanto", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 38, totalJo: 0 },
+      { no: 39, nik: "NSR-MKS-2020-35", nama: "Andika Rifky Rifaldy", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 39, totalJo: 0 },
+      { no: 40, nik: "NSR-MKS-2019-36", nama: "Ilyas Tandialla", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 40, totalJo: 0 },
+      { no: 41, nik: "NSR-MKS-2019-37", nama: "Arman Mustajab", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 41, totalJo: 0 },
+      { no: 42, nik: "NSR-BDG-2020-38", nama: "Heru Kurnia", jabatan: "Business Development Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 42, totalJo: 0 },
+      { no: 43, nik: "NSR-BDG-2020-39", nama: "Ardi Nurmayadi, S.T.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 43, totalJo: 0 },
+      { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 44, totalJo: 0 },
+      { no: 45, nik: "NSR-BDG-2020-41", nama: "Tiara Hurairah", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 45, totalJo: 0 },
+      { no: 46, nik: "NSR-BDG-2020-42", nama: "Achmad Ilham Fauzan", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 46, totalJo: 0 },
+      { no: 47, nik: "NSR-BDG-2020-43", nama: "Rahmat Muhammad Hussein", jabatan: "Surveyor Lapangan", cabang: "Cabang Bandung", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 47, totalJo: 0 },
+      { no: 48, nik: "NSR-PLB-2022-44", nama: "Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Palembang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 48, totalJo: 0 },
+      { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "PERLU_PPL", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 49, totalJo: 0 },
+      { no: 50, nik: "NSR-PLB-2022-46", nama: "Arwin Saputra", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 50, totalJo: 0 },
+      { no: 51, nik: "NSR-PLB-2022-47", nama: "Hadyan Fikhri", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 51, totalJo: 0 },
+      { no: 52, nik: "NSR-PLB-2022-48", nama: "M. Deo Tansila Putra", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Palembang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 52, totalJo: 0 }
     ];
 
     function renderEmployeeKPI(data) {
@@ -2470,29 +2641,36 @@
       const an = data.analytics || {};
       const kSum = data.kpiSummary || an.kpiSummary || {};
       const kCabang = data.kpiPerCabang || an.kpiPerCabang || [
-        { cabang: "Pusat Jakarta", avgScore: 91.8 },
-        { cabang: "Cabang Bandung", avgScore: 90.9 },
-        { cabang: "Cabang Padang", avgScore: 89.4 },
-        { cabang: "Cabang Makassar", avgScore: 88.6 },
-        { cabang: "Cabang Palembang", avgScore: 87.2 }
+        { cabang: "Pusat Jakarta", avgScore: 0.0 },
+        { cabang: "Cabang Bandung", avgScore: 0.0 },
+        { cabang: "Cabang Padang", avgScore: 0.0 },
+        { cabang: "Cabang Makassar", avgScore: 0.0 },
+        { cabang: "Cabang Palembang", avgScore: 0.0 }
       ];
 
-      // 1. Update 4 Kartu KPI Ringkasan SDM
+      // 1. Update 4 Kartu KPI Ringkasan SDM (Real SSOT)
       const elAvgNasional = document.getElementById('stat-kpi-avg-nasional');
-      if (elAvgNasional) elAvgNasional.textContent = kSum.rataRataNasional || '90.4';
+      const avgNasionalVal = parseFloat(kSum.rataRataNasional) || 0;
+      if (elAvgNasional) elAvgNasional.textContent = avgNasionalVal > 0 ? avgNasionalVal.toFixed(1) : '0.0';
 
-      const topPerf = kSum.topPerformer || { nama: "Danny Taufik Hidayat, S.H.", compositeScore: 97.7, cabang: "Pusat Jakarta" };
+      const topPerf = kSum.topPerformer;
       const elTopName = document.getElementById('stat-kpi-top-name');
-      if (elTopName) elTopName.textContent = topPerf.nama || "Danny Taufik Hidayat, S.H.";
+      if (elTopName) {
+        elTopName.textContent = (topPerf && topPerf.compositeScore > 0 && topPerf.nama !== '-') ? topPerf.nama : 'Belum Ada Evaluasi';
+      }
 
       const elTopScore = document.getElementById('stat-kpi-top-score');
-      if (elTopScore) elTopScore.textContent = `Skor Komposit: ${topPerf.compositeScore || 97.7} • ${topPerf.cabang || 'Kantor Pusat'}`;
+      if (elTopScore) {
+        elTopScore.textContent = (topPerf && topPerf.compositeScore > 0)
+          ? `Skor Komposit: ${Number(topPerf.compositeScore).toFixed(1)} • ${topPerf.cabang || 'Kantor Pusat'}`
+          : 'Skor: 0.0 • Menunggu Input Evaluasi';
+      }
 
       const elPplRatio = document.getElementById('stat-kpi-ppl-ratio');
-      if (elPplRatio) elPplRatio.textContent = kSum.rasioKepatuhanIzin || '98.1%';
+      if (elPplRatio) elPplRatio.textContent = kSum.rasioKepatuhanIzin || '100.0%';
 
       const elBalance = document.getElementById('stat-kpi-workload-balance');
-      if (elBalance) elBalance.textContent = kSum.keseimbanganBebanKerja || 'Optimal';
+      if (elBalance) elBalance.textContent = kSum.keseimbanganBebanKerja || (avgNasionalVal > 0 ? 'Optimal & Merata' : 'Belum Ada Evaluasi');
 
       // 2. Render Chart Komparasi Skor KPI per Cabang (#chart-kpi-cabang)
       if (typeof Chart !== 'undefined') {
@@ -2509,7 +2687,7 @@
               labels: kCabang.map(c => c.cabang),
               datasets: [{
                 label: 'Rata-Rata Indeks KPI (Skala 0-100)',
-                data: kCabang.map(c => c.avgScore),
+                data: kCabang.map(c => Number(c.avgScore) || 0),
                 backgroundColor: [
                   'rgba(56, 189, 248, 0.8)',
                   'rgba(99, 102, 241, 0.8)',
@@ -2539,10 +2717,10 @@
               scales: {
                 x: { grid: { display: false } },
                 y: {
-                  min: 80,
+                  min: 0,
                   max: 100,
                   grid: { color: '#1e293b' },
-                  ticks: { stepSize: 5 }
+                  ticks: { stepSize: 20 }
                 }
               }
             }
@@ -2550,12 +2728,34 @@
         }
       }
 
-      // 3. Simpan dan Render Rapor 52 Personel
-      const rawEmployees = (data.employees && data.employees.length > 0)
+      // 3. Simpan dan Render Rapor 52 Personel dengan sinkronisasi LocalStorage
+      let rawEmployees = (data.employees && data.employees.length > 0)
         ? data.employees
-        : ((an.employees && an.employees.length > 0) ? an.employees : MASTER_52_CLIENT_FALLBACK);
+        : ((an.employees && an.employees.length > 0) ? an.employees : MASTER_52_CLIENT_FALLBACK.map(e => ({ ...e })));
 
-      // Pastikan rank terurut
+      // Sinkronkan dengan data evaluasi dari localStorage cache (jika ada evaluasi offline/tersimpan)
+      rawEmployees.forEach(emp => {
+        try {
+          const cacheKey = `kpi_eval_${currentSelectedPeriode}_${emp.nik}`;
+          const cStr = localStorage.getItem(cacheKey);
+          if (cStr) {
+            const cObj = JSON.parse(cStr);
+            if (cObj && cObj.skorKompositAkhir !== undefined) {
+              emp.skorDisiplinHrd = cObj.skorDisiplinHrd;
+              emp.skorEtikaKepiHrd = cObj.skorEtikaKepiHrd;
+              emp.skorHrdEtika = (Number(cObj.skorDisiplinHrd || 0) + Number(cObj.skorEtikaKepiHrd || 0)) / 2;
+              emp.compositeScore = cObj.skorKompositAkhir;
+              emp.statusPpl = cObj.statusPplIzin || emp.statusPpl;
+              emp.catatanEvaluasi = cObj.catatan;
+              emp.dievaluasiOleh = cObj.dievaluasiOleh;
+              emp.isEvaluated = true;
+              emp.statusEvaluasi = 'TEREVALUASI';
+            }
+          }
+        } catch (_) {}
+      });
+
+      // Urutkan peringkat berdasarkan skor komposit
       rawEmployees.sort((a, b) => (Number(b.compositeScore) || 0) - (Number(a.compositeScore) || 0));
       rawEmployees.forEach((emp, i) => { emp.rank = i + 1; });
 
@@ -2594,22 +2794,25 @@
       if (!tbody) return;
 
       if (!list || list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="py-6 text-center text-slate-500">Tidak ada personel yang sesuai dengan filter pencarian.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="py-6 text-center text-slate-500">Tidak ada personel yang sesuai dengan filter pencarian.</td></tr>';
         return;
       }
 
       tbody.innerHTML = list.map(emp => {
         const score = Number(emp.compositeScore) || 0;
-        let badgeScoreClass = 'bg-slate-800 text-slate-300 border-slate-700';
-        if (score >= 94) badgeScoreClass = 'bg-emerald-950 text-emerald-300 border-emerald-800 font-bold';
-        else if (score >= 90) badgeScoreClass = 'bg-sky-950 text-sky-300 border-sky-800 font-semibold';
-        else if (score >= 85) badgeScoreClass = 'bg-amber-950 text-amber-300 border-amber-800 font-medium';
-        else badgeScoreClass = 'bg-rose-950 text-rose-300 border-rose-800 font-medium';
+        const isEval = emp.isEvaluated === true;
+        let badgeScoreClass = 'bg-slate-800 text-slate-400 border-slate-700';
+        if (isEval && score >= 94) badgeScoreClass = 'bg-emerald-950 text-emerald-300 border-emerald-800 font-bold';
+        else if (isEval && score >= 85) badgeScoreClass = 'bg-sky-950 text-sky-300 border-sky-800 font-semibold';
+        else if (isEval && score >= 70) badgeScoreClass = 'bg-amber-950 text-amber-300 border-amber-800 font-medium';
+        else if (isEval) badgeScoreClass = 'bg-rose-950 text-rose-300 border-rose-800 font-medium';
 
         let rankBadge = `<span class="font-mono text-slate-500 font-bold">${emp.rank}</span>`;
-        if (emp.rank === 1) rankBadge = `<span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-bold flex items-center justify-center text-[10px] shadow">1</span>`;
-        else if (emp.rank === 2) rankBadge = `<span class="w-5 h-5 rounded-full bg-slate-300 text-slate-950 font-bold flex items-center justify-center text-[10px] shadow">2</span>`;
-        else if (emp.rank === 3) rankBadge = `<span class="w-5 h-5 rounded-full bg-amber-700 text-amber-100 font-bold flex items-center justify-center text-[10px] shadow">3</span>`;
+        if (score > 0) {
+          if (emp.rank === 1) rankBadge = `<span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-bold flex items-center justify-center text-[10px] shadow">1</span>`;
+          else if (emp.rank === 2) rankBadge = `<span class="w-5 h-5 rounded-full bg-slate-300 text-slate-950 font-bold flex items-center justify-center text-[10px] shadow">2</span>`;
+          else if (emp.rank === 3) rankBadge = `<span class="w-5 h-5 rounded-full bg-amber-700 text-amber-100 font-bold flex items-center justify-center text-[10px] shadow">3</span>`;
+        }
 
         let cabangColor = 'bg-slate-800 text-slate-300 border-slate-700';
         if (emp.cabang.includes('Jakarta')) cabangColor = 'bg-amber-400/20 text-amber-300 border-amber-400/30';
@@ -2622,29 +2825,271 @@
           ? '<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">TERTIB</span>'
           : '<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 border border-amber-800 font-bold">PERLU PPL</span>';
 
+        const qaText = (emp.qaScore && Number(emp.qaScore) > 0) ? `${Number(emp.qaScore).toFixed(1)}%` : '-';
+        const slaText = (emp.slaScore && Number(emp.slaScore) > 0) ? `${Number(emp.slaScore).toFixed(1)}%` : '-';
+        const prodText = (emp.prodScore && Number(emp.prodScore) > 0) ? `${Number(emp.prodScore).toFixed(1)}%` : (emp.totalJo > 0 ? `${emp.totalJo} JO` : '-');
+        
+        let hrdEtikaText = '-';
+        if (isEval) {
+          const avgHrd = ((Number(emp.skorDisiplinHrd || 0) + Number(emp.skorEtikaKepiHrd || 0)) / 2).toFixed(1);
+          hrdEtikaText = `<span class="text-amber-300 font-semibold">${avgHrd}</span> <span class="text-[9px] text-slate-500 font-mono">(D:${emp.skorDisiplinHrd || 0}/E:${emp.skorEtikaKepiHrd || 0})</span>`;
+        }
+
+        const scoreDisplay = isEval
+          ? `<span class="px-2 py-0.5 rounded text-[11px] border ${badgeScoreClass}">${score.toFixed(1)}</span>`
+          : (score > 0
+            ? `<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-sky-400 border border-slate-700">${score.toFixed(1)} (Auto)</span>`
+            : `<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800/80 text-slate-500 border border-slate-800">0.0 (Belum Dinilai)</span>`);
+
         return `
           <tr class="hover:bg-slate-800/40 transition">
             <td class="py-2.5 px-3 text-center">${rankBadge}</td>
             <td class="py-2.5 px-3 font-mono text-sky-300 font-semibold text-[11px]">${escapeHtml(emp.nik)}</td>
-            <td class="py-2.5 px-3 font-bold text-white">${escapeHtml(emp.nama)}</td>
+            <td class="py-2.5 px-3 font-bold text-white">
+              <div>${escapeHtml(emp.nama)}</div>
+              ${isEval ? `<div class="text-[9px] text-emerald-400 font-mono"><i class="fa-solid fa-check-circle text-[8px]"></i> Terevaluasi (${escapeHtml(emp.dievaluasiOleh || 'SPM')})</div>` : ''}
+            </td>
             <td class="py-2.5 px-3 text-slate-300">${escapeHtml(emp.jabatan)}</td>
             <td class="py-2.5 px-3">
               <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${cabangColor}">
                 ${escapeHtml(emp.cabang)}
               </span>
             </td>
-            <td class="py-2.5 px-3 text-right font-mono text-emerald-400">${emp.qaScore || '-'}%</td>
-            <td class="py-2.5 px-3 text-right font-mono text-sky-400">${emp.slaScore || '-'}%</td>
-            <td class="py-2.5 px-3 text-right font-mono text-amber-400">${emp.prodScore || '-'}%</td>
-            <td class="py-2.5 px-3 text-right font-mono">
-              <span class="px-2 py-0.5 rounded text-[11px] border ${badgeScoreClass}">
-                ${score.toFixed(1)}
-              </span>
-            </td>
+            <td class="py-2.5 px-3 text-right font-mono text-emerald-400">${qaText}</td>
+            <td class="py-2.5 px-3 text-right font-mono text-sky-400">${slaText}</td>
+            <td class="py-2.5 px-3 text-right font-mono text-amber-400">${prodText}</td>
+            <td class="py-2.5 px-3 text-right font-mono">${hrdEtikaText}</td>
+            <td class="py-2.5 px-3 text-right font-mono">${scoreDisplay}</td>
             <td class="py-2.5 px-3 text-center">${pplBadge}</td>
+            <td class="py-2.5 px-3 text-center">
+              <button onclick="bukaModalEvaluasiKpi('${escapeHtml(emp.nik)}')" class="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] inline-flex items-center gap-1 shadow transition cursor-pointer" title="Buka Form Evaluasi Kinerja & Etika SDM">
+                <i class="fa-solid fa-clipboard-check"></i>
+                <span>${isEval ? 'Ubah' : 'Evaluasi'}</span>
+              </button>
+            </td>
           </tr>
         `;
       }).join('');
+    }
+
+    function gantiPeriodeKpi() {
+      const sel = document.getElementById('filter-kpi-periode');
+      if (sel) {
+        currentSelectedPeriode = sel.value;
+      }
+      if (CURRENT_TOKEN) {
+        muatDataGovernance(CURRENT_TOKEN, currentSelectedPeriode);
+      } else {
+        filterKpiTable();
+      }
+    }
+
+    function bukaModalEvaluasiKpi(nik) {
+      const emp = currentKpiEmployeeList.find(e => e.nik === nik) || MASTER_52_CLIENT_FALLBACK.find(e => e.nik === nik);
+      if (!emp) {
+        alert('Data personel dengan NIK ' + nik + ' tidak ditemukan.');
+        return;
+      }
+
+      currentSelectedKpiNik = nik;
+      document.getElementById('eval-kpi-nama').textContent = emp.nama || '-';
+      document.getElementById('eval-kpi-nik').textContent = emp.nik || '-';
+      document.getElementById('eval-kpi-jabatan').textContent = `${emp.jabatan || '-'} (${emp.peran || '-'})`;
+      document.getElementById('eval-kpi-cabang').textContent = emp.cabang || '-';
+
+      const qa = parseFloat(emp.qaScore) || 0;
+      const sla = parseFloat(emp.slaScore) || 0;
+      const prod = parseFloat(emp.prodScore) || 0;
+      const joCount = parseInt(emp.totalJo) || 0;
+
+      document.getElementById('eval-kpi-skor-qa').textContent = qa > 0 ? `${qa.toFixed(1)}%` : '0.0%';
+      document.getElementById('eval-kpi-skor-sla').textContent = sla > 0 ? `${sla.toFixed(1)}%` : '0.0%';
+      document.getElementById('eval-kpi-skor-prod').textContent = prod > 0 ? `${prod.toFixed(1)}%` : '0.0%';
+      document.getElementById('eval-kpi-total-jo').textContent = `${joCount} JO Terdata`;
+
+      // Cek apakah ada data tersimpan di cache localStorage untuk periode ini
+      const cacheKey = `kpi_eval_${currentSelectedPeriode}_${nik}`;
+      let cachedEval = null;
+      try {
+        const cStr = localStorage.getItem(cacheKey);
+        if (cStr) cachedEval = JSON.parse(cStr);
+      } catch (_) {}
+
+      const valDisiplin = cachedEval ? cachedEval.skorDisiplinHrd : (emp.isEvaluated ? (emp.skorDisiplinHrd || 0) : 90);
+      const valEtika = cachedEval ? cachedEval.skorEtikaKepiHrd : (emp.isEvaluated ? (emp.skorEtikaKepiHrd || 0) : 95);
+      const valCatatan = cachedEval ? cachedEval.catatan : (emp.catatanEvaluasi || '');
+      const valStatusPpl = cachedEval ? cachedEval.statusPplIzin : (emp.statusPpl || 'TERTIB');
+      const valEvaluator = cachedEval ? cachedEval.dievaluasiOleh : (emp.dievaluasiOleh || 'Danny Taufik Hidayat, S.H. (Kepala SPM)');
+
+      document.getElementById('eval-input-disiplin').value = valDisiplin;
+      document.getElementById('eval-input-etika').value = valEtika;
+      document.getElementById('eval-input-catatan').value = valCatatan;
+      document.getElementById('eval-input-status-ppl').value = valStatusPpl;
+      document.getElementById('eval-input-evaluator').value = valEvaluator;
+      document.getElementById('eval-input-periode').value = currentSelectedPeriode;
+
+      hitungPreviewKomposit();
+
+      const modal = document.getElementById('modal-evaluasi-kpi');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function tutupModalEvaluasiKpi() {
+      const modal = document.getElementById('modal-evaluasi-kpi');
+      if (modal) modal.classList.add('hidden');
+      currentSelectedKpiNik = '';
+    }
+
+    function hitungPreviewKomposit() {
+      const emp = currentKpiEmployeeList.find(e => e.nik === currentSelectedKpiNik) || {};
+      const qa = parseFloat(emp.qaScore) || 0;
+      const sla = parseFloat(emp.slaScore) || 0;
+      const prod = parseFloat(emp.prodScore) || 0;
+
+      const disiplin = parseFloat(document.getElementById('eval-input-disiplin').value) || 0;
+      const etika = parseFloat(document.getElementById('eval-input-etika').value) || 0;
+      const hrdEtika = (disiplin + etika) / 2;
+
+      // Rumus: (QA*0.4) + (SLA*0.2) + (Prod*0.15) + (hrdEtika*0.25)
+      const komposit = Math.round(((qa * 0.40) + (sla * 0.20) + (prod * 0.15) + (hrdEtika * 0.25)) * 10) / 10;
+
+      const elPreview = document.getElementById('preview-skor-komposit');
+      const elGrade = document.getElementById('preview-grade-badge');
+
+      if (elPreview) elPreview.textContent = komposit.toFixed(1);
+
+      if (elGrade) {
+        if (komposit >= 94) {
+          elGrade.textContent = 'SANGAT BAIK (A)';
+          elGrade.className = 'block text-[10px] font-bold text-emerald-400 font-mono';
+        } else if (komposit >= 85) {
+          elGrade.textContent = 'BAIK (B)';
+          elGrade.className = 'block text-[10px] font-bold text-sky-400 font-mono';
+        } else if (komposit >= 70) {
+          elGrade.textContent = 'CUKUP (C)';
+          elGrade.className = 'block text-[10px] font-bold text-amber-400 font-mono';
+        } else {
+          elGrade.textContent = 'PERLU PEMBINAAN (D)';
+          elGrade.className = 'block text-[10px] font-bold text-rose-400 font-mono';
+        }
+      }
+    }
+
+    async function handleSimpanEvaluasiKpi(event) {
+      event.preventDefault();
+      const btn = document.getElementById('btn-simpan-evaluasi-kpi');
+      const oldHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menyimpan...';
+      }
+
+      const emp = currentKpiEmployeeList.find(e => e.nik === currentSelectedKpiNik) || {};
+      const periode = document.getElementById('eval-input-periode').value || currentSelectedPeriode;
+      const nik = currentSelectedKpiNik;
+      const nama = emp.nama || '';
+      const cabang = emp.cabang || '';
+      const skorQa = parseFloat(emp.qaScore) || 0;
+      const skorSla = parseFloat(emp.slaScore) || 0;
+      const skorProd = parseFloat(emp.prodScore) || 0;
+      const skorDisiplin = parseFloat(document.getElementById('eval-input-disiplin').value) || 0;
+      const skorEtika = parseFloat(document.getElementById('eval-input-etika').value) || 0;
+      const hrdEtika = (skorDisiplin + skorEtika) / 2;
+      const skorKomposit = Math.round(((skorQa * 0.40) + (skorSla * 0.20) + (skorProd * 0.15) + (hrdEtika * 0.25)) * 10) / 10;
+      const statusPpl = document.getElementById('eval-input-status-ppl').value;
+      const catatan = document.getElementById('eval-input-catatan').value.trim();
+      const evaluator = document.getElementById('eval-input-evaluator').value.trim() || 'Danny Taufik Hidayat, S.H. (Kepala SPM)';
+
+      const payload = {
+        action: 'SAVE_EMPLOYEE_KPI_EVAL',
+        periode: periode,
+        nik: nik,
+        nama: nama,
+        cabang: cabang,
+        skorQaOtomatis: skorQa,
+        skorSlaOtomatis: skorSla,
+        skorProduktivitasOtomatis: skorProd,
+        skorDisiplinHrd: skorDisiplin,
+        skorEtikaKepiHrd: skorEtika,
+        skorKompositAkhir: skorKomposit,
+        statusPplIzin: statusPpl,
+        catatan: catatan,
+        dievaluasiOleh: evaluator,
+        token: CURRENT_TOKEN
+      };
+
+      // 1. Simpan ke cache lokal segera
+      const cacheKey = `kpi_eval_${periode}_${nik}`;
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(payload));
+      } catch (_) {}
+
+      // 2. Kirim ke backend (GAS dan PHP)
+      try {
+        await fetch(GAS_GOVERNANCE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+      } catch (eGas) {
+        console.warn('Gagal simpan ke GAS SSOT, mencoba backend PHP:', eGas);
+      }
+
+      try {
+        await fetch(URL_BACKEND, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-NSR-Token': CURRENT_TOKEN
+          },
+          body: JSON.stringify(payload)
+        });
+      } catch (_) {}
+
+      // 3. Update objek di currentKpiEmployeeList
+      const targetEmp = currentKpiEmployeeList.find(e => e.nik === nik);
+      if (targetEmp) {
+        targetEmp.skorDisiplinHrd = skorDisiplin;
+        targetEmp.skorEtikaKepiHrd = skorEtika;
+        targetEmp.skorHrdEtika = hrdEtika;
+        targetEmp.compositeScore = skorKomposit;
+        targetEmp.statusPpl = statusPpl;
+        targetEmp.catatanEvaluasi = catatan;
+        targetEmp.dievaluasiOleh = evaluator;
+        targetEmp.isEvaluated = true;
+        targetEmp.statusEvaluasi = 'TEREVALUASI';
+      }
+
+      // Re-sort ranking berdasarkan skor komposit
+      currentKpiEmployeeList.sort((a, b) => (Number(b.compositeScore) || 0) - (Number(a.compositeScore) || 0));
+      currentKpiEmployeeList.forEach((e, idx) => { e.rank = idx + 1; });
+
+      // Re-render tabel
+      filterKpiTable();
+
+      // Update 4 kartu KPI
+      const evaluatedList = currentKpiEmployeeList.filter(e => e.isEvaluated && e.compositeScore > 0);
+      const totalScoreSum = evaluatedList.reduce((acc, e) => acc + e.compositeScore, 0);
+      const avgNasional = evaluatedList.length > 0 ? (totalScoreSum / evaluatedList.length).toFixed(1) : '0.0';
+
+      const elAvg = document.getElementById('stat-kpi-avg-nasional');
+      if (elAvg) elAvg.textContent = avgNasional;
+
+      const top = currentKpiEmployeeList[0];
+      const elTopName = document.getElementById('stat-kpi-top-name');
+      const elTopScore = document.getElementById('stat-kpi-top-score');
+      if (top && top.compositeScore > 0) {
+        if (elTopName) elTopName.textContent = top.nama;
+        if (elTopScore) elTopScore.textContent = `Skor Komposit: ${top.compositeScore.toFixed(1)} • ${top.cabang}`;
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+      }
+
+      tutupModalEvaluasiKpi();
+      tampilkanNotifikasi(`Evaluasi KPI untuk ${nama} (${nik}) periode ${periode} berhasil disimpan!`, 'success');
     }
 
     function filterKpiTable() {
@@ -2668,19 +3113,29 @@
         return;
       }
 
-      const headers = ['Rank', 'NIK', 'Nama Lengkap', 'Jabatan', 'Kantor Cabang', 'Peran', 'Mutu QA (40%)', 'Ketepatan SLA (35%)', 'Produktivitas (25%)', 'Skor Komposit', 'Status PPL'];
+      const headers = [
+        'Rank', 'NIK', 'Nama Lengkap', 'Jabatan', 'Kantor Cabang', 'Peran', 'Periode',
+        'Mutu QA (40%)', 'Ketepatan SLA (20%)', 'Produktivitas JO (15%)', 'Disiplin HRD', 'Etika KEPI',
+        'Skor Komposit', 'Status Evaluasi', 'Status PPL / Izin', 'Evaluator SPM', 'Catatan Evaluasi / Pembinaan'
+      ];
       const rows = currentKpiEmployeeList.map(emp => [
         emp.rank,
         `"${emp.nik}"`,
-        `"${emp.nama.replace(/"/g, '""')}"`,
-        `"${emp.jabatan.replace(/"/g, '""')}"`,
-        `"${emp.cabang}"`,
+        `"${(emp.nama || '').replace(/"/g, '""')}"`,
+        `"${(emp.jabatan || '').replace(/"/g, '""')}"`,
+        `"${emp.cabang || ''}"`,
         `"${emp.peran || '-'}"`,
+        `"${currentSelectedPeriode}"`,
         emp.qaScore || 0,
         emp.slaScore || 0,
         emp.prodScore || 0,
+        emp.skorDisiplinHrd || 0,
+        emp.skorEtikaKepiHrd || 0,
         emp.compositeScore || 0,
-        `"${emp.statusPpl || 'TERTIB'}"`
+        `"${emp.isEvaluated ? 'TEREVALUASI' : (emp.compositeScore > 0 ? 'SEBAGIAN' : 'BELUM DIEVALUASI')}"`,
+        `"${emp.statusPpl || 'TERTIB'}"`,
+        `"${(emp.dievaluasiOleh || '').replace(/"/g, '""')}"`,
+        `"${(emp.catatanEvaluasi || '').replace(/"/g, '""')}"`
       ]);
 
       const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
@@ -2688,13 +3143,12 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `Rapor_KPI_SDM_KJPP_NSR_${new Date().getFullYear()}.csv`;
+      link.download = `Rapor_KPI_SDM_KJPP_NSR_${currentSelectedPeriode}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
-      tampilkanNotifikasi('Rapor KPI 52 Personel berhasil diekspor ke CSV!', 'success');
+      tampilkanNotifikasi(`Rapor KPI SDM (${currentSelectedPeriode}) berhasil diekspor ke CSV!`, 'success');
     }
 
     function renderIzinAlertRadar(radarList) {
@@ -2883,14 +3337,19 @@
 
       // 5. Seksi IV: Kinerja SDM & Radar Izin
       const elKpiAvg = document.getElementById('print-kpi-avg');
-      if (elKpiAvg) elKpiAvg.textContent = `${kSum.rataRataNasional || '90.4'} / 100`;
+      const avgKpiPrint = parseFloat(kSum.rataRataNasional) || 0;
+      if (elKpiAvg) elKpiAvg.textContent = avgKpiPrint > 0 ? `${avgKpiPrint.toFixed(1)} / 100` : '0.0 / 100 (Belum Dievaluasi)';
 
-      const topPerf = kSum.topPerformer || { nama: "Danny Taufik Hidayat, S.H.", compositeScore: 97.7 };
+      const topPerf = kSum.topPerformer;
       const elKpiTop = document.getElementById('print-kpi-top');
-      if (elKpiTop) elKpiTop.textContent = `${topPerf.nama} (${topPerf.compositeScore || 97.7})`;
+      if (elKpiTop) {
+        elKpiTop.textContent = (topPerf && topPerf.compositeScore > 0 && topPerf.nama !== '-')
+          ? `${topPerf.nama} (${Number(topPerf.compositeScore).toFixed(1)})`
+          : 'Belum Ada Evaluasi (0.0)';
+      }
 
       const elKpiPpl = document.getElementById('print-kpi-ppl-ratio');
-      if (elKpiPpl) elKpiPpl.textContent = `${kSum.rasioKepatuhanIzin || '98.1%'} Tertib`;
+      if (elKpiPpl) elKpiPpl.textContent = `${kSum.rasioKepatuhanIzin || '100.0%'} Tertib`;
 
       const radarList = data.izinAlertRadar || an.izinAlertRadar || [];
       const elRadarCount = document.getElementById('print-kpi-radar-count');

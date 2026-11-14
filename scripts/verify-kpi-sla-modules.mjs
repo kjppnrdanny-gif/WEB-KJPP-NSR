@@ -24,7 +24,7 @@ requiredContents.forEach(c => {
   else console.log(`✓ Tab Container #${c} terverifikasi`);
 });
 
-// B. Tab 3: KPI SDM 52 Personel Elements
+// B. Tab 3: KPI SDM 52 Personel Elements & Evaluation Modal
 const kpiCards = ['stat-kpi-avg-nasional', 'stat-kpi-top-name', 'stat-kpi-ppl-ratio', 'stat-kpi-workload-balance'];
 kpiCards.forEach(id => {
   if (!govHtml.includes(`id="${id}"`)) errors.push(`Kartu KPI #${id} tidak ditemukan`);
@@ -36,6 +36,18 @@ else console.log('✓ Canvas #chart-kpi-cabang terverifikasi');
 
 if (!govHtml.includes('id="tbody-kpi-employees"')) errors.push('Tabel #tbody-kpi-employees tidak ditemukan');
 else console.log('✓ Tabel #tbody-kpi-employees terverifikasi');
+
+if (!govHtml.includes('id="filter-kpi-periode"')) errors.push('Filter #filter-kpi-periode tidak ditemukan');
+else console.log('✓ Filter #filter-kpi-periode terverifikasi');
+
+if (!govHtml.includes('id="modal-evaluasi-kpi"')) errors.push('Modal #modal-evaluasi-kpi tidak ditemukan');
+else console.log('✓ Modal #modal-evaluasi-kpi terverifikasi');
+
+if (!govHtml.includes('function bukaModalEvaluasiKpi(')) errors.push('Fungsi bukaModalEvaluasiKpi tidak ditemukan');
+else console.log('✓ Fungsi bukaModalEvaluasiKpi terverifikasi');
+
+if (!govHtml.includes('function handleSimpanEvaluasiKpi(')) errors.push('Fungsi handleSimpanEvaluasiKpi tidak ditemukan');
+else console.log('✓ Fungsi handleSimpanEvaluasiKpi terverifikasi');
 
 if (!govHtml.includes('function eksporKpiCsv(')) errors.push('Fungsi eksporKpiCsv tidak ditemukan');
 else console.log('✓ Fungsi eksporKpiCsv terverifikasi');
@@ -113,6 +125,11 @@ if (!codeGs.includes('getEmployeeKPIMetrics') || !codeGs.includes('getClientSLAP
 } else {
   console.log('✓ Code.gs mendefinisikan getEmployeeKPIMetrics, getClientSLAPerformance, dan getBankOrderOptimizationMetrics');
 }
+if (!codeGs.includes('saveEmployeeKPIEvaluation') || !codeGs.includes('SAVE_EMPLOYEE_KPI_EVAL')) {
+  errors.push('Code.gs belum memuat fungsi saveEmployeeKPIEvaluation atau aksi SAVE_EMPLOYEE_KPI_EVAL');
+} else {
+  console.log('✓ Code.gs memuat saveEmployeeKPIEvaluation dan aksi SAVE_EMPLOYEE_KPI_EVAL');
+}
 if (!codeGs.includes("action === 'GET_BANK_OPTIMIZATION'") && !codeGs.includes("case 'GET_BANK_OPTIMIZATION':")) {
   errors.push('Router doGet/doPost di Code.gs belum memuat aksi GET_BANK_OPTIMIZATION');
 } else {
@@ -131,6 +148,11 @@ if (!gasAudit.includes('getEmployeeKPIMetrics') || !gasAudit.includes('getClient
 } else {
   console.log('✓ backend/google-apps-script-qa-audit.gs mendefinisikan ketiga fungsi KPI, SLA, & Optimasi Order');
 }
+if (!gasAudit.includes('saveEmployeeKPIEvaluation') || !gasAudit.includes('SAVE_EMPLOYEE_KPI_EVAL')) {
+  errors.push('backend/google-apps-script-qa-audit.gs belum memuat saveEmployeeKPIEvaluation atau SAVE_EMPLOYEE_KPI_EVAL');
+} else {
+  console.log('✓ backend/google-apps-script-qa-audit.gs memuat saveEmployeeKPIEvaluation dan SAVE_EMPLOYEE_KPI_EVAL');
+}
 if (!gasAudit.includes("GET_BANK_OPTIMIZATION")) {
   errors.push('backend/google-apps-script-qa-audit.gs belum mendaftarkan GET_BANK_OPTIMIZATION');
 } else {
@@ -148,6 +170,11 @@ if (!phpContent.includes('GET_BANK_OPTIMIZATION') || !phpContent.includes('bankO
   errors.push('governance-data-handler.php belum memuat GET_BANK_OPTIMIZATION atau bankOptimization');
 } else {
   console.log('✓ governance-data-handler.php memuat case GET_BANK_OPTIMIZATION dan bankOptimization');
+}
+if (!phpContent.includes('SAVE_EMPLOYEE_KPI_EVAL')) {
+  errors.push('governance-data-handler.php belum memuat aksi SAVE_EMPLOYEE_KPI_EVAL');
+} else {
+  console.log('✓ governance-data-handler.php memuat case SAVE_EMPLOYEE_KPI_EVAL');
 }
 if (!phpContent.includes('ARCHIVE_SURAT_UMUM_GDRIVE')) {
   errors.push('governance-data-handler.php belum memuat aksi ARCHIVE_SURAT_UMUM_GDRIVE');

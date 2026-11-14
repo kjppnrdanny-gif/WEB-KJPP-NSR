@@ -630,6 +630,196 @@ switch ($action) {
             ]
         ];
 
+        
+        // 6. Master 52 Personel & Penilaian Real SSOT (DB_EVALUASI_KPI_SDM / kpi_evaluations.json)
+        $targetPeriode = trim($payload['periode'] ?? $_GET['periode'] ?? date('Y-m'));
+        $kpiEvalFile = $dataDir . '/kpi_evaluations.json';
+        $savedKpiEvals = [];
+        if (file_exists($kpiEvalFile)) {
+            $evalContent = @file_get_contents($kpiEvalFile);
+            if ($evalContent) {
+                $savedKpiEvals = json_decode($evalContent, true) ?: [];
+            }
+        }
+        $kpiEvalMap = [];
+        foreach ($savedKpiEvals as $ev) {
+            $evNik = trim($ev['nik'] ?? '');
+            $evPer = trim($ev['periode'] ?? '');
+            if ($evNik && (!$targetPeriode || $evPer === $targetPeriode)) {
+                $kpiEvalMap[$evNik] = $ev;
+            }
+        }
+
+        $master52List = [
+            ['no' => 1, 'nik' => 'NSR-2019-001', 'nama' => 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)', 'jabatan' => 'Pemimpin Rekan', 'cabang' => 'Pusat Jakarta', 'peran' => 'REKAN', 'izin' => 'Izin Publik KMK', 'noMappi' => '92-S-00342', 'noRegister' => 'KMK No. B-1.09.0042', 'masaBerlakuIzin' => '2028-12-31', 'statusPpl' => 'TERTIB'],
+            ['no' => 2, 'nik' => 'NSR-2019-002', 'nama' => 'Deni Siswandi, S.T., MAPPI (Cert.)', 'jabatan' => 'Rekan Berizin', 'cabang' => 'Pusat Jakarta', 'peran' => 'REKAN', 'izin' => 'Izin Publik KMK', 'noMappi' => '06-S-01980', 'noRegister' => 'KMK No. P-1.12.00318', 'masaBerlakuIzin' => '2027-10-15', 'statusPpl' => 'TERTIB'],
+            ['no' => 3, 'nik' => 'NSR-2019-003', 'nama' => 'Mini Intan Cahyani', 'jabatan' => 'Rekan Non Penilai', 'cabang' => 'Pusat Jakarta', 'peran' => 'REKAN', 'izin' => 'Non-Penilai', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 4, 'nik' => 'NSR-2019-004', 'nama' => 'Milda Hidayati Dewi, S.E.', 'jabatan' => 'Manager Keuangan', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Keuangan', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 5, 'nik' => 'NSR-2019-005', 'nama' => 'Danny Taufik Hidayat, S.H.', 'jabatan' => 'Kepala SPM & Manager Ops', 'cabang' => 'Pusat Jakarta', 'peran' => 'REVIEWER', 'izin' => 'MAPPI-P', 'noMappi' => '15-P-03421', 'noRegister' => 'REG-PPPK-2015-081', 'masaBerlakuIzin' => '2027-12-31', 'statusPpl' => 'TERTIB'],
+            ['no' => 6, 'nik' => 'NSR-2019-006', 'nama' => 'Arie Indra Permana', 'jabatan' => 'Manager Marketing', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Marketing', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 7, 'nik' => 'NSR-2019-007', 'nama' => 'Tedi Setiadi, S.T.', 'jabatan' => 'Tim Review SPM', 'cabang' => 'Pusat Jakarta', 'peran' => 'REVIEWER', 'izin' => 'MAPPI-T', 'noMappi' => '14-T-03112', 'noRegister' => 'REG-PPPK-2014-045', 'masaBerlakuIzin' => '2027-02-05', 'statusPpl' => 'TERTIB'],
+            ['no' => 8, 'nik' => 'NSR-2019-008', 'nama' => 'Ricca Noer Farikha', 'jabatan' => 'Accounting & Tax', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Akuntansi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 9, 'nik' => 'NSR-2019-009', 'nama' => 'Angga Malid Cahyadi', 'jabatan' => 'Tim Review SPM', 'cabang' => 'Pusat Jakarta', 'peran' => 'REVIEWER', 'izin' => 'MAPPI-P', 'noMappi' => '16-P-03554', 'noRegister' => 'REG-PPPK-2016-092', 'masaBerlakuIzin' => '2027-08-30', 'statusPpl' => 'TERTIB'],
+            ['no' => 10, 'nik' => 'NSR-2019-010', 'nama' => 'Fadri Nurdin', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Pusat Jakarta', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '18-A-04021', 'noRegister' => 'REG-MAPPI-2018-110', 'masaBerlakuIzin' => '2027-06-30', 'statusPpl' => 'TERTIB'],
+            ['no' => 11, 'nik' => 'NSR-2019-011', 'nama' => 'Erwandi', 'jabatan' => 'Kurir Ekspedisi', 'cabang' => 'Pusat Jakarta', 'peran' => 'SUPPORT', 'izin' => 'Ekspedisi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 12, 'nik' => 'NSR-2019-012', 'nama' => 'Latief Satihi', 'jabatan' => 'Kurir Ekspedisi', 'cabang' => 'Pusat Jakarta', 'peran' => 'SUPPORT', 'izin' => 'Ekspedisi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 13, 'nik' => 'NSR-2019-013', 'nama' => 'Aryanto', 'jabatan' => 'Staf Umum & Logistik', 'cabang' => 'Pusat Jakarta', 'peran' => 'SUPPORT', 'izin' => 'Umum', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 14, 'nik' => 'NSR-2019-014', 'nama' => 'Yanto', 'jabatan' => 'Pengemudi Operasional', 'cabang' => 'Pusat Jakarta', 'peran' => 'SUPPORT', 'izin' => 'Driver', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 15, 'nik' => 'NSR-2019-015', 'nama' => 'Lasiman', 'jabatan' => 'Pengemudi Operasional', 'cabang' => 'Pusat Jakarta', 'peran' => 'SUPPORT', 'izin' => 'Driver', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 16, 'nik' => 'NSR-2019-016', 'nama' => 'Sukirno', 'jabatan' => 'Layanan Pendukung', 'cabang' => 'Pusat Jakarta', 'peran' => 'SUPPORT', 'izin' => 'Office Boy', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 17, 'nik' => 'NSR-2019-017', 'nama' => 'Muhammad Syahrul Ruly', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Pusat Jakarta', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '19-A-04210', 'noRegister' => 'REG-MAPPI-2019-015', 'masaBerlakuIzin' => '2027-11-20', 'statusPpl' => 'TERTIB'],
+            ['no' => 18, 'nik' => 'NSR-2019-018', 'nama' => 'Uci Sanusi', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Pusat Jakarta', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '19-A-04211', 'noRegister' => 'REG-MAPPI-2019-016', 'masaBerlakuIzin' => '2027-11-20', 'statusPpl' => 'TERTIB'],
+            ['no' => 19, 'nik' => 'NSR-2019-019', 'nama' => 'Yasir Rizal, A.Md.', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Pusat Jakarta', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-P', 'noMappi' => '17-P-03712', 'noRegister' => 'REG-PPPK-2017-088', 'masaBerlakuIzin' => '2027-04-18', 'statusPpl' => 'TERTIB'],
+            ['no' => 20, 'nik' => 'NSR-2019-020', 'nama' => 'Udin Syamsudin', 'jabatan' => 'Keamanan Kantor', 'cabang' => 'Pusat Jakarta', 'peran' => 'SUPPORT', 'izin' => 'Security', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 21, 'nik' => 'NSR-2025-021', 'nama' => 'Dhea Shafitri Ningrum', 'jabatan' => 'Staf Administrasi & Kendali Mutu', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 22, 'nik' => 'NSR-2026-022', 'nama' => 'Siti Nuraeni Ependi', 'jabatan' => 'Staf Administrasi & Registrasi SPK', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 23, 'nik' => 'NSR-2025-023', 'nama' => 'Yoga Anfiar Pradipta', 'jabatan' => 'Penilai Properti', 'cabang' => 'Pusat Jakarta', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '20-P-04510', 'noRegister' => 'REG-PPPK-2020-033', 'masaBerlakuIzin' => '2027-09-15', 'statusPpl' => 'TERTIB'],
+            ['no' => 24, 'nik' => 'NSR-2026-024', 'nama' => 'Indra Nugraha', 'jabatan' => 'Penilai Properti', 'cabang' => 'Pusat Jakarta', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '21-P-04612', 'noRegister' => 'REG-PPPK-2021-019', 'masaBerlakuIzin' => '2027-08-10', 'statusPpl' => 'TERTIB'],
+            ['no' => 25, 'nik' => 'NSR-2025-025', 'nama' => 'Isnaini Azzahra', 'jabatan' => 'Staf Administrasi & Arsip', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 26, 'nik' => 'NSR-2026-026', 'nama' => 'Maharani Citra Charisma', 'jabatan' => 'Staf Administrasi & Keuangan', 'cabang' => 'Pusat Jakarta', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 27, 'nik' => 'NSR-PDG-2019-23', 'nama' => 'Hernita, S.Si., MAPPI (Cert.)', 'jabatan' => 'Kepala Cabang / Rekan Berizin', 'cabang' => 'Cabang Padang', 'peran' => 'REKAN', 'izin' => 'Izin Publik KMK', 'noMappi' => '09-S-02140', 'noRegister' => 'KMK No. P-1.15.00412', 'masaBerlakuIzin' => '2027-08-20', 'statusPpl' => 'TERTIB'],
+            ['no' => 28, 'nik' => 'NSR-PDG-2019-24', 'nama' => 'Rahmad Andika', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Padang', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '16-P-03610', 'noRegister' => 'REG-PPPK-2016-104', 'masaBerlakuIzin' => '2027-05-15', 'statusPpl' => 'TERTIB'],
+            ['no' => 29, 'nik' => 'NSR-PDG-2019-25', 'nama' => 'Muhammad Al Amin', 'jabatan' => 'Penilai Properti', 'cabang' => 'Cabang Padang', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '18-P-04105', 'noRegister' => 'REG-PPPK-2018-067', 'masaBerlakuIzin' => '2027-06-25', 'statusPpl' => 'TERTIB'],
+            ['no' => 30, 'nik' => 'NSR-PDG-2019-26', 'nama' => 'Rien Soneta', 'jabatan' => 'Staf Keuangan & Kasir Cabang', 'cabang' => 'Cabang Padang', 'peran' => 'ADMIN', 'izin' => 'Keuangan', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 31, 'nik' => 'NSR-PDG-2019-27', 'nama' => 'Kiki Yeza', 'jabatan' => 'Tenaga Pendukung Lapangan', 'cabang' => 'Cabang Padang', 'peran' => 'SUPPORT', 'izin' => 'Supporting', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 32, 'nik' => 'NSR-PDG-2019-28', 'nama' => 'Siti Syarah', 'jabatan' => 'Staf Administrasi Cabang', 'cabang' => 'Cabang Padang', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 33, 'nik' => 'NSR-PDG-2019-29', 'nama' => 'Oki Oktianil Putra', 'jabatan' => 'Tenaga Pendukung Lapangan', 'cabang' => 'Cabang Padang', 'peran' => 'SUPPORT', 'izin' => 'Supporting', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 34, 'nik' => 'NSR-MKS-2019-30', 'nama' => 'Muhammad Amin Sade, S.M., MAPPI (Cert.)', 'jabatan' => 'Kepala Cabang / Rekan Berizin', 'cabang' => 'Cabang Makassar', 'peran' => 'REKAN', 'izin' => 'Izin Publik KMK', 'noMappi' => '11-S-02511', 'noRegister' => 'KMK No. P-1.17.00489', 'masaBerlakuIzin' => '2027-05-30', 'statusPpl' => 'TERTIB'],
+            ['no' => 35, 'nik' => 'NSR-MKS-2019-31', 'nama' => 'Wawan Kurniawan', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Makassar', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '17-P-03822', 'noRegister' => 'REG-PPPK-2017-122', 'masaBerlakuIzin' => '2027-04-12', 'statusPpl' => 'TERTIB'],
+            ['no' => 36, 'nik' => 'NSR-MKS-2019-32', 'nama' => 'Alauddin Amin', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Makassar', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '19-A-04312', 'noRegister' => 'REG-MAPPI-2019-055', 'masaBerlakuIzin' => '2027-10-10', 'statusPpl' => 'TERTIB'],
+            ['no' => 37, 'nik' => 'NSR-MKS-2020-33', 'nama' => 'M Fajrullah Danial', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Makassar', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '20-A-04421', 'noRegister' => 'REG-MAPPI-2020-041', 'masaBerlakuIzin' => '2027-10-10', 'statusPpl' => 'TERTIB'],
+            ['no' => 38, 'nik' => 'NSR-MKS-2021-34', 'nama' => 'Rahmad Dwi Susanto', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Makassar', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '21-A-04533', 'noRegister' => 'REG-MAPPI-2021-032', 'masaBerlakuIzin' => '2027-09-18', 'statusPpl' => 'TERTIB'],
+            ['no' => 39, 'nik' => 'NSR-MKS-2020-35', 'nama' => 'Andika Rifky Rifaldy', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Makassar', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '20-A-04455', 'noRegister' => 'REG-MAPPI-2020-077', 'masaBerlakuIzin' => '2027-09-18', 'statusPpl' => 'TERTIB'],
+            ['no' => 40, 'nik' => 'NSR-MKS-2019-36', 'nama' => 'Ilyas Tandialla', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Makassar', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '19-A-04388', 'noRegister' => 'REG-MAPPI-2019-091', 'masaBerlakuIzin' => '2027-07-22', 'statusPpl' => 'TERTIB'],
+            ['no' => 41, 'nik' => 'NSR-MKS-2019-37', 'nama' => 'Arman Mustajab', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Makassar', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '19-A-04399', 'noRegister' => 'REG-MAPPI-2019-099', 'masaBerlakuIzin' => '2027-07-22', 'statusPpl' => 'TERTIB'],
+            ['no' => 42, 'nik' => 'NSR-BDG-2020-38', 'nama' => 'Heru Kurnia', 'jabatan' => 'Business Development Cabang', 'cabang' => 'Cabang Bandung', 'peran' => 'ADMIN', 'izin' => 'Marketing', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 43, 'nik' => 'NSR-BDG-2020-39', 'nama' => 'Ardi Nurmayadi, S.T.', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Bandung', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '16-P-03598', 'noRegister' => 'REG-PPPK-2016-118', 'masaBerlakuIzin' => '2027-05-10', 'statusPpl' => 'TERTIB'],
+            ['no' => 44, 'nik' => 'NSR-BDG-2020-40', 'nama' => 'Andri Kusmandana, S.Ak.', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Bandung', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '17-P-03890', 'noRegister' => 'REG-PPPK-2017-094', 'masaBerlakuIzin' => '2026-12-31', 'statusPpl' => 'TERTIB'],
+            ['no' => 45, 'nik' => 'NSR-BDG-2020-41', 'nama' => 'Tiara Hurairah', 'jabatan' => 'Staf Keuangan & Kasir Cabang', 'cabang' => 'Cabang Bandung', 'peran' => 'ADMIN', 'izin' => 'Keuangan', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 46, 'nik' => 'NSR-BDG-2020-42', 'nama' => 'Achmad Ilham Fauzan', 'jabatan' => 'Staf Administrasi Cabang', 'cabang' => 'Cabang Bandung', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB'],
+            ['no' => 47, 'nik' => 'NSR-BDG-2020-43', 'nama' => 'Rahmat Muhammad Hussein', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Bandung', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '20-A-04480', 'noRegister' => 'REG-MAPPI-2020-101', 'masaBerlakuIzin' => '2027-08-15', 'statusPpl' => 'TERTIB'],
+            ['no' => 48, 'nik' => 'NSR-PLB-2022-44', 'nama' => 'Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)', 'jabatan' => 'Kepala Cabang / Rekan Berizin', 'cabang' => 'Cabang Palembang', 'peran' => 'REKAN', 'izin' => 'Izin Publik KMK', 'noMappi' => '12-S-02790', 'noRegister' => 'KMK No. P-1.18.00512', 'masaBerlakuIzin' => '2027-03-25', 'statusPpl' => 'TERTIB'],
+            ['no' => 49, 'nik' => 'NSR-PLB-2022-45', 'nama' => 'Rafdinal Ardhi', 'jabatan' => 'Penilai Properti & Reviewer SPM', 'cabang' => 'Cabang Palembang', 'peran' => 'PENILAI', 'izin' => 'MAPPI-P', 'noMappi' => '18-P-04129', 'noRegister' => 'REG-PPPK-2018-055', 'masaBerlakuIzin' => '2026-12-10', 'statusPpl' => 'PERLU_PPL'],
+            ['no' => 50, 'nik' => 'NSR-PLB-2022-46', 'nama' => 'Arwin Saputra', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Palembang', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '22-A-04610', 'noRegister' => 'REG-MAPPI-2022-012', 'masaBerlakuIzin' => '2027-09-01', 'statusPpl' => 'TERTIB'],
+            ['no' => 51, 'nik' => 'NSR-PLB-2022-47', 'nama' => 'Hadyan Fikhri', 'jabatan' => 'Surveyor Lapangan', 'cabang' => 'Cabang Palembang', 'peran' => 'SURVEYOR', 'izin' => 'MAPPI-A', 'noMappi' => '22-A-04618', 'noRegister' => 'REG-MAPPI-2022-019', 'masaBerlakuIzin' => '2027-09-01', 'statusPpl' => 'TERTIB'],
+            ['no' => 52, 'nik' => 'NSR-PLB-2022-48', 'nama' => 'M. Deo Tansila Putra', 'jabatan' => 'Staf Administrasi Cabang', 'cabang' => 'Cabang Palembang', 'peran' => 'ADMIN', 'izin' => 'Administrasi', 'noMappi' => '-', 'noRegister' => '-', 'masaBerlakuIzin' => '-', 'statusPpl' => 'TERTIB']
+        ];
+
+        $kpiBranchStats = [
+            'Pusat Jakarta'   => ['sum' => 0, 'count' => 0, 'totalPersonel' => 0],
+            'Cabang Bandung'  => ['sum' => 0, 'count' => 0, 'totalPersonel' => 0],
+            'Cabang Padang'   => ['sum' => 0, 'count' => 0, 'totalPersonel' => 0],
+            'Cabang Makassar' => ['sum' => 0, 'count' => 0, 'totalPersonel' => 0],
+            'Cabang Palembang'=> ['sum' => 0, 'count' => 0, 'totalPersonel' => 0]
+        ];
+
+        $sumCompositeScore = 0;
+        $evaluatedCount = 0;
+        $countTertibPpl = 0;
+
+        $processedEmployees = array_map(function($emp) use ($kpiEvalMap, &$kpiBranchStats, &$sumCompositeScore, &$evaluatedCount, &$countTertibPpl) {
+            $cab = $emp['cabang'];
+            if (isset($kpiBranchStats[$cab])) {
+                $kpiBranchStats[$cab]['totalPersonel']++;
+            }
+
+            $ev = $kpiEvalMap[$emp['nik']] ?? null;
+            $isEvaluated = !empty($ev);
+
+            $qaScore = $isEvaluated ? (float)($ev['skorQaOtomatis'] ?? 0) : 0.0;
+            $slaScore = $isEvaluated ? (float)($ev['skorSlaOtomatis'] ?? 0) : 0.0;
+            $prodScore = $isEvaluated ? (float)($ev['skorProduktivitasOtomatis'] ?? 0) : 0.0;
+            $disiplin = $isEvaluated ? (float)($ev['skorDisiplinHrd'] ?? 0) : 0.0;
+            $etika = $isEvaluated ? (float)($ev['skorEtikaKepiHrd'] ?? 0) : 0.0;
+            $composite = $isEvaluated ? (float)($ev['skorKompositAkhir'] ?? 0) : 0.0;
+            $catatan = $isEvaluated ? trim($ev['catatan'] ?? '') : '';
+            $evaluator = $isEvaluated ? trim($ev['dievaluasiOleh'] ?? '') : '';
+            $updatedAt = $isEvaluated ? trim($ev['updatedAt'] ?? '') : '';
+
+            if ($isEvaluated && !empty($ev['statusPplIzin'])) {
+                $emp['statusPpl'] = $ev['statusPplIzin'];
+            }
+
+            if ($emp['statusPpl'] === 'TERTIB') $countTertibPpl++;
+
+            if ($isEvaluated && $composite > 0) {
+                $sumCompositeScore += $composite;
+                $evaluatedCount++;
+                if (isset($kpiBranchStats[$cab])) {
+                    $kpiBranchStats[$cab]['sum'] += $composite;
+                    $kpiBranchStats[$cab]['count']++;
+                }
+            }
+
+            $grade = 'BELUM DIEVALUASI';
+            if ($isEvaluated) {
+                if ($composite >= 94) $grade = 'SANGAT_BAIK';
+                elseif ($composite >= 85) $grade = 'BAIK';
+                elseif ($composite >= 70) $grade = 'CUKUP';
+                else $grade = 'PERLU_PEMBINAAN';
+            }
+
+            return [
+                'no'                   => $emp['no'],
+                'nik'                  => $emp['nik'],
+                'nama'                 => $emp['nama'],
+                'jabatan'              => $emp['jabatan'],
+                'cabang'               => $emp['cabang'],
+                'peran'                => $emp['peran'],
+                'izin'                 => $emp['izin'],
+                'noMappi'              => $emp['noMappi'],
+                'noRegister'           => $emp['noRegister'],
+                'masaBerlakuIzin'      => $emp['masaBerlakuIzin'],
+                'statusPpl'            => $emp['statusPpl'],
+                'qaScore'              => $qaScore,
+                'slaScore'             => $slaScore,
+                'prodScore'            => $prodScore,
+                'skorDisiplinHrd'      => $disiplin,
+                'skorEtikaKepiHrd'     => $etika,
+                'skorHrdEtika'         => round(($disiplin + $etika) / 2, 1),
+                'compositeScore'       => $composite,
+                'grade'                => $grade,
+                'isEvaluated'          => $isEvaluated,
+                'statusEvaluasi'       => $isEvaluated ? 'TEREVALUASI' : 'BELUM DIEVALUASI',
+                'catatanEvaluasi'      => $catatan,
+                'dievaluasiOleh'       => $evaluator,
+                'updatedAt'            => $updatedAt
+            ];
+        }, $master52List);
+
+        usort($processedEmployees, function($a, $b) {
+            return ($b['compositeScore'] <=> $a['compositeScore']);
+        });
+
+        foreach ($processedEmployees as $idx => &$pe) {
+            $pe['rank'] = $idx + 1;
+        }
+        unset($pe);
+
+        $avgNasional = $evaluatedCount > 0 ? round($sumCompositeScore / $evaluatedCount, 1) : 0.0;
+        $pplRatio = count($processedEmployees) > 0 ? round(($countTertibPpl / count($processedEmployees)) * 100, 1) : 100.0;
+        $topPerformer = ($processedEmployees[0]['compositeScore'] > 0) ? $processedEmployees[0] : null;
+
+        $kpiPerCabangList = [];
+        foreach ($kpiBranchStats as $cName => $cStat) {
+            $kpiPerCabangList[] = [
+                'cabang'            => $cName,
+                'avgScore'          => $cStat['count'] > 0 ? round($cStat['sum'] / $cStat['count'], 1) : 0.0,
+                'totalPersonel'     => $cStat['totalPersonel'],
+                'evaluatedPersonel' => $cStat['count']
+            ];
+        }
+
+        $kpiSummaryData = [
+            'rataRataNasional'       => $avgNasional,
+            'topPerformer'           => $topPerformer ?: ['nama' => '-', 'compositeScore' => 0.0, 'nik' => '-', 'cabang' => '-'],
+            'rasioKepatuhanIzin'     => $pplRatio . '%',
+            'keseimbanganBebanKerja' => $evaluatedCount > 0 ? 'Optimal & Merata' : 'Belum Ada Evaluasi',
+            'totalPersonel'          => count($processedEmployees),
+            'evaluatedPersonel'      => $evaluatedCount,
+            'izinAlertCount'         => count($izinAlertRadar)
+        ];
+
         if ($action === 'GET_BANK_OPTIMIZATION' || $action === 'GET_BANK_ORDER_OPTIMIZATION') {
             echo json_encode(array_merge(['success' => true, 'status' => 'success'], $bankOptimizationData), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
             break;
@@ -648,23 +838,11 @@ switch ($action) {
             echo json_encode([
                 'success'        => true,
                 'status'         => 'success',
-                'kpiSummary'     => [
-                    'rataRataNasional'       => 90.4,
-                    'topPerformer'           => ['nama' => 'Danny Taufik Hidayat, S.H.', 'compositeScore' => 97.7, 'nik' => 'NSR-2019-005', 'cabang' => 'Pusat Jakarta'],
-                    'rasioKepatuhanIzin'     => '98.1%',
-                    'keseimbanganBebanKerja' => 'Optimal & Merata (Indeks Gini 0.18)',
-                    'totalPersonel'          => 52,
-                    'izinAlertCount'         => count($izinAlertRadar)
-                ],
-                'kpiPerCabang'   => [
-                    ['cabang' => 'Pusat Jakarta', 'avgScore' => 91.8, 'totalPersonel' => 26],
-                    ['cabang' => 'Cabang Bandung', 'avgScore' => 90.9, 'totalPersonel' => 7],
-                    ['cabang' => 'Cabang Padang', 'avgScore' => 89.4, 'totalPersonel' => 7],
-                    ['cabang' => 'Cabang Makassar', 'avgScore' => 88.6, 'totalPersonel' => 8],
-                    ['cabang' => 'Cabang Palembang', 'avgScore' => 87.2, 'totalPersonel' => 5]
-                ],
+                'periode'        => $targetPeriode,
+                'kpiSummary'     => $kpiSummaryData,
+                'kpiPerCabang'   => $kpiPerCabangList,
                 'izinAlertRadar' => $izinAlertRadar,
-                'employees'      => []
+                'employees'      => $processedEmployees
             ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
             break;
         }
@@ -733,21 +911,9 @@ switch ($action) {
                     ['name' => 'PT Bank Central Asia Tbk', 'count' => 5, 'fee' => 125000000],
                     ['name' => 'PT Bank Negara Indonesia (Persero) Tbk', 'count' => 4, 'fee' => 90000000]
                 ],
-                'kpiSummary' => [
-                    'rataRataNasional'       => 90.4,
-                    'topPerformer'           => ['nama' => 'Danny Taufik Hidayat, S.H.', 'compositeScore' => 97.7, 'nik' => 'NSR-2019-005', 'cabang' => 'Pusat Jakarta'],
-                    'rasioKepatuhanIzin'     => '98.1%',
-                    'keseimbanganBebanKerja' => 'Optimal & Merata (Indeks Gini 0.18)',
-                    'totalPersonel'          => 52,
-                    'izinAlertCount'         => count($izinAlertRadar)
-                ],
-                'kpiPerCabang' => [
-                    ['cabang' => 'Pusat Jakarta', 'avgScore' => 91.8, 'totalPersonel' => 26],
-                    ['cabang' => 'Cabang Bandung', 'avgScore' => 90.9, 'totalPersonel' => 7],
-                    ['cabang' => 'Cabang Padang', 'avgScore' => 89.4, 'totalPersonel' => 7],
-                    ['cabang' => 'Cabang Makassar', 'avgScore' => 88.6, 'totalPersonel' => 8],
-                    ['cabang' => 'Cabang Palembang', 'avgScore' => 87.2, 'totalPersonel' => 5]
-                ],
+                'kpiSummary' => $kpiSummaryData,
+                'kpiPerCabang' => $kpiPerCabangList,
+                'employees' => $processedEmployees,
                 'izinAlertRadar'        => $izinAlertRadar,
                 'slaSummary'            => $bankOptimizationData['summary'],
                 'bankPerformance'       => $bankOptimizationData['bankPerformance'],
@@ -966,6 +1132,110 @@ switch ($action) {
         break;
 
     // G. PENGARSIPAN DIGITAL SURAT UMUM & SURAT MASUK KE CLOUD STORAGE
+        // H. PENILAIAN & EVALUASI KPI SDM OLEH HRD / KEPALA SPM
+    case 'SAVE_EMPLOYEE_KPI_EVAL':
+        $periode        = trim($payload['periode'] ?? date('Y-m'));
+        $nik            = trim($payload['nik'] ?? '');
+        $nama           = trim($payload['nama'] ?? '');
+        $cabang         = trim($payload['cabang'] ?? '');
+        $skorQa         = (float)($payload['skorQaOtomatis'] ?? 0);
+        $skorSla        = (float)($payload['skorSlaOtomatis'] ?? 0);
+        $skorProd       = (float)($payload['skorProduktivitasOtomatis'] ?? 0);
+        $skorDisiplin   = (float)($payload['skorDisiplinHrd'] ?? 0);
+        $skorEtika      = (float)($payload['skorEtikaKepiHrd'] ?? 0);
+        $skorHrdEtika   = ($skorDisiplin + $skorEtika) / 2;
+        // Rumus Skor Komposit Nyata: (Mutu QA * 40%) + (SLA * 20%) + (Produktivitas * 15%) + (Disiplin & Etika * 25%)
+        $skorKomposit   = round(($skorQa * 0.40) + ($skorSla * 0.20) + ($skorProd * 0.15) + ($skorHrdEtika * 0.25), 1);
+        $statusPpl      = trim($payload['statusPplIzin'] ?? $payload['statusPpl'] ?? 'TERTIB');
+        $catatan        = trim($payload['catatan'] ?? $payload['catatanEvaluasi'] ?? '');
+        $evaluator      = trim($payload['dievaluasiOleh'] ?? 'Danny Taufik Hidayat, S.H. (Kepala SPM)');
+        $updatedAt      = $now;
+
+        if (empty($nik)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'NIK personel wajib diisi.']);
+            exit;
+        }
+
+        $kpiFile = $dataDir . '/kpi_evaluations.json';
+        mutateJsonFileSafe($kpiFile, function(&$records) use ($periode, $nik, $nama, $cabang, $skorQa, $skorSla, $skorProd, $skorDisiplin, $skorEtika, $skorKomposit, $statusPpl, $catatan, $evaluator, $updatedAt) {
+            if (!is_array($records)) $records = [];
+            $found = false;
+            foreach ($records as &$rec) {
+                if (($rec['periode'] ?? '') === $periode && ($rec['nik'] ?? '') === $nik) {
+                    $rec['nama']                      = $nama ?: ($rec['nama'] ?? '');
+                    $rec['cabang']                    = $cabang ?: ($rec['cabang'] ?? '');
+                    $rec['skorQaOtomatis']            = $skorQa;
+                    $rec['skorSlaOtomatis']           = $skorSla;
+                    $rec['skorProduktivitasOtomatis'] = $skorProd;
+                    $rec['skorDisiplinHrd']           = $skorDisiplin;
+                    $rec['skorEtikaKepiHrd']          = $skorEtika;
+                    $rec['skorKompositAkhir']         = $skorKomposit;
+                    $rec['statusPplIzin']             = $statusPpl;
+                    $rec['catatan']                   = $catatan;
+                    $rec['dievaluasiOleh']            = $evaluator;
+                    $rec['updatedAt']                 = $updatedAt;
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $records[] = [
+                    'periode'                   => $periode,
+                    'nik'                       => $nik,
+                    'nama'                      => $nama,
+                    'cabang'                    => $cabang,
+                    'skorQaOtomatis'            => $skorQa,
+                    'skorSlaOtomatis'           => $skorSla,
+                    'skorProduktivitasOtomatis' => $skorProd,
+                    'skorDisiplinHrd'           => $skorDisiplin,
+                    'skorEtikaKepiHrd'          => $skorEtika,
+                    'skorKompositAkhir'         => $skorKomposit,
+                    'statusPplIzin'             => $statusPpl,
+                    'catatan'                   => $catatan,
+                    'dievaluasiOleh'            => $evaluator,
+                    'updatedAt'                 => $updatedAt
+                ];
+            }
+            return ['success' => true];
+        });
+
+        // Audit log
+        $logFile = $dataDir . '/db-governance-audit.log';
+        $logEntry = sprintf(
+            "[%s] [KPI_EVAL_SAVED] %s (%s) | Periode: %s | Skor: %.1f | Evaluator: %s\n",
+            $now,
+            $nama,
+            $nik,
+            $periode,
+            $skorKomposit,
+            $evaluator
+        );
+        @file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+
+        echo json_encode([
+            'success'     => true,
+            'status'      => 'success',
+            'message'     => 'Evaluasi kinerja & kepatuhan SDM berhasil disimpan',
+            'evaluation'  => [
+                'periode'                   => $periode,
+                'nik'                       => $nik,
+                'nama'                      => $nama,
+                'cabang'                    => $cabang,
+                'skorQaOtomatis'            => $skorQa,
+                'skorSlaOtomatis'           => $skorSla,
+                'skorProduktivitasOtomatis' => $skorProd,
+                'skorDisiplinHrd'           => $skorDisiplin,
+                'skorEtikaKepiHrd'          => $skorEtika,
+                'skorKompositAkhir'         => $skorKomposit,
+                'statusPplIzin'             => $statusPpl,
+                'catatan'                   => $catatan,
+                'dievaluasiOleh'            => $evaluator,
+                'updatedAt'                 => $updatedAt
+            ]
+        ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        break;
+
     case 'ARCHIVE_SURAT_UMUM_GDRIVE':
         $nomorSurat = trim($payload['nomorSurat'] ?? $payload['noSurat'] ?? $payload['nomor'] ?? '');
         $tahun      = trim($payload['tahun'] ?? date('Y'));

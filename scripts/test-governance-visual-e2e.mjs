@@ -476,11 +476,22 @@ server.listen(PORT, async () => {
     'about:blank'
   ]);
 
-  await new Promise(r => setTimeout(r, 1500));
+  let tabs = null;
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await new Promise(r => setTimeout(r, 500));
+    try {
+      const listRes = await fetch(`http://127.0.0.1:${CHROME_PORT}/json`);
+      if (listRes.ok) {
+        tabs = await listRes.json();
+        if (tabs && tabs.length > 0) break;
+      }
+    } catch (_) {}
+  }
+  if (!tabs || tabs.length === 0) {
+    throw new Error('Chrome remote debugging tidak merespons setelah 10 detik');
+  }
 
   try {
-    const listRes = await fetch(`http://127.0.0.1:${CHROME_PORT}/json`);
-    const tabs = await listRes.json();
     const wsUrl = tabs[0].webSocketDebuggerUrl;
 
     const ws = new WebSocket(wsUrl);
@@ -555,6 +566,31 @@ server.listen(PORT, async () => {
     fs.writeFileSync(shot3Path, Buffer.from(shot3.data, 'base64'));
     fs.writeFileSync(path.join(ARTIFACT_DIR, 'bukti_governance_tab4_kpi_sdm.png'), Buffer.from(shot3.data, 'base64')); // compatibility alias
     console.log(`📸 Screenshot Tab 3 disimpan: ${shot3Path}`);
+
+    // Uji Buka Modal Evaluasi KPI SDM
+    console.log('\n--- 3b. UJI BUKA MODAL EVALUASI KPI SDM ---');
+    await send('Runtime.evaluate', { expression: `bukaModalEvaluasiKpi('NSR-2019-005');` });
+    await new Promise(r => setTimeout(r, 600));
+
+    const evalModalKpi = await send('Runtime.evaluate', {
+      expression: `({
+        isOpen: !document.getElementById('modal-evaluasi-kpi')?.classList.contains('hidden'),
+        nama: document.getElementById('eval-kpi-nama')?.textContent,
+        nik: document.getElementById('eval-kpi-nik')?.textContent,
+        previewScore: document.getElementById('preview-skor-komposit')?.textContent,
+        inputDisiplin: document.getElementById('eval-input-disiplin')?.value,
+        inputEtika: document.getElementById('eval-input-etika')?.value
+      })`,
+      returnByValue: true
+    });
+    console.log('Status Modal Evaluasi KPI:', evalModalKpi.result.value);
+
+    const shotModal = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(ARTIFACT_DIR, 'bukti_modal_evaluasi_kpi.png'), Buffer.from(shotModal.data, 'base64'));
+    console.log('📸 Screenshot Modal Evaluasi KPI disimpan: bukti_modal_evaluasi_kpi.png');
+
+    await send('Runtime.evaluate', { expression: `tutupModalEvaluasiKpi();` });
+    await new Promise(r => setTimeout(r, 400));
 
     // TAB 4: SLA Bank Rekanan & Klien
     console.log('\n--- 4. PINDAH KE TAB 4: SLA BANK REKANAN & KLIEN ---');
