@@ -145,20 +145,21 @@
       <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 max-w-full">
         <button id="tab-btn-pengawasan" onclick="switchGovTab('pengawasan')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg cursor-pointer shrink-0">
           <i class="fa-solid fa-shield-halved"></i>
-          <span>Pengawasan &amp; Intervensi Tata Kelola</span>
+          <span>Pengawasan &amp; Intervensi</span>
         </button>
         <button id="tab-btn-analitik" onclick="switchGovTab('analitik')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer shrink-0">
           <i class="fa-solid fa-chart-pie"></i>
-          <span>Analitik Bisnis &amp; Mutu</span>
+          <span>Analitik Bisnis, Mutu &amp; Piutang</span>
+        </button>
+        <button id="tab-btn-optimasi-sla" onclick="switchGovTab('optimasi-sla')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer shrink-0">
+          <i class="fa-solid fa-handshake-angle text-emerald-400"></i>
+          <span>Optimasi Order &amp; SLA Bank Rekanan</span>
         </button>
         <button id="tab-btn-kpi" onclick="switchGovTab('kpi')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer shrink-0">
           <i class="fa-solid fa-users-gear text-sky-400"></i>
-          <span>Kinerja &amp; KPI SDM (52 Personel)</span>
+          <span>Analitik KPI &amp; Kinerja SDM</span>
         </button>
-        <button id="tab-btn-sla-klien" onclick="switchGovTab('sla-klien')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 cursor-pointer shrink-0">
-          <i class="fa-solid fa-handshake text-emerald-400"></i>
-          <span>SLA Bank Rekanan &amp; Klien</span>
-        </button>
+        <span id="tab-btn-sla-klien" class="hidden"></span>
       </div>
 
       <div class="flex items-center gap-2.5 text-xs shrink-0">
@@ -477,7 +478,233 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- TAB 3: KINERJA & KPI SDM (52 PERSONEL - MASTER REPOSITORI NASIONAL)       -->
+    <!-- TAB 3: OPTIMASI ORDER & SLA BANK REKANAN (WIN-RATE, DORMANT, SEGMEN & PKS)-->
+    <!-- ========================================================================= -->
+    <div id="tab-content-optimasi-sla" class="hidden space-y-6">
+
+      <!-- Baris 1: 4 Kartu Metrik Utama Optimasi Order & SLA Rekanan -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Kartu 1: Proposal Win-Rate Nasional -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Proposal Win-Rate Nasional</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">SPK / Penawaran</span>
+          </div>
+          <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-order-winrate">68.4%</div>
+          <p class="text-[11px] text-slate-400" id="stat-order-winrate-desc">52 SPK Terbit dari 76 Surat Penawaran Keluar</p>
+        </div>
+
+        <!-- Kartu 2: Deteksi Bank Pasif / Dormant -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Bank Rekanan Pasif / Dormant</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800">Perlu Atensi</span>
+          </div>
+          <div class="text-2xl font-black text-rose-400 font-mono" id="stat-bank-dormant-count">2 Bank Pasif</div>
+          <p class="text-[11px] text-slate-400" id="stat-bank-dormant-desc">1 Bank &ge;60 Hari (Danamon) • 1 Bank &ge;30 Hari (BSI)</p>
+        </div>
+
+        <!-- Kartu 3: Radar Masa Berlaku PKS -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Radar Masa Berlaku PKS</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">Perpanjangan</span>
+          </div>
+          <div class="text-2xl font-black text-amber-400 font-mono" id="stat-pks-alert-count">3 Bank Prioritas</div>
+          <p class="text-[11px] text-slate-400" id="stat-pks-alert-desc">BTN (H-30) • BCA (H-60) • BSI (H-90)</p>
+        </div>
+
+        <!-- Kartu 4: Realisasi SLA & On-Time Rate -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>Realisasi SLA &amp; On-Time Delivery</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-800">Target &gt;90%</span>
+          </div>
+          <div class="text-2xl font-black text-sky-400 font-mono" id="stat-sla-realisasi-avg">5.7 Hari Kerja</div>
+          <p class="text-[11px] text-slate-400" id="stat-sla-ontime-summary">94.2% On-Time Delivery • Siklus Internal 3.8 Hari</p>
+          <!-- Backward Compatibility Spans -->
+          <span id="stat-sla-ontime-rate" class="hidden">94.2%</span>
+          <span id="stat-sla-internal-days" class="hidden">3.8 Hari</span>
+          <span id="stat-sla-clockstop-days" class="hidden">1.8 Hari</span>
+          <span id="stat-sla-payment-speed" class="hidden">7.4 Hari</span>
+        </div>
+
+      </div>
+
+      <!-- Baris 2: Dua Box Alert (Dormant Bank & Radar Masa Berlaku PKS) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Box Kiri: Deteksi Bank Rekanan Pasif / Dormant -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div class="space-y-0.5">
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-bell text-rose-400"></i>
+                Deteksi Bank Rekanan Pasif / Dormant (&ge;30 &amp; &ge;60 Hari)
+              </h3>
+              <p class="text-[11px] text-slate-400">
+                Peringatan dini untuk bank rekanan yang tidak mengirimkan order penilaian dalam kurun waktu kritis.
+              </p>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800 font-mono">
+              Intervensi Marketing
+            </span>
+          </div>
+          <div class="space-y-3" id="container-dormant-bank-alerts">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Box Kanan: Radar Masa Berlaku PKS Bank Rekanan -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div class="space-y-0.5">
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-file-contract text-amber-400"></i>
+                Radar Masa Berlaku PKS Bank Rekanan (H-90 / H-60 / H-30)
+              </h3>
+              <p class="text-[11px] text-slate-400">
+                Jadwal perpanjangan kontrak kerja sama kemitraan bank sebelum habis masa berlakunya.
+              </p>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800 font-mono">
+              Legal &amp; Manajemen
+            </span>
+          </div>
+          <div class="space-y-3" id="container-pks-alert-radar">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Baris 3: 2 Grafik Analitik Visual -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Grafik 1: Win-Rate Penawaran & Realisasi SLA per Bank -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-emerald-400"></i>
+                Proposal Win-Rate (%) &amp; Realisasi SLA per Bank Rekanan
+              </h3>
+              <p class="text-[11px] text-slate-400">Tingkat konversi surat penawaran menjadi SPK dan rata-rata durasi penyelesaian.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">8 Bank Mitra</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="chart-winrate-sla-bank"></canvas>
+            <canvas id="chart-sla-target-realisasi" class="hidden"></canvas>
+          </div>
+        </div>
+
+        <!-- Grafik 2: Sebaran Order Berdasarkan Segmen Kredit (5 Cabang) -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-sky-400"></i>
+                Sebaran Order Penilaian Berdasarkan Segmen Kredit (5 Kantor)
+              </h3>
+              <p class="text-[11px] text-slate-400">Distribusi portofolio: Konsumer/KPR, Komersial/UKM, Korporasi, dan Lelang/NPL.</p>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Portofolio</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="chart-segmen-kredit"></canvas>
+            <canvas id="chart-sla-clockstop" class="hidden"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Baris 4: Tabel Matriks Terpadu Optimasi Order, Win-Rate & SLA 8 Bank Rekanan -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div class="space-y-0.5">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-handshake-simple text-amber-400"></i>
+              Matriks Terpadu Optimasi Order, Win-Rate Proposal &amp; SLA Bank Rekanan
+            </h2>
+            <p class="text-[11px] text-slate-400">
+              Evaluasi komprehensif efektivitas penawaran, SLA penyelesaian SPK, kecepatan pembayaran, dan status PKS.
+            </p>
+          </div>
+          <span class="text-xs font-mono text-slate-400 self-start sm:self-auto">8 Bank Rekanan Terdaftar</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="table-fixed-wrap text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+                <th class="py-2.5 px-3 w-56">Bank Rekanan &amp; No. PKS</th>
+                <th class="py-2.5 px-3 w-24 text-right">Penawaran</th>
+                <th class="py-2.5 px-3 w-20 text-right">SPK/JO</th>
+                <th class="py-2.5 px-3 w-24 text-right">Win-Rate</th>
+                <th class="py-2.5 px-3 w-28 text-right">Target vs Riil SLA</th>
+                <th class="py-2.5 px-3 w-24 text-right">Pelunasan</th>
+                <th class="py-2.5 px-3 w-28 text-center">Order Terakhir</th>
+                <th class="py-2.5 px-3 w-28 text-center">Status Aktif</th>
+                <th class="py-2.5 px-3 w-32 text-center">Masa PKS</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-bank-order-optimization">
+              <tr><td colspan="9" class="py-6 text-center text-slate-400">Memuat matriks optimasi order bank...</td></tr>
+            </tbody>
+            <!-- Backward Compatibility Dummy Tbody -->
+            <tbody id="tbody-bank-sla-performance" class="hidden"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Baris 5: RADAR PERINGATAN DINI PIMPINAN (Tenggat SLA SPK <= 2 Hari Kerja) -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-rose-500/30 space-y-4 shadow-xl relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div class="space-y-0.5">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500 animate-pulse"></span>
+              <span class="text-rose-400">Radar Peringatan Dini Pimpinan:</span>
+              <span>Penugasan Mendekati Tenggat SLA PKS (&le; 2 Hari Kerja)</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">
+              Pengawasan preventif manajemen untuk memastikan laporan disahkan sebelum batas toleransi PKS bank mitra.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded-lg bg-rose-950/80 text-rose-300 border border-rose-800 text-xs font-mono font-bold shrink-0 self-start sm:self-auto">
+            PRIORITAS INTERVENSI TINGGI
+          </span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="table-fixed-wrap text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+                <th class="py-2.5 px-3 w-44">No. Job Order</th>
+                <th class="py-2.5 px-3 w-52">Pemberi Tugas (Bank)</th>
+                <th class="py-2.5 px-3">Objek Agunan Penilaian</th>
+                <th class="py-2.5 px-3 w-40">Cabang &amp; PIC</th>
+                <th class="py-2.5 px-3 w-28 text-center">Tahap Aktif</th>
+                <th class="py-2.5 px-3 w-24 text-right">Target SLA</th>
+                <th class="py-2.5 px-3 w-24 text-right">Sisa Waktu</th>
+                <th class="py-2.5 px-3 w-32 text-center">Status Radar</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-near-overdue-jobs">
+              <tr><td colspan="8" class="py-6 text-center text-slate-400">Memeriksa radar penugasan aktif...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Backward Compatibility Hidden Container -->
+      <div id="tab-content-sla-klien" class="hidden"></div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: ANALITIK KINERJA & RAPOR KPI SDM (52 PERSONEL)                     -->
     <!-- ========================================================================= -->
     <div id="tab-content-kpi" class="hidden space-y-6">
 
@@ -659,173 +886,6 @@
 
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- TAB 4: SLA BANK REKANAN & KLIEN (PERFORMA KEMITRAAN & EARLY WARNING)       -->
-    <!-- ========================================================================= -->
-    <div id="tab-content-sla-klien" class="hidden space-y-6">
-
-      <!-- Baris 1: 4 Kartu Metrik SLA Rekanan Eksekutif -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <!-- Kartu 1: On-Time Delivery Rate Nasional -->
-        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
-          <div class="flex items-center justify-between text-xs text-slate-400">
-            <span>On-Time Delivery Rate Nasional</span>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">Target &gt;90%</span>
-          </div>
-          <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-sla-ontime-rate">94.2%</div>
-          <p class="text-[11px] text-slate-400">Berdasarkan 52 Penugasan Bank Rekanan</p>
-        </div>
-
-        <!-- Kartu 2: Rata-Rata Siklus Kerja Internal KJPP -->
-        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
-          <div class="flex items-center justify-between text-xs text-slate-400">
-            <span>Siklus Kerja Internal KJPP</span>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-800">M-01 s/d M-06</span>
-          </div>
-          <div class="text-2xl font-black text-sky-400 font-mono" id="stat-sla-internal-days">3.8 Hari</div>
-          <p class="text-[11px] text-slate-400">Order Masuk s/d Terbit NoLap Resmi</p>
-        </div>
-
-        <!-- Kartu 3: Rata-Rata Clock-Stop (Menunggu Dokumen Klien) -->
-        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
-          <div class="flex items-center justify-between text-xs text-slate-400">
-            <span>Clock-Stop Menunggu Klien</span>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">Non-Internal</span>
-          </div>
-          <div class="text-2xl font-black text-amber-400 font-mono" id="stat-sla-clockstop-days">1.8 Hari</div>
-          <p class="text-[11px] text-slate-400">Waktu jeda konfirmasi legalitas debitur</p>
-        </div>
-
-        <!-- Kartu 4: Kecepatan Pelunasan Tagihan Fee -->
-        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-md space-y-1.5 hover:border-slate-700 transition">
-          <div class="flex items-center justify-between text-xs text-slate-400">
-            <span>Kecepatan Pelunasan Tagihan</span>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-800">M-07 Kwitansi</span>
-          </div>
-          <div class="text-2xl font-black text-indigo-400 font-mono" id="stat-sla-payment-speed">7.4 Hari</div>
-          <p class="text-[11px] text-slate-400">Rata-rata pencairan sejak invoice dikirim</p>
-        </div>
-
-      </div>
-
-      <!-- Baris 2: 2 Grafik Analitik SLA Bank Rekanan -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- Grafik 1: Target SLA PKS vs Realisasi Penyelesaian -->
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-stopwatch-20 text-sky-400"></i>
-                Target SLA PKS vs Realisasi Penyelesaian (Hari Kerja)
-              </h3>
-              <p class="text-[11px] text-slate-400">Perbandingan batas waktu kontrak PKS bank dengan performa riil KJPP.</p>
-            </div>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Bank Utama</span>
-          </div>
-          <div class="relative h-64 w-full">
-            <canvas id="chart-sla-target-realisasi"></canvas>
-          </div>
-        </div>
-
-        <!-- Grafik 2: Dekomposisi Durasi Internal vs Clock-Stop Klien -->
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-hourglass-half text-amber-400"></i>
-                Dekomposisi Durasi Kerja Internal vs Clock-Stop Klien
-              </h3>
-              <p class="text-[11px] text-slate-400">Pemisahan waktu kerja efektif KJPP dengan waktu tunggu kelengkapan berkas.</p>
-            </div>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Siklus Berkas</span>
-          </div>
-          <div class="relative h-64 w-full">
-            <canvas id="chart-sla-clockstop"></canvas>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Baris 3: RADAR PERINGATAN DINI PIMPINAN (Tenggat SLA PKS <= 2 Hari Kerja) -->
-      <div class="p-5 rounded-2xl bg-slate-900 border border-rose-500/30 space-y-4 shadow-xl relative overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
-          <div class="space-y-0.5">
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-rose-500 animate-pulse"></span>
-              <span class="text-rose-400">Radar Peringatan Dini Pimpinan:</span>
-              <span>Penugasan Mendekati Tenggat SLA PKS (&le; 2 Hari Kerja)</span>
-            </h2>
-            <p class="text-[11px] text-slate-400">
-              Pengawasan preventif manajemen untuk memastikan laporan disahkan sebelum batas toleransi PKS bank mitra.
-            </p>
-          </div>
-          <span class="px-2.5 py-1 rounded-lg bg-rose-950/80 text-rose-300 border border-rose-800 text-xs font-mono font-bold shrink-0 self-start sm:self-auto">
-            PRIORITAS INTERVENSI TINGGI
-          </span>
-        </div>
-
-        <div class="overflow-x-auto rounded-xl border border-slate-800">
-          <table class="table-fixed-wrap text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
-                <th class="py-2.5 px-3 w-44">No. Job Order</th>
-                <th class="py-2.5 px-3 w-52">Pemberi Tugas (Bank)</th>
-                <th class="py-2.5 px-3">Objek Agunan Penilaian</th>
-                <th class="py-2.5 px-3 w-40">Cabang &amp; PIC</th>
-                <th class="py-2.5 px-3 w-28 text-center">Tahap Aktif</th>
-                <th class="py-2.5 px-3 w-24 text-right">Target SLA</th>
-                <th class="py-2.5 px-3 w-24 text-right">Sisa Waktu</th>
-                <th class="py-2.5 px-3 w-32 text-center">Status Radar</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-near-overdue-jobs">
-              <tr><td colspan="8" class="py-6 text-center text-slate-400">Memeriksa radar penugasan aktif...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Baris 4: Tabel Kinerja SLA per Bank Rekanan & Mitra Kerja -->
-      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div class="space-y-0.5">
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <i class="fa-solid fa-handshake-simple text-amber-400"></i>
-              Matriks Kinerja SLA per Bank Rekanan &amp; Mitra Finansial
-            </h2>
-            <p class="text-[11px] text-slate-400">
-              Evaluasi On-Time Delivery Rate, rata-rata durasi internal, dan kecepatan penagihan per lembaga keuangan.
-            </p>
-          </div>
-          <span class="text-xs font-mono text-slate-400">8 Bank Rekanan Terdaftar</span>
-        </div>
-
-        <div class="overflow-x-auto rounded-xl border border-slate-800">
-          <table class="table-fixed-wrap text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider font-mono">
-                <th class="py-2.5 px-3 w-64">Nama Bank Rekanan / Mitra</th>
-                <th class="py-2.5 px-3 w-24 text-right">Target PKS</th>
-                <th class="py-2.5 px-3 w-28 text-right">Realisasi Rata2</th>
-                <th class="py-2.5 px-3 w-28 text-right">Kerja Internal</th>
-                <th class="py-2.5 px-3 w-28 text-right">Clock-Stop</th>
-                <th class="py-2.5 px-3 w-28 text-right">On-Time Rate</th>
-                <th class="py-2.5 px-3 w-32 text-right">Speed Pelunasan</th>
-                <th class="py-2.5 px-3 w-24 text-center">Volume JO</th>
-                <th class="py-2.5 px-3 w-32 text-center">Status Evaluasi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800/60 font-medium" id="tbody-bank-sla-performance">
-              <tr><td colspan="9" class="py-6 text-center text-slate-400">Memuat matriks performa bank rekanan...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-
   </main>
 
   <!-- MODAL INTERVENSI MEMO EMAIL -->
@@ -927,14 +987,15 @@
     let activeGovData = null;
     const chartInstances = {};
 
-    // Switcher 4 Tab: Pengawasan, Analitik Bisnis, Kinerja SDM, SLA Rekanan
+    // Switcher 4 Tab: Pengawasan, Analitik Bisnis, Optimasi Order & SLA, Kinerja SDM
     function switchGovTab(tabKey) {
+      if (tabKey === 'sla-klien') tabKey = 'optimasi-sla';
       activeGovTab = tabKey;
       const tabs = [
         { key: 'pengawasan', btn: document.getElementById('tab-btn-pengawasan'), content: document.getElementById('tab-content-pengawasan') },
         { key: 'analitik', btn: document.getElementById('tab-btn-analitik'), content: document.getElementById('tab-content-analitik') },
-        { key: 'kpi', btn: document.getElementById('tab-btn-kpi'), content: document.getElementById('tab-content-kpi') },
-        { key: 'sla-klien', btn: document.getElementById('tab-btn-sla-klien'), content: document.getElementById('tab-content-sla-klien') }
+        { key: 'optimasi-sla', btn: document.getElementById('tab-btn-optimasi-sla') || document.getElementById('tab-btn-sla-klien'), content: document.getElementById('tab-content-optimasi-sla') || document.getElementById('tab-content-sla-klien') },
+        { key: 'kpi', btn: document.getElementById('tab-btn-kpi'), content: document.getElementById('tab-content-kpi') }
       ];
 
       const activeClass = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg cursor-pointer shrink-0';
@@ -953,8 +1014,8 @@
 
       if (activeGovData) {
         if (tabKey === 'analitik') renderExecutiveAnalytics(activeGovData);
+        if (tabKey === 'optimasi-sla') renderBankOrderAndSLA(activeGovData);
         if (tabKey === 'kpi') renderEmployeeKPI(activeGovData);
-        if (tabKey === 'sla-klien') renderClientSLA(activeGovData);
       }
     }
 
@@ -1348,8 +1409,8 @@
 
         renderOverview(json);
         renderExecutiveAnalytics(json);
+        renderBankOrderAndSLA(json);
         renderEmployeeKPI(json);
-        renderClientSLA(json);
       } else {
         bukaModalOtoritas('Gagal memuat data governance: ' + ((json && json.message) || 'Koneksi ke SSOT Google Apps Script dan server lokal tidak tersedia.'));
       }
@@ -2161,120 +2222,365 @@
     }
 
     // =========================================================================
-    // MODUL 4: ANALITIK SLA BANK REKANAN & RADAR PERINGATAN DINI PIMPINAN
+    // MODUL 3: ANALITIK OPTIMASI ORDER & SLA BANK REKANAN (WIN-RATE, DORMANT, SEGMEN & PKS)
     // =========================================================================
-    function renderClientSLA(data) {
+    const MASTER_BANK_ORDER_FALLBACK = {
+      summary: {
+        totalBankRekanan: 8,
+        winRateNasional: "68.4%",
+        totalPenawaranKeluar: 76,
+        totalSpkTerbit: 52,
+        bankDormantCount: 2,
+        pksExpiringCount: 3,
+        onTimeRateNasional: "94.2%",
+        rataDurasiInternal: "3.8 Hari Kerja",
+        rataClockStopKlien: "1.8 Hari Kerja",
+        rataSpeedPembayaran: "7.4 Hari Kerja"
+      },
+      bankMetrics: [
+        {
+          bank: "PT Bank Mandiri (Persero) Tbk",
+          penawaranKeluar: 18,
+          spkTerbit: 14,
+          winRate: 77.8,
+          targetSla: 7.0,
+          realisasiSla: 5.6,
+          speedPayment: 6.4,
+          lastOrderDate: "2026-11-12",
+          lastOrderDaysAgo: 2,
+          dormantStatus: "AKTIF",
+          pksNomor: "PKS-NSR/MDR/2024/012",
+          pksExpiryDate: "2027-05-30",
+          pksDaysRemaining: 197,
+          pksAlertLevel: "AMAN",
+          segmen: { kpr: 6, ukm: 5, korporasi: 2, lelang: 1 }
+        },
+        {
+          bank: "PT Bank Rakyat Indonesia (Persero) Tbk",
+          penawaranKeluar: 14,
+          spkTerbit: 10,
+          winRate: 71.4,
+          targetSla: 6.0,
+          realisasiSla: 5.1,
+          speedPayment: 7.8,
+          lastOrderDate: "2026-11-10",
+          lastOrderDaysAgo: 4,
+          dormantStatus: "AKTIF",
+          pksNomor: "PKS-NSR/BRI/2024/008",
+          pksExpiryDate: "2027-02-15",
+          pksDaysRemaining: 93,
+          pksAlertLevel: "AMAN",
+          segmen: { kpr: 4, ukm: 4, korporasi: 1, lelang: 1 }
+        },
+        {
+          bank: "PT Bank Central Asia Tbk (BCA)",
+          penawaranKeluar: 10,
+          spkTerbit: 8,
+          winRate: 80.0,
+          targetSla: 5.0,
+          realisasiSla: 4.4,
+          speedPayment: 5.2,
+          lastOrderDate: "2026-11-11",
+          lastOrderDaysAgo: 3,
+          dormantStatus: "AKTIF",
+          pksNomor: "PKS-NSR/BCA/2025/003",
+          pksExpiryDate: "2026-12-31",
+          pksDaysRemaining: 47,
+          pksAlertLevel: "H-60",
+          segmen: { kpr: 3, ukm: 3, korporasi: 2, lelang: 0 }
+        },
+        {
+          bank: "PT Bank Negara Indonesia (Persero) Tbk",
+          penawaranKeluar: 9,
+          spkTerbit: 6,
+          winRate: 66.7,
+          targetSla: 7.0,
+          realisasiSla: 6.2,
+          speedPayment: 8.6,
+          lastOrderDate: "2026-11-08",
+          lastOrderDaysAgo: 6,
+          dormantStatus: "AKTIF",
+          pksNomor: "PKS-NSR/BNI/2024/019",
+          pksExpiryDate: "2027-04-20",
+          pksDaysRemaining: 157,
+          pksAlertLevel: "AMAN",
+          segmen: { kpr: 2, ukm: 2, korporasi: 1, lelang: 1 }
+        },
+        {
+          bank: "PT Bank Tabungan Negara (Persero) Tbk",
+          penawaranKeluar: 7,
+          spkTerbit: 5,
+          winRate: 71.4,
+          targetSla: 8.0,
+          realisasiSla: 7.0,
+          speedPayment: 9.5,
+          lastOrderDate: "2026-11-06",
+          lastOrderDaysAgo: 8,
+          dormantStatus: "AKTIF",
+          pksNomor: "PKS-NSR/BTN/2024/005",
+          pksExpiryDate: "2026-12-10",
+          pksDaysRemaining: 26,
+          pksAlertLevel: "H-30",
+          segmen: { kpr: 4, ukm: 1, korporasi: 0, lelang: 0 }
+        },
+        {
+          bank: "PT Bank CIMB Niaga Tbk",
+          penawaranKeluar: 6,
+          spkTerbit: 4,
+          winRate: 66.7,
+          targetSla: 6.0,
+          realisasiSla: 5.5,
+          speedPayment: 7.0,
+          lastOrderDate: "2026-11-04",
+          lastOrderDaysAgo: 10,
+          dormantStatus: "AKTIF",
+          pksNomor: "PKS-NSR/CIMB/2025/002",
+          pksExpiryDate: "2027-08-14",
+          pksDaysRemaining: 273,
+          pksAlertLevel: "AMAN",
+          segmen: { kpr: 2, ukm: 1, korporasi: 1, lelang: 0 }
+        },
+        {
+          bank: "PT Bank Syariah Indonesia Tbk (BSI)",
+          penawaranKeluar: 6,
+          spkTerbit: 3,
+          winRate: 50.0,
+          targetSla: 7.0,
+          realisasiSla: 6.5,
+          speedPayment: 11.2,
+          lastOrderDate: "2026-10-12",
+          lastOrderDaysAgo: 33,
+          dormantStatus: "DORMANT_30",
+          pksNomor: "PKS-NSR/BSI/2024/027",
+          pksExpiryDate: "2027-02-05",
+          pksDaysRemaining: 83,
+          pksAlertLevel: "H-90",
+          segmen: { kpr: 1, ukm: 1, korporasi: 1, lelang: 0 }
+        },
+        {
+          bank: "PT Bank Danamon Indonesia Tbk",
+          penawaranKeluar: 6,
+          spkTerbit: 2,
+          winRate: 33.3,
+          targetSla: 6.0,
+          realisasiSla: 5.8,
+          speedPayment: 8.0,
+          lastOrderDate: "2026-09-10",
+          lastOrderDaysAgo: 65,
+          dormantStatus: "DORMANT_60",
+          pksNomor: "PKS-NSR/BDM/2024/015",
+          pksExpiryDate: "2027-06-30",
+          pksDaysRemaining: 228,
+          pksAlertLevel: "AMAN",
+          segmen: { kpr: 0, ukm: 1, korporasi: 0, lelang: 1 }
+        }
+      ],
+      segmenNasional: {
+        konsumerKpr: 22,
+        komersialUkm: 18,
+        korporasi: 8,
+        lelangNpl: 4
+      },
+      segmenPerCabang: [
+        { cabang: "Pusat Jakarta", konsumerKpr: 9, komersialUkm: 9, korporasi: 6, lelangNpl: 2, total: 26 },
+        { cabang: "Cabang Bandung", konsumerKpr: 4, komersialUkm: 3, korporasi: 1, lelangNpl: 1, total: 9 },
+        { cabang: "Cabang Padang", konsumerKpr: 3, komersialUkm: 2, korporasi: 0, lelangNpl: 1, total: 6 },
+        { cabang: "Cabang Makassar", konsumerKpr: 3, komersialUkm: 2, korporasi: 1, lelangNpl: 0, total: 6 },
+        { cabang: "Cabang Palembang", konsumerKpr: 3, komersialUkm: 2, korporasi: 0, lelangNpl: 0, total: 5 }
+      ],
+      pksAlertRadar: [
+        {
+          bank: "PT Bank Tabungan Negara (Persero) Tbk",
+          nomorPks: "PKS-NSR/BTN/2024/005",
+          tglBerakhir: "2026-12-10",
+          sisaHari: 26,
+          alertLevel: "H-30",
+          badgeColor: "rose",
+          tindakan: "Kirim surat permohonan perpanjangan PKS & submit berkas legalitas pemutakhiran izin KMK."
+        },
+        {
+          bank: "PT Bank Central Asia Tbk (BCA)",
+          nomorPks: "PKS-NSR/BCA/2025/003",
+          tglBerakhir: "2026-12-31",
+          sisaHari: 47,
+          alertLevel: "H-60",
+          badgeColor: "amber",
+          tindakan: "Jadwalkan audiensi tahunan dan konfirmasi review batas plafon appraisal wilayah cabang."
+        },
+        {
+          bank: "PT Bank Syariah Indonesia Tbk (BSI)",
+          nomorPks: "PKS-NSR/BSI/2024/027",
+          tglBerakhir: "2027-02-05",
+          sisaHari: 83,
+          alertLevel: "H-90",
+          badgeColor: "sky",
+          tindakan: "Siapkan evaluasi kinerja SLA & rekap laporan pembiayaan syariah regional."
+        }
+      ],
+      dormantAlerts: [
+        {
+          bank: "PT Bank Danamon Indonesia Tbk",
+          kategori: "DORMANT_60",
+          badgeColor: "rose",
+          hariPasif: 65,
+          tglTerakhirOrder: "2026-09-10",
+          cabangTerakhir: "Pusat Jakarta",
+          tindakan: "Kunjungan Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat Danamon & Re-aktivasi Akun Mitra."
+        },
+        {
+          bank: "PT Bank Syariah Indonesia Tbk (BSI)",
+          kategori: "DORMANT_30",
+          badgeColor: "amber",
+          hariPasif: 33,
+          tglTerakhirOrder: "2026-10-12",
+          cabangTerakhir: "Cabang Bandung",
+          tindakan: "Penawaran Khusus Paket Agunan Cabang & follow-up SPK penaksiran aset komersial syariah."
+        }
+      ]
+    };
+
+    function renderBankOrderAndSLA(data) {
       if (!data) return;
       const an = data.analytics || {};
-      const sla = data.slaSummary || an.slaSummary || {};
-      const bankPerf = data.bankPerformance || an.bankPerformance || [
-        { name: "PT Bank Mandiri (Persero) Tbk", targetSla: 7.0, realisasiSla: 5.6, durasiInternal: 3.7, clockStop: 1.9, onTimeRate: 95.2, speedPayment: 6.4, totalJo: 14, statusScore: "EXCELLENT" },
-        { name: "PT Bank Rakyat Indonesia (Persero) Tbk", targetSla: 6.0, realisasiSla: 5.1, durasiInternal: 3.4, clockStop: 1.7, onTimeRate: 94.0, speedPayment: 7.8, totalJo: 10, statusScore: "EXCELLENT" },
-        { name: "PT Bank Central Asia Tbk (BCA)", targetSla: 5.0, realisasiSla: 4.4, durasiInternal: 3.1, clockStop: 1.3, onTimeRate: 96.5, speedPayment: 5.2, totalJo: 8, statusScore: "EXCELLENT" },
-        { name: "PT Bank Negara Indonesia (Persero) Tbk", targetSla: 7.0, realisasiSla: 6.2, durasiInternal: 4.1, clockStop: 2.1, onTimeRate: 91.5, speedPayment: 8.6, totalJo: 6, statusScore: "GOOD" },
-        { name: "PT Bank Tabungan Negara (Persero) Tbk", targetSla: 8.0, realisasiSla: 7.0, durasiInternal: 4.5, clockStop: 2.5, onTimeRate: 90.0, speedPayment: 9.5, totalJo: 5, statusScore: "GOOD" },
-        { name: "PT Bank CIMB Niaga Tbk", targetSla: 6.0, realisasiSla: 5.5, durasiInternal: 3.6, clockStop: 1.9, onTimeRate: 93.0, speedPayment: 7.0, totalJo: 4, statusScore: "GOOD" },
-        { name: "PT Bank Syariah Indonesia Tbk (BSI)", targetSla: 7.0, realisasiSla: 6.5, durasiInternal: 4.2, clockStop: 2.3, onTimeRate: 89.5, speedPayment: 11.2, totalJo: 3, statusScore: "ATTENTION" },
-        { name: "PT Bank Danamon Indonesia Tbk", targetSla: 6.0, realisasiSla: 5.8, durasiInternal: 3.9, clockStop: 1.9, onTimeRate: 92.0, speedPayment: 8.0, totalJo: 2, statusScore: "GOOD" }
-      ];
+      const opt = data.bankOrderOptimization || an.bankOrderOptimization || MASTER_BANK_ORDER_FALLBACK;
+      const sum = opt.summary || MASTER_BANK_ORDER_FALLBACK.summary;
+      const bankMetrics = opt.bankMetrics || MASTER_BANK_ORDER_FALLBACK.bankMetrics;
+      const dormantList = opt.dormantAlerts || MASTER_BANK_ORDER_FALLBACK.dormantAlerts;
+      const pksRadar = opt.pksAlertRadar || MASTER_BANK_ORDER_FALLBACK.pksAlertRadar;
+      const nearOverdue = data.nearOverdueJobs || an.nearOverdueJobs || opt.nearOverdueJobs || [];
 
-      const nearOverdue = data.nearOverdueJobs || an.nearOverdueJobs || [
-        {
-          noJo: "0421/JO/NSR/XI/2026",
-          klien: "PT Bank Mandiri (Persero) Tbk",
-          objek: "Ruko Komersial 4 Lantai - Fatmawati",
-          cabang: "Pusat Jakarta",
-          picPenilai: "Yoga Anfiar Pradipta",
-          targetSlaDays: 7,
-          elapsedDays: 6.0,
-          sisaHari: 1.0,
-          statusBadge: "MENDEKATI_TENGGAT",
-          badgeColor: "rose",
-          tahapSaatIni: "M-05: Review Mutu SPM"
-        },
-        {
-          noJo: "0418/JO/NSR/XI/2026",
-          klien: "PT Bank Rakyat Indonesia (Persero) Tbk",
-          objek: "Pabrik Industri & Gudang - Cimahi",
-          cabang: "Cabang Bandung",
-          picPenilai: "Ardi Nurmayadi, S.T.",
-          targetSlaDays: 6,
-          elapsedDays: 5.0,
-          sisaHari: 1.0,
-          statusBadge: "MENDEKATI_TENGGAT",
-          badgeColor: "rose",
-          tahapSaatIni: "M-04: Analisis KKP"
-        },
-        {
-          noJo: "0414/JO/NSR/XI/2026",
-          klien: "PT Bank Central Asia Tbk (BCA)",
-          objek: "Gudang Logistik & Depo - Biringkanaya",
-          cabang: "Cabang Makassar",
-          picPenilai: "Wawan Kurniawan",
-          targetSlaDays: 5,
-          elapsedDays: 3.5,
-          sisaHari: 1.5,
-          statusBadge: "MENDEKATI_TENGGAT",
-          badgeColor: "amber",
-          tahapSaatIni: "M-04: Analisis KKP"
-        },
-        {
-          noJo: "0409/JO/NSR/XI/2026",
-          klien: "PT Bank Tabungan Negara (Persero) Tbk",
-          objek: "Kawasan Perumahan - Bukit Sejahtera",
-          cabang: "Cabang Palembang",
-          picPenilai: "Rafdinal Ardhi",
-          targetSlaDays: 8,
-          elapsedDays: 6.0,
-          sisaHari: 2.0,
-          statusBadge: "PERHATIAN_SLA",
-          badgeColor: "amber",
-          tahapSaatIni: "M-03: Inspeksi Lapangan"
-        }
-      ];
+      // 1. Render 4 Kartu Metrik Utama
+      const elWinrate = document.getElementById('stat-order-winrate');
+      if (elWinrate) elWinrate.textContent = sum.winRateNasional || '68.4%';
 
-      // 1. Update 4 Kartu Metrik SLA Rekanan
-      const elOnTime = document.getElementById('stat-sla-ontime-rate');
-      if (elOnTime) elOnTime.textContent = sla.onTimeRateNasional || '94.2%';
+      const elWinrateDesc = document.getElementById('stat-order-winrate-desc');
+      if (elWinrateDesc) elWinrateDesc.textContent = `${sum.totalSpkTerbit || 52} SPK Terbit dari ${sum.totalPenawaranKeluar || 76} Surat Penawaran Keluar`;
 
-      const elInternal = document.getElementById('stat-sla-internal-days');
-      if (elInternal) elInternal.textContent = sla.rataDurasiInternal || '3.8 Hari';
+      const elDormant = document.getElementById('stat-bank-dormant-count');
+      if (elDormant) elDormant.textContent = `${sum.bankDormantCount || 2} Bank Pasif`;
 
-      const elClockStop = document.getElementById('stat-sla-clockstop-days');
-      if (elClockStop) elClockStop.textContent = sla.rataClockStopKlien || '1.8 Hari';
+      const elDormantDesc = document.getElementById('stat-bank-dormant-desc');
+      if (elDormantDesc) elDormantDesc.textContent = '1 Bank ≥60 Hari (Danamon) • 1 Bank ≥30 Hari (BSI)';
 
-      const elPaySpeed = document.getElementById('stat-sla-payment-speed');
-      if (elPaySpeed) elPaySpeed.textContent = sla.rataSpeedPembayaran || '7.4 Hari';
+      const elPksCount = document.getElementById('stat-pks-alert-count');
+      if (elPksCount) elPksCount.textContent = `${sum.pksExpiringCount || 3} Bank Prioritas`;
 
-      // 2. Render Chart 1: Target vs Realisasi SLA (#chart-sla-target-realisasi)
-      if (typeof Chart !== 'undefined') {
-        const ctxSlaTarget = document.getElementById('chart-sla-target-realisasi');
-        if (ctxSlaTarget) {
-          if (chartInstances['slaTargetRealisasi']) {
-            try { chartInstances['slaTargetRealisasi'].destroy(); } catch (_) {}
-            delete chartInstances['slaTargetRealisasi'];
+      const elPksDesc = document.getElementById('stat-pks-alert-desc');
+      if (elPksDesc) elPksDesc.textContent = 'BTN (H-30) • BCA (H-60) • BSI (H-90)';
+
+      const elSlaAvg = document.getElementById('stat-sla-realisasi-avg');
+      if (elSlaAvg) elSlaAvg.textContent = '5.7 Hari Kerja';
+
+      const elSlaOntime = document.getElementById('stat-sla-ontime-summary');
+      if (elSlaOntime) elSlaOntime.textContent = `${sum.onTimeRateNasional || '94.2%'} On-Time Delivery • Siklus Internal ${sum.rataDurasiInternal || '3.8 Hari'}`;
+
+      // Backward Compatibility Spans
+      const elOldOnTime = document.getElementById('stat-sla-ontime-rate');
+      if (elOldOnTime) elOldOnTime.textContent = sum.onTimeRateNasional || '94.2%';
+      const elOldInternal = document.getElementById('stat-sla-internal-days');
+      if (elOldInternal) elOldInternal.textContent = sum.rataDurasiInternal || '3.8 Hari';
+      const elOldClock = document.getElementById('stat-sla-clockstop-days');
+      if (elOldClock) elOldClock.textContent = sum.rataClockStopKlien || '1.8 Hari';
+      const elOldSpeed = document.getElementById('stat-sla-payment-speed');
+      if (elOldSpeed) elOldSpeed.textContent = sum.rataSpeedPembayaran || '7.4 Hari';
+
+      // 2. Render Box Kiri: Alert Bank Rekanan Dormant / Pasif
+      const cDormant = document.getElementById('container-dormant-bank-alerts');
+      if (cDormant) {
+        cDormant.innerHTML = dormantList.map(item => {
+          const badgeClass = item.badgeColor === 'rose'
+            ? 'bg-rose-950 text-rose-300 border-rose-800'
+            : 'bg-amber-950 text-amber-300 border-amber-800';
+          const labelKategori = item.kategori === 'DORMANT_60' ? 'DORMANT > 60 HARI' : 'DORMANT > 30 HARI';
+
+          return `
+            <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 hover:border-slate-700 transition">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white text-xs">${escapeHtml(item.bank)}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${badgeClass}">
+                  ${labelKategori} (${item.hariPasif} HARI)
+                </span>
+              </div>
+              <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
+                <span>Terakhir Order: <strong class="text-slate-200 font-mono">${escapeHtml(item.tglTerakhirOrder)}</strong></span>
+                <span>Cabang Terakhir: <strong class="text-slate-200">${escapeHtml(item.cabangTerakhir)}</strong></span>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-900 border border-slate-800/80 text-[11px] text-amber-300/90 flex items-start gap-2">
+                <i class="fa-solid fa-lightbulb text-amber-400 mt-0.5 shrink-0"></i>
+                <span><strong>Rekomendasi Aksi:</strong> ${escapeHtml(item.tindakan)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 3. Render Box Kanan: Radar Masa Berlaku PKS Bank Rekanan
+      const cPks = document.getElementById('container-pks-alert-radar');
+      if (cPks) {
+        cPks.innerHTML = pksRadar.map(item => {
+          let badgeClass = 'bg-sky-950 text-sky-300 border-sky-800 font-mono font-bold';
+          let alertText = `${item.alertLevel} (${item.sisaHari} HARI LAGI)`;
+          if (item.alertLevel === 'H-30') {
+            badgeClass = 'bg-rose-950 text-rose-300 border-rose-800 animate-pulse font-mono font-bold';
+            alertText = `🚨 H-30 URGENT (${item.sisaHari} HARI LAGI)`;
+          } else if (item.alertLevel === 'H-60') {
+            badgeClass = 'bg-amber-950 text-amber-300 border-amber-800 font-mono font-bold';
+            alertText = `⚠️ H-60 WARNING (${item.sisaHari} HARI LAGI)`;
           }
 
-          chartInstances['slaTargetRealisasi'] = new Chart(ctxSlaTarget, {
+          return `
+            <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 hover:border-slate-700 transition">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white text-xs">${escapeHtml(item.bank)}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] border ${badgeClass}">
+                  ${alertText}
+                </span>
+              </div>
+              <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400 font-mono">
+                <span>No. PKS: <strong class="text-slate-300">${escapeHtml(item.nomorPks)}</strong></span>
+                <span>Kedaluwarsa: <strong class="text-rose-400 font-bold">${escapeHtml(item.tglBerakhir)}</strong></span>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-900 border border-slate-800/80 text-[11px] text-sky-300/90 flex items-start gap-2">
+                <i class="fa-solid fa-pen-to-square text-sky-400 mt-0.5 shrink-0"></i>
+                <span><strong>Langkah Perpanjangan:</strong> ${escapeHtml(item.tindakan)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 4. Render 2 Chart Analitik
+      if (typeof Chart !== 'undefined') {
+        // Chart 1: Win-Rate & Realisasi SLA per Bank
+        const ctxWinrate = document.getElementById('chart-winrate-sla-bank');
+        if (ctxWinrate) {
+          if (chartInstances['winrateSlaBank']) {
+            try { chartInstances['winrateSlaBank'].destroy(); } catch (_) {}
+            delete chartInstances['winrateSlaBank'];
+          }
+
+          chartInstances['winrateSlaBank'] = new Chart(ctxWinrate, {
             type: 'bar',
             data: {
-              labels: bankPerf.map(b => b.name.replace(' (Persero) Tbk', '').replace(' PT', '').replace('Tbk', '').trim()),
+              labels: bankMetrics.map(b => b.bank.replace(' (Persero) Tbk', '').replace(' PT', '').replace('Tbk', '').trim()),
               datasets: [
                 {
-                  label: 'Target SLA PKS (Hari)',
-                  data: bankPerf.map(b => b.targetSla),
-                  backgroundColor: 'rgba(100, 116, 139, 0.7)',
-                  borderColor: '#64748b',
-                  borderWidth: 1,
-                  borderRadius: 6
+                  label: 'Proposal Win-Rate (%)',
+                  data: bankMetrics.map(b => b.winRate),
+                  backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                  borderColor: '#10b981',
+                  borderWidth: 1.5,
+                  borderRadius: 6,
+                  yAxisID: 'y'
                 },
                 {
-                  label: 'Realisasi Selesai (Hari)',
-                  data: bankPerf.map(b => b.realisasiSla),
+                  label: 'Realisasi SLA (Hari Kerja)',
+                  data: bankMetrics.map(b => b.realisasiSla),
                   backgroundColor: 'rgba(56, 189, 248, 0.85)',
                   borderColor: '#38bdf8',
                   borderWidth: 1.5,
-                  borderRadius: 6
+                  borderRadius: 6,
+                  yAxisID: 'y1'
                 }
               ]
             },
@@ -2291,17 +2597,26 @@
                   borderColor: '#334155',
                   borderWidth: 1,
                   callbacks: {
-                    label: item => ` ${item.dataset.label}: ${item.raw} Hari Kerja`
+                    label: item => item.datasetIndex === 0
+                      ? ` Win-Rate: ${item.raw}% (SPK/Penawaran)`
+                      : ` Realisasi SLA: ${item.raw} Hari Kerja`
                   }
                 }
               },
               scales: {
-                x: {
-                  grid: { display: false },
-                  ticks: { font: { size: 10 } }
-                },
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                 y: {
+                  type: 'linear',
+                  position: 'left',
+                  max: 100,
                   grid: { color: '#1e293b' },
+                  ticks: { stepSize: 20, callback: v => `${v}%` }
+                },
+                y1: {
+                  type: 'linear',
+                  position: 'right',
+                  max: 10,
+                  grid: { drawOnChartArea: false },
                   ticks: { stepSize: 2, callback: v => `${v} H` }
                 }
               }
@@ -2309,59 +2624,50 @@
           });
         }
 
-        // Render Chart 2: Durasi Internal vs Clock-Stop (#chart-sla-clockstop)
-        const ctxClockStop = document.getElementById('chart-sla-clockstop');
-        if (ctxClockStop) {
-          if (chartInstances['slaClockstop']) {
-            try { chartInstances['slaClockstop'].destroy(); } catch (_) {}
-            delete chartInstances['slaClockstop'];
+        // Chart 2: Sebaran Segmen Kredit
+        const ctxSegmen = document.getElementById('chart-segmen-kredit');
+        if (ctxSegmen) {
+          if (chartInstances['segmenKredit']) {
+            try { chartInstances['segmenKredit'].destroy(); } catch (_) {}
+            delete chartInstances['segmenKredit'];
           }
 
-          chartInstances['slaClockstop'] = new Chart(ctxClockStop, {
-            type: 'bar',
+          chartInstances['segmenKredit'] = new Chart(ctxSegmen, {
+            type: 'doughnut',
             data: {
-              labels: bankPerf.map(b => b.name.replace(' (Persero) Tbk', '').replace(' PT', '').replace('Tbk', '').trim()),
-              datasets: [
-                {
-                  label: 'Waktu Efektif Internal KJPP',
-                  data: bankPerf.map(b => b.durasiInternal),
-                  backgroundColor: 'rgba(16, 185, 129, 0.85)',
-                  borderColor: '#10b981',
-                  borderWidth: 1
-                },
-                {
-                  label: 'Clock-Stop Menunggu Klien',
-                  data: bankPerf.map(b => b.clockStop),
-                  backgroundColor: 'rgba(245, 158, 11, 0.85)',
-                  borderColor: '#f59e0b',
-                  borderWidth: 1
-                }
-              ]
+              labels: [
+                'Konsumer / KPR (42.3%)',
+                'Komersial / UKM (34.6%)',
+                'Korporasi (15.4%)',
+                'Lelang / NPL (7.7%)'
+              ],
+              datasets: [{
+                data: [22, 18, 8, 4],
+                backgroundColor: [
+                  'rgba(56, 189, 248, 0.85)',
+                  'rgba(16, 185, 129, 0.85)',
+                  'rgba(245, 158, 11, 0.85)',
+                  'rgba(244, 63, 94, 0.85)'
+                ],
+                borderColor: '#0f172a',
+                borderWidth: 2
+              }]
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
-              scales: {
-                x: {
-                  stacked: true,
-                  grid: { display: false },
-                  ticks: { font: { size: 10 } }
-                },
-                y: {
-                  stacked: true,
-                  grid: { color: '#1e293b' },
-                  ticks: { stepSize: 2, callback: v => `${v} H` }
-                }
-              },
               plugins: {
                 legend: {
-                  position: 'top',
-                  labels: { boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 10.5 } }
+                  position: 'right',
+                  labels: { boxWidth: 10, boxHeight: 10, padding: 10, font: { size: 10.5 } }
                 },
                 tooltip: {
                   backgroundColor: '#0f172a',
                   borderColor: '#334155',
-                  borderWidth: 1
+                  borderWidth: 1,
+                  callbacks: {
+                    label: item => ` ${item.label}: ${item.raw} Job Orders`
+                  }
                 }
               }
             }
@@ -2369,7 +2675,60 @@
         }
       }
 
-      // 3. Render Radar Peringatan Dini Pimpinan (#tbody-near-overdue-jobs)
+      // 5. Render Tabel Matriks Optimasi Order, Win-Rate & SLA 8 Bank Rekanan
+      const tbodyBankOrder = document.getElementById('tbody-bank-order-optimization');
+      if (tbodyBankOrder) {
+        tbodyBankOrder.innerHTML = bankMetrics.map(b => {
+          let badgeStatus = '<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">AKTIF</span>';
+          if (b.dormantStatus === 'DORMANT_60') {
+            badgeStatus = '<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-300 border border-rose-800 font-bold animate-pulse">DORMANT >60H</span>';
+          } else if (b.dormantStatus === 'DORMANT_30') {
+            badgeStatus = '<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 border border-amber-800 font-semibold">DORMANT >30H</span>';
+          }
+
+          let pksBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-mono">Sisa ${b.pksDaysRemaining} H</span>`;
+          if (b.pksAlertLevel === 'H-30') {
+            pksBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-300 border border-rose-800 font-mono font-bold animate-pulse">H-30 (${b.pksDaysRemaining} H)</span>`;
+          } else if (b.pksAlertLevel === 'H-60') {
+            pksBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 border border-amber-800 font-mono font-bold">H-60 (${b.pksDaysRemaining} H)</span>`;
+          } else if (b.pksAlertLevel === 'H-90') {
+            pksBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-sky-950 text-sky-300 border border-sky-800 font-mono font-bold">H-90 (${b.pksDaysRemaining} H)</span>`;
+          }
+
+          let winRateColor = 'text-emerald-400 font-bold';
+          if (b.winRate < 60) winRateColor = 'text-amber-400 font-semibold';
+          if (b.winRate < 40) winRateColor = 'text-rose-400 font-bold';
+
+          return `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-2.5 px-3">
+                <span class="font-bold text-white block">${escapeHtml(b.bank)}</span>
+                <span class="text-[10px] font-mono text-slate-400">${escapeHtml(b.pksNomor)}</span>
+              </td>
+              <td class="py-2.5 px-3 text-right font-mono text-slate-300">${b.penawaranKeluar} Proposal</td>
+              <td class="py-2.5 px-3 text-right font-mono text-white font-semibold">${b.spkTerbit} SPK</td>
+              <td class="py-2.5 px-3 text-right font-mono ${winRateColor}">${b.winRate}%</td>
+              <td class="py-2.5 px-3 text-right font-mono text-slate-300">
+                <span class="text-slate-400">${b.targetSla} H</span> / <strong class="text-sky-400">${b.realisasiSla} H</strong>
+              </td>
+              <td class="py-2.5 px-3 text-right font-mono text-slate-300">${b.speedPayment} H</td>
+              <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[11px]">
+                ${b.lastOrderDaysAgo} Hari Lalu
+              </td>
+              <td class="py-2.5 px-3 text-center">${badgeStatus}</td>
+              <td class="py-2.5 px-3 text-center">${pksBadge}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Backward Compatibility Dummy Tbody
+      const tbodyOldBank = document.getElementById('tbody-bank-sla-performance');
+      if (tbodyOldBank) {
+        tbodyOldBank.innerHTML = bankMetrics.map(b => `<tr><td colspan="9">${escapeHtml(b.bank)}</td></tr>`).join('');
+      }
+
+      // 6. Render Radar Peringatan Dini Pimpinan (#tbody-near-overdue-jobs)
       const tbodyRadar = document.getElementById('tbody-near-overdue-jobs');
       if (tbodyRadar) {
         tbodyRadar.innerHTML = nearOverdue.map(job => {
@@ -2407,38 +2766,11 @@
           `;
         }).join('');
       }
+    }
 
-      // 4. Render Tabel Kinerja SLA per Bank Rekanan (#tbody-bank-sla-performance)
-      const tbodyBank = document.getElementById('tbody-bank-sla-performance');
-      if (tbodyBank) {
-        tbodyBank.innerHTML = bankPerf.map(b => {
-          let scoreBadge = '<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">EXCELLENT</span>';
-          if (b.statusScore === 'GOOD') {
-            scoreBadge = '<span class="px-2 py-0.5 rounded text-[10px] bg-sky-950 text-sky-300 border border-sky-800 font-semibold">GOOD</span>';
-          } else if (b.statusScore === 'ATTENTION') {
-            scoreBadge = '<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 border border-amber-800 font-semibold">ATTENTION</span>';
-          }
-
-          return `
-            <tr class="hover:bg-slate-800/40 transition">
-              <td class="py-2.5 px-3 font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-building-columns text-sky-400 text-xs"></i>
-                <span>${escapeHtml(b.name)}</span>
-              </td>
-              <td class="py-2.5 px-3 text-right font-mono text-slate-300">${b.targetSla} H</td>
-              <td class="py-2.5 px-3 text-right font-mono text-sky-400 font-semibold">${b.realisasiSla} H</td>
-              <td class="py-2.5 px-3 text-right font-mono text-emerald-400">${b.durasiInternal} H</td>
-              <td class="py-2.5 px-3 text-right font-mono text-amber-400">${b.clockStop} H</td>
-              <td class="py-2.5 px-3 text-right font-mono font-bold ${b.onTimeRate >= 94 ? 'text-emerald-400' : 'text-amber-400'}">
-                ${b.onTimeRate}%
-              </td>
-              <td class="py-2.5 px-3 text-right font-mono text-slate-300">${b.speedPayment} H</td>
-              <td class="py-2.5 px-3 text-center font-mono text-slate-300 font-semibold">${b.totalJo}</td>
-              <td class="py-2.5 px-3 text-center">${scoreBadge}</td>
-            </tr>
-          `;
-        }).join('');
-      }
+    // Alias for backward compatibility
+    function renderClientSLA(data) {
+      renderBankOrderAndSLA(data);
     }
 
     // 1. GENERATOR PESAN RESMI WHATSAPP BERSTRUKTUR

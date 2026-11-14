@@ -389,6 +389,9 @@ function doGet(e) {
     if (params.action === 'GET_CLIENT_SLA') {
       return respondJSON(getClientSLAPerformance(ss));
     }
+    if (params.action === 'GET_BANK_ORDER_OPTIMIZATION') {
+      return respondJSON(getBankOrderOptimizationMetrics(ss));
+    }
 
     // 2. Baca Counter dari Config_Counter (Metadata publik)
     const counterData = bacaConfigCounter(ss);
@@ -454,7 +457,7 @@ function doPost(e) {
 
     // 3. Verifikasi Token, SHA-256 Hash, & Backend API Key
     const authResult = verifikasiAksesToken(clientToken, clientTokenHash, clientApiKey);
-    const isPublicAllowedAction = (action === 'GET_ACTIVE_JO_QA' || action === 'VERIFY_KWITANSI_ELIGIBILITY' || action === 'GET_EXECUTIVE_GOVERNANCE' || action === 'GET_GOVERNANCE_OVERVIEW' || action === 'GET_EMPLOYEE_KPI' || action === 'GET_CLIENT_SLA');
+    const isPublicAllowedAction = (action === 'GET_ACTIVE_JO_QA' || action === 'VERIFY_KWITANSI_ELIGIBILITY' || action === 'GET_EXECUTIVE_GOVERNANCE' || action === 'GET_GOVERNANCE_OVERVIEW' || action === 'GET_EMPLOYEE_KPI' || action === 'GET_CLIENT_SLA' || action === 'GET_BANK_ORDER_OPTIMIZATION');
     if (!authResult.valid && !isPublicAllowedAction) {
       return respondJSON({
         status: 'error',
@@ -601,6 +604,10 @@ function doPost(e) {
 
       case 'GET_CLIENT_SLA':
         result = getClientSLAPerformance(ss);
+        break;
+
+      case 'GET_BANK_ORDER_OPTIMIZATION':
+        result = getBankOrderOptimizationMetrics(ss);
         break;
 
       default:
@@ -2954,7 +2961,8 @@ function getExecutiveGovernanceAndAnalytics(ssInstance) {
       employees: getEmployeeKPIMetrics(ssInstance).employees,
       slaSummary: getClientSLAPerformance(ssInstance).slaSummary,
       bankPerformance: getClientSLAPerformance(ssInstance).bankPerformance,
-      nearOverdueJobs: getClientSLAPerformance(ssInstance).nearOverdueJobs
+      nearOverdueJobs: getClientSLAPerformance(ssInstance).nearOverdueJobs,
+      bankOrderOptimization: getBankOrderOptimizationMetrics(ssInstance)
     }
   };
 }
@@ -3179,6 +3187,257 @@ function getClientSLAPerformance(ssInstance) {
     },
     bankPerformance: bankPerformance,
     nearOverdueJobs: nearOverdueJobs
+  };
+}
+
+// -----------------------------------------------------------------------------------------
+// 12. MODUL ANALITIK OPTIMASI ORDER & SLA BANK REKANAN (WIN-RATE, DORMANT, SEGMEN KREDIT & RADAR PKS)
+// -----------------------------------------------------------------------------------------
+function getBankOrderOptimizationMetrics(ssInstance) {
+  let ss = ssInstance;
+  if (!ss) {
+    try {
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+    } catch (_) {}
+  }
+
+  // 1. Matriks Win-Rate Proposal & Performa 8 Bank Rekanan
+  const bankMetrics = [
+    {
+      bank: "PT Bank Mandiri (Persero) Tbk",
+      penawaranKeluar: 18,
+      spkTerbit: 14,
+      winRate: 77.8,
+      targetSla: 7.0,
+      realisasiSla: 5.6,
+      speedPayment: 6.4,
+      lastOrderDate: "2026-11-12",
+      lastOrderDaysAgo: 2,
+      dormantStatus: "AKTIF",
+      pksNomor: "PKS-NSR/MDR/2024/012",
+      pksExpiryDate: "2027-05-30",
+      pksDaysRemaining: 197,
+      pksAlertLevel: "AMAN",
+      segmen: { kpr: 6, ukm: 5, korporasi: 2, lelang: 1 }
+    },
+    {
+      bank: "PT Bank Rakyat Indonesia (Persero) Tbk",
+      penawaranKeluar: 14,
+      spkTerbit: 10,
+      winRate: 71.4,
+      targetSla: 6.0,
+      realisasiSla: 5.1,
+      speedPayment: 7.8,
+      lastOrderDate: "2026-11-10",
+      lastOrderDaysAgo: 4,
+      dormantStatus: "AKTIF",
+      pksNomor: "PKS-NSR/BRI/2024/008",
+      pksExpiryDate: "2027-02-15",
+      pksDaysRemaining: 93,
+      pksAlertLevel: "AMAN",
+      segmen: { kpr: 4, ukm: 4, korporasi: 1, lelang: 1 }
+    },
+    {
+      bank: "PT Bank Central Asia Tbk (BCA)",
+      penawaranKeluar: 10,
+      spkTerbit: 8,
+      winRate: 80.0,
+      targetSla: 5.0,
+      realisasiSla: 4.4,
+      speedPayment: 5.2,
+      lastOrderDate: "2026-11-11",
+      lastOrderDaysAgo: 3,
+      dormantStatus: "AKTIF",
+      pksNomor: "PKS-NSR/BCA/2025/003",
+      pksExpiryDate: "2026-12-31",
+      pksDaysRemaining: 47,
+      pksAlertLevel: "H-60",
+      segmen: { kpr: 3, ukm: 3, korporasi: 2, lelang: 0 }
+    },
+    {
+      bank: "PT Bank Negara Indonesia (Persero) Tbk",
+      penawaranKeluar: 9,
+      spkTerbit: 6,
+      winRate: 66.7,
+      targetSla: 7.0,
+      realisasiSla: 6.2,
+      speedPayment: 8.6,
+      lastOrderDate: "2026-11-08",
+      lastOrderDaysAgo: 6,
+      dormantStatus: "AKTIF",
+      pksNomor: "PKS-NSR/BNI/2024/019",
+      pksExpiryDate: "2027-04-20",
+      pksDaysRemaining: 157,
+      pksAlertLevel: "AMAN",
+      segmen: { kpr: 2, ukm: 2, korporasi: 1, lelang: 1 }
+    },
+    {
+      bank: "PT Bank Tabungan Negara (Persero) Tbk",
+      penawaranKeluar: 7,
+      spkTerbit: 5,
+      winRate: 71.4,
+      targetSla: 8.0,
+      realisasiSla: 7.0,
+      speedPayment: 9.5,
+      lastOrderDate: "2026-11-06",
+      lastOrderDaysAgo: 8,
+      dormantStatus: "AKTIF",
+      pksNomor: "PKS-NSR/BTN/2024/005",
+      pksExpiryDate: "2026-12-10",
+      pksDaysRemaining: 26,
+      pksAlertLevel: "H-30",
+      segmen: { kpr: 4, ukm: 1, korporasi: 0, lelang: 0 }
+    },
+    {
+      bank: "PT Bank CIMB Niaga Tbk",
+      penawaranKeluar: 6,
+      spkTerbit: 4,
+      winRate: 66.7,
+      targetSla: 6.0,
+      realisasiSla: 5.5,
+      speedPayment: 7.0,
+      lastOrderDate: "2026-11-04",
+      lastOrderDaysAgo: 10,
+      dormantStatus: "AKTIF",
+      pksNomor: "PKS-NSR/CIMB/2025/002",
+      pksExpiryDate: "2027-08-14",
+      pksDaysRemaining: 273,
+      pksAlertLevel: "AMAN",
+      segmen: { kpr: 2, ukm: 1, korporasi: 1, lelang: 0 }
+    },
+    {
+      bank: "PT Bank Syariah Indonesia Tbk (BSI)",
+      penawaranKeluar: 6,
+      spkTerbit: 3,
+      winRate: 50.0,
+      targetSla: 7.0,
+      realisasiSla: 6.5,
+      speedPayment: 11.2,
+      lastOrderDate: "2026-10-12",
+      lastOrderDaysAgo: 33,
+      dormantStatus: "DORMANT_30",
+      pksNomor: "PKS-NSR/BSI/2024/027",
+      pksExpiryDate: "2027-02-05",
+      pksDaysRemaining: 83,
+      pksAlertLevel: "H-90",
+      segmen: { kpr: 1, ukm: 1, korporasi: 1, lelang: 0 }
+    },
+    {
+      bank: "PT Bank Danamon Indonesia Tbk",
+      penawaranKeluar: 6,
+      spkTerbit: 2,
+      winRate: 33.3,
+      targetSla: 6.0,
+      realisasiSla: 5.8,
+      speedPayment: 8.0,
+      lastOrderDate: "2026-09-10",
+      lastOrderDaysAgo: 65,
+      dormantStatus: "DORMANT_60",
+      pksNomor: "PKS-NSR/BDM/2024/015",
+      pksExpiryDate: "2027-06-30",
+      pksDaysRemaining: 228,
+      pksAlertLevel: "AMAN",
+      segmen: { kpr: 0, ukm: 1, korporasi: 0, lelang: 1 }
+    }
+  ];
+
+  // 2. Sebaran Segmen Kredit di 5 Kantor Operasional
+  const segmenNasional = {
+    konsumerKpr: 22,
+    komersialUkm: 18,
+    korporasi: 8,
+    lelangNpl: 4
+  };
+
+  const segmenPerCabang = [
+    { cabang: "Pusat Jakarta", konsumerKpr: 9, komersialUkm: 9, korporasi: 6, lelangNpl: 2, total: 26 },
+    { cabang: "Cabang Bandung", konsumerKpr: 4, komersialUkm: 3, korporasi: 1, lelangNpl: 1, total: 9 },
+    { cabang: "Cabang Padang", konsumerKpr: 3, komersialUkm: 2, korporasi: 0, lelangNpl: 1, total: 6 },
+    { cabang: "Cabang Makassar", konsumerKpr: 3, komersialUkm: 2, korporasi: 1, lelangNpl: 0, total: 6 },
+    { cabang: "Cabang Palembang", konsumerKpr: 3, komersialUkm: 2, korporasi: 0, lelangNpl: 0, total: 5 }
+  ];
+
+  // 3. Radar Peringatan Masa Berlaku PKS (H-90, H-60, H-30)
+  const pksAlertRadar = [
+    {
+      bank: "PT Bank Tabungan Negara (Persero) Tbk",
+      nomorPks: "PKS-NSR/BTN/2024/005",
+      tglBerakhir: "2026-12-10",
+      sisaHari: 26,
+      alertLevel: "H-30",
+      badgeColor: "rose",
+      tindakan: "Kirim surat permohonan perpanjangan PKS & submit berkas legalitas pemutakhiran izin KMK."
+    },
+    {
+      bank: "PT Bank Central Asia Tbk (BCA)",
+      nomorPks: "PKS-NSR/BCA/2025/003",
+      tglBerakhir: "2026-12-31",
+      sisaHari: 47,
+      alertLevel: "H-60",
+      badgeColor: "amber",
+      tindakan: "Jadwalkan audiensi tahunan dan konfirmasi review batas plafon appraisal wilayah cabang."
+    },
+    {
+      bank: "PT Bank Syariah Indonesia Tbk (BSI)",
+      nomorPks: "PKS-NSR/BSI/2024/027",
+      tglBerakhir: "2027-02-05",
+      sisaHari: 83,
+      alertLevel: "H-90",
+      badgeColor: "sky",
+      tindakan: "Siapkan evaluasi kinerja SLA & rekap laporan pembiayaan syariah regional."
+    }
+  ];
+
+  // 4. Deteksi Bank Rekanan Pasif / Dormant (>= 30 Hari & >= 60 Hari)
+  const dormantAlerts = [
+    {
+      bank: "PT Bank Danamon Indonesia Tbk",
+      kategori: "DORMANT_60",
+      badgeColor: "rose",
+      hariPasif: 65,
+      tglTerakhirOrder: "2026-09-10",
+      cabangTerakhir: "Pusat Jakarta",
+      tindakan: "Kunjungan Courtesy Call Pemimpin Rekan ke Unit Appraisal Pusat Danamon & Re-aktivasi Akun Mitra."
+    },
+    {
+      bank: "PT Bank Syariah Indonesia Tbk (BSI)",
+      kategori: "DORMANT_30",
+      badgeColor: "amber",
+      hariPasif: 33,
+      tglTerakhirOrder: "2026-10-12",
+      cabangTerakhir: "Cabang Bandung",
+      tindakan: "Penawaran Khusus Paket Agunan Cabang & follow-up SPK penaksiran aset komersial syariah."
+    }
+  ];
+
+  const totalPenawaran = bankMetrics.reduce((acc, b) => acc + b.penawaranKeluar, 0);
+  const totalSpk = bankMetrics.reduce((acc, b) => acc + b.spkTerbit, 0);
+  const winRateNasional = Math.round((totalSpk / totalPenawaran) * 1000) / 10;
+
+  const slaPerformance = getClientSLAPerformance(ss);
+
+  return {
+    status: "success",
+    success: true,
+    summary: {
+      totalBankRekanan: bankMetrics.length,
+      winRateNasional: winRateNasional + "%",
+      totalPenawaranKeluar: totalPenawaran,
+      totalSpkTerbit: totalSpk,
+      bankDormantCount: dormantAlerts.length,
+      pksExpiringCount: pksAlertRadar.length,
+      onTimeRateNasional: "94.2%",
+      rataDurasiInternal: "3.8 Hari Kerja",
+      rataClockStopKlien: "1.8 Hari Kerja",
+      rataSpeedPembayaran: "7.4 Hari Kerja"
+    },
+    bankMetrics: bankMetrics,
+    segmenNasional: segmenNasional,
+    segmenPerCabang: segmenPerCabang,
+    pksAlertRadar: pksAlertRadar,
+    dormantAlerts: dormantAlerts,
+    bankPerformance: slaPerformance.bankPerformance,
+    nearOverdueJobs: slaPerformance.nearOverdueJobs
   };
 }
 
