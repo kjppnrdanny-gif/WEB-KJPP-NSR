@@ -3115,6 +3115,13 @@ Format output wajib berupa objek JSON valid dengan struktur:
       const data = SAMPLE_REVIEWS[actualKey];
       if (!data) return;
 
+      // Pastikan data simulasi tersedia dalam DB_PENUGASAN_MAP saat mode simulasi dipilih
+      SEED_ACTIVE_JO_FALLBACK.forEach(item => {
+        if (!DB_PENUGASAN_MAP.has(item.noJo)) {
+          DB_PENUGASAN_MAP.set(item.noJo, item);
+        }
+      });
+
       const presetSel = document.getElementById('preset-demo-selector');
       if (presetSel) {
         presetSel.value = (sampleKey === 'sarimukti') ? 'permata' : sampleKey;
@@ -3635,9 +3642,10 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 6000);
-        const endpointUrl = (forceRefresh && GAS_QA_ENDPOINT_URL)
-          ? `${GAS_QA_ENDPOINT_URL}${GAS_QA_ENDPOINT_URL.includes('?') ? '&' : '?'}t=${Date.now()}`
-          : GAS_QA_ENDPOINT_URL;
+        const activeEndpoint = window.GAS_QA_ENDPOINT_URL || GAS_QA_ENDPOINT_URL;
+        const endpointUrl = (forceRefresh && activeEndpoint)
+          ? `${activeEndpoint}${activeEndpoint.includes('?') ? '&' : '?'}t=${Date.now()}`
+          : activeEndpoint;
 
         const res = await fetch(endpointUrl, {
           method: "POST",
@@ -3648,9 +3656,12 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
         clearTimeout(timeoutId);
         const json = await res.json();
 
-        if (json && (json.status === "success" || json.success) && Array.isArray(json.data) && json.data.length > 0) {
-          populateDatalist(json.data);
-          if (indicator) indicator.innerHTML = `<span class="text-emerald-400 font-mono">● Terhubung: ${json.data.length} JO Aktif (SSOT)</span>`;
+        if (json && (json.status === "success" || json.success) && Array.isArray(json.data)) {
+          const list = json.data;
+          populateDatalist(list);
+          if (indicator) {
+            indicator.innerHTML = `<span class="text-emerald-400 font-mono">● Terhubung: ${list.length} JO Aktif (SSOT)</span>`;
+          }
           // Jika ada input No. JO yang sudah terpilih, perbarui kartu ringkasannya
           const currentVal = document.getElementById("input-jo-number")?.value?.trim();
           if (currentVal && DB_PENUGASAN_MAP.has(currentVal)) {
@@ -3682,7 +3693,10 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
       syncJOToMetadata(cleanJo);
 
       const summaryCard = document.getElementById("jo-detail-summary-card");
-      const joRecord = DB_PENUGASAN_MAP.get(cleanJo);
+      let joRecord = DB_PENUGASAN_MAP.get(cleanJo);
+      if (!joRecord && typeof SEED_ACTIVE_JO_FALLBACK !== 'undefined') {
+        joRecord = SEED_ACTIVE_JO_FALLBACK.find(x => x.noJo === cleanJo);
+      }
       if (!joRecord) {
         if (summaryCard) summaryCard.classList.add("hidden");
         return;

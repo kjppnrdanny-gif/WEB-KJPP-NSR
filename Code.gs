@@ -2297,79 +2297,286 @@ function handleIssueCabangDefinitiveNoLap(ss, data, auth) {
 }
 
 /**
- * Mengambil daftar penugasan aktif dari DB_PENUGASAN_JO_NSR untuk Auto-Populate Portal QA & NoLap
+ * Mengambil daftar penugasan aktif dari DB_PENUGASAN_JO_NSR / Data_Penugasan untuk Auto-Populate Portal QA & NoLap
  */
 function getActiveJobOrdersForQA(ssInstance) {
-  const ss = ssInstance || (typeof getMasterSpreadsheet === 'function' ? getMasterSpreadsheet() : SpreadsheetApp.getActiveSpreadsheet());
-  if (!ss) return { status: "success", total: 0, data: [] };
+  let ss = ssInstance;
+  if (!ss && typeof getMasterSpreadsheet === 'function') {
+    try { ss = getMasterSpreadsheet(); } catch (_) {}
+  }
+  if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) {
+    try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
+  }
+  if (!ss) {
+    try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) {}
+  }
+  if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.MASTER_ADMIN_SPREADSHEET_ID) {
+    try { ss = SpreadsheetApp.openById(CONFIG.MASTER_ADMIN_SPREADSHEET_ID); } catch (_) {}
+  }
 
-  let sheet = ss.getSheetByName("DB_PENUGASAN_JO_NSR") || 
-              ss.getSheetByName("Data_Penugasan") || 
-              ss.getSheetByName("DATA_PENUGASAN") || 
-              ss.getSheetByName("Database_Penugasan") ||
-              (typeof CONFIG !== 'undefined' && CONFIG.SHEET_DATA ? ss.getSheetByName(CONFIG.SHEET_DATA) : null);
-  
+  if (!ss) {
+    return {
+      status: "success",
+      total: 0,
+      data: [],
+      debugSheetName: "SPREADSHEET_NOT_FOUND",
+      debugRowCount: 0
+    };
+  }
+
+  const candidateNames = [
+    (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SHEET_DATA) ? CONFIG.SHEET_DATA : null,
+    "Data_Penugasan",
+    "DB_PENUGASAN_JO_NSR",
+    "DATA_PENUGASAN",
+    "Database_Penugasan",
+    "DATA PENUGASAN",
+    "DB_PENUGASAN",
+    "Penugasan",
+    "PENUGASAN",
+    "Data Penugasan"
+  ].filter(Boolean);
+
+  let sheet = null;
+
+  // 1. Prioritaskan sheet kandidat yang MEMILIKI DATA (baris >= 2)
+  for (let s = 0; s < candidateNames.length; s++) {
+    const sh = ss.getSheetByName(candidateNames[s]);
+    if (sh && sh.getLastRow() >= 2) {
+      sheet = sh;
+      break;
+    }
+  }
+
+  // 2. Jika tidak ada sheet kandidat yang memiliki data, cari di seluruh sheet yang namanya mengandung kata penugasan/order/jo
+  if (!sheet) {
+    const allSheets = ss.getSheets();
+    for (let s = 0; s < allSheets.length; s++) {
+      const sh = allSheets[s];
+      const shNameUpper = sh.getName().toUpperCase();
+      if ((shNameUpper.includes("PENUGASAN") || shNameUpper.includes("ORDER") || shNameUpper.includes("JO")) && sh.getLastRow() >= 2) {
+        sheet = sh;
+        break;
+      }
+    }
+  }
+
+  // 3. Jika masih belum ditemukan, pindai baris header semua sheet yang memiliki baris >= 2
+  if (!sheet) {
+    const allSheets = ss.getSheets();
+    for (let s = 0; s < allSheets.length; s++) {
+      const sh = allSheets[s];
+      if (sh.getLastRow() >= 2) {
+        const topRow = sh.getRange(1, 1, 1, Math.min(sh.getLastColumn(), 50)).getValues()[0];
+        const topRowStr = topRow.map(function(h) { return String(h || '').toUpperCase(); }).join(' ');
+        if (topRowStr.includes("JO") || topRowStr.includes("PENUGASAN") || topRowStr.includes("PEMBERI") || topRowStr.includes("KLIEN")) {
+          sheet = sh;
+          break;
+        }
+      }
+    }
+  }
+
+  // 4. Fallback jika semua sheet kosong: ambil sheet kandidat pertama yang ada (untuk diagnosa)
+  if (!sheet) {
+    for (let s = 0; s < candidateNames.length; s++) {
+      const sh = ss.getSheetByName(candidateNames[s]);
+      if (sh) {
+        sheet = sh;
+        break;
+      }
+    }
+  }
+
   if (!sheet || sheet.getLastRow() < 2) {
-    return { status: "success", total: 0, data: [] };
+    return {
+      status: "success",
+      total: 0,
+      data: [],
+      debugSheetName: sheet ? sheet.getName() : "SHEET_NOT_FOUND",
+      debugRowCount: sheet ? sheet.getLastRow() : 0
+    };
   }
 
   const values = sheet.getDataRange().getValues();
-  const headers = values[0].map(function(h) { return String(h).trim().toUpperCase(); });
+  if (!values || values.length < 2) {
+    return {
+      status: "success",
+      total: 0,
+      data: [],
+      debugSheetName: sheet.getName(),
+      debugRowCount: sheet.getLastRow()
+    };
+  }
+
+  const rawHeaders = values[0];
+  const headers = rawHeaders.map(function(h) { return String(h || "").trim().toUpperCase(); });
 
   function findHeader(candidates, defaultIdx) {
+    // 1. Exact match (case-insensitive & trimmed)
     for (let c = 0; c < candidates.length; c++) {
-      const idx = headers.indexOf(candidates[c]);
+      const cand = String(candidates[c]).trim().toUpperCase();
+      const idx = headers.indexOf(cand);
       if (idx !== -1) return idx;
     }
-    // Fuzzy check (strip spaces & underscores)
+    // 2. Normalized match (strip non-alphanumeric)
     for (let c = 0; c < candidates.length; c++) {
-      const cleanC = candidates[c].replace(/[^A-Z0-9]/g, '');
+      const cleanCand = String(candidates[c]).toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!cleanCand) continue;
       for (let i = 0; i < headers.length; i++) {
-        if (headers[i].replace(/[^A-Z0-9]/g, '') === cleanC) return i;
+        const cleanH = headers[i].replace(/[^A-Z0-9]/g, '');
+        if (cleanH === cleanCand) return i;
+      }
+    }
+    // 3. Substring match
+    for (let c = 0; c < candidates.length; c++) {
+      const cleanCand = String(candidates[c]).toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (cleanCand.length < 3) continue;
+      for (let i = 0; i < headers.length; i++) {
+        const cleanH = headers[i].replace(/[^A-Z0-9]/g, '');
+        if (cleanH.includes(cleanCand) || cleanCand.includes(cleanH)) return i;
       }
     }
     return defaultIdx;
   }
 
-  const idxJo = findHeader(["NO_JO", "NO_ADM_JO", "NOMOR_JO", "ID_PENUGASAN", "ID_JO", "NO_PENUGASAN", "JOB_ORDER", "NOMOR JO", "NO JO"], 0);
-  const idxKlien = findHeader(["PEMBERI_TUGAS", "NAMA_PEMBERI_TUGAS", "KLIEN", "NAMA_KLIEN", "INSTANSI", "CLIENT", "PEMBERI TUGAS"], 2);
-  const idxObjek = findHeader(["OBJEK_PENILAIAN", "OBJEK", "RINCIAN_OBJEK_JSON", "NAMA_OBJEK", "JENIS_OBJEK", "OBJEK PENILAIAN"], 3);
-  const idxCabang = findHeader(["CABANG", "KANTOR_WILAYAH", "KANTOR_CABANG", "WILAYAH", "KANTOR CABANG", "UNIT_KERJA"], 4);
-  const idxPenilai = findHeader(["PENILAI_PELAKSANA", "PENILAI", "REKAN_PENILAI_PUBLIK", "NAMA_PENILAI", "PENILAI PELAKSANA"], 5);
-  const idxNikPenilai = findHeader(["NIK_PENILAI", "NIK", "NIK PENILAI"], 6);
-  const idxMilestone = findHeader(["MILESTONE_AKTIF", "CURRENT_MILESTONE", "MILESTONE", "STATUS_MILESTONE", "TAHAP"], 7);
-  const idxStatusQa = findHeader(["STATUS_QA", "QA_STATUS", "STATUS_APPROVAL", "STATUS QA", "REVIEW_QA"], 8);
+  const idxJoAdm = findHeader(["NO_ADM_JO", "NO ADM JO", "NO_ADM", "ADM_JO", "NOMOR_ADM", "NOMOR ADM"], -1);
+  const idxIdPenugasan = findHeader(["ID_PENUGASAN", "ID PENUGASAN", "ID_JO", "ID JO", "PROJECT_ID", "PROJECTID"], -1);
+  const idxJoGeneric = findHeader(["NO_JO", "NO. JO", "NOMOR_JO", "NOMOR JO", "NO PENUGASAN", "NO_PENUGASAN", "JOB_ORDER", "JOB ORDER", "NO JO"], -1);
+
+  const idxKlien = findHeader(["PEMBERI_TUGAS", "NAMA_PEMBERI_TUGAS", "PEMBERI TUGAS", "NAMA PEMBERI TUGAS", "KLIEN", "NAMA_KLIEN", "NAMA KLIEN", "INSTANSI", "CLIENT", "NAMA_DEBITUR_UTAMA", "DEBITUR"], -1);
+  const idxObjek = findHeader(["OBJEK_PENILAIAN", "OBJEK PENILAIAN", "OBJEK", "RINCIAN_OBJEK_JSON", "RINCIAN_OBJEK", "NAMA_OBJEK", "NAMA OBJEK", "JENIS_OBJEK", "AGUNAN"], -1);
+  const idxCabang = findHeader(["CABANG", "KANTOR_WILAYAH", "KANTOR WILAYAH", "KANTOR_CABANG", "KANTOR CABANG", "WILAYAH", "UNIT_KERJA"], -1);
+  const idxPenilai = findHeader(["PENILAI_PELAKSANA", "PENILAI PELAKSANA", "PENILAI", "REKAN_PENILAI_PUBLIK", "REKAN PENILAI PUBLIK", "NAMA_PENILAI", "VALUER"], -1);
+  const idxNikPenilai = findHeader(["NIK_PENILAI", "NIK PENILAI", "NIK"], -1);
+  const idxMilestone = findHeader(["MILESTONE_AKTIF", "MILESTONE AKTIF", "CURRENT_MILESTONE", "MILESTONE", "STATUS_MILESTONE", "TAHAP"], -1);
+  const idxStatusQa = findHeader(["STATUS_QA", "STATUS QA", "QA_STATUS", "STATUS_APPROVAL", "STATUS APPROVAL", "REVIEW_QA", "STATUS"], -1);
 
   const activeList = [];
   for (let i = 1; i < values.length; i++) {
-    const noJo = String(values[i][idxJo] || "").trim();
+    const row = values[i];
+    if (!row || row.length === 0) continue;
+
+    // Ambil nomor JO dari kolom yang tersedia
+    let noJo = "";
+    if (idxJoAdm !== -1 && row[idxJoAdm]) {
+      const valAdm = String(row[idxJoAdm]).trim();
+      if (valAdm && !valAdm.toLowerCase().includes("menunggu")) {
+        noJo = valAdm;
+      }
+    }
+    if (!noJo && idxJoGeneric !== -1 && row[idxJoGeneric]) {
+      const valGen = String(row[idxJoGeneric]).trim();
+      if (valGen && !valGen.toLowerCase().includes("menunggu")) {
+        noJo = valGen;
+      }
+    }
+    if (!noJo && idxIdPenugasan !== -1 && row[idxIdPenugasan]) {
+      noJo = String(row[idxIdPenugasan]).trim();
+    }
+    // Jika masih kosong, coba kolom pertama
+    if (!noJo && row[0]) {
+      const col0 = String(row[0]).trim();
+      if (col0 && col0.toUpperCase() !== "TOTAL" && col0.toUpperCase() !== "SUBTOTAL") {
+        noJo = col0;
+      }
+    }
+    // Jika No. Adm masih 'Menunggu...', gunakan ID Penugasan jika ada
+    if (!noJo && idxJoAdm !== -1 && row[idxJoAdm]) {
+      noJo = String(row[idxJoAdm]).trim();
+    }
+
     if (!noJo) continue;
 
-    let objekStr = String(values[i][idxObjek] || "").trim();
+    // Pemberi Tugas / Klien
+    let klienStr = "";
+    if (idxKlien !== -1 && row[idxKlien]) {
+      klienStr = String(row[idxKlien]).trim();
+    }
+    if (!klienStr && row[18]) { // Kolom 18 di HEADERS_DATA_PENUGASAN adalah Nama_Pemberi_Tugas
+      klienStr = String(row[18]).trim();
+    }
+
+    // Objek Penilaian
+    let objekStr = "";
+    if (idxObjek !== -1 && row[idxObjek]) {
+      objekStr = String(row[idxObjek]).trim();
+    }
+    if (!objekStr && row[31]) { // Kolom 31 di HEADERS_DATA_PENUGASAN adalah Rincian_Objek_JSON
+      objekStr = String(row[31]).trim();
+    }
     if (objekStr.startsWith("{") || objekStr.startsWith("[")) {
       try {
         const parsed = JSON.parse(objekStr);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          objekStr = parsed[0].nama || parsed[0].jenis || parsed[0].deskripsi || objekStr;
+          objekStr = parsed[0].nama || parsed[0].jenis || parsed[0].deskripsi || parsed[0].alamat || objekStr;
         } else if (parsed && typeof parsed === 'object') {
-          objekStr = parsed.nama || parsed.jenis || parsed.deskripsi || objekStr;
+          objekStr = parsed.nama || parsed.jenis || parsed.deskripsi || parsed.alamat || objekStr;
         }
       } catch (_) {}
     }
 
+    // Cabang / Wilayah
+    let cabangStr = "";
+    if (idxCabang !== -1 && row[idxCabang]) {
+      cabangStr = String(row[idxCabang]).trim();
+    }
+    if (!cabangStr && row[3]) { // Kolom 3 di HEADERS_DATA_PENUGASAN adalah Kantor_Wilayah
+      cabangStr = String(row[3]).trim();
+    }
+    if (!cabangStr) cabangStr = "Pusat Jakarta";
+
+    // Penilai
+    let penilaiStr = "";
+    if (idxPenilai !== -1 && row[idxPenilai]) {
+      penilaiStr = String(row[idxPenilai]).trim();
+    }
+    if (!penilaiStr && row[15]) { // Kolom 15 di HEADERS_DATA_PENUGASAN adalah Penilai
+      penilaiStr = String(row[15]).trim();
+    }
+
+    // NIK Penilai
+    let nikPenilaiStr = "";
+    if (idxNikPenilai !== -1 && row[idxNikPenilai]) {
+      nikPenilaiStr = String(row[idxNikPenilai]).trim();
+    }
+
+    // Milestone Aktif
+    let milestoneStr = "";
+    if (idxMilestone !== -1 && row[idxMilestone]) {
+      milestoneStr = String(row[idxMilestone]).trim();
+    }
+    if (!milestoneStr) milestoneStr = "M-04";
+
+    // Status QA
+    let statusQaStr = "";
+    if (idxStatusQa !== -1 && row[idxStatusQa]) {
+      statusQaStr = String(row[idxStatusQa]).trim();
+    }
+    if (!statusQaStr && row[2]) { // Kolom 2 di HEADERS_DATA_PENUGASAN adalah Status_Approval
+      statusQaStr = String(row[2]).trim();
+    }
+    if (!statusQaStr) statusQaStr = "BELUM_REVIEW";
+
     activeList.push({
       noJo: noJo,
-      pemberiTugas: String(values[i][idxKlien] || "").trim(),
+      pemberiTugas: klienStr,
       objekPenilaian: objekStr,
-      cabang: String(values[i][idxCabang] || "Pusat Jakarta").trim(),
-      penilaiPelaksana: String(values[i][idxPenilai] || "").trim(),
-      nikPenilai: String(values[i][idxNikPenilai] || "").trim(),
-      milestoneAktif: String(values[i][idxMilestone] || "M-04").trim(),
-      statusQa: String(values[i][idxStatusQa] || "BELUM_REVIEW").trim()
+      cabang: cabangStr,
+      penilaiPelaksana: penilaiStr,
+      nikPenilai: nikPenilaiStr,
+      milestoneAktif: milestoneStr,
+      statusQa: statusQaStr
     });
   }
 
-  return { status: "success", total: activeList.length, data: activeList.reverse() };
+  return {
+    status: "success",
+    total: activeList.length,
+    data: activeList.reverse(),
+    debugSheetName: sheet.getName(),
+    debugRowCount: values.length
+  };
 }
 
 /**

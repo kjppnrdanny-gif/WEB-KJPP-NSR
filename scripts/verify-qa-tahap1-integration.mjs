@@ -173,9 +173,12 @@ try {
   assert('Indikator sinkronisasi #jo-sync-indicator tersedia di header input', indicatorExists === true, indicatorExists);
   assert('Indikator menampilkan status sinkronisasi aktif/offline', indicatorText?.includes('JO') || indicatorText?.includes('Sinkron') || indicatorText?.includes('Offline'), indicatorText);
 
-  // UJI 2: Pemanggilan loadActiveJobOrdersDirectory & Pengisian Datalist
+  // UJI 2: Pemanggilan loadActiveJobOrdersDirectory & Pengisian Datalist (Resiliensi Offline)
   console.log('\n[UJI 2] Verifikasi loadActiveJobOrdersDirectory() & Isi Datalist...');
-  await evalJs(`loadActiveJobOrdersDirectory();`);
+  await evalJs(`(async () => {
+    window.GAS_QA_ENDPOINT_URL = 'http://localhost:${PORT}/offline-resilience-fallback';
+    await loadActiveJobOrdersDirectory();
+  })()`);
   await new Promise(r => setTimeout(r, 500));
 
   const mapSize = await evalJs(`DB_PENUGASAN_MAP?.size`);
