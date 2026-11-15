@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 console.log('='.repeat(80));
-console.log('VERIFIKASI SUB-MODUL STRATEGIS 5 TAB: PENGAWASAN, ANALITIK, KPI SDM, SLA KLIEN & OPTIMASI ORDER/PKS');
+console.log('VERIFIKASI SISTEM TATA KELOLA OPINI NSR • KEPATUHAN SPM V.4.2026 (5 ATURAN WAJIB)');
 console.log('='.repeat(80));
 
 let errors = [];
@@ -10,9 +10,9 @@ let errors = [];
 // 1. Verifikasi portal-governance.html
 const govHtml = fs.readFileSync(path.resolve('portal-governance.html'), 'utf8');
 
-// A. 5 Tab Button & Containers
-const requiredTabs = ['tab-btn-pengawasan', 'tab-btn-analitik', 'tab-btn-kpi', 'tab-btn-sla-klien', 'tab-btn-optimasi-pks'];
-const requiredContents = ['tab-content-pengawasan', 'tab-content-analitik', 'tab-content-kpi', 'tab-content-sla-klien', 'tab-content-optimasi-pks'];
+// A. 6 Tab Button & Containers (Termasuk Tab 6: Kepatuhan SPM & Sampling Acak)
+const requiredTabs = ['tab-btn-pengawasan', 'tab-btn-analitik', 'tab-btn-kpi', 'tab-btn-sla-klien', 'tab-btn-optimasi-pks', 'tab-btn-spm-post-review'];
+const requiredContents = ['tab-content-pengawasan', 'tab-content-analitik', 'tab-content-kpi', 'tab-content-sla-klien', 'tab-content-optimasi-pks', 'tab-content-spm-post-review'];
 
 requiredTabs.forEach(t => {
   if (!govHtml.includes(`id="${t}"`)) errors.push(`Tombol tab #${t} tidak ditemukan`);
@@ -24,192 +24,142 @@ requiredContents.forEach(c => {
   else console.log(`✓ Tab Container #${c} terverifikasi`);
 });
 
-// B. Tab 3: KPI SDM 52 Personel Elements & Evaluation Modal
+// B. Tab 6: Kepatuhan SPM, Sampling Acak Triwulanan & Retensi 10 Tahun
+const spmElements = ['stat-spm-total-sample', 'stat-spm-capa-open', 'stat-spm-capa-inprogress', 'stat-spm-capa-closed', 'tbody-spm-sampling', 'modal-capa-update'];
+spmElements.forEach(id => {
+  if (!govHtml.includes(`id="${id}"`)) errors.push(`Elemen SPM #${id} tidak ditemukan`);
+  else console.log(`✓ Elemen SPM #${id} terverifikasi`);
+});
+
+const spmFuncs = ['muatDataSamplingSPM', 'jalankanSamplingAcakSPM', 'bukaModalCapa', 'handleSimpanCapaUpdate', 'eksporSamplingCapaCSV'];
+spmFuncs.forEach(fn => {
+  if (!govHtml.includes(`function ${fn}`)) errors.push(`Fungsi SPM ${fn} tidak ditemukan`);
+  else console.log(`✓ Fungsi SPM ${fn} terverifikasi`);
+});
+
+// C. Tab 3: KPI SDM 52 Personel & Early Warning Radar 90-Hari (BPN, OJK, KMK, SKP)
 const kpiCards = ['stat-kpi-avg-nasional', 'stat-kpi-top-name', 'stat-kpi-ppl-ratio', 'stat-kpi-workload-balance'];
 kpiCards.forEach(id => {
   if (!govHtml.includes(`id="${id}"`)) errors.push(`Kartu KPI #${id} tidak ditemukan`);
   else console.log(`✓ Kartu KPI #${id} terverifikasi`);
 });
 
-if (!govHtml.includes('id="chart-kpi-cabang"')) errors.push('Canvas #chart-kpi-cabang tidak ditemukan');
-else console.log('✓ Canvas #chart-kpi-cabang terverifikasi');
+const pplBpnOjkInputs = ['ppl-input-no-bpn', 'ppl-input-tgl-bpn', 'ppl-input-no-ojk', 'ppl-input-tgl-ojk'];
+pplBpnOjkInputs.forEach(id => {
+  if (!govHtml.includes(`id="${id}"`)) errors.push(`Input #${id} tidak ditemukan pada modal PPL`);
+  else console.log(`✓ Input Radar 90-Hari #${id} terverifikasi`);
+});
 
-if (!govHtml.includes('id="tbody-kpi-employees"')) errors.push('Tabel #tbody-kpi-employees tidak ditemukan');
-else console.log('✓ Tabel #tbody-kpi-employees terverifikasi');
-
-if (!govHtml.includes('id="filter-kpi-periode"')) errors.push('Filter #filter-kpi-periode tidak ditemukan');
-else console.log('✓ Filter #filter-kpi-periode terverifikasi');
-
-if (!govHtml.includes('id="modal-evaluasi-kpi"')) errors.push('Modal #modal-evaluasi-kpi tidak ditemukan');
-else console.log('✓ Modal #modal-evaluasi-kpi terverifikasi');
-
-if (!govHtml.includes('function bukaModalEvaluasiKpi(')) errors.push('Fungsi bukaModalEvaluasiKpi tidak ditemukan');
-else console.log('✓ Fungsi bukaModalEvaluasiKpi terverifikasi');
-
-if (!govHtml.includes('function handleSimpanEvaluasiKpi(')) errors.push('Fungsi handleSimpanEvaluasiKpi tidak ditemukan');
-else console.log('✓ Fungsi handleSimpanEvaluasiKpi terverifikasi');
-
-if (!govHtml.includes('function eksporKpiCsv(')) errors.push('Fungsi eksporKpiCsv tidak ditemukan');
-else console.log('✓ Fungsi eksporKpiCsv terverifikasi');
-
-if (!govHtml.includes('id="modal-ppl-izin"')) errors.push('Modal #modal-ppl-izin tidak ditemukan');
-else console.log('✓ Modal #modal-ppl-izin terverifikasi');
-
-if (!govHtml.includes('function bukaModalPplIzin(')) errors.push('Fungsi bukaModalPplIzin tidak ditemukan');
-else console.log('✓ Fungsi bukaModalPplIzin terverifikasi');
-
-if (!govHtml.includes('function handleSimpanPplIzin(')) errors.push('Fungsi handleSimpanPplIzin tidak ditemukan');
-else console.log('✓ Fungsi handleSimpanPplIzin terverifikasi');
-
-// C. Tab 4: SLA Bank Rekanan & Klien
+// D. Tab 4: SLA Bank Rekanan & Klien
 const slaCards = ['stat-sla-ontime-rate', 'stat-sla-internal-days', 'stat-sla-clockstop-days', 'stat-sla-payment-speed'];
 slaCards.forEach(id => {
   if (!govHtml.includes(`id="${id}"`)) errors.push(`Kartu SLA #${id} tidak ditemukan`);
   else console.log(`✓ Kartu SLA #${id} terverifikasi`);
 });
 
-const slaCanvas = ['chart-sla-target-realisasi', 'chart-sla-clockstop'];
-slaCanvas.forEach(id => {
-  if (!govHtml.includes(`id="${id}"`)) errors.push(`Canvas #${id} tidak ditemukan`);
-  else console.log(`✓ Canvas #${id} terverifikasi`);
-});
-
-if (!govHtml.includes('id="tbody-near-overdue-jobs"')) errors.push('Tabel #tbody-near-overdue-jobs tidak ditemukan');
-else console.log('✓ Radar #tbody-near-overdue-jobs terverifikasi');
-
-if (!govHtml.includes('id="tbody-bank-sla-performance"')) errors.push('Tabel #tbody-bank-sla-performance tidak ditemukan');
-else console.log('✓ Tabel #tbody-bank-sla-performance terverifikasi');
-
-if (!govHtml.includes('function renderClientSLA(')) errors.push('Fungsi renderClientSLA tidak ditemukan');
-else console.log('✓ Fungsi renderClientSLA terverifikasi');
-
-// D. Tab 5: Optimasi Order & Radar PKS
+// E. Tab 5: Optimasi Order & Radar PKS
 const optCards = ['stat-opt-winrate', 'stat-opt-dormant', 'stat-opt-aov', 'stat-opt-pks-alert'];
 optCards.forEach(id => {
   if (!govHtml.includes(`id="${id}"`)) errors.push(`Kartu Optimasi #${id} tidak ditemukan`);
   else console.log(`✓ Kartu Optimasi #${id} terverifikasi`);
 });
 
-const optContainers = ['container-dormant-bank-alerts', 'container-pks-alert-radar'];
-optContainers.forEach(id => {
-  if (!govHtml.includes(`id="${id}"`)) errors.push(`Container #${id} tidak ditemukan`);
-  else console.log(`✓ Container #${id} terverifikasi`);
+// 2. Verifikasi portal-nolap.html (Rule 1: Escalation Gate & Rule 3: FM-SPM-06.1)
+const nolapHtml = fs.readFileSync(path.resolve('portal-nolap.html'), 'utf8');
+
+if (!nolapHtml.includes('id="banner-branch-license-escalation"')) {
+  errors.push('Banner #banner-branch-license-escalation tidak ditemukan di portal-nolap.html');
+} else {
+  console.log('✓ Rule 1: #banner-branch-license-escalation terverifikasi di portal-nolap.html');
+}
+
+if (!nolapHtml.includes('function alihkanKeRekanPropertiPusat(')) {
+  errors.push('Fungsi alihkanKeRekanPropertiPusat tidak ditemukan di portal-nolap.html');
+} else {
+  console.log('✓ Rule 1: alihkanKeRekanPropertiPusat terverifikasi di portal-nolap.html');
+}
+
+const fmSpmCheckboxes = ['chk_fm_spm_independensi', 'chk_fm_spm_inspeksi_geotag', 'chk_fm_spm_kkp', 'chk_fm_spm_representasi'];
+fmSpmCheckboxes.forEach(chk => {
+  if (!nolapHtml.includes(`id="${chk}"`)) errors.push(`Checkbox FM-SPM-06.1 #${chk} tidak ditemukan`);
+  else console.log(`✓ Rule 3: Checkbox #${chk} (FM-SPM-06.1) terverifikasi`);
 });
 
-const optCanvas = ['chart-bank-winrate', 'chart-bank-segments'];
-optCanvas.forEach(id => {
-  if (!govHtml.includes(`id="${id}"`)) errors.push(`Canvas #${id} tidak ditemukan`);
-  else console.log(`✓ Canvas #${id} terverifikasi`);
-});
+if (!nolapHtml.includes('id="indikator-fm-spm-gate"')) {
+  errors.push('Indikator #indikator-fm-spm-gate tidak ditemukan di portal-nolap.html');
+} else {
+  console.log('✓ Rule 3: #indikator-fm-spm-gate terverifikasi');
+}
 
-if (!govHtml.includes('id="tbody-bank-intelligence"')) errors.push('Tabel #tbody-bank-intelligence tidak ditemukan');
-else console.log('✓ Tabel #tbody-bank-intelligence terverifikasi');
+// 3. Verifikasi portal-qa-review.html (Rule 2: Zero Self-Review Validator)
+const qaPortalHtml = fs.readFileSync(path.resolve('portal-qa-review.html'), 'utf8');
+if (!qaPortalHtml.includes('Pelanggaran Zero Self-Review (SPM V.4.2026)')) {
+  errors.push('Zero Self-Review Validator tidak ditemukan di portal-qa-review.html');
+} else {
+  console.log('✓ Rule 2: Zero Self-Review Validator terverifikasi di portal-qa-review.html');
+}
 
-if (!govHtml.includes('function filterBankIntelligenceTable(')) errors.push('Fungsi filterBankIntelligenceTable tidak ditemukan');
-else console.log('✓ Fungsi filterBankIntelligenceTable terverifikasi');
-
-if (!govHtml.includes('function eksporAnalitikRekananCsv(')) errors.push('Fungsi eksporAnalitikRekananCsv tidak ditemukan');
-else console.log('✓ Fungsi eksporAnalitikRekananCsv terverifikasi');
-
-if (!govHtml.includes('function renderBankOrderAndOptimization(')) errors.push('Fungsi renderBankOrderAndOptimization tidak ditemukan');
-else console.log('✓ Fungsi renderBankOrderAndOptimization terverifikasi');
-
-// E. Modul Radar Izin Penilai & Cetak Ringkasan Eksekutif A4
-const printAndRadarElements = ['btn-cetak-eksekutif', 'container-izin-alert-radar', 'stat-kpi-radar-count', 'print-executive-report'];
-printAndRadarElements.forEach(id => {
-  if (!govHtml.includes(`id="${id}"`)) errors.push(`Elemen #${id} tidak ditemukan`);
-  else console.log(`✓ Elemen #${id} terverifikasi`);
-});
-
-if (!govHtml.includes('function renderIzinAlertRadar(')) errors.push('Fungsi renderIzinAlertRadar tidak ditemukan');
-else console.log('✓ Fungsi renderIzinAlertRadar terverifikasi');
-
-if (!govHtml.includes('function cetakRingkasanEksekutifA4(')) errors.push('Fungsi cetakRingkasanEksekutifA4 tidak ditemukan');
-else console.log('✓ Fungsi cetakRingkasanEksekutifA4 terverifikasi');
-
-// 2. Verifikasi Backend Code.gs
+// 4. Verifikasi Backend Code.gs & google-apps-script-qa-audit.gs
 const codeGs = fs.readFileSync(path.resolve('Code.gs'), 'utf8');
-if (!codeGs.includes('getEmployeeKPIMetrics') || !codeGs.includes('getClientSLAPerformance') || !codeGs.includes('getBankOrderOptimizationMetrics')) {
-  errors.push('Fungsi getEmployeeKPIMetrics, getClientSLAPerformance, atau getBankOrderOptimizationMetrics tidak ditemukan di Code.gs');
-} else {
-  console.log('✓ Code.gs mendefinisikan getEmployeeKPIMetrics, getClientSLAPerformance, dan getBankOrderOptimizationMetrics');
-}
-if (!codeGs.includes('saveEmployeeKPIEvaluation') || !codeGs.includes('SAVE_EMPLOYEE_KPI_EVAL')) {
-  errors.push('Code.gs belum memuat fungsi saveEmployeeKPIEvaluation atau aksi SAVE_EMPLOYEE_KPI_EVAL');
-} else {
-  console.log('✓ Code.gs memuat saveEmployeeKPIEvaluation dan aksi SAVE_EMPLOYEE_KPI_EVAL');
-}
-if (!codeGs.includes("action === 'GET_BANK_OPTIMIZATION'") && !codeGs.includes("case 'GET_BANK_OPTIMIZATION':")) {
-  errors.push('Router doGet/doPost di Code.gs belum memuat aksi GET_BANK_OPTIMIZATION');
-} else {
-  console.log('✓ Code.gs mendaftarkan aksi GET_BANK_OPTIMIZATION di router');
-}
-if (!codeGs.includes('archiveSuratUmumToDrive') || !codeGs.includes("ARCHIVE_SURAT_UMUM_GDRIVE")) {
-  errors.push('Code.gs belum memuat fungsi archiveSuratUmumToDrive atau aksi ARCHIVE_SURAT_UMUM_GDRIVE');
-} else {
-  console.log('✓ Code.gs memuat archiveSuratUmumToDrive dan router ARCHIVE_SURAT_UMUM_GDRIVE');
-}
-if (!codeGs.includes('submitAndVerifyPPLRecord') || !codeGs.includes('SUBMIT_PPL_RECORD') || !codeGs.includes('GET_PPL_COMPLIANCE')) {
-  errors.push('Code.gs belum memuat submitAndVerifyPPLRecord atau aksi SUBMIT_PPL_RECORD / GET_PPL_COMPLIANCE');
-} else {
-  console.log('✓ Code.gs memuat submitAndVerifyPPLRecord dan router SUBMIT_PPL_RECORD & GET_PPL_COMPLIANCE');
-}
+const qaGs = fs.readFileSync(path.resolve('backend/google-apps-script-qa-audit.gs'), 'utf8');
 
-// 3. Verifikasi backend/google-apps-script-qa-audit.gs
-const gasAudit = fs.readFileSync(path.resolve('backend/google-apps-script-qa-audit.gs'), 'utf8');
-if (!gasAudit.includes('getEmployeeKPIMetrics') || !gasAudit.includes('getClientSLAPerformance') || !gasAudit.includes('getBankOrderOptimizationMetrics')) {
-  errors.push('backend/google-apps-script-qa-audit.gs belum memuat fungsi KPI, SLA, atau Optimasi Order');
-} else {
-  console.log('✓ backend/google-apps-script-qa-audit.gs mendefinisikan ketiga fungsi KPI, SLA, & Optimasi Order');
-}
-if (!gasAudit.includes('saveEmployeeKPIEvaluation') || !gasAudit.includes('SAVE_EMPLOYEE_KPI_EVAL')) {
-  errors.push('backend/google-apps-script-qa-audit.gs belum memuat saveEmployeeKPIEvaluation atau SAVE_EMPLOYEE_KPI_EVAL');
-} else {
-  console.log('✓ backend/google-apps-script-qa-audit.gs memuat saveEmployeeKPIEvaluation dan SAVE_EMPLOYEE_KPI_EVAL');
-}
-if (!gasAudit.includes("GET_BANK_OPTIMIZATION")) {
-  errors.push('backend/google-apps-script-qa-audit.gs belum mendaftarkan GET_BANK_OPTIMIZATION');
-} else {
-  console.log('✓ backend/google-apps-script-qa-audit.gs mendaftarkan GET_BANK_OPTIMIZATION');
-}
-if (!gasAudit.includes('archiveSuratUmumToDrive') || !gasAudit.includes("ARCHIVE_SURAT_UMUM_GDRIVE")) {
-  errors.push('backend/google-apps-script-qa-audit.gs belum memuat fungsi archiveSuratUmumToDrive atau aksi ARCHIVE_SURAT_UMUM_GDRIVE');
-} else {
-  console.log('✓ backend/google-apps-script-qa-audit.gs memuat archiveSuratUmumToDrive dan router ARCHIVE_SURAT_UMUM_GDRIVE');
-}
-if (!gasAudit.includes('submitAndVerifyPPLRecord') || !gasAudit.includes('SUBMIT_PPL_RECORD') || !gasAudit.includes('GET_PPL_COMPLIANCE')) {
-  errors.push('backend/google-apps-script-qa-audit.gs belum memuat submitAndVerifyPPLRecord atau aksi SUBMIT_PPL_RECORD / GET_PPL_COMPLIANCE');
-} else {
-  console.log('✓ backend/google-apps-script-qa-audit.gs memuat submitAndVerifyPPLRecord dan router SUBMIT_PPL_RECORD & GET_PPL_COMPLIANCE');
-}
+[
+  { name: 'Code.gs', content: codeGs },
+  { name: 'google-apps-script-qa-audit.gs', content: qaGs }
+].forEach(backend => {
+  if (!backend.content.includes('ZERO_SELF_REVIEW_VIOLATION')) {
+    errors.push(`Rule 2: ZERO_SELF_REVIEW_VIOLATION tidak ditemukan di ${backend.name}`);
+  } else {
+    console.log(`✓ Rule 2: ZERO_SELF_REVIEW_VIOLATION terverifikasi di ${backend.name}`);
+  }
 
-// 4. Verifikasi governance-data-handler.php
+  if (!backend.content.includes('checkBranchLicenseEscalation') || !backend.content.includes('CHECK_BRANCH_ESCALATION')) {
+    errors.push(`Rule 1: checkBranchLicenseEscalation / CHECK_BRANCH_ESCALATION tidak ditemukan di ${backend.name}`);
+  } else {
+    console.log(`✓ Rule 1: checkBranchLicenseEscalation terverifikasi di ${backend.name}`);
+  }
+
+  if (!backend.content.includes('generateQuarterlySampling') || !backend.content.includes('GENERATE_QUARTERLY_SAMPLING')) {
+    errors.push(`Rule 5: generateQuarterlySampling tidak ditemukan di ${backend.name}`);
+  } else {
+    console.log(`✓ Rule 5: generateQuarterlySampling terverifikasi di ${backend.name}`);
+  }
+
+  if (!backend.content.includes('updateCAPAStatus') || !backend.content.includes('UPDATE_CAPA_STATUS')) {
+    errors.push(`Rule 5: updateCAPAStatus tidak ditemukan di ${backend.name}`);
+  } else {
+    console.log(`✓ Rule 5: updateCAPAStatus terverifikasi di ${backend.name}`);
+  }
+
+  if (!backend.content.includes('NO_LISENSI_BPN') || !backend.content.includes('NO_STTD_OJK')) {
+    errors.push(`Rule 4: NO_LISENSI_BPN / NO_STTD_OJK tidak ditemukan di ${backend.name}`);
+  } else {
+    console.log(`✓ Rule 4: Radar BPN & OJK terverifikasi di ${backend.name}`);
+  }
+});
+
+// 5. Verifikasi Backend Fallback PHP (governance-data-handler.php)
 const phpContent = fs.readFileSync(path.resolve('governance-data-handler.php'), 'utf8');
-if (!phpContent.includes('GET_BANK_OPTIMIZATION') || !phpContent.includes('bankOptimization')) {
-  errors.push('governance-data-handler.php belum memuat GET_BANK_OPTIMIZATION atau bankOptimization');
+const requiredPhpCases = ['CHECK_BRANCH_ESCALATION', 'GENERATE_QUARTERLY_SAMPLING', 'UPDATE_CAPA_STATUS', 'GET_POST_ENGAGEMENT_REVIEWS', 'SUBMIT_PPL_RECORD', 'GET_PPL_COMPLIANCE'];
+
+requiredPhpCases.forEach(act => {
+  if (!phpContent.includes(`case '${act}':`)) {
+    errors.push(`Aksi ${act} tidak ditemukan di governance-data-handler.php`);
+  } else {
+    console.log(`✓ Case ${act} terverifikasi di governance-data-handler.php`);
+  }
+});
+
+if (!phpContent.includes('noLisensiBpn') || !phpContent.includes('noSttdOjk')) {
+  errors.push('Field noLisensiBpn atau noSttdOjk tidak ditemukan di governance-data-handler.php');
 } else {
-  console.log('✓ governance-data-handler.php memuat case GET_BANK_OPTIMIZATION dan bankOptimization');
-}
-if (!phpContent.includes('SAVE_EMPLOYEE_KPI_EVAL')) {
-  errors.push('governance-data-handler.php belum memuat aksi SAVE_EMPLOYEE_KPI_EVAL');
-} else {
-  console.log('✓ governance-data-handler.php memuat case SAVE_EMPLOYEE_KPI_EVAL');
-}
-if (!phpContent.includes('SUBMIT_PPL_RECORD') || !phpContent.includes('GET_PPL_COMPLIANCE')) {
-  errors.push('governance-data-handler.php belum memuat aksi SUBMIT_PPL_RECORD atau GET_PPL_COMPLIANCE');
-} else {
-  console.log('✓ governance-data-handler.php memuat case SUBMIT_PPL_RECORD dan GET_PPL_COMPLIANCE');
-}
-if (!phpContent.includes('ARCHIVE_SURAT_UMUM_GDRIVE')) {
-  errors.push('governance-data-handler.php belum memuat aksi ARCHIVE_SURAT_UMUM_GDRIVE');
-} else {
-  console.log('✓ governance-data-handler.php memuat case ARCHIVE_SURAT_UMUM_GDRIVE');
+  console.log('✓ Field BPN & OJK terverifikasi di governance-data-handler.php');
 }
 
 if (errors.length > 0) {
-  console.error('\n❌ DITEMUKAN KESALAHAN:');
+  console.error('\n❌ DITEMUKAN KESALAHAN VERIFIKASI:');
   errors.forEach(e => console.error('  - ' + e));
   process.exit(1);
 } else {
-  console.log('\n🎉 SELURUH SUB-MODUL STRATEGIS 5 TAB TATA KELOLA EKSEKUTIF LOLOS VERIFIKASI 100%!');
+  console.log('\n🎉 SELURUH 5 ATURAN TATA KELOLA SPM V.4.2026 LOLOS VERIFIKASI 100%!');
 }

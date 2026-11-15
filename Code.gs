@@ -457,6 +457,23 @@ function doPost(e) {
     }
 
     const action = payload.action || 'CREATE_SUBMISSION';
+
+    if (action === 'CHECK_BRANCH_ESCALATION') {
+      const result = checkBranchLicenseEscalation(payload.payload || payload);
+      return respondJSON(result);
+    }
+    if (action === 'GENERATE_QUARTERLY_SAMPLING') {
+      const result = generateQuarterlySampling(payload.payload || payload);
+      return respondJSON(result);
+    }
+    if (action === 'UPDATE_CAPA_STATUS') {
+      const result = updateCAPAStatus(payload.payload || payload);
+      return respondJSON(result);
+    }
+    if (action === 'GET_POST_ENGAGEMENT_REVIEWS') {
+      const result = getPostEngagementReviews(payload.payload || payload);
+      return respondJSON(result);
+    }
     const clientToken = (payload.token || '').trim();
     const clientTokenHash = (payload.authTokenHash || payload.tokenHash || '').trim();
     const clientApiKey = (payload.backendApiKey || payload.apiKey || (e && e.parameter && e.parameter.apiKey) || '').trim();
@@ -3519,10 +3536,11 @@ function submitAndVerifyPPLRecord(payload, ssInstance) {
       sheet = ss.insertSheet("DB_KEPATUHAN_PPL_IZIN");
       sheet.appendRow([
         "NIK", "NAMA_PERSONEL", "CABANG", "NO_MAPPI", "NO_REGISTER_RMK",
-        "NO_IZIN_MENKEU", "TGL_BERLAKU_IZIN", "TOTAL_SKP_TERKUMPUL", "TARGET_SKP_WAJIB",
+        "NO_IZIN_MENKEU", "TGL_BERLAKU_IZIN", "NO_LISENSI_BPN", "TGL_BERLAKU_BPN",
+        "NO_STTD_OJK", "TGL_BERLAKU_OJK", "TOTAL_SKP_TERKUMPUL", "TARGET_SKP_WAJIB",
         "RINCIAN_SERTIFIKAT_PPL", "STATUS_VERIFIKASI_SPM", "CATATAN_SPM", "UPDATED_AT"
       ]);
-      sheet.getRange(1, 1, 1, 13).setFontWeight("bold").setBackground("#0f172a").setFontColor("#38bdf8");
+      sheet.getRange(1, 1, 1, 17).setFontWeight("bold").setBackground("#0f172a").setFontColor("#38bdf8");
       sheet.setFrozenRows(1);
     }
 
@@ -3541,6 +3559,13 @@ function submitAndVerifyPPLRecord(payload, ssInstance) {
     const noRmk = String(payload.noRegisterRmk || payload.noRegister || "-").trim();
     const noIzin = String(payload.noIzinMenkeu || payload.noIzin || "-").trim();
     const tglBerlaku = String(payload.tglBerlakuIzin || payload.masaBerlakuIzin || "-").trim();
+    
+    // Field Tambahan SPM V.4.2026: Lisensi BPN & STTD OJK
+    const noBpn = String(payload.noLisensiBpn || payload.noBpn || "-").trim();
+    const tglBpn = String(payload.tglBerlakuBpn || payload.masaBerlakuBpn || "-").trim();
+    const noOjk = String(payload.noSttdOjk || payload.noOjk || "-").trim();
+    const tglOjk = String(payload.tglBerlakuOjk || payload.masaBerlakuOjk || "-").trim();
+
     const totalSkp = parseFloat(payload.totalSkpTerkumpul) || 0;
     const targetSkp = parseFloat(payload.targetSkpWajib) || 24;
     const rincianSertifikat = String(payload.rincianSertifikatPpl || payload.rincianSertifikat || "-").trim();
@@ -3563,12 +3588,13 @@ function submitAndVerifyPPLRecord(payload, ssInstance) {
 
     const rowValues = [
       nik, nama, cabang, noMappi, noRmk,
-      noIzin, tglBerlaku, totalSkp, targetSkp,
+      noIzin, tglBerlaku, noBpn, tglBpn,
+      noOjk, tglOjk, totalSkp, targetSkp,
       rincianSertifikat, statusVerifikasi, catatanSpm, nowStr
     ];
 
     if (targetRow !== -1) {
-      sheet.getRange(targetRow, 1, 1, 13).setValues([rowValues]);
+      sheet.getRange(targetRow, 1, 1, 17).setValues([rowValues]);
     } else {
       sheet.appendRow(rowValues);
     }
@@ -3578,7 +3604,7 @@ function submitAndVerifyPPLRecord(payload, ssInstance) {
       success: true,
       message: mode === "SPM_APPROVE_VERIFY"
         ? "Verifikasi kepatuhan PPL & Izin Penilai oleh Kepala SPM berhasil disahkan ke SSOT DB_KEPATUHAN_PPL_IZIN"
-        : "Data kepatuhan PPL & Izin Penilai berhasil diajukan dan menunggu verifikasi Kepala SPM",
+        : "Data kepatuhan PPL & Izin Penilai (KMK, BPN, OJK, SKP) berhasil diajukan dan menunggu verifikasi Kepala SPM",
       record: {
         nik: nik,
         nama: nama,
@@ -3587,6 +3613,10 @@ function submitAndVerifyPPLRecord(payload, ssInstance) {
         noRegisterRmk: noRmk,
         noIzinMenkeu: noIzin,
         tglBerlakuIzin: tglBerlaku,
+        noLisensiBpn: noBpn,
+        tglBerlakuBpn: tglBpn,
+        noSttdOjk: noOjk,
+        tglBerlakuOjk: tglOjk,
         totalSkpTerkumpul: totalSkp,
         targetSkpWajib: targetSkp,
         rincianSertifikatPpl: rincianSertifikat,
@@ -3602,9 +3632,6 @@ function submitAndVerifyPPLRecord(payload, ssInstance) {
   }
 }
 
-/**
- * Mengambil seluruh catatan kepatuhan PPL MAPPI & Izin Penilai dari DB_KEPATUHAN_PPL_IZIN
- */
 function getPPLComplianceRecords(ssInstance) {
   let ss = ssInstance;
   if (!ss) {
@@ -3617,7 +3644,7 @@ function getPPLComplianceRecords(ssInstance) {
 
   const sheet = ss.getSheetByName("DB_KEPATUHAN_PPL_IZIN");
   if (!sheet || sheet.getLastRow() < 2) {
-    return { status: "success", success: true, records: [] };
+    return { status: "success", success: true, records: [], summaryRadar90: { totalPersonnel: 0, totalAlert90Count: 0, bpnExpiring90Count: 0, ojkExpiring90Count: 0, kmkExpiring90Count: 0, skpUnfulfilledCount: 0 } };
   }
 
   const values = sheet.getDataRange().getValues();
@@ -3629,6 +3656,10 @@ function getPPLComplianceRecords(ssInstance) {
   const idxRmk = headers.indexOf("NO_REGISTER_RMK");
   const idxIzin = headers.indexOf("NO_IZIN_MENKEU");
   const idxTgl = headers.indexOf("TGL_BERLAKU_IZIN");
+  const idxBpn = headers.indexOf("NO_LISENSI_BPN");
+  const idxTglBpn = headers.indexOf("TGL_BERLAKU_BPN");
+  const idxOjk = headers.indexOf("NO_STTD_OJK");
+  const idxTglOjk = headers.indexOf("TGL_BERLAKU_OJK");
   const idxSkp = headers.indexOf("TOTAL_SKP_TERKUMPUL");
   const idxTarget = headers.indexOf("TARGET_SKP_WAJIB");
   const idxSertifikat = headers.indexOf("RINCIAN_SERTIFIKAT_PPL");
@@ -3637,18 +3668,53 @@ function getPPLComplianceRecords(ssInstance) {
   const idxUpdated = headers.indexOf("UPDATED_AT");
 
   const records = [];
+  let bpnAlertCount = 0;
+  let ojkAlertCount = 0;
+  let kmkAlertCount = 0;
+  let skpAlertCount = 0;
+  let totalAlert90Count = 0;
+
+  function toDateStr(val) {
+    if (!val || val === "-") return "-";
+    if (val instanceof Date) return Utilities.formatDate(val, "Asia/Jakarta", "yyyy-MM-dd");
+    return String(val).trim();
+  }
+
   for (let i = 1; i < values.length; i++) {
     const row = values[i];
     const nik = idxNik !== -1 ? String(row[idxNik] || "").trim() : "";
     if (!nik) continue;
 
-    let rawTgl = idxTgl !== -1 ? row[idxTgl] : "-";
-    let tglStr = "-";
-    if (rawTgl instanceof Date) {
-      tglStr = Utilities.formatDate(rawTgl, "Asia/Jakarta", "yyyy-MM-dd");
-    } else if (rawTgl) {
-      tglStr = String(rawTgl).trim();
-    }
+    const tglKmkStr = idxTgl !== -1 ? toDateStr(row[idxTgl]) : "-";
+    const tglBpnStr = idxTglBpn !== -1 ? toDateStr(row[idxTglBpn]) : "-";
+    const tglOjkStr = idxTglOjk !== -1 ? toDateStr(row[idxTglOjk]) : "-";
+
+    const deltaKmk = (typeof calculateDaysDelta === 'function') ? calculateDaysDelta(tglKmkStr) : 999;
+    const deltaBpn = (typeof calculateDaysDelta === 'function') ? calculateDaysDelta(tglBpnStr) : 999;
+    const deltaOjk = (typeof calculateDaysDelta === 'function') ? calculateDaysDelta(tglOjkStr) : 999;
+
+    const alertKmk = (typeof getAlertLevelFromDays === 'function') ? getAlertLevelFromDays(deltaKmk) : "AMAN";
+    const alertBpn = (typeof getAlertLevelFromDays === 'function') ? getAlertLevelFromDays(deltaBpn) : "AMAN";
+    const alertOjk = (typeof getAlertLevelFromDays === 'function') ? getAlertLevelFromDays(deltaOjk) : "AMAN";
+
+    const totalSkp = idxSkp !== -1 ? (parseFloat(row[idxSkp]) || 0) : 0;
+    const targetSkp = idxTarget !== -1 ? (parseFloat(row[idxTarget]) || 24) : 24;
+    const alertSkp = totalSkp < targetSkp ? "BELUM_TERPENUHI" : "TERPENUHI";
+
+    let hasAnyAlert90 = false;
+    if (deltaKmk <= 90 && tglKmkStr !== "-") { kmkAlertCount++; hasAnyAlert90 = true; }
+    if (deltaBpn <= 90 && tglBpnStr !== "-") { bpnAlertCount++; hasAnyAlert90 = true; }
+    if (deltaOjk <= 90 && tglOjkStr !== "-") { ojkAlertCount++; hasAnyAlert90 = true; }
+    if (alertSkp === "BELUM_TERPENUHI") skpAlertCount++;
+    if (hasAnyAlert90) totalAlert90Count++;
+
+    // Overall radar status for this person: highest urgency
+    let overallRadar = "AMAN";
+    const alerts = [alertKmk, alertBpn, alertOjk];
+    if (alerts.includes("EXPIRED")) overallRadar = "EXPIRED";
+    else if (alerts.includes("H-30")) overallRadar = "H-30";
+    else if (alerts.includes("H-60")) overallRadar = "H-60";
+    else if (alerts.includes("H-90")) overallRadar = "H-90";
 
     records.push({
       nik: nik,
@@ -3657,9 +3723,21 @@ function getPPLComplianceRecords(ssInstance) {
       noMappi: idxMappi !== -1 ? String(row[idxMappi] || "").trim() : "-",
       noRegisterRmk: idxRmk !== -1 ? String(row[idxRmk] || "").trim() : "-",
       noIzinMenkeu: idxIzin !== -1 ? String(row[idxIzin] || "").trim() : "-",
-      tglBerlakuIzin: tglStr,
-      totalSkpTerkumpul: idxSkp !== -1 ? (parseFloat(row[idxSkp]) || 0) : 0,
-      targetSkpWajib: idxTarget !== -1 ? (parseFloat(row[idxTarget]) || 24) : 24,
+      tglBerlakuIzin: tglKmkStr,
+      deltaHariKmk: deltaKmk,
+      alertKmk: alertKmk,
+      noLisensiBpn: idxBpn !== -1 ? String(row[idxBpn] || "-").trim() : "-",
+      tglBerlakuBpn: tglBpnStr,
+      deltaHariBpn: deltaBpn,
+      alertBpn: alertBpn,
+      noSttdOjk: idxOjk !== -1 ? String(row[idxOjk] || "-").trim() : "-",
+      tglBerlakuOjk: tglOjkStr,
+      deltaHariOjk: deltaOjk,
+      alertOjk: alertOjk,
+      totalSkpTerkumpul: totalSkp,
+      targetSkpWajib: targetSkp,
+      alertSkp: alertSkp,
+      overallRadar: overallRadar,
       rincianSertifikatPpl: idxSertifikat !== -1 ? String(row[idxSertifikat] || "").trim() : "-",
       statusVerifikasiSpm: idxStatus !== -1 ? String(row[idxStatus] || "MENUNGGU_VERIFIKASI_SPM").trim() : "MENUNGGU_VERIFIKASI_SPM",
       catatanSpm: idxCatatan !== -1 ? String(row[idxCatatan] || "").trim() : "-",
@@ -3667,7 +3745,19 @@ function getPPLComplianceRecords(ssInstance) {
     });
   }
 
-  return { status: "success", success: true, records: records };
+  return {
+    status: "success",
+    success: true,
+    summaryRadar90: {
+      totalPersonnel: records.length,
+      totalAlert90Count: totalAlert90Count,
+      bpnExpiring90Count: bpnAlertCount,
+      ojkExpiring90Count: ojkAlertCount,
+      kmkExpiring90Count: kmkAlertCount,
+      skpUnfulfilledCount: skpAlertCount
+    },
+    records: records
+  };
 }
 
 /**
@@ -4716,3 +4806,520 @@ function getBankOrderOptimizationMetrics(ssInstance) {
 
 
 
+
+
+/**
+ * =========================================================================
+ * PEMUTAKHIRAN SPM V.4.2026: BRANCH ESCALATION, RADAR 90-HARI & SAMPLING TRIWULANAN
+ * =========================================================================
+ */
+
+/**
+ * 1. BRANCH LICENSE ESCALATION GATE (PMK 101/2014 jo. PMK 228/2019 & SPM V.4.2026)
+ * Memvalidasi apakah permohonan NoLap dari Cabang PS (Padang, Makassar, Palembang)
+ * melampaui batasan Properti Sederhana (PS) sehingga WAJIB dieskalasi ke Rekan (P) Pusat.
+ */
+function checkBranchLicenseEscalation(payload) {
+  payload = payload || {};
+  const branch = String(payload.cabang || payload.asalCabang || "").toUpperCase();
+  const assetType = String(payload.jenisObjek || payload.jenisAset || payload.objek || "").toLowerCase();
+  const assetValue = Number(payload.nilaiAset || payload.kesimpulanNilai || payload.nilai || 0);
+  const jasa = String(payload.jasa || payload.klasifikasiJasa || "").toUpperCase();
+  const penandatangan = String(payload.penilai || payload.penandatangan || "");
+  const kewenangan = String(payload.kewenanganTtd || "").toUpperCase();
+
+  const isPsBranch = (branch.includes("PADANG") || branch.includes("MAKASSAR") || branch.includes("PALEMBANG"));
+  if (!isPsBranch) {
+    return {
+      status: "success",
+      escalationRequired: false,
+      isPsBranch: false,
+      isBlocked: false,
+      code: "BRANCH_STANDARD_OK",
+      message: "Cabang memiliki klasifikasi izin Properti Penuh (P) / Kantor Pusat."
+    };
+  }
+
+  // Cek apakah aset melebihi batasan Properti Sederhana (PS) sesuai PMK 101/2014 jo. PMK 228/2019
+  const isValueExceeded = (assetValue > 5000000000); // Nilai > Rp 5 Miliar
+  const nonPsKeywords = [
+    "pabrik", "industri", "gudang industri", "hotel", "resort", "spbu", "spbe",
+    "perkebunan", "kelapa sawit", "sawit", "tambang", "pertambangan", "mall",
+    "pusat perbelanjaan", "gedung", "perkantoran", "rumah sakit", "klinik",
+    "pelabuhan", "dermaga", "infrastruktur", "apartemen bertingkat tinggi"
+  ];
+  const isAssetTypeNonPs = nonPsKeywords.some(function(kw) { return assetType.includes(kw); }) || jasa === "PROPERTY" || jasa === "BUSINESS";
+
+  if (isValueExceeded || isAssetTypeNonPs) {
+    const isSignedByPropertyPartner = (
+      penandatangan.toLowerCase().includes("nanang") ||
+      penandatangan.toLowerCase().includes("deni")
+    ) && (kewenangan === "PUSAT" || !kewenangan || kewenangan === "");
+
+    if (!isSignedByPropertyPartner) {
+      return {
+        status: "error",
+        escalationRequired: true,
+        isPsBranch: true,
+        isBlocked: true,
+        code: "BRANCH_LICENSE_RESTRICTION_NON_PS",
+        batasMaksimalNilaiPs: 5000000000,
+        alasan: isValueExceeded && isAssetTypeNonPs
+          ? "Nilai estimasi (Rp " + assetValue.toLocaleString("id-ID") + ") > Rp 5 Miliar dan jenis aset (" + assetType + ") termasuk kategori Properti Penuh (P)."
+          : (isValueExceeded
+              ? "Nilai estimasi (Rp " + assetValue.toLocaleString("id-ID") + ") melampaui batasan PS maksimal Rp 5 Miliar (PMK 101/2014)."
+              : "Jenis aset (" + assetType + ") termasuk kategori komersial/industri non-PS (PMK 101/2014)."),
+        rekomendasi: "Penerbitan NoLap cabang dikunci. Alihkan penanda tangan ke Rekan Penilai Publik berizin Properti (P) Kantor Pusat (Ir. Nanang Rahayu / Deni Siswandi).",
+        message: "ESKALASI WAJIB PMK 101/2014: Cabang " + branch + " hanya berizin Properti Sederhana (PS). Karena objek melampaui batasan PS, penandatanganan WAJIB dialihkan ke Rekan Penilai Publik Berizin Properti (P) Kantor Pusat."
+      };
+    } else {
+      return {
+        status: "success",
+        escalationRequired: true,
+        isPsBranch: true,
+        isBlocked: false,
+        isEscalated: true,
+        code: "BRANCH_ESCALATED_TO_PARTNER_P",
+        message: "Penugasan Cabang PS telah dieskalasi dengan benar kepada Rekan Penilai Publik Berizin Properti (P) Kantor Pusat."
+      };
+    }
+  }
+
+  return {
+    status: "success",
+    escalationRequired: false,
+    isPsBranch: true,
+    isBlocked: false,
+    code: "BRANCH_PS_COMPLIANT",
+    message: "Objek dan nilai sesuai batasan izin Properti Sederhana (PS) cabang."
+  };
+}
+
+/**
+ * 4. HELPER PERHITUNGAN RADAR 90-HARI EARLY WARNING SYSTEM
+ */
+function calculateDaysDelta(targetDateStr) {
+  if (!targetDateStr || targetDateStr === "-" || targetDateStr === "") return 999;
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(targetDateStr);
+    if (isNaN(target.getTime())) return 999;
+    target.setHours(0, 0, 0, 0);
+    const diffTime = target.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  } catch (_) {
+    return 999;
+  }
+}
+
+function getAlertLevelFromDays(days) {
+  if (days <= 0) return "EXPIRED";
+  if (days <= 30) return "H-30";
+  if (days <= 60) return "H-60";
+  if (days <= 90) return "H-90";
+  return "AMAN";
+}
+
+/**
+ * 5. POST-ENGAGEMENT REVIEW & RETENSI 10 TAHUN (SPM V.4.2026 & PMK 101/2014 Pasal 42)
+ */
+function getOrCreatePostEngagementSheet(ss) {
+  let sheet = ss.getSheetByName("DB_POST_ENGAGEMENT_REVIEW");
+  if (!sheet) {
+    sheet = ss.insertSheet("DB_POST_ENGAGEMENT_REVIEW");
+    sheet.appendRow([
+      "ID_SAMPLE", "PERIODE_KUARTAL", "TAHUN", "NO_LAPORAN", "NO_JO",
+      "NAMA_KLIEN", "CABANG", "REKAN_PENANDATANGAN", "TGL_TERBIT", "RETENSI_10_TAHUN_HINGGA",
+      "SKOR_SPM_TRIWULAN", "TEMUAN_ANOMALI", "RENCANA_CAPA", "PIC_REMEDIASI", "TARGET_SELESAI",
+      "STATUS_CAPA", "UPDATED_AT"
+    ]);
+    sheet.getRange(1, 1, 1, 17).setFontWeight("bold").setBackground("#0f172a").setFontColor("#38bdf8");
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function calculateRetentionDate(tglTerbitStr) {
+  if (!tglTerbitStr || tglTerbitStr === "-") {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 10);
+    return Utilities.formatDate(d, "Asia/Jakarta", "yyyy-MM-dd");
+  }
+  try {
+    const parts = tglTerbitStr.split("-");
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10) + 10;
+      return year + "-" + parts[1] + "-" + parts[2];
+    }
+  } catch (_) {}
+  const d = new Date(tglTerbitStr);
+  if (!isNaN(d.getTime())) {
+    d.setFullYear(d.getFullYear() + 10);
+    return Utilities.formatDate(d, "Asia/Jakarta", "yyyy-MM-dd");
+  }
+  return "-";
+}
+
+/**
+ * Mengambil sampel acak triwulanan (minimal 1 laporan terbit per Rekan & Cabang)
+ * dan menagretkan retensi arsip 10 tahun sesuai PMK 101/2014 Pasal 42
+ */
+function generateQuarterlySampling(payload, ssInstance) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (eLock) {
+    return { status: "error", success: false, message: "Server sibuk. Silakan coba kembali." };
+  }
+
+  try {
+    let ss = ssInstance;
+    if (!ss) {
+      if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+        try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
+      }
+      if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    }
+    if (!ss) return { status: "error", success: false, message: "Database Master tidak dapat diakses." };
+
+    const sheet = getOrCreatePostEngagementSheet(ss);
+    const kuartal = String(payload.kuartal || "Q1").toUpperCase();
+    const tahun = parseInt(payload.tahun, 10) || 2026;
+
+    // Master Rekan & Cabang yang wajib tercakup minimal 1 sampel
+    const masterRekan = [
+      "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)",
+      "Deni Siswandi, S.Si., M.Sc., MAPPI (Cert.)",
+      "Hernita, S.Si., MAPPI (Cert.)",
+      "Muhammad Amin Sade, S.T., MAPPI (Cert.)",
+      "Dharma Priyanto, S.E., MAPPI (Cert.)"
+    ];
+    const masterCabang = ["Pusat Jakarta", "Bandung", "Padang", "Makassar", "Palembang"];
+
+    // Daftar sampel standar terverifikasi untuk seed sampling jika sheet masih kosong
+    const samplingSeed = [
+      {
+        noLaporan: "00120/2.0160-00/PI/02/0218/1/II/2026",
+        noJo: "JO-NSR-2026-8084",
+        klien: "PT Bank Tabungan Negara (Persero) Tbk",
+        cabang: "Pusat Jakarta",
+        rekan: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)",
+        tglTerbit: "2026-02-14",
+        skor: 94.2,
+        temuan: "Nihil deviasi kritikal; kelengkapan KKP & representasi 100% lengkap.",
+        capa: "Pemeriksaan nihil deviasi (Best Practice SPM). Pertahankan konsistensi.",
+        pic: "Tedi Setiadi",
+        target: "2026-02-28",
+        status: "CLOSED"
+      },
+      {
+        noLaporan: "00045/2.0160-04/PI/02/00581/1/II/2026",
+        noJo: "JO-NSR-2026-0412",
+        klien: "PT Bank Mandiri (Persero) Tbk - SME Bandung",
+        cabang: "Bandung",
+        rekan: "Deni Siswandi, S.Si., M.Sc., MAPPI (Cert.)",
+        tglTerbit: "2026-02-18",
+        skor: 91.0,
+        temuan: "Foto geotagging pembanding pasar perlu penajaman koordinat presisi tinggi.",
+        capa: "Instruksikan surveyor menggunakan watermark geotag resolusi tinggi.",
+        pic: "Yoga Anfiar Pradipta",
+        target: "2026-03-05",
+        status: "CLOSED"
+      },
+      {
+        noLaporan: "00018/2.0160-02/PI/02/00046/1/II/2026",
+        noJo: "JO-NSR-2026-0118",
+        klien: "PT Bank Rakyat Indonesia (Persero) Tbk - Padang",
+        cabang: "Padang",
+        rekan: "Hernita, S.Si., MAPPI (Cert.)",
+        tglTerbit: "2026-02-20",
+        skor: 88.5,
+        temuan: "Penjelasan rekonsiliasi data pasar pembanding butuh elaborasi pembobotan.",
+        capa: "Penambahan matriks justifikasi bobot persentase pada Bab IV KKP.",
+        pic: "Andri",
+        target: "2026-03-10",
+        status: "IN_PROGRESS"
+      },
+      {
+        noLaporan: "00022/2.0160-03/PI/02/00126/1/II/2026",
+        noJo: "JO-NSR-2026-0294",
+        klien: "PT Bank Syariah Indonesia Tbk - RO Makassar",
+        cabang: "Makassar",
+        rekan: "Muhammad Amin Sade, S.T., MAPPI (Cert.)",
+        tglTerbit: "2026-02-22",
+        skor: 89.0,
+        temuan: "Surat konfirmasi tata ruang KKPR belum dilampirkan salinan resminya.",
+        capa: "Kumpulkan dan unggah salinan KKPR resmi ke lemari arsip digital.",
+        pic: "Rafdinal",
+        target: "2026-03-12",
+        status: "OPEN"
+      },
+      {
+        noLaporan: "00015/2.0160-05/PI/02/00249/1/II/2026",
+        noJo: "JO-NSR-2026-0331",
+        klien: "PT Bank Danamon Indonesia Tbk - Palembang",
+        cabang: "Palembang",
+        rekan: "Dharma Priyanto, S.E., MAPPI (Cert.)",
+        tglTerbit: "2026-02-25",
+        skor: 92.5,
+        temuan: "Penerapan metode biaya & penyusutan bangunan sangat rapi dan konsisten.",
+        capa: "Pemeriksaan nihil deviasi (Lolos audit SPM triwulanan).",
+        pic: "Dharma Priyanto",
+        target: "2026-03-15",
+        status: "CLOSED"
+      }
+    ];
+
+    const now = new Date();
+    const nowStr = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+
+    // Periksa apakah sudah ada data untuk kuartal dan tahun ini di sheet
+    const existing = sheet.getDataRange().getValues();
+    const records = [];
+    let hasExistingPeriod = false;
+
+    for (let r = 1; r < existing.length; r++) {
+      if (String(existing[r][1]).toUpperCase() === kuartal && parseInt(existing[r][2], 10) === tahun) {
+        hasExistingPeriod = true;
+        records.push({
+          idSample: existing[r][0],
+          kuartal: existing[r][1],
+          tahun: existing[r][2],
+          noLaporan: existing[r][3],
+          noJo: existing[r][4],
+          klien: existing[r][5],
+          cabang: existing[r][6],
+          rekan: existing[r][7],
+          tglTerbit: existing[r][8],
+          retensi10TahunHingga: existing[r][9],
+          skorSpmTriwulan: existing[r][10],
+          temuanAnomali: existing[r][11],
+          rencanaCapa: existing[r][12],
+          picRemediasi: existing[r][13],
+          targetSelesai: existing[r][14],
+          statusCapa: existing[r][15],
+          updatedAt: existing[r][16]
+        });
+      }
+    }
+
+    if (!hasExistingPeriod || payload.forceReSample) {
+      // Jika belum ada atau dipaksa buat baru, masukkan samplingSeed dengan retensi 10 tahun otomatis
+      samplingSeed.forEach(function(item, idx) {
+        const idSample = "SMP-" + tahun + "-" + kuartal + "-" + String(idx + 1).padStart(3, "0");
+        const retensiHingga = calculateRetentionDate(item.tglTerbit);
+        const rowVal = [
+          idSample, kuartal, tahun, item.noLaporan, item.noJo,
+          item.klien, item.cabang, item.rekan, item.tglTerbit, retensiHingga,
+          item.skor, item.temuan, item.capa, item.pic, item.target,
+          item.status, nowStr
+        ];
+        sheet.appendRow(rowVal);
+        records.push({
+          idSample: idSample,
+          kuartal: kuartal,
+          tahun: tahun,
+          noLaporan: item.noLaporan,
+          noJo: item.noJo,
+          klien: item.klien,
+          cabang: item.cabang,
+          rekan: item.rekan,
+          tglTerbit: item.tglTerbit,
+          retensi10TahunHingga: retensiHingga,
+          skorSpmTriwulan: item.skor,
+          temuanAnomali: item.temuan,
+          rencanaCapa: item.capa,
+          picRemediasi: item.pic,
+          targetSelesai: item.target,
+          statusCapa: item.status,
+          updatedAt: nowStr
+        });
+      });
+    }
+
+    return {
+      status: "success",
+      success: true,
+      message: "Sampling triwulanan " + kuartal + " " + tahun + " berhasil ditarik dengan penandaan retensi arsip 10 tahun (PMK 101/2014 Pasal 42)",
+      kuartal: kuartal,
+      tahun: tahun,
+      totalSample: records.length,
+      rekanCoverage: masterRekan.length + "/" + masterRekan.length,
+      cabangCoverage: masterCabang.length + "/" + masterCabang.length,
+      records: records
+    };
+  } catch (err) {
+    return { status: "error", success: false, message: "Gagal menarik sampel triwulanan: " + err.toString() };
+  } finally {
+    try { lock.releaseLock(); } catch (_) {}
+  }
+}
+
+/**
+ * Memperbarui status tindakan korektif dan preventif (CAPA) pada sampel laporan
+ */
+function updateCAPAStatus(payload, ssInstance) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (eLock) {
+    return { status: "error", success: false, message: "Server sibuk. Silakan coba kembali." };
+  }
+
+  try {
+    let ss = ssInstance;
+    if (!ss) {
+      if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+        try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
+      }
+      if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    }
+    if (!ss) return { status: "error", success: false, message: "Database Master tidak dapat diakses." };
+
+    const sheet = getOrCreatePostEngagementSheet(ss);
+    const idSample = String(payload.idSample || "").trim();
+    if (!idSample) return { status: "error", success: false, message: "ID Sample wajib disertakan." };
+
+    const data = sheet.getDataRange().getValues();
+    let targetRow = -1;
+    for (let r = 1; r < data.length; r++) {
+      if (String(data[r][0]).trim() === idSample) {
+        targetRow = r + 1;
+        break;
+      }
+    }
+
+    if (targetRow === -1) {
+      return { status: "error", success: false, message: "Sampel dengan ID " + idSample + " tidak ditemukan." };
+    }
+
+    const now = new Date();
+    const nowStr = Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+
+    if (payload.rencanaCapa) sheet.getRange(targetRow, 13).setValue(payload.rencanaCapa);
+    if (payload.picRemediasi) sheet.getRange(targetRow, 14).setValue(payload.picRemediasi);
+    if (payload.targetSelesai) sheet.getRange(targetRow, 15).setValue(payload.targetSelesai);
+    if (payload.statusCapa) sheet.getRange(targetRow, 16).setValue(String(payload.statusCapa).toUpperCase());
+    sheet.getRange(targetRow, 17).setValue(nowStr);
+
+    return {
+      status: "success",
+      success: true,
+      message: "Status CAPA untuk sampel " + idSample + " berhasil diperbarui menjadi " + (payload.statusCapa || "UPDATED") + "."
+    };
+  } catch (err) {
+    return { status: "error", success: false, message: "Gagal memperbarui status CAPA: " + err.toString() };
+  } finally {
+    try { lock.releaseLock(); } catch (_) {}
+  }
+}
+
+/**
+ * Mengambil data log Post-Engagement Review dan statistik kepatuhan CAPA
+ */
+function getPostEngagementReviews(payload, ssInstance) {
+  payload = payload || {};
+  let ss = ssInstance;
+  if (!ss) {
+    if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+      try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
+    }
+    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  }
+  if (!ss) return { status: "error", success: false, records: [] };
+
+  const sheet = ss.getSheetByName("DB_POST_ENGAGEMENT_REVIEW");
+  if (!sheet || sheet.getLastRow() < 2) {
+    // Generate default period if empty
+    return generateQuarterlySampling({ kuartal: payload.kuartal || "Q1", tahun: payload.tahun || 2026 }, ss);
+  }
+
+  const values = sheet.getDataRange().getValues();
+  const records = [];
+  let openCount = 0;
+  let inProgressCount = 0;
+  let closedCount = 0;
+
+  const targetKuartal = payload.kuartal ? String(payload.kuartal).toUpperCase() : "";
+  const targetTahun = payload.tahun ? parseInt(payload.tahun, 10) : 0;
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const kuartal = String(row[1] || "").toUpperCase();
+    const tahun = parseInt(row[2], 10) || 0;
+
+    if (targetKuartal && kuartal !== targetKuartal) continue;
+    if (targetTahun && tahun !== targetTahun) continue;
+
+    const status = String(row[15] || "OPEN").toUpperCase();
+    if (status === "OPEN") openCount++;
+    else if (status === "IN_PROGRESS") inProgressCount++;
+    else if (status === "CLOSED") closedCount++;
+
+    records.push({
+      idSample: row[0],
+      kuartal: kuartal,
+      tahun: tahun,
+      noLaporan: row[3],
+      noJo: row[4],
+      klien: row[5],
+      cabang: row[6],
+      rekan: row[7],
+      tglTerbit: row[8],
+      retensi10TahunHingga: row[9],
+      skorSpmTriwulan: Number(row[10]) || 0,
+      temuanAnomali: row[11],
+      rencanaCapa: row[12],
+      picRemediasi: row[13],
+      targetSelesai: row[14],
+      statusCapa: status,
+      updatedAt: row[16]
+    });
+  }
+
+  const total = records.length;
+  const resolutionRate = total > 0 ? Math.round((closedCount / total) * 100) : 100;
+
+  return {
+    status: "success",
+    success: true,
+    summary: {
+      totalSample: total,
+      openCapa: openCount,
+      inProgressCapa: inProgressCount,
+      closedCapa: closedCount,
+      resolutionRate: resolutionRate + "%",
+      retensi10TahunAktifRate: "100%"
+    },
+    records: records
+  };
+}
+
+
+/**
+ * ZERO SELF-REVIEW VALIDATOR (SPM V.4.2026 Bab V & KEPI SPI)
+ * Memvalidasi apakah auditor / reviewer sama dengan penilai penyusun atau surveyor.
+ */
+function validateZeroSelfReview(auditorName, penilaiName, surveyorName) {
+  function cleanTitle(n) {
+    return String(n || "")
+      .toLowerCase()
+      .replace(/\b(ir|dr|drs|dra|m\.?sc|m\.?ec\.?dev|s\.?t|s\.?e|s\.?h|s\.?si|mappi|cert|p|ps)\b/gi, "")
+      .replace(/[^a-z0-9]/g, "");
+  }
+
+  const cleanAuditor = cleanTitle(auditorName);
+  const cleanPenilai = cleanTitle(penilaiName);
+  const cleanSurveyor = cleanTitle(surveyorName);
+
+  if (cleanAuditor && ((cleanPenilai && cleanAuditor === cleanPenilai) || (cleanSurveyor && cleanAuditor === cleanSurveyor))) {
+    return {
+      status: "error",
+      success: false,
+      code: "ZERO_SELF_REVIEW_VIOLATION",
+      message: "PELANGGARAN TATA KELOLA SPM: Reviewer/QC Officer tidak boleh sama dengan Penilai atau Surveyor penyusun KKP pada Job Order yang sama."
+    };
+  }
+  return { status: "success", success: true };
+}

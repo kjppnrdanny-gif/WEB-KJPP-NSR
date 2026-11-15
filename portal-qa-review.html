@@ -210,6 +210,9 @@
         <span class="text-slate-300">Mode Otoritas Aktif: <strong id="role-mode-label" class="text-cyan-300 font-semibold">Tim Reviewer Kendali Mutu SPM (M-05)</strong></span>
       </div>
       <span id="role-mode-hint" class="text-[11px] text-slate-400">Kewenangan: Telaah hasil audit teknis SPI &amp; berwenang mengirim catatan revisi ke Penilai</span>
+          <span id="badge-zero-self-review" class="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 font-mono">
+            🛡️ Zero Self-Review (SPM V.4.2026)
+          </span>
     </div>
   </div>
 
@@ -3856,7 +3859,36 @@ Prasarana jalan lingkungan cor beton, saluran drainase U-Ditch tertutup, dan ins
           btnApprove.disabled = true;
           btnApprove.title = 'Penilai Penyusun tidak berwenang mengesahkan telaah mutu sendiri (Anti Self-Review).';
         } else {
-          const score = Number(review.compliance_score || review.score || 0);
+                // ZERO SELF-REVIEW VALIDATOR (SPM V.4.2026 Bab V & KEPI SPI)
+      const auditorName = (window.currentUser || currentUser)?.nama || 
+                          document.querySelector("[data-user-fullname]")?.textContent.trim() || 
+                          document.getElementById("meta-uploader")?.textContent.trim() || "";
+      const currentJo = review.job_order_id || document.getElementById('input-jo-number')?.value?.trim();
+      let joRecord = (typeof DB_PENUGASAN_MAP !== 'undefined') ? DB_PENUGASAN_MAP.get(currentJo) : null;
+      if (!joRecord && typeof SEED_ACTIVE_JO_FALLBACK !== 'undefined') {
+        joRecord = SEED_ACTIVE_JO_FALLBACK.find(x => x.noJo === currentJo);
+      }
+      const penilaiName = joRecord?.penilaiPelaksana || joRecord?.penilai || "";
+      const surveyorName = joRecord?.surveyorPelaksana || joRecord?.surveyor || "";
+
+      function cleanTitleName(n) {
+        return String(n || "").toLowerCase().replace(/\b(ir|dr|drs|dra|m\.?sc|m\.?ec\.?dev|s\.?t|s\.?e|s\.?h|s\.?si|mappi|cert|p|ps)\b/gi, "").replace(/[^a-z0-9]/g, "");
+      }
+
+      const cAud = cleanTitleName(auditorName);
+      const cPen = cleanTitleName(penilaiName);
+      const cSur = cleanTitleName(surveyorName);
+
+      if (cAud && ((cPen && cAud === cPen) || (cSur && cAud === cSur))) {
+        showToastOrAlert(
+          "Pelanggaran Zero Self-Review (SPM V.4.2026)",
+          `Reviewer Teknis / QC Officer (${auditorName}) tidak boleh sama dengan Penilai (${penilaiName}) atau Surveyor (${surveyorName}) penyusun KKP pada JO yang sama (${currentJo}).\n\nPenugasan Reviewer Teknis wajib independen sesuai SPM Bab V & KEPI SPI.`,
+          "error"
+        );
+        return;
+      }
+
+      const score = Number(review.compliance_score || review.score || 0);
           const critical = Number(review.findings_summary?.critical || 0);
           const isEligible = (score >= 85.0 && critical === 0) || review.gate_nolap_unlocked === true;
 

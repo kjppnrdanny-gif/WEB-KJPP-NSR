@@ -558,6 +558,28 @@
               <input type="tel" id="f-wa-pemohon" required placeholder="0812... / 628..." class="w-full h-10 px-3 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-amber-400">
             </div>
 
+            
+            <!-- BANNER PERINGATAN ESKALASI IZIN CABANG PS (PMK 101/2014 & SPM V.4.2026) -->
+            <div id="banner-branch-license-escalation" class="hidden col-span-1 sm:col-span-2 lg:col-span-3 p-4 bg-amber-950/80 border-2 border-amber-500/80 rounded-xl text-amber-200 text-xs shadow-xl animate-in fade-in duration-200">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">⚠️</span>
+                <div class="space-y-1.5 flex-1">
+                  <strong class="font-extrabold text-amber-100 block text-xs tracking-wide">
+                    ESKALASI WAJIB PMK 101/2014 jo. PMK 228/2019 (BRANCH LICENSE ESCALATION GATE)
+                  </strong>
+                  <p id="teks-branch-license-escalation" class="text-amber-200 text-[11px] leading-relaxed">
+                    Kantor Cabang Padang, Makassar, atau Palembang hanya memiliki izin Properti Sederhana (PS). Karena jenis aset atau nilai estimasi melampaui batasan PS (&gt; Rp 5 Miliar / Non-PS), penandatanganan laporan WAJIB dialihkan ke Rekan Penilai Publik Berizin Properti (P) Kantor Pusat.
+                  </p>
+                  <div class="flex flex-wrap items-center gap-2 pt-1">
+                    <button type="button" onclick="alihkanKeRekanPropertiPusat()" class="px-3.5 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black rounded-lg text-xs transition shadow cursor-pointer">
+                      ✓ Alihkan Penandatanganan ke Rekan (P) Pusat (Ir. Nanang Rahayu / Deni Siswandi)
+                    </button>
+                    <span class="text-[10.5px] text-amber-300/80 italic font-mono">Penerbitan NoLap cabang dikunci otomatis hingga dialihkan.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- BANNER PERINGATAN EKSKLUSIVITAS PENILAI HARIAN (P2PK COMPLIANCE) -->
             <div id="banner-lock-penilai" class="hidden col-span-1 sm:col-span-2 lg:col-span-3 p-3.5 bg-rose-950/80 border border-rose-500/60 rounded-xl text-rose-200 text-xs shadow-lg animate-in fade-in duration-200">
               <div class="flex items-start gap-3">
@@ -1163,6 +1185,51 @@
                   </p>
                 </div>
               </label>
+            </div>
+
+            
+            <!-- PRE-RELEASE DOCUMENT GATE (FM-SPM-06.1 — SPM V.4.2026) -->
+            <div id="panel-fm-spm-06-gate" class="p-4 rounded-xl bg-slate-950/90 border border-teal-500/40 space-y-3 text-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="w-5 h-5 rounded bg-teal-400 text-slate-950 flex items-center justify-center text-[10px] font-black">6.1</span>
+                  <span class="font-bold text-white text-xs">Pre-Release Document Gate (FM-SPM-06.1)</span>
+                  <span class="px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-teal-950 text-teal-300 border border-teal-800">4 Dokumen Wajib Pra-Terbit</span>
+                </div>
+                <span id="indikator-fm-spm-gate" class="text-[11px] font-mono font-bold text-amber-400 bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-800">
+                  Dokumen Terverifikasi: 0/4
+                </span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <label class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 hover:border-teal-500/40 transition cursor-pointer flex items-start gap-2.5 select-none">
+                  <input type="checkbox" id="chk_fm_spm_independensi" onchange="validasiFormDanMitigasiLive()" class="mt-0.5 w-4 h-4 accent-teal-400 rounded shrink-0">
+                  <div>
+                    <strong class="text-slate-200 text-[11px] block">(a) Pernyataan Independensi Bertanda Tangan</strong>
+                    <span class="text-[10px] text-slate-400">Formulir FM-SPM-02.2 / SPI 102 &amp; KEPI</span>
+                  </div>
+                </label>
+                <label class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 hover:border-teal-500/40 transition cursor-pointer flex items-start gap-2.5 select-none">
+                  <input type="checkbox" id="chk_fm_spm_inspeksi_geotag" onchange="validasiFormDanMitigasiLive()" class="mt-0.5 w-4 h-4 accent-teal-400 rounded shrink-0">
+                  <div>
+                    <strong class="text-slate-200 text-[11px] block">(b) Berita Acara Inspeksi Lapangan &amp; Geotagging</strong>
+                    <span class="text-[10px] text-slate-400">Foto fisik koordinat GPS &amp; inspeksi lapangan (SPI 104)</span>
+                  </div>
+                </label>
+                <label class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 hover:border-teal-500/40 transition cursor-pointer flex items-start gap-2.5 select-none">
+                  <input type="checkbox" id="chk_fm_spm_kkp" onchange="validasiFormDanMitigasiLive()" class="mt-0.5 w-4 h-4 accent-teal-400 rounded shrink-0">
+                  <div>
+                    <strong class="text-slate-200 text-[11px] block">(c) Kertas Kerja Penilaian (KKP Excel Lengkap)</strong>
+                    <span class="text-[10px] text-slate-400">Lembar analisis biaya, pasar &amp; rekonsiliasi (SPI 105)</span>
+                  </div>
+                </label>
+                <label class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 hover:border-teal-500/40 transition cursor-pointer flex items-start gap-2.5 select-none">
+                  <input type="checkbox" id="chk_fm_spm_representasi" onchange="validasiFormDanMitigasiLive()" class="mt-0.5 w-4 h-4 accent-teal-400 rounded shrink-0">
+                  <div>
+                    <strong class="text-slate-200 text-[11px] block">(d) Surat Representasi Klien Bermeterai</strong>
+                    <span class="text-[10px] text-slate-400">Surat pernyataan keabsahan dokumen debitur (SPI 103)</span>
+                  </div>
+                </label>
+              </div>
             </div>
 
             <!-- MINI-PANEL DELTA ANALYSIS REKONSILIASI LUAS -->
@@ -21745,6 +21812,17 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
       }
     }
 
+    
+    function alihkanKeRekanPropertiPusat() {
+      const kewenangan = document.getElementById('f-kewenangan-ttd');
+      if (kewenangan) kewenangan.value = 'PUSAT';
+      const penilai = document.getElementById('f-penilai');
+      if (penilai) penilai.value = 'Nanang Rahayu';
+      if (typeof onKewenanganTtdChange === 'function') onKewenanganTtdChange();
+      if (typeof onPenilaiChange === 'function') onPenilaiChange();
+      if (typeof validasiFormDanMitigasiLive === 'function') validasiFormDanMitigasiLive();
+    }
+
     function validasiFormDanMitigasiLive() {
       const isBooking = document.getElementById('mode-booking')?.checked === true;
       const btn = document.getElementById('btn-submit-pengajuan');
@@ -21814,6 +21892,78 @@ window.cetakKertasKerjaSpm = function(tipe, mode = 'draft') {
 
       const formValid = !!(klien && industri && objek && nilai && pemohon && linksValid);
       const mitigasiValid = (totalChecked === 4);
+
+      // =========================================================
+      // RULE 1: BRANCH LICENSE ESCALATION GATE (PMK 101/2014 & SPM V.4.2026)
+      // =========================================================
+      const cabangVal = (document.getElementById('f-cabang')?.value || '').trim();
+      const isPsBranch = ['Padang', 'Makassar', 'Palembang'].includes(cabangVal);
+      const nilaiNum = parseFloat(document.getElementById('f-kesimpulan-nilai')?.value || '0');
+      const objekVal = (document.getElementById('f-jenis-objek')?.value || '').toLowerCase();
+      const jasaVal = (document.getElementById('f-jasa')?.value || '').toUpperCase();
+      const kewenanganVal = (document.getElementById('f-kewenangan-ttd')?.value || '').toUpperCase();
+      const penilaiVal = (document.getElementById('f-penilai')?.value || '').toLowerCase();
+
+      const nonPsKeywords = ['pabrik', 'industri', 'gudang industri', 'hotel', 'resort', 'spbu', 'spbe', 'perkebunan', 'kelapa sawit', 'sawit', 'tambang', 'pertambangan', 'mall', 'pusat perbelanjaan', 'gedung', 'perkantoran', 'rumah sakit', 'klinik', 'pelabuhan', 'dermaga', 'infrastruktur'];
+      const isNonPsType = nonPsKeywords.some(kw => objekVal.includes(kw)) || jasaVal === 'PROPERTY' || jasaVal === 'BUSINESS';
+      const isValueOver5M = nilaiNum > 5000000000;
+      const requiresEscalation = isPsBranch && (isValueOver5M || isNonPsType);
+
+      const bannerEsc = document.getElementById('banner-branch-license-escalation');
+      if (bannerEsc) {
+        if (requiresEscalation) {
+          bannerEsc.classList.remove('hidden');
+          const teksEsc = document.getElementById('teks-branch-license-escalation');
+          if (teksEsc) {
+            teksEsc.textContent = `Kantor Cabang ${cabangVal} hanya memiliki klasifikasi izin Properti Sederhana (PS). Karena ${isValueOver5M ? 'nilai estimasi (Rp ' + nilaiNum.toLocaleString('id-ID') + ') > Rp 5 Miliar' : 'jenis aset (' + objekVal + ') termasuk Properti Penuh (P)'}, penerbitan NoLap cabang dikunci dan penandatanganan WAJIB dialihkan ke Rekan Penilai Publik Berizin Properti (P) Kantor Pusat.`;
+          }
+        } else {
+          bannerEsc.classList.add('hidden');
+        }
+      }
+
+      const isSignedByPropertyPartner = (penilaiVal.includes('nanang') || penilaiVal.includes('deni')) && (kewenanganVal === 'PUSAT');
+      if (requiresEscalation && !isSignedByPropertyPartner) {
+        btn.disabled = true;
+        btn.className = "px-6 py-2.5 rounded-xl bg-amber-950/90 border border-amber-500/60 text-amber-300 font-bold text-xs uppercase tracking-wider cursor-not-allowed shadow-md";
+        btn.innerHTML = '🔒 Wajib Eskalasi ke Rekan (P) Pusat';
+        if (lockText) lockText.textContent = "ESKALASI REGULASI: Penugasan non-PS pada Cabang PS wajib ditandatangani oleh Rekan Berizin Properti (P) Kantor Pusat.";
+        if (lockBadge) {
+          lockBadge.textContent = "ESCALATION LOCKED (PMK 101/2014)";
+          lockBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-900 text-amber-200 border border-amber-600";
+        }
+        return;
+      }
+
+      // =========================================================
+      // RULE 3: PRE-RELEASE DOCUMENT GATE (FM-SPM-06.1 — 4 DOKUMEN WAJIB)
+      // =========================================================
+      const fm1 = document.getElementById('chk_fm_spm_independensi')?.checked === true;
+      const fm2 = document.getElementById('chk_fm_spm_inspeksi_geotag')?.checked === true;
+      const fm3 = document.getElementById('chk_fm_spm_kkp')?.checked === true;
+      const fm4 = document.getElementById('chk_fm_spm_representasi')?.checked === true;
+      const totalFmChecked = [fm1, fm2, fm3, fm4].filter(Boolean).length;
+
+      const indFm = document.getElementById('indikator-fm-spm-gate');
+      if (indFm) {
+        indFm.textContent = `Dokumen Terverifikasi: ${totalFmChecked}/4`;
+        indFm.className = totalFmChecked === 4
+          ? 'text-[11px] font-mono font-bold text-teal-400 bg-teal-950/60 px-2.5 py-0.5 rounded-lg border border-teal-500/40'
+          : 'text-[11px] font-mono font-bold text-amber-400 bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-800';
+      }
+
+      if (!isBooking && totalFmChecked < 4) {
+        btn.disabled = true;
+        btn.className = "px-6 py-2.5 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-300 font-bold text-xs uppercase tracking-wider cursor-not-allowed shadow-md";
+        btn.innerHTML = `🔒 FM-SPM-06.1 Belum Lengkap (${totalFmChecked}/4 Dokumen)`;
+        if (lockText) lockText.textContent = "Penerbitan NoLap Terkunci: Seluruh 4 Dokumen Wajib Pra-Terbit (FM-SPM-06.1) wajib diverifikasi terunggah.";
+        if (lockBadge) {
+          lockBadge.textContent = "GATE LOCKED (FM-SPM-06.1)";
+          lockBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800";
+        }
+        return;
+      }
+
 
       if (formValid && mitigasiValid) {
         btn.disabled = false;
