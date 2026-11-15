@@ -112,10 +112,17 @@ server.listen(PORT, async () => {
   const chromeProc = spawn(chromePath, chromeArgs);
   console.log('✓ Chrome headless diluncurkan pada remote debugging port', CHROME_PORT);
 
-  await new Promise(r => setTimeout(r, 2000));
+  let listRes = null;
+  for (let attempt = 1; attempt <= 10; attempt++) {
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      listRes = await fetch(`http://127.0.0.1:${CHROME_PORT}/json/list`);
+      if (listRes.ok) break;
+    } catch (_) {}
+  }
+  if (!listRes) throw new Error('Chrome tidak merespon pada port ' + CHROME_PORT);
 
   try {
-    const listRes = await fetch(`http://127.0.0.1:${CHROME_PORT}/json/list`);
     const pages = await listRes.json();
     const wsUrl = pages[0]?.webSocketDebuggerUrl;
     if (!wsUrl) throw new Error('WebSocket Debugger URL tidak ditemukan');
