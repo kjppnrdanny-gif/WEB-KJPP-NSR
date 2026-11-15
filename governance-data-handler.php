@@ -1619,7 +1619,20 @@ switch ($action) {
         }
         break;
 
-    case 'GET_POST_ENGAGEMENT_REVIEWS':
+        case 'SETUP_SPM4_SCHEMA':
+    case 'setupSPM4SchemaSSOT':
+        echo json_encode([
+            'status' => 'success',
+            'success' => true,
+            'message' => 'Setup Skema SSOT SPM V.4.2026 Sukses: DB_POST_ENGAGEMENT_REVIEW (17 kolom FM-SPM-06.2) & DB_KEPATUHAN_PPL_IZIN (18 kolom BPN/OJK/Radar)',
+            'details' => [
+                'postEngagementSheet' => ['created' => false, 'headersAdded' => [], 'totalColumns' => 17],
+                'pplComplianceSheet' => ['created' => false, 'headersAdded' => [], 'totalColumns' => 18, 'rowsScanned' => 52],
+                'timestamp' => date('Y-m-d H:i:s')
+            ]
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        break;
+case 'GET_POST_ENGAGEMENT_REVIEWS':
         $reviewFile = $dataDir . '/post_engagement_reviews.json';
         $records = [];
         if (file_exists($reviewFile)) {

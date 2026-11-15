@@ -136,11 +136,23 @@ const qaGs = fs.readFileSync(path.resolve('backend/google-apps-script-qa-audit.g
   } else {
     console.log(`✓ Rule 4: Radar BPN & OJK terverifikasi di ${backend.name}`);
   }
+
+  if (!backend.content.includes('setupSPM4SchemaSSOT') || !backend.content.includes('SETUP_SPM4_SCHEMA')) {
+    errors.push(`Utilitas setupSPM4SchemaSSOT / SETUP_SPM4_SCHEMA tidak ditemukan di ${backend.name}`);
+  } else {
+    console.log(`✓ Utilitas setupSPM4SchemaSSOT terverifikasi di ${backend.name}`);
+  }
+
+  if (!backend.content.includes('function onOpen(')) {
+    errors.push(`Menu Admin onOpen() tidak ditemukan di ${backend.name}`);
+  } else {
+    console.log(`✓ Menu Admin onOpen() terverifikasi di ${backend.name}`);
+  }
 });
 
 // 5. Verifikasi Backend Fallback PHP (governance-data-handler.php)
 const phpContent = fs.readFileSync(path.resolve('governance-data-handler.php'), 'utf8');
-const requiredPhpCases = ['CHECK_BRANCH_ESCALATION', 'GENERATE_QUARTERLY_SAMPLING', 'UPDATE_CAPA_STATUS', 'GET_POST_ENGAGEMENT_REVIEWS', 'SUBMIT_PPL_RECORD', 'GET_PPL_COMPLIANCE'];
+const requiredPhpCases = ['CHECK_BRANCH_ESCALATION', 'GENERATE_QUARTERLY_SAMPLING', 'UPDATE_CAPA_STATUS', 'GET_POST_ENGAGEMENT_REVIEWS', 'SUBMIT_PPL_RECORD', 'GET_PPL_COMPLIANCE', 'SETUP_SPM4_SCHEMA'];
 
 requiredPhpCases.forEach(act => {
   if (!phpContent.includes(`case '${act}':`)) {
