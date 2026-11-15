@@ -3015,7 +3015,7 @@ function getAlertLevelFromDays(days) {
 }
 
 /**
- * 5. POST-ENGAGEMENT REVIEW & RETENSI 10 TAHUN (SPM V.4.2026 & PMK 101/2014 Pasal 42)
+ * 5. POST-ENGAGEMENT REVIEW & RETENSI 10 TAHUN (SPM V.4.2026 & Pasal 30 ayat (1) huruf c PMK No. 101/PMK.01/2014 jo. PMK No. 228/PMK.01/2019)
  */
 function getOrCreatePostEngagementSheet(ss) {
   let sheet = ss.getSheetByName("DB_POST_ENGAGEMENT_REVIEW");
@@ -3056,7 +3056,7 @@ function calculateRetentionDate(tglTerbitStr) {
 
 /**
  * Mengambil sampel acak triwulanan (minimal 1 laporan terbit per Rekan & Cabang)
- * dan menagretkan retensi arsip 10 tahun sesuai PMK 101/2014 Pasal 42
+ * dan menagretkan retensi arsip 10 tahun sesuai Pasal 30 ayat (1) huruf c PMK No. 101/PMK.01/2014 jo. PMK No. 228/PMK.01/2019
  */
 function generateQuarterlySampling(payload, ssInstance) {
   const lock = LockService.getScriptLock();
@@ -3234,7 +3234,7 @@ function generateQuarterlySampling(payload, ssInstance) {
     return {
       status: "success",
       success: true,
-      message: "Sampling triwulanan " + kuartal + " " + tahun + " berhasil ditarik dengan penandaan retensi arsip 10 tahun (PMK 101/2014 Pasal 42)",
+      message: "Sampling triwulanan " + kuartal + " " + tahun + " berhasil ditarik dengan penandaan retensi arsip 10 tahun (Pasal 30 ayat (1) huruf c PMK No. 101/PMK.01/2014 jo. PMK No. 228/PMK.01/2019)",
       kuartal: kuartal,
       tahun: tahun,
       totalSample: records.length,

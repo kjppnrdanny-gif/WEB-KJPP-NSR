@@ -1569,7 +1569,7 @@ switch ($action) {
         echo json_encode([
             'status' => 'success',
             'success' => true,
-            'message' => 'Sampling triwulanan ' . $kuartal . ' ' . $tahun . ' berhasil ditarik dengan penandaan retensi arsip 10 tahun (PMK 101/2014 Pasal 42)',
+            'message' => 'Sampling triwulanan ' . $kuartal . ' ' . $tahun . ' berhasil ditarik dengan penandaan retensi arsip 10 tahun (Pasal 30 ayat (1) huruf c PMK No. 101/PMK.01/2014 jo. PMK No. 228/PMK.01/2019)',
             'kuartal' => $kuartal,
             'tahun' => $tahun,
             'totalSample' => count($sampleSeed),
