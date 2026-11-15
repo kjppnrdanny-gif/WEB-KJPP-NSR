@@ -2598,10 +2598,14 @@
         };
       }
 
-      // 5. ADMIN OPERASIONAL PUSAT ('NSR_PST_AUTH' / NSR-ADM-2026)
-      if (clean === 'af83b01a94f5e47fc4b9ab1d7d25bfb825e9702da8e02e9ca7f0185d915c0500' || clean === 'NSR_PST_AUTH' || clean === TOKEN_ADM_PST) {
+      // 5. ADMIN OPERASIONAL PUSAT (Salted & Raw Hashes)
+      const HASH_ADM_PST_RAW = '49b08700baeecdeece46d15b1700e271194d152db6c28eae9ffa1c5a9bdf8f6b';
+      const HASH_ADM_PST_SALTED = '03b75cf3f130ea0a8274123debca348db7f934e7e1b43ff0b2e295cc1deffe17';
+      const candHashSalted = (typeof sha256Hex === 'function') ? sha256Hex('KJPP_NSR_2026_CORE_AUTH::' + clean).toLowerCase() : '';
+      if (cleanLower === HASH_ADM_PST_RAW || cleanLower === HASH_ADM_PST_SALTED || candHash === HASH_ADM_PST_RAW || candHashSalted === HASH_ADM_PST_SALTED || clean === 'af83b01a94f5e47fc4b9ab1d7d25bfb825e9702da8e02e9ca7f0185d915c0500' || clean === 'NSR_PST_AUTH' || clean === TOKEN_ADM_PST) {
         return {
-          token: clean,
+          token: HASH_ADM_PST_SALTED,
+          rawToken: clean,
           role: 'ADMIN_OPS',
           roleLabel: 'Admin Operasional Pusat',
           jabatan: 'Admin Operasional Kantor Pusat',
@@ -2611,7 +2615,33 @@
           nik: '',
           isCabang: false,
           isSuperAdmin: false,
+          isKing: false,
+          canAccessGovernance: false,
+          canApprovePusat: true,
           access_level: 'NATIONWIDE_FULL_ACCESS'
+        };
+      }
+
+      // 5b. STAF OPERASIONAL ADMIN KANTOR PUSAT (Salted & Raw Hashes)
+      const HASH_PST_STAFF_RAW = '2f0e422850621d1ad32ce52db90f6230a275d0d46630d252b636754265e176b6';
+      const HASH_PST_STAFF_SALTED = 'd063dc444f9eb1612f269fa62e8d8cd0fbec42b4ab13033fbde225261157ffb5';
+      if (cleanLower === HASH_PST_STAFF_RAW || cleanLower === HASH_PST_STAFF_SALTED || candHash === HASH_PST_STAFF_RAW || candHashSalted === HASH_PST_STAFF_SALTED) {
+        return {
+          token: HASH_PST_STAFF_SALTED,
+          rawToken: clean,
+          role: 'STAF_OPERASIONAL_PUSAT',
+          roleLabel: 'Staf Operasional Admin Kantor Pusat',
+          jabatan: 'Staf Operasional Admin Kantor Pusat',
+          wilayah: 'Cabang PUSAT (Jakarta)',
+          wilayahCode: 'JKT',
+          nama: 'Staf Operasional Kantor Pusat',
+          nik: '',
+          isCabang: false,
+          isSuperAdmin: false,
+          isKing: false,
+          canAccessGovernance: false,
+          canApprovePusat: false,
+          access_level: 'OPERATIONAL_STAFF'
         };
       }
 
@@ -3205,7 +3235,13 @@
           Boolean(currentUserSession?.isSuperAdmin)
         );
         const isTechRole = ['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normRole) || (['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normJabatan) && normRole !== 'PIMPINAN' && !isKing);
-        const canAccessControlTower = isKing || normRole === 'PIMPINAN' || (normRole === 'ADMIN_OPS' && !currentUserSession.isCabang && !isTechRole);
+        const WHITELIST_MGMT_NIK_HASHES = [
+          '20ddf04d9509f94b452431311bc04e77936c523ac0b39199369363a33785b251',
+          '157ffe31fd5d85578c3c3ca4cba547794f95c36f9b014f8a4979fe1affc369e7',
+          'cba205bb2971e73d757077377bafacc60280125e48a001ec4f788f4409a163d0'
+        ];
+        const userNikHash = (typeof sha256Hex === 'function' && currentUserSession?.nik) ? sha256Hex(String(currentUserSession.nik).trim().toUpperCase()).toLowerCase() : '';
+        const canAccessControlTower = isKing || (userNikHash !== '' && WHITELIST_MGMT_NIK_HASHES.includes(userNikHash));
 
         // 1. HAK AKSES TOMBOL REGISTRASI: Hanya tampil & aktif untuk ADMIN_OPS dan PIMPINAN
         const btnRegister = document.getElementById('tab-btn-register');
@@ -3688,7 +3724,13 @@
         Boolean(currentUserSession?.isSuperAdmin)
       );
       const isTechRole = ['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normRole) || (['ANALIS', 'SURVEYOR', 'REVIEWER_SPM'].includes(normJabatan) && normRole !== 'PIMPINAN' && !isKing);
-      const canAccessControlTower = isKing || normRole === 'PIMPINAN' || (normRole === 'ADMIN_OPS' && !currentUserSession?.isCabang && !isTechRole);
+      const WHITELIST_MGMT_NIK_HASHES = [
+        '20ddf04d9509f94b452431311bc04e77936c523ac0b39199369363a33785b251',
+        '157ffe31fd5d85578c3c3ca4cba547794f95c36f9b014f8a4979fe1affc369e7',
+        'cba205bb2971e73d757077377bafacc60280125e48a001ec4f788f4409a163d0'
+      ];
+      const userNikHash = (typeof sha256Hex === 'function' && currentUserSession?.nik) ? sha256Hex(String(currentUserSession.nik).trim().toUpperCase()).toLowerCase() : '';
+      const canAccessControlTower = isKing || (userNikHash !== '' && WHITELIST_MGMT_NIK_HASHES.includes(userNikHash));
 
       if (tabId === 'register' && !(['ADMIN_OPS', 'PIMPINAN'].includes(normRole) && !isTechRole)) {
         if (typeof tampilkanToastAksesDitolak === 'function') {
@@ -3701,9 +3743,9 @@
 
       if (tabId === 'workload' && !canAccessControlTower) {
         if (typeof tampilkanToastAksesDitolak === 'function') {
-          tampilkanToastAksesDitolak('Akses Ditolak: Control Tower & SPM Hub hanya dapat diakses oleh Pimpinan, Admin Operasional Pusat, dan Superadmin.');
+          tampilkanToastAksesDitolak('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
         } else {
-          alert('Akses Ditolak: Control Tower & SPM Hub hanya dapat diakses oleh Pimpinan, Admin Operasional Pusat, dan Superadmin.');
+          alert('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
         }
         return;
       }

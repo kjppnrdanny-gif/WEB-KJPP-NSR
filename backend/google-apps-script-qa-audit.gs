@@ -989,13 +989,29 @@ function handleQAAuditPost(e) {
     const data = JSON.parse(e.postData.contents);
     
     // Otorisasi Akses Sensitif (SDM, KPI, Tata Kelola)
-    if (data.action === "GET_EXECUTIVE_GOVERNANCE" || data.action === "GET_GOVERNANCE_OVERVIEW" || data.action === "GET_EMPLOYEE_KPI" || data.action === "GET_PPL_COMPLIANCE" || data.action === "SAVE_EMPLOYEE_KPI_EVAL" || data.action === "SUBMIT_PPL_RECORD") {
+    const isGovActionQA = (
+      data.action === "GET_EXECUTIVE_GOVERNANCE" ||
+      data.action === "GET_GOVERNANCE_OVERVIEW" ||
+      data.action === "GET_EMPLOYEE_KPI" ||
+      data.action === "GET_PPL_COMPLIANCE" ||
+      data.action === "SAVE_EMPLOYEE_KPI_EVAL" ||
+      data.action === "SUBMIT_PPL_RECORD" ||
+      data.action === "GENERATE_QUARTERLY_SAMPLING" ||
+      data.action === "UPDATE_CAPA_STATUS" ||
+      data.action === "GET_POST_ENGAGEMENT_REVIEWS" ||
+      data.action === "TOGGLE_BRANCH_LOCKOUT" ||
+      data.action === "FORCE_BYPASS_APPROVAL"
+    );
+
+    if (isGovActionQA) {
       const auth = verifikasiAksesTokenQA(data.token || '', data.tokenHash || data.authTokenHash || '', data.apiKey || '');
-      if (!auth.valid) {
+      if (!isGovernanceAuthorizedQA(auth, data.token, data.tokenHash || data.authTokenHash, data.apiKey, data)) {
         return ContentService.createTextOutput(JSON.stringify({
           status: "error",
           success: false,
-          error: "Akses Ditolak (401 Unauthorized): Eksekusi aksi tata kelola membutuhkan kredensial resmi valid."
+          code: 403,
+          error: "FORBIDDEN",
+          message: "Akses Ditolak (403 Forbidden): Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM."
         })).setMimeType(ContentService.MimeType.JSON);
       }
     }
@@ -1116,24 +1132,122 @@ function verifikasiAksesTokenQA(token, tokenHash, apiKey) {
     }
   } catch (_) {}
   
-  const targetHash = (tokenHash && String(tokenHash).length === 64) 
+  const rawTarget = (tokenHash && String(tokenHash).length === 64) 
     ? String(tokenHash).toLowerCase() 
     : (token ? computeSha256HexQA(String(token).trim().toUpperCase()) : '');
+  const saltedTarget = token ? computeSha256HexQA('KJPP_NSR_2026_CORE_AUTH::' + String(token).trim().toUpperCase()) : '';
 
   const HASH_AUTH = {
-    '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': { valid: true, role: 'SUPER ADMIN' },
-    '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': { valid: true, role: 'SUPER ADMIN' },
-    '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c': { valid: true, role: 'SUPER ADMIN' },
-    '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f': { valid: true, role: 'SUPER ADMIN' },
-    'c1def53c9c35c3e150d4f070fd2387a16f5e0ca57f6ca9fe23f368769ee4bc2f': { valid: true, role: 'SUPER ADMIN' },
-    'f0e728cbb8ea9ea8b8b53908922bffc081dc22e50855f9d4601a14ed513d7721': { valid: true, role: 'SURVEYOR' },
-    '422e642284f66071b52b6cd23e4856ee7e5acf6735f0bc5754173c270c487d4b': { valid: true, role: 'SURVEYOR' },
-    '57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0': { valid: true, role: 'KEUANGAN' }
+    // SUPER ADMIN • KING (NSR8899 - Salted, Raw & Legacy)
+    '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f': { valid: true, role: 'SUPER_ADMIN', roleLabel: 'SUPER ADMIN • KING', isSuperAdmin: true, isKing: true, canAccessGovernance: true },
+    '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': { valid: true, role: 'SUPER_ADMIN', roleLabel: 'SUPER ADMIN • KING', isSuperAdmin: true, isKing: true, canAccessGovernance: true },
+    '3186e936994518a10f3506f1da37ea5050f16b55e66499d258d4fe85fde32119': { valid: true, role: 'SUPER_ADMIN', roleLabel: 'SUPER ADMIN • KING', isSuperAdmin: true, isKing: true, canAccessGovernance: true },
+    '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6': { valid: true, role: 'SUPER_ADMIN', roleLabel: 'SUPER ADMIN • KING', isSuperAdmin: true, isKing: true, canAccessGovernance: true },
+
+    // ADMIN KANTOR PUSAT (KJPP-ADM-2026 - Salted & Raw)
+    '03b75cf3f130ea0a8274123debca348db7f934e7e1b43ff0b2e295cc1deffe17': { valid: true, role: 'ADMIN_PUSAT', roleLabel: 'ADMIN KANTOR PUSAT', isSuperAdmin: false, isKing: false, canAccessGovernance: false, canApprovePusat: true },
+    '49b08700baeecdeece46d15b1700e271194d152db6c28eae9ffa1c5a9bdf8f6b': { valid: true, role: 'ADMIN_PUSAT', roleLabel: 'ADMIN KANTOR PUSAT', isSuperAdmin: false, isKing: false, canAccessGovernance: false, canApprovePusat: true },
+
+    // STAF OPERASIONAL ADMIN KANTOR PUSAT (KJPP-PST-2026 - Salted & Raw)
+    'd063dc444f9eb1612f269fa62e8d8cd0fbec42b4ab13033fbde225261157ffb5': { valid: true, role: 'STAF_OPERASIONAL_PUSAT', roleLabel: 'STAF OPERASIONAL ADMIN KANTOR PUSAT', isSuperAdmin: false, isKing: false, canApprovePusat: false, canAccessGovernance: false },
+    '2f0e422850621d1ad32ce52db90f6230a275d0d46630d252b636754265e176b6': { valid: true, role: 'STAF_OPERASIONAL_PUSAT', roleLabel: 'STAF OPERASIONAL ADMIN KANTOR PUSAT', isSuperAdmin: false, isKing: false, canApprovePusat: false, canAccessGovernance: false },
+
+    // ADMIN OPERASIONAL PUSAT (LEGACY CENTRAL HASHES)
+    '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': { valid: true, role: 'ADMIN_PUSAT', roleLabel: 'ADMIN OPERASIONAL PUSAT', isSuperAdmin: false, isKing: false, canAccessGovernance: false },
+    '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c': { valid: true, role: 'ADMIN_PUSAT', roleLabel: 'ADMIN OPERASIONAL PUSAT', isSuperAdmin: false, isKing: false, canAccessGovernance: false },
+    'c1def53c9c35c3e150d4f070fd2387a16f5e0ca57f6ca9fe23f368769ee4bc2f': { valid: true, role: 'ADMIN_PUSAT', roleLabel: 'ADMIN OPERASIONAL PUSAT', isSuperAdmin: false, isKing: false, canAccessGovernance: false },
+
+    // PERAN LAINNYA
+    'f0e728cbb8ea9ea8b8b53908922bffc081dc22e50855f9d4601a14ed513d7721': { valid: true, role: 'SURVEYOR', isSuperAdmin: false, isKing: false, canAccessGovernance: false },
+    '422e642284f66071b52b6cd23e4856ee7e5acf6735f0bc5754173c270c487d4b': { valid: true, role: 'SURVEYOR', isSuperAdmin: false, isKing: false, canAccessGovernance: false },
+    '57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0': { valid: true, role: 'KEUANGAN', isSuperAdmin: false, isKing: false, canAccessGovernance: false }
   };
-  if (targetHash && HASH_AUTH[targetHash]) {
-    return { valid: true, ...HASH_AUTH[targetHash] };
+
+  const matched = (rawTarget && HASH_AUTH[rawTarget]) || (saltedTarget && HASH_AUTH[saltedTarget]);
+  if (matched) {
+    return { valid: true, ...matched };
   }
   return { valid: false, error: 'Kredensial tidak valid' };
+}
+
+/**
+ * Validasi Otoritas Governance Modul QA / SPM
+ */
+function isGovernanceAuthorizedQA(auth, token, tokenHash, apiKey, payload) {
+  if (apiKey && String(apiKey).trim() === 'KJPP_NSR_SECURE_API_2026') return true;
+
+  const tokenStr = String(token || '').trim();
+  const tokenClean = tokenStr.toUpperCase();
+  const tokenLower = tokenStr.toLowerCase();
+
+  const rawHash = tokenStr ? computeSha256HexQA(tokenClean) : '';
+  const saltedHash = tokenStr ? computeSha256HexQA('KJPP_NSR_2026_CORE_AUTH::' + tokenClean) : '';
+  const inputHash = String(tokenHash || '').trim().toLowerCase();
+
+  const explicitlyDeniedGovHashes = [
+    '49b08700baeecdeece46d15b1700e271194d152db6c28eae9ffa1c5a9bdf8f6b',
+    '03b75cf3f130ea0a8274123debca348db7f934e7e1b43ff0b2e295cc1deffe17',
+    '2f0e422850621d1ad32ce52db90f6230a275d0d46630d252b636754265e176b6',
+    'd063dc444f9eb1612f269fa62e8d8cd0fbec42b4ab13033fbde225261157ffb5'
+  ];
+
+  if (
+    explicitlyDeniedGovHashes.includes(rawHash) ||
+    explicitlyDeniedGovHashes.includes(saltedHash) ||
+    explicitlyDeniedGovHashes.includes(inputHash) ||
+    explicitlyDeniedGovHashes.includes(tokenLower) ||
+    tokenClean === 'KJPP-ADM-2026' ||
+    tokenClean === 'KJPP-PST-2026'
+  ) {
+    return false;
+  }
+
+  const knownKingHashes = [
+    '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0',
+    '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f',
+    '3186e936994518a10f3506f1da37ea5050f16b55e66499d258d4fe85fde32119',
+    '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6'
+  ];
+
+  if (
+    knownKingHashes.includes(tokenLower) ||
+    knownKingHashes.includes(rawHash) ||
+    knownKingHashes.includes(saltedHash) ||
+    knownKingHashes.includes(inputHash) ||
+    tokenClean === 'NSR8899' ||
+    (auth && (auth.isKing || (auth.isSuperAdmin && auth.role === 'SUPER_ADMIN')))
+  ) {
+    return true;
+  }
+
+  const whitelistGovNiks = ['NSR-2019-001', 'NSR-2019-002', 'NSR-2019-005'];
+  const whitelistGovNikHashes = [
+    '20ddf04d9509f94b452431311bc04e77936c523ac0b39199369363a33785b251',
+    'aad26510bd424920b1923a03479bde305d454e1777bde9a73f9cc056d51a5b0e',
+    '157ffe31fd5d85578c3c3ca4cba547794f95c36f9b014f8a4979fe1affc369e7',
+    '1a03edea26b5f942491820c00724e9dddb28029bc5a49af40163c7383541cbfc',
+    'cba205bb2971e73d757077377bafacc60280125e48a001ec4f788f4409a163d0',
+    'dcb6b8482aba24a9fbb5c10639b61443245ec080bda7077166d0f351f09c4c4a'
+  ];
+
+  const reqNik = String((payload && (payload.nik || payload.userNik)) || (auth && auth.nik) || '').trim().toUpperCase();
+  const reqNikRaw = reqNik ? computeSha256HexQA(reqNik) : '';
+  const reqNikSalted = reqNik ? computeSha256HexQA('KJPP_NSR_2026_CORE_AUTH::' + reqNik) : '';
+
+  if (
+    whitelistGovNiks.includes(tokenClean) ||
+    whitelistGovNiks.includes(reqNik) ||
+    whitelistGovNikHashes.includes(tokenLower) ||
+    whitelistGovNikHashes.includes(rawHash) ||
+    whitelistGovNikHashes.includes(saltedHash) ||
+    whitelistGovNikHashes.includes(inputHash) ||
+    whitelistGovNikHashes.includes(reqNikRaw) ||
+    whitelistGovNikHashes.includes(reqNikSalted)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function computeSha256HexQA(str) {
@@ -1172,11 +1286,13 @@ function doGet(e) {
   }
   if (action === "GET_EXECUTIVE_GOVERNANCE" || action === "GET_GOVERNANCE_OVERVIEW" || action === "GET_EMPLOYEE_KPI" || action === "GET_PPL_COMPLIANCE" || action === "GET_CLIENT_SLA" || action === "GET_BANK_ORDER_OPTIMIZATION" || action === "GET_BANK_OPTIMIZATION") {
     const auth = verifikasiAksesTokenQA(e.parameter.token || '', e.parameter.tokenHash || e.parameter.authTokenHash || '', e.parameter.apiKey || '');
-    if (!auth.valid) {
+    if (!isGovernanceAuthorizedQA(auth, e.parameter.token, e.parameter.tokenHash || e.parameter.authTokenHash, e.parameter.apiKey, e.parameter)) {
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
         success: false,
-        error: "Akses Ditolak (401 Unauthorized): Pembacaan data tata kelola dan SDM membutuhkan otorisasi kredensial resmi."
+        code: 403,
+        error: "FORBIDDEN",
+        message: "Akses Ditolak (403 Forbidden): Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM."
       })).setMimeType(ContentService.MimeType.JSON);
     }
   }

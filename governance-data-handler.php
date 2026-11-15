@@ -48,10 +48,10 @@ if (empty($token) && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
 }
 
 // Muat registry hash resmi untuk resolusi token
-$isKing = false;
+$isGovernanceAuthorized = false;
 $tokenClean = strtoupper(trim($token));
 
-// Daftar hash kriptografis resmi KING / Super Admin
+// 1. Daftar hash kriptografis resmi KING / Super Admin (NSR8899)
 $knownKingHashes = [
     '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f', // Salted KING
     '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0', // Unsalted uppercase KING
@@ -59,21 +59,58 @@ $knownKingHashes = [
     '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6'  // Legacy KING hash
 ];
 
-if (in_array(strtolower($token), $knownKingHashes, true) ||
-    $tokenClean === 'NSR8899' ||
-    $tokenClean === 'NSR-KING-2026' ||
-    $tokenClean === 'NSR-MASTER-2026') {
-    $isKing = true;
-} else {
-    // Verifikasi via SHA-256 hash jika token mentah atau variasi hash dikirimkan
-    $rawHash = hash('sha256', $token);
-    $upperHash = hash('sha256', $tokenClean);
-    $saltedHash = hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . $tokenClean);
+// 2. Whitelist NIK Manajemen Utama / Kepala SPM (PMK 101/2014 & SPM 4.2026) - Stored as SHA-256 Hashes
+$whitelistGovNikHashes = [
+    // Mgmt Authority 001 (Raw & Salted)
+    '20ddf04d9509f94b452431311bc04e77936c523ac0b39199369363a33785b251',
+    'aad26510bd424920b1923a03479bde305d454e1777bde9a73f9cc056d51a5b0e',
+    // Mgmt Authority 002 (Raw & Salted)
+    '157ffe31fd5d85578c3c3ca4cba547794f95c36f9b014f8a4979fe1affc369e7',
+    '1a03edea26b5f942491820c00724e9dddb28029bc5a49af40163c7383541cbfc',
+    // Mgmt Authority 005 (Raw & Salted)
+    'cba205bb2971e73d757077377bafacc60280125e48a001ec4f788f4409a163d0',
+    'dcb6b8482aba24a9fbb5c10639b61443245ec080bda7077166d0f351f09c4c4a'
+];
 
-    if (in_array($rawHash, $knownKingHashes, true) ||
+// 3. Hashes yang secara EKSPLISIT DIBLOKIR dari Tata Kelola (Non-Privileged Tokens)
+$explicitlyDeniedGovHashes = [
+    // Admin Pusat Non-King Hashes
+    '49b08700baeecdeece46d15b1700e271194d152db6c28eae9ffa1c5a9bdf8f6b',
+    '03b75cf3f130ea0a8274123debca348db7f934e7e1b43ff0b2e295cc1deffe17',
+    // Staf Operasional Non-King Hashes
+    '2f0e422850621d1ad32ce52db90f6230a275d0d46630d252b636754265e176b6',
+    'd063dc444f9eb1612f269fa62e8d8cd0fbec42b4ab13033fbde225261157ffb5'
+];
+
+$rawHash = !empty($token) ? hash('sha256', $token) : '';
+$upperHash = !empty($tokenClean) ? hash('sha256', $tokenClean) : '';
+$saltedHash = !empty($tokenClean) ? hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . $tokenClean) : '';
+$tokenLower = strtolower($token);
+
+$requestNik = strtoupper(trim((string)($payload['nik'] ?? $_GET['nik'] ?? $payload['userNik'] ?? '')));
+$nikRawHash = !empty($requestNik) ? hash('sha256', $requestNik) : '';
+$nikSaltedHash = !empty($requestNik) ? hash('sha256', 'KJPP_NSR_2026_CORE_AUTH::' . $requestNik) : '';
+
+// Periksa apakah token secara eksplisit dilarang mengakses modul Governance
+$isExplicitDenied = (
+    in_array($rawHash, $explicitlyDeniedGovHashes, true) ||
+    in_array($upperHash, $explicitlyDeniedGovHashes, true) ||
+    in_array($saltedHash, $explicitlyDeniedGovHashes, true)
+);
+
+if (!$isExplicitDenied) {
+    if (in_array($tokenLower, $knownKingHashes, true) ||
+        in_array($rawHash, $knownKingHashes, true) ||
         in_array($upperHash, $knownKingHashes, true) ||
         in_array($saltedHash, $knownKingHashes, true)) {
-        $isKing = true;
+        $isGovernanceAuthorized = true;
+    } elseif (in_array($tokenLower, $whitelistGovNikHashes, true) ||
+        in_array($rawHash, $whitelistGovNikHashes, true) ||
+        in_array($upperHash, $whitelistGovNikHashes, true) ||
+        in_array($saltedHash, $whitelistGovNikHashes, true) ||
+        in_array($nikRawHash, $whitelistGovNikHashes, true) ||
+        in_array($nikSaltedHash, $whitelistGovNikHashes, true)) {
+        $isGovernanceAuthorized = true;
     } else {
         $registryFile = __DIR__ . '/auth-registry-loader.php';
         if (file_exists($registryFile)) {
@@ -81,12 +118,12 @@ if (in_array(strtolower($token), $knownKingHashes, true) ||
             if (function_exists('loadPrivateAuthRegistry')) {
                 $reg = loadPrivateAuthRegistry();
                 $hashes = $reg['token_hashes'] ?? [];
-                $candidates = [$token, strtolower($token), $rawHash, $upperHash, $saltedHash];
+                $candidates = [$token, $tokenLower, $rawHash, $upperHash, $saltedHash];
                 foreach ($candidates as $cand) {
                     if (isset($hashes[$cand])) {
                         $user = $hashes[$cand];
-                        if (!empty($user['isSuperAdmin']) || !empty($user['isKing']) || in_array(strtoupper($user['role'] ?? ''), ['SUPER_ADMIN', 'SUPER ADMIN'], true)) {
-                            $isKing = true;
+                        if (!empty($user['isSuperAdmin']) || !empty($user['isKing']) || !empty($user['canAccessGovernance']) || in_array(strtoupper($user['role'] ?? ''), ['SUPER_ADMIN', 'SUPER ADMIN'], true)) {
+                            $isGovernanceAuthorized = true;
                             break;
                         }
                     }
@@ -99,12 +136,13 @@ if (in_array(strtolower($token), $knownKingHashes, true) ||
 $action = trim($payload['action'] ?? $_GET['action'] ?? 'GET_GOVERNANCE_OVERVIEW');
 $isPublicAllowedAction = ($action === 'SETUP_SPM4_SCHEMA' || $action === 'setupSPM4SchemaSSOT' || $action === 'CHECK_BRANCH_ESCALATION');
 
-if (!$isKing && !$isPublicAllowedAction) {
+if (!$isGovernanceAuthorized && !$isPublicAllowedAction) {
     http_response_code(403);
     echo json_encode([
         'success'   => false,
+        'code'      => 403,
         'error'     => 'FORBIDDEN',
-        'message'   => 'Akses Ditolak (403 Forbidden): Halaman dan endpoint Executive Control Tower hanya dapat diakses melalui Token Otoritas KING (NSR8899).'
+        'message'   => 'Akses Ditolak (403 Forbidden): Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM.'
     ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     exit;
 }

@@ -2583,10 +2583,28 @@
 
     // Hash Kriptografis Resmi Otoritas KING & Super Admin
     const VALID_KING_HASHES = [
-      '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6',
-      '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f',
-      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0',
-      '3186e936994518a10f3506f1da37ea5050f16b55e66499d258d4fe85fde32119'
+      '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f', // King Auth Hash (salted)
+      '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0', // King Auth Hash (raw)
+      '3186e936994518a10f3506f1da37ea5050f16b55e66499d258d4fe85fde32119', // legacy king
+      '5b721e06941bf2803b879c947ff9618b628ec26f0b4d4b1cf2de90c2912443c6'  // legacy king
+    ];
+
+    // Whitelist Hash NIK Manajemen Utama & Kepala SPM
+    const VALID_MGMT_NIK_HASHES = [
+      '20ddf04d9509f94b452431311bc04e77936c523ac0b39199369363a33785b251',
+      'aad26510bd424920b1923a03479bde305d454e1777bde9a73f9cc056d51a5b0e',
+      '157ffe31fd5d85578c3c3ca4cba547794f95c36f9b014f8a4979fe1affc369e7',
+      '1a03edea26b5f942491820c00724e9dddb28029bc5a49af40163c7383541cbfc',
+      'cba205bb2971e73d757077377bafacc60280125e48a001ec4f788f4409a163d0',
+      'dcb6b8482aba24a9fbb5c10639b61443245ec080bda7077166d0f351f09c4c4a'
+    ];
+
+    // Hash Token yang Secara Eksplisit Ditolak dari Modul Governance (Non-Privileged Tokens)
+    const DENIED_NON_GOV_HASHES = [
+      '49b08700baeecdeece46d15b1700e271194d152db6c28eae9ffa1c5a9bdf8f6b',
+      '03b75cf3f130ea0a8274123debca348db7f934e7e1b43ff0b2e295cc1deffe17',
+      '2f0e422850621d1ad32ce52db90f6230a275d0d46630d252b636754265e176b6',
+      'd063dc444f9eb1612f269fa62e8d8cd0fbec42b4ab13033fbde225261157ffb5'
     ];
 
     function cekApakahHashKing(tokenStr) {
@@ -2602,13 +2620,66 @@
       return false;
     }
 
+    function cekApakahOtoritasGovernance(tokenStr, sessionNik) {
+      if (!tokenStr && !sessionNik) return false;
+      const clean = String(tokenStr || '').trim();
+      const cleanUpper = clean.toUpperCase();
+      const cleanLower = clean.toLowerCase();
+
+      const rawHash = clean ? _govSha256Hex(cleanUpper) : '';
+      const saltedHash = clean ? _govSha256Hex('KJPP_NSR_2026_CORE_AUTH::' + cleanUpper) : '';
+
+      // 1. Cek Penolakan Eksplisit
+      if (
+        DENIED_NON_GOV_HASHES.includes(cleanLower) ||
+        DENIED_NON_GOV_HASHES.includes(rawHash) ||
+        DENIED_NON_GOV_HASHES.includes(saltedHash)
+      ) {
+        return false;
+      }
+
+      // 2. Cek Token KING
+      if (
+        VALID_KING_HASHES.includes(cleanLower) ||
+        VALID_KING_HASHES.includes(rawHash) ||
+        VALID_KING_HASHES.includes(saltedHash)
+      ) {
+        return true;
+      }
+
+      // 3. Cek Whitelist NIK Manajemen / Kepala SPM
+      if (
+        VALID_MGMT_NIK_HASHES.includes(cleanLower) ||
+        VALID_MGMT_NIK_HASHES.includes(rawHash) ||
+        VALID_MGMT_NIK_HASHES.includes(saltedHash)
+      ) {
+        return true;
+      }
+
+      if (sessionNik) {
+        const nikClean = String(sessionNik).trim().toUpperCase();
+        const nikLower = nikClean.toLowerCase();
+        const nikRaw = _govSha256Hex(nikClean);
+        const nikSalted = _govSha256Hex('KJPP_NSR_2026_CORE_AUTH::' + nikClean);
+        if (
+          VALID_MGMT_NIK_HASHES.includes(nikLower) ||
+          VALID_MGMT_NIK_HASHES.includes(nikRaw) ||
+          VALID_MGMT_NIK_HASHES.includes(nikSalted)
+        ) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
     // Harmonisasi Pembacaan Sesi SSO Lintas Portal (Identik Case-Sensitive)
     function dapatkanSesiOtoritas() {
       // 1. Parameter URL (nama param netral untuk kompatibilitas audit build)
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const urlAuth = urlParams.get('auth_token') || urlParams.get('access_token') || urlParams.get('k');
-        if (urlAuth && (cekApakahHashKing(urlAuth) || urlAuth.length >= 4)) {
+        if (urlAuth && cekApakahOtoritasGovernance(urlAuth)) {
           return urlAuth;
         }
       } catch (_) {}
@@ -2624,9 +2695,9 @@
       ];
       for (const k of directTokenKeys) {
         const valS = sessionStorage.getItem(k);
-        if (valS && (cekApakahHashKing(valS) || valS.length >= 4)) return valS;
+        if (valS && cekApakahOtoritasGovernance(valS)) return valS;
         const valL = localStorage.getItem(k);
-        if (valL && (cekApakahHashKing(valL) || valL.length >= 4)) return valL;
+        if (valL && cekApakahOtoritasGovernance(valL)) return valL;
       }
 
       // 3. Objek JSON Sesi terdaftar di sessionStorage & localStorage
@@ -2644,12 +2715,10 @@
             if (!raw) continue;
             const sess = JSON.parse(raw);
             if (!sess) continue;
-            const isPrivileged = Boolean(sess.isSuperAdmin || sess.isKing || (sess.role && sess.role.toUpperCase() === 'SUPER_ADMIN'));
-            if (isPrivileged) {
-              const candidate = sess.token || sess.tokenHash || sess.auth_token || sess.king_token;
-              if (candidate && candidate !== 'AUTHORIZED_SESSION') {
-                return candidate;
-              }
+            const candidate = sess.token || sess.tokenHash || sess.auth_token || sess.king_token || '';
+            const sessionNik = sess.nik || sess.userNik || '';
+            if (cekApakahOtoritasGovernance(candidate, sessionNik)) {
+              return candidate || sess.tokenHash || 'AUTHORIZED_SESSION';
             }
           } catch (_) {}
         }
@@ -2666,8 +2735,8 @@
 
       const sessProfile = {
         sub: 'super_admin_king',
-        displayName: 'Danny Taufik Hidayat, S.H.',
-        nama: 'Danny Taufik Hidayat, S.H.',
+        displayName: 'Otoritas Pengawas Tertinggi & SPM',
+        nama: 'Otoritas Pengawas Tertinggi & SPM',
         role: 'SUPER_ADMIN',
         roleLabel: 'SUPER ADMIN • KING (Otoritas Sistem Tertinggi)',
         wilayah: 'Kantor Pusat Jakarta',
@@ -2832,7 +2901,24 @@
         tutupModalOtoritas();
         muatDataGovernance();
       } else {
-        bukaModalOtoritas();
+        // Cek apakah ada sesi login aktif non-governance yang mencoba membuka Control Tower
+        let nonGovSessionFound = false;
+        try {
+          const checkKeys = ['NSR_AUTH_TOKEN', 'nsr_auth_token', 'NSR_USER_SESSION', 'nsr_user_session'];
+          for (const k of checkKeys) {
+            const val = sessionStorage.getItem(k) || localStorage.getItem(k);
+            if (val) {
+              nonGovSessionFound = true;
+              break;
+            }
+          }
+        } catch (_) {}
+
+        if (nonGovSessionFound) {
+          bukaModalOtoritas('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
+        } else {
+          bukaModalOtoritas();
+        }
       }
     })();
 
@@ -2848,6 +2934,16 @@
         return;
       }
 
+      // Pre-validasi izin akses modul Tata Kelola & Menara Kendali
+      if (!cekApakahOtoritasGovernance(inpVal)) {
+        if (btnSubmit && btnText) {
+          btnSubmit.disabled = false;
+          btnText.textContent = 'Verifikasi Otoritas';
+        }
+        bukaModalOtoritas('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
+        return;
+      }
+
       if (btnSubmit && btnText) {
         btnSubmit.disabled = true;
         btnText.textContent = 'Memverifikasi...';
@@ -2859,8 +2955,9 @@
 
     // Memuat Data Agregasi Lintas Modul dari SSOT Google Apps Script / Backend
     async function muatDataGovernance() {
-      if (!CURRENT_TOKEN) {
-        bukaModalOtoritas();
+      if (!CURRENT_TOKEN || !cekApakahOtoritasGovernance(CURRENT_TOKEN)) {
+        CURRENT_TOKEN = '';
+        bukaModalOtoritas('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
         return;
       }
 
@@ -2877,10 +2974,20 @@
             token: CURRENT_TOKEN
           })
         });
+        if (gasRes.status === 403) {
+          CURRENT_TOKEN = '';
+          bukaModalOtoritas('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
+          return;
+        }
         if (gasRes.ok) {
           const resText = await gasRes.text();
           try {
             const parsed = JSON.parse(resText);
+            if (parsed && (parsed.code === 403 || parsed.error === 'FORBIDDEN')) {
+              CURRENT_TOKEN = '';
+              bukaModalOtoritas('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
+              return;
+            }
             if (parsed && (parsed.success || parsed.status === 'success')) {
               json = parsed;
             }
@@ -2898,11 +3005,16 @@
           // Penanganan 403 Forbidden secara Elegan (Tanpa Alert Browser Memblokir)
           if (res.status === 403) {
             CURRENT_TOKEN = '';
-            bukaModalOtoritas('Akses Ditolak (403 Forbidden): Sesi Anda tidak memiliki wewenang Token KING / Otoritas Pengawas SPM. Silakan periksa kembali PIN Anda.');
+            bukaModalOtoritas('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
             return;
           }
 
           const phpJson = await res.json();
+          if (phpJson && (phpJson.code === 403 || phpJson.error === 'FORBIDDEN')) {
+            CURRENT_TOKEN = '';
+            bukaModalOtoritas('403 Forbidden: Akses Executive Control Tower & SPM Hub dibatasi khusus untuk Pemegang Otoritas KING dan Manajemen Utama / Kepala SPM');
+            return;
+          }
           if (phpJson && (phpJson.success || phpJson.status === 'success')) {
             json = phpJson;
             dataSource = 'Server Tata Kelola Lokal (cPanel)';
