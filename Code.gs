@@ -25,8 +25,12 @@ const CONFIG = {
   // Web App Endpoint URL Resmi Google Apps Script
   WEB_APP_URL: GAS_WEB_APP_URL,
 
-  // ID Master Spreadsheet DB_PENUGASAN_JO_NSR Resmi KJPP NSR
-  SPREADSHEET_ID: '1VJW4nrzc1884kxepxZ2p8zNUcHrCWEqodQQcjeXXg_g',
+  // ID Master Spreadsheet DB_PENUGASAN_JO_NSR Resmi SSOT Produksi KJPP NSR:
+  // - SPREADSHEET_ID: '1unkr20gOGZDyoM-FuHwZ2n6DDbLQf8ETICQaNoXSUrg' (Database Utama SSOT DB_PENUGASAN_JO_NSR: JO, SLA, KPI & SPM)
+  // - SPREADSHEET_ID_FALLBACK: '1VJW4nrzc1884kxepxZ2p8zNUcHrCWEqodQQcjeXXg_g' (Buku Agenda Surat Umum / Environment Penugasan Terpadu)
+  SPREADSHEET_ID: '1unkr20gOGZDyoM-FuHwZ2n6DDbLQf8ETICQaNoXSUrg',
+  SPREADSHEET_ID_FALLBACK: '1VJW4nrzc1884kxepxZ2p8zNUcHrCWEqodQQcjeXXg_g',
+  SPREADSHEET_ID_SURAT_UMUM: '1VJW4nrzc1884kxepxZ2p8zNUcHrCWEqodQQcjeXXg_g',
 
   // ID Master Database Administrasi KJPP NSR
   MASTER_ADMIN_SPREADSHEET_ID: '1Aob9oFvOObV7Nz0bt3DDsTrWCoFKd233FFYkdBCSFTg',
@@ -1701,6 +1705,13 @@ function verifikasiAksesToken(token, tokenHash, apiKey) {
  * Membuka langsung via CONFIG.SPREADSHEET_ID dengan fallback aman ke getActiveSpreadsheet()
  */
 function getMasterSpreadsheet() {
+  // 1. Coba Spreadsheet aktif terlebih dahulu jika skrip terikat (bound) pada spreadsheet
+  try {
+    const activeSs = SpreadsheetApp.getActiveSpreadsheet();
+    if (activeSs) return activeSs;
+  } catch (_) {}
+
+  // 2. Buka langsung via CONFIG.SPREADSHEET_ID (Database Utama SSOT)
   if (CONFIG.SPREADSHEET_ID) {
     try {
       const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
@@ -1709,8 +1720,17 @@ function getMasterSpreadsheet() {
       console.warn('Gagal membuka spreadsheet via openById(' + CONFIG.SPREADSHEET_ID + '):', e);
     }
   }
-  const activeSs = SpreadsheetApp.getActiveSpreadsheet();
-  if (activeSs) return activeSs;
+
+  // 3. Fallback ke CONFIG.SPREADSHEET_ID_FALLBACK
+  if (CONFIG.SPREADSHEET_ID_FALLBACK) {
+    try {
+      const ssFallback = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID_FALLBACK);
+      if (ssFallback) return ssFallback;
+    } catch (eFb) {
+      console.warn('Gagal membuka spreadsheet fallback via openById(' + CONFIG.SPREADSHEET_ID_FALLBACK + '):', eFb);
+    }
+  }
+
   return inisialisasiSpreadsheetBaru();
 }
 
@@ -3418,10 +3438,18 @@ function saveEmployeeKPIEvaluation(payload, ssInstance) {
   try {
     let ss = ssInstance;
     if (!ss) {
-      if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+      // 1. PRIORITAS UTAMA MENU UI & EDITOR: Gunakan Spreadsheet aktif yang sedang dibuka user
+      try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) {}
+      // 2. FALLBACK WEB APP (doGet / doPost): Buka via SPREADSHEET_ID atau getMasterSpreadsheet()
+      if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) {
         try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
       }
-      if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+      if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID_FALLBACK) {
+        try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID_FALLBACK); } catch (_) {}
+      }
+      if (!ss && typeof getMasterSpreadsheet === 'function') {
+        try { ss = getMasterSpreadsheet(); } catch (_) {}
+      }
     }
     if (!ss) {
       return { status: "error", success: false, message: "Database Master Spreadsheet tidak dapat diakses." };
@@ -3529,10 +3557,18 @@ function submitAndVerifyPPLRecord(payload, ssInstance) {
   try {
     let ss = ssInstance;
     if (!ss) {
-      if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+      // 1. PRIORITAS UTAMA MENU UI & EDITOR: Gunakan Spreadsheet aktif yang sedang dibuka user
+      try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) {}
+      // 2. FALLBACK WEB APP (doGet / doPost): Buka via SPREADSHEET_ID atau getMasterSpreadsheet()
+      if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) {
         try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
       }
-      if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+      if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID_FALLBACK) {
+        try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID_FALLBACK); } catch (_) {}
+      }
+      if (!ss && typeof getMasterSpreadsheet === 'function') {
+        try { ss = getMasterSpreadsheet(); } catch (_) {}
+      }
     }
     if (!ss) {
       return { status: "error", success: false, message: "Database Master Spreadsheet tidak dapat diakses." };
@@ -3642,10 +3678,18 @@ function submitAndVerifyPPLRecord(payload, ssInstance) {
 function getPPLComplianceRecords(ssInstance) {
   let ss = ssInstance;
   if (!ss) {
-    if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+    // 1. PRIORITAS UTAMA MENU UI & EDITOR: Gunakan Spreadsheet aktif yang sedang dibuka user
+    try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) {}
+    // 2. FALLBACK WEB APP (doGet / doPost): Buka via SPREADSHEET_ID atau getMasterSpreadsheet()
+    if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) {
       try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
     }
-    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID_FALLBACK) {
+      try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID_FALLBACK); } catch (_) {}
+    }
+    if (!ss && typeof getMasterSpreadsheet === 'function') {
+      try { ss = getMasterSpreadsheet(); } catch (_) {}
+    }
   }
   if (!ss) return { status: "error", success: false, records: [] };
 
@@ -4983,10 +5027,18 @@ function generateQuarterlySampling(payload, ssInstance) {
   try {
     let ss = ssInstance;
     if (!ss) {
-      if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+      // 1. PRIORITAS UTAMA MENU UI & EDITOR: Gunakan Spreadsheet aktif yang sedang dibuka user
+      try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) {}
+      // 2. FALLBACK WEB APP (doGet / doPost): Buka via SPREADSHEET_ID atau getMasterSpreadsheet()
+      if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) {
         try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
       }
-      if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+      if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID_FALLBACK) {
+        try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID_FALLBACK); } catch (_) {}
+      }
+      if (!ss && typeof getMasterSpreadsheet === 'function') {
+        try { ss = getMasterSpreadsheet(); } catch (_) {}
+      }
     }
     if (!ss) return { status: "error", success: false, message: "Database Master tidak dapat diakses." };
 
@@ -5177,10 +5229,18 @@ function updateCAPAStatus(payload, ssInstance) {
   try {
     let ss = ssInstance;
     if (!ss) {
-      if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+      // 1. PRIORITAS UTAMA MENU UI & EDITOR: Gunakan Spreadsheet aktif yang sedang dibuka user
+      try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) {}
+      // 2. FALLBACK WEB APP (doGet / doPost): Buka via SPREADSHEET_ID atau getMasterSpreadsheet()
+      if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) {
         try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
       }
-      if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+      if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID_FALLBACK) {
+        try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID_FALLBACK); } catch (_) {}
+      }
+      if (!ss && typeof getMasterSpreadsheet === 'function') {
+        try { ss = getMasterSpreadsheet(); } catch (_) {}
+      }
     }
     if (!ss) return { status: "error", success: false, message: "Database Master tidak dapat diakses." };
 
@@ -5229,10 +5289,18 @@ function getPostEngagementReviews(payload, ssInstance) {
   payload = payload || {};
   let ss = ssInstance;
   if (!ss) {
-    if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+    // 1. PRIORITAS UTAMA MENU UI & EDITOR: Gunakan Spreadsheet aktif yang sedang dibuka user
+    try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) {}
+    // 2. FALLBACK WEB APP (doGet / doPost): Buka via SPREADSHEET_ID atau getMasterSpreadsheet()
+    if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) {
       try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
     }
-    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID_FALLBACK) {
+      try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID_FALLBACK); } catch (_) {}
+    }
+    if (!ss && typeof getMasterSpreadsheet === 'function') {
+      try { ss = getMasterSpreadsheet(); } catch (_) {}
+    }
   }
   if (!ss) return { status: "error", success: false, records: [] };
 
@@ -5342,14 +5410,20 @@ function validateZeroSelfReview(auditorName, penilaiName, surveyorName) {
 function setupSPM4SchemaSSOT(ssInstance) {
   let ss = ssInstance;
   if (!ss) {
-    if (typeof CONFIG !== 'undefined' && CONFIG.SPREADSHEET_ID) {
+    // 1. PRIORITAS UTAMA MENU UI & EDITOR: Gunakan Spreadsheet aktif yang sedang dibuka user
+    try {
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+    } catch (_) {}
+
+    // 2. FALLBACK WEB APP (doGet / doPost): Buka via SPREADSHEET_ID atau getMasterSpreadsheet()
+    if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) {
       try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID); } catch (_) {}
+    }
+    if (!ss && typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID_FALLBACK) {
+      try { ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID_FALLBACK); } catch (_) {}
     }
     if (!ss && typeof getMasterSpreadsheet === 'function') {
       try { ss = getMasterSpreadsheet(); } catch (_) {}
-    }
-    if (!ss) {
-      try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) {}
     }
   }
 
@@ -5535,7 +5609,14 @@ function onOpen(e) {
 }
 
 function menuSamplingAcakSPM() {
-  const result = generateQuarterlySampling({ kuartal: "Q1", tahun: 2026 });
+  let ss = null;
+  try {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+  } catch (_) {}
+  if (!ss && typeof getMasterSpreadsheet === 'function') {
+    try { ss = getMasterSpreadsheet(); } catch (_) {}
+  }
+  const result = generateQuarterlySampling({ kuartal: "Q1", tahun: 2026 }, ss);
   try {
     const ui = SpreadsheetApp.getUi();
     if (ui) {
