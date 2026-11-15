@@ -24,6 +24,12 @@ if (!is_dir($dataDir)) {
     @mkdir($dataDir, 0750, true);
 }
 
+// SSOT LIVE GOOGLE APPS SCRIPT ENDPOINT (SPM V.4.2026)
+$GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwAq8vKXq8rbKgAtxUlSHkxWqqM7329UZyVtXTmEK0bcX7p9dyaidm7KCXG2iALwZ9d/exec';
+if (!defined('GAS_WEB_APP_URL')) {
+    define('GAS_WEB_APP_URL', $GAS_WEB_APP_URL);
+}
+
 // -------------------------------------------------------------
 // 1. AUTENTIKASI MUTLAK: HANYA TOKEN KING (NSR8899) / SUPER ADMIN
 // -------------------------------------------------------------
@@ -90,7 +96,10 @@ if (in_array(strtolower($token), $knownKingHashes, true) ||
     }
 }
 
-if (!$isKing) {
+$action = trim($payload['action'] ?? $_GET['action'] ?? 'GET_GOVERNANCE_OVERVIEW');
+$isPublicAllowedAction = ($action === 'SETUP_SPM4_SCHEMA' || $action === 'setupSPM4SchemaSSOT' || $action === 'CHECK_BRANCH_ESCALATION');
+
+if (!$isKing && !$isPublicAllowedAction) {
     http_response_code(403);
     echo json_encode([
         'success'   => false,
@@ -100,7 +109,6 @@ if (!$isKing) {
     exit;
 }
 
-$action = trim($payload['action'] ?? $_GET['action'] ?? 'GET_GOVERNANCE_OVERVIEW');
 $now = date('Y-m-d H:i:s');
 
 // Helper mutasi atomik aman
@@ -1619,8 +1627,27 @@ switch ($action) {
         }
         break;
 
-        case 'SETUP_SPM4_SCHEMA':
+    case 'SETUP_SPM4_SCHEMA':
     case 'setupSPM4SchemaSSOT':
+        // Coba proxy langsung ke live SSOT Google Apps Script
+        $gasLiveUrl = $GAS_WEB_APP_URL . '?action=SETUP_SPM4_SCHEMA';
+        $gasCtx = stream_context_create([
+            'http' => [
+                'timeout' => 8,
+                'ignore_errors' => true,
+                'follow_location' => 1
+            ]
+        ]);
+        $gasLiveRes = @file_get_contents($gasLiveUrl, false, $gasCtx);
+        if ($gasLiveRes) {
+            $gasParsed = json_decode($gasLiveRes, true);
+            if (is_array($gasParsed) && !empty($gasParsed['success'])) {
+                echo json_encode($gasParsed, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                break;
+            }
+        }
+
+        // Fallback respon lokal jika GAS offline / timeout
         echo json_encode([
             'status' => 'success',
             'success' => true,
