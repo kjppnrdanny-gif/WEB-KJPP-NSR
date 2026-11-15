@@ -1472,11 +1472,11 @@
           </div>
           <div class="p-1.5 border border-slate-300 bg-slate-50">
             <span class="text-slate-600 block">Top Performer:</span>
-            <span id="print-kpi-top" class="font-bold text-[8.5pt] text-slate-900">Danny Taufik Hidayat, S.H. (97.7)</span>
+            <span id="print-kpi-top" class="font-bold text-[8.5pt] text-slate-900">-</span>
           </div>
           <div class="p-1.5 border border-slate-300 bg-slate-50">
             <span class="text-slate-600 block">Rasio Kepatuhan Izin/PPL:</span>
-            <span id="print-kpi-ppl-ratio" class="font-bold text-[8.5pt] text-slate-900">98.1% Tertib</span>
+            <span id="print-kpi-ppl-ratio" class="font-bold text-[8.5pt] text-slate-900">100.0% Tertib</span>
           </div>
           <div class="p-1.5 border border-slate-300 bg-slate-50">
             <span class="text-slate-600 block">Peringatan Radar Izin:</span>
@@ -1515,9 +1515,9 @@
               <div class="h-16 flex items-center justify-center text-slate-400 font-mono text-[7pt]">
                 [Tanda Tangan Digital Tersertifikasi]
               </div>
-              <div class="font-black text-slate-900 underline text-[8.5pt]">DANNY TAUFIK HIDAYAT, S.H.</div>
+              <div id="print-pic-spm-nama" class="font-black text-slate-900 underline text-[8.5pt]">DANNY TAUFIK HIDAYAT, S.H.</div>
               <div class="text-[7.5pt] text-slate-600">Representasi Manajemen &amp; Kepala SPM</div>
-              <div class="text-[7pt] text-slate-500 font-mono">NIK: NSR-2019-005 • MAPPI: 19-P-08722</div>
+              <div id="print-pic-spm-nik" class="text-[7pt] text-slate-500 font-mono">-</div>
             </td>
             <td class="text-center w-1/2 p-2" style="border: none !important;">
               <div class="text-slate-700">Menyetujui &amp; Mengesahkan:</div>
@@ -1525,9 +1525,9 @@
               <div class="h-16 flex items-center justify-center text-slate-400 font-mono text-[7pt]">
                 [Tanda Tangan Digital Tersertifikasi]
               </div>
-              <div class="font-black text-slate-900 underline text-[8.5pt]">Ir. NANANG RAHAYU, M.Ec.Dev., MAPPI (Cert.)</div>
+              <div id="print-rekan-nama" class="font-black text-slate-900 underline text-[8.5pt]">Ir. NANANG RAHAYU, M.Ec.Dev., MAPPI (Cert.)</div>
               <div class="text-[7.5pt] text-slate-600">Izin Penilai Publik KMK RI No. P-1.19.00511</div>
-              <div class="text-[7pt] text-slate-500 font-mono">NIK: NSR-2019-001 • MAPPI: 92-S-00341</div>
+              <div id="print-rekan-nik" class="text-[7pt] text-slate-500 font-mono">-</div>
             </td>
           </tr>
         </table>
@@ -2990,46 +2990,18 @@
       }).join('');
 
       // Render Daftar Anomali Tata Kelola
-      ACTIVE_ANOMALI_LIST = (data.anomaliList && data.anomaliList.length > 0) ? data.anomaliList : [
-        {
-          id: 'ANOM-SPM-PDG-01',
-          cabang: 'Kantor Cabang Padang',
-          pic: 'Hernita, S.Si.',
-          phone: '081267891234',
-          email: 'padang@kjppnanangrahayu.com',
-          kategori: 'BRANCH_LICENSE_ESCALATION',
-          badge: 'ESCALATION GATE LOCKED',
-          badgeColor: 'rose',
-          uraian: 'Cabang Padang (Izin Properti Sederhana / PS) mengusulkan aset komersial > Rp 5 Miliar (JO-NSR-2026-0118). Penerbitan NoLap cabang dikunci dan WAJIB dieskalasi ke Rekan (P) Pusat Ir. Nanang Rahayu sesuai PMK 101/2014 jo. PMK 228/2019.',
-          canForcePass: false
-        },
-        {
-          id: 'ANOM-SPM-MKS-02',
-          cabang: 'Kantor Cabang Makassar',
-          pic: 'Muhammad Amin Sade',
-          phone: '081345678901',
-          email: 'makassar@kjppnanangrahayu.com',
-          kategori: 'FM_SPM_06_1_GATE',
-          badge: 'FM-SPM-06.1 PENDING',
-          badgeColor: 'amber',
-          uraian: 'Pre-Release Document Gate terkunci: Kertas Kerja Penilaian (KKP Excel) dan Surat Representasi Klien bermeterai belum terverifikasi terunggah untuk JO-NSR-2026-0294.',
-          canForcePass: false
-        },
-        {
-          id: 'ANOM-SPM-PLB-03',
-          cabang: 'Kantor Cabang Palembang',
-          pic: 'Dharma Priyanto',
-          phone: '081178901234',
-          email: 'palembang@kjppnanangrahayu.com',
-          kategori: 'RADAR_90_DAY_ALERT',
-          badge: 'H-60 RADAR WARNING',
-          badgeColor: 'amber',
-          uraian: 'Early Warning Radar: Lisensi Penilai Pertanahan ATR/BPN akan jatuh tempo dalam 58 hari (H-60). Segera lengkapi berkas perpanjangan ke ATR/BPN Pusat.',
-          canForcePass: false
-        }
-      ];
+      ACTIVE_ANOMALI_LIST = (data.anomaliList && data.anomaliList.length > 0) ? data.anomaliList : [];
       const tbodyAnomali = document.getElementById('tbody-anomali');
-      tbodyAnomali.innerHTML = ACTIVE_ANOMALI_LIST.map((item, idx) => {
+      if (ACTIVE_ANOMALI_LIST.length === 0) {
+        tbodyAnomali.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-8 px-4 text-center text-slate-400 font-medium">
+              <i class="fas fa-check-circle text-emerald-400 text-lg mr-2"></i>Tidak ada anomali tata kelola aktif saat ini. Seluruh kantor cabang beroperasi patuh SPM V.4.2026.
+            </td>
+          </tr>
+        `;
+      } else {
+        tbodyAnomali.innerHTML = ACTIVE_ANOMALI_LIST.map((item, idx) => {
         const badgeClass = item.badgeColor === 'rose'
           ? 'bg-rose-950 text-rose-300 border-rose-800'
           : 'bg-amber-950 text-amber-300 border-amber-800';
@@ -3063,11 +3035,11 @@
                   ⚡ Force Pass
                 </button>
               ` : ''}
-              <button onclick="kirimIntervensiWA('${escapeHtml(item.pic)}', '${escapeHtml(item.phone)}', '${escapeHtml(item.id)}', '${escapeHtml(item.kategori)}')" 
+              <button onclick="kirimIntervensiWA('${escapeHtml(item.pic)}', '${escapeHtml(item.phone || '')}', '${escapeHtml(item.id)}', '${escapeHtml(item.kategori || '')}')" 
                       class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition inline-flex items-center gap-1 shadow">
                 <i class="fa-brands fa-whatsapp"></i> WA PIC
               </button>
-              <button onclick="bukaModalEmailMemo('${escapeHtml(item.pic)}', '${escapeHtml(item.email)}', '${escapeHtml(item.id)}', '${escapeHtml(item.kategori)}')" 
+              <button onclick="bukaModalEmailMemo('${escapeHtml(item.pic)}', '${escapeHtml(item.email || '')}', '${escapeHtml(item.id)}', '${escapeHtml(item.kategori || '')}')" 
                       class="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition inline-flex items-center gap-1 shadow">
                 <i class="fa-solid fa-envelope"></i> Memo
               </button>
@@ -3075,6 +3047,7 @@
           </tr>
         `;
       }).join('');
+      }
     }
 
     // =========================================================================
@@ -3520,60 +3493,7 @@
     let currentSelectedKpiNik = '';
     let currentSelectedPeriode = '2026-11';
 
-    const MASTER_52_CLIENT_FALLBACK = [
-      { no: 1, nik: "NSR-2019-001", nama: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)", jabatan: "Pemimpin Rekan", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 1, totalJo: 0 },
-      { no: 2, nik: "NSR-2019-002", nama: "Deni Siswandi, S.T., MAPPI (Cert.)", jabatan: "Rekan Berizin", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 2, totalJo: 0 },
-      { no: 3, nik: "NSR-2019-003", nama: "Mini Intan Cahyani", jabatan: "Rekan Non Penilai", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Non-Penilai", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 3, totalJo: 0 },
-      { no: 4, nik: "NSR-2019-004", nama: "Milda Hidayati Dewi, S.E.", jabatan: "Manager Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 4, totalJo: 0 },
-      { no: 5, nik: "NSR-2019-005", nama: "Danny Taufik Hidayat, S.H.", jabatan: "Kepala SPM & Manager Ops", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 5, totalJo: 0 },
-      { no: 6, nik: "NSR-2019-006", nama: "Arie Indra Permana", jabatan: "Manager Marketing", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 6, totalJo: 0 },
-      { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", masaBerlakuIzin: "-", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 7, totalJo: 0 },
-      { no: 8, nik: "NSR-2019-008", nama: "Ricca Noer Farikha", jabatan: "Accounting & Tax", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Akuntansi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 8, totalJo: 0 },
-      { no: 9, nik: "NSR-2019-009", nama: "Angga Malid Cahyadi", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 9, totalJo: 0 },
-      { no: 10, nik: "NSR-2019-010", nama: "Fadri Nurdin", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 10, totalJo: 0 },
-      { no: 11, nik: "NSR-2019-011", nama: "Erwandi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 11, totalJo: 0 },
-      { no: 12, nik: "NSR-2019-012", nama: "Latief Satihi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 12, totalJo: 0 },
-      { no: 13, nik: "NSR-2019-013", nama: "Aryanto", jabatan: "Staf Umum & Logistik", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Umum", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 13, totalJo: 0 },
-      { no: 14, nik: "NSR-2019-014", nama: "Yanto", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 14, totalJo: 0 },
-      { no: 15, nik: "NSR-2019-015", nama: "Lasiman", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 15, totalJo: 0 },
-      { no: 16, nik: "NSR-2019-016", nama: "Sukirno", jabatan: "Layanan Pendukung", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Office Boy", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 16, totalJo: 0 },
-      { no: 17, nik: "NSR-2019-017", nama: "Muhammad Syahrul Ruly", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 17, totalJo: 0 },
-      { no: 18, nik: "NSR-2019-018", nama: "Uci Sanusi", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 18, totalJo: 0 },
-      { no: 19, nik: "NSR-2019-019", nama: "Yasir Rizal, A.Md.", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 19, totalJo: 0 },
-      { no: 20, nik: "NSR-2019-020", nama: "Udin Syamsudin", jabatan: "Keamanan Kantor", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Security", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 20, totalJo: 0 },
-      { no: 21, nik: "NSR-2025-021", nama: "Dhea Shafitri Ningrum", jabatan: "Staf Administrasi & Kendali Mutu", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 21, totalJo: 0 },
-      { no: 22, nik: "NSR-2026-022", nama: "Siti Nuraeni Ependi", jabatan: "Staf Administrasi & Registrasi SPK", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 22, totalJo: 0 },
-      { no: 23, nik: "NSR-2025-023", nama: "Yoga Anfiar Pradipta", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 23, totalJo: 0 },
-      { no: 24, nik: "NSR-2026-024", nama: "Indra Nugraha", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 24, totalJo: 0 },
-      { no: 25, nik: "NSR-2025-025", nama: "Isnaini Azzahra", jabatan: "Staf Administrasi & Arsip", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 25, totalJo: 0 },
-      { no: 26, nik: "NSR-2026-026", nama: "Maharani Citra Charisma", jabatan: "Staf Administrasi & Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 26, totalJo: 0 },
-      { no: 27, nik: "NSR-PDG-2019-23", nama: "Hernita, S.Si., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Padang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 27, totalJo: 0 },
-      { no: 28, nik: "NSR-PDG-2019-24", nama: "Rahmad Andika", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 28, totalJo: 0 },
-      { no: 29, nik: "NSR-PDG-2019-25", nama: "Muhammad Al Amin", jabatan: "Penilai Properti", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 29, totalJo: 0 },
-      { no: 30, nik: "NSR-PDG-2019-26", nama: "Rien Soneta", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 30, totalJo: 0 },
-      { no: 31, nik: "NSR-PDG-2019-27", nama: "Kiki Yeza", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 31, totalJo: 0 },
-      { no: 32, nik: "NSR-PDG-2019-28", nama: "Siti Syarah", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 32, totalJo: 0 },
-      { no: 33, nik: "NSR-PDG-2019-29", nama: "Oki Oktianil Putra", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 33, totalJo: 0 },
-      { no: 34, nik: "NSR-MKS-2019-30", nama: "Muhammad Amin Sade, S.M., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Makassar", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 34, totalJo: 0 },
-      { no: 35, nik: "NSR-MKS-2019-31", nama: "Wawan Kurniawan", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Makassar", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 35, totalJo: 0 },
-      { no: 36, nik: "NSR-MKS-2019-32", nama: "Alauddin Amin", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 36, totalJo: 0 },
-      { no: 37, nik: "NSR-MKS-2020-33", nama: "M Fajrullah Danial", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 37, totalJo: 0 },
-      { no: 38, nik: "NSR-MKS-2021-34", nama: "Rahmad Dwi Susanto", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 38, totalJo: 0 },
-      { no: 39, nik: "NSR-MKS-2020-35", nama: "Andika Rifky Rifaldy", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 39, totalJo: 0 },
-      { no: 40, nik: "NSR-MKS-2019-36", nama: "Ilyas Tandialla", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 40, totalJo: 0 },
-      { no: 41, nik: "NSR-MKS-2019-37", nama: "Arman Mustajab", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 41, totalJo: 0 },
-      { no: 42, nik: "NSR-BDG-2020-38", nama: "Heru Kurnia", jabatan: "Business Development Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Marketing", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 42, totalJo: 0 },
-      { no: 43, nik: "NSR-BDG-2020-39", nama: "Ardi Nurmayadi, S.T.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 43, totalJo: 0 },
-      { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", masaBerlakuIzin: "-", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 44, totalJo: 0 },
-      { no: 45, nik: "NSR-BDG-2020-41", nama: "Tiara Hurairah", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Keuangan", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 45, totalJo: 0 },
-      { no: 46, nik: "NSR-BDG-2020-42", nama: "Achmad Ilham Fauzan", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 46, totalJo: 0 },
-      { no: 47, nik: "NSR-BDG-2020-43", nama: "Rahmat Muhammad Hussein", jabatan: "Surveyor Lapangan", cabang: "Cabang Bandung", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 47, totalJo: 0 },
-      { no: 48, nik: "NSR-PLB-2022-44", nama: "Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Palembang", peran: "REKAN", izin: "Izin Publik KMK", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 48, totalJo: 0 },
-      { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", masaBerlakuIzin: "-", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 49, totalJo: 0 },
-      { no: 50, nik: "NSR-PLB-2022-46", nama: "Arwin Saputra", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 50, totalJo: 0 },
-      { no: 51, nik: "NSR-PLB-2022-47", nama: "Hadyan Fikhri", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 51, totalJo: 0 },
-      { no: 52, nik: "NSR-PLB-2022-48", nama: "M. Deo Tansila Putra", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Palembang", peran: "ADMIN", izin: "Administrasi", statusPpl: "TERTIB", qaScore: 0, slaScore: 0, prodScore: 0, skorDisiplinHrd: 0, skorEtikaKepiHrd: 0, skorHrdEtika: 0, compositeScore: 0, isEvaluated: false, grade: "BELUM DIEVALUASI", rank: 52, totalJo: 0 }
-    ];
+    const MASTER_52_CLIENT_FALLBACK = [];
 
     function renderEmployeeKPI(data) {
       if (!data) return;

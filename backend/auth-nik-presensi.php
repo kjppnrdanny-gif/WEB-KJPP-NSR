@@ -288,7 +288,7 @@ if (empty($cleanNik)) {
     echo json_encode([
         'status' => 'error',
         'success' => false,
-        'message' => 'Parameter NIK wajib diisi. Contoh: NSR-2019-005'
+        'message' => 'Parameter NIK wajib diisi. Contoh: NSR-YYYY-XXX'
     ]);
     exit;
 }
@@ -299,12 +299,12 @@ if (!preg_match('/^NSR[-_]?\d{4}[-_]?\d{3}$/i', $cleanNik) && !preg_match('/^NSR
     echo json_encode([
         'status' => 'error',
         'success' => false,
-        'message' => 'Format NIK tidak valid. Format resmi KJPP NSR: NSR-[tahun masuk]-[nomor urut] (Contoh: NSR-2019-005).'
+        'message' => 'Format NIK tidak valid. Format resmi KJPP NSR: NSR-[tahun masuk]-[nomor urut] (Contoh: NSR-YYYY-XXX).'
     ]);
     exit;
 }
 
-// Normalisasi pemisah tanda strip: NSR2019005 -> NSR-2019-005
+// Normalisasi pemisah tanda strip: NSRYYYYXXX -> NSR-YYYY-XXX
 if (preg_match('/^NSR(\d{4})(\d{3})$/i', $cleanNik, $m)) {
     $cleanNik = 'NSR-' . $m[1] . '-' . $m[2];
 }

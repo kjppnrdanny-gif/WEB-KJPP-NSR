@@ -987,6 +987,18 @@ function checkNoLapGateStatus(identifier, docChecklist) {
 function handleQAAuditPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
+    
+    // Otorisasi Akses Sensitif (SDM, KPI, Tata Kelola)
+    if (data.action === "GET_EXECUTIVE_GOVERNANCE" || data.action === "GET_GOVERNANCE_OVERVIEW" || data.action === "GET_EMPLOYEE_KPI" || data.action === "GET_PPL_COMPLIANCE" || data.action === "SAVE_EMPLOYEE_KPI_EVAL" || data.action === "SUBMIT_PPL_RECORD") {
+      const auth = verifikasiAksesTokenQA(data.token || '', data.tokenHash || data.authTokenHash || '', data.apiKey || '');
+      if (!auth.valid) {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "error",
+          success: false,
+          error: "Akses Ditolak (401 Unauthorized): Eksekusi aksi tata kelola membutuhkan kredensial resmi valid."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
     if (data.action === "SAVE_QA_AUDIT") {
       const result = recordQAAuditLog(data.payload);
       return ContentService.createTextOutput(JSON.stringify(result))
@@ -1092,6 +1104,49 @@ function handleQAAuditPost(e) {
   }
 }
 
+function verifikasiAksesTokenQA(token, tokenHash, apiKey) {
+  if (typeof verifikasiAksesToken === 'function') {
+    return verifikasiAksesToken(token, tokenHash, apiKey);
+  }
+  try {
+    const scriptProps = PropertiesService.getScriptProperties();
+    const serverApiKey = scriptProps.getProperty('BACKEND_API_KEY') || scriptProps.getProperty('NSR_BACKEND_KEY') || 'NSR_SSOT_PROD_2026';
+    if (serverApiKey && apiKey && String(apiKey).trim() === serverApiKey.trim()) {
+      return { valid: true, role: 'ADMIN_PUSAT', mode: 'PUSAT', wilayah: 'Kantor Pusat Jakarta' };
+    }
+  } catch (_) {}
+  
+  const targetHash = (tokenHash && String(tokenHash).length === 64) 
+    ? String(tokenHash).toLowerCase() 
+    : (token ? computeSha256HexQA(String(token).trim().toUpperCase()) : '');
+
+  const HASH_AUTH = {
+    '47e9420b3a60a28be92802a6b88515da8f3fdaa624a86a9d9e57d60b859ab7c0': { valid: true, role: 'SUPER ADMIN' },
+    '34e689e4b4b12f107e810fd8f48f8a4677e1a1645f0dd4232a9240fecc2d10c2': { valid: true, role: 'SUPER ADMIN' },
+    '87a9fd928aecca6f78beb856d1bb5a1399c1be00d5cbe97a8fd1b098dfdd7b2c': { valid: true, role: 'SUPER ADMIN' },
+    '387f1132894c759ea61674434d9e7f34958a5445dc4f20c408a4a5b251396e5f': { valid: true, role: 'SUPER ADMIN' },
+    'c1def53c9c35c3e150d4f070fd2387a16f5e0ca57f6ca9fe23f368769ee4bc2f': { valid: true, role: 'SUPER ADMIN' },
+    'f0e728cbb8ea9ea8b8b53908922bffc081dc22e50855f9d4601a14ed513d7721': { valid: true, role: 'SURVEYOR' },
+    '422e642284f66071b52b6cd23e4856ee7e5acf6735f0bc5754173c270c487d4b': { valid: true, role: 'SURVEYOR' },
+    '57344967696ffd47737ce0558f151d480c8ac15ee94ecfbe9b045d25d123e6a0': { valid: true, role: 'KEUANGAN' }
+  };
+  if (targetHash && HASH_AUTH[targetHash]) {
+    return { valid: true, ...HASH_AUTH[targetHash] };
+  }
+  return { valid: false, error: 'Kredensial tidak valid' };
+}
+
+function computeSha256HexQA(str) {
+  if (!str) return '';
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(str), Utilities.Charset.UTF_8);
+  let hex = '';
+  for (let i = 0; i < digest.length; i++) {
+    const b = digest[i] & 0xFF;
+    hex += (b < 16 ? '0' : '') + b.toString(16);
+  }
+  return hex.toLowerCase();
+}
+
 function doPost(e) {
   return handleQAAuditPost(e);
 }
@@ -1114,6 +1169,16 @@ function doGet(e) {
     const result = getEligibleJobsForKwitansi(id);
     return ContentService.createTextOutput(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+  if (action === "GET_EXECUTIVE_GOVERNANCE" || action === "GET_GOVERNANCE_OVERVIEW" || action === "GET_EMPLOYEE_KPI" || action === "GET_PPL_COMPLIANCE" || action === "GET_CLIENT_SLA" || action === "GET_BANK_ORDER_OPTIMIZATION" || action === "GET_BANK_OPTIMIZATION") {
+    const auth = verifikasiAksesTokenQA(e.parameter.token || '', e.parameter.tokenHash || e.parameter.authTokenHash || '', e.parameter.apiKey || '');
+    if (!auth.valid) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        success: false,
+        error: "Akses Ditolak (401 Unauthorized): Pembacaan data tata kelola dan SDM membutuhkan otorisasi kredensial resmi."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
   }
   if (action === "GET_EXECUTIVE_GOVERNANCE" || action === "GET_GOVERNANCE_OVERVIEW") {
     const result = getExecutiveGovernanceAndAnalytics();
@@ -1392,61 +1457,7 @@ function getExecutiveGovernanceAndAnalytics(ssInstance) {
       qaRevisionCount: qaRevision
     },
     kantorMatrix: kantorMatrix,
-    anomaliList: [
-      {
-        id: "REQ-NOLAP-BDG-2026-081",
-        cabang: "Cabang Bandung",
-        pic: "Fajar Nugraha, S.T.",
-        phone: "08122334455",
-        email: "fajar.nugraha@kjppnanangrahayu.com",
-        kategori: "NOLAP_BOOKING_EXPIRED",
-        badge: "Permohonan NoLap > 7 Hari",
-        badgeColor: "rose",
-        uraian: "Permohonan nomor laporan telah dialokasikan 8 hari kerja namun berkas draf final belum diunggah ke antrean SPM.",
-        canForcePass: false,
-        deepLink: "portal-nolap.html?search=REQ-NOLAP-BDG-2026-081"
-      },
-      {
-        id: "OPR-NSR-2026-114",
-        cabang: "Kantor Pusat Jakarta",
-        pic: "Ibu Milda Hidayati Dewi, S.E.",
-        phone: "081314680998",
-        email: "hidayati.milda@yahoo.com",
-        kategori: "OPR_SLA_BOTTLE_NECK",
-        badge: "Bottleneck Opr > 36 Jam",
-        badgeColor: "amber",
-        uraian: "Pengajuan anggaran survei penilaian aset PT Bank Mandiri tertahan di meja verifikasi keuangan T2 melampaui batas SLA.",
-        canForcePass: true,
-        targetTier: 2,
-        deepLink: "portal-keuangan.html?ref=OPR-NSR-2026-114"
-      },
-      {
-        id: "SRV-PLB-2026-042",
-        cabang: "Cabang Palembang",
-        pic: "Hendra Wijaya",
-        phone: "08198765432",
-        email: "hendra.palembang@kjppnanangrahayu.com",
-        kategori: "GPS_SURVEY_OUT_OF_BOUNDS",
-        badge: "Anomali GPS > 500m",
-        badgeColor: "rose",
-        uraian: "Titik geotagging presensi survei lapangan berada pada radius 840 meter dari koordinat objek agunan di SPK (SPI 105).",
-        canForcePass: false,
-        deepLink: "portal-tracking.html?jo=0415/JO/NSR/X/2026"
-      },
-      {
-        id: "WIP-NSR-2026-009",
-        cabang: "Cabang Padang",
-        pic: "Admin Keuangan Padang",
-        phone: "081234567890",
-        email: "keuangan.padang@kjppnanangrahayu.com",
-        kategori: "WIP_UNBILLED_OVERDUE",
-        badge: "Laporan Terbit Belum Ditagih",
-        badgeColor: "amber",
-        uraian: "Laporan Penilaian resmi NoLap 0415/NSR/PN-APP/X/2026 telah terbit 5 hari kerja lalu namun kwitansi pelunasan belum diterbitkan.",
-        canForcePass: false,
-        deepLink: "portal-kwitansi.html?jo=0415/JO/NSR/X/2026"
-      }
-    ],
+    anomaliList: [],
     analytics: {
       feePerCabang: [
         { cabang: "Pusat Jakarta", fee: branches['Jakarta'].feeTotal, count: branches['Jakarta'].joBerjalan },
@@ -1907,103 +1918,59 @@ function getEmployeeKPIMetrics(ssInstance, targetPeriode) {
   const nowMs = now.getTime();
   const periode = targetPeriode || Utilities.formatDate(now, "Asia/Jakarta", "yyyy-MM");
 
-  // Direktori resmi 52 Personel KJPP NSR (bersih tanpa angka skor dummy)
-  const MASTER_52_RAW = [
-    { no: 1, nik: "NSR-2019-001", nama: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)", jabatan: "Pemimpin Rekan", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", noMappi: "92-S-00342", noRegister: "KMK No. B-1.09.0042", masaBerlakuIzin: "2028-12-31", statusPpl: "TERTIB" },
-    { no: 2, nik: "NSR-2019-002", nama: "Deni Siswandi, S.T., MAPPI (Cert.)", jabatan: "Rekan Berizin", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Izin Publik KMK", noMappi: "06-S-01980", noRegister: "KMK No. P-1.12.00318", masaBerlakuIzin: "2027-10-15", statusPpl: "TERTIB" },
-    { no: 3, nik: "NSR-2019-003", nama: "Mini Intan Cahyani", jabatan: "Rekan Non Penilai", cabang: "Pusat Jakarta", peran: "REKAN", izin: "Non-Penilai", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 4, nik: "NSR-2019-004", nama: "Milda Hidayati Dewi, S.E.", jabatan: "Manager Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Keuangan", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 5, nik: "NSR-2019-005", nama: "Danny Taufik Hidayat, S.H.", jabatan: "Kepala SPM & Manager Ops", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", noMappi: "15-P-03421", noRegister: "REG-PPPK-2015-081", masaBerlakuIzin: "2027-12-31", statusPpl: "TERTIB" },
-    { no: 6, nik: "NSR-2019-006", nama: "Arie Indra Permana", jabatan: "Manager Marketing", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Marketing", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 7, nik: "NSR-2019-007", nama: "Tedi Setiadi, S.T.", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-T", noMappi: "14-T-03112", noRegister: "REG-PPPK-2014-045", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 8, nik: "NSR-2019-008", nama: "Ricca Noer Farikha", jabatan: "Accounting & Tax", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Akuntansi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 9, nik: "NSR-2019-009", nama: "Angga Malid Cahyadi", jabatan: "Tim Review SPM", cabang: "Pusat Jakarta", peran: "REVIEWER", izin: "MAPPI-P", noMappi: "16-P-03554", noRegister: "REG-PPPK-2016-092", masaBerlakuIzin: "2027-08-30", statusPpl: "TERTIB" },
-    { no: 10, nik: "NSR-2019-010", nama: "Fadri Nurdin", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "18-A-04021", noRegister: "REG-MAPPI-2018-110", masaBerlakuIzin: "2027-06-30", statusPpl: "TERTIB" },
-    { no: 11, nik: "NSR-2019-011", nama: "Erwandi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 12, nik: "NSR-2019-012", nama: "Latief Satihi", jabatan: "Kurir Ekspedisi", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Ekspedisi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 13, nik: "NSR-2019-013", nama: "Aryanto", jabatan: "Staf Umum & Logistik", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Umum", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 14, nik: "NSR-2019-014", nama: "Yanto", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 15, nik: "NSR-2019-015", nama: "Lasiman", jabatan: "Pengemudi Operasional", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Driver", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 16, nik: "NSR-2019-016", nama: "Sukirno", jabatan: "Layanan Pendukung", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Office Boy", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 17, nik: "NSR-2019-017", nama: "Muhammad Syahrul Ruly", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "19-A-04210", noRegister: "REG-MAPPI-2019-015", masaBerlakuIzin: "2027-11-20", statusPpl: "TERTIB" },
-    { no: 18, nik: "NSR-2019-018", nama: "Uci Sanusi", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "19-A-04211", noRegister: "REG-MAPPI-2019-016", masaBerlakuIzin: "2027-11-20", statusPpl: "TERTIB" },
-    { no: 19, nik: "NSR-2019-019", nama: "Yasir Rizal, A.Md.", jabatan: "Surveyor Lapangan", cabang: "Pusat Jakarta", peran: "SURVEYOR", izin: "MAPPI-P", noMappi: "17-P-03712", noRegister: "REG-PPPK-2017-088", masaBerlakuIzin: "2027-04-18", statusPpl: "TERTIB" },
-    { no: 20, nik: "NSR-2019-020", nama: "Udin Syamsudin", jabatan: "Keamanan Kantor", cabang: "Pusat Jakarta", peran: "SUPPORT", izin: "Security", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 21, nik: "NSR-2025-021", nama: "Dhea Shafitri Ningrum", jabatan: "Staf Administrasi & Kendali Mutu", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 22, nik: "NSR-2026-022", nama: "Siti Nuraeni Ependi", jabatan: "Staf Administrasi & Registrasi SPK", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 23, nik: "NSR-2025-023", nama: "Yoga Anfiar Pradipta", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", noMappi: "20-P-04510", noRegister: "REG-PPPK-2020-033", masaBerlakuIzin: "2027-09-15", statusPpl: "TERTIB" },
-    { no: 24, nik: "NSR-2026-024", nama: "Indra Nugraha", jabatan: "Penilai Properti", cabang: "Pusat Jakarta", peran: "PENILAI", izin: "MAPPI-P", noMappi: "21-P-04612", noRegister: "REG-PPPK-2021-019", masaBerlakuIzin: "2027-08-10", statusPpl: "TERTIB" },
-    { no: 25, nik: "NSR-2025-025", nama: "Isnaini Azzahra", jabatan: "Staf Administrasi & Arsip", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 26, nik: "NSR-2026-026", nama: "Maharani Citra Charisma", jabatan: "Staf Administrasi & Keuangan", cabang: "Pusat Jakarta", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 27, nik: "NSR-PDG-2019-23", nama: "Hernita, S.Si., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Padang", peran: "REKAN", izin: "Izin Publik KMK", noMappi: "09-S-02140", noRegister: "KMK No. P-1.15.00412", masaBerlakuIzin: "2027-08-20", statusPpl: "TERTIB" },
-    { no: 28, nik: "NSR-PDG-2019-24", nama: "Rahmad Andika", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", noMappi: "16-P-03610", noRegister: "REG-PPPK-2016-104", masaBerlakuIzin: "2027-05-15", statusPpl: "TERTIB" },
-    { no: 29, nik: "NSR-PDG-2019-25", nama: "Muhammad Al Amin", jabatan: "Penilai Properti", cabang: "Cabang Padang", peran: "PENILAI", izin: "MAPPI-P", noMappi: "18-P-04105", noRegister: "REG-PPPK-2018-067", masaBerlakuIzin: "2027-06-25", statusPpl: "TERTIB" },
-    { no: 30, nik: "NSR-PDG-2019-26", nama: "Rien Soneta", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Keuangan", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 31, nik: "NSR-PDG-2019-27", nama: "Kiki Yeza", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 32, nik: "NSR-PDG-2019-28", nama: "Siti Syarah", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Padang", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 33, nik: "NSR-PDG-2019-29", nama: "Oki Oktianil Putra", jabatan: "Tenaga Pendukung Lapangan", cabang: "Cabang Padang", peran: "SUPPORT", izin: "Supporting", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 34, nik: "NSR-MKS-2019-30", nama: "Muhammad Amin Sade, S.M., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Makassar", peran: "REKAN", izin: "Izin Publik KMK", noMappi: "11-S-02511", noRegister: "KMK No. P-1.17.00489", masaBerlakuIzin: "2027-05-30", statusPpl: "TERTIB" },
-    { no: 35, nik: "NSR-MKS-2019-31", nama: "Wawan Kurniawan", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Makassar", peran: "PENILAI", izin: "MAPPI-P", noMappi: "17-P-03822", noRegister: "REG-PPPK-2017-122", masaBerlakuIzin: "2027-04-12", statusPpl: "TERTIB" },
-    { no: 36, nik: "NSR-MKS-2019-32", nama: "Alauddin Amin", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "19-A-04312", noRegister: "REG-MAPPI-2019-055", masaBerlakuIzin: "2027-10-10", statusPpl: "TERTIB" },
-    { no: 37, nik: "NSR-MKS-2020-33", nama: "M Fajrullah Danial", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "20-A-04421", noRegister: "REG-MAPPI-2020-041", masaBerlakuIzin: "2027-10-10", statusPpl: "TERTIB" },
-    { no: 38, nik: "NSR-MKS-2021-34", nama: "Rahmad Dwi Susanto", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "21-A-04533", noRegister: "REG-MAPPI-2021-032", masaBerlakuIzin: "2027-09-18", statusPpl: "TERTIB" },
-    { no: 39, nik: "NSR-MKS-2020-35", nama: "Andika Rifky Rifaldy", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "20-A-04455", noRegister: "REG-MAPPI-2020-077", masaBerlakuIzin: "2027-09-18", statusPpl: "TERTIB" },
-    { no: 40, nik: "NSR-MKS-2019-36", nama: "Ilyas Tandialla", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "19-A-04388", noRegister: "REG-MAPPI-2019-091", masaBerlakuIzin: "2027-07-22", statusPpl: "TERTIB" },
-    { no: 41, nik: "NSR-MKS-2019-37", nama: "Arman Mustajab", jabatan: "Surveyor Lapangan", cabang: "Cabang Makassar", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "19-A-04399", noRegister: "REG-MAPPI-2019-099", masaBerlakuIzin: "2027-07-22", statusPpl: "TERTIB" },
-    { no: 42, nik: "NSR-BDG-2020-38", nama: "Heru Kurnia", jabatan: "Business Development Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Marketing", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 43, nik: "NSR-BDG-2020-39", nama: "Ardi Nurmayadi, S.T.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", noMappi: "16-P-03598", noRegister: "REG-PPPK-2016-118", masaBerlakuIzin: "2027-05-10", statusPpl: "TERTIB" },
-    { no: 44, nik: "NSR-BDG-2020-40", nama: "Andri Kusmandana, S.Ak.", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Bandung", peran: "PENILAI", izin: "MAPPI-P", noMappi: "17-P-03890", noRegister: "REG-PPPK-2017-094", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 45, nik: "NSR-BDG-2020-41", nama: "Tiara Hurairah", jabatan: "Staf Keuangan & Kasir Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Keuangan", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 46, nik: "NSR-BDG-2020-42", nama: "Achmad Ilham Fauzan", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Bandung", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 47, nik: "NSR-BDG-2020-43", nama: "Rahmat Muhammad Hussein", jabatan: "Surveyor Lapangan", cabang: "Cabang Bandung", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "20-A-04480", noRegister: "REG-MAPPI-2020-101", masaBerlakuIzin: "2027-08-15", statusPpl: "TERTIB" },
-    { no: 48, nik: "NSR-PLB-2022-44", nama: "Dharma Priyanto Sih Budi Susilo, S.T., MAPPI (Cert.)", jabatan: "Kepala Cabang / Rekan Berizin", cabang: "Cabang Palembang", peran: "REKAN", izin: "Izin Publik KMK", noMappi: "12-S-02790", noRegister: "KMK No. P-1.18.00512", masaBerlakuIzin: "2027-03-25", statusPpl: "TERTIB" },
-    { no: 49, nik: "NSR-PLB-2022-45", nama: "Rafdinal Ardhi", jabatan: "Penilai Properti & Reviewer SPM", cabang: "Cabang Palembang", peran: "PENILAI", izin: "MAPPI-P", noMappi: "18-P-04129", noRegister: "REG-PPPK-2018-055", masaBerlakuIzin: "-", statusPpl: "TERTIB" },
-    { no: 50, nik: "NSR-PLB-2022-46", nama: "Arwin Saputra", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "22-A-04610", noRegister: "REG-MAPPI-2022-012", masaBerlakuIzin: "2027-09-01", statusPpl: "TERTIB" },
-    { no: 51, nik: "NSR-PLB-2022-47", nama: "Hadyan Fikhri", jabatan: "Surveyor Lapangan", cabang: "Cabang Palembang", peran: "SURVEYOR", izin: "MAPPI-A", noMappi: "22-A-04618", noRegister: "REG-MAPPI-2022-019", masaBerlakuIzin: "2027-09-01", statusPpl: "TERTIB" },
-    { no: 52, nik: "NSR-PLB-2022-48", nama: "M. Deo Tansila Putra", jabatan: "Staf Administrasi Cabang", cabang: "Cabang Palembang", peran: "ADMIN", izin: "Administrasi", noMappi: "-", noRegister: "-", masaBerlakuIzin: "-", statusPpl: "TERTIB" }
-  ];
-
-  const employeeSource = MASTER_52_RAW.slice();
-
-  // 1. Baca sheet MASTER_KARYAWAN jika ada untuk sinkronisasi profil
+  // 1. Baca direktori resmi personel secara dinamis dari sheet Master_Personil / MASTER_KARYAWAN (Zero-Trust SSOT)
+  const employeeSource = [];
   if (ss) {
     try {
-      const sheetKaryawan = ss.getSheetByName("MASTER_KARYAWAN") || ss.getSheetByName("DATA_KARYAWAN") || ss.getSheetByName("KARYAWAN");
+      const sheetKaryawan = ss.getSheetByName("Master_Personil") || ss.getSheetByName("MASTER_KARYAWAN") || ss.getSheetByName("DATA_KARYAWAN") || ss.getSheetByName("KARYAWAN");
       if (sheetKaryawan && sheetKaryawan.getLastRow() >= 2) {
         const kValues = sheetKaryawan.getDataRange().getValues();
         const kHeaders = kValues[0].map(function(h) { return String(h).trim().toUpperCase(); });
         const idxNama = kHeaders.indexOf("NAMA") !== -1 ? kHeaders.indexOf("NAMA") : kHeaders.indexOf("NAMA_KARYAWAN");
         const idxNik = kHeaders.indexOf("NIK");
-        const idxMappi = kHeaders.indexOf("NOMOR_MAPPI") !== -1 ? kHeaders.indexOf("NOMOR_MAPPI") : kHeaders.indexOf("NO_MAPPI");
-        const idxReg = kHeaders.indexOf("NO_REGISTER") !== -1 ? kHeaders.indexOf("NO_REGISTER") : kHeaders.indexOf("NO_IZIN_KMK");
-        const idxMasa = kHeaders.indexOf("MASA_BERLAKU_IZIN") !== -1 ? kHeaders.indexOf("MASA_BERLAKU_IZIN") : kHeaders.indexOf("TGL_KADALUARSA_IZIN");
+        const idxJabatan = kHeaders.indexOf("JABATAN");
+        const idxCabang = kHeaders.indexOf("CABANG") !== -1 ? kHeaders.indexOf("CABANG") : (kHeaders.indexOf("KANTOR_CABANG") !== -1 ? kHeaders.indexOf("KANTOR_CABANG") : kHeaders.indexOf("KANTOR_WILAYAH"));
+        const idxPeran = kHeaders.indexOf("PERAN") !== -1 ? kHeaders.indexOf("PERAN") : kHeaders.indexOf("ROLE");
+        const idxIzin = kHeaders.indexOf("IZIN") !== -1 ? kHeaders.indexOf("IZIN") : (kHeaders.indexOf("IZIN_PUBLIK") !== -1 ? kHeaders.indexOf("IZIN_PUBLIK") : kHeaders.indexOf("NO_IZIN_MENKEU"));
+        const idxMappi = kHeaders.indexOf("NOMOR_MAPPI") !== -1 ? kHeaders.indexOf("NOMOR_MAPPI") : (kHeaders.indexOf("NO_MAPPI") !== -1 ? kHeaders.indexOf("NO_MAPPI") : kHeaders.indexOf("MAPPI"));
+        const idxReg = kHeaders.indexOf("NO_REGISTER") !== -1 ? kHeaders.indexOf("NO_REGISTER") : (kHeaders.indexOf("NO_IZIN_KMK") !== -1 ? kHeaders.indexOf("NO_IZIN_KMK") : kHeaders.indexOf("RMK"));
+        const idxMasa = kHeaders.indexOf("MASA_BERLAKU_IZIN") !== -1 ? kHeaders.indexOf("MASA_BERLAKU_IZIN") : (kHeaders.indexOf("TGL_KADALUARSA_IZIN") !== -1 ? kHeaders.indexOf("TGL_KADALUARSA_IZIN") : kHeaders.indexOf("TGL_BERLAKU_IZIN"));
         const idxPpl = kHeaders.indexOf("STATUS_PPL_MAPPI") !== -1 ? kHeaders.indexOf("STATUS_PPL_MAPPI") : kHeaders.indexOf("STATUS_PPL");
 
         for (let i = 1; i < kValues.length; i++) {
           const row = kValues[i];
           const kNik = idxNik !== -1 ? String(row[idxNik] || "").trim() : "";
           const kNama = idxNama !== -1 ? String(row[idxNama] || "").trim() : "";
-          if (!kNik && !kNama) continue;
+          if (!kNama && !kNik) continue;
 
-          for (let j = 0; j < employeeSource.length; j++) {
-            if ((kNik && employeeSource[j].nik === kNik) || (kNama && employeeSource[j].nama.indexOf(kNama) !== -1)) {
-              if (idxMappi !== -1 && row[idxMappi]) employeeSource[j].noMappi = String(row[idxMappi]).trim();
-              if (idxReg !== -1 && row[idxReg]) employeeSource[j].noRegister = String(row[idxReg]).trim();
-              if (idxMasa !== -1 && row[idxMasa]) {
-                const rawMasa = row[idxMasa];
-                if (rawMasa instanceof Date) {
-                  employeeSource[j].masaBerlakuIzin = Utilities.formatDate(rawMasa, "Asia/Jakarta", "yyyy-MM-dd");
-                } else {
-                  employeeSource[j].masaBerlakuIzin = String(rawMasa).trim();
-                }
-              }
-              if (idxPpl !== -1 && row[idxPpl]) employeeSource[j].statusPpl = String(row[idxPpl]).trim();
-              break;
+          let masaBerlaku = "-";
+          if (idxMasa !== -1 && row[idxMasa]) {
+            const rawMasa = row[idxMasa];
+            if (rawMasa instanceof Date) {
+              masaBerlaku = Utilities.formatDate(rawMasa, "Asia/Jakarta", "yyyy-MM-dd");
+            } else {
+              masaBerlaku = String(rawMasa).trim();
             }
           }
+
+          employeeSource.push({
+            no: employeeSource.length + 1,
+            nik: kNik || ("NSR-EMP-" + String(employeeSource.length + 1).padStart(3, '0')),
+            nama: kNama,
+            jabatan: idxJabatan !== -1 ? String(row[idxJabatan] || "Staf").trim() : "Staf",
+            cabang: idxCabang !== -1 ? String(row[idxCabang] || "Pusat Jakarta").trim() : "Pusat Jakarta",
+            peran: idxPeran !== -1 ? String(row[idxPeran] || "PENILAI").trim() : "PENILAI",
+            izin: idxIzin !== -1 ? String(row[idxIzin] || "-").trim() : "-",
+            noMappi: idxMappi !== -1 ? String(row[idxMappi] || "-").trim() : "-",
+            noRegister: idxReg !== -1 ? String(row[idxReg] || "-").trim() : "-",
+            masaBerlakuIzin: masaBerlaku,
+            statusPpl: idxPpl !== -1 ? String(row[idxPpl] || "TERTIB").trim() : "TERTIB"
+          });
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      console.warn("Gagal membaca personil dari SSOT:", e);
+    }
   }
 
   // 2. Baca Evaluasi Manual dari Sheet DB_EVALUASI_KPI_SDM
@@ -3149,7 +3116,7 @@ function generateQuarterlySampling(payload, ssInstance) {
     const samplingSeed = [
       {
         noLaporan: "00120/2.0160-00/PI/02/0218/1/II/2026",
-        noJo: "JO-NSR-2026-8084",
+        noJo: "JO-2026-8084",
         klien: "PT Bank Tabungan Negara (Persero) Tbk",
         cabang: "Pusat Jakarta",
         rekan: "Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)",
@@ -3163,7 +3130,7 @@ function generateQuarterlySampling(payload, ssInstance) {
       },
       {
         noLaporan: "00045/2.0160-04/PI/02/00581/1/II/2026",
-        noJo: "JO-NSR-2026-0412",
+        noJo: "JO-2026-0412",
         klien: "PT Bank Mandiri (Persero) Tbk - SME Bandung",
         cabang: "Bandung",
         rekan: "Deni Siswandi, S.Si., M.Sc., MAPPI (Cert.)",
@@ -3177,7 +3144,7 @@ function generateQuarterlySampling(payload, ssInstance) {
       },
       {
         noLaporan: "00018/2.0160-02/PI/02/00046/1/II/2026",
-        noJo: "JO-NSR-2026-0118",
+        noJo: "JO-2026-0118",
         klien: "PT Bank Rakyat Indonesia (Persero) Tbk - Padang",
         cabang: "Padang",
         rekan: "Hernita, S.Si., MAPPI (Cert.)",
@@ -3191,7 +3158,7 @@ function generateQuarterlySampling(payload, ssInstance) {
       },
       {
         noLaporan: "00022/2.0160-03/PI/02/00126/1/II/2026",
-        noJo: "JO-NSR-2026-0294",
+        noJo: "JO-2026-0294",
         klien: "PT Bank Syariah Indonesia Tbk - RO Makassar",
         cabang: "Makassar",
         rekan: "Muhammad Amin Sade, S.T., MAPPI (Cert.)",
@@ -3205,7 +3172,7 @@ function generateQuarterlySampling(payload, ssInstance) {
       },
       {
         noLaporan: "00015/2.0160-05/PI/02/00249/1/II/2026",
-        noJo: "JO-NSR-2026-0331",
+        noJo: "JO-2026-0331",
         klien: "PT Bank Danamon Indonesia Tbk - Palembang",
         cabang: "Palembang",
         rekan: "Dharma Priyanto, S.E., MAPPI (Cert.)",

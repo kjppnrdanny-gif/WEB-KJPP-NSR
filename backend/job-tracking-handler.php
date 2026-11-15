@@ -742,7 +742,7 @@ function getInitialSeedData() {
         'unit_kerja' => 'KC Jakarta Kuningan',
         'debitur' => 'Hendra Wijaya, S.T.',
         'pic_pemohon' => 'Rian Pratama, S.E. (Loan Officer BTN)',
-        'pic_contact' => '081288997766',
+        'pic_contact' => '085110513157',
         'kantor' => 'Kantor Pusat Jakarta',
         'kantor_code' => 'PUSAT',
         'jenis_properti' => 'KPR Retail (Rumah Tinggal)',
@@ -795,9 +795,9 @@ function getInitialSeedData() {
         'unit_kerja' => 'Commercial Banking Center Bandung',
         'debitur' => 'PT Sentosa Abadi Makmur',
         'pic_pemohon' => 'Dewi Sartika, S.T.',
-        'pic_contact' => '081322445566',
+        'pic_contact' => '085110513157',
         'client_pic_name' => 'Dewi Sartika, S.T.',
-        'client_pic_phone' => '081322445566',
+        'client_pic_phone' => '085110513157',
         'kantor' => 'Cabang Bandung',
         'kantor_code' => 'BDG',
         'jenis_properti' => 'Gedung Kantor & Showroom Komersial',
@@ -823,13 +823,13 @@ function getInitialSeedData() {
                 'jenis_properti' => 'Ruko / Gedung Komersial', 'status_data' => 'Penawaran',
                 'harga' => 3200000000, 'luas_tanah' => 250, 'luas_bangunan' => 300, 'lebar_jalan' => 10,
                 'harga_per_m2' => 12800000, 'alamat' => 'Jl. Soekarno Hatta No. 420, Bandung',
-                'narasumber_nama' => 'Agus Salim', 'narasumber_kontak' => '08122334455',
+                'narasumber_nama' => 'Agus Salim', 'narasumber_kontak' => '085110513157',
                 'narasumber_status' => 'Broker Ray White', 'gps_latitude' => -6.938500,
                 'gps_longitude' => 107.625400, 'gps_accuracy' => 12,
                 'filename' => 'DP-01_RukoKomersial_12800000_20261030.jpg',
                 'foto_url' => 'images/pembanding_sample_1.jpg',
                 'foto_base64' => '', 'drive_file_url' => 'https://drive.google.com/open?id=mock-drive-dp-01',
-                'timestamp' => '30 Okt 2026, 14:15 WIB', 'surveyor_nik' => 'NSR-2019-002',
+                'timestamp' => '30 Okt 2026, 14:15 WIB', 'surveyor_nik' => 'SRV-PST-01',
                 'surveyor_nama' => 'Hendra Wijaya, S.T.'
             ],
             'DP-02' => [
@@ -837,13 +837,13 @@ function getInitialSeedData() {
                 'jenis_properti' => 'Bangunan Komersial 2 Lantai', 'status_data' => 'Penawaran',
                 'harga' => 2950000000, 'luas_tanah' => 220, 'luas_bangunan' => 260, 'lebar_jalan' => 8,
                 'harga_per_m2' => 13409091, 'alamat' => 'Jl. Buah Batu No. 188, Bandung',
-                'narasumber_nama' => 'Ibu Lenny', 'narasumber_kontak' => '08133445566',
+                'narasumber_nama' => 'Ibu Lenny', 'narasumber_kontak' => '085110513157',
                 'narasumber_status' => 'Agen ERA Bandung', 'gps_latitude' => -6.941200,
                 'gps_longitude' => 107.628900, 'gps_accuracy' => 15,
                 'filename' => 'DP-02_BangunanKomersial_13409091_20261030.jpg',
                 'foto_url' => 'images/pembanding_sample_2.jpg',
                 'foto_base64' => '', 'drive_file_url' => 'https://drive.google.com/open?id=mock-drive-dp-02',
-                'timestamp' => '30 Okt 2026, 16:30 WIB', 'surveyor_nik' => 'NSR-2019-002',
+                'timestamp' => '30 Okt 2026, 16:30 WIB', 'surveyor_nik' => 'SRV-PST-01',
                 'surveyor_nama' => 'Hendra Wijaya, S.T.'
             ]
         ],
@@ -874,7 +874,7 @@ function getInitialSeedData() {
         'unit_kerja' => 'Kantor Wilayah BRI Makassar',
         'debitur' => 'CV Celebes Bahari Agro',
         'pic_pemohon' => 'Andi Muhammad Rusli',
-        'pic_contact' => '08114567890',
+        'pic_contact' => '085110513157',
         'kantor' => 'Cabang Makassar',
         'kantor_code' => 'MKS',
         'jenis_properti' => 'Pabrik Pengolahan Hasil Laut & Cold Storage',
@@ -920,7 +920,7 @@ function getInitialSeedData() {
         'unit_kerja' => 'Cabang Utama Padang',
         'debitur' => 'CV Minang Mandiri Agro',
         'pic_pemohon' => 'Zulhendri, S.E.',
-        'pic_contact' => '081277665544',
+        'pic_contact' => '085110513157',
         'kantor' => 'Cabang Padang',
         'kantor_code' => 'PDG',
         'jenis_properti' => 'Ruko 3 Pintu & Gudang Distribusi',
@@ -967,7 +967,7 @@ function getInitialSeedData() {
         'unit_kerja' => 'KCU A. Rivai Palembang',
         'debitur' => 'PT Sriwijaya Perkasa Sawit',
         'pic_pemohon' => 'Hendra Gunawan',
-        'pic_contact' => '081271882233',
+        'pic_contact' => '085110513157',
         'kantor' => 'Cabang Palembang',
         'kantor_code' => 'PLM',
         'jenis_properti' => 'Kawasan Pergudangan & Workshop Alat Berat',
@@ -1014,7 +1014,7 @@ function getInitialSeedData() {
         'unit_kerja' => 'KCU Thamrin Jakarta',
         'debitur' => 'PT Surya Cipta Megah',
         'pic_pemohon' => 'Kevin Tanuwijaya',
-        'pic_contact' => '081299881122',
+        'pic_contact' => '085110513157',
         'kantor' => 'Kantor Pusat Jakarta',
         'kantor_code' => 'PUSAT',
         'jenis_properti' => 'Ruko 4 Lantai & Kantor Komersial',
@@ -1083,7 +1083,7 @@ function loadData($storageFile) {
                     $updated = true;
                 }
                 if (!isset($row['client_pic_phone'])) {
-                    $row['client_pic_phone'] = $row['pic_contact'] ?? '081288997766';
+                    $row['client_pic_phone'] = $row['pic_contact'] ?? '085110513157';
                     $updated = true;
                 }
                 if (!isset($row['survey_contact_name'])) {
@@ -1091,7 +1091,7 @@ function loadData($storageFile) {
                     $updated = true;
                 }
                 if (!isset($row['survey_contact_phone'])) {
-                    $row['survey_contact_phone'] = '081388772211';
+                    $row['survey_contact_phone'] = '085110513157';
                     $updated = true;
                 }
                 if (!isset($row['klasifikasi_izin_objek'])) {
@@ -2031,7 +2031,7 @@ if ($action === 'create' || $action === 'create_job_order') {
     $penggunaLaporan = trim((string)($payload['pengguna_laporan'] ?? $pemberiTugas));
     $debitur = trim((string)($payload['debitur'] ?? 'Debitur Baru'));
     $clientPicName = trim((string)($payload['client_pic_name'] ?? $payload['pic_pemohon'] ?? 'PIC Pemberi Tugas'));
-    $clientPicPhone = trim((string)($payload['client_pic_phone'] ?? $payload['pic_contact'] ?? '081288997766'));
+    $clientPicPhone = trim((string)($payload['client_pic_phone'] ?? $payload['pic_contact'] ?? '085110513157'));
     $surveyContactName = trim((string)($payload['survey_contact_name'] ?? ($debitur . ' (Pendamping Lapangan)')));
     $surveyContactPhone = trim((string)($payload['survey_contact_phone'] ?? ''));
     $tujuanPenilaian = trim((string)($payload['tujuan_penilaian'] ?? 'Penjaminan Utang / Agunan Kredit'));
@@ -2218,7 +2218,7 @@ if ($action === 'get_jo_suggestions') {
                 $tglSpk = !empty($item['createdAt']) ? substr($item['createdAt'], 0, 10) : date('Y-m-d');
                 $objek = $item['jenisObjek'] ?? 'Tanah & Bangunan';
                 $lokasi = $item['objek_penilaian'][0]['alamat'] ?? ($item['projectData']['alamat_objek'] ?? ($item['lokasiObjek'] ?? $lingkup));
-                $kontak = $item['pengguna_laporan']['kontak'] ?? ($item['projectData']['kontak_pic'] ?? '081288997766');
+                $kontak = $item['pengguna_laporan']['kontak'] ?? ($item['projectData']['kontak_pic'] ?? '085110513157');
                 $kantor = $item['kantorAsal'] ? (stripos($item['kantorAsal'], 'Kantor') !== false ? $item['kantorAsal'] : ('Cabang ' . $item['kantorAsal'])) : 'Kantor Pusat Jakarta';
 
                 $suggestions[] = [
@@ -2262,7 +2262,7 @@ if ($action === 'get_jo_suggestions') {
                         'instansi' => $item['namaKlien'] ?? $item['nama_klien'] ?? 'Bank Mitra',
                         'unit_kerja' => $item['cabang'] ?? 'Kantor Pusat',
                         'debitur' => $item['nama_debitur'] ?? $item['namaKlien'] ?? 'Debitur',
-                        'pic_contact' => $item['waPemohon'] ?? '081288997766',
+                        'pic_contact' => $item['waPemohon'] ?? '085110513157',
                         'jenis_properti' => $item['jenisObjek'] ?? 'Properti Residensial / Komersial',
                         'lokasi_aset' => $item['lokasiObjek'] ?? 'Alamat Aset Terdaftar',
                         'kantor' => 'Kantor ' . ($item['cabang'] ?? 'Pusat Jakarta'),
@@ -2358,7 +2358,7 @@ if ($action === 'get_spm_checklist') {
             'spm_status' => $targetJob['spm_status'] ?? 'PENDING',
             'spm_review_notes' => $targetJob['spm_review_notes'] ?? 'Kertas kerja telah diverifikasi memenuhi standar mutu SPI 105 dan pedoman operasional KJPP NSR.',
             'spm_reviewed_by' => $targetJob['spm_reviewed_by'] ?? [
-                'nik' => 'NSR-2019-007',
+                'nik' => 'REV-PST-01',
                 'nama' => 'Tedi Setiadi',
                 'jabatan' => 'Reviewer SPM Pusat',
                 'kantor' => 'Kantor Pusat Jakarta',
@@ -2483,15 +2483,14 @@ if ($action === 'generate_nolap' || $action === 'request_nolap') {
 
     // Kode Penilai Publik Izin Segmen
     $appraiserLicenseMap = [
-        'NSR-2019-001'   => '00581', // Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)
-        'NSR-2019-002'   => '00045', // Deni Siswandi, S.T., MAPPI (Cert.)
-        'NSR-PLB-2022-44' => '00312', // Dharma Priyanto S.B.S., S.T., MAPPI (Cert.)
-        'NSR-MKS-2019-30' => '00421', // Muhammad Amin Sade, S.M., MAPPI (Cert.)
-        'NSR-PDG-2019-23' => '00350', // Hernita, S.Si., MAPPI (Cert.)
-        'NSR-PLB-2019-44' => '00312'  // Palembang Alt
+        'PUSAT'     => '00581',
+        'BANDUNG'   => '00045',
+        'PALEMBANG' => '00312',
+        'MAKASSAR'  => '00421',
+        'PADANG'    => '00350'
     ];
-    $appraiserLicenseCode = $appraiserLicenseMap[$user['nik']] ?? '00581';
-
+    $appraiserLicenseCode = $appraiserLicenseMap[$kantorCode] ?? '00581';
+    
     // Bidang & Sektor
     $reportServiceCode = 'PI'; // Standar SPI 105: Penilaian Properti (Dilarang PS)
     $industrySector = '07'; // Komersial / Umum

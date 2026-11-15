@@ -838,7 +838,7 @@
         <label for="input-email-mandiri" class="block text-[11px] font-bold text-slate-300 uppercase">
           Alamat Email Aktif <span class="text-rose-400">*</span>
         </label>
-        <input type="email" id="input-email-mandiri" placeholder="contoh: nama.karyawan@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition">
+        <input type="email" id="input-email-mandiri" placeholder="contoh: nama.karyawan@kjppnanangrahayu.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition">
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-2">
@@ -1149,8 +1149,8 @@
 
       // 1. Coba Backend SSOT Proxy (Netlify Serverless / Apache)
       try {
-        const tokenHdr = payload.sessionToken || sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') || atob('TlNSODg5OQ==');
-        const nikHdr = payload.nik || sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || 'NSR-2019-005';
+        const tokenHdr = payload.sessionToken || sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') ;
+        const nikHdr = payload.nik || sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || '';
         const res = await fetch(`${BACKEND_API_URL}?action=${encodeURIComponent(action)}`, {
           method: 'POST',
           headers: {
@@ -1369,7 +1369,7 @@
         if (sessionToken && val !== sessionNik) {
           logoutSesi();
         }
-        if (val === 'NSR-2019-005') {
+        if (false) {
           resetTombolKirimOTP();
         }
       });
@@ -1533,7 +1533,7 @@
           email: data.email || res.email || '',
           gps_wfh: data.gps_wfh || res.gps_wfh || '',
           alamat_wfh: data.alamat_wfh || res.alamat_wfh || '',
-          isAdminHR: !!(data.isAdminHR || res.isAdminHR || cleanNik === 'NSR-2019-005')
+          isAdminHR: !!(data.isAdminHR || res.isAdminHR || false)
         };
 
         const warnBanner = document.getElementById('banner-warning-default-pin');
@@ -1695,7 +1695,7 @@
           email: data.email || res.email || (sessionUser ? sessionUser.email : ''),
           gps_wfh: data.gps_wfh || res.gps_wfh || (sessionUser ? sessionUser.gps_wfh : ''),
           alamat_wfh: data.alamat_wfh || res.alamat_wfh || (sessionUser ? sessionUser.alamat_wfh : ''),
-          isAdminHR: !!(data.isAdminHR || res.isAdminHR || sessionNik === 'NSR-2019-005')
+          isAdminHR: !!(data.isAdminHR || res.isAdminHR || false)
         };
 
         const warnBanner = document.getElementById('banner-warning-default-pin');
@@ -1741,7 +1741,7 @@
       const emailVal = (inpEmail?.value || '').trim();
 
       if (!emailVal || !emailVal.includes('@') || !emailVal.includes('.')) {
-        bukaModalNotif('Perhatian ⚠️', 'Harap masukkan alamat email yang valid! (Contoh: nama@gmail.com)', false);
+        bukaModalNotif('Perhatian ⚠️', 'Harap masukkan alamat email yang valid! (Contoh: nama@kjppnanangrahayu.com)', false);
         if (inpEmail) inpEmail.focus();
         return;
       }
@@ -1797,7 +1797,7 @@
           jabatan: data.jabatan || pendingUserForEmailUpdate?.jabatan || '',
           divisi: data.divisi || pendingUserForEmailUpdate?.divisi || '',
           cabang: data.cabang || pendingUserForEmailUpdate?.cabang || 'Pusat Jakarta',
-          isAdminHR: !!(data.isAdminHR || sessionNik === 'NSR-2019-005')
+          isAdminHR: !!(data.isAdminHR || false)
         };
 
         // Simpan sesi
@@ -2010,7 +2010,7 @@
     window.kunciInputNikSecaraMutlak = kunciInputNikSecaraMutlak;
 
     // =========================================================================
-    // ENHANCEMENT: DIRECT ROLE ACCESS ADMIN HR (NSR-2019-005)
+    // ENHANCEMENT: DIRECT ROLE ACCESS ADMIN HR (Admin HR)
     // =========================================================================
     function cekStatusOtoritasAdminHR() {
       try {
@@ -2035,9 +2035,7 @@
 
         const isAuthorized = 
           isUnlocked ||
-          activeNik === 'NSR-2019-005' ||
-          activeNik === 'NSR-2019-001' ||
-          activeNik === 'NSR-2019-004' ||
+          
           
           isAdminPusat ||
           Boolean(sUser && sUser.isAdminHR);
@@ -2047,19 +2045,8 @@
           if (activeNik) sessionStorage.setItem('nsr_presensi_active_nik', activeNik);
           if (!sessionToken && activeToken) sessionToken = activeToken;
           if (!sessionNik && activeNik) sessionNik = activeNik;
-          if (!sessionToken) sessionToken = atob('TlNSODg5OQ==');
-          if (!sessionNik) sessionNik = 'NSR-2019-005';
-          if (!sessionUser) {
-            sessionUser = {
-              nama: (activeNik === 'NSR-2019-001') ? 'Ir. Nanang Rahayu, M.Ec.Dev., MAPPI (Cert.)' : ((activeNik === 'NSR-2019-004') ? 'Milda Hidayati Dewi, S.E.' : 'Danny Taufik Hidayat, S.E., S.H.'),
-              jabatan: (activeNik === 'NSR-2019-001') ? 'Pemimpin Rekan' : ((activeNik === 'NSR-2019-004') ? 'Manager Keuangan' : 'Manager Admin & SDM'),
-              divisi: (activeNik === 'NSR-2019-004') ? 'Keuangan' : 'Administrasi & Umum',
-              cabang: 'Pusat Jakarta',
-              isAdminHR: true
-            };
-          } else {
-            sessionUser.isAdminHR = true;
-          }
+          
+          if (sessionUser) { sessionUser.isAdminHR = true; }
 
           const bDash = document.getElementById('tab-btn-dashboard');
           if (bDash) bDash.classList.remove('hidden');
@@ -2897,7 +2884,7 @@
       deteksiSesiOpiniNsr();
       periksaDirectNikLogin();
       
-      // Pengecekan Akses Instan Admin HR (NSR-2019-005 / Super Admin)
+      // Pengecekan Akses Instan Admin HR (Admin HR)
       const isHR = cekStatusOtoritasAdminHR();
       const urlParams = new URLSearchParams(window.location.search);
       if (isHR && (urlParams.get('tab') === 'dashboard' || urlParams.get('tab') === 'admin' || urlParams.get('mode') === 'hr')) {
@@ -3076,8 +3063,8 @@
       cekStatusOtoritasAdminHR();
       const tableBody = document.getElementById('hr-monitoring-table-body');
       const monList = document.getElementById('hr-monitoring-list');
-      const tokenToSend = sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') || atob('TlNSODg5OQ==');
-      const nikToSend = sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || 'NSR-2019-005';
+      const tokenToSend = sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') ;
+      const nikToSend = sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || '';
 
       if (!sessionToken && !cekStatusOtoritasAdminHR()) {
         if (tableBody) {
@@ -3428,8 +3415,8 @@
     async function eksekusiSyncMasterGoogleSheet() {
       bukaModalNotif("Sinkronisasi 5 Tab Sheet 🔄", "Menghubungkan ke Google Spreadsheet resmi (MASTER_KARYAWAN, ABSENSI, PENGAJUAN_CUTI, MASTER_WFH, DASHBOARD)...");
       try {
-        const tokenToSend = sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') || atob('TlNSODg5OQ==');
-        const nikToSend = sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || 'NSR-2019-005';
+        const tokenToSend = sessionToken || sessionStorage.getItem('NSR_AUTH_TOKEN') ;
+        const nikToSend = sessionNik || sessionStorage.getItem('nsr_presensi_active_nik') || '';
         const res = await callBackend('syncMasterKaryawan', {
           sessionToken: tokenToSend,
           admin_nik: nikToSend

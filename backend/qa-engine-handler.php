@@ -33,7 +33,7 @@ function getInitialSeedReviews() {
         'reviews' => [
             [
                 'id' => 'rev-fifa-0881',
-                'job_order_id' => 'JO-NSR-2026-0881',
+                'job_order_id' => 'JO-2026-0881',
                 'file_name' => '2026 BTN Jalan Dr Sutomo No 94 an PT FIFA MEDIKA (RUMAH SAKIT).pdf',
                 'file_hash' => '78ab825475a6b83360048375d70b6fc8c3c4688afa6957e011192e95c05c6eef',
                 'total_pages' => 63,
@@ -102,7 +102,7 @@ function getInitialSeedReviews() {
             ],
             [
                 'id' => 'rev-sari-0412',
-                'job_order_id' => 'JO-NSR-2026-0412',
+                'job_order_id' => 'JO-2026-0412',
                 'file_name' => 'BTN CBC Bekasi - Laporan KYG PT Ivander Putra Sukses - Permata Harapan Sarimukti (313 Unit)_ Revisi Laporan.pdf',
                 'file_hash' => 'd2d20647bf8ec3d82d154e494d8baf5572bcf13b33c913d1b8b962a95ffb789e',
                 'total_pages' => 123,

