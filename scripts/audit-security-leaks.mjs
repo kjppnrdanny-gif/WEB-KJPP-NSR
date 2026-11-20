@@ -69,7 +69,10 @@ const AUDIT_RULES = [
     id: 'LEAK-INTERNAL-EMAIL',
     name: 'Email Pribadi / Non-Domain Resmi (@yahoo / @gmail)',
     regex: /[a-zA-Z0-9._%+-]+@(?:yahoo\.com|yahoo\.co\.id|gmail\.com)/gi,
-    isWhitelisted: (val) => val.toLowerCase() === 'kjppnanangrahayu@gmail.com'
+    isWhitelisted: (val) => {
+      const v = val.toLowerCase();
+      return v === 'kjppnanangrahayu@gmail.com' || v === 'nanang_kjpp@yahoo.co.id';
+    }
   }
 ];
 
